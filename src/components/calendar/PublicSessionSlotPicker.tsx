@@ -37,6 +37,8 @@ type Props = {
   settingsOverride?: CalendarBookingSettings;
   /** Hide duration chips when duration is controlled elsewhere (e.g. partner booking form). */
   showDurationPicker?: boolean;
+  /** When true, renders inside a parent panel card — no extra borders or nested catalog shell. */
+  embeddedInPanel?: boolean;
 };
 
 /** Public-facing date + specific time slot picker — matches internal Calendar OS flow. */
@@ -51,6 +53,7 @@ export function PublicSessionSlotPicker({
   urgencySignal,
   settingsOverride,
   showDurationPicker = true,
+  embeddedInPanel = false,
 }: Props) {
   const [storeVersion, setStoreVersion] = useState(0);
   useEffect(() => {
@@ -143,8 +146,15 @@ export function PublicSessionSlotPicker({
 
   const todayKey = isoDayKey(new Date());
 
+  const rootClass = embeddedInPanel ? 'space-y-4 min-w-0' : 'space-y-3 border-t border-white/10 pt-4';
+  const calendarShellClass = embeddedInPanel
+    ? 'grid grid-cols-1 min-[520px]:grid-cols-12 gap-5 items-start min-w-0'
+    : `${finelyOsCatalogCard('sky')} !p-3 fc-surface-harmony bg-gradient-to-br from-sky-500/[0.08] via-violet-500/[0.04] to-transparent`;
+  const calendarColClass = embeddedInPanel ? 'min-[520px]:col-span-5 space-y-3 min-w-0' : 'md:col-span-5 space-y-2';
+  const slotsColClass = embeddedInPanel ? 'min-[520px]:col-span-7 min-w-0' : 'md:col-span-7 min-w-0';
+
   return (
-    <div className="space-y-3 border-t border-white/10 pt-4">
+    <div className={rootClass}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="inline-flex items-center gap-2 text-emerald-200/90">
           <CalendarDays size={16} />
@@ -185,9 +195,8 @@ export function PublicSessionSlotPicker({
         </div>
       ) : null}
 
-      <div className={`${finelyOsCatalogCard('sky')} !p-3 fc-surface-harmony bg-gradient-to-br from-sky-500/[0.08] via-violet-500/[0.04] to-transparent`}>
-        <div className="grid md:grid-cols-12 gap-4 items-start">
-          <div className="md:col-span-5 space-y-2">
+      <div className={embeddedInPanel ? calendarShellClass : `${calendarShellClass} grid md:grid-cols-12 gap-4 items-start`}>
+          <div className={calendarColClass}>
             <div className="flex items-center justify-between gap-2">
               <span className={FINELY_OS_ENTITY_SUBLABEL}>{monthLabel}</span>
               <div className="flex gap-1">
@@ -256,7 +265,7 @@ export function PublicSessionSlotPicker({
             </div>
           </div>
 
-          <div className="md:col-span-7 min-w-0">
+          <div className={slotsColClass}>
             <BookingTimeSlotPicker
               embedded
               dayKey={selectedDay}
@@ -269,7 +278,6 @@ export function PublicSessionSlotPicker({
               onJumpNextAvailable={jumpToFirstAvailable}
             />
           </div>
-        </div>
       </div>
     </div>
   );

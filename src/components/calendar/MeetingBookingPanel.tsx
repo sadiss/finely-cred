@@ -6,7 +6,15 @@ import { PublicSessionSlotPicker } from './PublicSessionSlotPicker';
 import { VoiceNoteRecorder } from './VoiceNoteRecorder';
 import { VoiceTranscriptField } from './VoiceTranscriptField';
 import { type BookableSlot, slotDurationOptions, formatSlotRange } from '../../lib/calendarSlots';
-import { finelyOsGlowTile } from '../../features/os/finelyOsLightUi';
+import {
+  FINELY_OS_ENTITY_SUBLABEL,
+  FINELY_OS_ENTITY_VALUE,
+  finelyOsCatalogCard,
+  finelyOsGlowTile,
+} from '../../features/os/finelyOsLightUi';
+
+const BOOKING_TIME_BOX = `${finelyOsCatalogCard('sky')} !p-5 sm:!p-6 lg:!p-7 min-w-0 overflow-hidden fc-surface-harmony`;
+const BOOKING_DETAILS_BOX = `${finelyOsCatalogCard('violet')} !p-5 sm:!p-6 lg:!p-7 min-w-0 overflow-hidden fc-surface-harmony`;
 
 const TOPICS: Array<{ id: ConsultationTopic; label: string; desc: string }> = [
   { id: 'enlightenment', label: 'Strategy call', desc: 'Free 60-minute call — map your next moves.' },
@@ -138,9 +146,42 @@ export function MeetingBookingPanel({ partnerId, settings, onBooked }: Props) {
         <div className="rounded-2xl border border-fuchsia-500/25 bg-fuchsia-500/10 p-4 text-fuchsia-100 text-sm">{err}</div>
       ) : null}
 
-      <div className="grid lg:grid-cols-12 gap-6 items-start min-w-0">
-        <div className="lg:col-span-5 min-w-0 space-y-4">
-          {mode === 'instant' ? (
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8 items-start w-full min-w-0">
+        <section className={`${BOOKING_TIME_BOX} space-y-5`} aria-labelledby="booking-time-heading">
+          <header className="space-y-1.5 border-b border-white/10 pb-4">
+            <h3 id="booking-time-heading" className={FINELY_OS_ENTITY_VALUE}>
+              {mode === 'instant' ? 'Pick date & time' : 'Preferred date'}
+            </h3>
+            <p className={`text-sm leading-relaxed ${FINELY_OS_ENTITY_SUBLABEL}`}>
+              {mode === 'instant'
+                ? 'Choose an open day, then select a specific time slot. Your session locks instantly.'
+                : 'Optional: pick a preferred day. Describe your availability in the session details box.'}
+            </p>
+          </header>
+
+          <div className="space-y-4 min-w-0">
+            <div>
+              <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-2">Duration</label>
+              <div className="flex flex-wrap gap-2">
+                {durations.map((d) => {
+                  const active = d === duration;
+                  return (
+                    <button
+                      key={d}
+                      type="button"
+                      onClick={() => {
+                        setDuration(d);
+                        setSelectedSlot(null);
+                      }}
+                      className={`px-3 py-2 min-h-[44px] text-[10px] font-bold ${finelyOsGlowTile(active ? 'amber' : 'sky', active)} ${active ? 'text-amber-100' : 'text-white/70'}`}
+                    >
+                      {d} min
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             <PublicSessionSlotPicker
               durationMinutes={duration}
               onDurationChange={(d) => {
@@ -154,36 +195,31 @@ export function MeetingBookingPanel({ partnerId, settings, onBooked }: Props) {
               allowedDurations={durations}
               settingsOverride={settings}
               showDurationPicker={false}
+              embeddedInPanel
             />
-          ) : (
-            <div className="fc-light-glass-panel fc-light-chrome-panel p-4 sm:p-5 space-y-3 min-w-0">
-              <div className="text-[10px] font-black uppercase tracking-widest text-white/50">Preferred date</div>
-              <p className="text-xs text-white/60 leading-relaxed">
-                Optional: pick a day on the calendar. Describe your availability on the right — your case team will confirm the exact time.
-              </p>
-              <PublicSessionSlotPicker
-                durationMinutes={duration}
-                onDurationChange={(d) => {
-                  setDuration(d);
-                  setSelectedSlot(null);
-                }}
-                selectedDay={dayKey}
-                onDayChange={setDayKey}
-                selectedSlot={selectedSlot}
-                onSlotChange={setSelectedSlot}
-                allowedDurations={durations}
-                settingsOverride={settings}
-                showDurationPicker={false}
-              />
-            </div>
-          )}
-        </div>
 
-        <div className="lg:col-span-7 fc-light-glass-panel fc-light-chrome-panel p-4 sm:p-6 space-y-4 min-w-0 overflow-x-clip">
-        <div className="grid sm:grid-cols-2 gap-4">
+            {mode === 'instant' && selectedSlot ? (
+              <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100 leading-relaxed break-words">
+                Selected: <strong>{formatSlotRange(selectedSlot.startAt, selectedSlot.endAt)}</strong>
+              </div>
+            ) : null}
+          </div>
+        </section>
+
+        <section className={`${BOOKING_DETAILS_BOX} space-y-5`} aria-labelledby="booking-details-heading">
+          <header className="space-y-1.5 border-b border-white/10 pb-4">
+            <h3 id="booking-details-heading" className={FINELY_OS_ENTITY_VALUE}>
+              Session details
+            </h3>
+            <p className={`text-sm leading-relaxed ${FINELY_OS_ENTITY_SUBLABEL}`}>
+              Topic, agenda, and context so your case team is prepared before the call.
+            </p>
+          </header>
+
+        <div className="space-y-5 min-w-0">
           <div>
-            <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-1">Topic</label>
-            <div className="flex flex-wrap gap-1.5">
+            <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-2">Topic</label>
+            <div className="flex flex-wrap gap-2">
               {TOPICS.map((t) => {
                 const active = t.id === topic;
                 return (
@@ -198,32 +234,10 @@ export function MeetingBookingPanel({ partnerId, settings, onBooked }: Props) {
                 );
               })}
             </div>
-            <div className="mt-1 text-white/50 text-xs">{TOPICS.find((t) => t.id === topic)?.desc}</div>
+            <div className="mt-2 text-white/55 text-xs leading-relaxed">{TOPICS.find((t) => t.id === topic)?.desc}</div>
           </div>
-          <div>
-            <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-1">Duration</label>
-            <div className="flex flex-wrap gap-1.5">
-              {durations.map((d) => {
-                const active = d === duration;
-                return (
-                  <button
-                    key={d}
-                    type="button"
-                    onClick={() => {
-                      setDuration(d);
-                      setSelectedSlot(null);
-                    }}
-                    className={`px-3 py-2 min-h-[44px] text-[10px] font-bold ${finelyOsGlowTile(active ? 'amber' : 'sky', active)} ${active ? 'text-amber-100' : 'text-white/70'}`}
-                  >
-                    {d} min
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
 
-        <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-xs text-emerald-100 leading-relaxed">
+        <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-xs text-emerald-100 leading-relaxed break-words">
           Booking rules: {settings.minNoticeHours}h minimum notice, {settings.minAdvanceDays} day minimum advance, no next-day booking after {settings.cutoffHourPreviousDay}:00,
           working hours {settings.startHour}:00–{settings.endHour}:00, and blocked internal slots are hidden automatically.
         </div>
@@ -238,36 +252,36 @@ export function MeetingBookingPanel({ partnerId, settings, onBooked }: Props) {
         />
 
         <div>
-          <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-1">More details</label>
+          <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-2">More details</label>
           <textarea
             value={details}
             onChange={(e) => setDetails(e.target.value)}
-            rows={2}
+            rows={3}
             placeholder="Context, urgency, links to documents, bureau targets…"
-            className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm placeholder:text-white/30 resize-y"
+            className="w-full min-w-0 bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2.5 text-white text-sm placeholder:text-white/30 resize-y"
           />
         </div>
 
         <div>
-          <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-1">Notes (optional)</label>
+          <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-2">Notes (optional)</label>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={2}
             placeholder="Anything else for your case manager"
-            className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm placeholder:text-white/30 resize-y"
+            className="w-full min-w-0 bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2.5 text-white text-sm placeholder:text-white/30 resize-y"
           />
         </div>
 
         {mode === 'request' ? (
           <div>
-            <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-1">Availability</label>
+            <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-2">Availability</label>
             <textarea
               value={availability}
               onChange={(e) => setAvailability(e.target.value)}
-              rows={2}
+              rows={3}
               placeholder="Example: Mon–Wed after 2pm ET, or flexible mornings"
-              className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm placeholder:text-white/30 resize-y"
+              className="w-full min-w-0 bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2.5 text-white text-sm placeholder:text-white/30 resize-y"
             />
           </div>
         ) : null}
@@ -282,6 +296,7 @@ export function MeetingBookingPanel({ partnerId, settings, onBooked }: Props) {
           {mode === 'instant' ? 'Confirm session' : 'Submit request'} <ArrowRight size={14} />
         </button>
         </div>
+        </section>
       </div>
     </form>
   );

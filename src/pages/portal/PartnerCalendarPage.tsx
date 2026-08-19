@@ -22,7 +22,6 @@ import { buildCalendarNoticedItems } from '../../lib/finelyProactiveSignals';
 import {
   FINELY_OS_PAGE,
   FINELY_OS_BACK_LINK,
-  FINELY_OS_BANNER,
   FINELY_OS_ENTITY_BODY,
   finelyOsCatalogCard,
   FINELY_OS_ENTITY_SUBLABEL,
@@ -124,9 +123,7 @@ export default function PartnerCalendarPage() {
             secondaryAction={{ label: 'Partner dashboard', onClick: () => navigate('/portal/dashboard') }}
           >
           {view === 'book' ? (
-            <div className={FINELY_OS_BANNER}>
-              <MeetingBookingPanel partnerId={partner.id} settings={settings} onBooked={() => setVersion((v) => v + 1)} />
-            </div>
+            <MeetingBookingPanel partnerId={partner.id} settings={settings} onBooked={() => setVersion((v) => v + 1)} />
           ) : null}
 
           {view === 'settings' ? (

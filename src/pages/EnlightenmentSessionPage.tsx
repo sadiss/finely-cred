@@ -34,6 +34,7 @@ import {
   FINELY_OS_ENTITY_INPUT,
   FINELY_OS_ENTITY_LABEL,
   FINELY_OS_ENTITY_SUBLABEL,
+  FINELY_OS_ENTITY_VALUE,
   FINELY_OS_NOTICE_ERROR,
   FINELY_OS_NOTICE_SUCCESS,
   FINELY_OS_NOTICE_WARN,
@@ -379,15 +380,15 @@ export default function EnlightenmentSessionPage() {
           </p>
         </div>
 
-        <div className={`${finelyOsCatalogCard('emerald')} !p-4 sm:!p-5 space-y-4 max-w-6xl`} data-fc-accent="emerald">
+        <div className="space-y-6 w-full min-w-0">
           {statusMsg ? (
             <div
-              className={`flex items-start gap-3 ${
+              className={`flex items-start gap-3 rounded-2xl border px-4 py-3 ${
                 status === 'sent' ? FINELY_OS_NOTICE_SUCCESS : status === 'error' ? FINELY_OS_NOTICE_ERROR : FINELY_OS_NOTICE_WARN
               }`}
             >
               {status === 'sent' ? <CheckCircle2 size={18} className="shrink-0" /> : <ShieldAlert size={18} className="shrink-0" />}
-              <div>
+              <div className="min-w-0 break-words">
                 <div>{statusMsg}</div>
                 {status === 'sent' && joinPath ? (
                   <button type="button" onClick={() => navigate(joinPath)} className="mt-2 underline text-emerald-200 text-sm">
@@ -398,27 +399,31 @@ export default function EnlightenmentSessionPage() {
             </div>
           ) : null}
 
-          <form onSubmit={onSubmit} className="space-y-4">
-            <div className="grid lg:grid-cols-12 gap-6 items-start">
-              <div className="lg:col-span-5 space-y-4 min-w-0">
-                <div className="grid sm:grid-cols-2 lg:grid-cols-1 gap-3">
-                  <div>
-                    <label className={formLabel}>Full name</label>
-                    <input value={fullName} onChange={(e) => setFullName(e.target.value)} className={formInput} placeholder="Your name" maxLength={120} required />
-                  </div>
-                  <div>
-                    <label className={formLabel}>Email</label>
-                    <input value={email} onChange={(e) => setEmail(e.target.value)} className={formInput} placeholder="you@email.com" maxLength={180} required />
-                  </div>
-                </div>
+          <form onSubmit={onSubmit} className="space-y-6 min-w-0">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8 items-start w-full min-w-0">
+              <section className={`${finelyOsCatalogCard('sky')} !p-5 sm:!p-6 lg:!p-7 min-w-0 overflow-hidden fc-surface-harmony space-y-5`} aria-labelledby="enlightenment-time-heading">
+                <header className="space-y-1.5 border-b border-white/10 pb-4">
+                  <h2 id="enlightenment-time-heading" className={FINELY_OS_ENTITY_VALUE}>Date &amp; time</h2>
+                  <p className={`text-sm leading-relaxed ${FINELY_OS_ENTITY_SUBLABEL}`}>Your contact info and the slot you want — confirmed instantly when eligible.</p>
+                </header>
 
-                <div>
-                  <label className={formLabel}>Phone (optional)</label>
-                  <input value={phone} onChange={(e) => setPhone(e.target.value)} className={formInput} placeholder="(555) 555-5555" maxLength={40} />
-                </div>
+                <div className="space-y-4 min-w-0">
+                  <div className="grid sm:grid-cols-2 xl:grid-cols-1 gap-4">
+                    <div className="min-w-0">
+                      <label className={formLabel}>Full name</label>
+                      <input value={fullName} onChange={(e) => setFullName(e.target.value)} className={formInput} placeholder="Your name" maxLength={120} required />
+                    </div>
+                    <div className="min-w-0">
+                      <label className={formLabel}>Email</label>
+                      <input value={email} onChange={(e) => setEmail(e.target.value)} className={formInput} placeholder="you@email.com" maxLength={180} required />
+                    </div>
+                  </div>
 
-                <div>
-                  <div className={`${formLabel} flex items-center gap-2`}>Pick date &amp; time</div>
+                  <div className="min-w-0">
+                    <label className={formLabel}>Phone (optional)</label>
+                    <input value={phone} onChange={(e) => setPhone(e.target.value)} className={formInput} placeholder="(555) 555-5555" maxLength={40} />
+                  </div>
+
                   <PublicSessionSlotPicker
                     durationMinutes={preferredSlotMinutes}
                     onDurationChange={setPreferredSlotMinutes}
@@ -427,19 +432,26 @@ export default function EnlightenmentSessionPage() {
                     selectedSlot={selectedSlot}
                     onSlotChange={setSelectedSlot}
                     urgencySignal={urgencySignal}
+                    embeddedInPanel
                   />
+
+                  {selectedSlot ? (
+                    <div className={FINELY_OS_NOTICE_SUCCESS}>
+                      Your session: <strong>{formatSlotRange(selectedSlot.startAt, selectedSlot.endAt)}</strong>
+                    </div>
+                  ) : selectedDay ? (
+                    <div className={FINELY_OS_NOTICE_WARN}>Select a time above before confirming.</div>
+                  ) : null}
                 </div>
+              </section>
 
-                {selectedSlot ? (
-                  <div className={FINELY_OS_NOTICE_SUCCESS}>
-                    Your session: <strong>{formatSlotRange(selectedSlot.startAt, selectedSlot.endAt)}</strong>
-                  </div>
-                ) : selectedDay ? (
-                  <div className={FINELY_OS_NOTICE_WARN}>Select a time above before confirming.</div>
-                ) : null}
-              </div>
+              <section className={`${finelyOsCatalogCard('violet')} !p-5 sm:!p-6 lg:!p-7 min-w-0 overflow-hidden fc-surface-harmony space-y-5`} aria-labelledby="enlightenment-details-heading">
+                <header className="space-y-1.5 border-b border-white/10 pb-4">
+                  <h2 id="enlightenment-details-heading" className={FINELY_OS_ENTITY_VALUE}>Session details</h2>
+                  <p className={`text-sm leading-relaxed ${FINELY_OS_ENTITY_SUBLABEL}`}>Meeting agenda, goals, and consent — tell us what to cover on the call.</p>
+                </header>
 
-              <div className="lg:col-span-7 space-y-4 min-w-0">
+                <div className="space-y-5 min-w-0">
                 <VoiceDictationChooser
                   agenda={meetingAgenda}
                   details={moreDetails}
@@ -464,8 +476,8 @@ export default function EnlightenmentSessionPage() {
                 </div>
 
                 <label className={`flex items-start gap-3 ${FINELY_OS_ENTITY_BODY} cursor-pointer`}>
-                  <input type="checkbox" className="mt-1" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
-                  <span>
+                  <input type="checkbox" className="mt-1 shrink-0" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
+                  <span className="min-w-0 break-words">
                     I consent to be contacted about this request. Educational workflow support only — not legal or financial advice.
                   </span>
                 </label>
@@ -515,13 +527,14 @@ export default function EnlightenmentSessionPage() {
                     Contact instead
                   </button>
                 </div>
-              </div>
+                </div>
+              </section>
             </div>
           </form>
 
-          <div className={`flex items-start gap-2 border-t border-white/10 pt-3 ${FINELY_OS_ENTITY_BODY}`}>
+          <div className={`flex items-start gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 ${FINELY_OS_ENTITY_BODY}`}>
             <Phone size={14} className="mt-0.5 shrink-0 text-sky-300" />
-            <p className="text-[11px]">
+            <p className="text-[11px] leading-relaxed break-words">
               What happens next: your slot locks instantly → calendar invite by email → reminder before your Enlightenment session → map your plan live together.
             </p>
           </div>
