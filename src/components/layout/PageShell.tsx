@@ -26,6 +26,9 @@ export function PageShell({
   children,
   hideHero,
   surface = 'default',
+  contentWidth = 'default',
+  hideLaunchHelpStrip = false,
+  laneHero,
 }: {
   title: string;
   subtitle?: string;
@@ -38,8 +41,15 @@ export function PageShell({
   hideHero?: boolean;
   /** `ivory` = full-bleed wealthy white/ivory public shell (no black page chrome). */
   surface?: 'default' | 'ivory';
+  /** `full` = edge-to-edge public marketing width (no 1560px fc-container cap). */
+  contentWidth?: 'default' | 'full';
+  /** Hide the global Ask Finely strip (page renders its own placement). */
+  hideLaunchHelpStrip?: boolean;
+  /** Full-bleed lane hero rendered above the padded container (homepage-style). */
+  laneHero?: React.ReactNode;
 }) {
   const ivorySurface = surface === 'ivory';
+  const fullWidthContent = contentWidth === 'full';
   const location = useLocation();
   const navigate = useNavigate();
   const auth = useAuth();
@@ -205,6 +215,7 @@ export function PageShell({
       ? 'pt-52'
       : 'pt-28'
     : 'pt-[max(0.75rem,env(safe-area-inset-top))]';
+  const shellTopPad = laneHero ? 'pt-0' : topPad;
   const isAdmin = pathname.startsWith('/admin');
   const isPortal = pathname.startsWith('/portal');
   const isPartnerDashboard = pathname === '/portal/dashboard';
@@ -425,7 +436,8 @@ export function PageShell({
       data-fc-app-surface={appSurface}
       data-fc-pathname={pathname}
       data-fc-shell-surface={ivorySurface ? 'ivory' : 'default'}
-      className={`relative fc-premium-icons ${topPad} min-h-screen pb-28 md:pb-20 overflow-x-clip ${
+      data-fc-content-width={fullWidthContent ? 'full' : undefined}
+      className={`relative fc-premium-icons ${shellTopPad} min-h-screen pb-28 md:pb-20 overflow-x-clip ${
         ivorySurface
           ? 'fc-landing-wealthy-ivory text-[#0a1628]'
           : 'bg-fc-deep text-white'
@@ -550,10 +562,17 @@ export function PageShell({
           <div className="fc-pageshell-aurora-glow fc-pageshell-aurora-glow-emerald absolute bottom-0 -left-40 w-[800px] h-[480px] blur-3xl" />
         </div>
       )}
+      {laneHero ? <div data-fc-lane-hero-slot="1">{laneHero}</div> : null}
       <div
         className={`relative min-w-0 overflow-x-clip ${
           // For admin, keep the left rail flush-left on desktop while preserving comfortable content padding.
-          isAdmin ? 'w-full px-2 sm:px-4 lg:pl-0 lg:pr-6 2xl:pr-8' : isPartnerDashboard ? 'fc-container fc-container--portal-full' : 'fc-container'
+          isAdmin
+            ? 'w-full px-2 sm:px-4 lg:pl-0 lg:pr-6 2xl:pr-8'
+            : fullWidthContent
+              ? 'fc-container fc-container--marketing-full'
+              : isPartnerDashboard
+                ? 'fc-container fc-container--portal-full'
+                : 'fc-container'
         } ${
           isAppRoute ? 'flex flex-col' : ''
         }`}
@@ -620,7 +639,7 @@ export function PageShell({
                   data-fc-route-pathname={pathname}
                   className={`${ivorySurface ? 'fc-light-readable' : 'fc-light-black-scope'} fc-senior-simple min-w-0 overflow-x-clip`}
                 >
-                  <FinelyLaunchHelpStrip />
+                  {hideLaunchHelpStrip ? null : <FinelyLaunchHelpStrip />}
                   {children}
                 </div>
               </div>
@@ -688,7 +707,7 @@ export function PageShell({
                 data-fc-route-pathname={pathname}
                 className={`${ivorySurface ? 'fc-light-readable' : 'fc-light-black-scope'} fc-senior-simple min-w-0 overflow-x-clip`}
               >
-                <FinelyLaunchHelpStrip />
+                {hideLaunchHelpStrip ? null : <FinelyLaunchHelpStrip />}
                 {children}
               </div>
             </div>

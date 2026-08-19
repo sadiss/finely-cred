@@ -12,6 +12,8 @@ import {
 import type { GrowthAgentAccent } from './growthAgentRegistry';
 import { FinelyOsAlertBanner } from '../os/FinelyOsAlertBanner';
 import { GrowthAgentResultsStrip } from './GrowthAgentResultsStrip';
+import { MarketingHelpButton } from '../marketingDepartment/MarketingHelpModal';
+import { marketingVividShell } from '../marketingDepartment/marketingHubUi';
 
 const ACCENT_RING: Record<GrowthAgentAccent, string> = {
   emerald: 'border-emerald-500/35 bg-emerald-500/5',
@@ -70,10 +72,13 @@ export function GrowthAgentWorkspaceShell({
             <p className={`mt-2 text-sm max-w-2xl ${FINELY_OS_ENTITY_BODY}`}>{mission}</p>
           </div>
           <div className="flex flex-col items-stretch sm:items-end gap-2 min-w-[160px] max-w-[220px]">
-            <div className="text-right">
-              <div className="text-2xl font-black text-white">{maturityPercent}%</div>
-              <div className="text-[10px] uppercase tracking-widest text-white/50 font-bold">ready</div>
-              <p className={`mt-1 text-xs max-w-[140px] ml-auto ${FINELY_OS_ENTITY_BODY}`}>{maturityLabel}</p>
+            <div className={`${marketingVividShell(maturityPercent >= 70 ? 'emerald' : maturityPercent >= 40 ? 'amber' : 'rose')} !p-3 text-right relative`}>
+              <div className="absolute top-2 left-2">
+                <MarketingHelpButton helpId="agent_readiness" />
+              </div>
+              <div className="text-2xl font-black">{maturityPercent}%</div>
+              <div className="text-[10px] uppercase tracking-widest font-bold opacity-90">ready</div>
+              <p className={`mt-1 text-xs max-w-[140px] ml-auto opacity-90`}>{maturityLabel}</p>
             </div>
             {headerAside}
           </div>

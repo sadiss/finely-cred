@@ -13,3 +13,13 @@ export function bureauShortCode(b: Bureau): string {
   return 'Trans';
 }
 
+/** Map internal bureau keys or legacy labels to user-facing short codes (never TUC/TCU). */
+export function formatBureauDisplayCode(raw: Bureau | string | null | undefined): string {
+  const v = String(raw ?? '').trim().toUpperCase();
+  if (!v) return '';
+  if (v === 'EXP' || v.includes('EXPERIAN')) return 'EXP';
+  if (v === 'EQF' || v.includes('EQUIFAX')) return 'EQF';
+  if (v === 'TUC' || v === 'TU' || v === 'TCU' || v.includes('TRANSUNION') || v.includes('TRANS UNION')) return 'Trans';
+  return raw as string;
+}
+

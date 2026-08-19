@@ -32,14 +32,19 @@ export function PersonalCreditHeroShell({ onStartFreeTrial, onBookSession }: Pro
   }, []);
 
   return (
-    <header className="pc-restore-hero pc-restore-hero--bleed">
+    <section className="relative min-h-[min(68vh,520px)] lg:min-h-[78vh] flex items-center overflow-hidden pc-restore-cinematic-hero finely-wealth-hero">
+      <div className="absolute inset-0 bg-fc-chrome" aria-hidden />
+      <div
+        className="absolute inset-0 bg-cover bg-center opacity-90 saturate-110 contrast-105"
+        style={{ backgroundImage: `url(${heroUrl})` }}
+        aria-hidden
+      />
+      <div className="absolute inset-0 pc-restore-hero-overlay" aria-hidden />
+      <div className="absolute inset-0 finely-wealth-vignette opacity-80" aria-hidden />
       <div className="pc-restore-hero-nav-band" aria-hidden />
-      <div className="pc-restore-hero-bg" style={{ backgroundImage: `url(${heroUrl})` }} aria-hidden />
-      <div className="pc-restore-hero-overlay" aria-hidden />
-      <div className="pc-restore-hero-overlay-bottom" aria-hidden />
 
-      <div className="pc-restore-hero-inner pc-restore-hero-inner--copy-only">
-        <div className="space-y-4 min-w-0 max-w-xl" data-fc-contrast-band="1">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-12 relative z-10 w-full pt-24 pb-12 lg:pb-16">
+        <div className="max-w-3xl space-y-4 min-w-0" data-fc-contrast-band="1">
           <p className="pc-restore-kicker">Solutions · Personal credit restoration</p>
           <LandingTypewriterTitle
             as="h1"
@@ -67,7 +72,7 @@ export function PersonalCreditHeroShell({ onStartFreeTrial, onBookSession }: Pro
           </p>
         </div>
       </div>
-    </header>
+    </section>
   );
 }
 

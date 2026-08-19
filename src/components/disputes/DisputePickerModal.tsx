@@ -209,9 +209,9 @@ export function DisputePickerModal({
               { label: 'Negatives found', value: kpis.totalNegatives, tone: 'from-slate-500/15 to-slate-900/40 border-white/15', icon: TrendingDown, accent: 'text-white' },
               { label: 'Selected', value: kpis.selected, tone: 'from-emerald-500/25 to-emerald-950/40 border-emerald-400/40', icon: CheckSquare, accent: 'text-emerald-100' },
               { label: 'Categories', value: kpis.categories, tone: 'from-violet-500/20 to-violet-950/40 border-violet-400/35', icon: Layers, accent: 'text-violet-100' },
-              { label: 'EXP', value: kpis.exp, tone: 'from-sky-500/20 to-sky-950/40 border-sky-400/35', icon: Shield, accent: 'text-sky-100' },
-              { label: 'EQF', value: kpis.eqf, tone: 'from-rose-500/20 to-rose-950/40 border-rose-400/35', icon: Shield, accent: 'text-rose-100' },
-              { label: 'TUC', value: kpis.tuc, tone: 'from-teal-500/20 to-teal-950/40 border-teal-400/35', icon: Shield, accent: 'text-teal-100' },
+              { label: bureauShortCode('EXP'), value: kpis.exp, tone: 'from-sky-500/20 to-sky-950/40 border-sky-400/35', icon: Shield, accent: 'text-sky-100' },
+              { label: bureauShortCode('EQF'), value: kpis.eqf, tone: 'from-rose-500/20 to-rose-950/40 border-rose-400/35', icon: Shield, accent: 'text-rose-100' },
+              { label: bureauShortCode('TUC'), value: kpis.tuc, tone: 'from-teal-500/20 to-teal-950/40 border-teal-400/35', icon: Shield, accent: 'text-teal-100' },
             ].map((k) => {
               const Icon = k.icon;
               return (

@@ -7,12 +7,13 @@ import {
   runGrowthAutopilotTick,
   setGrowthAutopilotEnabled,
 } from '../../lib/finelyAutomationOrchestrator';
+import { FINELY_OS_ENTITY_BODY, FINELY_OS_SECONDARY_BTN } from '../os/finelyOsLightUi';
 import {
-  FINELY_OS_ENTITY_BODY,
-  FINELY_OS_ENTITY_CHIP,
-  FINELY_OS_SECONDARY_BTN,
-  finelyOsCatalogCardCompact,
-} from '../os/finelyOsLightUi';
+  MARKETING_HUB_CONTENT_SHELL,
+  MarketingKpiChip,
+  MarketingOnOffTile,
+  MarketingSectionHeader,
+} from './marketingHubUi';
 
 /** Compact autopilot state for Marketing Department hub. */
 export function MarketingAutopilotStrip() {
@@ -62,36 +63,52 @@ export function MarketingAutopilotStrip() {
   };
 
   return (
-    <div className={finelyOsCatalogCardCompact('violet')}>
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-violet-200/80">Growth autopilot</p>
-          <p className="mt-1 text-sm font-semibold text-white">
-            {enabled ? 'On — daily find, nurture, agent reviews' : 'Off — manual runs only'}
-          </p>
-          <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>
-            {summary.summaryLine || 'No overnight summary yet.'}
-          </p>
-          {exceptions > 0 ? (
-            <span className={`mt-2 inline-block ${FINELY_OS_ENTITY_CHIP}`}>{exceptions} exception(s) need review</span>
-          ) : null}
+    <div className={MARKETING_HUB_CONTENT_SHELL}>
+      <MarketingSectionHeader
+        eyebrow="Daily growth"
+        title="Growth autopilot"
+        subtitle="Green = scheduler running overnight. Red = you run everything manually."
+        helpId={enabled ? 'autopilot_on' : 'autopilot_off'}
+      />
+      <div className="grid lg:grid-cols-[1.1fr_1fr_auto] gap-3 items-stretch">
+        <MarketingOnOffTile
+          on={enabled}
+          title={enabled ? 'Autopilot is running for you' : 'Autopilot is paused'}
+          subtitle={summary.summaryLine || 'Tap to toggle — or use the buttons on the right.'}
+          helpId={enabled ? 'autopilot_on' : 'autopilot_off'}
+          onClick={toggle}
+        />
+        <div className="grid grid-cols-2 gap-2">
+          <MarketingKpiChip
+            label="Exceptions"
+            value={String(exceptions)}
+            accent={exceptions > 0 ? 'amber' : 'emerald'}
+            helpId="exceptions"
+            purpose={exceptions > 0 ? 'Needs review' : 'All clear'}
+          />
+          <MarketingKpiChip
+            label="Nurture"
+            value="Email $0"
+            accent="sky"
+            helpId="nurture_active"
+            purpose="Sequences wired"
+          />
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-col gap-2 justify-center">
           <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={toggle}>
             {enabled ? 'Turn off' : 'Turn on'}
           </button>
           <button type="button" className={FINELY_OS_SECONDARY_BTN} disabled={busy} onClick={() => void runNow()}>
             {busy ? 'Running…' : 'Run tick now'}
           </button>
-          <button
-            type="button"
-            className={FINELY_OS_SECONDARY_BTN}
-            onClick={() => navigate('/admin/growth-automation')}
-          >
+          <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/growth-automation')}>
             Full console
           </button>
         </div>
       </div>
+      <p className={`mt-2 text-[11px] ${FINELY_OS_ENTITY_BODY}`}>
+        Purpose: keep find + nurture moving while you sleep — without surprise SMS cost.
+      </p>
     </div>
   );
 }

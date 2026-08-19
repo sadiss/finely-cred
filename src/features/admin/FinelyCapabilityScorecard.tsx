@@ -1,63 +1,105 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Activity, ArrowRight } from 'lucide-react';
-import { buildFinelyCapabilityReport, type FinelyCapabilityDomain } from '../../lib/finelyCapabilityMetrics';
+import { Activity } from 'lucide-react';
+import {
+  buildFinelyCapabilityReport,
+  type FinelyCapabilityDomain,
+  type FinelyCapabilityDomainId,
+} from '../../lib/finelyCapabilityMetrics';
 import { computeVideoPipelineMaturity } from '../studioCommandOs/videoPipelineMaturity';
 import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_SECONDARY_BTN,
-  finelyOsCatalogCardCompact,
-  finelyOsStatusChip,
+  type FinelyOsDeckAccent,
 } from '../os/finelyOsLightUi';
+import { MARKETING_HUB_CONTENT_SHELL, marketingVividShell, MarketingSectionHeader } from '../marketingDepartment/marketingHubUi';
+import { MarketingHelpButton } from '../marketingDepartment/MarketingHelpModal';
+import { capabilityDomainHelpId } from '../marketingDepartment/marketingMetricHelp';
 
 type Props = {
-  /** Compact strip for Content Studio header */
   variant?: 'full' | 'compact';
-  /** Show pipeline stage chips under video pipeline bar */
   showPipelineStages?: boolean;
   className?: string;
 };
 
-function toneBarClass(tone: FinelyCapabilityDomain['tone']): string {
-  if (tone === 'ok') return 'from-emerald-500 via-emerald-400 to-emerald-600';
-  if (tone === 'warn') return 'from-amber-500 via-orange-400 to-amber-600';
-  return 'from-rose-500 via-rose-400 to-rose-600';
+/** Each domain gets its own color so cards never look identical. */
+const DOMAIN_ACCENT: Record<FinelyCapabilityDomainId, FinelyOsDeckAccent> = {
+  video_wizard: 'sky',
+  video_pipeline: 'violet',
+  voice_previews: 'fuchsia',
+  course_builder: 'amber',
+  marketing: 'emerald',
+  ctas: 'sky',
+  agents: 'violet',
+};
+
+const DOMAIN_TAGLINE: Partial<Record<FinelyCapabilityDomainId, string>> = {
+  video_wizard: 'Short-form & pillar video setup',
+  video_pipeline: 'Import → publish lifecycle',
+  voice_previews: 'AI voice render health',
+  course_builder: 'Academy lessons & videos',
+  marketing: 'Find, mail, desk readiness',
+  ctas: 'Public CTA wiring',
+  agents: 'Growth specialist maturity',
+};
+
+function healthLabel(domain: FinelyCapabilityDomain): { text: string; shell: string } {
+  if (domain.tone === 'ok') return { text: 'Healthy', shell: 'bg-emerald-950/50 border-emerald-200/60 text-emerald-100' };
+  if (domain.tone === 'warn') return { text: 'Needs attention', shell: 'bg-amber-950/50 border-amber-200/60 text-amber-100' };
+  return { text: 'Blocked', shell: 'bg-rose-950/50 border-rose-200/60 text-rose-100' };
 }
 
-function DomainBar({ domain, compact }: { domain: FinelyCapabilityDomain; compact?: boolean }) {
+function DomainCard({ domain, compact }: { domain: FinelyCapabilityDomain; compact?: boolean }) {
+  const accent = DOMAIN_ACCENT[domain.id] ?? 'violet';
+  const health = healthLabel(domain);
+  const tagline = DOMAIN_TAGLINE[domain.id];
+
   return (
-    <div className="space-y-1.5">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="min-w-0">
-          <div className="text-xs font-bold text-white/90">{domain.label}</div>
-          {!compact ? <div className={`text-[10px] ${FINELY_OS_ENTITY_BODY}`}>{domain.summary}</div> : null}
+    <div className={`${marketingVividShell(accent)} !p-4`}>
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <p className="text-[11px] font-bold uppercase tracking-widest text-white/75">{tagline}</p>
+          <div className="mt-1 text-xl font-black leading-tight">{domain.label}</div>
+          {!compact ? <div className="mt-2 text-sm leading-snug text-white/92">{domain.summary}</div> : null}
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <span className={finelyOsStatusChip(domain.tone === 'ok' ? 'ok' : domain.tone === 'warn' ? 'warn' : 'blocked')}>
-            {domain.percent}%
+        <div className="flex flex-col items-end gap-1 shrink-0">
+          <MarketingHelpButton helpId={capabilityDomainHelpId(domain.id)} />
+          <span className={`text-3xl font-black tabular-nums leading-none`}>{domain.percent}%</span>
+          <span className={`rounded-lg border px-2 py-0.5 text-[10px] font-bold uppercase ${health.shell}`}>
+            {health.text}
           </span>
-          {domain.href ? (
-            <Link to={domain.href} className={`${FINELY_OS_SECONDARY_BTN} !py-0.5 !px-2 text-[10px] inline-flex items-center gap-1`}>
-              Open <ArrowRight size={10} />
-            </Link>
-          ) : null}
         </div>
       </div>
-      <div className="h-2 rounded-full bg-black/25 overflow-hidden border border-white/10">
+      <div className="mt-3 h-3 rounded-full bg-black/40 overflow-hidden border border-white/25">
         <div
-          className={`h-full rounded-full bg-gradient-to-r transition-all ${toneBarClass(domain.tone)}`}
+          className="h-full rounded-full bg-white transition-all duration-700"
           style={{ width: `${domain.percent}%` }}
         />
       </div>
+      <p className="mt-2 text-xs text-white/85">
+        {domain.percent >= 70
+          ? 'This lane is in good shape — keep your weekly cadence.'
+          : domain.percent >= 40
+            ? 'Finish the blockers below to raise this score.'
+            : 'Start with the Open button — this lane needs foundational setup.'}
+      </p>
       {!compact && domain.blockers.length ? (
-        <div className="flex flex-wrap gap-1.5 pt-0.5">
+        <div className="mt-2 flex flex-wrap gap-1.5">
           {domain.blockers.slice(0, 2).map((b) => (
-            <span key={b.id} className="rounded-full border border-white/10 bg-black/25 px-2 py-0.5 text-[10px] text-white/55">
+            <span key={b.id} className="rounded-lg bg-black/35 border border-white/20 px-2 py-1 text-xs font-semibold">
               {b.label}
             </span>
           ))}
         </div>
+      ) : null}
+      {domain.href ? (
+        <Link
+          to={domain.href}
+          className={`${FINELY_OS_SECONDARY_BTN} !mt-3 !py-1.5 !px-3 text-xs !bg-black/30 !border-white/35`}
+        >
+          Open {domain.label}
+        </Link>
       ) : null}
     </div>
   );
@@ -69,24 +111,21 @@ function PipelineStageStrip({ tick }: { tick: number }) {
     return computeVideoPipelineMaturity().stages;
   }, [tick]);
 
+  const stageAccents: FinelyOsDeckAccent[] = ['sky', 'violet', 'fuchsia', 'emerald', 'amber'];
+
   return (
-    <div className="mt-3 pt-3 border-t border-white/10">
-      <div className={FINELY_OS_ENTITY_SUBLABEL}>Active job pipeline</div>
-      <div className="mt-2 flex flex-wrap gap-1.5">
-        {stages.map((s) => (
-          <span
+    <div className="mt-3 pt-3 border-t border-white/15">
+      <div className={FINELY_OS_ENTITY_SUBLABEL}>Video pipeline stages</div>
+      <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-2">
+        {stages.map((s, i) => (
+          <div
             key={s.id}
-            className={`rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-              s.done
-                ? 'border-emerald-400/30 bg-emerald-500/10 text-emerald-100'
-                : s.percent > 0
-                  ? 'border-amber-400/30 bg-amber-500/10 text-amber-100'
-                  : 'border-white/10 text-white/40'
-            }`}
+            className={`${marketingVividShell(stageAccents[i % stageAccents.length], false)} !p-3`}
             title={s.hint}
           >
-            {s.label} {s.percent}%
-          </span>
+            <div className="text-xs font-bold uppercase tracking-wide">{s.label}</div>
+            <div className="text-2xl font-black tabular-nums">{s.percent}%</div>
+          </div>
         ))}
       </div>
     </div>
@@ -117,25 +156,21 @@ export function FinelyCapabilityScorecard({ variant = 'full', showPipelineStages
       : report.domains;
 
   return (
-    <div className={`${finelyOsCatalogCardCompact('sky')} ${className}`} data-fc-accent="sky">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-sky-300`}>
-          <Activity size={14} />
-          Capability scorecard
-        </div>
-        <span className={`text-[10px] ${FINELY_OS_ENTITY_BODY}`}>
-          Live · {new Date(report.computedAt).toLocaleTimeString()}
-        </span>
+    <div className={`${MARKETING_HUB_CONTENT_SHELL} ${className}`} data-fc-accent="sky">
+      <MarketingSectionHeader
+        eyebrow="Capability scorecard"
+        title="Each lane has its own color and %"
+        subtitle="Sky = video wizard, violet = pipeline, fuchsia = voice, etc. Percent = readiness for that lane only."
+        helpId="capability_percent"
+      />
+      <div className={`inline-flex items-center gap-2 text-[10px] ${FINELY_OS_ENTITY_BODY} mb-3`}>
+        <Activity size={14} className="text-sky-300" />
+        Live · {new Date(report.computedAt).toLocaleTimeString()}
       </div>
-      {variant === 'full' ? (
-        <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>
-          Domain bars — not one misleading total. Fix blockers to move each lane toward 100%.
-        </p>
-      ) : null}
 
-      <div className="mt-3 space-y-3">
+      <div className="grid sm:grid-cols-2 gap-3">
         {visibleDomains.map((domain) => (
-          <DomainBar key={domain.id} domain={domain} compact={variant === 'compact'} />
+          <DomainCard key={domain.id} domain={domain} compact={variant === 'compact'} />
         ))}
       </div>
 

@@ -6,9 +6,16 @@ import { listCommsSequences } from '../../data/commsSequencesRepo';
 import { listLeadCaptures } from '../../data/leadsRepo';
 import { listInboxMessages, listScheduledPosts } from '../../data/socialHubRepo';
 import { FINELY_OS_ENTITY_BODY } from '../os/finelyOsLightUi';
+import { MarketingVividActionTile } from '../marketingDepartment/marketingHubUi';
 
 const LANES = ['promote', 'nurture', 'communicate'] as const;
 type Lane = (typeof LANES)[number];
+
+const LANE_HELP: Record<Lane, string> = {
+  promote: 'promote_lane',
+  nurture: 'nurture_lane',
+  communicate: 'communicate_lane',
+};
 
 function parseLane(raw: string | null): Lane {
   if (raw && LANES.includes(raw as Lane)) return raw as Lane;
@@ -17,27 +24,27 @@ function parseLane(raw: string | null): Lane {
 
 const LANE_TOOLS: Record<
   Lane,
-  Array<{ title: string; detail: string; href: string; accent: string }>
+  Array<{ title: string; detail: string; href: string; accent: 'emerald' | 'sky' | 'violet' | 'fuchsia' | 'amber'; purpose: string }>
 > = {
   promote: [
-    { title: 'Lead Magnets', detail: 'Funnels, heroes, capture forms', href: '/admin/lead-magnets', accent: 'amber' },
-    { title: 'Social Hub', detail: 'Meta scheduling, inbox, autopilot', href: '/admin/social-hub', accent: 'sky' },
-    { title: 'Content Studio', detail: 'Video, e-books, publish bridges', href: '/admin/marketing?tab=content', accent: 'violet' },
-    { title: 'CMO Command', detail: 'Campaigns, angles, channel mix', href: '/admin/cmo', accent: 'fuchsia' },
-    { title: 'Lead hunt preview', detail: 'Live search + scoring (Find room)', href: '/admin/marketing?tab=desk&helper=find', accent: 'emerald' },
+    { title: 'Lead Magnets', detail: 'Funnels, heroes, capture forms', href: '/admin/lead-magnets', accent: 'amber', purpose: 'Capture intent' },
+    { title: 'Social Hub', detail: 'Meta scheduling, inbox, autopilot', href: '/admin/social-hub', accent: 'sky', purpose: 'Organic reach' },
+    { title: 'Content Studio', detail: 'Video, e-books, publish bridges', href: '/admin/marketing?tab=content', accent: 'violet', purpose: 'Create assets' },
+    { title: 'CMO Command', detail: 'Campaigns, angles, channel mix', href: '/admin/cmo', accent: 'fuchsia', purpose: 'Strategy' },
+    { title: 'Lead hunt preview', detail: 'Live search + scoring (Find room)', href: '/admin/marketing?tab=desk&helper=find', accent: 'emerald', purpose: 'Find people' },
   ],
   nurture: [
-    { title: 'Comms Studio', detail: 'Inbox, compose, 300+ templates, sequences', href: '/admin/comms?room=sequences', accent: 'fuchsia' },
-    { title: 'Automation Studio', detail: 'Blueprints, flow builder, trigger catalog', href: '/admin/automations?room=scenarios', accent: 'amber' },
-    { title: 'Training Academy', detail: 'Courses, drips, certifications', href: '/admin/courses', accent: 'violet' },
-    { title: 'Resources', detail: 'Guides and downloadable assets', href: '/admin/resources', accent: 'sky' },
+    { title: 'Comms Studio', detail: 'Inbox, compose, 300+ templates, sequences', href: '/admin/comms?room=sequences', accent: 'fuchsia', purpose: 'Email sequences ($0)' },
+    { title: 'Automation Studio', detail: 'Blueprints, flow builder, trigger catalog', href: '/admin/automations?room=scenarios', accent: 'amber', purpose: 'Triggers' },
+    { title: 'Training Academy', detail: 'Courses, drips, certifications', href: '/admin/courses', accent: 'violet', purpose: 'Education drips' },
+    { title: 'Resources', detail: 'Guides and downloadable assets', href: '/admin/resources', accent: 'sky', purpose: 'Lead magnets' },
   ],
   communicate: [
-    { title: 'Support Inbox', detail: 'Live partner threads', href: '/admin/support', accent: 'emerald' },
-    { title: 'Comms campaigns', detail: 'Broadcasts + segments', href: '/admin/comms?room=campaigns', accent: 'fuchsia' },
-    { title: 'Calendar', detail: 'Strategy calls + video bridges', href: '/admin/calendar', accent: 'sky' },
-    { title: 'Phone Hub', detail: 'SMS, voicemail, co-owner escalation', href: '/admin/phone-hub', accent: 'amber' },
-    { title: 'CRM', detail: 'Pipeline, routing, consult prep', href: '/admin/crm', accent: 'violet' },
+    { title: 'Support Inbox', detail: 'Live partner threads', href: '/admin/support', accent: 'emerald', purpose: 'Conversations' },
+    { title: 'Comms campaigns', detail: 'Broadcasts + segments', href: '/admin/comms?room=campaigns', accent: 'fuchsia', purpose: 'Broadcasts' },
+    { title: 'Calendar', detail: 'Strategy calls + video bridges', href: '/admin/calendar', accent: 'sky', purpose: 'Book sessions' },
+    { title: 'Phone Hub', detail: 'SMS, voicemail, co-owner escalation', href: '/admin/phone-hub', accent: 'amber', purpose: 'Voice/SMS' },
+    { title: 'CRM', detail: 'Pipeline, routing, consult prep', href: '/admin/crm', accent: 'violet', purpose: 'Pipeline' },
   ],
 };
 
@@ -81,7 +88,7 @@ export function GrowthCommandDepartmentPage() {
     <FinelyUnifiedHubLayout
       eyebrow="Marketing plan"
       title="Promote · Nurture · Communicate"
-      subtitle="One operating surface — full-depth tools behind each lane (never a downgrade to a card gallery only)."
+      subtitle="Each lane has a different job — tiles are full-color so you always know which funnel stage you are in."
       accent="emerald"
       kpis={kpis}
       tabs={[
@@ -91,25 +98,28 @@ export function GrowthCommandDepartmentPage() {
       ]}
       activeTab={lane}
       onTabChange={(id) => setLane(id as Lane)}
+      tabDensity="comfortable"
+      tabStripVariant="marketing"
       primaryAction={{ label: 'Open Comms Studio', onClick: () => navigate('/admin/comms') }}
       secondaryAction={{ label: 'Leads & CRM', onClick: () => navigate('/admin/marketing?tab=leads') }}
       contentVariant="flush"
     >
       <p className={`text-sm mb-4 ${FINELY_OS_ENTITY_BODY}`}>
-        Each tile opens the full department workspace — same depth as Comms Studio department tabs, not a simplified substitute.
+        <strong className="text-white/90">Purpose of {lane}:</strong>{' '}
+        {lane === 'promote' ? 'Get new names into the pipeline.' : lane === 'nurture' ? 'Warm them with sequences and education.' : 'Talk, book, and close conversations.'}
+        {' '}Tap <strong className="text-white/90">?</strong> on any tile for what it does.
       </p>
-      <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+      <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
         {LANE_TOOLS[lane].map((tool) => (
-          <button
+          <MarketingVividActionTile
             key={tool.href}
-            type="button"
+            accent={tool.accent}
+            eyebrow={tool.purpose}
+            title={tool.title}
+            detail={tool.detail}
+            helpId={LANE_HELP[lane]}
             onClick={() => navigate(tool.href)}
-            className="rounded-2xl border border-white/10 bg-black/30 p-5 text-left hover:border-emerald-500/35 hover:bg-emerald-500/5 transition"
-          >
-            <div className="text-[10px] font-bold uppercase tracking-widest text-emerald-300/80">{lane}</div>
-            <div className="mt-2 text-lg font-black text-white">{tool.title}</div>
-            <p className={`mt-2 text-sm ${FINELY_OS_ENTITY_BODY}`}>{tool.detail}</p>
-          </button>
+          />
         ))}
       </div>
     </FinelyUnifiedHubLayout>
