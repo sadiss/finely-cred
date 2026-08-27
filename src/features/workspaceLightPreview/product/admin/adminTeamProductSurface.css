@@ -1,0 +1,143 @@
+/* Admin team — mosaic roster + member inspector */
+
+.fc-wlp-team-mosaic-shell {
+  display: grid;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (min-width: 1280px) {
+  .fc-wlp-team-mosaic-shell {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  }
+}
+
+.fc-wlp-team-mosaic-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+  gap: 14px;
+}
+
+.fc-wlp-team-mosaic-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 148px;
+  padding: 18px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  text-align: left;
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+
+.fc-wlp-team-mosaic-tile:hover {
+  transform: translateY(-2px);
+}
+
+.fc-wlp-team-mosaic-tile[data-selected='true'] {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.18);
+}
+
+.fc-wlp-team-mosaic-tile[data-kind='invite'] {
+  min-height: 148px;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.fc-wlp-team-mosaic-tile-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.fc-wlp-team-mosaic-tile-label {
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+.fc-wlp-team-mosaic-tile-meta {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1.35;
+  opacity: 0.82;
+}
+
+.fc-wlp-team-mosaic-tile-status {
+  margin-top: auto;
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.fc-wlp-team-mosaic-inspector {
+  position: sticky;
+  top: 12px;
+  overflow: clip;
+  border-radius: 22px;
+  border: 1px solid rgba(56, 189, 248, 0.22);
+  background:
+    radial-gradient(circle at 8% 0%, rgba(56, 189, 248, 0.12), transparent 38%),
+    radial-gradient(circle at 96% 8%, rgba(139, 92, 246, 0.1), transparent 34%),
+    rgba(248, 250, 252, 0.86);
+  padding: 22px 24px;
+}
+
+.fc-wlp-team-mosaic-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.fc-wlp-team-mosaic-toolbar input {
+  min-height: 42px;
+}
+
+.fc-wlp-team-mosaic-initials {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  font-size: 1rem;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+[data-theme='dark'] .fc-wlp-team-mosaic-inspector,
+.dark .fc-wlp-team-mosaic-inspector,
+html[data-fc-theme='dark'] .fc-wlp-team-mosaic-inspector {
+  background:
+    radial-gradient(circle at 8% 0%, rgba(56, 189, 248, 0.14), transparent 38%),
+    radial-gradient(circle at 96% 8%, rgba(139, 92, 246, 0.12), transparent 34%),
+    rgba(15, 23, 42, 0.92);
+  border-color: rgba(56, 189, 248, 0.28);
+  color: var(--wlp-ink, #f1f5f9);
+}
+
+html[data-fc-theme='dark'] .fc-wlp-team-mosaic-tile {
+  border-color: rgba(255, 255, 255, 0.14);
+  color: var(--wlp-ink, #f1f5f9);
+}
+
+html[data-fc-theme='dark'] .fc-wlp-team-mosaic-tile-meta {
+  color: var(--wlp-muted, #cbd5e1);
+  opacity: 1;
+}
+
+html[data-fc-theme='dark'] .fc-wlp-team-mosaic-toolbar input {
+  color: var(--wlp-ink, #f1f5f9);
+  border-color: var(--wlp-border, rgba(255, 255, 255, 0.14));
+  background: var(--wlp-soft, rgba(11, 17, 25, 0.92));
+}

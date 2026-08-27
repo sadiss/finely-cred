@@ -13,7 +13,7 @@ export function CmoPageInjectionPanel({ label = 'Current page' }: { label?: stri
     <section className="fc-panel p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/20 bg-amber-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.25em] text-amber-200"><Eye size={14} /> CMO Eyes</div>
+          <div className="inline-flex items-center gap-2 rounded-full border border-violet-400/20 bg-violet-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.25em] text-violet-200"><Eye size={14} /> CMO Eyes</div>
           <h3 className="mt-3 text-xl font-black text-white">{label} conversion scan</h3>
           <p className="mt-1 text-sm text-white/55">{summary}</p>
         </div>

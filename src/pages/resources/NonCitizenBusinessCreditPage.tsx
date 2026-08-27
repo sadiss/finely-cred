@@ -16,7 +16,7 @@ import {
 import { DoctrineArticleShell } from '../../components/resources/DoctrineArticleShell';
 import { DoctrineSectionHeading } from '../../components/resources/DoctrineArticleParts';
 import { NonCitizenFundingRuleCard } from '../../components/resources/NonCitizenFundingRuleCard';
-import { FINELY_OS_ENTITY_BODY, FINELY_OS_ENTITY_CHIP, finelyOsCatalogCardCompact } from '../../features/os/finelyOsLightUi';
+import { FINELY_OS_ENTITY_BODY, FINELY_OS_ENTITY_CHIP, finelyOsCatalogCard } from '../../features/os/finelyOsLightUi';
 
 const APPLICANT_TYPES: Array<{ type: NonCitizenFundingRule['applicantType']; label: string; blurb: string }> = [
   {
@@ -46,7 +46,7 @@ const APPLICANT_TYPES: Array<{ type: NonCitizenFundingRule['applicantType']; lab
   },
 ];
 
-const ACCENTS = ['violet', 'sky', 'amber', 'emerald', 'fuchsia'] as const;
+const ACCENTS = ['emerald', 'violet', 'sky', 'rose'] as const;
 
 export default function NonCitizenBusinessCreditPage() {
   return (
@@ -74,19 +74,19 @@ export default function NonCitizenBusinessCreditPage() {
         { label: 'Business funding instruments landscape', to: '/resources/business-credit-funding-instruments' },
       ]}
     >
-      <section className="rounded-[1.25rem] border border-white/10 bg-black/25 p-5">
+      <section className={`${finelyOsCatalogCard('sky')} space-y-6`} data-fc-accent="sky">
         <DoctrineSectionHeading Icon={Globe2} title="Funding paths by applicant type" eyebrow={`${APPLICANT_TYPES.length} applicant types`} />
-        <div className="mt-4 space-y-4">
+        <div className="space-y-6">
           {APPLICANT_TYPES.map((applicant, i) => {
             const rules = getFundingRulesForApplicantType(applicant.type);
             if (!rules.length) return null;
             return (
-              <div key={applicant.type} className={finelyOsCatalogCardCompact(ACCENTS[i % ACCENTS.length])}>
+              <div key={applicant.type} className={finelyOsCatalogCard(ACCENTS[i % ACCENTS.length])} data-fc-accent={ACCENTS[i % ACCENTS.length]}>
                 <div className="flex flex-wrap items-center gap-2">
                   <span className={FINELY_OS_ENTITY_CHIP}>{rules.length} loan types</span>
-                  <span className="text-base font-bold text-white">{applicant.label}</span>
+                  <span className="text-xl font-extrabold text-white">{applicant.label}</span>
                 </div>
-                <p className={`mt-1.5 text-sm ${FINELY_OS_ENTITY_BODY}`}>{applicant.blurb}</p>
+                <p className={`mt-2 text-base ${FINELY_OS_ENTITY_BODY}`}>{applicant.blurb}</p>
                 <div className="mt-3 space-y-2.5">
                   {rules.map((rule, j) => (
                     <NonCitizenFundingRuleCard key={rule.id} rule={rule} accent={ACCENTS[i % ACCENTS.length]} defaultOpen={j === 0} />
@@ -98,8 +98,8 @@ export default function NonCitizenBusinessCreditPage() {
         </div>
       </section>
 
-      <section className="rounded-[1.25rem] border border-amber-400/25 bg-amber-500/[0.05] p-5">
-        <h2 className="text-base font-bold text-amber-100">On the SBA's citizenship/LPR ownership rule</h2>
+      <section className={finelyOsCatalogCard('rose')} data-fc-accent="rose">
+        <h2 className="text-xl font-extrabold text-rose-100">On the SBA's citizenship/LPR ownership rule</h2>
         <p className={`mt-2 text-sm ${FINELY_OS_ENTITY_BODY}`}>
           Several applicant types above cannot satisfy SBA 7(a)'s requirement that the business be at least 51% owned and
           controlled by U.S. citizens or lawful permanent residents as a sole/majority owner — this shows up consistently

@@ -9,8 +9,9 @@ import {
   Sparkles,
   Users,
 } from 'lucide-react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { useSearchParams } from 'react-router-dom';
+import { PartnerWorkstationFrame, type PartnerEmbeddablePageProps } from '../../features/workspaceLightPreview/product/partner/PartnerWorkstationFrame';
+import { useMappedPartnerNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { useAuth } from '../../auth/AuthProvider';
 import { getUserDisplayName, getUserEmail } from '../../auth/userProfile';
 import { CASE_HELP } from '../../config/caseHelpProgram';
@@ -40,6 +41,7 @@ import {
   type CaseHelpHubLauncherId,
 } from '../../components/partner/roleHubLauncherPresets';
 import {
+  FINELY_OS_PAGE,
   FINELY_OS_COMPACT_PAGE,
   FINELY_OS_COMPLIANCE_FOOTNOTE,
   FINELY_OS_ENTITY_BODY,
@@ -47,12 +49,12 @@ import {
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
-  finelyOsCatalogCardCompact,
+  finelyOsCatalogCard,
 } from '../../features/os/finelyOsLightUi';
 
-export default function CaseHelpHubPage() {
+export default function CaseHelpHubPage({ embedded = false }: PartnerEmbeddablePageProps = {}) {
   const auth = useAuth();
-  const navigate = useNavigate();
+  const navigate = useMappedPartnerNavigate();
   const [searchParams] = useSearchParams();
   const hubLauncher = usePartnerHubLauncher<CaseHelpHubLauncherId>();
   const gate = useMemo(() => resolveCaseHelpHubAccess(auth.user), [auth.user]);
@@ -114,13 +116,13 @@ export default function CaseHelpHubPage() {
           ? 'warning'
           : 'blocking';
     return (
-      <PageShell
+      <PartnerWorkstationFrame embedded={embedded} kind="case-help-hub-workstation"
         badge={CASE_HELP.programName}
         title={CASE_HELP.hubName}
         subtitle={CASE_HELP.accessNote}
         back={{ to: CASE_HELP.publicPath, label: 'Case desk careers' }}
       >
-        <div className={`${FINELY_OS_COMPACT_PAGE} max-w-3xl space-y-3`}>
+        <div className={`${FINELY_OS_PAGE} max-w-3xl space-y-3`}>
           <FinelyOsAlertBanner tone={tone} message={gate.message} />
           <div className="flex flex-wrap gap-2">
             {gate.cta ? (
@@ -136,32 +138,32 @@ export default function CaseHelpHubPage() {
           <p className={FINELY_OS_COMPLIANCE_FOOTNOTE}>
             Educational platform roles · not an offer of employment · results vary · not legal advice
           </p>
-          <FinelyOsPageFooter />
+          {!embedded ? <FinelyOsPageFooter /> : null}
         </div>
-      </PageShell>
+      </PartnerWorkstationFrame>
     );
   }
 
   return (
-    <PageShell
+    <PartnerWorkstationFrame embedded={embedded} kind="case-help-hub-workstation"
       badge={CASE_HELP.programName}
       title={CASE_HELP.hubName}
       subtitle={`Assigned matters desk${getUserDisplayName(auth.user) ? ` — ${getUserDisplayName(auth.user)}` : ''}`}
       back={{ to: '/dashboard', label: 'Dashboard' }}
     >
-      <div className={`${FINELY_OS_COMPACT_PAGE} max-w-5xl`}>
+      <div className={`${FINELY_OS_PAGE} max-w-5xl`}>
         <FinelyNoticedStrip items={noticedItems} />
-        <FinelyNowDoThisStrip items={nowDoItems} currentIndex={0} className="!p-4" />
+        <FinelyNowDoThisStrip items={nowDoItems} currentIndex={0} />
         <FinelyUnifiedHubLayout
           eyebrow={CASE_HELP.programName}
           title={CASE_HELP.hubName}
           subtitle="Scoped partner matters — packets, letters, and logged sessions. Not platform-wide access."
-          accent="fuchsia"
+          accent="rose"
           kpis={[
-            { label: 'Role', value: roleLabel, accent: 'fuchsia' },
-            { label: 'Matters', value: String(assignedCount), accent: 'amber' },
+            { label: 'Role', value: roleLabel, accent: 'emerald' },
+            { label: 'Matters', value: String(assignedCount), accent: 'violet' },
             { label: 'Scope', value: 'Assigned', accent: 'sky' },
-            { label: 'Status', value: gate.membership?.status || 'active', accent: 'emerald' },
+            { label: 'Status', value: gate.membership?.status || 'active', accent: 'rose' },
           ]}
           primaryAction={{ label: 'Open matters', onClick: () => hubLauncher.open('matters') }}
           secondaryAction={{ label: 'Case desk line', onClick: () => navigate(CASE_HELP.messagesDeepLink) }}
@@ -182,8 +184,8 @@ export default function CaseHelpHubPage() {
             headline="What matters now"
             subline="Work only assigned partner files. Finely runs intake and the platform."
             tiles={[
-              { id: 'matters', label: 'Assigned', value: String(assignedCount), accent: 'fuchsia', onClick: () => hubLauncher.open('matters') },
-              { id: 'debt', label: 'Debt desk', value: 'Open', accent: 'amber', onClick: () => navigate('/portal/debt') },
+              { id: 'matters', label: 'Assigned', value: String(assignedCount), accent: 'emerald', onClick: () => hubLauncher.open('matters') },
+              { id: 'debt', label: 'Debt desk', value: 'Open', accent: 'rose', onClick: () => navigate('/portal/debt') },
               { id: 'letters', label: 'Letters', value: 'Studio', accent: 'violet', onClick: () => hubLauncher.open('letters') },
               { id: 'guide', label: 'Guide', value: 'Read', accent: 'sky', onClick: () => navigate(CASE_HELP.guideReadPath) },
             ]}
@@ -200,7 +202,7 @@ export default function CaseHelpHubPage() {
             title="Case desk tools"
             subtitle="Assigned matters → packets → debt desk — never platform-wide."
           />
-          <div className={`${finelyOsCatalogCardCompact('fuchsia')} !p-4 space-y-2`}>
+          <div className={`${finelyOsCatalogCard('rose')} space-y-2`} data-fc-accent="rose">
             <div className={FINELY_OS_ENTITY_SUBLABEL}>You run / Finely runs</div>
             <p className={`text-sm font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{split.headline}</p>
             <div className="grid sm:grid-cols-3 gap-2">
@@ -307,8 +309,8 @@ export default function CaseHelpHubPage() {
         <p className={`mt-3 ${FINELY_OS_COMPLIANCE_FOOTNOTE}`}>
           Educational platform roles · attorney applicants must be licensed where they practice · results vary · not legal advice
         </p>
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
       </div>
-    </PageShell>
+    </PartnerWorkstationFrame>
   );
 }

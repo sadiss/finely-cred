@@ -41,7 +41,9 @@ import {
   FINELY_OS_ENTITY_TITLE,
   FINELY_OS_FIXED_OVERLAY,
   FINELY_OS_MODAL_SHELL,
+  FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
+  finelyOsCatalogCard,
   finelyOsCatalogCardCompact,
 } from '../os/finelyOsLightUi';
 import { BeforeAfterScoreGraphicPanel } from './BeforeAfterScoreGraphicPanel';
@@ -91,6 +93,20 @@ type WorkroomDef = {
 };
 
 type StudioView = 'home' | 'advanced';
+
+const WORKROOM_ACCENTS: Record<ContentStudioWorkroom, 'emerald' | 'violet' | 'sky' | 'rose'> = {
+  intake: 'emerald',
+  research: 'violet',
+  script: 'sky',
+  design: 'rose',
+  voice: 'emerald',
+  video: 'violet',
+  course_videos: 'sky',
+  navigation_tours: 'rose',
+  ebook: 'emerald',
+  review: 'rose',
+  assets: 'sky',
+};
 
 const workrooms: WorkroomDef[] = [
   { id: 'intake', label: 'Intake', icon: Sparkles, summary: 'Start any content request from one prompt.' },
@@ -165,7 +181,14 @@ function bridgeStatusLabel(assets: ContentStudioAsset[], target: ContentStudioPu
   if (!related.length) return { label: 'Draft', tone: 'border-white/15 text-white/45' };
   if (related.some((a) => a.status === 'published')) return { label: 'Live on site', tone: 'border-emerald-500/35 text-emerald-200' };
   if (related.some((a) => a.status === 'approved')) return { label: 'Bridged', tone: 'border-sky-500/35 text-sky-200' };
-  return { label: 'In review', tone: 'border-amber-500/35 text-amber-200' };
+  return { label: 'In review', tone: 'border-rose-500/35 text-rose-200' };
+}
+
+function mergePublishTarget(
+  targets: ContentStudioPublishTarget[],
+  next: ContentStudioPublishTarget,
+): ContentStudioPublishTarget[] {
+  return Array.from(new Set<ContentStudioPublishTarget>([...targets, next]));
 }
 
 function fallbackBrief(job: ContentStudioJob) {
@@ -190,7 +213,7 @@ function fallbackScript(job: ContentStudioJob) {
 function fallbackDesignPlan(job: ContentStudioJob) {
   return [
     `Brand preset: ${job.intake.brandPreset}`,
-    'Visual system: Finely premium dark shell, controlled gold/amber accents, refined cards, trust-first spacing, no flyer clutter.',
+    'Visual system: Finely premium dark shell, controlled violet, emerald, sky, and rose accents, refined cards, trust-first spacing, no flyer clutter.',
     `Primary deliverable: ${job.intake.requestedAssetType}`,
     'Required variants: cover/poster, square social preview, 9:16 story/reel frame, and web hero crop when applicable.',
     'Design QA: check contrast, mobile crop, no illegible small text, no unsubstantiated credit/funding claims in artwork.',
@@ -238,12 +261,17 @@ function fallbackEbookDraft(job: ContentStudioJob) {
 
 function statusTone(status: ContentStudioJob['status']) {
   if (status === 'published' || status === 'approved') return 'text-emerald-200 border-emerald-400/25 bg-emerald-500/10';
-  if (status === 'needs_review') return 'text-amber-100 border-amber-400/25 bg-amber-500/10';
+  if (status === 'needs_review') return 'text-rose-100 border-rose-400/25 bg-rose-500/10';
   if (status === 'failed') return 'text-rose-100 border-rose-400/25 bg-rose-500/10';
   return 'text-sky-100 border-sky-400/20 bg-sky-500/10';
 }
 
-export function ContentStudioDepartmentPage() {
+type ContentStudioDepartmentPageProps = {
+  /** Compose studio grid — main canvas + vertical tool rail (ProductHubScaffold supplies chrome). */
+  composeLayout?: boolean;
+};
+
+export function ContentStudioDepartmentPage({ composeLayout = false }: ContentStudioDepartmentPageProps = {}) {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [version, setVersion] = useState(0);
@@ -364,10 +392,10 @@ export function ContentStudioDepartmentPage() {
   }, [fromPillar, promoteVideoIdFromUrl, copilotBrief, searchParams]);
 
   const kpis: StudioUxKpi[] = [
-    { label: 'Production jobs', value: jobs.length, hint: 'Every request has owner, status, and audit trail', tone: 'amber' },
+    { label: 'Production jobs', value: jobs.length, hint: 'Every request has owner, status, and audit trail', tone: 'sky' },
     { label: 'Assets', value: assets.length, hint: 'Reusable videos, guides, audio, covers, and scripts', tone: 'emerald' },
-    { label: 'Review queue', value: reviewJobs.length, hint: 'Compliance and brand approval before publish', tone: 'violet' },
-    { label: 'Ready to reuse', value: readyAssets.length, hint: 'Approved/published assets for site surfaces', tone: 'sky' },
+    { label: 'Review queue', value: reviewJobs.length, hint: 'Compliance and brand approval before publish', tone: 'rose' },
+    { label: 'Ready to reuse', value: readyAssets.length, hint: 'Approved/published assets for site surfaces', tone: 'violet' },
   ];
 
   useEffect(() => {
@@ -652,7 +680,7 @@ export function ContentStudioDepartmentPage() {
     });
     updateContentStudioAsset(asset.id, {
       status: 'published',
-      publishTargets: Array.from(new Set([...asset.publishTargets, 'resources'])),
+      publishTargets: mergePublishTarget(asset.publishTargets, 'resources'),
       summary: `${asset.summary || ''}\n\nPublished to Resources as private item: ${resource.title}`.trim(),
     });
     setVersion((v) => v + 1);
@@ -711,7 +739,9 @@ export function ContentStudioDepartmentPage() {
             ? 'video/webm'
             : 'application/octet-stream';
     const res = await openBlobRefInNewTab({ blobRef: asset.blobRef, mimeType: mime, preferSigned: true });
-    if (!res.ok) setErr(res.message);
+    if (!res.ok) {
+      setErr(res.message);
+    }
   };
 
   const setAssetAsLeadMagnetHero = (asset: ContentStudioAsset) => {
@@ -734,7 +764,7 @@ export function ContentStudioDepartmentPage() {
     });
     updateContentStudioAsset(asset.id, {
       status: 'published',
-      publishTargets: Array.from(new Set([...asset.publishTargets, 'lead_magnet_hero'])),
+      publishTargets: mergePublishTarget(asset.publishTargets, 'lead_magnet_hero'),
       summary: `${asset.summary || ''}\n\nAttached to lead magnet funnel: ${selectedFunnelKey}`.trim(),
     });
     setVersion((v) => v + 1);
@@ -790,7 +820,7 @@ export function ContentStudioDepartmentPage() {
     upsertCourse(next);
     updateContentStudioAsset(asset.id, {
       status: 'published',
-      publishTargets: Array.from(new Set([...asset.publishTargets, 'course_lesson'])),
+      publishTargets: mergePublishTarget(asset.publishTargets, 'course_lesson'),
       summary: `${asset.summary || ''}\n\nAttached to course lesson: ${selected.label}`.trim(),
     });
     setVersion((v) => v + 1);
@@ -811,7 +841,7 @@ export function ContentStudioDepartmentPage() {
     });
     updateContentStudioAsset(asset.id, {
       status: 'published',
-      publishTargets: Array.from(new Set([...asset.publishTargets, 'tour_demo'])),
+      publishTargets: mergePublishTarget(asset.publishTargets, 'tour_demo'),
       summary: `${asset.summary || ''}\n\nTour clip job queued: ${job.id}`.trim(),
     });
     setVersion((v) => v + 1);
@@ -840,85 +870,63 @@ export function ContentStudioDepartmentPage() {
     else navigate(href);
   };
 
-  return (
-    <div className="space-y-6">
-      {err ? <div className="rounded-3xl border border-rose-500/30 bg-rose-500/10 p-4 text-rose-100 text-sm">{err}</div> : null}
-      {notice ? <div className="rounded-3xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-emerald-100 text-sm inline-flex gap-3"><CheckCircle2 size={18} />{notice}</div> : null}
+  const activeWorkroomDef = workrooms.find((w) => w.id === activeWorkroom);
 
-      {studioView === 'home' ? (
-        <FinelyUnifiedHubLayout
-          eyebrow="Content Studio"
-          title="Plan your video with copilot"
-          subtitle="Tap a starter or describe your clip — then continue to the 3-step wizard for scenes and export."
-          accent="amber"
-          kpis={kpis.map((k) => ({ ...k, value: String(k.value) }))}
-          primaryAction={{ label: 'Open wizard', onClick: () => openWizard(copilotPreset ?? wizardPreset ?? 'reel_28') }}
-          secondaryAction={{ label: 'Advanced studio', onClick: () => setStudioView('advanced') }}
-          contentVariant="flush"
-        >
-          <FinelyCapabilityScorecard variant="compact" showPipelineStages className="mb-4" />
-          <VideoCreationCopilotPanel
-            onApplyBrief={(patch, suggestedPreset) => {
-              setCopilotBrief(patch);
-              if (suggestedPreset) setCopilotPreset(suggestedPreset);
-              setNotice('Copilot plan saved — open the wizard or tap Continue to format.');
-            }}
-            onContinue={() => openWizard(copilotPreset ?? 'reel_28')}
-          />
-          <VideoCreateWizardEntry
-            onStart={(preset) => openWizard(preset)}
-            activePreset={copilotPreset ?? wizardPreset ?? (fromPillar ? 'ad_60' : 'reel_28')}
-          />
+  const homeStudioPanels = (
+    <>
+      <FinelyCapabilityScorecard variant="compact" showPipelineStages className="mb-4" />
+      <VideoCreationCopilotPanel
+        onApplyBrief={(patch, suggestedPreset) => {
+          setCopilotBrief(patch);
+          if (suggestedPreset) setCopilotPreset(suggestedPreset);
+          setNotice('Copilot plan saved — open the wizard or tap Continue to format.');
+        }}
+        onContinue={() => openWizard(copilotPreset ?? 'reel_28')}
+      />
+      <VideoCreateWizardEntry
+        onStart={(preset) => openWizard(preset)}
+        activePreset={copilotPreset ?? wizardPreset ?? (fromPillar ? 'ad_60' : 'reel_28')}
+      />
 
-          <div className={`${finelyOsCatalogCardCompact('violet')} mt-4 space-y-3`}>
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <p className={FINELY_OS_ENTITY_SUBLABEL}>My videos</p>
-                <h3 className={FINELY_OS_ENTITY_TITLE}>{myVideos.length} rendered clip(s)</h3>
-              </div>
-              <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => setStudioView('advanced')}>
-                Asset registry
-              </button>
-            </div>
-            {myVideos.length ? (
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                {myVideos.map((a) => (
-                  <div key={a.id} className="rounded-2xl border border-white/10 bg-black/25 p-3 space-y-2">
-                    <div className="text-sm font-bold text-white truncate">{a.title}</div>
-                    {a.blobRef ? <ContentStudioVideoPreview blobRef={a.blobRef} /> : null}
-                    <div className={`text-[10px] uppercase tracking-widest ${FINELY_OS_ENTITY_BODY}`}>
-                      {a.status} · {a.provider || 'render'}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
-                No videos yet — run the wizard above to render your first WebM.
-              </p>
-            )}
+      <div className={`${finelyOsCatalogCardCompact('violet')} mt-4 space-y-3`}>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <p className={FINELY_OS_ENTITY_SUBLABEL}>My videos</p>
+            <h3 className={FINELY_OS_ENTITY_TITLE}>{myVideos.length} rendered clip(s)</h3>
           </div>
-        </FinelyUnifiedHubLayout>
-      ) : (
-      <FinelyUnifiedHubLayout
-        eyebrow="Advanced studio"
-        title="Full content production floor"
-        subtitle="Research, script, design, voice, course batches, tours, e-books, review, and publish bridges — for power users."
-        accent="amber"
-        kpis={kpis.map((k) => ({ ...k, value: String(k.value) }))}
-        tabs={workrooms.map((w) => ({ id: w.id, label: w.label, badge: w.id === 'review' && reviewJobs.length ? reviewJobs.length : undefined }))}
-        activeTab={activeWorkroom}
-        onTabChange={(id) => setActiveWorkroom(id as ContentStudioWorkroom)}
-        primaryAction={{ label: '← Easy mode', onClick: () => setStudioView('home') }}
-        contentVariant="flush"
-        tabDensity="comfortable"
-      >
+          <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => setStudioView('advanced')}>
+            Asset registry
+          </button>
+        </div>
+        {myVideos.length ? (
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {myVideos.map((a) => (
+              <div key={a.id} className="rounded-2xl border border-white/10 bg-black/25 p-3 space-y-2">
+                <div className="text-sm font-bold text-white truncate">{a.title}</div>
+                {a.blobRef ? <ContentStudioVideoPreview blobRef={a.blobRef} /> : null}
+                <div className={`text-[10px] uppercase tracking-widest ${FINELY_OS_ENTITY_BODY}`}>
+                  {a.status} · {a.provider || 'render'}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
+            No videos yet — run the wizard above to render your first WebM.
+          </p>
+        )}
+      </div>
+    </>
+  );
+
+  const advancedStudioPanels = (
+    <>
       <FinelyCapabilityScorecard variant="compact" showPipelineStages className="mb-4" />
       {ownerStaff ? (
-        <div className="rounded-2xl border border-amber-400/30 bg-amber-500/10 p-4 mb-5 flex flex-wrap items-center gap-4">
+        <div className="rounded-2xl border border-violet-400/30 bg-violet-500/10 p-4 mb-5 flex flex-wrap items-center gap-4">
           <StaffAvatar staff={ownerStaff} size="md" active />
           <div className="min-w-0 flex-1">
-            <div className="text-[10px] uppercase tracking-widest text-amber-200 font-black">Staff owner</div>
+            <div className="text-[10px] uppercase tracking-widest text-violet-200 font-black">Staff owner</div>
             <div className="text-white font-bold">{staffFullName(ownerStaff)} · {ownerStaff.title}</div>
             <div className="text-sm text-white/55 mt-1">Production request routed from Staff Command Center.</div>
           </div>
@@ -933,7 +941,7 @@ export function ContentStudioDepartmentPage() {
             <textarea
                 value={intake.prompt}
                 onChange={(e) => setIntake((v) => ({ ...v, prompt: e.target.value }))}
-                className="w-full min-h-[220px] rounded-[1.75rem] border border-white/10 bg-black/45 px-5 py-4 text-white/90 placeholder:text-white/25 text-base leading-relaxed focus:outline-none focus:border-amber-400/60"
+                className="w-full min-h-[220px] rounded-[1.75rem] border border-white/10 bg-black/45 px-5 py-4 text-white/90 placeholder:text-white/25 text-base leading-relaxed focus:outline-none focus:border-violet-400/60"
                 placeholder="Describe what you need: video, guide, course lesson, resource, demo, lead magnet, testimonial, social content, or full campaign bundle."
               />
               <div className="grid md:grid-cols-2 gap-3">
@@ -1083,8 +1091,8 @@ export function ContentStudioDepartmentPage() {
             </div>
           </div>
 
-          <div className="rounded-[2rem] border border-amber-400/15 bg-amber-500/10 p-5">
-            <div className="text-[10px] uppercase tracking-[0.24em] text-amber-200 font-black">Workroom actions</div>
+          <div className="rounded-[2rem] border border-violet-400/15 bg-violet-500/10 p-5">
+            <div className="text-[10px] uppercase tracking-[0.24em] text-violet-200 font-black">Workroom actions</div>
             <div className="mt-4 flex flex-wrap gap-2">
               <button type="button" className="fc-button-soft" onClick={() => void generateResearchAndScript(activeJob)} disabled={busy}>
                 <Wand2 size={14} /> Research + script
@@ -1109,7 +1117,7 @@ export function ContentStudioDepartmentPage() {
 
           <div className="space-y-4">
             <div className="rounded-3xl border border-white/10 bg-black/30 p-5">
-              <div className="inline-flex items-center gap-2 text-amber-200 font-black uppercase tracking-widest text-[10px]"><Search size={14} /> Research brief</div>
+              <div className="inline-flex items-center gap-2 text-sky-200 font-black uppercase tracking-widest text-[10px]"><Search size={14} /> Research brief</div>
               <pre className="mt-4 whitespace-pre-wrap text-sm text-white/65 leading-relaxed font-sans">{activeJob.researchBrief || 'Generate a research brief to fill this workroom.'}</pre>
             </div>
             <div className="rounded-3xl border border-white/10 bg-black/30 p-5">
@@ -1277,10 +1285,11 @@ export function ContentStudioDepartmentPage() {
         </StudioSection>
       ) : null}
 
-      </FinelyUnifiedHubLayout>
-      )}
+    </>
+  );
 
-      {studioView === 'advanced' ? (
+  const publishBridgeSection =
+    studioView === 'advanced' ? (
       <StudioSection eyebrow="publish bridges" title="Where this department connects across Finely Cred">
         <p className="text-sm text-white/55 mb-4 max-w-3xl">
           One-click push uses your best approved video asset, then opens the destination workspace. Full per-asset controls remain in the Assets workroom.
@@ -1291,10 +1300,10 @@ export function ContentStudioDepartmentPage() {
             return (
             <div
               key={title}
-              className="group rounded-3xl border border-white/10 bg-white/[0.035] p-5 text-left hover:border-amber-400/35 hover:bg-amber-500/5 transition-colors"
+              className="group rounded-3xl border border-white/10 bg-white/[0.035] p-5 text-left hover:border-violet-400/35 hover:bg-violet-500/5 transition-colors"
             >
               <div className="flex items-center justify-between gap-2">
-                <Icon size={18} className="text-amber-200 group-hover:text-amber-100" />
+                <Icon size={18} className="text-violet-200 group-hover:text-violet-100" />
                 <span className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded-full border ${chip.tone}`}>{chip.label}</span>
               </div>
               <div className="mt-3 text-white font-black">{title}</div>
@@ -1312,7 +1321,186 @@ export function ContentStudioDepartmentPage() {
           })}
         </div>
       </StudioSection>
+    ) : null;
+
+  const composeToolRail = (
+    <>
+      <div className={FINELY_OS_ENTITY_SUBLABEL}>Studio tools</div>
+      <div className="space-y-2">
+        <button
+          type="button"
+          onClick={() => setStudioView('home')}
+          className={`w-full rounded-2xl border px-4 py-3 text-left transition-all ${
+            studioView === 'home' ? 'border-emerald-400/40 bg-emerald-500/15' : 'border-white/10 bg-black/20 hover:border-white/25'
+          }`}
+          data-fc-accent={studioView === 'home' ? 'emerald' : undefined}
+        >
+          <div className="flex items-center gap-2">
+            <Sparkles size={16} />
+            <span className="text-sm font-extrabold">Video planner</span>
+          </div>
+          <p className={`mt-1 text-sm font-semibold ${FINELY_OS_ENTITY_BODY}`}>Copilot, presets, and wizard.</p>
+        </button>
+        <button
+          type="button"
+          onClick={() => setStudioView('advanced')}
+          className={`w-full rounded-2xl border px-4 py-3 text-left transition-all ${
+            studioView === 'advanced' ? 'border-violet-400/40 bg-violet-500/15' : 'border-white/10 bg-black/20 hover:border-white/25'
+          }`}
+          data-fc-accent={studioView === 'advanced' ? 'violet' : undefined}
+        >
+          <div className="flex items-center gap-2">
+            <Clapperboard size={16} />
+            <span className="text-sm font-extrabold">Production floor</span>
+          </div>
+          <p className={`mt-1 text-sm font-semibold ${FINELY_OS_ENTITY_BODY}`}>Research, voice, courses, and publish.</p>
+        </button>
+      </div>
+
+      {studioView === 'advanced' ? (
+        <div className="space-y-2 max-h-[28rem] overflow-y-auto pr-1">
+          {workrooms.map((w) => {
+            const Icon = w.icon;
+            const accent = WORKROOM_ACCENTS[w.id];
+            const active = activeWorkroom === w.id;
+            return (
+              <button
+                key={w.id}
+                type="button"
+                onClick={() => setActiveWorkroom(w.id)}
+                className={`w-full rounded-2xl border px-4 py-3 text-left transition-all ${
+                  active
+                    ? accent === 'emerald'
+                      ? 'border-emerald-400/40 bg-emerald-500/15'
+                      : accent === 'violet'
+                        ? 'border-violet-400/40 bg-violet-500/15'
+                        : accent === 'sky'
+                          ? 'border-sky-400/40 bg-sky-500/15'
+                          : 'border-rose-400/40 bg-rose-500/15'
+                    : 'border-white/10 bg-black/20 hover:border-white/25'
+                }`}
+                data-fc-accent={active ? accent : undefined}
+              >
+                <div className="flex items-center gap-2">
+                  <Icon size={16} />
+                  <span className="text-sm font-extrabold">{w.label}</span>
+                  {w.id === 'review' && reviewJobs.length ? (
+                    <span className="ml-auto rounded-full border border-rose-400/40 bg-rose-500/15 px-2 py-0.5 text-[10px] font-black">
+                      {reviewJobs.length}
+                    </span>
+                  ) : null}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      ) : (
+        <div className={`${finelyOsCatalogCard('rose')} p-4 space-y-3`} data-fc-accent="rose">
+          <div className={FINELY_OS_ENTITY_SUBLABEL}>Rendered clips</div>
+          <div className="text-3xl font-extrabold">{myVideos.length}</div>
+          <p className={`text-sm font-semibold ${FINELY_OS_ENTITY_BODY}`}>
+            {myVideos.length
+              ? 'Open production floor to manage assets and publish bridges.'
+              : 'Run the wizard to render your first clip.'}
+          </p>
+          <button
+            type="button"
+            className={FINELY_OS_PRIMARY_BTN}
+            onClick={() => openWizard(copilotPreset ?? wizardPreset ?? 'reel_28')}
+          >
+            <Clapperboard size={14} /> Open wizard
+          </button>
+        </div>
+      )}
+
+      <div className={`${finelyOsCatalogCard('emerald')} p-4 space-y-2`} data-fc-accent="emerald">
+        <div className={FINELY_OS_ENTITY_SUBLABEL}>Queue snapshot</div>
+        <div className="grid grid-cols-2 gap-2 text-sm font-bold">
+          <div>
+            <span className="text-2xl font-extrabold">{jobs.length}</span> jobs
+          </div>
+          <div>
+            <span className="text-2xl font-extrabold">{reviewJobs.length}</span> review
+          </div>
+        </div>
+      </div>
+    </>
+  );
+
+  return (
+    <div className="space-y-6">
+      {err ? <div className="rounded-3xl border border-rose-500/30 bg-rose-500/10 p-4 text-rose-100 text-sm">{err}</div> : null}
+      {notice ? (
+        <div className="rounded-3xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-emerald-100 text-sm inline-flex gap-3">
+          <CheckCircle2 size={18} />
+          {notice}
+        </div>
       ) : null}
+
+      {composeLayout ? (
+        <>
+          <div className="grid gap-6 lg:grid-cols-12 items-start">
+            <section className={`lg:col-span-8 space-y-6 ${finelyOsCatalogCard('violet')} p-6 lg:p-8`} data-fc-accent="violet">
+              <div>
+                <div className="text-xs font-black uppercase tracking-widest text-violet-300">Compose studio</div>
+                <h2 className="mt-2 text-3xl font-extrabold">
+                  {studioView === 'home' ? 'Plan your clip' : activeWorkroomDef?.label ?? 'Production floor'}
+                </h2>
+                <p className={`mt-2 text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
+                  {studioView === 'home'
+                    ? 'Describe your video or pick a starter — then open the wizard to render.'
+                    : activeWorkroomDef?.summary ?? 'Research, voice, courses, review, and publish bridges.'}
+                </p>
+              </div>
+              {studioView === 'home' ? homeStudioPanels : advancedStudioPanels}
+            </section>
+            <aside className={`lg:col-span-4 space-y-4 ${finelyOsCatalogCard('sky')} p-5 lg:p-6`} data-fc-accent="sky">
+              {composeToolRail}
+            </aside>
+          </div>
+          {publishBridgeSection}
+        </>
+      ) : studioView === 'home' ? (
+        <FinelyUnifiedHubLayout
+          eyebrow="Content Studio"
+          title="Plan your video with copilot"
+          subtitle="Tap a starter or describe your clip — then continue to the 3-step wizard for scenes and export."
+          accent="rose"
+          kpis={kpis.map((k) => ({
+            label: k.label,
+            value: String(k.value),
+            hint: k.hint,
+            accent: k.tone === 'slate' ? 'sky' : k.tone,
+          }))}
+          primaryAction={{ label: 'Open wizard', onClick: () => openWizard(copilotPreset ?? wizardPreset ?? 'reel_28') }}
+          secondaryAction={{ label: 'Advanced studio', onClick: () => setStudioView('advanced') }}
+          contentVariant="flush"
+        >
+          {homeStudioPanels}
+        </FinelyUnifiedHubLayout>
+      ) : (
+        <FinelyUnifiedHubLayout
+          eyebrow="Advanced studio"
+          title="Full content production floor"
+          subtitle="Research, script, design, voice, course batches, tours, e-books, review, and publish bridges — for power users."
+          accent="rose"
+          kpis={kpis.map((k) => ({ ...k, value: String(k.value) }))}
+          tabs={workrooms.map((w) => ({
+            id: w.id,
+            label: w.label,
+            badge: w.id === 'review' && reviewJobs.length ? reviewJobs.length : undefined,
+          }))}
+          activeTab={activeWorkroom}
+          onTabChange={(id) => setActiveWorkroom(id as ContentStudioWorkroom)}
+          primaryAction={{ label: '← Easy mode', onClick: () => setStudioView('home') }}
+          contentVariant="flush"
+          tabDensity="comfortable"
+        >
+          {advancedStudioPanels}
+        </FinelyUnifiedHubLayout>
+      )}
+
+      {!composeLayout ? publishBridgeSection : null}
 
       <VideoCreateWizard
         open={wizardOpen}

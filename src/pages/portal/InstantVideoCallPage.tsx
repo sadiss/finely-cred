@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 import { Copy, Users, Video } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import { useMappedPartnerNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { useAuth } from '../../auth/AuthProvider';
 import { buildJoinUrl, endVideoCall, getVideoCall } from '../../data/videoCallsRepo';
@@ -16,9 +17,9 @@ import {
   FINELY_OS_SECONDARY_BTN,
 } from '../../features/os/finelyOsLightUi';
 
-export default function InstantVideoCallPage() {
+export default function InstantVideoCallPage({ embedded = false }: { embedded?: boolean } = {}) {
   const { callId } = useParams<{ callId: string }>();
-  const navigate = useNavigate();
+  const navigate = useMappedPartnerNavigate();
   const auth = useAuth();
   const { partner } = usePartnerSession();
   const isAdmin = isAdminEmail(auth.user?.email);
@@ -121,28 +122,30 @@ export default function InstantVideoCallPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a1210] flex flex-col">
-      <div className="shrink-0 border-b border-white/[0.08] bg-fc-input px-4 py-3 flex flex-wrap items-center justify-between gap-3">
-        <div className="min-w-0">
-          <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-sky-300 inline-flex items-center gap-2`}>
-            <Video size={14} /> {instantCall ? 'Instant video call' : 'Scheduled meeting'}
-          </div>
-          <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{title}</div>
-          {participantLabels.length ? (
-            <div className={`${FINELY_OS_ENTITY_BODY} text-[10px] mt-0.5 inline-flex items-center gap-1`}>
-              <Users size={10} /> {participantLabels.join(' · ')}
+    <div className={`${embedded ? 'fc-wlp-video-room-root' : 'min-h-screen bg-[#0a1210]'} flex flex-col`}>
+      {!embedded ? (
+        <div className="shrink-0 border-b border-white/[0.08] bg-fc-input px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0">
+            <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-sky-300 inline-flex items-center gap-2`}>
+              <Video size={14} /> {instantCall ? 'Instant video call' : 'Scheduled meeting'}
             </div>
-          ) : null}
+            <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{title}</div>
+            {participantLabels.length ? (
+              <div className={`${FINELY_OS_ENTITY_BODY} text-[10px] mt-0.5 inline-flex items-center gap-1`}>
+                <Users size={10} /> {participantLabels.join(' · ')}
+              </div>
+            ) : null}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <button type="button" onClick={() => void copyLink()} className={FINELY_OS_SECONDARY_BTN}>
+              <Copy size={12} /> Copy link
+            </button>
+            <button type="button" onClick={() => navigate('/portal/messages?hub=meetings')} className={FINELY_OS_SECONDARY_BTN}>
+              Hub
+            </button>
+          </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <button type="button" onClick={() => void copyLink()} className={FINELY_OS_SECONDARY_BTN}>
-            <Copy size={12} /> Copy link
-          </button>
-          <button type="button" onClick={() => navigate('/portal/messages?hub=meetings')} className={FINELY_OS_SECONDARY_BTN}>
-            Hub
-          </button>
-        </div>
-      </div>
+      ) : null}
 
       <div className="flex-1 min-h-0 flex flex-col">
         <MeetingControlBar
@@ -180,10 +183,12 @@ export default function InstantVideoCallPage() {
         </MeetingControlBar>
       </div>
 
-      <div className={`shrink-0 px-4 py-2 text-[10px] ${FINELY_OS_ENTITY_BODY} text-center`}>
-        Secure in-browser video · Grid, spotlight & sidebar layouts · Meeting notes · {room}
-        {instantCall?.roomPin ? ` · PIN ${instantCall.roomPin}` : ''}
-      </div>
+      {!embedded ? (
+        <div className={`shrink-0 px-4 py-2 text-[10px] ${FINELY_OS_ENTITY_BODY} text-center`}>
+          Secure in-browser video · Grid, spotlight & sidebar layouts · Meeting notes · {room}
+          {instantCall?.roomPin ? ` · PIN ${instantCall.roomPin}` : ''}
+        </div>
+      ) : null}
     </div>
   );
 }

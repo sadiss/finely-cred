@@ -13,7 +13,7 @@ import { hasEntitlement, listEntitlementsByPartner, revokeEntitlementsByPartnerK
 import { SensitiveActionCodeGate } from './SensitiveActionCodeGate';
 
 /** Nested inside the navy Access & authority panel — white-on-dark, no card-of-its-own border (avoids "card inside an identical card"). */
-const FINELY_OS_ENTITY_SUBLABEL = 'text-[10px] font-semibold uppercase tracking-[0.12em] text-white/60';
+const FINELY_OS_ENTITY_SUBLABEL = 'text-xs font-semibold uppercase tracking-[0.12em] text-white/60';
 const FINELY_OS_ENTITY_BODY = 'text-sm leading-relaxed text-white/75';
 const FINELY_OS_ENTITY_VALUE = 'font-semibold tracking-tight text-white/90';
 const FINELY_OS_NOTICE_SUCCESS =
@@ -315,10 +315,10 @@ export function PartnerServicesAccessCard({
         </div>
         {syncState !== 'unknown' ? (
           <span
-            className={`shrink-0 rounded-md border px-2 py-0.5 text-[10px] font-semibold ${
+            className={`shrink-0 rounded-md border px-2 py-0.5 text-xs font-semibold ${
               syncState === 'synced'
                 ? 'border-emerald-400/40 bg-emerald-400/15 text-emerald-200/90'
-                : 'border-amber-400/40 bg-amber-400/15 text-amber-200/90'
+                : 'border-violet-400/40 bg-violet-400/15 text-violet-200/90'
             }`}
           >
             {syncState === 'synced' ? 'Synced' : 'This device'}
@@ -339,7 +339,7 @@ export function PartnerServicesAccessCard({
               (toolkitOn
                 ? 'border-emerald-400/60 bg-emerald-500/20 cursor-default'
                 : confirmToolkit
-                  ? 'border-amber-300/60 bg-amber-500/15'
+                  ? 'border-violet-300/60 bg-violet-500/15'
                   : 'border-sky-300/40 bg-sky-500/10 hover:bg-sky-500/15')
             }
           >
@@ -425,13 +425,13 @@ export function PartnerServicesAccessCard({
                 'w-full text-left flex items-center gap-2.5 rounded-xl border px-3 py-2.5 transition-all ' +
                 (debtOn
                   ? 'border-emerald-400/50 bg-emerald-500/20 cursor-default'
-                  : 'border-amber-400/30 bg-amber-500/10 hover:bg-amber-500/15')
+                  : 'border-rose-400/30 bg-rose-500/10 hover:bg-rose-500/15')
               }
             >
               <span
                 className={
                   'flex h-6 w-6 shrink-0 items-center justify-center rounded-md border text-xs font-bold ' +
-                  (debtOn ? 'border-emerald-300 bg-emerald-400 text-black' : 'border-amber-300/50 bg-black/30 text-amber-100')
+                  (debtOn ? 'border-emerald-300 bg-emerald-400 text-black' : 'border-rose-300/50 bg-black/30 text-rose-100')
                 }
                 aria-hidden
               >
@@ -444,7 +444,7 @@ export function PartnerServicesAccessCard({
                 <span className={`block text-[11px] ${FINELY_OS_ENTITY_BODY}`}>Validation, Court, debt workstations</span>
               </span>
               {!debtOn ? (
-                <span className="shrink-0 rounded-md border border-amber-300/40 bg-amber-500/15 px-2 py-1 text-[10px] font-semibold text-amber-100">
+                <span className="shrink-0 rounded-md border border-rose-300/40 bg-rose-500/15 px-2 py-1 text-xs font-semibold text-rose-100">
                   {busy === 'debt_letters' ? '…' : 'Grant'}
                 </span>
               ) : null}

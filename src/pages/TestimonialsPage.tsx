@@ -51,13 +51,13 @@ const CASE_STUDY_FILTERS: Array<{ id: CaseStudyCategoryFilter; label: string; ac
   { id: 'personal_credit', label: categoryLabels.personal_credit, accent: 'emerald' },
   { id: 'business_credit', label: categoryLabels.business_credit, accent: 'sky' },
   { id: 'debt_legal', label: categoryLabels.debt_legal, accent: 'rose' },
-  { id: 'wealth_builder', label: categoryLabels.wealth_builder, accent: 'amber' },
+  { id: 'wealth_builder', label: categoryLabels.wealth_builder, accent: 'sky' },
   { id: 'privacy_id', label: categoryLabels.privacy_id, accent: 'fuchsia' },
   { id: 'tradeline_promo', label: categoryLabels.tradeline_promo, accent: 'violet' },
   { id: 'heta_society', label: 'HETA Society', accent: 'emerald' },
 ];
 
-const CASE_STUDY_CARD_ACCENTS: FinelyOsPublicAccent[] = ['amber', 'emerald', 'violet', 'sky', 'fuchsia', 'rose'];
+const CASE_STUDY_CARD_ACCENTS: FinelyOsPublicAccent[] = ['rose', 'emerald', 'violet', 'sky', 'fuchsia'];
 
 function parseFundingSecuredAmount(value?: string): number {
   if (!value) return 0;
@@ -83,7 +83,7 @@ function CaseStudyResultCard({
     : null;
 
   return (
-    <div className={`space-y-3 ${finelyOsCatalogCard(accent)} !p-5`} data-fc-accent={accent}>
+    <div className={`space-y-4 ${finelyOsCatalogCard(accent)}`} data-fc-accent={accent}>
       <div className="flex items-start justify-between gap-2">
         <span className="text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-full border border-white/20 bg-white/10 text-white/70 whitespace-nowrap">
           {CASE_STUDY_CATEGORY_LABELS[caseStudy.category] ?? 'Case study'}
@@ -103,7 +103,7 @@ function CaseStudyResultCard({
       <button
         type="button"
         onClick={onToggle}
-        className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-300 hover:text-amber-100 transition-colors"
+        className="inline-flex items-center gap-1.5 text-sm font-extrabold uppercase tracking-wider text-violet-300 hover:text-violet-100 transition-colors"
       >
         {expanded ? 'Hide the details' : 'Challenge, strategy & outcomes'}
         {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -235,9 +235,9 @@ export default function TestimonialsPage() {
           eyebrow="Social proof"
           title="Partner success stories"
           subtitle="Real stories across Personal Restore, Business Foundation, and Debt & Summons."
-          accent="amber"
+          accent="rose"
           kpis={[
-            { label: 'Videos', value: String(playableVideos.length), accent: 'amber' },
+            { label: 'Videos', value: String(playableVideos.length), accent: 'rose' },
             { label: 'Written', value: String(texts.length), accent: 'emerald' },
             { label: 'Published', value: String(published.length), accent: 'violet' },
           ]}
@@ -253,8 +253,8 @@ export default function TestimonialsPage() {
         >
         {tab === 'videos' && (
           <>
-          <div className={`space-y-4 ${finelyOsCatalogCard('amber')} !p-6`} data-fc-accent="amber">
-            <p className={`text-sm max-w-3xl ${FINELY_OS_ENTITY_BODY}`}>
+          <div className={`space-y-4 ${finelyOsCatalogCard('violet')}`} data-fc-accent="violet">
+            <p className={`text-base max-w-3xl ${FINELY_OS_ENTITY_BODY}`}>
               Recorded testimonials from partners across Personal Restore, Business Foundation, and Debt & Summons.
             </p>
           </div>
@@ -270,11 +270,11 @@ export default function TestimonialsPage() {
               renderItem={(v, idx) => (
                 <div
                   key={v.id}
-                  className={`space-y-3 ${finelyOsCatalogCard((['amber', 'emerald', 'violet'] as const)[idx % 3])} !p-5`}
-                  data-fc-accent={(['amber', 'emerald', 'violet'] as const)[idx % 3]}
+                  className={`space-y-4 ${finelyOsCatalogCard((['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4])}`}
+                  data-fc-accent={(['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4]}
                 >
                   <div className={`${FINELY_OS_ENTITY_VALUE} font-semibold`}>{v.title}</div>
-                  <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-amber-700`}>{v.service}</div>
+                  <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-violet-300`}>{v.service}</div>
                   <div className="overflow-hidden rounded-xl border border-white/20 !p-0">
                     {v.videoSrc ? (
                       <video className="w-full aspect-video bg-slate-900" controls playsInline preload="metadata" src={v.videoSrc} poster={v.posterSrc} />
@@ -317,8 +317,8 @@ export default function TestimonialsPage() {
 
         {tab === 'case_studies' && (
           <>
-            <div className={`space-y-4 ${finelyOsCatalogCard('emerald')} !p-6`} data-fc-accent="emerald">
-              <p className={`text-sm max-w-3xl ${FINELY_OS_ENTITY_BODY}`}>
+            <div className={`space-y-4 ${finelyOsCatalogCard('emerald')}`} data-fc-accent="emerald">
+              <p className={`text-base max-w-3xl ${FINELY_OS_ENTITY_BODY}`}>
                 Every documented case study, with the challenge, strategy, and statutory basis behind each result. Filter by
                 category to find a partner story closest to your own file.
               </p>
@@ -353,7 +353,7 @@ export default function TestimonialsPage() {
                 icon={DollarSign}
                 label="Funding secured"
                 value={caseStudyStats.totalFunding > 0 ? `$${caseStudyStats.totalFunding.toLocaleString('en-US')}` : '—'}
-                accent="amber"
+                accent="sky"
               />
             </div>
             <FinelyOsComplianceStrip>Results vary · not legal advice · funding subject to underwriting</FinelyOsComplianceStrip>
@@ -381,9 +381,9 @@ export default function TestimonialsPage() {
         )}
         </FinelyUnifiedHubLayout>
 
-        <div className={`${finelyOsLeadMagnetPanel('amber')} !p-6`} data-fc-accent="amber">
-          <div className="inline-flex items-center gap-2 text-amber-700">
-            <FlashyIcon icon={Trophy} color="amber" size="xs" className="!w-9 !h-9 !rounded-xl" />
+        <div className={finelyOsLeadMagnetPanel('violet')} data-fc-accent="violet">
+          <div className="inline-flex items-center gap-2 text-violet-300">
+            <FlashyIcon icon={Trophy} color="violet" size="xs" className="!w-9 !h-9 !rounded-xl" />
             <span className={FINELY_OS_ENTITY_SUBLABEL}>Want to share yours?</span>
           </div>
           <p className={`mt-2 text-sm ${FINELY_OS_ENTITY_BODY}`}>

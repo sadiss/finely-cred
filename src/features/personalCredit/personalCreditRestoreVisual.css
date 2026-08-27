@@ -779,7 +779,7 @@ html[data-fc-theme='light'] [data-fc-restore-pricing='1'] .fc-ivory-pop-tile .fc
   margin-inline: 0;
 }
 
-.pc-restore-kpi--accent-amber { border-left: 4px solid #d97706; }
+.pc-restore-kpi--accent-amber { border-left: 4px solid #7c3aed; }
 .pc-restore-kpi--accent-violet { border-left: 4px solid #7c3aed; }
 .pc-restore-kpi--accent-sky { border-left: 4px solid #0284c7; }
 .pc-restore-kpi--accent-rose { border-left: 4px solid #e11d48; }
@@ -1185,11 +1185,48 @@ html[data-fc-theme='light'] [data-fc-restore-pricing='1'] .fc-ivory-pop-tile .fc
 }
 
 .pc-restore-kpi {
-  border-radius: 0.85rem;
-  border: 1px solid rgba(10, 22, 40, 0.08);
-  background: #fbfaf7;
-  padding: 0.75rem 0.85rem;
-  box-shadow: 0 10px 28px -22px rgba(0, 0, 0, 0.35);
+  border-radius: 1rem;
+  border: 1px solid rgba(10, 22, 40, 0.12);
+  background:
+    radial-gradient(720px 220px at 12% 0%, rgba(139, 92, 246, 0.16) 0%, transparent 58%),
+    #ffffff;
+  padding: 1.5rem 1.75rem;
+  box-shadow: 0 14px 36px -20px rgba(10, 22, 40, 0.16);
+}
+
+.pc-restore-kpi[data-fc-accent='emerald'] {
+  border-color: rgba(16, 185, 129, 0.42);
+  background:
+    radial-gradient(720px 220px at 12% 0%, rgba(16, 185, 129, 0.22) 0%, transparent 58%),
+    #ffffff;
+}
+
+.pc-restore-kpi[data-fc-accent='violet'] {
+  border-color: rgba(139, 92, 246, 0.42);
+  background:
+    radial-gradient(720px 220px at 12% 0%, rgba(139, 92, 246, 0.22) 0%, transparent 58%),
+    #ffffff;
+}
+
+.pc-restore-kpi[data-fc-accent='sky'] {
+  border-color: rgba(14, 165, 233, 0.42);
+  background:
+    radial-gradient(720px 220px at 12% 0%, rgba(14, 165, 233, 0.22) 0%, transparent 58%),
+    #ffffff;
+}
+
+.pc-restore-kpi[data-fc-accent='rose'] {
+  border-color: rgba(244, 63, 94, 0.42);
+  background:
+    radial-gradient(720px 220px at 12% 0%, rgba(244, 63, 94, 0.2) 0%, transparent 58%),
+    #ffffff;
+}
+
+.pc-restore-kpi[data-fc-accent='fuchsia'] {
+  border-color: rgba(217, 70, 239, 0.42);
+  background:
+    radial-gradient(720px 220px at 12% 0%, rgba(217, 70, 239, 0.2) 0%, transparent 58%),
+    #ffffff;
 }
 
 .pc-restore-kpi--glass {
@@ -1219,8 +1256,8 @@ html[data-fc-theme='light'] [data-fc-restore-pricing='1'] .fc-ivory-pop-tile .fc
 }
 
 .pc-restore-kpi-value {
-  font-size: 1.125rem;
-  font-weight: 700;
+  font-size: 1.875rem;
+  font-weight: 800;
   color: var(--pc-sheet-ink);
 }
 

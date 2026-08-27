@@ -1,0 +1,110 @@
+/* Workspace logo tone variants — mask-based recoloring of raster marks/wordmarks. */
+
+.fc-brand-logo-tone {
+  display: inline-block;
+  flex-shrink: 0;
+  background-repeat: no-repeat;
+  background-position: left center;
+  background-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: left center;
+  mask-position: left center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+.fc-brand-logo-tone.fc-brand-logo-align-left {
+  background-position: left center;
+  -webkit-mask-position: left center;
+  mask-position: left center;
+}
+
+.fc-brand-logo-tone--emerald {
+  background-image: linear-gradient(
+    148deg,
+    #0fc78d 0%,
+    #057256 24%,
+    #045c44 48%,
+    #057256 72%,
+    #03422f 100%
+  );
+}
+
+.fc-brand-logo-tone--mono {
+  background-color: currentColor;
+  background-image: none;
+}
+
+.fc-brand-logo-tone--mono.fc-brand-logo-tone--on-dark {
+  color: #ffffff;
+}
+
+.fc-brand-logo-tone--mono.fc-brand-logo-tone--on-light {
+  color: #0a1628;
+}
+
+/* =============================================================================
+   Button treatment — a metallic green key rather than a recoloured flat raster.
+   Structure: the outer element is the dark rim and the surface the letters show
+   through; the inner face is the brushed green disc with the wordmark SUBTRACTED
+   from its mask, so the glyphs are genuinely transparent (you see the dark rim
+   through them) instead of being painted a second colour.
+   Superseded automatically if `public/brand/finely-cred-button.png` exists.
+   ============================================================================= */
+.fc-brand-logo-button {
+  position: relative;
+  display: inline-flex;
+  aspect-ratio: 1 / 1;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 30%;
+  padding: 7%;
+  background-image: radial-gradient(circle at 50% 22%, #1d2b25 0%, #060b09 62%, #010403 100%);
+  box-shadow:
+    0 10px 24px -12px rgba(2, 18, 13, 0.9),
+    inset 0 1px 0 rgba(148, 255, 213, 0.16),
+    inset 0 0 0 1px rgba(10, 92, 68, 0.55);
+}
+
+.fc-brand-logo-button-face {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 26%;
+  /* Brushed metallic green: alternating specular bands read as machined metal under a light
+     source at upper-left, which a single flat gradient never achieves. */
+  background-image:
+    radial-gradient(circle at 34% 20%, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 46%),
+    linear-gradient(
+      148deg,
+      #16e0a2 0%,
+      #05996f 16%,
+      #0bc78d 30%,
+      #046b4f 46%,
+      #12d69a 58%,
+      #04563f 74%,
+      #0aa87a 88%,
+      #033325 100%
+    );
+  -webkit-mask-repeat: no-repeat, no-repeat;
+  mask-repeat: no-repeat, no-repeat;
+  -webkit-mask-position: center, center;
+  mask-position: center, center;
+  -webkit-mask-size: 100% 100%, 76% 76%;
+  mask-size: 100% 100%, 76% 76%;
+  /* Full face MINUS the wordmark = knockout letterforms. */
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4));
+}
+
+/* No mask compositing (older engines): fall back to a solid metallic key rather than a
+   broken cut-out, so the brand never renders as an empty square. */
+@supports not ((mask-composite: exclude) or (-webkit-mask-composite: xor)) {
+  .fc-brand-logo-button-face {
+    -webkit-mask-image: none !important;
+    mask-image: none !important;
+  }
+}

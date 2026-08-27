@@ -1,9 +1,9 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { FileText, FolderOpen, PenLine, Scale } from 'lucide-react';
+import { FileText, Files, FolderOpen, PenLine, Scale } from 'lucide-react';
 import { finelyOsGlowTile } from '../os/finelyOsLightUi';
 
-export type RestoreWorkspaceDockKey = 'reports' | 'evidence' | 'letters' | 'debt';
+export type RestoreWorkspaceDockKey = 'reports' | 'evidence' | 'documents' | 'letters' | 'debt';
 
 type DockItem = {
   key: RestoreWorkspaceDockKey;
@@ -16,14 +16,23 @@ type DockItem = {
 
 const DOCK_ITEMS: DockItem[] = [
   { key: 'reports', label: 'Reports', short: 'Credit intel', path: '/portal/reports', icon: FileText, accent: 'violet' },
-  { key: 'evidence', label: 'Evidence', short: 'Vault & proof', path: '/portal/documents', icon: FolderOpen, accent: 'emerald' },
+  { key: 'evidence', label: 'Evidence', short: 'Source proof', path: '/portal/evidence', icon: FolderOpen, accent: 'emerald' },
   { key: 'letters', label: 'Credit letters', short: 'Bureau disputes', path: '/portal/letters', icon: PenLine, accent: 'fuchsia' },
   { key: 'debt', label: 'Debt', short: 'Validation & court', path: '/portal/debt', icon: Scale, accent: 'sky' },
 ];
 
+const PORTAL_DOCK_ITEMS: DockItem[] = [
+  DOCK_ITEMS[0],
+  DOCK_ITEMS[1],
+  { key: 'documents', label: 'Documents', short: 'ID & paperwork', path: '/portal/documents', icon: Files, accent: 'sky' },
+  DOCK_ITEMS[2],
+  DOCK_ITEMS[3],
+];
+
 function isActive(pathname: string, item: DockItem): boolean {
   if (item.key === 'reports') return pathname.startsWith('/portal/reports') || pathname.startsWith('/portal/analysis');
-  if (item.key === 'evidence') return pathname.startsWith('/portal/documents');
+  if (item.key === 'evidence') return pathname.startsWith('/portal/evidence');
+  if (item.key === 'documents') return pathname.startsWith('/portal/documents');
   if (item.key === 'letters') return pathname.startsWith('/portal/letters') || pathname.startsWith('/portal/disputes');
   if (item.key === 'debt') return pathname.startsWith('/portal/debt');
   return false;
@@ -44,13 +53,13 @@ type Props =
     };
 
 /**
- * Full-width restore lane — Reports (left) · Evidence · Credit letters · Debt (right).
+ * Full-width restore lane — Reports · Evidence · Documents · Credit letters · Debt.
  */
 export function PartnerRestoreWorkspaceDock(props: Props) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
-  const items = DOCK_ITEMS;
+  const items = props.variant === 'portal' ? PORTAL_DOCK_ITEMS : DOCK_ITEMS;
 
   return (
     <div
@@ -71,7 +80,7 @@ export function PartnerRestoreWorkspaceDock(props: Props) {
               type="button"
               onClick={() => {
                 if (props.variant === 'portal') navigate(item.path);
-                else props.onOpenTab(item.key);
+                else props.onOpenTab(item.key as AdminTabKey);
               }}
               aria-current={active ? 'page' : undefined}
               className={`flex-1 min-w-0 min-h-[52px] sm:min-h-[56px] rounded-xl border px-2 sm:px-4 py-2.5 sm:py-3 text-left transition-all ${glow} ${

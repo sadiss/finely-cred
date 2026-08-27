@@ -184,12 +184,12 @@ export default function AuTeenCreditSheetPage() {
         {/* ── Card gallery hero ────────────────────────────────────── */}
         <section
           data-fc-contrast-band="1"
-          className="relative overflow-hidden rounded-[1.5rem] border border-amber-400/25 bg-gradient-to-br from-[#0b1020]/95 via-[#080b16]/95 to-[#05070f]/98 p-6 lg:p-8"
+          className="relative overflow-hidden rounded-[1.5rem] border border-violet-400/25 bg-gradient-to-br from-[#0b1020]/95 via-[#080b16]/95 to-[#05070f]/98 p-6 lg:p-8"
         >
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_55%_50%_at_100%_0%,rgba(224,178,74,0.14),transparent_58%)]" />
           <div className="relative grid gap-7 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
             <div className="min-w-0">
-              <div className="text-[10px] font-black uppercase tracking-[0.28em] text-amber-300 sm:text-xs">
+              <div className="text-[10px] font-black uppercase tracking-[0.28em] text-violet-300 sm:text-xs">
                 Authorized user + teen credit · {kit.sheetLabel} parent kit
               </div>
               <h1 className="mt-3 text-4xl font-black leading-tight tracking-tight text-white sm:text-5xl">
@@ -199,7 +199,7 @@ export default function AuTeenCreditSheetPage() {
                   text="Added is not the same as "
                   accentText="reported."
                   className="inline text-inherit font-inherit leading-inherit tracking-inherit"
-                  accentClassName="text-amber-300"
+                  accentClassName="text-violet-300"
                   speedMs={42}
                 />
               </h1>
@@ -237,7 +237,7 @@ export default function AuTeenCreditSheetPage() {
 
             {/* Plastic-card mock, borrowed from the homepage AU band */}
             <div className="fc-au-card-showcase mx-auto w-full max-w-[26rem] lg:max-w-[28rem]">
-              <article className="fc-au-card fc-au-card--gold fc-au-card--wealthy fc-au-card--showcase">
+              <article className="fc-au-card fc-au-card--sapphire fc-au-card--showcase">
                 <div className="fc-au-card__top">
                   <div className="min-w-0">
                     <p className="fc-au-card__issuer">Parent primary account</p>
@@ -283,8 +283,8 @@ export default function AuTeenCreditSheetPage() {
               figure: '13',
               label: 'Youngest commonly allowed',
               body: 'American Express and U.S. Bank set minimum authorized user ages around 13. Several issuers publish no minimum at all.',
-              edge: 'border-amber-400/30',
-              ink: 'text-amber-200 fc-au-glow-figure--amber',
+              edge: 'border-violet-400/30',
+              ink: 'text-violet-200 fc-au-glow-figure--violet',
             },
             {
               figure: '18',
@@ -321,7 +321,7 @@ export default function AuTeenCreditSheetPage() {
           </div>
 
           <div className="fc-au-matrix mt-4 overflow-hidden rounded-xl border border-white/10">
-            <div className="hidden bg-white/[0.04] px-4 py-2.5 text-xs font-black uppercase tracking-[0.15em] text-amber-200 lg:grid lg:grid-cols-[165px_165px_190px_1fr] lg:gap-4">
+            <div className="hidden bg-white/[0.04] px-4 py-2.5 text-xs font-black uppercase tracking-[0.15em] text-violet-200 lg:grid lg:grid-cols-[165px_165px_190px_1fr] lg:gap-4">
               <span>Issuer</span>
               <span>Minimum AU age</span>
               <span>Reports a minor AU?</span>
@@ -374,14 +374,14 @@ export default function AuTeenCreditSheetPage() {
 
         {/* ── Checklist + risk ─────────────────────────────────────── */}
         <section className="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
-          <div data-fc-contrast-band="1" className="fc-au-pop-amber fc-au-glass-panel rounded-[1.25rem] p-5">
-            <h2 className="fc-au-section-title fc-au-section-title--card fc-au-section-title--amber flex items-center gap-2">
+          <div data-fc-contrast-band="1" className="fc-au-pop-violet fc-au-glass-panel rounded-[1.25rem] p-6 lg:p-8">
+            <h2 className="fc-au-section-title fc-au-section-title--card fc-au-section-title--violet flex items-center gap-2">
               <BadgeCheck size={20} /> Setup checklist — all eight before you add anyone
             </h2>
             <ul className="mt-3 space-y-2.5">
               {CHECKLIST.map((item) => (
                 <li key={item} className="fc-au-body-text flex gap-2.5 text-white/92">
-                  <span className="mt-1 h-3.5 w-3.5 shrink-0 rounded border border-amber-400/50" aria-hidden />
+                  <span className="mt-1 h-3.5 w-3.5 shrink-0 rounded border border-violet-400/50" aria-hidden />
                   {item}
                 </li>
               ))}

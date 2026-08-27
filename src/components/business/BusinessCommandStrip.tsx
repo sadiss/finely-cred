@@ -81,7 +81,7 @@ export function BusinessCommandStrip({ partner }: Props) {
           id: 'funding',
           label: 'Funding stage',
           value: FUNDING_STAGE_LABEL[stage] ?? stage,
-          accent: 'amber',
+          accent: 'rose',
           onClick: partner ? () => navigate('/portal/wealth-paths') : undefined,
         },
       ]}

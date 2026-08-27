@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Bot, ClipboardCheck, RefreshCw, Sparkles, Crown, AlertTriangle, Check, X } from 'lucide-react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { useLocation } from 'react-router-dom';
+import { AdminWorkstationFrame, type AdminEmbeddablePageProps } from '../../features/workspaceLightPreview/product/admin/AdminWorkstationFrame';
+import { useMappedAdminNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { isFeatureEnabled } from '../../data/settingsRepo';
 import { callAiGateway } from '../../lib/aiClient';
 import { listPartnersByTenant } from '../../data/partnersRepo';
@@ -96,8 +97,8 @@ function saveHistory(items: AgentMessage[]) {
   }
 }
 
-export default function AdminOpsAgentPage() {
-  const navigate = useNavigate();
+export default function AdminOpsAgentPage({ embedded = false }: AdminEmbeddablePageProps = {}) {
+  const navigate = useMappedAdminNavigate();
   const location = useLocation();
   const [history, setHistory] = useState<AgentMessage[]>(() => loadHistory());
   const [draft, setDraft] = useState('');
@@ -400,7 +401,7 @@ export default function AdminOpsAgentPage() {
   };
 
   return (
-    <PageShell
+    <AdminWorkstationFrame embedded={embedded} kind="ops-agent-workstation"
       badge="Co-Owner"
       title={`${CO_OWNER_IDENTITY.name} — Command Center`}
       subtitle={`${persona?.displayTitle ?? CO_OWNER_IDENTITY.title} · ${CO_OWNER_AI_TIER.intelligenceMultiplier}× intelligence · ${stats.operatingBrainSize.toLocaleString()}+ effective capabilities`}
@@ -412,8 +413,8 @@ export default function AdminOpsAgentPage() {
         </div>
 
         {pendingToolCalls.length ? (
-          <div className={`${finelyOsCatalogCard('fuchsia')} !p-4 mt-4 space-y-3`} data-fc-accent="fuchsia">
-            <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-fuchsia-300">
+          <div className={`${finelyOsCatalogCard('rose')} mt-4 space-y-3`} data-fc-accent="rose">
+            <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-rose-300">
               <AlertTriangle size={14} /> Confirm before {CO_OWNER_IDENTITY.name} executes
             </div>
             {pendingToolCalls.map((call) => (
@@ -516,7 +517,7 @@ export default function AdminOpsAgentPage() {
         ) : laneTab === 'staff' ? (
           <div className="mt-6 grid lg:grid-cols-2 gap-6">
             <CoOwnerStaffOperationsPanel onActionExecuted={(msg) => setActionLog((l) => [msg, ...l].slice(0, 12))} />
-            <div className={`${finelyOsCatalogCard('sky')} !p-5 space-y-3`}>
+            <div className={`${finelyOsCatalogCard('sky')} space-y-3`} data-fc-accent="sky">
               <div className={FINELY_OS_ENTITY_VALUE}>Recent {CO_OWNER_IDENTITY.name} actions</div>
               {actionLog.length ? (
                 actionLog.map((line, i) => (
@@ -547,7 +548,7 @@ export default function AdminOpsAgentPage() {
             />
 
             <div className="grid lg:grid-cols-12 gap-6 mt-6">
-              <div className={`lg:col-span-5 ${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+              <div className={`lg:col-span-5 ${finelyOsCatalogCard('violet')} space-y-4`} data-fc-accent="violet">
                 <FinelyOsSectionTitle icon={Bot} label="Live snapshot" accent="violet" />
                 {snapshot?.counts ? (
                   <div className="grid grid-cols-2 gap-3">
@@ -561,14 +562,14 @@ export default function AdminOpsAgentPage() {
                 ) : (
                   <div className={FINELY_OS_ENTITY_BODY}>Loading tenant snapshot…</div>
                 )}
-                <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`} data-fc-accent="sky">
+                <div className={`${finelyOsCatalogCard('emerald')} fc-surface-harmony`} data-fc-accent="emerald">
                   <div className={FINELY_OS_ENTITY_SUBLABEL}>Recent leads</div>
                   <div className="mt-2 space-y-2 max-h-48 overflow-y-auto">
                     {!snapshot?.recentLeads?.length ? (
                       <div className={FINELY_OS_ENTITY_BODY}>No leads captured yet.</div>
                     ) : (
                       snapshot.recentLeads.map((l: any) => (
-                        <div key={l.id} className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony shadow-sm`}>
+                        <div key={l.id} className={`${finelyOsCatalogCard('sky')} fc-surface-harmony shadow-sm`} data-fc-accent="sky">
                           <div className={`${FINELY_OS_ENTITY_VALUE} text-sm truncate`}>{l.fullName || l.email || l.id}</div>
                           <div className={`mt-1 ${FINELY_OS_ENTITY_SUBLABEL} truncate`}>
                             {l.source} • {l.offer} • {l.interest || '—'}
@@ -602,8 +603,8 @@ export default function AdminOpsAgentPage() {
           </>
         )}
 
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
       </div>
-    </PageShell>
+    </AdminWorkstationFrame>
   );
 }

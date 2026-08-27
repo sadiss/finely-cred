@@ -51,7 +51,7 @@ export const STAFF_ROSTER_SEED: StaffMember[] = [
   m('staff-casey-nguyen', 'Casey', 'Nguyen', 'debt_strategist', 'debt_resolution', 'masculine', 'Debt Resolution Specialist — validation workflows.', [WEEKDAY, { days: [2, 4], startHour: 10, endHour: 16 }]),
   m('staff-avery-luna', 'Avery', 'Luna', 'nurture_concierge', 'growth_sessions', 'feminine', 'Welcome Concierge — guide downloads & sessions.', [WEEKEND, WEEKDAY]),
   m('staff-jordan-patel', 'Jordan', 'Patel', 'support_specialist', 'partner_success', 'masculine', 'Partner Success Specialist — portal navigation.'),
-  m('staff-sam-ortiz', 'Sam', 'Ortiz', 'appointment_setter', 'growth_sessions', 'masculine', 'Session Coordinator — enlightenment bookings.'),
+  m('staff-sam-ortiz', 'Sam', 'Ortiz', 'appointment_setter', 'growth_sessions', 'masculine', 'Session Coordinator — strategy-call bookings.'),
   m('staff-riley-chen', 'Riley', 'Chen', 'sales_closer', 'growth_sessions', 'feminine', 'Solutions Advisor — DIY vs DFY fit.', [WEEKDAY]),
   /** Evening lead_converter — Cameron is day-only so chat does not pin him 24/7. */
   m('staff-alex-wright', 'Alex', 'Wright', 'lead_converter', 'partner_success', 'masculine', 'Partner Activation Specialist — trial uploads.', [EVENING]),
@@ -95,7 +95,6 @@ export const STAFF_ROSTER_SEED: StaffMember[] = [
   m('staff-cameron-blake', 'Cameron', 'Blake', 'lead_converter', 'growth_sessions', 'masculine', 'Revenue Activation Director — trial-to-paid conversion & onboarding.', [WEEKDAY]),
   m('staff-elise-hart', 'Elise', 'Hart', 'social_creator', 'marketing', 'feminine', 'Growth Marketing Director — compliant campaigns & funnel creative.', [WEEKDAY, WEEKEND]),
   m('staff-drew-sinclair', 'Drew', 'Sinclair', 'affiliate_specialist', 'marketing', 'masculine', 'Partner Marketing Director — affiliate kits & co-marketing.', [WEEKDAY]),
-  m('staff-aia-guide', 'Aia', 'Guide', 'nurture_concierge', 'growth_sessions', 'feminine', 'Onboarding guide — plain-language portal help and strategy call booking.'),
   { ...m('staff-naomi-fairchild', 'Naomi', 'Fairchild', 'ops_copilot', 'partner_success', 'feminine', 'Chief Operating Officer — human floor under Co-Owner Ruth.'), displayTitle: 'Chief Operating Officer' },
   { ...m('staff-david-okonkwo', 'David', 'Okonkwo', 'compliance_agent', 'internal_ops', 'masculine', 'Chief Compliance & Trust Officer — human backstop for claims and consent.'), displayTitle: 'Chief Compliance Officer' },
   { ...m('staff-marcus-sterling-exec', 'Marcus', 'Sterling', 'sales_closer', 'growth_sessions', 'masculine', 'Chief Revenue Officer — consult quality and ethical close.'), displayTitle: 'Chief Revenue Officer' },
@@ -103,9 +102,12 @@ export const STAFF_ROSTER_SEED: StaffMember[] = [
   ...STAFF_ROSTER_EXPANSION,
 ];
 
+/** Retired synthetic staff — purge from persisted rosters (remapped to real members). */
+export const RETIRED_STAFF_IDS = new Set(['staff-aia-guide']);
+
 let memoryRoster: StaffMember[] | null = null;
 /** Bump when shift policy changes so in-memory/DB faces re-clamp without a full restart. */
-const SHIFT_POLICY_VERSION = 5;
+const SHIFT_POLICY_VERSION = 6;
 let appliedShiftPolicyVersion = 0;
 
 function queueStaffRosterPersist(members: StaffMember[]) {
@@ -119,9 +121,13 @@ export function seedStaffRoster(members: StaffMember[]): StaffMember[] {
   return memoryRoster;
 }
 
+function purgeRetiredStaff(members: StaffMember[]): StaffMember[] {
+  return members.filter((m) => !RETIRED_STAFF_IDS.has(m.id));
+}
+
 function mergeRosterFromSeed(existing: StaffMember[]): StaffMember[] {
   const seedById = new Map(STAFF_ROSTER_SEED.map((s) => [s.id, s]));
-  const merged = existing.map((m) => {
+  const merged = purgeRetiredStaff(existing).map((m) => {
     const seed = seedById.get(m.id);
     if (!seed) {
       return { ...m, shiftBlocks: clampStaffShiftBlocks(m.shiftBlocks) };
@@ -376,6 +382,9 @@ export function resolveStaffOnDuty(roleId: AgentPersonaId, date = new Date()): S
 export { resolveStaffOnDutyForLane, resolveStaffForBankruptcyScenario, resolveStaffForLaneFocus } from './staffLaneAssignment';
 
 export function getStaffMemberById(id: string): StaffMember | null {
+  if (RETIRED_STAFF_IDS.has(id)) {
+    return loadStaffRoster().find((s) => s.id === 'staff-ruby-santos') ?? null;
+  }
   return loadStaffRoster().find((s) => s.id === id) ?? null;
 }
 

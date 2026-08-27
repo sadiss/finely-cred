@@ -45,7 +45,7 @@ const PATHS: Array<{
     desc: 'Credit Specialist, agency, affiliate, real estate, and AU seller tracks.',
     path: '/credit-specialist',
     cta: 'Explore careers',
-    accent: 'amber',
+    accent: 'rose',
   },
 ];
 

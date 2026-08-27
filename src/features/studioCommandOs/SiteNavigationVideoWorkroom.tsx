@@ -150,7 +150,7 @@ export function SiteNavigationVideoWorkroom({ selectedTourId }: Props) {
 
       {previewTour ? (
         <div className="space-y-3">
-          <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-amber-300`}>Video command — {previewTour.title}</div>
+          <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-sky-300`}>Video command — {previewTour.title}</div>
           <GeminiStyleVideoCommand key={previewTour.id} initialRequest={videoInitialRequest} />
         </div>
       ) : null}

@@ -62,7 +62,7 @@ export default function AuMarketplacePage() {
           subtitle="Browse inventory, track your buyer workflow, and start guided intake."
           accent="emerald"
           kpis={[
-            { label: 'Orders', value: String(orders.length), accent: 'amber' },
+            { label: 'Orders', value: String(orders.length), accent: 'violet' },
             { label: 'Workflow', value: `${auWorkflowProgress.size}/6`, accent: 'emerald' },
           ]}
           tabs={[
@@ -98,8 +98,8 @@ export default function AuMarketplacePage() {
           {tab === 'workflow' && <RoleWorkflowPanel roleId="au_buyer" completedSteps={auWorkflowProgress} />}
 
           {tab === 'guide' && (
-            <div className={`${finelyOsCatalogCard('fuchsia')} !p-6`} data-fc-accent="fuchsia">
-              <div className="inline-flex items-center gap-2 text-fuchsia-700">
+            <div className={finelyOsCatalogCard('rose')} data-fc-accent="rose">
+              <div className="inline-flex items-center gap-2 text-rose-700">
                 <ShieldCheck size={18} />
                 <span className={FINELY_OS_ENTITY_SUBLABEL}>Buyer flow</span>
               </div>

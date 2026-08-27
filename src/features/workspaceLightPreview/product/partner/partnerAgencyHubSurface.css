@@ -1,0 +1,206 @@
+/* Agency hub — command deck */
+
+.fc-agency-command-deck {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.fc-agency-hero {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 20px;
+  padding: 28px 32px;
+  border-radius: 24px;
+  border: 1px solid rgba(16, 185, 129, 0.28);
+  background:
+    radial-gradient(circle at 0% 0%, rgba(16, 185, 129, 0.14), transparent 40%),
+    radial-gradient(circle at 100% 100%, rgba(139, 92, 246, 0.1), transparent 38%),
+    linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(56, 189, 248, 0.06) 55%, rgba(139, 92, 246, 0.05) 100%);
+}
+
+@media (max-width: 768px) {
+  .fc-agency-hero {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fc-agency-hero-tenant {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.fc-agency-hero-sub {
+  margin-top: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  opacity: 0.82;
+}
+
+.fc-agency-hero-signals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.fc-agency-signal-chip {
+  min-width: 110px;
+  padding: 14px 18px;
+  border-radius: 16px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  background: rgba(255, 255, 255, 0.75);
+}
+
+.fc-agency-signal-chip:nth-child(1) {
+  border-color: rgba(16, 185, 129, 0.28);
+}
+
+.fc-agency-signal-chip:nth-child(2) {
+  border-color: rgba(139, 92, 246, 0.28);
+}
+
+.fc-agency-signal-chip:nth-child(3) {
+  border-color: rgba(56, 189, 248, 0.28);
+}
+
+.fc-agency-signal-chip strong {
+  display: block;
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.fc-agency-signal-chip span {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.65;
+}
+
+.fc-agency-command-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.fc-agency-command-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 20px 22px;
+  min-height: 116px;
+  border-radius: 18px;
+  border: 1px solid rgba(15, 23, 42, 0.09);
+  text-align: left;
+  font-weight: 800;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.fc-agency-command-tile:hover {
+  transform: translateY(-1px);
+}
+
+.fc-agency-command-tile[data-active='true'] {
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.4);
+}
+
+.fc-agency-command-tile-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+}
+
+.fc-agency-command-tile-icon[data-fc-accent='emerald'] {
+  background: rgba(16, 185, 129, 0.14);
+  color: #047857;
+}
+
+.fc-agency-command-tile-icon[data-fc-accent='violet'] {
+  background: rgba(139, 92, 246, 0.14);
+  color: #6d28d9;
+}
+
+.fc-agency-command-tile-icon[data-fc-accent='sky'] {
+  background: rgba(56, 189, 248, 0.14);
+  color: #0369a1;
+}
+
+.fc-agency-command-tile-icon[data-fc-accent='rose'] {
+  background: rgba(244, 63, 94, 0.14);
+  color: #be123c;
+}
+
+.fc-agency-deck-panel {
+  padding: 26px 30px;
+  border-radius: 22px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background:
+    radial-gradient(circle at 0% 100%, rgba(56, 189, 248, 0.06), transparent 42%),
+    rgba(255, 255, 255, 0.68);
+}
+
+html[data-fc-theme='dark'] .fc-agency-hero {
+  border-color: rgba(16, 185, 129, 0.35);
+  background:
+    radial-gradient(circle at 0% 0%, rgba(16, 185, 129, 0.16), transparent 40%),
+    radial-gradient(circle at 100% 100%, rgba(139, 92, 246, 0.14), transparent 38%),
+    rgba(15, 23, 42, 0.72);
+}
+
+html[data-fc-theme='dark'] .fc-agency-signal-chip {
+  background: rgba(15, 23, 42, 0.55);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+html[data-fc-theme='dark'] .fc-agency-command-tile {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+html[data-fc-theme='dark'] .fc-agency-deck-panel {
+  border-color: rgba(255, 255, 255, 0.1);
+  background:
+    radial-gradient(circle at 0% 100%, rgba(56, 189, 248, 0.1), transparent 42%),
+    rgba(15, 23, 42, 0.62);
+}
+
+/* Light site — ink on ivory command deck beds */
+html[data-fc-theme='light'] .fc-agency-hero-tenant,
+html[data-fc-theme='light'] .fc-agency-signal-chip strong,
+html[data-fc-theme='light'] .fc-agency-command-tile,
+html[data-fc-theme='light'] .fc-agency-deck-panel {
+  color: var(--wlp-ink, #0a1628);
+}
+
+html[data-fc-theme='light'] .fc-agency-hero-sub,
+html[data-fc-theme='light'] .fc-agency-signal-chip span {
+  color: var(--wlp-muted, rgba(10, 22, 40, 0.68));
+  opacity: 1;
+}
+
+html[data-fc-theme='light'] .fc-agency-command-tile:not([data-active='true']) {
+  color: var(--wlp-ink, #0a1628);
+}
+
+/* Dark site — light ink on tinted hero + navy panels */
+html[data-fc-theme='dark'] .fc-agency-hero-tenant,
+html[data-fc-theme='dark'] .fc-agency-signal-chip strong,
+html[data-fc-theme='dark'] .fc-agency-command-tile,
+html[data-fc-theme='dark'] .fc-agency-deck-panel {
+  color: var(--wlp-ink, #f1f5f9);
+}
+
+html[data-fc-theme='dark'] .fc-agency-hero-sub,
+html[data-fc-theme='dark'] .fc-agency-signal-chip span {
+  color: var(--wlp-muted, #cbd5e1);
+  opacity: 1;
+}
+
+html[data-fc-theme='dark'] .fc-agency-command-tile:not([data-active='true']) {
+  color: #e2e8f0;
+}

@@ -6,7 +6,7 @@ import { createPartner } from '../../data/partnersRepo';
 import { upsertCustomFieldValues } from '../../data/customFieldValuesRepo';
 import { ensureEnterpriseDefaultsOnce } from '../../data/seedEnterpriseDefaults';
 import { getActiveTenantId } from '../../tenancy/activeTenant';
-import { sendPartnerInviteEmail } from '../../lib/partnerInviteEmail';
+import { sendPartnerInviteEmail, signupInviteUrl } from '../../lib/partnerInviteEmail';
 import { sendPartnerOutreachMessage, defaultPartnerWelcomeMessage } from '../../lib/partnerMessaging';
 import {
   CLIENT_SERVICE_OPTIONS,
@@ -38,7 +38,20 @@ import {
   FINELY_OS_ENTITY_SELECT,
   finelyOsCatalogCard,
   FINELY_OS_ENTITY_SUBLABEL,
+  type FinelyOsPublicAccent,
 } from '../../features/os/finelyOsLightUi';
+
+const CREATE_TONES = ['emerald', 'violet', 'sky', 'rose'] as const satisfies readonly FinelyOsPublicAccent[];
+
+function createChoiceCard(tone: (typeof CREATE_TONES)[number], selected: boolean) {
+  const selectedRing = {
+    emerald: 'ring-1 ring-emerald-400/30',
+    violet: 'ring-1 ring-violet-400/30',
+    sky: 'ring-1 ring-sky-400/30',
+    rose: 'ring-1 ring-rose-400/30',
+  }[tone];
+  return `${finelyOsCatalogCard(tone)} text-left transition ${selected ? selectedRing : ''}`;
+}
 
 type CreateMode = 'quick' | 'full';
 
@@ -49,8 +62,8 @@ type Props = {
 };
 
 const CAREER_ROLES: Array<{ id: PartnerCareerRole; title: string; desc: string }> = [
-  { id: 'client', title: 'Customer / Partner', desc: 'Credit restore, build, business credit, debt, funding, or tradelines.' },
-  { id: 'agent', title: 'Credit Specialist', desc: 'Run customer files as a Finely partner.' },
+  { id: 'client', title: 'Partner', desc: 'Credit restore, build, business credit, debt, funding, or tradelines.' },
+  { id: 'agent', title: 'Credit Specialist', desc: 'Run partner files as a Finely Credit Specialist.' },
   { id: 'au_seller', title: 'AU Seller', desc: 'Supply authorized-user tradeline inventory.' },
   { id: 'affiliate', title: 'Affiliate', desc: 'Refer partners and earn commissions.' },
 ];
@@ -93,7 +106,7 @@ export function PartnerCreatePanel({ canCreate, initialAffiliate = false, onCrea
       const fake = { lane, primaryRoute } as Partner;
       return serviceLabelForPartner(fake);
     }
-    return CLIENT_SERVICE_OPTIONS.find((s) => s.id === clientService)?.label ?? 'Customer';
+    return CLIENT_SERVICE_OPTIONS.find((s) => s.id === clientService)?.label ?? 'Partner';
   }, [careerRole, clientService, lane, primaryRoute]);
 
   const resetForm = () => {
@@ -178,9 +191,11 @@ export function PartnerCreatePanel({ canCreate, initialAffiliate = false, onCrea
       if (sendInviteAfter && emailVal) {
         setSendingInvite(true);
         const res = await sendPartnerInviteEmail({ partner, email: emailVal });
-        if (!res.ok) throw new Error(res.error || 'Partner created but invite email failed.');
-        inviteUrl = res.inviteUrl;
-        if (res.simulated) {
+        inviteUrl = res.inviteUrl || signupInviteUrl(partner, emailVal);
+        if (!res.ok && !res.deduped) throw new Error(res.error || 'Partner created but invite email failed.');
+        if (res.deduped) {
+          setNotice(`Partner created. An invite was already sent to ${emailVal} — copy the link below if they need it again.`);
+        } else if (res.simulated) {
           setNotice(formatLocalInviteNotice({ ok: true, simulated: true, inviteUrl, previewOpened: Boolean(res.previewOpened) }, emailVal));
         } else {
           setNotice(`Partner created and invite sent to ${emailVal}. They will land on ${servicePreview} after setup.`);
@@ -215,15 +230,26 @@ export function PartnerCreatePanel({ canCreate, initialAffiliate = false, onCrea
         <div className={FINELY_OS_ENTITY_BODY}>
           Service lane: <strong>{serviceLabelForPartner(created.partner)}</strong>. Send the invite so they can set a password and enter the correct workspace — not generic signup or affiliate.
         </div>
-        {created.inviteUrl ? (
+        {created.inviteUrl || created.partner.profile.email ? (
           <div className="flex flex-col sm:flex-row gap-2">
-            <input readOnly value={created.inviteUrl} className={`flex-1 ${FINELY_OS_ENTITY_INPUT} font-mono text-sm`} onFocus={(e) => e.currentTarget.select()} />
+            <input
+              readOnly
+              value={
+                created.inviteUrl ||
+                signupInviteUrl(created.partner, created.partner.profile.email || '')
+              }
+              className={`flex-1 ${FINELY_OS_ENTITY_INPUT} font-mono text-sm`}
+              onFocus={(e) => e.currentTarget.select()}
+            />
             <button
               type="button"
               className={FINELY_OS_SUCCESS_BTN}
               onClick={async () => {
+                const link =
+                  created.inviteUrl ||
+                  signupInviteUrl(created.partner, created.partner.profile.email || '');
                 try {
-                  await navigator.clipboard.writeText(created.inviteUrl || '');
+                  await navigator.clipboard.writeText(link);
                   setInviteCopied(true);
                   window.setTimeout(() => setInviteCopied(false), 2000);
                 } catch {
@@ -233,6 +259,30 @@ export function PartnerCreatePanel({ canCreate, initialAffiliate = false, onCrea
             >
               {inviteCopied ? 'Copied!' : 'Copy invite link'}
             </button>
+            {!created.inviteUrl && created.partner.profile.email ? (
+              <button
+                type="button"
+                className={FINELY_OS_PRIMARY_BTN}
+                disabled={sendingInvite}
+                onClick={() => {
+                  const emailVal = created.partner.profile.email || '';
+                  setSendingInvite(true);
+                  void sendPartnerInviteEmail({ partner: created.partner, email: emailVal })
+                    .then((res) => {
+                      const link = res.inviteUrl || signupInviteUrl(created.partner, emailVal);
+                      setCreated({ partner: created.partner, inviteUrl: link });
+                      setNotice(
+                        res.ok || res.deduped
+                          ? `Invite ready for ${emailVal}.`
+                          : res.error || 'Could not send invite. Copy the link instead.',
+                      );
+                    })
+                    .finally(() => setSendingInvite(false));
+                }}
+              >
+                <Mail size={14} /> {sendingInvite ? 'Sending…' : 'Send invite'}
+              </button>
+            ) : null}
           </div>
         ) : null}
         <div className="flex flex-wrap gap-2 pt-1">
@@ -280,18 +330,21 @@ export function PartnerCreatePanel({ canCreate, initialAffiliate = false, onCrea
           {step === 1 ? (
             <div className="space-y-3">
               <div className={FINELY_OS_ENTITY_SUBLABEL}>Step 1 — Role</div>
-              <div className="grid sm:grid-cols-2 gap-3">
-                {CAREER_ROLES.map((r) => (
+              <div className="grid sm:grid-cols-2 gap-4">
+                {CAREER_ROLES.map((r, index) => {
+                  const tone = CREATE_TONES[index % CREATE_TONES.length];
+                  return (
                   <button
                     key={r.id}
                     type="button"
                     onClick={() => setCareerRole(r.id)}
-                    className={`text-left rounded-2xl border p-4 transition ${careerRole === r.id ? 'border-violet-400/50 bg-violet-500/10' : 'border-white/10 bg-white/[0.03] hover:border-white/20'}`}
+                    className={createChoiceCard(tone, careerRole === r.id)}
                   >
-                    <div className="font-semibold text-white">{r.title}</div>
-                    <div className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>{r.desc}</div>
+                    <div className="text-xl font-extrabold text-white">{r.title}</div>
+                    <div className={`mt-2 text-base ${FINELY_OS_ENTITY_BODY}`}>{r.desc}</div>
                   </button>
-                ))}
+                  );
+                })}
               </div>
             </div>
           ) : null}
@@ -299,18 +352,21 @@ export function PartnerCreatePanel({ canCreate, initialAffiliate = false, onCrea
           {step === 2 && careerRole === 'client' ? (
             <div className="space-y-3">
               <div className={FINELY_OS_ENTITY_SUBLABEL}>Step 2 — Service lane</div>
-              <div className="grid sm:grid-cols-2 gap-3">
-                {CLIENT_SERVICE_OPTIONS.map((s) => (
+              <div className="grid sm:grid-cols-2 gap-4">
+                {CLIENT_SERVICE_OPTIONS.map((s, index) => {
+                  const tone = CREATE_TONES[index % CREATE_TONES.length];
+                  return (
                   <button
                     key={s.id}
                     type="button"
                     onClick={() => setClientService(s.id)}
-                    className={`text-left rounded-2xl border p-4 transition ${clientService === s.id ? 'border-emerald-400/50 bg-emerald-500/10' : 'border-white/10 bg-white/[0.03] hover:border-white/20'}`}
+                    className={createChoiceCard(tone, clientService === s.id)}
                   >
-                    <div className="font-semibold text-white">{s.label}</div>
-                    <div className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>Invite routes to {s.landingPath}</div>
+                    <div className="text-xl font-extrabold text-white">{s.label}</div>
+                    <div className={`mt-2 text-base ${FINELY_OS_ENTITY_BODY}`}>Invite routes to {s.landingPath}</div>
                   </button>
-                ))}
+                  );
+                })}
               </div>
             </div>
           ) : null}
@@ -339,10 +395,10 @@ export function PartnerCreatePanel({ canCreate, initialAffiliate = false, onCrea
           {step === 4 && careerRole === 'client' ? (
             <div className="space-y-4">
               <div className={FINELY_OS_ENTITY_SUBLABEL}>Step 4 — Credit profile (matches partner profile tab)</div>
-              {profileGroups.map((group) => (
-                <div key={group.id} className={`${finelyOsCatalogCard('sky')} !p-4 space-y-3`}>
-                  <div className="font-semibold text-white">{group.title}</div>
-                  <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>{group.hint}</p>
+              {profileGroups.map((group, index) => (
+                <div key={group.id} className={`${finelyOsCatalogCard(CREATE_TONES[index % CREATE_TONES.length])} space-y-4`}>
+                  <div className="text-xl font-extrabold text-white">{group.title}</div>
+                  <p className={`text-base ${FINELY_OS_ENTITY_BODY}`}>{group.hint}</p>
                   <div className="grid md:grid-cols-2 gap-3">
                     {group.keys.map((key) => (
                       <div key={key} className={key === 'profileNotes' ? 'md:col-span-2' : ''}>
@@ -362,8 +418,8 @@ export function PartnerCreatePanel({ canCreate, initialAffiliate = false, onCrea
                           <textarea
                             value={profileDraft.profileNotes}
                             onChange={(e) => setProfileDraft((p) => ({ ...p, profileNotes: e.target.value }))}
-                            rows={3}
-                            className={FINELY_OS_ENTITY_INPUT}
+                            rows={4}
+                            className={`${FINELY_OS_ENTITY_INPUT} min-h-[8rem]`}
                           />
                         ) : (
                           <input
@@ -382,7 +438,7 @@ export function PartnerCreatePanel({ canCreate, initialAffiliate = false, onCrea
           ) : null}
 
           {((step === 3 && careerRole !== 'client') || (step === 5 && careerRole === 'client')) ? (
-            <div className={`${finelyOsCatalogCard('sky')} !p-4 space-y-3`}>
+            <div className={`${finelyOsCatalogCard('rose')} space-y-4`}>
               <div className={FINELY_OS_ENTITY_SUBLABEL}>Mailing address (optional now)</div>
               <input value={address1} onChange={(e) => setAddress1(e.target.value)} className={FINELY_OS_ENTITY_INPUT} placeholder="Street address" />
               <input value={profileDraft.address2} onChange={(e) => setProfileDraft((p) => ({ ...p, address2: e.target.value }))} className={FINELY_OS_ENTITY_INPUT} placeholder="Apt / suite (optional)" />
@@ -427,17 +483,20 @@ export function PartnerCreatePanel({ canCreate, initialAffiliate = false, onCrea
         </>
       ) : (
         <div className="space-y-4">
-          <div className="grid sm:grid-cols-2 gap-3">
-            {CAREER_ROLES.map((r) => (
+          <div className="grid sm:grid-cols-2 gap-4">
+            {CAREER_ROLES.map((r, index) => {
+              const tone = CREATE_TONES[index % CREATE_TONES.length];
+              return (
               <button
                 key={r.id}
                 type="button"
                 onClick={() => setCareerRole(r.id)}
-                className={`text-left rounded-2xl border p-3 transition ${careerRole === r.id ? 'border-violet-400/50 bg-violet-500/10' : 'border-white/10 bg-white/[0.03]'}`}
+                className={createChoiceCard(tone, careerRole === r.id)}
               >
-                <div className="font-semibold text-white text-sm">{r.title}</div>
+                <div className="text-lg font-extrabold text-white">{r.title}</div>
               </button>
-            ))}
+              );
+            })}
           </div>
           {careerRole === 'client' ? (
             <div>
@@ -469,7 +528,7 @@ export function PartnerCreatePanel({ canCreate, initialAffiliate = false, onCrea
             </button>
             <button
               type="button"
-              disabled={creating || !email.trim()}
+              disabled={creating || !email.trim() || !isFeatureEnabled('inviteDelivery')}
               className={FINELY_OS_PRIMARY_BTN}
               onClick={() => void handleCreate(true)}
             >

@@ -70,7 +70,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroupDef[] = [
       { path: '/admin/crm', label: 'Leads & CRM', icon: Target, hint: 'Pipeline + prospects + inbound' },
       { path: '/admin/projects', label: 'Projects & Tasks', icon: FolderKanban, hint: 'Master projects + child tasks' },
       { path: '/admin/workload', label: 'Workload', icon: ListChecks, hint: 'Open tasks by assignee' },
-      { path: '/admin/partners', label: 'Partners', icon: Users, hint: 'Customer management' },
+      { path: '/admin/partners', label: 'Partners', icon: Users, hint: 'Partner files' },
       { path: '/admin/mail', label: 'Mail letters', icon: Mail, hint: 'Finely Mail · pick partner → mail' },
       { path: '/admin/cases', label: 'Cases', icon: Gavel, hint: 'Case management' },
       { path: '/admin/dispute-collaboration', label: 'Dispute Hub', icon: Scale, hint: 'Escalations + regulatory inbox' },
@@ -86,7 +86,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroupDef[] = [
       { path: '/admin/launch-os', label: 'Launch OS', icon: BookOpen, hint: 'SOP help center' },
       { path: '/admin/courses', label: 'Courses', icon: GraduationCap, hint: 'Course builder' },
       { path: '/admin/testimonials', label: 'Testimonials', icon: Trophy, hint: 'Social proof' },
-      { path: '/admin/partner-success', label: 'Partner success', icon: GraduationCap, hint: 'Success modules editor' },
+      { path: '/admin/partner-success', label: 'Success content editor', icon: GraduationCap, hint: 'Edit portal success modules' },
     ],
   },
   {
@@ -94,7 +94,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroupDef[] = [
     items: [
       { path: '/admin/automations', label: 'Automation Studio', icon: Bot, hint: 'Run automations' },
       { path: '/admin/growth-automation', label: 'Growth Autopilot', icon: Sparkles, hint: 'Scheduler · daily find · week sync ticks' },
-      { path: '/admin/cmo', label: 'CMO Command', icon: TrendingUp, hint: 'Site watch · experiments · budget allocator' },
+      { path: '/admin/cmo', label: 'Marketing Director', icon: TrendingUp, hint: 'Site watch · experiments · budget allocator' },
       { path: '/admin/lead-acquisition', label: 'Lead acquisition', icon: Globe, hint: 'Syndication feeds + webhook posting' },
       { path: '/admin/ops-agent', label: 'Ruth · Co-Owner', icon: Crown, hint: 'AI co-owner command' },
       { path: '/admin/phone-hub', label: 'Phone Hub', icon: Phone, hint: 'Calls & SMS' },
@@ -105,6 +105,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroupDef[] = [
     items: [
       { path: '/admin/access', label: 'Control Center', icon: Shield, hint: 'Access + settings + roles' },
       { path: '/admin/role-preview', label: 'Role preview', icon: Eye, hint: 'View every role’s access & payouts' },
+      { path: '/admin/role-preview?role=heta_society', label: 'Head of Society', icon: Crown, hint: 'HOS member portal + program keys' },
       { path: '/admin/signup-ops', label: 'Signup & access', icon: KeyRound, hint: 'Passwords, welcome email, roles' },
       { path: '/admin/team', label: 'Team & Roles', icon: UserCog, hint: 'RBAC-lite' },
       { path: '/admin/tenants', label: 'Tenants', icon: Globe, hint: 'White-label' },

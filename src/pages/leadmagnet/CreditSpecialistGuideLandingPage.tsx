@@ -61,7 +61,7 @@ function GuideBookMockup({
 function MiniCheck({ children }: { children: React.ReactNode }) {
   return (
     <li className="flex items-start gap-3 text-[15px] leading-relaxed text-white/80">
-      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#d4a447] text-[#06101f]">
+      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-400 text-[#06101f]">
         <Check size={12} strokeWidth={3} />
       </span>
       <span>{children}</span>
@@ -107,7 +107,7 @@ export default function CreditSpecialistGuideLandingPage() {
   };
 
   return (
-    <main className="csg-page lm-lux-theme--navy relative min-h-screen overflow-x-hidden selection:bg-[#d4a447]/30">
+    <main className="csg-page lm-lux-theme--navy relative min-h-screen overflow-x-hidden selection:bg-violet-400/30">
       <div className="csg-atmosphere pointer-events-none fixed inset-0 z-0" aria-hidden />
       <div className="lm-lux-grain lm-lux-grain--fixed pointer-events-none" aria-hidden />
 
@@ -118,13 +118,13 @@ export default function CreditSpecialistGuideLandingPage() {
         <div className="relative z-[2] mx-auto grid max-w-[88rem] items-center gap-8 px-5 pb-10 pt-6 md:px-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12 lg:pb-12 lg:pt-8">
           <div>
             <div className="mb-4 flex flex-wrap items-center gap-2 text-[12px] font-medium text-white/55">
-              <a href="#pages" className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 transition hover:border-[#95e000]/40 hover:text-[#95e000]">
+              <a href="#pages" className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 transition hover:border-[#34d399]/40 hover:text-[#34d399]">
                 Pages
               </a>
-              <a href="#inside" className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 transition hover:border-[#95e000]/40 hover:text-[#95e000]">
+              <a href="#inside" className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 transition hover:border-[#34d399]/40 hover:text-[#34d399]">
                 Inside
               </a>
-              <a href="#path" className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 transition hover:border-[#95e000]/40 hover:text-[#95e000]">
+              <a href="#path" className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 transition hover:border-[#34d399]/40 hover:text-[#34d399]">
                 Specialist path
               </a>
             </div>
@@ -209,7 +209,7 @@ export default function CreditSpecialistGuideLandingPage() {
                   </span>
                   <ArrowRight
                     size={16}
-                    className="shrink-0 text-white/30 transition group-hover:translate-x-0.5 group-hover:text-[#95e000]"
+                    className="shrink-0 text-white/30 transition group-hover:translate-x-0.5 group-hover:text-[#34d399]"
                   />
                 </div>
                 <h3 className="csg-serif mt-3 text-xl text-white md:text-2xl">{ch.title}</h3>
@@ -232,7 +232,7 @@ export default function CreditSpecialistGuideLandingPage() {
               text="Four lanes. One specialist playbook."
               className="csg-serif mt-4 text-4xl font-semibold tracking-[-0.02em] md:text-5xl"
               highlight="specialist playbook."
-              highlightClassName="text-[#f0cc75]"
+              highlightClassName="text-[#c4b5fd]"
               speedMs={36}
               delayMs={180}
             />
@@ -244,7 +244,7 @@ export default function CreditSpecialistGuideLandingPage() {
           <div className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {PILLARS.map((p) => (
               <div key={p.title} className="csg-pillar-card rounded-2xl p-5">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-[#d4a447]/35 bg-[#d4a447]/10 text-[#f0cc75]">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-[#a78bfa]/35 bg-[#a78bfa]/10 text-[#c4b5fd]">
                   <p.icon size={22} strokeWidth={1.5} />
                 </div>
                 <h3 className="csg-serif mt-4 text-xl text-white">{p.title}</h3>
@@ -262,7 +262,7 @@ export default function CreditSpecialistGuideLandingPage() {
       </section>
 
       {/* Stats / trust */}
-      <section className="relative z-10 border-y border-[#d4a447]/20 py-10">
+      <section className="relative z-10 border-y border-[#a78bfa]/20 py-10">
         <div className="mx-auto grid max-w-[88rem] gap-3 px-5 sm:grid-cols-2 md:px-10 lg:grid-cols-4">
           {[
             { icon: Users, value: 'Specialist-first', label: 'Built for operators' },
@@ -271,7 +271,7 @@ export default function CreditSpecialistGuideLandingPage() {
             { icon: Target, value: 'Read freely', label: 'Join when ready' },
           ].map((s) => (
             <div key={s.label} className="csg-stat-tile flex items-center gap-3.5 rounded-2xl p-4">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#d4a447]/35 bg-[#d4a447]/10 text-[#f0cc75]">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#a78bfa]/35 bg-[#a78bfa]/10 text-[#c4b5fd]">
                 <s.icon size={20} />
               </div>
               <div>
@@ -340,21 +340,21 @@ export default function CreditSpecialistGuideLandingPage() {
                 </p>
                 <ol className="mt-7 space-y-3 text-sm text-white/70">
                   <li>
-                    <span className="font-bold text-[#f0cc75]">1.</span> Read the in-app guide or download the 2-sheet
+                    <span className="font-bold text-[#c4b5fd]">1.</span> Read the in-app guide or download the 2-sheet
                     playbook
                   </li>
                   <li>
-                    <span className="font-bold text-[#f0cc75]">2.</span> Study personal, business, debt, and opportunity
+                    <span className="font-bold text-[#c4b5fd]">2.</span> Study personal, business, debt, and opportunity
                     pages
                   </li>
                   <li>
-                    <span className="font-bold text-[#f0cc75]">3.</span> Join via {CS_JOIN_PATH} for pricing & signup
+                    <span className="font-bold text-[#c4b5fd]">3.</span> Join via {CS_JOIN_PATH} for pricing & signup
                   </li>
                 </ol>
                 <CreditSpecialistGuideActions className="mt-8" tone="gold" onReadGuide={() => openGuide()} />
                 <Link
                   to={CS_PRICING_PATH}
-                  className="mt-3 inline-flex items-center text-[11px] font-bold uppercase tracking-[0.14em] text-white/50 transition hover:text-[#f0cc75]"
+                  className="mt-3 inline-flex items-center text-[11px] font-bold uppercase tracking-[0.14em] text-white/50 transition hover:text-[#c4b5fd]"
                 >
                   View pricing →
                 </Link>
@@ -379,7 +379,7 @@ export default function CreditSpecialistGuideLandingPage() {
             <a href="/disclaimer" className="hover:text-white">
               Disclaimer
             </a>
-            <Link to={CS_JOIN_PATH} className="hover:text-[#95e000]">
+            <Link to={CS_JOIN_PATH} className="hover:text-[#34d399]">
               Specialist join
             </Link>
           </div>

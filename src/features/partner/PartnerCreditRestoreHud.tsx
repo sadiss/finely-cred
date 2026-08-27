@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
-import { ArrowRight, BarChart3, Clock, FileText, Gavel, Scale, ShieldAlert } from 'lucide-react';
+import { ArrowRight, BarChart3, Clock, FileText, Gavel, Scale, ShieldAlert, type LucideIcon } from 'lucide-react';
 import { FinelyOsOverviewStatTile } from '../os/FinelyOsOverviewStatTile';
+import { FinelyOsIconBadge } from '../os/FinelyOsIconBadge';
 import {
   FINELY_OS_ENTITY_BODY,
   finelyOsCatalogCard,
@@ -8,7 +9,16 @@ import {
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
+  FINELY_OS_CONTRAST_LABEL,
+  FINELY_OS_CONTRAST_VALUE,
 } from '../os/finelyOsLightUi';
+import { finelyOsVisibleTintShell } from '../os/finelyOsVisibleTint';
+import {
+  WL_ENTITY_BODY,
+  WL_ENTITY_SUBLABEL,
+  WL_ENTITY_VALUE,
+  WL_SOLID_ACTION_BTN,
+} from '../workspaceLightPreview/wlLightUi';
 
 type PartnerTabKey = 'overview' | 'profile' | 'reports' | 'analysis' | 'evidence' | 'letters' | 'disputes' | 'tasks' | 'notes' | 'debt';
 
@@ -19,6 +29,9 @@ type Props = {
   lettersCount: number;
   openCasesCount: number;
   readinessScore?: number | null;
+  /** Middle bureau score for the existing Reports tile — not a second strip. */
+  middleScore?: number | null;
+  middleScoreLabel?: string;
   roundSummary?: {
     awaitingResponse: number;
     responsesLogged: number;
@@ -33,7 +46,37 @@ type Props = {
   /** Bureau never hard-locked — always offer optional path */
   secondaryAction?: { label: string; tab: PartnerTabKey };
   guidedMessage?: string;
+  surface?: 'dark' | 'light';
 };
+
+const LIGHT_TILE_ACCENTS = ['emerald', 'violet', 'sky', 'rose'] as const;
+
+function LightStatTile({
+  icon,
+  label,
+  value,
+  hint,
+  accent = 'emerald',
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: React.ReactNode;
+  hint?: string;
+  accent?: (typeof LIGHT_TILE_ACCENTS)[number];
+}) {
+  return (
+    <div className={`${finelyOsCatalogCard(accent)} min-h-[8.5rem]`}>
+      <div className="flex items-start gap-4">
+        <FinelyOsIconBadge icon={icon} accent={accent} size={20} className="p-3 shrink-0" />
+        <div className="min-w-0">
+          <div className={FINELY_OS_CONTRAST_LABEL}>{label}</div>
+          <div className={`mt-2 text-3xl font-extrabold ${FINELY_OS_CONTRAST_VALUE}`}>{value}</div>
+          {hint ? <div className="mt-2 text-sm font-bold text-slate-600">{hint}</div> : null}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function PartnerCreditRestoreHud({
   reportsCount,
@@ -42,13 +85,20 @@ export function PartnerCreditRestoreHud({
   lettersCount,
   openCasesCount,
   readinessScore,
+  middleScore,
+  middleScoreLabel,
   roundSummary,
   progressRail,
   onOpenTab,
   primaryAction,
   secondaryAction,
   guidedMessage,
+  surface = 'dark',
 }: Props) {
+  const light = surface === 'light';
+  const body = light ? WL_ENTITY_BODY : FINELY_OS_ENTITY_BODY;
+  const sublabel = light ? WL_ENTITY_SUBLABEL : FINELY_OS_ENTITY_SUBLABEL;
+  const value = light ? WL_ENTITY_VALUE : FINELY_OS_ENTITY_VALUE;
   const steps = [
     {
       key: 'court',
@@ -110,18 +160,25 @@ export function PartnerCreditRestoreHud({
   }, [readinessScore, reportsCount, negativesCount, evidenceCount, lettersCount, openCasesCount, roundSummary]);
 
   return (
-    <div className={`${finelyOsCatalogCard('violet')} !p-4 space-y-3`}>
+    <div
+      className={
+        light
+          ? `${finelyOsCatalogCard('emerald')} space-y-6`
+          : `${finelyOsCatalogCard('violet')} space-y-6`
+      }
+      data-fc-surface={surface}
+    >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className={`${FINELY_OS_ENTITY_SUBLABEL} text-fuchsia-300/90`}>Guided restore · never locked</p>
-          <p className={`mt-1 text-lg font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Summons → validation → wait → bureau</p>
-          <p className={`mt-1 max-w-2xl ${FINELY_OS_ENTITY_BODY}`}>
+          <p className={`${sublabel} ${light ? 'text-emerald-800' : 'text-fuchsia-300/90'}`}>Guided restore · never locked</p>
+          <p className={`mt-1 text-lg font-semibold ${value}`}>Summons → validation → wait → bureau</p>
+          <p className={`mt-1 max-w-2xl ${body}`}>
             {guidedMessage ||
               'Court first when a summons is open. Validation is the suggested default. Bureau letters stay optional anytime — never hard-locked.'}
           </p>
           {roundSummary?.nextActionLabel ? (
-            <p className="mt-2 flex items-center gap-2 text-sm text-amber-200/90">
-              <Clock size={14} /> {roundSummary.nextActionLabel}
+            <p className={`mt-2 flex items-center gap-2 text-base font-bold ${light ? 'text-violet-800' : 'text-violet-200'}`}>
+              <Clock size={16} /> {roundSummary.nextActionLabel}
             </p>
           ) : null}
         </div>
@@ -132,7 +189,7 @@ export function PartnerCreditRestoreHud({
             </button>
           ) : null}
           {secondaryAction ? (
-            <button type="button" onClick={() => onOpenTab(secondaryAction.tab)} className={FINELY_OS_SECONDARY_BTN}>
+            <button type="button" onClick={() => onOpenTab(secondaryAction.tab)} className={light ? WL_SOLID_ACTION_BTN : FINELY_OS_SECONDARY_BTN}>
               {secondaryAction.label}
             </button>
           ) : null}
@@ -140,37 +197,61 @@ export function PartnerCreditRestoreHud({
       </div>
 
       {progressRail ? (
-        <div className="grid grid-cols-3 gap-2">
-          <div className="rounded-xl border border-amber-400/25 bg-amber-500/10 px-3 py-2">
-            <div className="text-[10px] font-black uppercase tracking-widest text-amber-200/80">Waiting</div>
-            <div className={`mt-0.5 text-xl font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{progressRail.waiting}</div>
+        <div className="grid grid-cols-3 gap-4">
+          <div className={light ? finelyOsVisibleTintShell('sky', 'p-6') : `${finelyOsCatalogCard('sky')}`}>
+            <div className={`text-sm font-extrabold uppercase tracking-widest ${light ? 'text-sky-900' : 'text-sky-200'}`}>Waiting</div>
+            <div className={`mt-2 text-3xl font-extrabold ${light ? 'text-sky-950' : value}`}>{progressRail.waiting}</div>
           </div>
-          <div className="rounded-xl border border-emerald-400/25 bg-emerald-500/10 px-3 py-2">
-            <div className="text-[10px] font-black uppercase tracking-widest text-emerald-200/80">Ready</div>
-            <div className={`mt-0.5 text-xl font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{progressRail.ready}</div>
+          <div className={light ? finelyOsVisibleTintShell('emerald', 'p-6') : `${finelyOsCatalogCard('emerald')}`}>
+            <div className={`text-sm font-extrabold uppercase tracking-widest ${light ? 'text-emerald-900' : 'text-emerald-200'}`}>Ready</div>
+            <div className={`mt-2 text-3xl font-extrabold ${light ? 'text-emerald-950' : value}`}>{progressRail.ready}</div>
           </div>
-          <div className="rounded-xl border border-rose-400/25 bg-rose-500/10 px-3 py-2">
-            <div className="text-[10px] font-black uppercase tracking-widest text-rose-200/80">Court</div>
-            <div className={`mt-0.5 text-xl font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{progressRail.court}</div>
+          <div className={light ? finelyOsVisibleTintShell('rose', 'p-6') : `${finelyOsCatalogCard('rose')}`}>
+            <div className={`text-sm font-extrabold uppercase tracking-widest ${light ? 'text-rose-900' : 'text-rose-200'}`}>Court</div>
+            <div className={`mt-2 text-3xl font-extrabold ${light ? 'text-rose-950' : value}`}>{progressRail.court}</div>
           </div>
         </div>
       ) : null}
 
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-2">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+        {light ? (
+          <>
+            <LightStatTile icon={BarChart3} label="Restore readiness" value={`${pct}%`} hint="End-to-end progress" accent="emerald" />
+            <button type="button" onClick={() => onOpenTab('reports')} className="text-left w-full">
+              <LightStatTile
+              icon={FileText}
+              label="Reports"
+              value={reportsCount}
+              hint={middleScore != null ? `Middle ${middleScore} · results vary` : 'Parsed credit files'}
+              accent="violet"
+            />
+            </button>
+            <button type="button" onClick={() => onOpenTab('analysis')} className="text-left w-full">
+              <LightStatTile icon={Gavel} label="Negatives" value={negativesCount} hint="Dispute candidates" accent="sky" />
+            </button>
+            <button type="button" onClick={() => onOpenTab('evidence')} className="text-left w-full">
+              <LightStatTile icon={ShieldAlert} label="Evidence" value={evidenceCount} hint="Vault files" accent="rose" />
+            </button>
+            <button type="button" onClick={() => onOpenTab('debt')} className="text-left w-full">
+              <LightStatTile icon={Scale} label="Debt / court" value={progressRail?.court ?? 0} hint={lettersCount ? `${lettersCount} letters` : 'Validation lane'} accent="violet" />
+            </button>
+          </>
+        ) : (
+          <>
         <FinelyOsOverviewStatTile
           icon={BarChart3}
           label="Restore readiness"
           value={`${pct}%`}
           hint="End-to-end progress"
-          accent="amber"
-          iconAccent="amber"
+          accent="emerald"
+          iconAccent="emerald"
         />
         <button type="button" onClick={() => onOpenTab('reports')} className="text-left w-full" aria-label={`Open reports — ${reportsCount} on file`}>
           <FinelyOsOverviewStatTile
             icon={FileText}
             label="Reports"
             value={reportsCount}
-            hint="Parsed credit files"
+            hint={middleScore != null ? middleScoreLabel || `Middle ${middleScore} · results vary` : 'Parsed credit files'}
             accent="violet"
             iconAccent="violet"
           />
@@ -205,30 +286,48 @@ export function PartnerCreditRestoreHud({
             iconAccent="sky"
           />
         </button>
+          </>
+        )}
       </div>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-2">
-        {steps.map((s) => (
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+        {steps.map((s, index) => {
+          const family = (s.done ? 'emerald' : (['violet', 'sky', 'rose', 'violet'] as const)[index % 4]) as 'emerald' | 'violet' | 'sky' | 'rose';
+          return (
           <button
             key={s.key}
             type="button"
             onClick={() => onOpenTab(s.tab)}
-            className={
-              'text-left rounded-2xl border p-3 transition-all ' +
-              (s.done
-                ? 'border-emerald-500/35 bg-emerald-500/10 hover:bg-emerald-500/15'
-                : 'border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/15')
-            }
+            className={`text-left ${light ? finelyOsVisibleTintShell(family, 'p-6 hover:brightness-[1.02]') : finelyOsCatalogCard(family)}`}
           >
-            <div className={`text-[10px] font-black uppercase tracking-widest ${s.done ? 'text-emerald-300' : 'text-amber-300'}`}>
+            <div
+              className={`text-sm font-extrabold uppercase tracking-widest ${
+                light
+                  ? family === 'emerald'
+                    ? 'text-emerald-900'
+                    : family === 'sky'
+                      ? 'text-sky-900'
+                      : family === 'rose'
+                        ? 'text-rose-900'
+                        : 'text-violet-900'
+                  : family === 'emerald'
+                    ? 'text-emerald-200'
+                    : family === 'sky'
+                      ? 'text-sky-200'
+                      : family === 'rose'
+                        ? 'text-rose-200'
+                        : 'text-violet-200'
+              }`}
+            >
               {s.done ? 'On track' : 'Next up'}
             </div>
-            <div className={`mt-1 text-sm font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{s.label}</div>
-            <div className={`mt-0.5 text-xs ${FINELY_OS_ENTITY_BODY}`}>{s.hint}</div>
+            <div className={`mt-2 text-lg font-extrabold ${light ? 'text-[#0a1628]' : value}`}>{s.label}</div>
+            <div className={`mt-1 text-sm font-semibold ${light ? 'text-[#0a1628]/70' : body}`}>{s.hint}</div>
           </button>
-        ))}
+          );
+        })}
       </div>
-      <p className="text-[10px] text-white/40">
+      <p className={`text-xs ${light ? 'text-slate-500' : 'text-white/40'}`}>
         Educational only · not legal advice · results vary · lawsuit outcomes are never guaranteed
       </p>
     </div>

@@ -48,17 +48,12 @@ import {
   type ScrapedLitigationField,
 } from '../../lib/ocr/litigationDocScraper';
 import {
-  FINELY_OS_ENTITY_BODY,
-  FINELY_OS_ENTITY_SUBLABEL,
-  FINELY_OS_ENTITY_TITLE,
   FINELY_OS_NOTICE_SUCCESS,
-  FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
   finelyOsGlowField,
   finelyOsGlowPanel,
-  finelyOsGlowTile,
-  finelyOsGlassShell,
 } from '../../features/os/finelyOsLightUi';
+import './unifiedEvidenceCapture.css';
 
 const blobStore = getBlobStore();
 const ACCEPT = 'image/*,application/pdf,video/mp4,video/webm,video/quicktime,.html,.htm,.txt,text/html';
@@ -121,6 +116,11 @@ export type UnifiedEvidenceCaptureProps = {
   bankruptcyCaseId?: string;
   onUploaded?: (result: IngestUploadResult) => void;
   uploadContext?: 'general' | 'bureau' | 'debt' | 'foreclosure' | 'repossession' | 'bankruptcy';
+  /** Limit quick-pick document types when a dedicated vault owns only part of the taxonomy. */
+  allowedIntentIds?: readonly UploadIntentId[];
+  captureEyebrow?: string;
+  captureTitle?: string;
+  captureDescription?: string;
   /** Show scrape-intel panel (Evidence hub + litigation / debt strips). */
   enableScrape?: boolean;
   /** Litigation Apply wiring */
@@ -134,6 +134,10 @@ export type UnifiedEvidenceCaptureProps = {
     id?: string;
     parsed?: { tradelines?: Array<Record<string, unknown>>; creditorContacts?: Array<Record<string, unknown>> } | null;
   }>;
+  /** Where the post-upload primary CTA opens — defaults to Documents vault. */
+  vaultOpenPath?: string;
+  vaultOpenLabel?: string;
+  surface?: 'dark' | 'light';
 };
 
 /**
@@ -149,6 +153,10 @@ export function UnifiedEvidenceCapture({
   bankruptcyCaseId,
   onUploaded,
   uploadContext = 'general',
+  allowedIntentIds,
+  captureEyebrow = 'Unified evidence capture',
+  captureTitle = 'Capture deck — type · drop · scrape',
+  captureDescription = 'Pick a document type, then use camera, gallery, or multi-file drag and drop. Scrape intel extracts useful fields beside the upload.',
   enableScrape = true,
   debt = null,
   onDebtChange,
@@ -157,6 +165,9 @@ export function UnifiedEvidenceCapture({
   defaultHearingIso,
   autoApplyOnHighConfidence = false,
   reports: reportsProp,
+  vaultOpenPath = '/portal/documents',
+  vaultOpenLabel = 'Open documents vault',
+  surface = 'dark',
 }: UnifiedEvidenceCaptureProps) {
   const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement | null>(null);
@@ -187,7 +198,14 @@ export function UnifiedEvidenceCapture({
     },
   ]);
 
-  const groups = useMemo(() => documentTypeGroupsForContext(uploadContext), [uploadContext]);
+  const groups = useMemo(() => {
+    const available = documentTypeGroupsForContext(uploadContext);
+    if (!allowedIntentIds?.length) return available;
+    const allowed = new Set<UploadIntentId>(allowedIntentIds);
+    return available
+      .map((group) => ({ ...group, presets: group.presets.filter((item) => allowed.has(item.id)) }))
+      .filter((group) => group.presets.length > 0);
+  }, [allowedIntentIds, uploadContext]);
   const allPresets = useMemo(() => allPresetsFromGroups(groups), [groups]);
   const preset = allPresets.find((p) => p.id === intent);
   const effectiveCaption = caption.trim() || preset?.caption || 'Uploaded document';
@@ -598,26 +616,13 @@ export function UnifiedEvidenceCapture({
 
   const Icon = result ? iconFor(result.profile.icon) : Sparkles;
 
-  const chipClass = (active: boolean) =>
-    `px-2.5 py-1.5 rounded-lg text-[11px] font-medium border transition whitespace-nowrap ${
-      active
-        ? 'border-emerald-400/60 bg-emerald-500/15 text-emerald-100'
-        : 'border-white/10 bg-black/30 text-white/70 hover:border-emerald-500/30'
-    }`;
-
-  const tileClass = (active: boolean) =>
-    `${finelyOsGlowTile('emerald', active)} px-3 py-2.5 text-left text-xs font-medium min-w-[7rem] ${
-      active ? 'text-emerald-100' : 'text-white/75'
-    }`;
-
   return (
     <div
-      className={
-        compact
-          ? 'rounded-2xl border border-emerald-400/25 bg-black/30 !p-3 space-y-3 overflow-hidden relative'
-          : `${finelyOsGlassShell('panel', 'emerald')} overflow-hidden relative`
-      }
+      className={`fc-capture-panel ${compact ? 'fc-capture-panel--compact' : ''} space-y-3`}
       id="unified-evidence-capture"
+      data-fc-evidence-capture="1"
+      data-fc-evidence-capture-surface={surface}
+      data-accent="emerald"
     >
       <div
         className="pointer-events-none absolute inset-0 opacity-60"
@@ -647,22 +652,19 @@ export function UnifiedEvidenceCapture({
       <div className="relative space-y-3">
         {!compact ? (
           <div className="border-b border-white/[0.08] pb-3 space-y-1.5">
-            <div className="inline-flex items-center gap-2 text-emerald-300">
-              <Camera size={16} />
-              <span className={FINELY_OS_ENTITY_SUBLABEL}>Unified evidence capture</span>
+            <div className="inline-flex items-center gap-2">
+              <Camera size={16} className="text-emerald-500" />
+              <span className="fc-capture-eyebrow">{captureEyebrow}</span>
             </div>
-            <h2 className={FINELY_OS_ENTITY_TITLE}>Capture deck — type · drop · scrape</h2>
-            <p className={`${FINELY_OS_ENTITY_BODY} max-w-3xl text-sm`}>
-              One composition for the Evidence hub and every workstation: pick a document type, then camera / gallery /
-              drag-drop (multi-file). Scrape intel extracts fields beside the drop zone — not a separate chat widget.
-            </p>
+            <h2 className="fc-capture-title">{captureTitle}</h2>
+            <p className="fc-capture-body max-w-3xl text-sm">{captureDescription}</p>
           </div>
         ) : (
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className={`${FINELY_OS_ENTITY_SUBLABEL} text-emerald-200/90`}>
+            <span className="fc-capture-eyebrow">
               {uploadContext === 'debt' ? 'Debt & docket upload' : 'Evidence capture'}
             </span>
-            <span className="text-[10px] text-white/45">
+            <span className="fc-capture-sublabel normal-case tracking-normal">
               {uploadContext === 'debt'
                 ? 'Summons, docket, collector mail — stays in Debt Center'
                 : 'Vault + scrape · one unit'}
@@ -672,13 +674,19 @@ export function UnifiedEvidenceCapture({
 
         {/* Document type — chips / tiles only (never dropdown) */}
         <div className="space-y-2">
-          <p className={`${FINELY_OS_ENTITY_SUBLABEL} ${compact ? 'text-[10px]' : ''}`}>
+          <p className="fc-capture-sublabel">
             Document type{preset ? `: ${preset.label}` : ''}
           </p>
           {compact ? (
             <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto pr-0.5">
               {allPresets.map((p) => (
-                <button key={p.id} type="button" onClick={() => pickPreset(p)} className={chipClass(intent === p.id)}>
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => pickPreset(p)}
+                  className="fc-capture-chip"
+                  data-active={intent === p.id ? '1' : '0'}
+                >
                   {p.label}
                 </button>
               ))}
@@ -686,16 +694,22 @@ export function UnifiedEvidenceCapture({
           ) : (
             <div className="space-y-3">
               {groups.map((group: DocumentTypeGroup) => (
-                <div key={group.id} className="rounded-xl border border-white/[0.08] bg-black/25 !p-3">
+                <div key={group.id} className="fc-capture-group">
                   <div className="flex flex-wrap items-baseline justify-between gap-2 mb-2">
-                    <p className={FINELY_OS_ENTITY_SUBLABEL}>{group.label}</p>
+                    <p className="fc-capture-sublabel">{group.label}</p>
                     {group.hint ? (
-                      <p className={`text-[10px] ${FINELY_OS_ENTITY_BODY} opacity-75 max-w-md`}>{group.hint}</p>
+                      <p className="fc-capture-body opacity-75 max-w-md">{group.hint}</p>
                     ) : null}
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {group.presets.map((p) => (
-                      <button key={p.id} type="button" onClick={() => pickPreset(p)} className={tileClass(intent === p.id)}>
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => pickPreset(p)}
+                        className="fc-capture-chip min-w-[7rem] text-left"
+                        data-active={intent === p.id ? '1' : '0'}
+                      >
                         {p.label}
                       </button>
                     ))}
@@ -705,14 +719,14 @@ export function UnifiedEvidenceCapture({
             </div>
           )}
           {intent && (intent === 'id_document' || intent === 'ssn_card') ? (
-            <p className={`text-[11px] ${FINELY_OS_ENTITY_BODY}`}>
-              Camera opens in <strong className="text-emerald-200">ID scan mode</strong>.
+            <p className="fc-capture-body">
+              Camera opens in <strong className="text-emerald-600">ID scan mode</strong>.
             </p>
           ) : null}
         </div>
 
         <div className={compact ? 'space-y-1' : 'space-y-1.5'}>
-          <label className={`block ${FINELY_OS_ENTITY_SUBLABEL} ${compact ? 'text-[10px]' : ''}`}>Notes (optional)</label>
+          <label className="block fc-capture-sublabel">Notes (optional)</label>
           <input
             value={caption}
             onChange={(e) => setCaption(e.target.value)}
@@ -738,17 +752,14 @@ export function UnifiedEvidenceCapture({
               }}
               onDragLeave={() => setDragOver(false)}
               onDrop={onDrop}
-              className={`rounded-2xl border-2 border-dashed px-4 ${compact ? 'py-5' : 'py-8'} text-center transition-colors ${
-                dragOver
-                  ? 'border-amber-400/70 bg-amber-500/15'
-                  : 'border-emerald-400/40 bg-black/35 hover:border-emerald-300/55 hover:bg-emerald-500/10'
-              }`}
+              className={`fc-capture-dropzone px-4 ${compact ? 'py-5' : 'py-8'}`}
+              data-drag={dragOver ? '1' : '0'}
             >
-              <div className="inline-flex items-center justify-center gap-2 text-emerald-100 font-semibold text-sm">
+              <div className="fc-capture-dropzone-label inline-flex items-center justify-center gap-2">
                 {busy ? <Loader2 size={18} className="animate-spin" /> : <FileUp size={18} />}
                 {busy ? 'Uploading…' : staged.length ? `${staged.length} file(s) ready — confirm type & save` : 'Drag & drop files — or use buttons below'}
               </div>
-              <p className={`mt-2 text-xs ${FINELY_OS_ENTITY_BODY}`}>
+              <p className="mt-2 text-xs fc-capture-body">
                 {uploadContext === 'debt'
                   ? 'Pick Docket / ROA or Summons above, then drop your PDF — we file to this case and scrape fields here.'
                   : 'Multi-file · PDF · images · video · HTML. Camera scan for phone-quality capture.'}
@@ -803,25 +814,25 @@ export function UnifiedEvidenceCapture({
                 type="button"
                 disabled={busy}
                 onClick={() => setCameraOpen(true)}
-                className={`${FINELY_OS_PRIMARY_BTN} !w-full justify-center disabled:opacity-60`}
+                className="fc-capture-action-btn disabled:opacity-60"
               >
                 <Camera size={14} /> Camera
               </button>
             </div>
 
-            <label className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} normal-case text-[11px]`}>
+            <label className="inline-flex items-center gap-2 fc-capture-sublabel normal-case">
               <input
                 type="checkbox"
                 checked={scanMode}
                 onChange={(e) => setScanMode(e.target.checked)}
-                className="accent-amber-500"
+                className="accent-emerald-500"
               />
               Scan-style enhance (photos of letters)
             </label>
 
             {(staged.length > 0 || pending.length > 0) ? (
               <div className="space-y-2">
-                <p className={`${FINELY_OS_ENTITY_SUBLABEL} text-[10px]`}>
+                <p className="fc-capture-sublabel">
                   {staged.length ? 'Ready to save' : 'Saving…'}
                 </p>
                 <div className="flex flex-wrap gap-2">
@@ -845,7 +856,7 @@ export function UnifiedEvidenceCapture({
                             : p.status === 'error'
                               ? 'bg-rose-600/80'
                               : p.status === 'uploading'
-                                ? 'bg-amber-600/80'
+                                ? 'bg-violet-600/80'
                                 : 'bg-black/70'
                         }`}
                       >
@@ -892,7 +903,7 @@ export function UnifiedEvidenceCapture({
                       type="button"
                       disabled={busy || staged.length === 0}
                       onClick={confirmSaveToVault}
-                      className={`${FINELY_OS_PRIMARY_BTN} disabled:opacity-50`}
+                      className="fc-capture-action-btn disabled:opacity-50"
                     >
                       {busy ? (
                         <>
@@ -905,7 +916,7 @@ export function UnifiedEvidenceCapture({
                       )}
                     </button>
                     {!intent ? (
-                      <span className={`text-[11px] ${FINELY_OS_ENTITY_BODY} text-amber-200/90`}>
+                      <span className="fc-capture-body text-rose-600">
                         Select document type first.
                       </span>
                     ) : null}
@@ -949,21 +960,21 @@ export function UnifiedEvidenceCapture({
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 size={16} className="text-emerald-400 shrink-0" />
-                  <span className="font-semibold text-white">{result.profile.label}</span>
+                  <span className="font-semibold fc-capture-title text-base">{result.profile.label}</span>
                   {result.confidence != null ? (
-                    <span className="text-[10px] text-white/50">{Math.round(result.confidence * 100)}% match</span>
+                    <span className="fc-capture-sublabel normal-case">{Math.round(result.confidence * 100)}% match</span>
                   ) : null}
                 </div>
-                <p className={`mt-1 ${FINELY_OS_ENTITY_BODY} text-sm`}>{result.profile.userExplanation}</p>
+                <p className="mt-1 fc-capture-body text-sm">{result.profile.userExplanation}</p>
                 <EvidenceExtractedFields entities={result.entities} summary={result.summary} compact={compact} />
-                <p className="mt-2 text-xs text-emerald-200/90">
+                <p className="mt-2 text-xs fc-capture-body">
                   Filed to vault folder: <strong>{result.profile.folder.replace(/_/g, ' ')}</strong>
                 </p>
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
-              <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => navigate('/portal/documents')}>
-                Open evidence vault <ArrowRight size={14} />
+              <button type="button" className="fc-capture-action-btn" onClick={() => navigate(vaultOpenPath)}>
+                {vaultOpenLabel} <ArrowRight size={14} />
               </button>
               <button
                 type="button"

@@ -1,0 +1,120 @@
+/* Business disputes — bureau status grid + queue desk */
+
+.fc-wlp-biz-dispute-status-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+@media (min-width: 768px) {
+  .fc-wlp-biz-dispute-status-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.fc-wlp-biz-dispute-status-cell {
+  border-radius: 18px;
+  padding: 18px 20px;
+  text-align: left;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.12s ease;
+}
+
+.fc-wlp-biz-dispute-status-cell:hover {
+  transform: translateY(-1px);
+}
+
+.fc-wlp-biz-dispute-status-value {
+  font-size: 2rem;
+  line-height: 1.1;
+  font-weight: 800;
+}
+
+.fc-wlp-biz-dispute-desk {
+  display: grid;
+  grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .fc-wlp-biz-dispute-desk {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fc-wlp-biz-dispute-queue {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: sticky;
+  top: 12px;
+  max-height: min(82vh, 920px);
+  overflow-y: auto;
+  padding: 16px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(244, 63, 94, 0.24);
+  background: linear-gradient(180deg, rgba(244, 63, 94, 0.08), rgba(255, 255, 255, 0.94));
+}
+
+.fc-wlp-biz-dispute-queue-head {
+  padding: 4px 8px 10px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.fc-wlp-biz-dispute-queue-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  background: transparent;
+  text-align: left;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+
+.fc-wlp-biz-dispute-queue-item[data-active='true'] {
+  border-color: color-mix(in srgb, rgb(var(--fcm-accent-rgb, 244 63 94)) 42%, transparent);
+  background: rgba(255, 255, 255, 0.92);
+  transform: translateX(2px);
+}
+
+.fc-wlp-biz-dispute-queue-item strong {
+  font-size: 15px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.fc-wlp-biz-dispute-queue-item span {
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.fc-wlp-biz-dispute-inspector {
+  min-width: 0;
+  border-radius: 22px;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.92));
+  padding: 24px 28px;
+}
+
+.fc-wlp-biz-dispute-inspector-hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 18px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}

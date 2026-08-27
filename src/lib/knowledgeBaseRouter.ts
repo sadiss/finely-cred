@@ -49,7 +49,7 @@ const PATH_ROUTES: Array<{ test: RegExp; category: KnowledgeCategory; sectionId:
   { test: /^\/portal\/(billing|checkout)/, category: 'pricing', sectionId: 'billing', label: 'Billing' },
   { test: /^\/portal\/(wealth-paths|tradelines)/, category: 'funding', sectionId: 'wealth', label: 'Funding & tradelines' },
   { test: /^\/admin\/(leads|crm|funnel)/, category: 'onboarding', sectionId: 'leads', label: 'Leads & CRM' },
-  { test: /^\/admin\/(support|comms|inbox)/, category: 'portal', sectionId: 'comms', label: 'Support inbox' },
+  { test: /^\/admin\/(support|comms|inbox)/, category: 'portal', sectionId: 'comms', label: 'Partner conversations' },
   { test: /^\/admin\/(automations|ops-agent)/, category: 'portal', sectionId: 'platform_os', label: 'Automations' },
   { test: /^\/admin\/(integrations|monitoring)/, category: 'portal', sectionId: 'platform_os', label: 'Integrations' },
   { test: /^\/(free-guide|free-debt-guide|free-business-guide|free-tradeline-guide|resources)/, category: 'onboarding', sectionId: 'leads', label: 'Lead magnets' },

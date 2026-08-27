@@ -1,5 +1,6 @@
 import type { CreditScoreSnapshot } from '../domain/creditScoreSnapshots';
-import type { Bureau, ParsedCreditReport, ParsedScore } from '../domain/creditReports';
+import type { ParsedCreditReport, ParsedScore } from '../domain/creditReports';
+import { computeMiddleScore } from '../domain/creditScoreMiddle';
 import { loadJson, saveJson } from './localJsonStore';
 import { newId } from '../utils/ids';
 import { syncCreditIntelToProjectOutcomes } from '../lib/creditIntelProjectSync';
@@ -16,19 +17,44 @@ function saveStore(store: Store) {
   saveJson(KEY, store, 1);
 }
 
-function headlineFromScores(scores: ParsedScore[]): { score?: number; bureau?: CreditScoreSnapshot['headlineBureau'] } {
-  const ficoLike = scores.filter((s) => /fico|vantage/i.test(s.model));
-  const pool = ficoLike.length ? ficoLike : scores;
-  if (!pool.length) return {};
-  const best = pool.reduce((a, b) => (b.value > a.value ? b : a));
-  return { score: best.value, bureau: best.bureau };
+function headlineFromScores(scores: ParsedScore[]): {
+  score?: number;
+  bureau?: CreditScoreSnapshot['headlineBureau'];
+  middleLabel?: string;
+  middleConfidence?: CreditScoreSnapshot['middleConfidence'];
+  middleMethod?: CreditScoreSnapshot['middleMethod'];
+} {
+  const middle = computeMiddleScore(scores);
+  if (middle.value == null) return {};
+  const medianBureau = middle.bureaus.find((b) => b.value === middle.value)?.bureau;
+  return {
+    score: middle.value,
+    bureau: medianBureau as CreditScoreSnapshot['headlineBureau'] | undefined,
+    middleLabel: middle.label,
+    middleConfidence: middle.confidence,
+    middleMethod: middle.method,
+  };
+}
+
+function withLiveMiddle(snapshot: CreditScoreSnapshot): CreditScoreSnapshot {
+  const next = headlineFromScores(snapshot.scores ?? []);
+  if (next.score == null) return snapshot;
+  return {
+    ...snapshot,
+    headlineScore: next.score,
+    headlineBureau: next.bureau,
+    middleLabel: next.middleLabel,
+    middleConfidence: next.middleConfidence,
+    middleMethod: next.middleMethod,
+  };
 }
 
 export function listCreditScoreSnapshots(partnerId: string, limit = 24): CreditScoreSnapshot[] {
   return loadStore()
     .snapshots.filter((s) => s.partnerId === partnerId)
     .sort((a, b) => b.capturedAt.localeCompare(a.capturedAt))
-    .slice(0, limit);
+    .slice(0, limit)
+    .map(withLiveMiddle);
 }
 
 export function captureScoreSnapshotFromReport(args: {
@@ -44,7 +70,7 @@ export function captureScoreSnapshotFromReport(args: {
   const existing = store.snapshots.find((s) => s.reportId === args.reportId);
   if (existing) return existing;
 
-  const { score, bureau } = headlineFromScores(scores);
+  const { score, bureau, middleLabel, middleConfidence, middleMethod } = headlineFromScores(scores);
   const snap: CreditScoreSnapshot = {
     id: newId('css'),
     partnerId: args.partnerId,
@@ -55,6 +81,9 @@ export function captureScoreSnapshotFromReport(args: {
     scores,
     headlineScore: score,
     headlineBureau: bureau,
+    middleLabel,
+    middleConfidence,
+    middleMethod,
   };
   store.snapshots.unshift(snap);
   saveStore(store);

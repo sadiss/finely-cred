@@ -6,24 +6,24 @@ const ACCENT_RING: Record<string, string> = {
   overview: 'border-emerald-400/40 bg-emerald-500/15 text-emerald-50',
   profile: 'border-violet-400/40 bg-violet-500/15 text-violet-50',
   reports: 'border-sky-400/40 bg-sky-500/15 text-sky-50',
-  analysis: 'border-sky-400/35 bg-sky-500/10 text-sky-100',
-  evidence: 'border-sky-400/30 bg-sky-500/10 text-sky-100',
-  letters: 'border-amber-400/35 bg-amber-500/10 text-amber-100',
-  tasks: 'border-emerald-400/35 bg-emerald-500/10 text-emerald-100',
-  notes: 'border-emerald-400/30 bg-emerald-500/10 text-emerald-100',
-  debt: 'border-violet-400/40 bg-violet-500/15 text-violet-50',
+  analysis: 'border-rose-400/40 bg-rose-500/15 text-rose-50',
+  evidence: 'border-emerald-400/35 bg-emerald-500/10 text-emerald-100',
+  letters: 'border-violet-400/40 bg-violet-500/15 text-violet-50',
+  tasks: 'border-sky-400/40 bg-sky-500/15 text-sky-50',
+  notes: 'border-emerald-400/35 bg-emerald-500/10 text-emerald-100',
+  debt: 'border-rose-400/40 bg-rose-500/15 text-rose-50',
 };
 
 const LIGHT_ACCENT_RING: Record<string, string> = {
   overview: 'border-emerald-600/35 bg-emerald-500/10 text-emerald-950',
   profile: 'border-violet-600/35 bg-violet-500/10 text-violet-950',
   reports: 'border-sky-600/35 bg-sky-500/10 text-sky-950',
-  analysis: 'border-sky-600/32 bg-sky-500/10 text-sky-950',
-  evidence: 'border-sky-600/30 bg-sky-500/10 text-sky-950',
-  letters: 'border-amber-700/35 bg-amber-500/12 text-amber-950',
-  tasks: 'border-emerald-600/32 bg-emerald-500/10 text-emerald-950',
-  notes: 'border-emerald-600/30 bg-emerald-500/10 text-emerald-950',
-  debt: 'border-violet-600/35 bg-violet-500/10 text-violet-950',
+  analysis: 'border-rose-600/35 bg-rose-500/10 text-rose-950',
+  evidence: 'border-emerald-600/32 bg-emerald-500/10 text-emerald-950',
+  letters: 'border-violet-600/35 bg-violet-500/10 text-violet-950',
+  tasks: 'border-sky-600/35 bg-sky-500/10 text-sky-950',
+  notes: 'border-emerald-600/32 bg-emerald-500/10 text-emerald-950',
+  debt: 'border-rose-600/35 bg-rose-500/10 text-rose-950',
 };
 
 export function PartnerDetailSidebarNav({
@@ -46,7 +46,7 @@ export function PartnerDetailSidebarNav({
       className="lg:sticky lg:top-4 space-y-2 fc-partner-sidebar-nav"
       aria-label="Partner profile sections"
     >
-      <div className={`hidden lg:block mb-3 normal-case ${light ? 'text-[10px] font-semibold uppercase tracking-[0.12em] text-[#0a1628]/55' : FINELY_OS_ENTITY_SUBLABEL}`}>
+      <div className={`hidden lg:block mb-3 normal-case ${light ? 'text-xs font-semibold uppercase tracking-[0.12em] text-[#0a1628]/55' : FINELY_OS_ENTITY_SUBLABEL}`}>
         Partner workspace
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-1 gap-2">

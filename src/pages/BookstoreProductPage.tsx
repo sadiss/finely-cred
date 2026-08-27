@@ -59,10 +59,10 @@ export default function BookstoreProductPage() {
           eyebrow="Finely bookstore"
           title={product?.title ?? 'Product detail'}
           subtitle={product?.sub ?? 'Premium playbook detail page.'}
-          accent="fuchsia"
+          accent="emerald"
           kpis={product ? [
-            { label: 'Price', value: formatPrice(product.priceAmount), accent: 'amber' },
-            { label: 'Chapters', value: String(chapterCount), accent: 'emerald' },
+            { label: 'Price', value: formatPrice(product.priceAmount), accent: 'emerald' },
+            { label: 'Chapters', value: String(chapterCount), accent: 'violet' },
           ] : undefined}
           tabs={[{ id: 'detail', label: 'Detail' }]}
           activeTab="detail"
@@ -71,8 +71,8 @@ export default function BookstoreProductPage() {
         >
         {auth.user ? <CommsWorkspaceActions variant="inline" calendarLabel="Book session" hubLabel="Ask in Hub" /> : null}
 
-        <div className={`space-y-4 ${finelyOsCatalogCard('amber')} !p-6`} data-fc-accent="amber">
-          <div className="inline-flex items-center gap-2 text-fuchsia-700">
+        <div className={`space-y-4 ${finelyOsCatalogCard('violet')}`} data-fc-accent="violet">
+          <div className="inline-flex items-center gap-2 text-violet-700">
             <BookOpen size={18} />
             <span className={FINELY_OS_ENTITY_SUBLABEL}>{product ? 'Book' : 'Product'}</span>
           </div>
@@ -88,7 +88,7 @@ export default function BookstoreProductPage() {
                 </div>
                 <div className="text-right">
                   <div className={FINELY_OS_ENTITY_LABEL}>Price</div>
-                  <div className="mt-1 text-amber-700 font-black text-2xl">{formatPrice(product.priceAmount)}</div>
+                  <div className={`mt-1 font-black text-2xl ${FINELY_OS_ENTITY_VALUE}`}>{formatPrice(product.priceAmount)}</div>
                 </div>
               </div>
 
@@ -101,7 +101,7 @@ export default function BookstoreProductPage() {
               ) : null}
 
               {previewChapters.length > 0 ? (
-                <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`} data-fc-accent="sky">
+                <div className={`${finelyOsCatalogCard('sky')} fc-surface-harmony`} data-fc-accent="sky">
                   <div className={FINELY_OS_ENTITY_LABEL}>Chapter preview (free)</div>
                   <div className="mt-3">
                     <FinelyOsPaginatedStack
@@ -121,7 +121,7 @@ export default function BookstoreProductPage() {
                   </div>
                 </div>
               ) : product.contentMarkdown ? (
-                <details className={`${finelyOsCatalogCard('emerald')} !p-4 fc-surface-harmony`} data-fc-accent="emerald">
+                <details className={`${finelyOsCatalogCard('emerald')} fc-surface-harmony`} data-fc-accent="emerald">
                   <summary className="cursor-pointer select-none">
                     <div className={FINELY_OS_ENTITY_LABEL}>Full preview ({chapterCount} chapters)</div>
                     <div className={`mt-1 ${FINELY_OS_ENTITY_BODY} text-sm`}>Expand to browse the complete table of contents and sample chapters.</div>

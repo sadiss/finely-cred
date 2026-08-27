@@ -12,7 +12,7 @@ import {
 } from '../os/finelyOsLightUi';
 
 /** Staff Command Center — violet + emerald (no brown/amber chrome). */
-export const STAFF_CMD_PANEL = `${finelyOsCatalogCard('violet')} !p-5 lg:!p-6 space-y-5`;
+export const STAFF_CMD_PANEL = `${finelyOsCatalogCard('violet')} space-y-5`;
 export const STAFF_CMD_EYEBROW = `${FINELY_OS_ENTITY_SUBLABEL} text-violet-300`;
 export const STAFF_CMD_TITLE = FINELY_OS_ENTITY_TITLE;
 export const STAFF_CMD_BODY = FINELY_OS_ENTITY_BODY;
@@ -36,18 +36,18 @@ export function staffCmdSelected(active: boolean) {
 export function staffCmdCardBorder(staff: StaffMember, selected: boolean) {
   if (selected) {
     return isHumanStaffKind(staff.kind)
-      ? 'border-amber-400/55 bg-amber-500/10'
+      ? 'border-rose-400/55 bg-rose-500/10'
       : 'border-violet-400/60 bg-violet-500/10';
   }
   if (staff.status === 'blocked') return 'border-rose-500/25 bg-rose-500/5';
   if (staff.status === 'needs_approval') return 'border-sky-500/25 bg-sky-500/5';
   if (staff.status === 'working') {
     return isHumanStaffKind(staff.kind)
-      ? 'border-amber-500/25 bg-amber-500/5'
+      ? 'border-sky-500/25 bg-sky-500/5'
       : 'border-emerald-500/20 bg-emerald-500/5';
   }
   return isHumanStaffKind(staff.kind)
-    ? 'border-amber-500/15 bg-amber-500/[0.03]'
+    ? 'border-sky-500/15 bg-sky-500/[0.03]'
     : 'border-white/10 bg-white/[0.03]';
 }
 
@@ -56,7 +56,7 @@ export function staffCmdHighlightPanel() {
 }
 
 export function staffCmdSelectedChip(kind: StaffMember['kind']) {
-  if (isHumanStaffKind(kind)) return 'border-amber-400/55 bg-amber-500/10';
+  if (isHumanStaffKind(kind)) return 'border-rose-400/55 bg-rose-500/10';
   if (kind === 'system_team') return 'border-white/20 bg-white/[0.06]';
   return 'border-violet-400/55 bg-violet-500/10';
 }

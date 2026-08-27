@@ -341,13 +341,13 @@ export function GrowthAgentHannahWorkspace() {
         <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/lead-acquisition')}>
           Lead Acquisition
         </button>
-        <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/marketing?tab=desk&helper=board')}>
+        <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/marketing-desk?helper=board')}>
           Desk · Board
         </button>
-        <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/marketing?tab=desk&helper=mail')}>
+        <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/marketing-desk?helper=mail')}>
           Desk · Mail
         </button>
-        <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/marketing?tab=desk&helper=find')}>
+        <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/marketing-desk?helper=find')}>
           Desk · Find
         </button>
         <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/growth-agents/marketing-director')}>

@@ -9,7 +9,7 @@ import { getValidationAccountState } from '../../lib/validationAccountState';
 
 const TONE: Record<FdcpaPowerChip['tone'], string> = {
   emerald: 'border-emerald-400/35 bg-emerald-500/10 text-emerald-100',
-  amber: 'border-amber-400/35 bg-amber-500/10 text-amber-100',
+  amber: 'border-rose-400/35 bg-rose-500/10 text-rose-100',
   sky: 'border-sky-400/35 bg-sky-500/10 text-sky-100',
   rose: 'border-rose-400/35 bg-rose-500/10 text-rose-100',
 };
@@ -43,11 +43,11 @@ export function FdcpaPowerChips({ debt, validationMailed, className }: Props) {
           className={`max-w-full rounded-xl border px-3 py-2 ${TONE[chip.tone]}`}
           title={chip.detail}
         >
-          <div className="text-[10px] font-black uppercase tracking-widest">{chip.label}</div>
-          <p className="mt-1 text-[11px] leading-snug text-white/70">{chip.detail}</p>
+          <div className="text-sm font-extrabold uppercase tracking-widest">{chip.label}</div>
+          <p className="mt-1 text-base leading-snug text-white/80">{chip.detail}</p>
         </div>
       ))}
-      <p className="w-full text-[10px] text-white/40">
+      <p className="w-full text-sm font-semibold text-white/55">
         Educational only · not legal advice · results vary · lawsuit outcomes are never guaranteed
       </p>
     </div>

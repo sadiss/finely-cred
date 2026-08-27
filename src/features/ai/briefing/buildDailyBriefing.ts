@@ -65,7 +65,7 @@ export function buildDailyBriefing(args: {
       id: r.id,
       kind: 'crm',
       priority: 95,
-      title: r.contact.fullName || r.contact.email || 'Customer /at risk',
+      title: r.contact.fullName || r.contact.email || 'Partner at risk',
       subtitle: `Work idle ${Math.round(r.workSignals!.idleDays)}d • ${r.workSignals!.slaBreachCount} SLA breach(es)`,
       href: `/admin/crm/records/${encodeURIComponent(r.id)}`,
       reason: 'Work OS churn risk — CRM re-engagement needed',
@@ -150,7 +150,7 @@ export function buildDailyBriefing(args: {
       title: t.subject,
       subtitle: `${t.topic.replace(/_/g, ' ')} · ${t.status.replace(/_/g, ' ')}`,
       href: `/admin/support?thread=${encodeURIComponent(t.id)}`,
-      reason: 'Support inbox — awaiting team response',
+      reason: 'Partner conversations — awaiting team response',
     });
   }
 

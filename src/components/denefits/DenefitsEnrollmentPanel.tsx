@@ -31,16 +31,16 @@ export function DenefitsEnrollmentPanel({ audience = 'specialist', compact = fal
             {audience === 'client'
               ? `Enroll in a ${DENEFITS.brandName} contract through Finely — pay over time when an in-house contract is configured for your package.`
               : audience === 'affiliate'
-                ? `Refer a client into a ${DENEFITS.brandName} contract when financing is configured. Eligible reporting and commissions depend on the assigned contract.`
-                : `Enroll your client in a ${DENEFITS.brandName} in-house contract when financing is configured. Eligible reporting and commissions depend on contract setup.`}
+                ? `Refer a partner into a ${DENEFITS.brandName} contract when financing is configured. Eligible reporting and commissions depend on the assigned contract.`
+                : `Enroll a partner in a ${DENEFITS.brandName} in-house contract when financing is configured. Eligible reporting and commissions depend on contract setup.`}
           </p>
           <p className="mt-2 text-emerald-200/70 text-xs">{DENEFITS.equifaxNote}</p>
         </div>
       </div>
       {!isLive ? (
-        <div className="rounded-2xl border border-amber-500/25 bg-amber-500/10 p-3 text-sm text-amber-100/85 flex items-start gap-2">
-          <AlertTriangle size={16} className="mt-0.5 shrink-0 text-amber-300" />
-          <span>Preview mode — enable In-House Financing and assign Denefit contract URLs in Admin Settings before presenting this as live checkout.</span>
+        <div className="rounded-2xl border border-rose-500/25 bg-rose-500/10 p-3 text-sm text-rose-100/85 flex items-start gap-2">
+          <AlertTriangle size={16} className="mt-0.5 shrink-0 text-rose-300" />
+          <span>Preview — turn on in-house financing in Admin Settings before presenting this as live checkout.</span>
         </div>
       ) : null}
       <div className="flex flex-wrap gap-3">

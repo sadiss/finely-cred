@@ -36,7 +36,7 @@ export function StaffOrgChartPanel({ onSelectDepartment }: { onSelectDepartment?
                 <StaffKindBadge kind={x.kind} compact />
               </div>
               <div className="text-sm text-violet-200/80">{x.title}</div>
-              <div className="text-[11px] text-white/40">{x.codename}</div>
+              <div className="text-[11px] text-white/40">{x.departmentId.replace(/_/g, ' ')}</div>
             </div>
             <StaffStatusPill status={x.status} />
           </div>

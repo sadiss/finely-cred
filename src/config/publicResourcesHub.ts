@@ -31,7 +31,7 @@ export const PUBLIC_RESOURCES_HUB_CARDS: ResourcesHubCard[] = [
     title: 'Partner bookstore',
     desc: 'Premium ebooks, kits, and listen-mode deep dives.',
     path: '/bookstore',
-    accent: 'amber',
+    accent: 'fuchsia',
   },
   {
     id: 'monitoring',
@@ -90,7 +90,7 @@ export const PUBLIC_FEATURED_FREE_GUIDES: {
   {
     id: 'debt',
     title: 'Debt & summons guide',
-    desc: 'Fight-back validation lane — FDCPA workflows, summons triage, live debt task board.',
+    desc: 'Validation and court help — FDCPA letters, summons triage, and a live debt task board.',
     path: '/free-debt-guide',
     accent: 'fuchsia',
   },
@@ -120,21 +120,21 @@ export const PUBLIC_FEATURED_FREE_GUIDES: {
     title: 'Agency guide',
     desc: 'Agency and specialist-path overview for operators.',
     path: '/free-agency-guide',
-    accent: 'amber',
+    accent: 'rose',
   },
   {
     id: 'cs',
     title: 'Credit Specialist guide',
     desc: 'Earn · serve · grow — free e-guide and 2-sheet playbook.',
     path: '/credit-specialist-guide',
-    accent: 'amber',
+    accent: 'violet',
   },
   {
     id: 'real_estate',
     title: 'Real Estate Operator Guide',
     desc: 'You refer · Finely runs credit — scripts, Fannie summaries, seven levers.',
     path: '/real-estate-guide',
-    accent: 'amber',
+    accent: 'sky',
     badge: 'New',
   },
 ];
@@ -173,7 +173,7 @@ export const PUBLIC_DEDICATED_SHEET_PAGES: {
     sheetLabel: '2-sheet parent kit',
     desc: 'Issuer minimum ages, minor-AU reporting reality, parent checklist, and the 18th-birthday handoff.',
     path: '/resources/au-teen-credit-sheet',
-    accent: 'amber',
+    accent: 'rose',
   },
 ];
 
@@ -198,7 +198,7 @@ export const PUBLIC_ONE_SHEET_PACKS: {
     title: 'Credit Specialist 2-sheet playbook',
     desc: 'Two-page path PDF from the free Credit Specialist guide landing — the offer, then the operating sheet.',
     path: '/credit-specialist-guide',
-    accent: 'amber',
+    accent: 'violet',
   },
   {
     id: 'restore',

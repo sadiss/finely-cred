@@ -1,0 +1,103 @@
+/* Barter exchange — split workbench with deal lane rail */
+
+.fc-barter-workbench {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.fc-barter-alert-rail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  border-radius: 20px;
+}
+
+.fc-barter-workbench-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+  min-height: 360px;
+}
+
+@media (max-width: 900px) {
+  .fc-barter-workbench-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fc-barter-lane-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fc-barter-lane-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  width: 100%;
+  min-height: 108px;
+  padding: 20px 22px;
+  border-radius: 18px;
+  text-align: left;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.fc-barter-lane-tile:hover {
+  transform: translateX(3px);
+}
+
+.fc-barter-lane-tile[data-active='true'] {
+  outline: 2px solid color-mix(in srgb, var(--wlp-accent, #10b981) 42%, transparent);
+  box-shadow: 0 12px 36px -20px rgba(15, 23, 42, 0.35);
+}
+
+.fc-barter-lane-tile-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 8px;
+}
+
+.fc-barter-lane-tile-count {
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.fc-barter-lane-tile-label {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.fc-barter-inspector {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.fc-barter-inspector-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.fc-barter-inspector-title {
+  margin: 0;
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.fc-barter-inspector-body {
+  min-height: 280px;
+}

@@ -29,7 +29,7 @@ export function findMatchingTradeline(
 }
 
 /**
- * Capture a print-styled tradeline evidence sheet (white background, no UI chrome) as a PNG,
+ * Capture a clearly labeled Finely Parsed Exhibit as a PNG,
  * store it in the blob store, and build the EvidenceItem record. Does NOT persist to the
  * evidence repo — callers decide when/how to upsert (mirrors EvidenceUploader's onCreated pattern).
  *
@@ -46,7 +46,7 @@ export async function captureTradelineEvidenceScreenshot(args: {
   const creditorName = (args.creditorName || tradeline.creditorName || '').trim() || 'Account';
 
   const dataUrl = await captureReactElementPng(
-    React.createElement(TradelineEvidenceSheet, { tradeline, showHeader: false }),
+    React.createElement(TradelineEvidenceSheet, { tradeline, showHeader: true }),
     { pixelRatio: 2, widthPx: 1100 },
   );
   const blob = await (await fetch(dataUrl)).blob();
@@ -59,21 +59,30 @@ export async function captureTradelineEvidenceScreenshot(args: {
   });
 
   const safeName = creditorName.replace(/[^a-z0-9]+/gi, '_').replace(/^_+|_+$/g, '');
-  const filename = `Screenshot_${safeName || 'Tradeline'}_${new Date().toISOString().slice(0, 10)}.png`;
+  const now = new Date().toISOString();
+  const filename = `Finely_Parsed_Exhibit_${safeName || 'Tradeline'}_${now.slice(0, 10)}.png`;
 
   const item: EvidenceItem = {
     id: newId('evidence'),
     partnerId,
     reportId,
     type: 'screenshot',
-    source: 'tradeline_screenshot',
+    source: 'parsed_finely_exhibit',
     creditorName,
-    caption: `Tradeline screenshot: ${creditorName}`,
+    caption: `Finely Parsed Exhibit: ${creditorName} · generated from parsed report data, not bureau UI`,
     filename,
     mimeType: 'image/png',
     sizeBytes: blob.size,
     blobRef: put.ref,
-    createdAt: new Date().toISOString(),
+    provenance: {
+      kind: 'parsed_finely_exhibit',
+      sourceReportId: reportId,
+      parseVersion: tradeline.sourceAnchor?.parseVersion,
+      generatedAt: now,
+      mailEligible: false,
+      humanVerified: false,
+    },
+    createdAt: now,
   };
   return item;
 }

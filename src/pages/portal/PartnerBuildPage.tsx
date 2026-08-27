@@ -55,8 +55,8 @@ export default function PartnerBuildPage() {
     () => [
       { label: 'Bundles', value: String(BUNDLES.length), hint: 'Available', accent: 'violet' as const },
       { label: 'Active', value: String(activations.filter((a) => a.status === 'active').length), hint: 'Running now', accent: 'emerald' as const },
-      { label: 'Upcoming', value: String(upcoming.length), hint: 'Open tasks', accent: 'amber' as const },
-      { label: 'Activations', value: String(activations.length), hint: 'All time', accent: 'sky' as const },
+      { label: 'Upcoming', value: String(upcoming.length), hint: 'Open tasks', accent: 'sky' as const },
+      { label: 'Activations', value: String(activations.length), hint: 'All time', accent: 'rose' as const },
     ],
     [activations, upcoming.length],
   );
@@ -65,7 +65,7 @@ export default function PartnerBuildPage() {
     <PageShell
       badge="Partner Portal"
       title="Credit Building Center"
-      subtitle="Strategies and next steps to build and optimize your credit profile beyond disputes."
+      subtitle="Add positive accounts in order and keep utilization low — that's what moves a thin file."
     >
       {!partner ? (
         <div className={FINELY_OS_PAGE}>
@@ -77,7 +77,17 @@ export default function PartnerBuildPage() {
           </button>
         </div>
       ) : (
-        <EntitlementGate partnerId={partner.id} requiredKeys={[ENTITLEMENT_KEYS.businessBuild]}>
+        // Personal build is sold as tiered products (`personal_build_*` in pricingCatalog), so gate on
+        // any owned tier. `businessBuild` stays accepted for partners granted under the old key.
+        <EntitlementGate
+          partnerId={partner.id}
+          anyOfKeys={[
+            'personal_build_starter',
+            'personal_build_pro',
+            'personal_build_elite',
+            ENTITLEMENT_KEYS.businessBuild,
+          ]}
+        >
         <div className={FINELY_OS_PAGE}>
           <div className="flex flex-wrap items-center justify-between gap-4">
             <button type="button" onClick={() => navigate('/portal/dashboard')} className={FINELY_OS_BACK_LINK}>
@@ -104,21 +114,21 @@ export default function PartnerBuildPage() {
             ]}
             activeTab={tab}
             onTabChange={(id) => setTab(id as BuildTab)}
-            primaryAction={{ label: 'Open tasks', onClick: () => navigate('/portal/projects') }}
+            primaryAction={{ label: 'Open your build workspace', onClick: () => navigate('/portal/build') }}
             secondaryAction={{ label: 'Fundability hub', onClick: () => navigate('/fundability-readiness') }}
           >
             {tab === 'bundles' && (
-          <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-5`}>
+          <div className={`${finelyOsCatalogCard('violet')} space-y-6`}>
             <FinelyUnifiedSection title="Credit building bundles" subtitle="Time-sensitive timelines with due dates and dependencies.">
             <div className="grid lg:grid-cols-2 gap-4">
-              {BUNDLES.map((b) => {
+              {BUNDLES.map((b, idx) => {
                 const active = getActiveBundleActivation(partner.id, b.id);
                 return (
-                  <div key={b.id} className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-3`}>
+                  <div key={b.id} className={`${finelyOsCatalogCard((['sky', 'emerald', 'rose', 'violet'] as const)[idx % 4])} space-y-4`}>
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <div className={FINELY_OS_ENTITY_VALUE}>{b.title}</div>
-                        {b.priceHint ? <div className="mt-1 text-amber-300 text-sm font-mono">{b.priceHint}</div> : null}
+                        {b.priceHint ? <div className={`mt-1 ${FINELY_OS_ENTITY_SUBLABEL} font-mono`}>{b.priceHint}</div> : null}
                         <div className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>{b.description}</div>
                       </div>
                       {active ? (
@@ -128,7 +138,7 @@ export default function PartnerBuildPage() {
                       ) : null}
                     </div>
 
-                    <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+                    <div className={finelyOsCatalogCard('violet')}>
                       <div className={FINELY_OS_ENTITY_SUBLABEL}>Timeline highlights</div>
                       <ul className={`mt-2 space-y-1 list-disc list-inside ${FINELY_OS_ENTITY_BODY}`}>
                         {b.timeline.slice(0, 4).map((t) => (
@@ -171,9 +181,9 @@ export default function PartnerBuildPage() {
             )}
 
             {tab === 'timeline' && (
-              <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-3`}>
-                <div className="inline-flex items-center gap-2 text-violet-300">
-                  <Clock size={16} />
+              <div className={`${finelyOsCatalogCard('sky')} space-y-4`}>
+                <div className="inline-flex items-center gap-2 text-sky-200">
+                  <Clock size={18} />
                   <span className={FINELY_OS_ENTITY_SUBLABEL}>Upcoming tasks</span>
                 </div>
                 {upcoming.length === 0 ? (
@@ -181,7 +191,7 @@ export default function PartnerBuildPage() {
                 ) : (
                   <div className="space-y-2">
                     {upcoming.map((t) => (
-                      <div key={t.id} className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+                      <div key={t.id} className={finelyOsCatalogCard('emerald')}>
                         <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{t.title}</div>
                         <div className={`mt-1 ${FINELY_OS_ENTITY_SUBLABEL} font-mono`}>
                           {t.kind} • {t.status} • due {t.dueAt ? new Date(t.dueAt).toLocaleDateString() : '—'}
@@ -194,9 +204,9 @@ export default function PartnerBuildPage() {
             )}
 
             {tab === 'history' && (
-              <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-3`}>
-                <div className="inline-flex items-center gap-2 text-violet-300">
-                  <Target size={16} />
+              <div className={`${finelyOsCatalogCard('rose')} space-y-4`}>
+                <div className="inline-flex items-center gap-2 text-rose-200">
+                  <Target size={18} />
                   <span className={FINELY_OS_ENTITY_SUBLABEL}>Bundle activation history</span>
                 </div>
                 {activations.length === 0 ? (
@@ -204,7 +214,7 @@ export default function PartnerBuildPage() {
                 ) : (
                   <div className="space-y-2">
                     {activations.slice(0, 12).map((a) => (
-                      <div key={a.id} className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+                      <div key={a.id} className={finelyOsCatalogCard('violet')}>
                         <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{a.bundleId}</div>
                         <div className={`mt-1 ${FINELY_OS_ENTITY_SUBLABEL} font-mono`}>
                           {a.status} • tasks:{a.createdTaskIds.length} • {new Date(a.activatedAt).toLocaleString()}

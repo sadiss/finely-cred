@@ -22,7 +22,7 @@ export function CmoAutopilotPanel() {
     <section className="fc-panel p-5 space-y-5">
       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.24em] text-amber-300/80">Phase 3 Autopilot</p>
+          <p className="text-xs uppercase tracking-[0.24em] text-rose-300/80">Phase 3 Autopilot</p>
           <h2 className="text-2xl font-semibold text-white">CMO Autopilot Command</h2>
           <p className="mt-2 max-w-3xl text-sm text-slate-300">Stages the daily growth run, routes safe internal work, blocks risky actions, and keeps external publishing approval-first.</p>
         </div>
@@ -40,7 +40,7 @@ export function CmoAutopilotPanel() {
 
       <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
         <div className="fc-card p-4">
-          <div className="flex items-center gap-2 text-amber-200"><Zap className="h-4 w-4" /><span className="font-medium">Latest CMO orders</span></div>
+          <div className="flex items-center gap-2 text-rose-200"><Zap className="h-4 w-4" /><span className="font-medium">Latest CMO orders</span></div>
           <p className="mt-3 text-sm text-slate-200">{summary}</p>
           {latest ? (
             <div className="mt-4 grid gap-2">
@@ -51,7 +51,7 @@ export function CmoAutopilotPanel() {
           ) : null}
         </div>
         <div className="fc-card p-4 space-y-3">
-          <div className="flex items-center gap-2 text-amber-200"><ShieldAlert className="h-4 w-4" /><span className="font-medium">Safety gates</span></div>
+          <div className="flex items-center gap-2 text-violet-200"><ShieldAlert className="h-4 w-4" /><span className="font-medium">Safety gates</span></div>
           <label className="block text-xs text-slate-400">Autonomy mode</label>
           <select
             className="fc-input w-full"
@@ -77,7 +77,7 @@ function Metric({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="fc-card p-4">
       <div className="flex items-center gap-2 text-slate-400"><CheckCircle2 className="h-4 w-4" /><span className="text-xs uppercase tracking-[0.16em]">{label}</span></div>
-      <div className="mt-2 text-2xl font-semibold text-white"><Bot className="mr-2 inline h-5 w-5 text-amber-300" />{value}</div>
+      <div className="mt-2 text-2xl font-semibold text-white"><Bot className="mr-2 inline h-5 w-5 text-rose-300" />{value}</div>
     </div>
   );
 }

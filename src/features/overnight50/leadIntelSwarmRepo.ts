@@ -71,7 +71,7 @@ export function setSwarmEnabled(enabled: boolean) {
   s.swarmEnabled = enabled;
   if (!enabled) s.swarmSession = undefined;
   saveStore(s);
-  addLeadIntelFeed({ city: 'System', sourceId: 'serper_web', agent: 'Geo Commander', message: enabled ? 'Continuous deep swarm is now active.' : 'Continuous swarm paused by admin.', severity: enabled ? 'success' : 'warning' });
+  addLeadIntelFeed({ city: 'System', sourceId: 'serper_web', agent: 'Lead Operations', message: enabled ? 'Continuous lead search is now active.' : 'Continuous lead search paused by admin.', severity: enabled ? 'success' : 'warning' });
 }
 
 export function isSwarmEnabled() { return loadStore().swarmEnabled; }
@@ -152,7 +152,7 @@ export async function enqueueLeadIntelSwarm(args?: {
     city: 'System',
     sourceId: 'serper_web',
     agent: 'Night Owl Intel',
-    message: `Deep swarm queued ${jobs.length} jobs — ${liveSources} live-path · ${simSources} simulation-only sources. Marketing Desk Find uses live priority: ${priorityLabels || 'Serper web'}. Est. runtime: ${s.swarmSession.estimatedHours}+ hours.`,
+    message: `Lead search tools queued ${jobs.length} jobs — ${liveSources} live-path · ${simSources} simulation-only sources. Marketing Desk Find uses live priority: ${priorityLabels || 'Serper web'}. Est. runtime: ${s.swarmSession.estimatedHours}+ hours.`,
     severity: 'success',
   });
   if (args?.remote && isSupabaseConfigured) {
@@ -277,7 +277,7 @@ function advanceDeepJob(job: LeadIntelJob, liveDelta?: LiveJobDelta): LeadIntelJ
 
 export async function runLocalSwarmTick(maxJobs = DEEP_JOBS_PER_TICK) {
   const s = loadStore();
-  if (!s.swarmEnabled) return { processed: 0, message: 'Swarm paused.' };
+  if (!s.swarmEnabled) return { processed: 0, message: 'Discovery paused.' };
   const deep = s.swarmSession?.mode !== 'fast';
   const cap = deep ? DEEP_JOBS_PER_TICK : Math.min(maxJobs, 8);
   const jobs = s.jobs

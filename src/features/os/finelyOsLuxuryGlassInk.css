@@ -1,0 +1,178 @@
+/**
+ * Last-win: ink matches the bed.
+ * Luxury glass / dark KPI / dark inspector = frost.
+ * Signal / light KPI / ivory tiles = navy ink.
+ * Imported after index.css so this beats Part CE + ivory-shell remaps.
+ */
+
+/* ——— Shared: dark luxury beds (admin + portal) ——— */
+html[data-fc-theme='light'] [data-fc-app-surface='admin'] .fc-accent-card:not([data-fc-kpi-surface='light']):not(.fc-wlp-signal):not(.fc-wlp-kpi):not(.fc-wlp-metric):not(.fc-ivory-solid-tile):not([class*='fc-admin-solid']),
+html[data-fc-theme='light'] [data-fc-app-surface='portal'] .fc-accent-card:not([data-fc-kpi-surface='light']):not(.fc-wlp-signal):not(.fc-wlp-kpi):not(.fc-wlp-metric):not(.fc-ivory-solid-tile):not([class*='fc-admin-solid']),
+html[data-fc-theme='light'] [data-fc-app-surface='admin'] .fc-luxury-glass:not([data-fc-kpi-surface='light']):not(.fc-wlp-signal):not(.fc-ivory-solid-tile),
+html[data-fc-theme='light'] [data-fc-app-surface='portal'] .fc-luxury-glass:not([data-fc-kpi-surface='light']):not(.fc-wlp-signal):not(.fc-ivory-solid-tile),
+html[data-fc-theme='light'] [data-fc-app-surface='admin'] [data-fc-kpi-surface='dark'],
+html[data-fc-theme='light'] [data-fc-app-surface='portal'] [data-fc-kpi-surface='dark'] {
+  --fc-os-entity-ink: #f8faf9;
+  --fc-os-entity-body: rgba(255, 255, 255, 0.88);
+  --fc-os-entity-muted: rgba(255, 255, 255, 0.78);
+  --fc-os-entity-faint: rgba(255, 255, 255, 0.7);
+  --fc-os-entity-chip: rgba(255, 255, 255, 0.78);
+  --fc-os-entity-label: #ddd6fe;
+  --fc-os-entity-link: #7dd3fc;
+  --fc-os-entity-link-hover: #e0f2fe;
+  color: rgba(248, 250, 252, 0.94) !important;
+}
+
+html[data-fc-theme='light'] [data-fc-app-surface='admin'] .fc-accent-card:not([data-fc-kpi-surface='light']):not(.fc-wlp-signal):not(.fc-wlp-kpi):not(.fc-wlp-metric):not(.fc-ivory-solid-tile):not([class*='fc-admin-solid'])
+  :is(
+    h1, h2, h3, h4, h5, h6, p,
+    .text-white, .text-white\/90, .text-white\/85, .text-white\/80, .text-white\/75,
+    .font-semibold, .font-bold, .font-extrabold, .font-black,
+    .text-slate-200, .text-slate-300, .text-gray-100, .text-gray-200, .text-gray-300
+  ):not(button):not(a):not(.fc-wlp-atlas-tag):not(.fc-wlp-signal *):not(.fc-ivory-solid-tile *),
+html[data-fc-theme='light'] [data-fc-app-surface='portal'] .fc-accent-card:not([data-fc-kpi-surface='light']):not(.fc-wlp-signal):not(.fc-wlp-kpi):not(.fc-wlp-metric):not(.fc-ivory-solid-tile):not([class*='fc-admin-solid'])
+  :is(
+    h1, h2, h3, h4, h5, h6, p,
+    .text-white, .text-white\/90, .text-white\/85, .text-white\/80, .text-white\/75,
+    .font-semibold, .font-bold, .font-extrabold, .font-black,
+    .text-slate-200, .text-slate-300, .text-gray-100, .text-gray-200, .text-gray-300
+  ):not(button):not(a):not(.fc-wlp-atlas-tag):not(.fc-wlp-signal *):not(.fc-ivory-solid-tile *),
+html[data-fc-theme='light'] [data-fc-shell-surface='ivory'] [data-fc-app-surface='admin'] .fc-accent-card:not([data-fc-kpi-surface='light']):not(.fc-wlp-signal):not(.fc-ivory-solid-tile):not([class*='fc-admin-solid'])
+  :is(h1, h2, h3, h4, p, .text-white, .text-white\/90, .text-white\/85, .font-semibold, .font-bold, .font-extrabold, .text-lg, .text-xl, .text-2xl, .text-3xl),
+html[data-fc-theme='light'] [data-fc-shell-surface='ivory'] [data-fc-app-surface='admin'] .fc-luxury-glass:not(.fc-ivory-solid-tile)
+  :is(h1, h2, h3, h4, p, .text-white, .text-white\/90, .font-bold, .font-extrabold),
+html[data-fc-theme='light'] [data-fc-app-surface='admin'] [data-fc-kpi-surface='dark'] :is(.text-white, .text-white\/70, .text-white\/60),
+html[data-fc-theme='light'] [data-fc-app-surface='portal'] [data-fc-kpi-surface='dark'] :is(.text-white, .text-white\/70, .text-white\/60) {
+  color: rgba(248, 250, 252, 0.96) !important;
+}
+
+html[data-fc-theme='light'] [data-fc-app-surface='admin'] .fc-accent-card:not([data-fc-kpi-surface='light']):not(.fc-wlp-signal):not(.fc-ivory-solid-tile)
+  :is(.text-white\/70, .text-white\/65, .text-white\/60, .text-white\/55, .text-white\/50, .text-sm, .text-xs, [class*='text-white/']),
+html[data-fc-theme='light'] [data-fc-app-surface='portal'] .fc-accent-card:not([data-fc-kpi-surface='light']):not(.fc-wlp-signal):not(.fc-ivory-solid-tile)
+  :is(.text-white\/70, .text-white\/65, .text-white\/60, .text-white\/55, .text-white\/50, .text-sm, .text-xs, [class*='text-white/']),
+html[data-fc-theme='light'] [data-fc-shell-surface='ivory'] [data-fc-app-surface='admin'] .fc-accent-card:not([data-fc-kpi-surface='light']):not(.fc-wlp-signal):not(.fc-ivory-solid-tile)
+  :is(p, .text-sm, .text-xs, .text-white\/80, .text-white\/75, .text-white\/70, .text-white\/65, .text-white\/60, [class*='text-white/']) {
+  color: rgba(226, 232, 240, 0.86) !important;
+}
+
+html[data-fc-theme='light'] [data-fc-app-surface='admin'] .fc-accent-card:not([data-fc-kpi-surface='light']):not(.fc-wlp-signal) .text-violet-300,
+html[data-fc-theme='light'] [data-fc-app-surface='portal'] .fc-accent-card:not([data-fc-kpi-surface='light']):not(.fc-wlp-signal) .text-violet-300 {
+  color: #ddd6fe !important;
+}
+html[data-fc-theme='light'] [data-fc-app-surface='admin'] .fc-accent-card:not([data-fc-kpi-surface='light']):not(.fc-wlp-signal) :is(.text-emerald-300, .text-emerald-200),
+html[data-fc-theme='light'] [data-fc-app-surface='portal'] .fc-accent-card:not([data-fc-kpi-surface='light']):not(.fc-wlp-signal) :is(.text-emerald-300, .text-emerald-200) {
+  color: #6ee7b7 !important;
+}
+html[data-fc-theme='light'] [data-fc-app-surface='admin'] .fc-accent-card:not([data-fc-kpi-surface='light']):not(.fc-wlp-signal) :is(.text-sky-300, .text-sky-200),
+html[data-fc-theme='light'] [data-fc-app-surface='portal'] .fc-accent-card:not([data-fc-kpi-surface='light']):not(.fc-wlp-signal) :is(.text-sky-300, .text-sky-200) {
+  color: #7dd3fc !important;
+}
+html[data-fc-theme='light'] [data-fc-app-surface='admin'] .fc-accent-card:not([data-fc-kpi-surface='light']):not(.fc-wlp-signal) :is(.text-rose-300, .text-rose-200, .text-fuchsia-300),
+html[data-fc-theme='light'] [data-fc-app-surface='portal'] .fc-accent-card:not([data-fc-kpi-surface='light']):not(.fc-wlp-signal) :is(.text-rose-300, .text-rose-200, .text-fuchsia-300) {
+  color: #fda4af !important;
+}
+
+/* Dark KPI spotlight — restore luxury glass, not ivory wash */
+html[data-fc-theme='light'] [data-fc-app-surface='admin'] [data-fc-kpi-surface='dark'] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: linear-gradient(165deg, rgba(46, 16, 72, 0.88) 0%, rgba(8, 14, 24, 0.92) 100%) !important;
+  border-color: rgba(167, 139, 250, 0.58) !important;
+  box-shadow: 0 0 32px -12px rgba(167, 139, 250, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+html[data-fc-theme='light'] [data-fc-app-surface='admin'] [data-fc-kpi-surface='dark'][data-fc-accent='emerald'] {
+  background: linear-gradient(165deg, rgba(4, 56, 42, 0.94) 0%, rgba(8, 14, 24, 0.92) 100%) !important;
+  border-color: rgba(52, 211, 153, 0.58) !important;
+}
+html[data-fc-theme='light'] [data-fc-app-surface='admin'] [data-fc-kpi-surface='dark'][data-fc-accent='sky'] {
+  background: linear-gradient(165deg, rgba(8, 52, 82, 0.94) 0%, rgba(8, 14, 24, 0.92) 100%) !important;
+  border-color: rgba(56, 189, 248, 0.58) !important;
+}
+html[data-fc-theme='light'] [data-fc-app-surface='admin'] [data-fc-kpi-surface='dark'][data-fc-accent='rose'],
+html[data-fc-theme='light'] [data-fc-app-surface='admin'] [data-fc-kpi-surface='dark'][data-fc-accent='fuchsia'] {
+  background: linear-gradient(165deg, rgba(88, 12, 32, 0.94) 0%, rgba(8, 14, 24, 0.92) 100%) !important;
+  border-color: rgba(251, 113, 133, 0.58) !important;
+}
+
+/* Light signal / light KPI / ivory tiles keep navy ink */
+html[data-fc-theme='light'] .fc-wlp-signal,
+html[data-fc-theme='light'] [data-fc-kpi-surface='light'],
+html[data-fc-theme='light'] .fc-ivory-solid-tile,
+html[data-fc-theme='dark'] .fc-ivory-solid-tile,
+html[data-fc-theme='dark'] .fc-wlp-action-mosaic-card[data-bed='light'] {
+  --fc-os-entity-ink: #0a1628;
+  --fc-os-entity-body: rgba(10, 22, 40, 0.88);
+  --fc-os-entity-muted: rgba(10, 22, 40, 0.7);
+  --fc-os-entity-faint: rgba(10, 22, 40, 0.62);
+  --fc-os-entity-chip: rgba(10, 22, 40, 0.76);
+  --fc-os-entity-label: #5b21b6;
+  --fc-os-entity-link: #0369a1;
+  color: #0a1628 !important;
+}
+
+html[data-fc-theme='dark'] .fc-ivory-solid-tile :is(h1, h2, h3, h4, p, .text-white, .font-bold, .font-extrabold, span, small),
+html[data-fc-theme='dark'] .fc-wlp-action-mosaic-card[data-bed='light'] :is(.fc-wlp-action-mosaic-title, .fc-wlp-action-mosaic-meta, h3, p, span) {
+  color: #0a1628 !important;
+}
+
+html[data-fc-theme='dark'] .fc-ivory-solid-tile .fc-light-chrome-btn,
+html[data-fc-theme='light'] .fc-ivory-solid-tile .fc-light-chrome-btn {
+  color: #0a1628 !important;
+  border-color: rgba(10, 22, 40, 0.16) !important;
+  background: #fff !important;
+}
+
+/* Inline portfolio chips sit on the page bed, not the dark command hero */
+html[data-fc-theme='light'] .fc-wlp-arch-metrics-inline-chip {
+  background: rgba(255, 255, 255, 0.92) !important;
+  border: 1px solid rgba(10, 22, 40, 0.12);
+  color: #0a1628 !important;
+  box-shadow: 0 10px 24px -18px rgba(10, 22, 40, 0.45);
+}
+html[data-fc-theme='light'] .fc-wlp-arch-metrics-inline-chip strong {
+  color: #0a1628 !important;
+  font-weight: 800;
+}
+html[data-fc-theme='light'] .fc-wlp-arch-metrics-inline-chip span {
+  color: rgba(10, 22, 40, 0.7) !important;
+  font-weight: 700;
+}
+
+html[data-fc-theme='dark'] .fc-wlp-arch-metrics-inline-chip {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff !important;
+}
+html[data-fc-theme='dark'] .fc-wlp-arch-metrics-inline-chip span {
+  color: rgba(255, 255, 255, 0.78) !important;
+}
+
+/* Dark inspector / local modal — frost buttons and copy on light site */
+html[data-fc-theme='light'] .fc-wlp-partner-record-inspector,
+html[data-fc-theme='light'] .fc-wlp-inspector-panel,
+html[data-fc-theme='light'] .fc-wlp-local-modal {
+  --fc-os-entity-ink: #f8faf9;
+  --fc-os-entity-body: rgba(255, 255, 255, 0.88);
+  color: #f8fafc;
+}
+
+html[data-fc-theme='light'] .fc-wlp-partner-record-inspector .fc-wlp-btn-secondary,
+html[data-fc-theme='light'] .fc-wlp-inspector-panel .fc-wlp-btn-secondary,
+html[data-fc-theme='light'] .fc-wlp-local-modal .fc-wlp-btn-secondary {
+  color: #fff !important;
+  border-color: rgba(255, 255, 255, 0.19) !important;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.055)) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp-partner-record-inspector .fc-wlp-compliance-line,
+html[data-fc-theme='light'] .fc-wlp-partner-record-inspector .fc-wlp-section-description {
+  color: rgba(226, 232, 240, 0.84) !important;
+}
+
+/* Action chips on luxury glass stay a white bed with navy ink */
+[data-fc-app-surface='admin'] .fc-accent-card:not(.fc-ivory-solid-tile) .fc-light-chrome-btn,
+[data-fc-app-surface='portal'] .fc-accent-card:not(.fc-ivory-solid-tile) .fc-light-chrome-btn,
+.fc-wlp .fc-accent-card:not(.fc-ivory-solid-tile) .fc-light-chrome-btn {
+  color: #0a1628 !important;
+  background: #fff !important;
+  border-color: rgba(10, 22, 40, 0.14) !important;
+}

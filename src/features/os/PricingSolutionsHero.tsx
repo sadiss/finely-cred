@@ -55,14 +55,14 @@ const HERO_BY_KEY: Partial<Record<PricingSolutionKey, HeroCopy>> = {
     label: 'Tradelines',
     sell: 'Authorized-user strategy — ',
     sellAccent: 'no hype.',
-    accent: 'amber',
+    accent: 'rose',
     Icon: Layers,
   },
   wealth_builder: {
     label: 'Wealth builder',
     sell: 'Long-game credit and capital for partners ',
     sellAccent: 'ready to scale.',
-    accent: 'amber',
+    accent: 'sky',
     Icon: Sparkles,
   },
   privacy_id: {
@@ -83,7 +83,7 @@ const HERO_BY_KEY: Partial<Record<PricingSolutionKey, HeroCopy>> = {
     label: 'Credit Specialist',
     sell: 'Earn, serve, grow — revenue share, ',
     sellAccent: 'no access fee.',
-    accent: 'amber',
+    accent: 'fuchsia',
     Icon: Sparkles,
   },
   banking_reports: {
@@ -159,7 +159,7 @@ export function PricingSolutionsHero({
               as="h2"
               immediate
               className={`text-xl sm:text-2xl lg:text-[1.75rem] font-semibold tracking-tight leading-snug ${FINELY_OS_ENTITY_VALUE}`}
-              accentClassName="text-amber-300"
+              accentClassName="text-emerald-300"
               speedMs={20}
             />
             <p className={`mt-2.5 max-w-2xl text-sm ${FINELY_OS_ENTITY_BODY}`}>

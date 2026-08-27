@@ -248,7 +248,7 @@ export const UPLOAD_INTENT_PRESETS = [
   { id: 'court_filing' as const, label: 'Court filing', caption: 'Court motion answer discovery order filing', scanner: 'creditor_letter' as const },
   { id: 'bankruptcy_order' as const, label: 'Bankruptcy court', caption: 'Bankruptcy petition discharge order chapter 7 13 docket', scanner: 'creditor_letter' as const },
   { id: 'credit_report' as const, label: 'Credit report PDF', caption: 'Credit report tri-merge myfico export PDF', scanner: 'general' as const },
-  { id: 'dispute_proof' as const, label: 'Payment / dispute proof', caption: 'Payment proof screenshot creditor mail dispute evidence', scanner: 'general' as const },
+  { id: 'dispute_proof' as const, label: 'Statement / payment proof', caption: 'Bank statement payment proof screenshot creditor mail dispute evidence', scanner: 'general' as const },
 ] as const satisfies readonly UploadPresetChip[];
 
 export const UPLOAD_FORECLOSURE_PRESETS = [

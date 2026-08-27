@@ -205,3 +205,108 @@ html[data-fc-theme='light'] [data-fc-partner-portal='1'].fc-light-black-scope :i
 html[data-fc-theme='light'] [data-fc-partner-hub-modal='1'] :is(.text-white, [class*='text-white/']) {
   color: rgba(255, 255, 255, 0.92) !important;
 }
+
+/*
+ * Wave 3 — partner workspace lane card recipe (dashboard gold standard).
+ * Applies to restore / reports / evidence / documents / credit intel on ivory + light preview.
+ * Beats ivory-shell champagne wash; inactive view tabs get real chip fills (not transparent ghosts).
+ */
+html[data-fc-theme='light'] [data-fc-partner-portal='1'] .fc-accent-card.fc-luxury-glass:not(.fc-partner-hub-glow-tile):not([class*='fc-admin-solid']) {
+  border-width: 2px !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html[data-fc-theme='light'] [data-fc-partner-portal='1'] [data-accent='emerald'].fc-accent-card:not([class*='fc-admin-solid']),
+html[data-fc-theme='light'] [data-fc-partner-portal='1'] .fc-accent-card[class*='border-emerald-500']:not([class*='fc-admin-solid']) {
+  border-color: rgba(52, 211, 153, 0.58) !important;
+  background: linear-gradient(165deg, rgba(4, 56, 42, 0.94) 0%, rgba(8, 14, 24, 0.92) 100%) !important;
+  box-shadow: 0 0 36px -10px rgba(52, 211, 153, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+html[data-fc-theme='light'] [data-fc-partner-portal='1'] [data-accent='violet'].fc-accent-card:not([class*='fc-admin-solid']),
+html[data-fc-theme='light'] [data-fc-partner-portal='1'] .fc-accent-card[class*='border-violet-500']:not([class*='fc-admin-solid']) {
+  border-color: rgba(167, 139, 250, 0.58) !important;
+  background: linear-gradient(165deg, rgba(52, 18, 82, 0.94) 0%, rgba(8, 14, 24, 0.92) 100%) !important;
+  box-shadow: 0 0 36px -10px rgba(167, 139, 250, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+html[data-fc-theme='light'] [data-fc-partner-portal='1'] [data-accent='sky'].fc-accent-card:not([class*='fc-admin-solid']),
+html[data-fc-theme='light'] [data-fc-partner-portal='1'] .fc-accent-card[class*='border-sky-500']:not([class*='fc-admin-solid']) {
+  border-color: rgba(56, 189, 248, 0.58) !important;
+  background: linear-gradient(165deg, rgba(8, 52, 82, 0.94) 0%, rgba(8, 14, 24, 0.92) 100%) !important;
+  box-shadow: 0 0 36px -10px rgba(56, 189, 248, 0.46), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+html[data-fc-theme='light'] [data-fc-partner-portal='1'] [data-accent='fuchsia'].fc-accent-card:not([class*='fc-admin-solid']),
+html[data-fc-theme='light'] [data-fc-partner-portal='1'] .fc-accent-card[class*='border-fuchsia-500']:not([class*='fc-admin-solid']) {
+  border-color: rgba(232, 121, 249, 0.58) !important;
+  background: linear-gradient(165deg, rgba(82, 8, 88, 0.94) 0%, rgba(8, 14, 24, 0.92) 100%) !important;
+  box-shadow: 0 0 36px -10px rgba(217, 70, 239, 0.46), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+html[data-fc-theme='light'] [data-fc-partner-portal='1'] [data-accent='rose'].fc-accent-card:not([class*='fc-admin-solid']),
+html[data-fc-theme='light'] [data-fc-partner-portal='1'] .fc-accent-card[class*='border-rose-500']:not([class*='fc-admin-solid']) {
+  border-color: rgba(251, 113, 133, 0.58) !important;
+  background: linear-gradient(165deg, rgba(88, 12, 32, 0.94) 0%, rgba(8, 14, 24, 0.92) 100%) !important;
+  box-shadow: 0 0 36px -10px rgba(244, 63, 94, 0.44), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+html[data-fc-theme='light'] [data-fc-partner-portal='1'] .fc-accent-card:not([class*='fc-admin-solid']) :is(h1, h2, h3, .font-semibold, .font-bold, [class*='ENTITY_VALUE'], .text-white) {
+  color: rgba(255, 255, 255, 0.96) !important;
+}
+
+html[data-fc-theme='light'] [data-fc-partner-portal='1'] .fc-accent-card:not([class*='fc-admin-solid']) :is(p, .text-sm, .text-xs, [class*='ENTITY_BODY'], [class*='ENTITY_SUBLABEL'], [class*='text-white/']) {
+  color: rgba(255, 255, 255, 0.78) !important;
+}
+
+/* Tab strip shell — visible bed, not transparent ghost row */
+html[data-fc-theme='light'] [data-fc-partner-portal='1'] .fc-light-chrome-strip.fc-view-tabs {
+  border-width: 2px !important;
+  border-color: rgba(15, 23, 20, 0.14) !important;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.96) 0%, rgba(248, 250, 252, 0.92) 100%) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 10px 28px -18px rgba(15, 23, 20, 0.14) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html[data-fc-theme='light'] [data-fc-partner-portal='1'] .fc-view-tabs button.fc-view-tab-idle {
+  border-color: rgba(15, 23, 20, 0.16) !important;
+  background: rgba(255, 255, 255, 0.94) !important;
+  color: rgba(10, 22, 40, 0.82) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92), 0 4px 14px -10px rgba(15, 23, 20, 0.12) !important;
+}
+
+html[data-fc-theme='light'] [data-fc-partner-portal='1'] .fc-view-tabs button.fc-view-tab-idle:hover {
+  background: #ffffff !important;
+  border-color: rgba(15, 23, 20, 0.22) !important;
+  color: #0a1628 !important;
+}
+
+html[data-fc-theme='light'] [data-fc-partner-portal='1'] .fc-view-tabs button[class*='from-emerald-6'],
+html[data-fc-theme='light'] [data-fc-partner-portal='1'] .fc-view-tabs button[class*='from-violet-6'],
+html[data-fc-theme='light'] [data-fc-partner-portal='1'] .fc-view-tabs button[class*='from-sky-6'],
+html[data-fc-theme='light'] [data-fc-partner-portal='1'] .fc-view-tabs button[class*='from-fuchsia-6'],
+html[data-fc-theme='light'] [data-fc-partner-portal='1'] .fc-view-tabs button[class*='from-rose-6'] {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+/* Nested list rows inside dark catalog cards */
+html[data-fc-theme='light'] [data-fc-partner-portal='1'] .fc-accent-card .fc-soft-surface,
+html[data-fc-theme='light'] [data-fc-partner-portal='1'] .fc-accent-card .fc-soft-surface-lg {
+  background: rgba(0, 0, 0, 0.28) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.14) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html[data-fc-theme='light'] [data-fc-partner-portal='1'] .fc-accent-card .fc-soft-surface :is(.text-white, [class*='text-white/']) {
+  color: rgba(255, 255, 255, 0.82) !important;
+}
+
+/* Credit intel outer shell on light beds */
+html[data-fc-theme='light'] [data-fc-partner-portal='1'] [data-fc-credit-intel='1'] > .fc-accent-card {
+  padding: 1.5rem !important;
+}

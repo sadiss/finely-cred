@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { ArrowLeft, ArrowRight, Clipboard, FlaskConical } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { AdminWorkstationFrame, type AdminEmbeddablePageProps } from '../../features/workspaceLightPreview/product/admin/AdminWorkstationFrame';
+import { useMappedAdminNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { parseCreditReportHtml } from '../../creditReports/parseHtmlReport';
 import { detectProviderFromText } from '../../creditReports/detectProvider';
 import { detectReportDateFromText } from '../../creditReports/parsePdfText';
@@ -31,8 +31,8 @@ function safeJson(x: any) {
   }
 }
 
-export default function ParsingLabPage() {
-  const navigate = useNavigate();
+export default function ParsingLabPage({ embedded = false }: AdminEmbeddablePageProps = {}) {
+  const navigate = useMappedAdminNavigate();
   const [html, setHtml] = useState('');
   const [pdfText, setPdfText] = useState('');
   const [parsedJson, setParsedJson] = useState<string>('');
@@ -86,7 +86,7 @@ export default function ParsingLabPage() {
   );
 
   return (
-    <PageShell
+    <AdminWorkstationFrame embedded={embedded} kind="parsing-lab-workstation"
       badge="Admin"
       title="Parsing Lab"
       subtitle="Paste report HTML or extracted PDF text to validate ingestion coverage and debug signals. This is a regression harness for parser improvements."
@@ -102,7 +102,7 @@ export default function ParsingLabPage() {
         {notice && <div className={FINELY_OS_NOTICE_SUCCESS}>{notice}</div>}
 
         <div className="grid lg:grid-cols-2 gap-6">
-          <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+          <div className={`${finelyOsCatalogCard('violet')} space-y-4`}>
             <div className={`inline-flex items-center gap-3 ${FINELY_OS_ENTITY_SUBLABEL} text-violet-300`}>
               <FlaskConical size={18} />
               <span>HTML report</span>
@@ -147,8 +147,8 @@ export default function ParsingLabPage() {
             </div>
           </div>
 
-          <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
-            <div className={`inline-flex items-center gap-3 ${FINELY_OS_ENTITY_SUBLABEL} text-violet-300`}>
+          <div className={`${finelyOsCatalogCard('sky')} space-y-4`} data-fc-accent="sky">
+            <div className={`inline-flex items-center gap-3 ${FINELY_OS_ENTITY_SUBLABEL} text-sky-300`}>
               <FlaskConical size={18} />
               <span>PDF extracted text</span>
             </div>
@@ -193,7 +193,7 @@ export default function ParsingLabPage() {
         </div>
 
         {parsedJson && (
-          <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-3`}>
+          <div className={`${finelyOsCatalogCard('rose')} space-y-4`} data-fc-accent="rose">
             <div className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono normal-case tracking-normal`}>Latest parsed JSON</div>
             <pre className={`whitespace-pre-wrap break-words text-[11px] font-mono ${FINELY_OS_ENTITY_BODY}`}>
               {parsedJson.slice(0, 60_000)}
@@ -216,8 +216,8 @@ export default function ParsingLabPage() {
           </button>
         </div>
 
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
       </div>
-    </PageShell>
+    </AdminWorkstationFrame>
   );
 }

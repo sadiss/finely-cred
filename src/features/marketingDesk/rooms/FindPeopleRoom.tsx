@@ -240,7 +240,7 @@ export function FindPeopleRoom() {
           </button>
         </div>
       ) : null}
-      <div className="sticky top-0 z-10 rounded-2xl border border-emerald-400/25 bg-black/70 backdrop-blur-md !p-4 space-y-3">
+      <div className="sticky top-0 z-10 rounded-2xl border border-emerald-400/25 bg-black/70 backdrop-blur-md p-6 space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <div className={FINELY_OS_ENTITY_SUBLABEL}>Find new people</div>

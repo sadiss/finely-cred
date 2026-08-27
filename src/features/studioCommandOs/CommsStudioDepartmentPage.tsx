@@ -76,7 +76,7 @@ export function CommsStudioDepartmentPage() {
     { label: 'Email templates', value: String(stats.emailCount), hint: 'Seeded + custom', accent: 'sky' as const },
     { label: 'SMS templates', value: String(stats.smsCount), hint: 'Text drafts', accent: 'violet' as const },
     { label: 'Sequences', value: String(stats.sequences), hint: 'Nurture + CRM', accent: 'emerald' as const },
-    { label: 'Capabilities', value: `${countCommsCapabilities()}+`, hint: 'Searchable in Settings', accent: 'amber' as const },
+    { label: 'Capabilities', value: `${countCommsCapabilities()}+`, hint: 'Searchable in Settings', accent: 'fuchsia' as const },
   ];
 
   return (
@@ -99,7 +99,7 @@ export function CommsStudioDepartmentPage() {
       activeTab={tab}
       onTabChange={(id) => setTab(id as Tab)}
       primaryAction={{ label: 'Compose', onClick: () => setTab('compose') }}
-      secondaryAction={{ label: 'Support inbox', onClick: () => navigate('/admin/support') }}
+      secondaryAction={{ label: 'Partner conversations', onClick: () => navigate('/admin/support') }}
       contentVariant="flush"
       tabDensity="comfortable"
     >

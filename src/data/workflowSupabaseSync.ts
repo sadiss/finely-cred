@@ -60,6 +60,8 @@ export async function pullWorkflowSnapshotFromSupabase(args: { partnerId: string
       mimeType: safeStr(r.mime_type) || undefined,
       sizeBytes: r.size_bytes != null ? Number(r.size_bytes) : undefined,
       blobRef: safeStr(r.blob_ref) || undefined,
+      tags: Array.isArray(r.tags) ? r.tags : undefined,
+      provenance: r.provenance && typeof r.provenance === 'object' ? r.provenance : undefined,
       createdAt: safeStr(r.created_at),
     })) as any;
 

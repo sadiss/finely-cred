@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { RichTextEditor } from '../ui/RichTextEditor';
+import { FINELY_OS_ENTITY_BODY } from '../../features/os/finelyOsLightUi';
 import { DebtLetterPreview, type DebtLetterPreviewProps } from './DebtLetterPreview';
 
 export type LetterEditorShellProps = {
@@ -72,7 +73,7 @@ export function LetterEditorShell({
       <div className={`grid gap-3 ${view === 'split' ? 'lg:grid-cols-2' : 'grid-cols-1'}`}>
         {view !== 'preview' ? (
           <div className="space-y-2 min-w-0">
-            {editorLabel ? <div className="text-sm font-semibold text-white/85">{editorLabel}</div> : null}
+            {editorLabel ? <div className={`text-sm font-semibold ${FINELY_OS_ENTITY_BODY}`}>{editorLabel}</div> : null}
             <RichTextEditor
               valueHtml={html}
               onChangeHtml={onChangeHtml}

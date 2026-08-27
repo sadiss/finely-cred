@@ -56,6 +56,7 @@ export function ForeclosureCenterView({
   onBuildCatalogDraft,
   letterHub = 'debt',
   adminPartnerId,
+  deskLayout = false,
 }: {
   debt: DebtCase | null;
   debtCases: DebtCase[];
@@ -72,6 +73,7 @@ export function ForeclosureCenterView({
   onBuildCatalogDraft: (catalogId: string) => void;
   letterHub?: LetterCatalogHub;
   adminPartnerId?: string;
+  deskLayout?: boolean;
 }) {
   const nav = (href: string) => adminEmbeddedNavHref(adminPartnerId, href);
   const isCredit = letterHub === 'credit';
@@ -112,6 +114,7 @@ export function ForeclosureCenterView({
   return (
     <CollateralDefenseShell
       theme="foreclosure"
+      layout={deskLayout ? 'mosaic' : 'shell'}
       icon={Home}
       eyebrow={isCredit ? 'Bureau cleanup' : 'Mortgage defense'}
       title={isCredit ? 'Foreclosure credit letters' : 'Foreclosure command center'}
@@ -149,13 +152,13 @@ export function ForeclosureCenterView({
             ? 'Select the related mortgage case so drafts pull account/servicer names — this track still sends to the bureau/CRA, not the servicer as primary recipient.'
             : 'Select or create a debt case for this servicer — this is not a bureau dispute case.'
         }
-        accent="amber"
+        accent="sky"
       >
         <div id="fc-debt-step-case" className={`${FINELY_OS_FIELD_WIDTH_SM} scroll-mt-3`}>
           <label className={FINELY_OS_ENTITY_SUBLABEL}>
             {isCredit ? 'Related mortgage case (merge fields)' : 'Mortgage / servicer case'}
           </label>
-          <select value={debtId} onChange={(e) => onDebtIdChange(e.target.value)} className={`${finelyOsGlowField('amber')} mt-1 w-full`}>
+          <select value={debtId} onChange={(e) => onDebtIdChange(e.target.value)} className={`${finelyOsGlowField('sky')} mt-1 w-full`}>
             {debtCases.length === 0 ? <option value="">Add a case from Debt Center → Cases</option> : null}
             {debtCases.map((d) => (
               <option key={d.id} value={d.id}>
@@ -173,7 +176,7 @@ export function ForeclosureCenterView({
             ? 'Set the bureau or specialty CRA dispute address (or § 623 furnisher for furnisher letters). Auto-fill from report when available.'
             : 'Auto-fill from your credit report mortgage tradeline, or enter manually.'
         }
-        accent="amber"
+        accent="violet"
       >
         <DebtCreditorIntelPanel
           partnerId={debt?.partnerId || debtCases[0]?.partnerId || ''}
@@ -196,12 +199,12 @@ export function ForeclosureCenterView({
             ? `${activeStepMeta.label} — ${activeStepMeta.detail}${activeStepMeta.law ? ` (${activeStepMeta.law})` : ''}. Letters filtered to this step.`
             : 'Filtered by your selected action step — build, edit, save to vault.'
         }
-        accent="amber"
+        accent="sky"
       >
         <div id="fc-debt-step-choose" className="scroll-mt-3">
           <LetterCatalogBrowser
             category="foreclosure"
-            accent="amber"
+            accent="sky"
             letterHub={letterHub === 'both' ? undefined : letterHub}
             onBuild={(id) => onBuildCatalogDraft(id)}
             extraCategories={isCredit ? ['reporting'] : undefined}
@@ -218,7 +221,7 @@ export function ForeclosureCenterView({
             ? 'Ask about FCRA § 611, Metro 2 foreclosure fields, specialty CRAs, and method of verification.'
             : 'Ask about RESPA, dual-track, note demands, SCRA, and your next move — full width, no side panel.'
         }
-        accent="amber"
+        accent="sky"
       >
         <ForeclosureAdvisorChat debtName={debt?.name} stateJurisdiction={debt?.stateJurisdiction} />
       </CollateralWorkstationSection>
@@ -229,7 +232,7 @@ export function ForeclosureCenterView({
             partner={partner}
             debt={debt}
             debtCaseId={debt?.id}
-            accent="amber"
+            accent="sky"
             uploadContext="foreclosure"
             reports={reports}
             onDebtChange={onDebtChange}

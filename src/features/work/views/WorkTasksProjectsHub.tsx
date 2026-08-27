@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { CalendarDays, FolderKanban, ListChecks, Plus, Shield, UserRound } from 'lucide-react';
 import type { Partner } from '../../../domain/partners';
 import type { Project } from '../../../domain/projects';
@@ -37,11 +37,11 @@ import {
   FINELY_OS_COMPACT_PAGE,
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_INPUT,
-  FINELY_OS_PRIMARY_BTN,
   FINELY_OS_VIEW_TABS,
   finelyOsCatalogCardCompact,
   finelyOsViewTab,
 } from '../../os/finelyOsLightUi';
+import './workBoardCards.css';
 
 export type WorkHubRole = 'partner' | 'admin';
 export type WorkHubTab = 'projects' | 'tasks';
@@ -96,6 +96,7 @@ export function WorkTasksProjectsHub({
   compactHero = false,
 }: Props) {
   const navigate = useNavigate();
+  const { search } = useLocation();
   const [version, setVersion] = useState(0);
   const [internalTab, setInternalTab] = useState<WorkHubTab>(initialTab);
   const tab = controlledTab ?? internalTab;
@@ -103,6 +104,11 @@ export function WorkTasksProjectsHub({
     if (onTabChange) onTabChange(next);
     else setInternalTab(next);
   };
+
+  useEffect(() => {
+    if (controlledTab === undefined) setInternalTab(initialTab);
+  }, [controlledTab, initialTab]);
+
   const [taskView, setTaskView] = useState<WorkViewMode>('kanban');
   const [projectView, setProjectView] = useState<WorkProjectViewMode>('journey');
   const [scope, setScope] = useState<WorkHubScope>(role === 'partner' ? 'personal' : 'all');
@@ -117,6 +123,15 @@ export function WorkTasksProjectsHub({
     window.addEventListener('finely:store', onStore as EventListener);
     return () => window.removeEventListener('finely:store', onStore as EventListener);
   }, []);
+
+  useEffect(() => {
+    const createKind = new URLSearchParams(search).get('create');
+    if (role !== 'admin' || (createKind !== 'project' && createKind !== 'task' && createKind !== '1')) return;
+    const nextTab: WorkHubTab = createKind === 'task' ? 'tasks' : 'projects';
+    if (controlledTab === undefined) setInternalTab(nextTab);
+    else onTabChange?.(nextTab);
+    setCreateOpen(true);
+  }, [controlledTab, onTabChange, role, search]);
 
   const taskStageDefs = useMemo(() => getWorkboardSettings().taskStages, [version]);
   const projectStageDefs = useMemo(() => getWorkboardSettings().projectStages, [version]);
@@ -268,7 +283,7 @@ export function WorkTasksProjectsHub({
     );
 
   return (
-    <div className={FINELY_OS_COMPACT_PAGE}>
+    <div className={`${FINELY_OS_COMPACT_PAGE} fc-work-board-page`}>
       {!compactHero ? (
         role === 'partner' ? (
           <PartnerWorkHubPanel
@@ -291,13 +306,23 @@ export function WorkTasksProjectsHub({
       ) : null}
 
       <div className={`${finelyOsCatalogCardCompact('sky')} flex flex-wrap items-center gap-3 !py-3`}>
+        {role === 'admin' ? (
+          <button
+            type="button"
+            onClick={() => setCreateOpen(true)}
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-emerald-300/40 bg-gradient-to-r from-emerald-700 to-emerald-500 px-4 py-2 text-xs font-black uppercase tracking-wide text-white shadow-[0_14px_28px_-18px_rgba(16,185,129,0.9)] transition hover:brightness-110"
+          >
+            <Plus size={16} /> Create {tab === 'tasks' ? 'task' : 'project'}
+          </button>
+        ) : null}
+
         {!controlledTab ? (
           <div className={FINELY_OS_VIEW_TABS}>
             <button type="button" onClick={() => setTab('projects')} className={tabClass(tab === 'projects', 'violet')}>
               <FolderKanban size={14} /> Projects
             </button>
             <button type="button" onClick={() => setTab('tasks')} className={tabClass(tab === 'tasks', 'emerald')}>
-              <ListChecks size={14} /> Tasks
+              <ListChecks size={14} /> My tasks
             </button>
           </div>
         ) : null}
@@ -309,6 +334,7 @@ export function WorkTasksProjectsHub({
           onChange={(e) => setScope(e.target.value as WorkHubScope)}
           className={FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')}
           title="Credit scope"
+          aria-label="Credit scope"
         >
           {role === 'admin' ? <option value="all">All scopes</option> : null}
           <option value="personal">Personal credit</option>
@@ -326,11 +352,6 @@ export function WorkTasksProjectsHub({
           </span>
         )}
 
-        {role === 'admin' ? (
-          <button type="button" onClick={() => setCreateOpen(true)} className={`${FINELY_OS_PRIMARY_BTN} ml-auto`}>
-            <Plus size={14} /> New {tab === 'tasks' ? 'task' : 'project'}
-          </button>
-        ) : null}
       </div>
 
       {tab === 'projects' ? (

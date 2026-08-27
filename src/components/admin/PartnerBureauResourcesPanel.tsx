@@ -22,7 +22,7 @@ export function PartnerBureauResourcesPanel({ compact = false }: { compact?: boo
   const groups = ['credit_bureau', 'specialty', 'banking', 'privacy', 'identity'] as const;
 
   return (
-    <div className={`${finelyOsCatalogCard('sky')} !p-5 space-y-5 w-full`}>
+    <div className={`${finelyOsCatalogCard('sky')} space-y-5 w-full`}>
       <div className="flex items-center gap-2">
         <ShieldAlert size={16} className="text-sky-300" />
         <div className={FINELY_OS_ENTITY_VALUE}>Bureau freezes & resources</div>

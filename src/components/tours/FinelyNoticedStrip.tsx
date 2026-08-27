@@ -1,17 +1,17 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertTriangle, ArrowRight, CheckCircle2, Sparkles } from 'lucide-react';
-import { finelyOsCatalogCard, finelyOsIvorySolidTile } from '../../features/os/finelyOsLightUi';
+import { finelyOsCatalogCard, finelyOsIvorySolidTile, FINELY_OS_ENTITY_BODY } from '../../features/os/finelyOsLightUi';
 import type { FinelyNoticedItem, FinelyNoticedTone } from '../../lib/finelyProactiveSignals';
 
-const TONE_ACCENT: Record<FinelyNoticedTone, 'amber' | 'sky' | 'emerald'> = {
-  warn: 'amber',
+const TONE_ACCENT: Record<FinelyNoticedTone, 'rose' | 'sky' | 'emerald'> = {
+  warn: 'rose',
   info: 'sky',
   success: 'emerald',
 };
 
 function ToneIcon({ tone, light }: { tone: FinelyNoticedTone; light?: boolean }) {
-  if (tone === 'warn') return <AlertTriangle size={18} className={light ? 'text-amber-600' : 'text-amber-300'} />;
+  if (tone === 'warn') return <AlertTriangle size={18} className={light ? 'text-rose-700' : 'text-rose-300'} />;
   if (tone === 'success') return <CheckCircle2 size={18} className={light ? 'text-emerald-600' : 'text-emerald-300'} />;
   return <Sparkles size={18} className={light ? 'text-sky-600' : 'text-sky-300'} />;
 }
@@ -35,9 +35,9 @@ export function FinelyNoticedStrip({ items, title = 'Finely noticed', className 
 
   return (
     <div className={`fc-senior-simple space-y-3 ${className}`} data-fc-noticed-strip="1">
-      <div className={`flex items-center gap-2 ${light ? 'text-[#0a1628]/65' : 'text-white/70'}`}>
-        <Sparkles size={16} className={light ? 'text-violet-600' : 'text-violet-300'} />
-        <span className="text-xs font-bold uppercase tracking-[0.14em]">{title}</span>
+      <div className={`flex items-center gap-2 ${light ? 'text-[#0a1628]' : 'text-white/85'}`}>
+        <Sparkles size={16} className={light ? 'text-violet-700' : 'text-violet-300'} />
+        <span className="text-sm font-extrabold uppercase tracking-[0.14em]">{title}</span>
       </div>
       <div className="grid gap-3">
         {items.map((item) => (
@@ -52,7 +52,7 @@ export function FinelyNoticedStrip({ items, title = 'Finely noticed', className 
               <span className="mt-0.5 shrink-0">
                 <ToneIcon tone={item.tone} light={light} />
               </span>
-              <p className={`text-base leading-relaxed ${light ? 'text-[#0a1628]/85' : 'text-white/85'}`}>{item.text}</p>
+              <p className={`text-base leading-relaxed ${light ? FINELY_OS_ENTITY_BODY : 'text-[color:var(--fc-os-entity-body)]'}`}>{item.text}</p>
             </div>
             <button
               type="button"

@@ -12,7 +12,7 @@ import {
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
-  finelyOsCatalogCardCompact,
+  finelyOsCatalogCard,
   type FinelyOsPublicAccent,
 } from '../../features/os/finelyOsLightUi';
 
@@ -48,7 +48,7 @@ type Props = {
 };
 
 /**
- * Compact “You run / Finely runs” deepen band for CS · Affiliate · AU Seller hubs.
+ * Luxury “You run / Finely runs” deepen band for CS · Affiliate · AU Seller hubs.
  * Matches Agency/Case Help/RE overview density — no second KPI strip.
  */
 export function RoleHubDeepenOverview({
@@ -65,25 +65,25 @@ export function RoleHubDeepenOverview({
   const nextPath = nextStep?.path || nextStep?.to || '';
 
   return (
-    <section className={`${finelyOsCatalogCardCompact(accent)} !p-4 space-y-3 ${className}`} data-fc-hub-deepen="1">
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div className="min-w-0 space-y-1">
+    <section className={`${finelyOsCatalogCard(accent)} space-y-6 ${className}`} data-fc-hub-deepen="1">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0 space-y-2">
           <p className={FINELY_OS_ENTITY_SUBLABEL}>You run / Finely runs</p>
-          <p className={`text-sm font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{split.headline}</p>
+          <p className={`text-2xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{split.headline}</p>
         </div>
         {pathBadge ? (
-          <span className="rounded-full border border-white/15 bg-black/25 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-white/70">
+          <span className="rounded-full border border-white/15 bg-black/25 px-3 py-1.5 text-xs font-black uppercase tracking-[0.16em] text-white/80">
             {pathBadge}
           </span>
         ) : null}
       </div>
 
       {nextStep && nextPath ? (
-        <div className="rounded-xl border border-white/12 bg-black/25 px-3 py-2.5 flex flex-wrap items-center justify-between gap-2">
+        <div className={`${finelyOsCatalogCard('violet')} flex flex-wrap items-center justify-between gap-4`} data-fc-accent="violet">
           <div className="min-w-0">
             <p className={FINELY_OS_ENTITY_SUBLABEL}>Do this next</p>
-            <p className={`text-sm font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{nextStep.label}</p>
-            <p className={`text-[11px] leading-snug ${FINELY_OS_ENTITY_BODY}`}>{nextStep.detail}</p>
+            <p className={`text-xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{nextStep.label}</p>
+            <p className={`mt-1 text-base leading-snug ${FINELY_OS_ENTITY_BODY}`}>{nextStep.detail}</p>
           </div>
           <button type="button" onClick={() => navigate(nextPath)} className={FINELY_OS_PRIMARY_BTN}>
             Go <ArrowRight size={14} />
@@ -91,15 +91,15 @@ export function RoleHubDeepenOverview({
         </div>
       ) : null}
 
-      <div className="grid sm:grid-cols-3 gap-2">
+      <div className="grid sm:grid-cols-3 gap-4">
         {[
-          { t: 'You do', rows: split.youDo },
-          { t: 'Finely runs', rows: split.finelyRuns },
-          { t: 'Not your job', rows: split.notYourJob },
+          { t: 'You do', rows: split.youDo, tone: 'emerald' as const },
+          { t: 'Finely runs', rows: split.finelyRuns, tone: 'sky' as const },
+          { t: 'Not your job', rows: split.notYourJob, tone: 'rose' as const },
         ].map((col) => (
-          <div key={col.t}>
-            <div className={`${FINELY_OS_ENTITY_SUBLABEL} mb-1`}>{col.t}</div>
-            <ul className={`text-xs ${FINELY_OS_ENTITY_BODY} space-y-1`}>
+          <div key={col.t} className={finelyOsCatalogCard(col.tone)} data-fc-accent={col.tone}>
+            <div className={`${FINELY_OS_ENTITY_SUBLABEL} mb-2`}>{col.t}</div>
+            <ul className={`text-base ${FINELY_OS_ENTITY_BODY} space-y-2`}>
               {col.rows.slice(0, 3).map((r) => (
                 <li key={r}>• {r}</li>
               ))}
@@ -109,7 +109,7 @@ export function RoleHubDeepenOverview({
       </div>
 
       {shot ? (
-        <MarketingProductShot shot={shot} compact showCaption theme="dark" className="!p-3" />
+        <MarketingProductShot shot={shot} showCaption theme="dark" />
       ) : null}
 
       {guide ? (
@@ -122,7 +122,7 @@ export function RoleHubDeepenOverview({
           </button>
         </div>
       ) : null}
-      <p className={`text-[10px] ${FINELY_OS_ENTITY_BODY}`}>
+      <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
         Results vary · not legal advice · funding subject to underwriting
       </p>
     </section>

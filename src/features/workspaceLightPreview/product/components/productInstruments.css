@@ -1,0 +1,396 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
+
+/*
+ * fc-wlp-inst-* — "Workspace Instruments" material layer.
+ *
+ * Renders measured values as gauges/ladders (never a bare number in a box),
+ * ported from the marketing spectrum bar / arc gauge / mono window-tag /
+ * before-after techniques into the compact workspace product layer. Built
+ * on top of `finelyMaterials.css` tier-2 tokens (`--fcm-accent-rgb`,
+ * `--fcm-ink`, `--fcm-hairline`, `--fcm-ease-entrance`) — set the accent via
+ * `data-fcm-accent` and the bed via `data-bed` (both already applied by the
+ * React components in `ProductInstruments.tsx`).
+ *
+ * Motion budget: every `data-fcm-motion="on"` element below is opt-in and
+ * counts against the shared 2-per-view cap defined in `finelyMaterials.css`.
+ * Loops use transform/opacity/filter only — never box-shadow, never
+ * background-position — on anything wider than a small marker/segment.
+ */
+
+/* =============================================================================
+   ProductWindowTag — mono instrument kicker
+   ============================================================================= */
+.fc-wlp-inst-tag{
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Space Mono', 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: var(--wlp-text-kicker);
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.fc-wlp-inst-tag[data-tone='neutral'] { color: rgba(10, 22, 40, 0.55); }
+.fc-wlp-inst-tag[data-tone='emerald'] { color: #057256; }
+.fc-wlp-inst-tag[data-tone='violet'] { color: #6336d1; }
+.fc-wlp-inst-tag[data-tone='sky'] { color: #0874aa; }
+.fc-wlp-inst-tag[data-tone='rose'] { color: #bd2c55; }
+.fc-wlp-inst-tag[data-tone='platinum'] { color: #4a5058; }
+[data-bed='dark'] .fc-wlp-inst-tag[data-tone='neutral'] { color: rgba(244, 246, 251, 0.58); }
+[data-bed='dark'] .fc-wlp-inst-tag[data-tone='emerald'] { color: #4be3b3; }
+[data-bed='dark'] .fc-wlp-inst-tag[data-tone='violet'] { color: #b39dff; }
+[data-bed='dark'] .fc-wlp-inst-tag[data-tone='sky'] { color: #6fd6ff; }
+[data-bed='dark'] .fc-wlp-inst-tag[data-tone='rose'] { color: #ff9db8; }
+[data-bed='dark'] .fc-wlp-inst-tag[data-tone='platinum'] { color: #ced5e0; }
+
+/* =============================================================================
+   ProductSpectrumBar — five-segment poor→excellent measuring bar
+   ============================================================================= */
+.fc-wlp-inst-spectrum {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 100%;
+  min-width: 0;
+}
+
+.fc-wlp-inst-spectrum-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.fc-wlp-inst-spectrum-value {
+  font-family: Sora, Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}.fc-wlp-inst-spectrum-value-sm{
+  font-family: 'Space Mono', ui-monospace, monospace;
+  font-size: var(--wlp-text-body);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--fcm-ink, #0a1628);
+  font-variant-numeric: tabular-nums;
+}
+
+.fc-wlp-inst-spectrum-track {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 2px;
+  height: 22px;
+  padding: 3px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(10, 22, 40, 0.06);
+}
+[data-bed='dark'] .fc-wlp-inst-spectrum-track {
+  background: rgba(255, 255, 255, 0.08);
+}
+.fc-wlp-inst-spectrum[data-size='sm'] .fc-wlp-inst-spectrum-track {
+  height: 14px;
+  padding: 2px;
+  gap: 1.5px;
+}
+
+.fc-wlp-inst-spectrum-seg {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  border-radius: 999px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+.fc-wlp-inst-spectrum-seg--poor { background: linear-gradient(90deg, #991b1b, #ef4444); }
+.fc-wlp-inst-spectrum-seg--fair { background: linear-gradient(90deg, #9f1239, #fb7185); }
+.fc-wlp-inst-spectrum-seg--good { background: linear-gradient(90deg, #4a5058, #38bdf8); }
+.fc-wlp-inst-spectrum-seg--verygood { background: linear-gradient(90deg, #65a30d, #a3e635); }
+.fc-wlp-inst-spectrum-seg--excellent { background: linear-gradient(90deg, #047857, #22c55e); }
+
+.fc-wlp-inst-spectrum[data-fcm-motion='on'] .fc-wlp-inst-spectrum-seg {
+  animation: fc-wlp-inst-seg-breathe 3.6s ease-in-out infinite;
+}
+.fc-wlp-inst-spectrum-seg--poor { animation-delay: 0s; }
+.fc-wlp-inst-spectrum-seg--fair { animation-delay: 0.15s; }
+.fc-wlp-inst-spectrum-seg--good { animation-delay: 0.3s; }
+.fc-wlp-inst-spectrum-seg--verygood { animation-delay: 0.45s; }
+.fc-wlp-inst-spectrum-seg--excellent { animation-delay: 0.6s; }
+@keyframes fc-wlp-inst-seg-breathe {
+  0%, 100% { filter: brightness(1); transform: scaleY(1); }
+  50% { filter: brightness(1.22); transform: scaleY(1.08); }
+}
+
+/* Comet sweep — transform-driven (never background-position on this large a
+   surface), three stacked passes matching the marketing spectrum's overlay
+   / soft-light / screen recipe. Opt-in only: requires data-fcm-motion="on". */
+.fc-wlp-inst-spectrum-sweep {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 3;
+  pointer-events: none;
+  transform: translateX(-140%) skewX(-14deg);
+}
+.fc-wlp-inst-spectrum-sweep--overlay {
+  left: -20%;
+  width: 44%;
+  background: linear-gradient(105deg, transparent 20%, rgba(255, 255, 255, 0.85) 50%, transparent 80%);
+  mix-blend-mode: overlay;
+}
+.fc-wlp-inst-spectrum-sweep--comet {
+  left: -10%;
+  width: 20%;
+  z-index: 4;
+  background: linear-gradient(105deg, transparent 10%, rgba(255, 255, 255, 1) 50%, rgba(167, 243, 208, 0.85) 62%, transparent 90%);
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.85));
+  mix-blend-mode: soft-light;
+}
+.fc-wlp-inst-spectrum-sweep--glow {
+  left: -32%;
+  width: 68%;
+  background: linear-gradient(90deg, transparent 0%, rgba(52, 211, 153, 0.32) 50%, transparent 100%);
+  mix-blend-mode: screen;
+  opacity: 0.85;
+}
+.fc-wlp-inst-spectrum[data-fcm-motion='on'] .fc-wlp-inst-spectrum-sweep {
+  animation: fc-wlp-inst-spectrum-sweep-travel 1.8s linear infinite;
+}
+@keyframes fc-wlp-inst-spectrum-sweep-travel {
+  0% { transform: translateX(-140%) skewX(-14deg); }
+  100% { transform: translateX(220%) skewX(-14deg); }
+}
+
+.fc-wlp-inst-spectrum-marker {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  z-index: 5;
+  width: 3px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow:
+    0 0 0 1px rgba(var(--fcm-accent-rgb), 0.9),
+    0 0 10px rgba(var(--fcm-accent-rgb), 0.7);
+  transition: left 320ms var(--fcm-ease-entrance, ease);
+}
+.fc-wlp-inst-spectrum[data-size='sm'] .fc-wlp-inst-spectrum-marker {
+  top: -2px;
+  bottom: -2px;
+  width: 2px;
+}.fc-wlp-inst-spectrum-ticks{
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1px;
+  font-family: 'Space Mono', ui-monospace, monospace;
+  font-size: var(--wlp-text-kicker);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.15;
+  text-transform: uppercase;
+  text-align: center;
+  color: rgba(10, 22, 40, 0.5);
+}
+[data-bed='dark'] .fc-wlp-inst-spectrum-ticks { color: rgba(244, 246, 251, 0.5); }
+.fc-wlp-inst-spectrum-ticks span:last-child { color: #057256; }
+[data-bed='dark'] .fc-wlp-inst-spectrum-ticks span:last-child { color: #4be3b3; }.fc-wlp-inst-spectrum-caption{
+  font-size: var(--wlp-text-meta);
+  line-height: 1.3;
+  color: rgba(10, 22, 40, 0.6);
+}
+[data-bed='dark'] .fc-wlp-inst-spectrum-caption { color: rgba(244, 246, 251, 0.62); }
+
+/* =============================================================================
+   ProductArcGauge — three-quarter SVG arc, tick marks, glowing head
+   ============================================================================= */
+.fc-wlp-inst-arc {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.fc-wlp-inst-arc-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.fc-wlp-inst-arc-ticks line {
+  stroke: rgba(10, 22, 40, 0.18);
+}
+[data-bed='dark'] .fc-wlp-inst-arc-ticks line {
+  stroke: rgba(255, 255, 255, 0.22);
+}
+
+.fc-wlp-inst-arc-track {
+  stroke: rgba(10, 22, 40, 0.08);
+  stroke-linecap: round;
+}
+[data-bed='dark'] .fc-wlp-inst-arc-track {
+  stroke: rgba(255, 255, 255, 0.09);
+}
+
+.fc-wlp-inst-arc-fill {
+  stroke-linecap: round;
+}
+
+.fc-wlp-inst-arc-head {
+  fill: #fff;
+  stroke: rgba(var(--fcm-accent-rgb), 0.9);
+  stroke-width: 2.5;
+  filter: drop-shadow(0 0 6px rgba(var(--fcm-accent-rgb), 0.7));
+}
+
+.fc-wlp-inst-arc-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  text-align: center;
+  padding: 0 12%;
+}
+
+.fc-wlp-inst-arc-center strong {
+  font-family: Sora, Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(20px, calc(var(--fc-wlp-inst-arc-size, 132px) * 0.22), 34px);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}.fc-wlp-inst-arc-label{
+  font-size: var(--wlp-text-kicker);
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  line-height: 1.1;
+  text-transform: uppercase;
+  color: rgba(10, 22, 40, 0.52);
+}
+[data-bed='dark'] .fc-wlp-inst-arc-label {
+  color: rgba(244, 246, 251, 0.55);
+}
+
+/* =============================================================================
+   ProductDeltaPair — before/after instrument (mirrors
+   BeforeAfterScoreGraphicCanvas's zinc→accent pairing)
+   ============================================================================= */
+.fc-wlp-inst-delta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+
+.fc-wlp-inst-delta-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 8px;
+}
+
+.fc-wlp-inst-delta-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  border-radius: 12px;
+  border: 1px solid rgba(82, 82, 91, 0.28);
+  background: linear-gradient(165deg, rgba(82, 82, 91, 0.14), rgba(82, 82, 91, 0.04));
+  padding: 10px 8px;
+}
+
+.fc-wlp-inst-delta-tile--after {
+  border-color: rgba(var(--fcm-accent-rgb), 0.4);
+  background: linear-gradient(165deg, rgba(var(--fcm-accent-rgb), 0.18), rgba(var(--fcm-accent-rgb), 0.04));
+  box-shadow: 0 0 22px -10px rgba(var(--fcm-accent-rgb), 0.5);
+}
+
+.fc-wlp-inst-delta-value {
+  font-family: Sora, Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.fc-wlp-inst-delta-tile--before .fc-wlp-inst-delta-value {
+  color: #52525b;
+}.fc-wlp-inst-delta-tag{
+  font-family: 'Space Mono', ui-monospace, monospace;
+  font-size: var(--wlp-text-kicker);
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  line-height: 1.1;
+  text-transform: uppercase;
+  color: rgba(10, 22, 40, 0.48);
+}
+[data-bed='dark'] .fc-wlp-inst-delta-tag { color: rgba(244, 246, 251, 0.5); }
+
+.fc-wlp-inst-delta-arrow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  color: rgba(var(--fcm-accent-rgb), 0.92);
+}
+.fc-wlp-inst-delta-arrow svg {
+  overflow: visible;
+}
+.fc-wlp-inst-delta-arrow svg line,
+.fc-wlp-inst-delta-arrow svg polygon {
+  stroke: currentColor;
+  fill: currentColor;
+}.fc-wlp-inst-delta-amount{
+  font-family: 'Space Mono', ui-monospace, monospace;
+  font-size: var(--wlp-text-meta);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* =============================================================================
+   Mobile — stay legible and non-overflowing at a 375px viewport
+   ============================================================================= */
+@media (max-width: 639px) {
+  .fc-wlp-inst-spectrum-value { font-size: 21px; }
+  .fc-wlp-inst-spectrum-track { height: 18px; }
+  .fc-wlp-inst-spectrum[data-size='sm'] .fc-wlp-inst-spectrum-track { height: 12px; }.fc-wlp-inst-spectrum-ticks{ font-size: var(--wlp-text-meta); }.fc-wlp-inst-spectrum-caption{ font-size: var(--wlp-text-meta); }
+
+  .fc-wlp-inst-arc { width: 108px !important; height: 108px !important; }
+  .fc-wlp-inst-arc-center strong { font-size: 22px !important; }
+
+  .fc-wlp-inst-delta-row { gap: 5px; }
+  .fc-wlp-inst-delta-tile { padding: 8px 5px; }
+  .fc-wlp-inst-delta-value { font-size: 16px; }
+  .fc-wlp-inst-delta-arrow svg { width: 24px; height: 10px; }.fc-wlp-inst-delta-amount{ font-size: var(--wlp-text-meta); }
+}
+
+/* =============================================================================
+   Reduced motion — every loop introduced above stops; static state persists.
+   ============================================================================= */
+@media (prefers-reduced-motion: reduce) {
+  .fc-wlp-inst-spectrum-seg {
+    animation: none !important;
+  }
+  .fc-wlp-inst-spectrum-sweep {
+    animation: none !important;
+    display: none !important;
+  }
+  .fc-wlp-inst-spectrum-marker {
+    transition: none !important;
+  }
+  .fc-wlp-inst-arc-fill {
+    transition: none !important;
+  }
+}

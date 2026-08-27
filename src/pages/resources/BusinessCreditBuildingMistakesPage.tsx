@@ -11,9 +11,9 @@ import { AlertTriangle } from 'lucide-react';
 import { getAllTierStrategies } from '../../data/businessCreditDoctrineRepo';
 import { DoctrineArticleShell } from '../../components/resources/DoctrineArticleShell';
 import { DoctrineSectionHeading, DoctrineFieldList } from '../../components/resources/DoctrineArticleParts';
-import { finelyOsCatalogCardCompact, FINELY_OS_ENTITY_CHIP } from '../../features/os/finelyOsLightUi';
+import { finelyOsCatalogCard, FINELY_OS_ENTITY_CHIP } from '../../features/os/finelyOsLightUi';
 
-const ACCENTS = ['rose', 'amber', 'violet', 'sky', 'fuchsia'] as const;
+const ACCENTS = ['emerald', 'violet', 'sky', 'rose'] as const;
 
 export default function BusinessCreditBuildingMistakesPage() {
   const tiers = getAllTierStrategies();
@@ -43,14 +43,14 @@ export default function BusinessCreditBuildingMistakesPage() {
         { label: 'Non-citizen & international business credit', to: '/resources/non-citizen-business-credit' },
       ]}
     >
-      <section className="rounded-[1.25rem] border border-white/10 bg-black/25 p-5">
+      <section className={`${finelyOsCatalogCard('rose')} space-y-6`} data-fc-accent="rose">
         <DoctrineSectionHeading Icon={AlertTriangle} title="Mistakes to avoid, tier by tier" eyebrow={`${tiers.length} tiers covered`} />
-        <div className="mt-4 space-y-3">
+        <div className="space-y-6">
           {tiers.map((tier, i) => (
-            <div key={tier.tier} className={finelyOsCatalogCardCompact(ACCENTS[i % ACCENTS.length])}>
+            <div key={tier.tier} className={finelyOsCatalogCard(ACCENTS[i % ACCENTS.length])} data-fc-accent={ACCENTS[i % ACCENTS.length]}>
               <div className="flex flex-wrap items-center gap-2">
                 <span className={FINELY_OS_ENTITY_CHIP}>Tier {tier.tier}</span>
-                <span className="text-base font-bold text-white">{tier.tierName}</span>
+                <span className="text-xl font-extrabold text-white">{tier.tierName}</span>
               </div>
               <div className="mt-3 grid gap-3 md:grid-cols-2">
                 <DoctrineFieldList label="Common mistakes at this tier" items={tier.commonMistakes} tone="warn" />

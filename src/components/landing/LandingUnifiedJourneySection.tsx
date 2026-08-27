@@ -46,7 +46,7 @@ const STEPS: Array<{
     desc: 'Lender logic, Nora handoff, wealth builder paths.',
     path: '/pricing/wealth-builder',
     cta: 'Wealth builder',
-    accent: 'amber',
+    accent: 'rose',
   },
 ];
 

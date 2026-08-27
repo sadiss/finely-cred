@@ -28,7 +28,7 @@ export const TRAINING_PHASE_CAREER_DETAILS: TrainingPhaseCareerDetail[] = [
     agentKeepPctTypical: 30,
     platformKeepPctTypical: 70,
     yourTasks: [
-      'Join customer calls and intake with mentor backup',
+      'Join partner calls and intake with mentor backup',
       'Upload reports, tag negatives, and draft dispute angles',
       'Send portal messages and document evidence with QA review',
       'Practice pitch and file organization — you lead relationship, we back fulfillment',
@@ -43,7 +43,7 @@ export const TRAINING_PHASE_CAREER_DETAILS: TrainingPhaseCareerDetail[] = [
       'Finely typically sources or co-markets early files — you focus on learning the workflow. Your keep is lower because we carry fulfillment, mentoring, and growth tooling.',
     whyThisSplit:
       'You keep ~30% because Finely runs most fulfillment levers, provides training, and often contributes leads. As you take on more work yourself, your share rises.',
-    graduateWhen: 'Pass file QA, complete core academy modules, and close 3+ customer files with mentor sign-off.',
+    graduateWhen: 'Pass file QA, complete core academy modules, and close 3+ partner files with mentor sign-off.',
   },
   {
     id: 'guided',
@@ -52,7 +52,7 @@ export const TRAINING_PHASE_CAREER_DETAILS: TrainingPhaseCareerDetail[] = [
     agentKeepPctTypical: 42,
     platformKeepPctTypical: 58,
     yourTasks: [
-      'Own customer relationships, intake, and portal communication',
+      'Own partner relationships, intake, and portal communication',
       'Run dispute rounds, evidence packs, and task sequencing',
       'Close sales and set service fees within program guidelines',
       'Escalate complex legal/debt lanes to Finely QA when needed',
@@ -76,7 +76,7 @@ export const TRAINING_PHASE_CAREER_DETAILS: TrainingPhaseCareerDetail[] = [
     agentKeepPctTypical: 52,
     platformKeepPctTypical: 48,
     yourTasks: [
-      'Full-cycle customer files: sales, onboarding, disputes, follow-up',
+      'Full-cycle partner files: sales, onboarding, disputes, follow-up',
       'Brand your portal (co-branded or white-label tier)',
       'Manage your pipeline, tasks, and team seats if applicable',
       'Optional: run your own ads using Finely creative kits',
@@ -88,7 +88,7 @@ export const TRAINING_PHASE_CAREER_DETAILS: TrainingPhaseCareerDetail[] = [
       'Academy refreshers and compliance updates',
     ],
     leadsAndMarketing:
-      'You source your own customers. Finely provides capture pages and nurture — you own ad spend and prospecting unless you negotiate lead share.',
+      'You source your own partners. Finely provides capture pages and nurture — you own ad spend and prospecting unless you negotiate lead share.',
     whyThisSplit:
       'You keep ~52% because you run fulfillment and marketing. Finely retains ~48% for platform, payments, compliance infrastructure, and growth R&D.',
     graduateWhen: 'Proven volume, certified partner review, and white-label readiness if upgrading capacity.',
@@ -102,7 +102,7 @@ export const TRAINING_PHASE_CAREER_DETAILS: TrainingPhaseCareerDetail[] = [
     yourTasks: [
       'Operate at volume with your brand and team',
       'Train junior seats under your agency capacity tier',
-      'Own fulfillment, comms, and customer outcomes end-to-end',
+      'Own fulfillment, comms, and partner outcomes end-to-end',
       'Participate in quarterly strategy & product feedback',
     ],
     finelyProvides: [
@@ -151,7 +151,7 @@ export const PROGRAM_ROLE_MODEL = {
   rows: [
     {
       term: 'Credit specialist',
-      meaning: 'Anyone in the program running client files. Your keep is a % of that file’s service fee (restore, build, business, etc.) — starts ~30%, not 80%.',
+      meaning: 'Anyone in the program running partner files. Your keep is a % of that file’s service fee (restore, build, business, etc.) — starts ~30%, not 80%.',
     },
     {
       term: 'Certified partner',
@@ -162,13 +162,13 @@ export const PROGRAM_ROLE_MODEL = {
       meaning: 'The tools you work in — CRM, portal, letters, vault. Included at every training level. This is not a job title, not a payout tier, and not the same as agency white-label.',
     },
   ],
-  percentOf: `Percentages are always of the client service fee on that sale (e.g. $1,500 restore). Building a company with team seats? See the ${AGENCY.programName} page — separate track.`,
+  percentOf: `Percentages are always of the partner service fee on that sale (e.g. $1,500 restore). Building a company with team seats? See the ${AGENCY.programName} page — separate track.`,
 } as const;
 
 export const REVENUE_SHARE_EXPLAINER = {
   headline: 'How your percentage is determined',
   bullets: [
-    'Training phase — how much of each customer file you run vs Finely co-pilots (Apprentice → Certified partner).',
+    'Training phase — how much of each partner file you run vs Finely co-pilots (Apprentice → Certified partner).',
     'Specialty lane — restore, business credit, debt, and funding files have different service fees and support load.',
     'Value levers — who runs marketing, dispute fulfillment, mentoring, and lead gen (each shifts the split a few points).',
     'Leads — when Finely contributes prospects or co-marketing, your keep is lower but volume risk is shared.',

@@ -97,9 +97,10 @@ type Props = {
   compact?: boolean;
   /** Admin Communication Hub — full meeting composer without requiring a partner file. */
   adminMode?: boolean;
+  calendarPath?: string;
 };
 
-export function HubMeetingsPanel({ partnerId, partnerDisplayName, compact, adminMode }: Props) {
+export function HubMeetingsPanel({ partnerId, partnerDisplayName, compact, adminMode, calendarPath: calendarPathOverride }: Props) {
   const navigate = useNavigate();
   const [version, setVersion] = useState(0);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
@@ -136,7 +137,7 @@ export function HubMeetingsPanel({ partnerId, partnerDisplayName, compact, admin
       .slice(0, compact ? 3 : 8);
   }, [adminMode, adminEvents, events, compact]);
 
-  const calendarPath = adminMode ? '/admin/calendar' : '/portal/calendar';
+  const calendarPath = calendarPathOverride ?? (adminMode ? '/admin/calendar' : '/portal/calendar');
 
   const joinMeeting = (ev: CalendarEvent) => {
     if (adminMode || ev.partnerId.startsWith('internal:')) {
@@ -153,18 +154,33 @@ export function HubMeetingsPanel({ partnerId, partnerDisplayName, compact, admin
   if (adminMode) {
     return (
       <div className={`space-y-4 overflow-y-auto max-h-full ${compact ? 'p-3' : 'p-4'}`}>
-        <div className={`rounded-2xl border border-violet-500/25 bg-violet-500/5 p-4 ${FINELY_OS_GLASS_INNER}`}>
-          <div className="text-[10px] uppercase tracking-widest text-violet-300 font-black">Admin meeting composer</div>
+        <div className="rounded-2xl border border-sky-500/25 bg-sky-500/10 p-4">
+          <div className="text-[10px] uppercase tracking-widest text-sky-300 font-black">Video meetings</div>
           <p className={`mt-2 text-sm ${FINELY_OS_ENTITY_BODY} leading-relaxed`}>
-            Schedule partner, guest, or internal sessions from chat — pick a person, choose internal vs external, select a time slot, then copy the join link or email it.
+            Start an instant video room, then share the join link — or schedule a session below.
           </p>
-          <button
-            type="button"
-            onClick={() => navigate(calendarPath)}
-            className={`mt-3 inline-flex items-center gap-2 px-4 py-2.5 ${FINELY_OS_SECONDARY_BTN}`}
-          >
-            Open admin calendar <ExternalLink size={12} />
-          </button>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <StartVideoCallButton
+              partnerId={partnerId || 'internal:admin'}
+              displayName={partnerDisplayName || 'Finely staff'}
+              userRole="finely_staff"
+              defaultTitle="Finely video session"
+            />
+            <button
+              type="button"
+              onClick={() => navigate(calendarPath)}
+              className={`inline-flex items-center gap-2 px-4 py-2.5 ${FINELY_OS_SECONDARY_BTN}`}
+            >
+              Open admin calendar <ExternalLink size={12} />
+            </button>
+          </div>
+        </div>
+
+        <div className={`rounded-2xl border border-violet-500/25 bg-violet-500/5 p-4 ${FINELY_OS_GLASS_INNER}`}>
+          <div className="text-[10px] uppercase tracking-widest text-violet-300 font-black">Schedule a session</div>
+          <p className={`mt-2 text-sm ${FINELY_OS_ENTITY_BODY} leading-relaxed`}>
+            Pick a person, choose internal vs external, select a time, then copy the join link or email it.
+          </p>
         </div>
 
         <AdminMeetingComposer

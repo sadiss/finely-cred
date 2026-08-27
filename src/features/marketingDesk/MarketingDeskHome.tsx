@@ -8,7 +8,7 @@ import {
   FINELY_OS_ENTITY_TITLE,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
-  finelyOsDeckTile,
+  finelyOsCatalogCard,
   finelyOsMicroStat,
   finelyOsStatusChip,
 } from '../os/finelyOsLightUi';
@@ -134,13 +134,13 @@ export function MarketingDeskHome({
   return (
     <div className={FINELY_OS_COMPACT_PAGE}>
       {/* 1. Command strip */}
-      <div className="rounded-2xl border border-amber-400/30 bg-black/40 !p-4 flex flex-wrap items-center justify-between gap-3">
+      <div className={`${finelyOsCatalogCard('emerald')} flex flex-wrap items-center justify-between gap-4`} data-fc-accent="emerald">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <h1 className={FINELY_OS_ENTITY_TITLE}>Marketing Desk</h1>
             <span className={finelyOsStatusChip(findChip)}>{findReady.label}</span>
             <span className={finelyOsStatusChip(mailChip)}>Mail {mail.label}</span>
-            {!flagOn ? <span className={finelyOsMicroStat('amber')}>Flag off</span> : null}
+            {!flagOn ? <span className={finelyOsMicroStat('violet')}>Flag off</span> : null}
           </div>
           <p className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>Today’s mission: {mission}</p>
           <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>
@@ -161,11 +161,11 @@ export function MarketingDeskHome({
         </button>
       </div>
 
-      <FinelyMarketingWowStrip compact title="Organic wow angles" subtitle="" className="!p-3" />
+      <FinelyMarketingWowStrip compact title="Organic wow angles" subtitle="" className="p-6" />
 
       {/* While you slept — morning brief */}
       {brief.hasSignal || brief.sleepOn ? (
-        <section className={`${finelyOsDeckTile('amber')} !p-4 space-y-2`}>
+        <section className={`${finelyOsCatalogCard('violet')} space-y-3`} data-fc-accent="violet">
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div className="min-w-0">
               <div className={FINELY_OS_ENTITY_SUBLABEL}>
@@ -204,7 +204,7 @@ export function MarketingDeskHome({
           <div className="flex flex-wrap gap-2">
             <span className={finelyOsMicroStat('violet')}>{brief.found} found</span>
             <span className={finelyOsMicroStat('emerald')}>{brief.autoSaved} auto-saved</span>
-            <span className={finelyOsMicroStat('amber')}>{brief.exceptions} exceptions</span>
+            <span className={finelyOsMicroStat('rose')}>{brief.exceptions} exceptions</span>
             <span className={finelyOsMicroStat('sky')}>{brief.mailed} mailed</span>
             <span className={finelyOsMicroStat('fuchsia')}>{brief.booked} booked</span>
           </div>
@@ -217,19 +217,23 @@ export function MarketingDeskHome({
       />
 
       {/* 2. KPI chips — deck tiles only, no list chrome */}
-      <div className="grid grid-cols-3 gap-2">
-        {kpis.map((k) => (
+      <div className="grid grid-cols-3 gap-4">
+        {kpis.map((k, idx) => {
+          const kpiAccent = (['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4];
+          return (
           <button
             key={k.id}
             type="button"
-            className={`${finelyOsDeckTile('violet')} !p-3 text-left`}
+            className={`${finelyOsCatalogCard(kpiAccent)} text-left`}
+            data-fc-accent={kpiAccent}
             onClick={() => (k.helper ? onOpenHelper(k.helper) : undefined)}
           >
             <div className={FINELY_OS_ENTITY_SUBLABEL}>{k.label}</div>
-            <div className="mt-1 text-2xl font-bold text-white tabular-nums">{k.value}</div>
-            {k.hint ? <div className={`mt-0.5 text-[10px] ${FINELY_OS_ENTITY_BODY}`}>{k.hint}</div> : null}
+            <div className="mt-2 text-3xl font-extrabold text-white tabular-nums">{k.value}</div>
+            {k.hint ? <div className={`mt-2 text-sm font-semibold ${FINELY_OS_ENTITY_BODY}`}>{k.hint}</div> : null}
           </button>
-        ))}
+          );
+        })}
       </div>
 
       {laneChips.length > 0 ? (
@@ -252,7 +256,8 @@ export function MarketingDeskHome({
       {ruthTip ? (
         <button
           type="button"
-          className={`${finelyOsDeckTile('amber')} !p-3 w-full text-left`}
+          className={`${finelyOsCatalogCard('rose')} w-full text-left`}
+          data-fc-accent="rose"
           onClick={() => onOpenHelper('ruth')}
           title="Ruth weekly tip from lane pace"
         >
@@ -264,7 +269,8 @@ export function MarketingDeskHome({
       {/* 3. Mail status tile */}
       <button
         type="button"
-        className={`${finelyOsDeckTile('sky')} !p-4 w-full text-left`}
+        className={`${finelyOsCatalogCard('sky')} w-full text-left`}
+        data-fc-accent="sky"
         onClick={() => onOpenHelper('mail')}
       >
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -284,18 +290,19 @@ export function MarketingDeskHome({
           <button
             key={h.id}
             type="button"
-            className={`${finelyOsDeckTile(h.accent)} !p-4 text-left`}
+            className={`${finelyOsCatalogCard(h.accent === 'amber' ? 'violet' : h.accent)} text-left`}
+            data-fc-accent={h.accent === 'amber' ? 'violet' : h.accent}
             onClick={() => onOpenHelper(h.id)}
           >
-            <div className="font-semibold text-white">{h.title}</div>
-            <p className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>{h.blurb}</p>
-            <span className={`mt-3 inline-flex text-xs font-semibold text-amber-200/90`}>{h.cta} →</span>
+            <div className="text-xl font-extrabold text-white">{h.title}</div>
+            <p className={`mt-2 text-base ${FINELY_OS_ENTITY_BODY}`}>{h.blurb}</p>
+            <span className={`mt-4 inline-flex text-sm font-extrabold text-sky-200`}>{h.cta} →</span>
           </button>
         ))}
       </div>
 
       {/* 5. My work */}
-      <section className="rounded-2xl border border-white/10 bg-black/30 !p-4 space-y-2">
+      <section className={`${finelyOsCatalogCard('emerald')} space-y-4`} data-fc-accent="emerald">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <div className={FINELY_OS_ENTITY_SUBLABEL}>Today’s to-dos</div>
@@ -314,7 +321,8 @@ export function MarketingDeskHome({
             <button
               key={t.id}
               type="button"
-              className="w-full rounded-xl border border-white/10 bg-black/25 !p-3 text-left hover:border-amber-400/30"
+              className={`${finelyOsCatalogCard('violet')} w-full text-left`}
+              data-fc-accent="violet"
               onClick={() => navigate(deepLinkForMarketingTask(t))}
             >
               <div className="font-semibold text-white text-sm truncate">{t.title}</div>
@@ -326,7 +334,7 @@ export function MarketingDeskHome({
         />
       </section>
 
-      <div className="rounded-2xl border border-white/10 bg-black/25 !p-4 space-y-2">
+      <div className={`${finelyOsCatalogCard('violet')} space-y-4`} data-fc-accent="violet">
         <div className="flex flex-wrap items-end gap-2">
           <label className="min-w-[160px] flex-1">
             <div className={FINELY_OS_ENTITY_SUBLABEL}>Work goes to</div>
@@ -334,7 +342,7 @@ export function MarketingDeskHome({
               value={assigneeLabel}
               onChange={(e) => setAssigneeLabel(e.target.value)}
               onBlur={saveSeats}
-              className="mt-1 w-full rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm text-white outline-none focus:border-amber-400/40"
+              className="mt-1 w-full rounded-xl border border-violet-400/40 bg-black/35 px-4 py-3 text-base text-white outline-none focus:border-violet-300"
               placeholder="Marketing hire name or email"
             />
           </label>
@@ -344,7 +352,7 @@ export function MarketingDeskHome({
               value={alternateLabel}
               onChange={(e) => setAlternateLabel(e.target.value)}
               onBlur={saveSeats}
-              className="mt-1 w-full rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm text-white outline-none focus:border-amber-400/40"
+              className="mt-1 w-full rounded-xl border border-violet-400/40 bg-black/35 px-4 py-3 text-base text-white outline-none focus:border-violet-300"
               placeholder="Second seat (optional)"
             />
           </label>
@@ -394,7 +402,7 @@ export function MarketingDeskHome({
       </div>
 
       {/* 6. How this works */}
-      <details className="rounded-2xl border border-white/10 bg-black/25 !p-4">
+      <details className={finelyOsCatalogCard('sky')} data-fc-accent="sky">
         <summary className="cursor-pointer select-none flex items-center gap-2 text-white font-semibold">
           <HelpCircle size={16} /> How this works
         </summary>

@@ -92,7 +92,7 @@ const ROLES: Array<{
     blurb:
       'Read debt-buyer patterns, advise on validation sequencing, and assess partner readiness before a case escalates.',
     scope: 'Educational analysis only — never presented as legal advice.',
-    accent: 'gold',
+    accent: 'rose',
   },
 ];
 
@@ -330,7 +330,7 @@ export default function CaseHelpCareersPage() {
         >
           <div className="max-w-4xl mx-auto space-y-8">
             <div className="max-w-2xl space-y-3">
-              <p className={`${SERIF} text-[11px] font-black uppercase tracking-[0.28em] text-amber-300`}>
+              <p className={`${SERIF} text-[11px] font-black uppercase tracking-[0.28em] text-violet-300`}>
                 Who does the work
               </p>
               <h2 className={`${SERIF} text-3xl sm:text-4xl font-bold tracking-tight text-white`}>
@@ -339,8 +339,8 @@ export default function CaseHelpCareersPage() {
             </div>
 
             <div className="grid gap-5 md:grid-cols-2">
-              <div className="rounded-sm border-l-2 border-amber-300/60 bg-white/[0.04] p-5">
-                <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.26em] text-amber-200/80">
+              <div className="rounded-sm border-l-2 border-emerald-300/60 bg-white/[0.04] p-5">
+                <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.26em] text-emerald-200/80">
                   <ScrollText size={13} /> You do
                 </p>
                 <ul className="mt-3 space-y-2.5">
@@ -388,7 +388,7 @@ export default function CaseHelpCareersPage() {
           <div className="max-w-5xl mx-auto grid gap-9 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
             <div className="space-y-6">
               <div className="space-y-3">
-                <p className={`${SERIF} text-[11px] font-black uppercase tracking-[0.28em] text-amber-300`}>
+                <p className={`${SERIF} text-[11px] font-black uppercase tracking-[0.28em] text-emerald-300`}>
                   Your case desk profile
                 </p>
                 <h2 className={`${SERIF} text-3xl font-bold tracking-tight text-white`}>
@@ -551,7 +551,7 @@ export default function CaseHelpCareersPage() {
         >
           <div className="max-w-4xl mx-auto flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className={`${SERIF} text-[11px] font-black uppercase tracking-[0.26em] text-amber-300`}>Other tracks</p>
+              <p className={`${SERIF} text-[11px] font-black uppercase tracking-[0.26em] text-sky-300`}>Other tracks</p>
               <p className="mt-1.5 fc-light-contrast-body text-sm">
                 Want to run partner restore files on revenue share instead of case work? That is the Credit Specialist
                 track.

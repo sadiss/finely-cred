@@ -29,7 +29,7 @@ export const SIGNUP_ROLE_GUIDES: SignupRoleGuide[] = [
     id: 'au_seller',
     label: 'AU Seller',
     signupPath: '/signup?role=au_seller or Career → AU Seller',
-    postAuthHome: '/au-seller/hub',
+    postAuthHome: '/seller/hub',
     passwordSetup: 'Same self-chosen password on Profile & account step.',
     welcomeEmail: 'Lane-specific AU seller welcome + seq_au_seller_onboard nurture when comms delivery is ON.',
     adminReset: 'Partner detail → Access & auth → Send password reset email.',

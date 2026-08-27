@@ -24,7 +24,7 @@ export function CmoScaleCommandPanel() {
     <section className="fc-panel p-5 space-y-5">
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.28em] text-amber-200/70">Phase 5</p>
+          <p className="text-xs uppercase tracking-[0.28em] text-sky-200/70">Phase 5</p>
           <h2 className="text-2xl font-semibold text-white">CMO Scale Intelligence</h2>
           <p className="mt-1 max-w-3xl text-sm text-slate-300">
             Forecast leads, rank channels, protect spend, and tell the CMO what to scale, fix, kill, or test next.
@@ -44,7 +44,7 @@ export function CmoScaleCommandPanel() {
         <div className="grid gap-3 lg:grid-cols-2">
           {latestForecast.requiredActions.map((action) => (
             <article key={`${action.channel}-${action.action}`} className="fc-card p-4">
-              <p className="text-xs uppercase tracking-[0.2em] text-amber-200/60">{action.channel}</p>
+              <p className="text-xs uppercase tracking-[0.2em] text-sky-200/60">{action.channel}</p>
               <h3 className="mt-1 font-semibold text-white">{action.expectedLeads} expected leads</h3>
               <p className="mt-2 text-sm text-slate-300">{action.action}</p>
               <p className="mt-2 text-xs text-slate-400">Daily volume: {action.dailyVolume} · Owner: {action.owner}</p>

@@ -1,9 +1,12 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { CalendarDays, ChevronLeft, ChevronRight, GripVertical, ListFilter } from 'lucide-react';
 import type { TaskItem, TaskStatus } from '../../../domain/tasks';
-import { FINELY_OS_DRAG_HINT, FINELY_OS_ENTITY_BODY, FINELY_OS_ENTITY_EMPTY, FINELY_OS_ENTITY_INPUT, FINELY_OS_ENTITY_SUBLABEL, FINELY_OS_ENTITY_VALUE, FINELY_OS_KPI_ACCENTS, FINELY_OS_LUXURY_PAGINATION, FINELY_OS_LUXURY_PAGINATION_BTN, finelyOsGlassShell, finelyOsStatusChip, finelyOsViewTab, finelyOsColumnTheme } from '../../os/finelyOsLightUi';
+import { FINELY_OS_DRAG_HINT, FINELY_OS_ENTITY_BODY, FINELY_OS_ENTITY_EMPTY, FINELY_OS_ENTITY_INPUT, FINELY_OS_ENTITY_SUBLABEL, FINELY_OS_ENTITY_VALUE, FINELY_OS_LUXURY_PAGINATION, FINELY_OS_LUXURY_PAGINATION_BTN, finelyOsGlassShell, finelyOsStatusChip, finelyOsViewTab, finelyOsColumnTheme } from '../../os/finelyOsLightUi';
 import { TaskTimerChip } from '../components/TaskTimerChip';
 import { useBoardDragDrop } from '../../os/useBoardDragDrop';
+import './workBoardCards.css';
+
+const WORK_CARD_ACCENTS = ['emerald', 'violet', 'sky', 'rose'] as const;
 
 const STATUS_COLUMNS: Array<{ id: TaskStatus; label: string; hint: string; color: string }> = [
   { id: 'pending', label: 'To do', hint: 'Not started', color: '#94a3b8' },
@@ -77,54 +80,50 @@ export function WorkTaskStatusBoard({
       <p className={FINELY_OS_DRAG_HINT}>
         <GripVertical size={12} /> Drag tasks between columns to update status
       </p>
-      <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scroll-px-4 -mx-1 px-1">
+      <div className="fc-work-board-scroll">
+        <div className="fc-work-board-row">
         {STATUS_COLUMNS.map((col, colIdx) => {
           const items = byStatus.get(col.id) ?? [];
           const theme = finelyOsColumnTheme(colIdx);
+          const laneAccent = WORK_CARD_ACCENTS[colIdx % WORK_CARD_ACCENTS.length];
           const dropProps = columnDropProps(col.id, `${theme.drop} rounded-xl transition-all min-h-[120px] p-1`);
           return (
-            <div key={col.id} className="min-w-[260px] w-[260px] shrink-0 snap-start">
-              <div className={`rounded-xl border px-3 py-2 mb-2 ${theme.header}`}>
+            <div key={col.id} className="fc-work-lane snap-start" data-accent={laneAccent}>
+              <div className="mb-3">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: col.color }} />
-                    <span className="text-xs font-bold uppercase tracking-wider text-white/85">{col.label}</span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-white">{col.label}</span>
                   </div>
-                  <span className="text-xs font-semibold text-white/70 bg-white/[0.08] px-2 py-0.5 rounded-full">{items.length}</span>
+                  <span className="text-xs font-semibold text-white/80 bg-white/10 px-2 py-0.5 rounded-full">{items.length}</span>
                 </div>
-                <div className="text-[10px] text-white/50 mt-0.5">{col.hint}</div>
+                <div className="text-[10px] text-white/60 mt-0.5">{col.hint}</div>
               </div>
-              <div {...dropProps} className={`space-y-2 min-h-[120px] rounded-xl ${theme.body} ${dropProps.className ?? ''}`}>
+              <div {...dropProps} className={`space-y-2 min-h-[120px] rounded-xl ${dropProps.className ?? ''}`}>
                 {items.length === 0 ? (
-                  <div className={`rounded-xl border border-dashed border-violet-400/30 p-4 text-center text-xs m-1 ${FINELY_OS_ENTITY_BODY}`}>Drop task here</div>
+                  <div className="rounded-xl border border-dashed border-white/25 p-4 text-center text-xs text-white/70 m-1">Drop task here</div>
                 ) : (
                   items.map((t) => {
                     const due = fmtDue(t.dueAt);
                     const phase = stageLabelById.get(String(t.stage ?? 'intake')) ?? t.stage;
-                    const drag = cardDragProps(
-                      t.id,
-                      `rounded-xl border p-3 shadow-sm hover:shadow-md transition-all ${
-                        due?.overdue
-                          ? 'border-rose-500/35 bg-rose-500/10 ring-1 ring-rose-400/20'
-                          : 'border-white/[0.08] bg-white/[0.06] ring-1 ring-inset ring-white/[0.08] hover:border-violet-400/30'
-                      }`,
-                    );
+                    const drag = cardDragProps(t.id, '');
                     const { className: dragClass, ...restDrag } = drag;
                     return (
                       <div
                         key={t.id}
                         {...restDrag}
-                        className={dragClass}
+                        className={`fc-work-card ${dragClass ?? ''}`.trim()}
+                        data-accent={due?.overdue ? 'rose' : laneAccent}
                         onClick={() => onOpenTask(t.id)}
                         role="button"
                         tabIndex={0}
                         onKeyDown={(e) => e.key === 'Enter' && onOpenTask(t.id)}
                       >
                         <div className="flex items-start gap-1">
-                          <GripVertical size={14} className="text-white/25 shrink-0 mt-0.5" />
+                          <GripVertical size={14} className="text-white/45 shrink-0 mt-0.5" />
                           <div className="min-w-0 flex-1">
-                            <div className={`text-sm line-clamp-2 ${FINELY_OS_ENTITY_VALUE}`}>{t.title}</div>
-                            <div className={`mt-1 text-[10px] font-medium text-violet-300/80`}>{phase} · {t.kind.replace(/_/g, ' ')}</div>
+                            <div className="fc-work-card-title line-clamp-2">{t.title}</div>
+                            <div className="fc-work-card-meta mt-1">{phase} · {t.kind.replace(/_/g, ' ')}</div>
                           </div>
                         </div>
                         <TaskTimerChip task={t} compact onUpdate={() => {}} />
@@ -150,6 +149,7 @@ export function WorkTaskStatusBoard({
             </div>
           );
         })}
+        </div>
       </div>
     </div>
   );
@@ -212,16 +212,16 @@ export function WorkTaskListPanel({
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 min-w-0">
         {[
-          { label: 'Total', value: stats.total, accent: 0 },
-          { label: 'Open', value: stats.open, accent: 1 },
-          { label: 'Overdue', value: stats.overdue, accent: 4, tone: stats.overdue ? 'text-rose-300' : undefined },
-          { label: 'Done', value: stats.done, accent: 2 },
+          { label: 'Total', value: stats.total, accent: 'sky' as const },
+          { label: 'Open', value: stats.open, accent: 'violet' as const },
+          { label: 'Overdue', value: stats.overdue, accent: 'rose' as const },
+          { label: 'Done', value: stats.done, accent: 'emerald' as const },
         ].map((m) => (
-          <div key={m.label} className={`rounded-xl border p-3 ${FINELY_OS_KPI_ACCENTS[m.accent % FINELY_OS_KPI_ACCENTS.length]}`}>
-            <div className={FINELY_OS_ENTITY_SUBLABEL}>{m.label}</div>
-            <div className={`text-xl font-bold mt-0.5 ${m.tone ?? FINELY_OS_ENTITY_VALUE}`}>{m.value}</div>
+          <div key={m.label} className="fc-work-card min-w-0" data-accent={m.accent}>
+            <div className="text-xs font-black uppercase tracking-widest text-white/70">{m.label}</div>
+            <div className="fc-work-card-title mt-1 text-2xl">{m.value}</div>
           </div>
         ))}
       </div>
@@ -260,9 +260,8 @@ export function WorkTaskListPanel({
                       key={t.id}
                       type="button"
                       onClick={() => onOpenTask(t.id)}
-                      className={`text-left rounded-xl border p-3 transition-all hover:shadow-md ${
-                        FINELY_OS_KPI_ACCENTS[i % FINELY_OS_KPI_ACCENTS.length]
-                      } ${due?.overdue && st !== 'completed' ? 'ring-1 ring-rose-400/40' : ''}`}
+                      className="fc-work-card text-left transition-all"
+                      data-accent={due?.overdue && st !== 'completed' ? 'rose' : WORK_CARD_ACCENTS[i % WORK_CARD_ACCENTS.length]}
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className={`${FINELY_OS_ENTITY_VALUE} text-sm line-clamp-2`}>{t.title}</div>
@@ -449,7 +448,8 @@ export function WorkTaskCalendarPanel({
                   key={t.id}
                   type="button"
                   onClick={() => onOpenTask(t.id)}
-                  className={`w-full text-left rounded-xl border p-3 hover:shadow-sm transition-all ${FINELY_OS_KPI_ACCENTS[i % FINELY_OS_KPI_ACCENTS.length]}`}
+                  className="fc-work-card w-full text-left"
+                  data-accent={WORK_CARD_ACCENTS[i % WORK_CARD_ACCENTS.length]}
                 >
                   <div className={`font-medium text-sm line-clamp-2 ${FINELY_OS_ENTITY_VALUE}`}>{t.title}</div>
                   <div className="mt-1 flex flex-wrap gap-2 text-[10px]">

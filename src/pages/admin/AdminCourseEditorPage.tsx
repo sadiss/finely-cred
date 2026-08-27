@@ -18,7 +18,7 @@ import {
   Users,
   Wand2,
 } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { getCourse, upsertCourse } from '../../data/coursesRepo';
 import type { Course, CourseLesson, CourseModule, LessonContentBlock } from '../../domain/courses';
@@ -91,9 +91,23 @@ function stepIndex(step: CommandStep): number {
   return WIZARD_STEPS.findIndex((s) => s.id === step);
 }
 
-export default function AdminCourseEditorPage() {
+export function AdminCourseEditorWorkspace({
+  courseId,
+  embedded = false,
+}: {
+  courseId?: string;
+  embedded?: boolean;
+}) {
   const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
+  const { pathname } = useLocation();
+  const { id: routeId } = useParams<{ id: string }>();
+  const id = courseId ?? routeId;
+  const embeddedCoursesPath = pathname.startsWith('/preview/workspace-light')
+    ? '/preview/workspace-light/admin/courses'
+    : '/admin/courses';
+  const embeddedPartnerCoursesPath = pathname.startsWith('/preview/workspace-light')
+    ? '/preview/workspace-light/portal/courses'
+    : '/portal/courses';
   const [version, setVersion] = useState(0);
   const [saved, setSaved] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -468,24 +482,40 @@ export default function AdminCourseEditorPage() {
   };
 
   if (!id) {
-    return <PageShell badge="Admin" title="Course not found" subtitle="No course selected." />;
+    const empty = <div className={FINELY_OS_BANNER}>No course selected. Return to the course library and choose a course.</div>;
+    return embedded ? empty : <PageShell badge="Admin" title="Course not found" subtitle="No course selected.">{empty}</PageShell>;
   }
 
   if (!draft) {
-    return <PageShell badge="Admin" title="Course not found" subtitle="This course does not exist." />;
+    const empty = <div className={FINELY_OS_BANNER}>This course does not exist. Return to the course library and choose another course.</div>;
+    return embedded ? empty : <PageShell badge="Admin" title="Course not found" subtitle="This course does not exist.">{empty}</PageShell>;
   }
 
   const lessonCount = draft.modules.reduce((n, m) => n + m.lessons.length, 0);
 
-  return (
-    <PageShell badge="Admin" title="Course Command Center" subtitle={draft.title}>
+  const content = (
+    <>
       <div className={FINELY_OS_PAGE}>
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <button type="button" onClick={() => navigate('/admin/courses')} className={FINELY_OS_BACK_LINK}>
+          <button
+            type="button"
+            onClick={() => navigate(embedded ? embeddedCoursesPath : '/admin/courses')}
+            className={FINELY_OS_BACK_LINK}
+          >
             <ArrowLeft size={16} /> Courses
           </button>
           <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={() => navigate(`/portal/courses/${draft.id}`)} className={FINELY_OS_SECONDARY_BTN}>
+            <button
+              type="button"
+              onClick={() =>
+                navigate(
+                  embedded
+                    ? `${embeddedPartnerCoursesPath}?courseId=${encodeURIComponent(draft.id)}`
+                    : `/portal/courses/${draft.id}`,
+                )
+              }
+              className={FINELY_OS_SECONDARY_BTN}
+            >
               Preview <ArrowRight size={12} />
             </button>
             <button type="button" onClick={save} className={saved ? FINELY_OS_SUCCESS_BTN : FINELY_OS_PRIMARY_BTN}>
@@ -572,7 +602,7 @@ export default function AdminCourseEditorPage() {
                 {draft.modules.map((m) => {
                   const moduleActive = m.id === (activeModuleId ?? draft.modules[0]?.id);
                   return (
-                    <div key={m.id} className={`${finelyOsDeckTile('emerald', moduleActive)} !p-4 space-y-3`}>
+                    <div key={m.id} className={`${finelyOsDeckTile('emerald', moduleActive)} space-y-3`}>
                       <div className="flex items-start justify-between gap-2">
                         <input
                           value={m.title}
@@ -646,7 +676,7 @@ export default function AdminCourseEditorPage() {
                               setActiveModuleId(m.id);
                               setActiveLessonId(l.id);
                             }}
-                            className={`${finelyOsDeckTile('violet', active)} !p-3 w-full text-left`}
+                            className={`${finelyOsDeckTile('violet', active)} w-full text-left`}
                           >
                             <div className={FINELY_OS_ENTITY_VALUE}>{l.title}</div>
                             {l.summary ? <div className={`mt-1 truncate ${FINELY_OS_ENTITY_BODY}`}>{l.summary}</div> : null}
@@ -752,7 +782,7 @@ export default function AdminCourseEditorPage() {
               icon={Clapperboard}
               title="Step 4 — Videos"
               subtitle="Produce lesson videos via VideoCreateWizard"
-              accent="fuchsia"
+              accent="rose"
               actions={
                 <button type="button" onClick={autoProduceAllStub} className={FINELY_OS_SECONDARY_BTN}>
                   <Wand2 size={14} /> Auto-produce all (stub)
@@ -767,13 +797,13 @@ export default function AdminCourseEditorPage() {
                     const hasVideo = lessonHasAttachedVideo(l);
                     const active = l.id === activeLessonId;
                     return (
-                      <div key={l.id} className={`${finelyOsDeckTile('fuchsia', active)} !p-3 space-y-2`}>
+                      <div key={l.id} className={`${finelyOsDeckTile('rose', active)} space-y-2`}>
                         <div className="min-w-0">
                           <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{l.title}</div>
                           <div className={`${FINELY_OS_ENTITY_SUBLABEL} truncate`}>{m.title}</div>
                         </div>
                         <div className="flex flex-wrap gap-2">
-                          <span className={finelyOsMicroStat(hasVideo ? 'emerald' : 'fuchsia')}>{hasVideo ? 'Attached' : stage}</span>
+                          <span className={finelyOsMicroStat(hasVideo ? 'emerald' : 'rose')}>{hasVideo ? 'Attached' : stage}</span>
                         </div>
                         <button
                           type="button"
@@ -867,10 +897,20 @@ export default function AdminCourseEditorPage() {
                 </label>
               </div>
             </FinelyOsGlassPanel>
-            <FinelyOsGlassPanel icon={CheckCircle2} title="Publish checklist" accent="amber" variant="inner" headerless>
+            <FinelyOsGlassPanel icon={CheckCircle2} title="Publish checklist" accent="emerald" variant="inner" headerless>
               <CoursePublishChecklist course={draft} />
               <div className="mt-4 flex flex-wrap gap-2">
-                <button type="button" onClick={() => navigate(`/portal/courses/${draft.id}`)} className={FINELY_OS_PRIMARY_BTN}>
+                <button
+                  type="button"
+                  onClick={() =>
+                    navigate(
+                      embedded
+                        ? `${embeddedPartnerCoursesPath}?courseId=${encodeURIComponent(draft.id)}`
+                        : `/portal/courses/${draft.id}`,
+                    )
+                  }
+                  className={FINELY_OS_PRIMARY_BTN}
+                >
                   Open portal preview
                 </button>
                 <button type="button" onClick={save} className={FINELY_OS_SECONDARY_BTN}>
@@ -914,6 +954,18 @@ export default function AdminCourseEditorPage() {
         }}
         onExported={() => setVersion((v) => v + 1)}
       />
+    </>
+  );
+
+  if (embedded) return content;
+
+  return (
+    <PageShell badge="Admin" title="Course Command Center" subtitle={draft.title}>
+      {content}
     </PageShell>
   );
+}
+
+export default function AdminCourseEditorPage() {
+  return <AdminCourseEditorWorkspace />;
 }

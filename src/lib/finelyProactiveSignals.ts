@@ -1090,7 +1090,7 @@ export function buildPartnersAdminNoticedItems(input: PartnersAdminSignalInput):
       {
         id: 'adm-empty',
         tone: 'warn',
-        text: 'No partners yet. Create a customer file or import from legacy export.',
+        text: 'No partners yet. Create a partner file or import from a legacy export.',
         actionLabel: 'Create partner',
         to: '/admin/partners#create-partner',
       },
@@ -1100,7 +1100,7 @@ export function buildPartnersAdminNoticedItems(input: PartnersAdminSignalInput):
     {
       id: 'adm-open',
       tone: 'info',
-      text: 'Open a customer profile to upload reports or run letters on their behalf.',
+      text: 'Open a partner profile to upload reports or run letters on their behalf.',
       actionLabel: 'Ops queue',
       to: '/admin/workflow',
     },

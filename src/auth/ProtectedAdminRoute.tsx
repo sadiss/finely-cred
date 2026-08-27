@@ -85,7 +85,7 @@ export function ProtectedAdminRoute({ children }: { children: React.ReactNode })
               Current membership: <span className="font-mono text-white/80">{membership.role}</span> •{' '}
               <span className="font-mono text-white/80">{membership.status}</span>
               <div className="mt-2 text-white/50 text-xs">
-                Permissions: team={String(canManageTeam(membership))}, allClients={String(canViewAllClients(membership))}
+                Permissions: team={String(canManageTeam(membership))}, allPartners={String(canViewAllClients(membership))}
               </div>
             </div>
           ) : null}

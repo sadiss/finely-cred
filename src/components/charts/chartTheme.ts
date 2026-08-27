@@ -31,22 +31,22 @@ export const TOOLTIP_STYLE = {
 } as const;
 
 export const AXIS_TICK = {
-  fill: 'rgba(255,255,255,0.5)',
-  fontSize: 11,
+  fill: 'rgba(255,255,255,0.68)',
+  fontSize: 12,
 } as const;
 
 export const CARD_CLASS =
-  'fc-light-glass-panel fc-light-chrome-panel p-6';
+  'fc-premium-chart-card overflow-hidden rounded-2xl border border-sky-300/20 bg-[linear-gradient(145deg,rgba(12,25,42,0.98),rgba(24,20,55,0.96))] p-4 text-white shadow-[0_24px_54px_-36px_rgba(56,189,248,0.8)]';
 
 export const LEGEND_CHIP_CLASS =
-  'inline-flex items-center gap-2 px-3 py-1.5 rounded-full fc-light-glass-panel fc-light-chrome-panel border text-[10px] font-black uppercase tracking-widest text-white/70';
+  'inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-3 py-1.5 text-xs font-black uppercase tracking-wider text-white/75';
 
 export function defaultSeriesColors(idx: number): string {
-  const colors = [CHART_PALETTE.amber, CHART_PALETTE.emerald, CHART_PALETTE.violet, CHART_PALETTE.rose, CHART_PALETTE.sky];
+  const colors = [CHART_PALETTE.emerald, CHART_PALETTE.violet, CHART_PALETTE.sky, CHART_PALETTE.rose];
   return colors[idx % colors.length]!;
 }
 
 export function defaultSeriesFills(idx: number): string {
-  const fills = [CHART_PALETTE.amberFill, CHART_PALETTE.emeraldFill, CHART_PALETTE.violetFill, CHART_PALETTE.roseFill, CHART_PALETTE.skyFill];
+  const fills = [CHART_PALETTE.emeraldFill, CHART_PALETTE.violetFill, CHART_PALETTE.skyFill, CHART_PALETTE.roseFill];
   return fills[idx % fills.length]!;
 }

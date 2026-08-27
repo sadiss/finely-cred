@@ -10,18 +10,22 @@ export function CollateralWorkstationSection({
   title: string;
   subtitle?: string;
   children: React.ReactNode;
-  accent?: 'amber' | 'rose' | 'emerald' | 'fuchsia' | 'white';
+  accent?: 'amber' | 'rose' | 'emerald' | 'fuchsia' | 'sky' | 'violet' | 'white';
 }) {
   const border =
     accent === 'amber'
-      ? 'border-amber-500/20'
+      ? 'border-sky-500/20'
       : accent === 'rose'
         ? 'border-rose-500/20'
         : accent === 'emerald'
           ? 'border-emerald-500/20'
           : accent === 'fuchsia'
             ? 'border-fuchsia-500/20'
-            : 'border-white/10';
+            : accent === 'sky'
+              ? 'border-sky-500/20'
+              : accent === 'violet'
+                ? 'border-violet-500/20'
+                : 'border-white/10';
 
   return (
     <section className={`rounded-2xl border ${border} bg-black/20 p-4 sm:p-5 space-y-3`}>

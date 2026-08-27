@@ -40,10 +40,10 @@ export function CMOMLCommandPanel() {
   };
 
   return (
-    <section className="fc-panel rounded-3xl border border-amber-300/15 bg-slate-950/85 p-5 shadow-xl shadow-black/25">
+    <section className="fc-panel rounded-3xl border border-sky-300/15 bg-slate-950/85 p-5 shadow-xl shadow-black/25">
       <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-purple-300/20 bg-purple-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-purple-100">
+          <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-sky-300/20 bg-sky-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-sky-100">
             <BrainCircuit className="h-3.5 w-3.5" /> ML Command
           </div>
           <h3 className="text-xl font-black text-white">Growth learning engine</h3>
@@ -61,8 +61,8 @@ export function CMOMLCommandPanel() {
 
       <div className="grid gap-4 xl:grid-cols-3">
         <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-4">
-          <div className="mb-3 flex items-center gap-2 font-bold text-white"><BarChart3 className="h-4 w-4 text-amber-200" /> Copy score</div>
-          <textarea value={copy} onChange={(event) => setCopy(event.target.value)} className="min-h-32 w-full resize-none rounded-2xl border border-white/10 bg-black/30 p-3 text-sm text-white outline-none focus:border-amber-300/50" />
+          <div className="mb-3 flex items-center gap-2 font-bold text-white"><BarChart3 className="h-4 w-4 text-sky-200" /> Copy score</div>
+          <textarea value={copy} onChange={(event) => setCopy(event.target.value)} className="min-h-32 w-full resize-none rounded-2xl border border-white/10 bg-black/30 p-3 text-sm text-white outline-none focus:border-sky-300/50" />
           <div className="mt-3 text-4xl font-black text-white">{score.score}<span className="text-base text-slate-500">/150</span></div>
           <p className="mt-2 text-sm text-slate-300">{score.recommendedRewriteAngle}</p>
           <div className="mt-3 space-y-1 text-xs text-slate-400">{score.issues.slice(0, 3).map((issue) => <div key={issue}>• {issue}</div>)}</div>
@@ -79,13 +79,13 @@ export function CMOMLCommandPanel() {
         </div>
 
         <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-4">
-          <div className="mb-3 flex items-center gap-2 font-bold text-white"><Flame className="h-4 w-4 text-orange-200" /> Channel winners</div>
+          <div className="mb-3 flex items-center gap-2 font-bold text-white"><Flame className="h-4 w-4 text-violet-200" /> Channel winners</div>
           <div className="space-y-2">
             {channels.map((channel) => (
               <div key={channel.channel} className="rounded-2xl border border-white/10 bg-black/25 p-3">
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-bold text-white">{channel.channel.replaceAll('_', ' ')}</span>
-                  <span className="text-sm font-black text-amber-100">{channel.score}%</span>
+                  <span className="text-sm font-black text-sky-100">{channel.score}%</span>
                 </div>
                 <p className="mt-1 text-xs text-slate-400">{channel.reason}</p>
               </div>
@@ -94,8 +94,8 @@ export function CMOMLCommandPanel() {
         </div>
       </div>
 
-      <div className="mt-4 rounded-3xl border border-amber-300/15 bg-amber-300/[0.04] p-4">
-        <div className="font-bold text-amber-100">Daily lead math</div>
+      <div className="mt-4 rounded-3xl border border-sky-300/15 bg-sky-300/[0.04] p-4">
+        <div className="font-bold text-sky-100">Daily lead math</div>
         <div className="mt-3 grid gap-2 md:grid-cols-5">
           {plan.channelPlan.slice(0, 10).map((item) => (
             <div key={item.channel} className="rounded-2xl border border-white/10 bg-black/20 p-3">

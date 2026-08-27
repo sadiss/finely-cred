@@ -36,10 +36,10 @@ import { FINELY_OS_COMPLIANCE_FOOTNOTE, FINELY_OS_PAGE } from '../features/os/fi
 
 const ROLE = 'cs' as const;
 
-/** Distinct, non-purple accent per tier — gold/navy/emerald/sky brand only. */
+/** Distinct accent per tier — emerald / sky / rose / navy (one dark). */
 const TIER_ACCENT: Record<CreditSpecialistOfferTierId, CareerAccent> = {
   cs_foundation: 'sky',
-  cs_builder: 'gold',
+  cs_builder: 'rose',
   cs_pro: 'emerald',
   cs_elite: 'navy',
 };
@@ -109,10 +109,10 @@ export default function CreditSpecialistPricingPage() {
         </div>
 
         {/* Hero — brand, one sell sentence, proof chips, guide book + folio + Read/Download */}
-        <section className="relative overflow-hidden rounded-3xl border-2 border-amber-200 bg-white p-6 sm:p-10">
+        <section className="relative overflow-hidden rounded-3xl border-2 border-emerald-200 bg-white p-6 sm:p-10">
           <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
             <div className="space-y-5">
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-700">
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-700">
                 Finely Cred · {CS.programName}
               </p>
               <LandingTypewriterTitle
@@ -120,7 +120,7 @@ export default function CreditSpecialistPricingPage() {
                 text="Credit Specialist: you run the files, we supply the method."
                 className="text-4xl sm:text-5xl font-bold tracking-tight text-slate-900 leading-[1.05]"
                 highlight="we supply the method."
-                highlightClassName="text-amber-700 font-semibold"
+                highlightClassName="text-emerald-700 font-semibold"
                 speedMs={30}
               />
               <p className="max-w-xl text-base sm:text-lg leading-relaxed text-slate-600">
@@ -136,8 +136,8 @@ export default function CreditSpecialistPricingPage() {
                   { n: String(CS_OFFER.freeLeadsWindowDays), label: 'Days free' },
                   { n: '$0', label: 'Platform fee' },
                 ].map((x) => (
-                  <div key={x.label} className="rounded-2xl border border-amber-200/50 bg-amber-50 px-3 py-3.5 text-center">
-                    <div className="text-2xl sm:text-3xl font-black tabular-nums text-amber-700">{x.n}</div>
+                  <div key={x.label} className="rounded-2xl border border-emerald-200/50 bg-emerald-50 px-3 py-3.5 text-center">
+                    <div className="text-2xl sm:text-3xl font-black tabular-nums text-emerald-700">{x.n}</div>
                     <div className="mt-1 text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">{x.label}</div>
                   </div>
                 ))}
@@ -147,7 +147,7 @@ export default function CreditSpecialistPricingPage() {
                 <button
                   type="button"
                   onClick={() => goJoin(selectedTierId)}
-                  className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-6 py-3 text-[12px] font-black uppercase tracking-[0.14em] text-[#1c1206] shadow-lg shadow-amber-500/25 transition-all hover:brightness-105"
+                  className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 text-[12px] font-black uppercase tracking-[0.14em] text-white shadow-lg shadow-emerald-600/25 transition-all hover:bg-emerald-500"
                 >
                   Join as Credit Specialist <ArrowRight size={16} />
                 </button>
@@ -184,12 +184,12 @@ export default function CreditSpecialistPricingPage() {
         {/* Who does the work — white/slate cards, no purple */}
         <section className="space-y-4">
           <div className="max-w-2xl space-y-2">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-700">Who does the work</p>
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-700">Who does the work</p>
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">{workSplit.headline}</h2>
           </div>
           <div className="grid gap-3 sm:grid-cols-3">
             <div className="rounded-2xl border-2 border-slate-200 bg-white p-5">
-              <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-amber-700">
+              <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-violet-700">
                 <Sparkles size={13} /> You do
               </p>
               <ul className="mt-3 space-y-2">

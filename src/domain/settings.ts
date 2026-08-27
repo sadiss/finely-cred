@@ -150,6 +150,8 @@ export interface SensitiveActionCodes {
 export interface SecuritySettings {
   /** Additional admin emails (in addition to the code allowlist bootstrap). */
   adminEmails: string[];
+  /** When false, only platform owners/allowlisted admins may use the role preview switcher. */
+  teamRolePreviewEnabled?: boolean;
   /** Resettable codes for destructive or high-risk admin actions (store server-side in production). */
   sensitiveActionCodes?: SensitiveActionCodes;
 }
@@ -361,6 +363,7 @@ export const DEFAULT_SETTINGS: PlatformSettings = {
   },
   security: {
     adminEmails: [],
+    teamRolePreviewEnabled: true,
   },
   stripe: {
     status: 'not_configured',

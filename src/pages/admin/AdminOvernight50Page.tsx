@@ -1,35 +1,79 @@
 import React, { useMemo } from 'react';
 import { Moon, Sun, TrendingUp } from 'lucide-react';
-import { PageShell } from '../../components/layout/PageShell';
+import { AdminWorkstationFrame, type AdminEmbeddablePageProps } from '../../features/workspaceLightPreview/product/admin/AdminWorkstationFrame';
 import { buildMicroBudgetPlan } from '../../lib/geo/microBudgetBrain';
 import { LeadIntelSwarmDashboard } from '../../features/overnight50/LeadIntelSwarmDashboard';
 import { SyntheticStaffFloor } from '../../features/overnight50/SyntheticStaffFloor';
 import { FinelyOsAlertBanner } from '../../features/os/FinelyOsAlertBanner';
+import { FinelyOsGlassPanel } from '../../features/os/FinelyOsGlassPanel';
+import { FinelyOsOverviewStatTile } from '../../features/os/FinelyOsOverviewStatTile';
+import {
+  FINELY_OS_PAGE,
+  FINELY_OS_ENTITY_BODY,
+  FINELY_OS_ENTITY_SUBLABEL,
+  FINELY_OS_ENTITY_VALUE,
+  finelyOsCatalogCard,
+} from '../../features/os/finelyOsLightUi';
 
-export default function AdminOvernight50Page() {
+export default function AdminOvernight50Page({ embedded = false }: AdminEmbeddablePageProps = {}) {
   const budget = useMemo(() => buildMicroBudgetPlan(), []);
   const target = budget.freeLeadPlan.reduce((n, x) => n + x.targetLeads, 0) + budget.paidLeadEstimate.high;
+  const cellAccents = ['emerald', 'violet', 'sky', 'rose'] as const;
+  const sourceAccents = ['violet', 'sky', 'emerald', 'rose', 'violet'] as const;
+
   return (
-    <PageShell badge="Admin" title="Overnight50 War Room" subtitle="Simulation labs — live finds run on Caleb Find / Marketing Desk.">
-      <div className="space-y-4">
+    <AdminWorkstationFrame embedded={embedded} kind="overnight-workstation" badge="Admin" title="Overnight50 War Room" subtitle="Simulation labs — live finds run on Caleb Find / Marketing Desk.">
+      <div className={FINELY_OS_PAGE}>
         <FinelyOsAlertBanner tone="warning" message="Simulation only · not live finds. Use Caleb desk or Marketing Desk → Find for real Serper imports." />
-        <section className="rounded-3xl border border-white/10 bg-gradient-to-br from-slate-950 via-black to-amber-950/30 p-6">
-          <div className="flex flex-wrap items-center justify-between gap-5">
-            <div>
-              <div className="inline-flex items-center gap-2 text-amber-300 text-xs font-black uppercase tracking-[0.24em]"><Moon size={16} /> Last-night target model</div>
-              <h2 className="mt-3 text-3xl md:text-5xl font-black text-white">Wake up goal: 50 leads. Honest paid estimate: {budget.paidLeadEstimate.low}-{budget.paidLeadEstimate.high}.</h2>
-              <p className="mt-3 text-white/65 max-w-4xl">The math is transparent: $25/day cannot buy 50 leads by itself. The system uses geo SEO, revival, partner referrals, community capture, and Lead Intel nurture to close the gap.</p>
-            </div>
-            <div className="rounded-3xl border border-emerald-500/25 bg-emerald-500/10 p-5 text-center min-w-[180px]"><TrendingUp className="mx-auto text-emerald-200" /><div className="mt-2 text-4xl font-black text-white">{target}</div><div className="text-white/50 text-xs uppercase tracking-widest">modeled high case</div></div>
+
+        <FinelyOsGlassPanel
+          icon={Moon}
+          title="Last-night target model"
+          subtitle="The math is transparent: $25/day cannot buy 50 leads by itself. Geo SEO, revival, partner referrals, community capture, and Lead Intel close the gap."
+          accent="violet"
+        >
+          <div className="flex flex-wrap items-end justify-between gap-6">
+            <h2 className={`${FINELY_OS_ENTITY_VALUE} text-3xl md:text-5xl max-w-4xl`}>
+              Wake up goal: 50 leads. Honest paid estimate: {budget.paidLeadEstimate.low}-{budget.paidLeadEstimate.high}.
+            </h2>
+            <FinelyOsOverviewStatTile
+              icon={TrendingUp}
+              label="Modeled high case"
+              value={target}
+              hint="Paid + owned sources"
+              accent="emerald"
+              iconAccent="emerald"
+            />
           </div>
-        </section>
-        <section className="grid lg:grid-cols-4 gap-4">
-          {budget.cells.map((c) => <div key={c.bucket} className="rounded-3xl border border-white/10 bg-black/30 p-5"><div className="text-white font-black">{c.bucket}</div><div className="mt-2 text-3xl text-amber-200 font-black">${(c.amountCents/100).toFixed(2)}</div><p className="mt-2 text-white/60 text-sm">{c.purpose}</p><div className="mt-3 text-white/40 text-xs">Expected paid leads: {c.expectedLeadsLow}-{c.expectedLeadsHigh}</div></div>)}
-        </section>
-        <section className="rounded-3xl border border-white/10 bg-black/30 p-5"><div className="inline-flex items-center gap-2 text-white font-black"><Sun className="text-amber-300" size={18} /> Free/owned sources needed to make 50 possible</div><div className="mt-4 grid md:grid-cols-2 xl:grid-cols-5 gap-4">{budget.freeLeadPlan.map((p) => <div key={p.source} className="rounded-2xl border border-white/10 bg-white/[0.025] p-4"><div className="text-2xl font-black text-white">{p.targetLeads}</div><div className="mt-1 text-amber-200 text-sm font-semibold">{p.source.replace('_', ' ')}</div><p className="mt-2 text-white/55 text-xs">{p.action}</p><div className="mt-3 text-white/40 text-[10px] uppercase tracking-widest">Owner: {p.owner}</div></div>)}</div></section>
+        </FinelyOsGlassPanel>
+
+        <div className="grid lg:grid-cols-4 gap-4">
+          {budget.cells.map((c, i) => (
+            <div key={c.bucket} className={finelyOsCatalogCard(cellAccents[i % cellAccents.length])}>
+              <div className={FINELY_OS_ENTITY_SUBLABEL}>{c.bucket}</div>
+              <div className={`${FINELY_OS_ENTITY_VALUE} mt-2 text-3xl`}>${(c.amountCents / 100).toFixed(2)}</div>
+              <p className={`${FINELY_OS_ENTITY_BODY} mt-3`}>{c.purpose}</p>
+              <div className={`${FINELY_OS_ENTITY_SUBLABEL} mt-4`}>Expected paid leads: {c.expectedLeadsLow}-{c.expectedLeadsHigh}</div>
+            </div>
+          ))}
+        </div>
+
+        <FinelyOsGlassPanel icon={Sun} title="Free and owned sources needed to make 50 possible" accent="sky">
+          <div className="grid md:grid-cols-2 xl:grid-cols-5 gap-4">
+            {budget.freeLeadPlan.map((p, i) => (
+              <div key={p.source} className={finelyOsCatalogCard(sourceAccents[i % sourceAccents.length])}>
+                <div className={`${FINELY_OS_ENTITY_VALUE} text-3xl`}>{p.targetLeads}</div>
+                <div className={`${FINELY_OS_ENTITY_SUBLABEL} mt-2`}>{p.source.replace('_', ' ')}</div>
+                <p className={`${FINELY_OS_ENTITY_BODY} mt-3`}>{p.action}</p>
+                <div className={`${FINELY_OS_ENTITY_SUBLABEL} mt-4`}>Owner: {p.owner}</div>
+              </div>
+            ))}
+          </div>
+        </FinelyOsGlassPanel>
+
         <LeadIntelSwarmDashboard />
         <SyntheticStaffFloor />
       </div>
-    </PageShell>
+    </AdminWorkstationFrame>
   );
 }

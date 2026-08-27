@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { Activity, ArrowRight, Pin, ScrollText, User, X } from 'lucide-react';
 import { bureauShortCode } from '../../utils/bureaus';
+import type { Bureau, ParsedScore } from '../../domain/creditReports';
+import { computeMiddleScore } from '../../domain/creditScoreMiddle';
 import type { PartnerOverallScoreResult } from '../../utils/partnerOverallScore';
 import type { ActivityTimelineItem } from '../../components/partner/PartnerActivityTimeline';
 import { derivePartnerSignupStatus, resolvePartnerAccessState } from '../../lib/partnerAuthActivity';
@@ -28,12 +30,12 @@ const FINELY_OS_DARK_GLASS_TITLE = FC_ADMIN_INK_TITLE;
 const FINELY_OS_DARK_GLASS_VALUE = FC_ADMIN_INK_VALUE;
 const FINELY_OS_PRIMARY_BTN = FC_ADMIN_PRIMARY_BTN;
 const FINELY_OS_DARK_GLASS_SELECT =
-  'fc-admin-dark-glass-select mt-1.5 w-full rounded-lg border !border-white/20 !bg-black/25 px-3 py-2 text-sm !text-white [color-scheme:dark] focus:outline-none focus:!border-amber-300/80 focus:!ring-2 focus:!ring-amber-300/20 transition-colors';
+  'fc-admin-dark-glass-select mt-1.5 w-full rounded-lg border !border-white/20 !bg-black/25 px-3 py-2 text-sm !text-white [color-scheme:dark] focus:outline-none focus:!border-violet-300/80 focus:!ring-2 focus:!ring-violet-300/20 transition-colors';
 const FINELY_OS_SOLID_GLOSS =
   'overflow-hidden after:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.38),inset_0_1px_0_rgba(255,255,255,0.58),inset_0_-1px_0_rgba(0,0,0,0.24)]';
 /** Quiet, translucent dark-glass card — activity, nav shortcuts, and secondary detail. */
 function finelyOsCatalogCard(tone: FcAdminTone = 'neutral') {
-  return `fc-admin-dark-glass-card${tone === 'neutral' ? '' : ` fc-admin-dark-glass-tint-${tone}`} rounded-2xl border p-4 text-white`;
+  return `fc-admin-dark-glass-card${tone === 'neutral' ? '' : ` fc-admin-dark-glass-tint-${tone}`} rounded-2xl border p-6 lg:p-8 text-white`;
 }
 /** KPI tile — the number is the point, so it's a rich `solid` fill by default. Pass `variant="soft"` to quiet one down. */
 function finelyOsEntityKpi(tone: FcAdminTone = 'neutral', variant: FcAdminCardVariant = 'solid') {
@@ -44,6 +46,16 @@ function finelyOsStatusChip(tone: 'ok' | 'warn' | 'blocked') {
 }
 
 type ScoreRow = { model: string; exp?: number | null; eqf?: number | null; tuc?: number | null };
+
+function scoresFromRows(rows: ScoreRow[]): ParsedScore[] {
+  const out: ParsedScore[] = [];
+  for (const row of rows) {
+    if (row.exp != null) out.push({ bureau: 'EXP', value: row.exp, model: row.model });
+    if (row.eqf != null) out.push({ bureau: 'EQF', value: row.eqf, model: row.model });
+    if (row.tuc != null) out.push({ bureau: 'TUC', value: row.tuc, model: row.model });
+  }
+  return out;
+}
 
 function fmtWhen(iso: string) {
   try {
@@ -63,7 +75,7 @@ function signupAccentChip(tone: ReturnType<typeof derivePartnerSignupStatus>['to
   if (tone === 'emerald' || tone === 'sky') return fcAdminAccentStatusChip(tone === 'sky' ? 'sky' : 'emerald');
   if (tone === 'rose') return fcAdminAccentStatusChip('rose');
   if (tone === 'violet') return fcAdminAccentStatusChip('violet');
-  return fcAdminAccentStatusChip('gold');
+  return fcAdminAccentStatusChip('violet');
 }
 
 function ActivityInsightCards({
@@ -96,7 +108,7 @@ function ActivityInsightCards({
 
   if (!sorted.length) {
     return (
-      <div className={`fc-admin-dark-glass-activity rounded-2xl border border-dashed border-white/15 p-4 ${FINELY_OS_DARK_GLASS_BODY}`}>
+      <div className={`fc-admin-dark-glass-activity rounded-2xl border border-dashed border-white/15 p-6 lg:p-8 ${FINELY_OS_DARK_GLASS_BODY}`}>
         No recent partner activity yet.
       </div>
     );
@@ -104,7 +116,7 @@ function ActivityInsightCards({
 
   const cards: Array<{ id: keyof typeof buckets; label: string; value: number; hint: string; tone: FcAdminTone }> = [
     { id: 'recent', label: 'Recent', value: sorted.length, hint: 'Latest activity', tone: 'navy' },
-    { id: 'manual', label: 'Team notes', value: sorted.filter((i) => i.kind === 'manual').length, hint: 'Human-entered', tone: 'gold' },
+    { id: 'manual', label: 'Team notes', value: sorted.filter((i) => i.kind === 'manual').length, hint: 'Human-entered', tone: 'violet' },
     { id: 'system', label: 'System', value: sorted.filter((i) => i.kind === 'system').length, hint: 'Automatic', tone: 'sky' },
     { id: 'pinned', label: 'Pinned', value: sorted.filter((i) => i.pinned).length, hint: 'Priority', tone: 'rose' },
     { id: 'partner', label: 'Partner-visible', value: sorted.filter((i) => i.visibility === 'partner').length, hint: 'Shared', tone: 'emerald' },
@@ -113,7 +125,7 @@ function ActivityInsightCards({
   const activeItems = buckets[activeBucket] ?? [];
 
   return (
-    <div className="fc-admin-dark-glass-activity rounded-2xl border p-4 text-white space-y-3">
+    <div className="fc-admin-dark-glass-activity rounded-2xl border p-6 lg:p-8 text-white space-y-3">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className={FINELY_OS_DARK_GLASS_SUBLABEL}>Activity</p>
@@ -149,11 +161,11 @@ function ActivityInsightCards({
       <div className="max-h-48 overflow-y-auto border-y border-white/10 pr-1">
         {activeItems.slice(0, 6).map((item) => (
           <div key={item.id} className="flex items-start gap-2 border-b border-white/10 px-1 py-2.5 last:border-b-0">
-            {item.pinned ? <Pin size={12} className="mt-1 text-amber-300 shrink-0" /> : <Activity size={12} className="mt-1 text-white/35 shrink-0" />}
+            {item.pinned ? <Pin size={12} className="mt-1 text-rose-300 shrink-0" /> : <Activity size={12} className="mt-1 text-white/35 shrink-0" />}
             <div className="min-w-0 flex-1">
               <div className={`text-sm truncate ${FINELY_OS_DARK_GLASS_VALUE}`}>{item.title || 'Update'}</div>
               {item.body ? <div className={`mt-0.5 text-xs truncate ${FINELY_OS_DARK_GLASS_BODY}`}>{item.body}</div> : null}
-              <div className={`mt-0.5 text-[11px] ${FINELY_OS_DARK_GLASS_BODY}`}>{fmtWhen(item.createdAt)}</div>
+              <div className={`mt-0.5 text-sm ${FINELY_OS_DARK_GLASS_BODY}`}>{fmtWhen(item.createdAt)}</div>
             </div>
           </div>
         ))}
@@ -161,7 +173,7 @@ function ActivityInsightCards({
       {modalBucket ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => setModalBucket(null)}>
           <div
-            className={`${finelyOsCatalogCard('neutral')} !p-5 max-w-lg w-full max-h-[70vh] overflow-y-auto`}
+            className={`${finelyOsCatalogCard('violet')} max-w-lg w-full max-h-[80vh] overflow-y-auto`}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between gap-2">
@@ -175,7 +187,7 @@ function ActivityInsightCards({
                 <div key={item.id} className="border-b border-white/10 py-3 last:border-b-0">
                   <div className={`text-sm ${FINELY_OS_DARK_GLASS_VALUE}`}>{item.title || 'Update'}</div>
                   <div className={`mt-1 text-xs ${FINELY_OS_DARK_GLASS_BODY}`}>{item.body}</div>
-                  <div className={`mt-1 text-[10px] ${FINELY_OS_DARK_GLASS_BODY}`}>{fmtWhen(item.createdAt)}</div>
+                  <div className={`mt-1 text-xs ${FINELY_OS_DARK_GLASS_BODY}`}>{fmtWhen(item.createdAt)}</div>
                 </div>
               ))}
             </div>
@@ -212,42 +224,48 @@ export function PartnerOverviewTab(args: {
   const variant = args.variant ?? 'admin';
   const isPortal = variant === 'portal';
   const primaryScore = args.latestScoresRows[0];
+  const middleScore = useMemo(
+    () => computeMiddleScore(scoresFromRows(args.latestScoresRows)),
+    [args.latestScoresRows],
+  );
+  const bureauCellValue = (bureau: Bureau, fallback?: number | null) =>
+    middleScore.bureaus.find((row) => row.bureau === bureau)?.value ?? fallback ?? null;
   const access = resolvePartnerAccessState(partner);
   const signup = derivePartnerSignupStatus(partner);
 
-  /** EXP / EQF / TUC each get a maximally distinct tone — blue / gold / green — so the trio never reads as "three identical blues". */
-  const SCORE_TONES: FcAdminTone[] = ['sky', 'gold', 'emerald'];
+  /** EXP / EQF / TUC each get a maximally distinct tone — sky / violet / emerald — so the trio never reads as "three identical blues". */
+  const SCORE_TONES: FcAdminTone[] = ['sky', 'violet', 'emerald'];
 
   const taskKpis = isPortal
     ? ([
-        { label: 'Open tasks', value: args.openPartnerTasksCount, tone: 'gold' as FcAdminTone },
-        { label: 'Reports', value: args.reportsCount, tone: 'sky' as FcAdminTone },
-        { label: 'Evidence', value: args.evidenceCount, tone: 'teal' as FcAdminTone },
-        { label: 'Open disputes', value: args.openPartnerCasesCount, tone: 'rose' as FcAdminTone },
+        { label: 'Open tasks', value: args.openPartnerTasksCount, tone: 'rose' as FcAdminTone },
+        { label: 'Reports', value: args.reportsCount, tone: 'violet' as FcAdminTone },
+        { label: 'Evidence', value: args.evidenceCount, tone: 'sky' as FcAdminTone },
+        { label: 'Open disputes', value: args.openPartnerCasesCount, tone: 'navy' as FcAdminTone },
       ] as const)
     : ([
         { label: 'Reports', value: args.reportsCount, tone: 'sky' as FcAdminTone },
         { label: 'Letters', value: args.lettersCount, tone: 'navy' as FcAdminTone },
         { label: 'Debt / summons', value: args.debtCasesCount, tone: 'rose' as FcAdminTone },
-        { label: 'Open tasks', value: args.openPartnerTasksCount, tone: 'gold' as FcAdminTone },
+        { label: 'Open tasks', value: args.openPartnerTasksCount, tone: 'violet' as FcAdminTone },
       ] as const);
 
   const quickNavItems = isPortal
     ? ([
-        { label: 'Reports', tab: 'reports', hint: `${args.reportsCount} on file`, tone: 'sky' as FcAdminTone },
-        { label: 'Evidence', tab: 'evidence', hint: `${args.evidenceCount} files`, tone: 'gold' as FcAdminTone },
+        { label: 'Reports', tab: 'reports', hint: `${args.reportsCount} on file`, tone: 'violet' as FcAdminTone },
+        { label: 'Evidence', tab: 'evidence', hint: `${args.evidenceCount} files`, tone: 'sky' as FcAdminTone },
         { label: 'Tasks', tab: 'tasks', hint: `${args.openPartnerTasksCount} open`, tone: 'emerald' as FcAdminTone },
         { label: 'Disputes', tab: 'disputes', hint: `${args.openPartnerCasesCount} open`, tone: 'rose' as FcAdminTone },
       ] as const)
     : ([
-        { label: 'Reports', tab: 'reports', hint: `${args.reportsCount} on file`, tone: 'teal' as FcAdminTone },
-        { label: 'Evidence', tab: 'evidence', hint: `${args.evidenceCount} files`, tone: 'gold' as FcAdminTone },
+        { label: 'Reports', tab: 'reports', hint: `${args.reportsCount} on file`, tone: 'sky' as FcAdminTone },
+        { label: 'Evidence', tab: 'evidence', hint: `${args.evidenceCount} files`, tone: 'violet' as FcAdminTone },
         { label: 'Letters', tab: 'letters', hint: 'Letter studio', tone: 'navy' as FcAdminTone },
         { label: 'Tasks', tab: 'tasks', hint: `${args.openPartnerTasksCount} open`, tone: 'emerald' as FcAdminTone },
       ] as const);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Identity command panel — transparent smoky glass with the radiance supplied by the admin glass surface. */}
       <div className="fc-admin-dark-glass-hero rounded-2xl border p-5 text-white">
         <div className="flex flex-wrap items-start justify-between gap-4">
@@ -303,7 +321,11 @@ export function PartnerOverviewTab(args: {
         {primaryScore ? (
           <div className="mt-5 border-t border-white/10 pt-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className={FINELY_OS_DARK_GLASS_SUBLABEL}>Credit scores · {primaryScore.model}</p>
+              <p className={FINELY_OS_DARK_GLASS_SUBLABEL}>
+                {middleScore.value != null
+                  ? `${middleScore.label} · Results vary`
+                  : `Credit scores · ${primaryScore.model}`}
+              </p>
               {args.latestScoresRows.length > 1 ? (
                 <button type="button" className={FC_ADMIN_ON_SOLID_SECONDARY_BTN} onClick={args.onOpenProfile}>
                   All models on Profile
@@ -312,14 +334,14 @@ export function PartnerOverviewTab(args: {
             </div>
             <div className="mt-3 grid grid-cols-3 gap-3 max-w-md">
               {[
-                { label: 'EXP', value: primaryScore.exp },
-                { label: 'EQF', value: primaryScore.eqf },
-                { label: bureauShortCode('TUC'), value: primaryScore.tuc },
+                { label: 'EXP', value: bureauCellValue('EXP', primaryScore.exp) },
+                { label: 'EQF', value: bureauCellValue('EQF', primaryScore.eqf) },
+                { label: bureauShortCode('TUC'), value: bureauCellValue('TUC', primaryScore.tuc) },
               ].map((cell, i) => {
                 const tone = SCORE_TONES[i];
                 return (
                   <div key={cell.label} className={`${fcAdminScoreCell(tone)} ${FINELY_OS_SOLID_GLOSS}`}>
-                    <div className={`text-[11px] font-semibold uppercase tracking-wide ${fcAdminOnSolidMuted(tone)}`}>{cell.label}</div>
+                    <div className={`text-sm font-semibold uppercase tracking-wide ${fcAdminOnSolidMuted(tone)}`}>{cell.label}</div>
                     <div className={`mt-1 text-2xl font-semibold font-mono ${fcAdminOnSolidText(tone)}`}>{cell.value ?? '—'}</div>
                   </div>
                 );
@@ -337,7 +359,7 @@ export function PartnerOverviewTab(args: {
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {taskKpis.map((k) => (
           <div key={k.label} className={finelyOsEntityKpi(k.tone)}>
-            <p className={`text-[11px] font-semibold uppercase tracking-wide ${fcAdminOnSolidMuted(k.tone)}`}>{k.label}</p>
+            <p className={`text-sm font-semibold uppercase tracking-wide ${fcAdminOnSolidMuted(k.tone)}`}>{k.label}</p>
             <p className={`mt-1 text-2xl font-semibold ${fcAdminOnSolidText(k.tone)}`}>{k.value}</p>
           </div>
         ))}
@@ -354,12 +376,12 @@ export function PartnerOverviewTab(args: {
                 [
                   { label: 'Overall', value: args.overallScore.overall, hint: 'Readiness', tone: 'emerald' as FcAdminTone, surface: 'solid' as const },
                   { label: 'Open cases', value: args.openPartnerCasesCount, hint: 'Disputes', tone: 'rose' as FcAdminTone, surface: 'solid' as const },
-                  { label: 'Evidence', value: args.evidenceCount, hint: 'On file', tone: 'gold' as FcAdminTone, surface: 'solid' as const },
-                  { label: 'Improvements', value: args.overallScore.topActions.length, hint: 'Fast wins', tone: 'teal' as FcAdminTone, surface: 'glass' as const },
+                  { label: 'Evidence', value: args.evidenceCount, hint: 'On file', tone: 'sky' as FcAdminTone, surface: 'solid' as const },
+                  { label: 'Improvements', value: args.overallScore.topActions.length, hint: 'Fast wins', tone: 'navy' as FcAdminTone, surface: 'glass' as const },
                 ]
               ).map((k) => (
                 <div key={k.label} className={k.surface === 'solid' ? finelyOsEntityKpi(k.tone, 'solid') : finelyOsCatalogCard(k.tone)}>
-                  <p className={`text-[11px] font-semibold uppercase tracking-wide ${k.surface === 'solid' ? fcAdminOnSolidMuted(k.tone) : FINELY_OS_DARK_GLASS_SUBLABEL}`}>{k.label}</p>
+                  <p className={`text-sm font-semibold uppercase tracking-wide ${k.surface === 'solid' ? fcAdminOnSolidMuted(k.tone) : FINELY_OS_DARK_GLASS_SUBLABEL}`}>{k.label}</p>
                   <p className={`mt-2 text-3xl font-semibold leading-none ${k.surface === 'solid' ? fcAdminOnSolidText(k.tone) : FINELY_OS_DARK_GLASS_VALUE}`}>{k.value}</p>
                   <p className={`mt-2 text-xs ${k.surface === 'solid' ? fcAdminOnSolidMuted(k.tone) : FINELY_OS_DARK_GLASS_BODY}`}>{k.hint}</p>
                 </div>
@@ -372,11 +394,11 @@ export function PartnerOverviewTab(args: {
 
       {args.overallScore?.topActions?.length ? (
         // A subdued tinted-glass disclosure keeps the shortcuts distinct from the vivid KPI tiles.
-        <details className={`${finelyOsCatalogCard('teal')} !p-4`}>
+        <details className={finelyOsCatalogCard('sky')}>
           <summary className={`cursor-pointer select-none ${FINELY_OS_DARK_GLASS_VALUE}`}>Top improvements</summary>
           <div className="mt-3 grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {args.overallScore.topActions.slice(0, 6).map((a, index) => {
-              const tone = (['sky', 'gold', 'emerald', 'navy', 'teal', 'rose'] as const)[index % 6];
+              const tone = (['sky', 'violet', 'emerald', 'navy', 'fuchsia', 'rose'] as const)[index % 6];
               return (
                 <button
                   key={a.key}
@@ -400,7 +422,7 @@ export function PartnerOverviewTab(args: {
             key={item.tab}
             type="button"
             onClick={() => args.onOpenTab(item.tab)}
-            className={`text-left ${finelyOsCatalogCard(item.tone)} !p-4 hover:bg-white/[0.06] transition-all`}
+            className={`text-left ${finelyOsCatalogCard(item.tone)} hover:bg-white/[0.06] transition-all`}
           >
             <div className={FINELY_OS_DARK_GLASS_SUBLABEL}>{item.label}</div>
             <div className={`mt-1 ${FINELY_OS_DARK_GLASS_BODY}`}>{item.hint}</div>
@@ -415,7 +437,7 @@ export function PartnerOverviewTab(args: {
         <button
           type="button"
           onClick={args.onOpenProfile}
-          className={`fc-admin-solid-gold w-full text-left rounded-xl border px-4 py-3 text-sm ${fcAdminOnSolidText('gold')}`}
+          className={`fc-admin-solid-violet w-full text-left rounded-xl border px-4 py-3 text-sm ${fcAdminOnSolidText('violet')}`}
         >
           {args.emptyCustomFieldSections} profile section{args.emptyCustomFieldSections === 1 ? '' : 's'} still empty — open Profile to finish.
         </button>
@@ -423,7 +445,7 @@ export function PartnerOverviewTab(args: {
 
       {args.activityItems?.length ? (
         isPortal ? (
-          <details className={`${finelyOsCatalogCard('navy')} !p-4`}>
+          <details className={finelyOsCatalogCard('rose')}>
             <summary className={`cursor-pointer select-none ${FINELY_OS_DARK_GLASS_VALUE}`}>Recent activity</summary>
             <div className="mt-3">
               <ActivityInsightCards items={args.activityItems} onOpenNotes={() => args.onOpenTab('notes')} />
@@ -435,7 +457,7 @@ export function PartnerOverviewTab(args: {
       ) : null}
 
       {!isPortal ? (
-        <p className="text-[11px] text-white/50">
+        <p className="text-sm text-white/50">
           Route {String(args.profileRouteKey).replaceAll('_', ' ')} · Tenant{' '}
           <span className="font-mono">{partner.tenantId}</span> · Updated {new Date(partner.updatedAt).toLocaleString()}
         </p>

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Building2, CheckCircle2, Plus, Save, Settings, Trash2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { AdminWorkstationFrame, type AdminEmbeddablePageProps } from '../../features/workspaceLightPreview/product/admin/AdminWorkstationFrame';
+import { useMappedAdminNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import type { Tenant } from '../../domain/tenants';
 import { createTenant, getMembershipByUserAndTenant, isPlatformAdmin, listTenants, updateTenant } from '../../data/tenantsRepo';
 import { getActiveTenantId, setActiveTenantId } from '../../tenancy/activeTenant';
@@ -88,8 +88,8 @@ function Toggle({
   );
 }
 
-export default function AdminTenantsPage() {
-  const navigate = useNavigate();
+export default function AdminTenantsPage({ embedded = false }: AdminEmbeddablePageProps = {}) {
+  const navigate = useMappedAdminNavigate();
   const auth = useAuth();
   const [storeVersion, setStoreVersion] = useState(0);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -146,7 +146,7 @@ export default function AdminTenantsPage() {
   };
 
   return (
-    <PageShell badge="Admin" title="Tenants (White‑Label)" subtitle="Create and manage agency tenants, branding, domains, and feature access.">
+    <AdminWorkstationFrame embedded={embedded} kind="tenants-workstation" badge="Admin" title="Tenants (White‑Label)" subtitle="Create and manage agency tenants, branding, domains, and feature access.">
       <div className={FINELY_OS_PAGE}>
         {!canManageTenants ? (
           <div className={FINELY_OS_NOTICE_WARN}>Not authorized. Tenant management is restricted to platform admins / tenant owners.</div>
@@ -174,7 +174,7 @@ export default function AdminTenantsPage() {
         </div>
 
         <div className="grid lg:grid-cols-12 gap-6">
-          <div className={`lg:col-span-4 ${finelyOsCatalogCard('amber')} !p-5`} data-fc-accent="amber">
+          <div className={`lg:col-span-4 ${finelyOsCatalogCard('emerald')}`} data-fc-accent="emerald">
             <FinelyOsSectionTitle icon={Building2} label="Tenants" accent="amber" />
             <div className="mt-4 space-y-2">
               {tenants.map((t) => {
@@ -203,10 +203,10 @@ export default function AdminTenantsPage() {
 
           <div className="lg:col-span-8 space-y-6">
             {!draft ? (
-              <div className={`${finelyOsCatalogCard('violet')} !p-5 ${FINELY_OS_ENTITY_BODY}`} data-fc-accent="violet">Select a tenant.</div>
+              <div className={`${finelyOsCatalogCard('violet')} ${FINELY_OS_ENTITY_BODY}`} data-fc-accent="violet">Select a tenant.</div>
             ) : (
               <>
-                <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`} data-fc-accent="violet">
+                <div className={`${finelyOsCatalogCard('violet')} space-y-4`} data-fc-accent="violet">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <FinelyOsSectionTitle icon={Settings} label="Branding" accent="violet" />
                     <button type="button" onClick={() => setActiveTenantId(draft.id)} className={FINELY_OS_SUCCESS_BTN}>
@@ -291,7 +291,7 @@ export default function AdminTenantsPage() {
                   </div>
                 </div>
 
-                <div className={`${finelyOsCatalogCard('emerald')} !p-5 space-y-4`} data-fc-accent="emerald">
+                <div className={`${finelyOsCatalogCard('emerald')} space-y-4`} data-fc-accent="emerald">
                   <FinelyOsSectionTitle icon={Settings} label="Features" accent="emerald" />
                   <div className="grid md:grid-cols-2 gap-4">
                     <Toggle
@@ -328,7 +328,7 @@ export default function AdminTenantsPage() {
                   </div>
                 </div>
 
-                <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony ${FINELY_OS_ENTITY_BODY}`} data-fc-accent="sky">
+                <div className={`${finelyOsCatalogCard('sky')} fc-surface-harmony ${FINELY_OS_ENTITY_BODY}`} data-fc-accent="sky">
                   Removing tenants is intentionally disabled in this build to prevent accidental data orphaning. If you need deletion, we’ll add
                   a safe “archive tenant” workflow.
                 </div>
@@ -336,9 +336,9 @@ export default function AdminTenantsPage() {
             )}
           </div>
         </div>
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
 </div>
-    </PageShell>
+    </AdminWorkstationFrame>
   );
 }
 

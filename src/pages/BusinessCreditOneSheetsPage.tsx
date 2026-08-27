@@ -24,20 +24,16 @@ import {
   FINELY_OS_PAGE,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
-  finelyOsCatalogCardCompact,
+  finelyOsCatalogCard,
   finelyOsGlowTile,
   type FinelyOsPublicAccent,
 } from '../features/os/finelyOsLightUi';
 
 const ACCENTS: FinelyOsPublicAccent[] = [
-  'sky',
-  'amber',
   'emerald',
   'violet',
-  'fuchsia',
-  'rose',
   'sky',
-  'amber',
+  'rose',
 ];
 
 export default function BusinessCreditOneSheetsPage() {
@@ -90,10 +86,10 @@ export default function BusinessCreditOneSheetsPage() {
           eyebrow="Partner one-sheets"
           title="Business Credit Partner One-Sheets"
           subtitle="Process Brief → Fundability Roadmap → Tier Ladder → destination sheet. Results vary · not guaranteed · business credit only · funding subject to underwriting · not legal advice."
-          accent="amber"
+          accent="emerald"
           kpis={[
             { label: 'Process brief', value: '3-sheet', hint: 'How we build', accent: 'emerald' },
-            { label: 'One-sheets', value: String(sheets.length), hint: 'Single-page layouts', accent: 'amber' },
+            { label: 'One-sheets', value: String(sheets.length), hint: 'Single-page layouts', accent: 'violet' },
             { label: 'Next step', value: 'Quote', hint: 'Work-calibrated', accent: 'violet' },
           ]}
           primaryAction={{
@@ -116,7 +112,7 @@ export default function BusinessCreditOneSheetsPage() {
 
           {/* Featured 3-sheet process brief */}
           <article
-            className={`${finelyOsCatalogCardCompact('emerald')} mb-4 space-y-3 border border-emerald-400/30`}
+            className={`${finelyOsCatalogCard('emerald')} mb-6 space-y-4 border border-emerald-400/30`}
             data-fc-accent="emerald"
           >
             <div className="flex flex-wrap items-start justify-between gap-3">
@@ -143,15 +139,15 @@ export default function BusinessCreditOneSheetsPage() {
                   ? (line.split(' — ') as [string, string])
                   : [line, ''];
                 return (
-                  <div key={line} className={`${finelyOsGlowTile('emerald', false)} space-y-1 !p-3`}>
+                  <div key={line} className={`${finelyOsGlowTile('emerald', false)} space-y-2 p-6`}>
                     <div className="flex flex-wrap items-center gap-1.5">
                       <span className={`${FINELY_OS_ENTITY_CHIP} bg-emerald-500/20 text-emerald-100`}>
                         Page {i + 1}
                       </span>
-                      <span className="text-xs font-semibold text-emerald-100/90">{chipTitle}</span>
+                      <span className="text-base font-extrabold text-emerald-100/90">{chipTitle}</span>
                     </div>
                     {chipBody ? (
-                      <p className={`text-xs leading-snug ${FINELY_OS_ENTITY_BODY}`}>{chipBody}</p>
+                      <p className={`text-base leading-snug ${FINELY_OS_ENTITY_BODY}`}>{chipBody}</p>
                     ) : null}
                   </div>
                 );
@@ -188,14 +184,14 @@ export default function BusinessCreditOneSheetsPage() {
             {sheets.map((s, i) => {
               const accent = ACCENTS[i % ACCENTS.length]!;
               return (
-                <article key={s.id} className={`${finelyOsCatalogCardCompact(accent)} space-y-3`} data-fc-accent={accent}>
+                <article key={s.id} className={`${finelyOsCatalogCard(accent)} space-y-4`} data-fc-accent={accent}>
                   <div className="flex items-start gap-3">
-                    <FileText className="mt-0.5 shrink-0 text-amber-300" size={18} />
+                    <FileText className="mt-0.5 shrink-0 text-emerald-300" size={22} />
                     <div className="min-w-0">
                       <div className={FINELY_OS_ENTITY_SUBLABEL}>{s.eyebrow}</div>
-                      <h2 className={`mt-1 ${FINELY_OS_ENTITY_VALUE}`}>{s.title}</h2>
+                      <h2 className={`mt-1 text-2xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{s.title}</h2>
                       {s.priceLine ? (
-                        <div className="mt-1 text-lg font-black text-amber-200">{s.priceLine}</div>
+                        <div className={`mt-1 text-xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{s.priceLine}</div>
                       ) : null}
                       {s.capitalProgramFeeLine && s.capitalOutlayLine && s.capitalPotentialLine ? (
                         <div className="mt-2 grid grid-cols-3 gap-2 text-[11px]">
@@ -209,14 +205,14 @@ export default function BusinessCreditOneSheetsPage() {
                           </div>
                           <div>
                             <div className="uppercase tracking-wider text-white/40">Potential BC</div>
-                            <div className="font-semibold text-amber-200">{s.capitalPotentialLine}</div>
+                            <div className={`font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{s.capitalPotentialLine}</div>
                           </div>
                         </div>
                       ) : null}
                     </div>
                   </div>
 
-                  <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>{s.summary}</p>
+                  <p className={`text-base ${FINELY_OS_ENTITY_BODY}`}>{s.summary}</p>
 
                   <div>
                     <div className={`text-[10px] uppercase tracking-wider text-white/45`}>Who it&apos;s for</div>

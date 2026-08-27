@@ -5,10 +5,10 @@ import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack
 import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
-  FINELY_OS_PRIMARY_BTN,
   finelyOsCatalogCardCompact,
   finelyOsGlowTile,
 } from '../../features/os/finelyOsLightUi';
+import '../../features/work/views/workBoardCards.css';
 
 const STATUS_DOT: Record<string, string> = {
   active: 'bg-emerald-400',
@@ -44,7 +44,7 @@ export function ProjectsTasksMasterPanel({
           <FolderKanban size={14} className="text-violet-300" /> Projects
         </div>
         {showCreateButton && onCreateProject ? (
-          <button type="button" onClick={onCreateProject} className={`${FINELY_OS_PRIMARY_BTN} !px-2.5 !py-1.5 !text-[9px]`} title="New project">
+          <button type="button" onClick={onCreateProject} className="fc-work-open-btn !min-h-9 !w-auto !px-3 !text-[10px]" title="New project">
             <Plus size={12} /> New
           </button>
         ) : null}

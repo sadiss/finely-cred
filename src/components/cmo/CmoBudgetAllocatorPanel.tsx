@@ -15,7 +15,7 @@ export function CmoBudgetAllocatorPanel() {
   return (
     <section className="fc-panel p-5 space-y-4">
       <div>
-        <p className="text-xs uppercase tracking-[0.28em] text-amber-200/70">Spend discipline</p>
+        <p className="text-xs uppercase tracking-[0.28em] text-violet-200/70">Spend discipline</p>
         <h2 className="text-2xl font-semibold text-white">CMO Budget + Effort Allocator</h2>
         <p className="mt-1 text-sm text-slate-300">Allocate money and effort to the channels with proof. No cowboy spending. No casino keyboard.</p>
       </div>

@@ -21,7 +21,7 @@ export function CmoActionGate() {
         <textarea value={copy} onChange={(e) => setCopy(e.target.value)} className="mt-3 fc-input min-h-[180px] text-sm" />
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           <div className="fc-card p-3"><div className="text-[10px] uppercase tracking-widest text-white/40">Score</div><div className="mt-1 text-2xl font-black text-white">{scored.score}/150</div></div>
-          <div className="fc-card p-3"><div className="text-[10px] uppercase tracking-widest text-white/40">Risk</div><div className="mt-1 text-lg font-black text-amber-200 capitalize">{scored.riskLevel}</div></div>
+          <div className="fc-card p-3"><div className="text-[10px] uppercase tracking-widest text-white/40">Risk</div><div className="mt-1 text-lg font-black text-rose-200 capitalize">{scored.riskLevel}</div></div>
           <div className="fc-card p-3"><div className="text-[10px] uppercase tracking-widest text-white/40">Flags</div><div className="mt-1 text-lg font-black text-white">{scored.complianceFlags.length}</div></div>
         </div>
         <div className="mt-4 grid gap-3 md:grid-cols-2">
@@ -34,7 +34,7 @@ export function CmoActionGate() {
         <textarea value={engagement} onChange={(e) => setEngagement(e.target.value)} className="mt-3 fc-input min-h-[180px] text-sm" />
         <div className="mt-4 flex flex-wrap gap-2">
           <button type="button" onClick={classify} className="fc-button-brand text-xs"><Zap size={14} /> Classify + draft reply</button>
-          {notice ? <span className="inline-flex items-center gap-2 rounded-2xl border border-amber-400/20 bg-amber-400/10 px-3 py-2 text-xs text-amber-100"><CheckCircle2 size={14} /> {notice}</span> : null}
+          {notice ? <span className="inline-flex items-center gap-2 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-xs text-emerald-100"><CheckCircle2 size={14} /> {notice}</span> : null}
         </div>
         <div className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-4 text-sm text-white/60">
           This is where imported comments, DMs, SMS replies, and email replies should land before any response is approved or sent.

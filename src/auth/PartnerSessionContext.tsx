@@ -3,7 +3,10 @@ import type { Partner } from '../domain/partners';
 import { getOrCreatePartnerForSession } from '../portal/getOrCreatePartnerForSession';
 import { FinelyOsDataErrorBanner } from '../features/os/FinelyOsDataErrorBanner';
 import { AdminPartnerViewAsBanner } from '../components/admin/AdminPartnerViewAsBanner';
+import { AdminRolePreviewBanner } from '../components/admin/AdminRolePreviewBanner';
+import { AdminRolePreviewSwitcher } from '../components/admin/AdminRolePreviewSwitcher';
 import { useAuth } from './AuthProvider';
+import { subscribeAdminPartnerOverride } from '../lib/adminPartnerViewAs';
 
 interface PartnerSessionContextValue {
   partner: Partner | null;
@@ -47,6 +50,13 @@ export function PartnerSessionProvider({ children }: { children: React.ReactNode
       });
   }, [auth.user?.id, tick]);
 
+  useEffect(() => {
+    return subscribeAdminPartnerOverride(() => {
+      setLoading(true);
+      setTick((t) => t + 1);
+    });
+  }, []);
+
   const refresh = () => setTick((t) => t + 1);
 
   return (
@@ -61,6 +71,29 @@ export function PartnerSessionProvider({ children }: { children: React.ReactNode
         </div>
       ) : null}
       <AdminPartnerViewAsBanner />
+      <AdminRolePreviewBanner />
+      <AdminRolePreviewSwitcher />
+      {children}
+    </PartnerSessionContext.Provider>
+  );
+}
+
+/**
+ * Supplies an isolated partner record to embedded review surfaces without changing the
+ * authenticated session. Workspace preview uses this for its clearly labeled sample partner;
+ * live portal routes continue to receive the normal session provider above.
+ */
+export function PartnerSessionOverrideProvider({
+  partner,
+  children,
+}: {
+  partner: Partner;
+  children: React.ReactNode;
+}) {
+  return (
+    <PartnerSessionContext.Provider
+      value={{ partner, loading: false, error: null, refresh: () => {} }}
+    >
       {children}
     </PartnerSessionContext.Provider>
   );

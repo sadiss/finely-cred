@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ArrowRight, MessageSquareText, Search, Send, Share2 } from 'lucide-react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { useSearchParams } from 'react-router-dom';
+import { AdminWorkstationFrame, type AdminEmbeddablePageProps } from '../../features/workspaceLightPreview/product/admin/AdminWorkstationFrame';
+import { useMappedAdminNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { listAllThreads, listMessagesByThread, addThreadMessage, setThreadStatus } from '../../data/supportRepo';
 import { computeSupportSlaStatus, defaultPersonaForSupportTopic } from '../../lib/supportInboxOs';
 import {
@@ -92,8 +93,8 @@ function MessageBody({ text }: { text: string }) {
   );
 }
 
-export default function AdminSupportInboxPage() {
-  const navigate = useNavigate();
+export default function AdminSupportInboxPage({ embedded = false }: AdminEmbeddablePageProps = {}) {
+  const navigate = useMappedAdminNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const auth = useAuth();
   const [version, setVersion] = useState(0);
@@ -241,7 +242,7 @@ export default function AdminSupportInboxPage() {
   };
 
   return (
-    <PageShell badge="Admin" title="Support Inbox" subtitle="Portal threads + Meta Messenger/Instagram — omnichannel comms hub.">
+    <AdminWorkstationFrame embedded={embedded} kind="support-workstation" badge="Admin" title="Partner conversations" subtitle="Portal threads + Meta Messenger/Instagram — omnichannel comms hub.">
       <div className={FINELY_OS_PAGE}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <button type="button" onClick={() => navigate('/admin')} className={FINELY_OS_BACK_LINK}>
@@ -251,7 +252,7 @@ export default function AdminSupportInboxPage() {
         </div>
 
         <div className="grid lg:grid-cols-12 gap-6">
-          <div className={`lg:col-span-4 ${finelyOsCatalogCard('amber')} !p-5`} data-fc-accent="amber">
+          <div className={`lg:col-span-4 ${finelyOsCatalogCard('emerald')} space-y-4`} data-fc-accent="emerald">
             <div className="flex items-center gap-2">
               <Search size={16} className="text-violet-400 shrink-0" />
               <input
@@ -287,7 +288,7 @@ export default function AdminSupportInboxPage() {
                         key={row.id}
                         type="button"
                         onClick={() => setSelectedId(t.id)}
-                        className={finelyOsListItem(active, 'amber')}
+                        className={finelyOsListItem(active, 'emerald')}
                       >
                         <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{t.subject}</div>
                         <div className={`mt-1 ${FINELY_OS_ENTITY_SUBLABEL} truncate normal-case tracking-normal`}>
@@ -295,7 +296,7 @@ export default function AdminSupportInboxPage() {
                           {(() => {
                             const sla = computeSupportSlaStatus(t);
                             return sla.tone !== 'ok' ? (
-                              <span className={sla.tone === 'breached' ? ' text-rose-300' : ' text-amber-300'}>
+                              <span className={sla.tone === 'breached' ? ' text-rose-300' : ' text-rose-200'}>
                                 {' '}
                                 · {sla.label}
                               </span>
@@ -312,7 +313,7 @@ export default function AdminSupportInboxPage() {
                       key={row.id}
                       type="button"
                       onClick={() => setSelectedId(m.id)}
-                      className={finelyOsListItem(active, 'fuchsia')}
+                      className={finelyOsListItem(active, 'violet')}
                     >
                       <div className={`${FINELY_OS_ENTITY_VALUE} truncate inline-flex items-center gap-1.5`}>
                         <Share2 size={12} className="text-sky-300 shrink-0" /> {m.subject}
@@ -328,7 +329,7 @@ export default function AdminSupportInboxPage() {
             </div>
           </div>
 
-          <div className={`lg:col-span-8 ${finelyOsCatalogCard('violet')} !p-6 space-y-4`} data-fc-accent="violet">
+          <div className={`lg:col-span-8 ${finelyOsCatalogCard('sky')} space-y-4`} data-fc-accent="sky">
             {!selectedPortal && !selectedMeta ? (
               <div className={FINELY_OS_ENTITY_BODY}>Select a thread to view.</div>
             ) : selectedMeta ? (
@@ -344,7 +345,7 @@ export default function AdminSupportInboxPage() {
                       thread: <span className="font-mono">{selectedMeta.threadId}</span> • page: {selectedMeta.pageId}
                     </div>
                   </div>
-                  <button type="button" onClick={() => navigate('/admin/social?tab=inbox')} className={FINELY_OS_SECONDARY_BTN}>
+                  <button type="button" onClick={() => navigate('/admin/social-hub?tab=inbox')} className={FINELY_OS_SECONDARY_BTN}>
                     Social Hub inbox
                   </button>
                 </div>
@@ -454,9 +455,9 @@ export default function AdminSupportInboxPage() {
             ) : null}
           </div>
         </div>
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
 </div>
-    </PageShell>
+    </AdminWorkstationFrame>
   );
 }
 

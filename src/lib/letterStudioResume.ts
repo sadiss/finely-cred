@@ -34,9 +34,13 @@ export function nextIncompleteDisputeStep(draft: LettersCommandCenterDraft): Dis
   return 'generate';
 }
 
-export function letterStudioResumeUrl(draft: LettersCommandCenterDraft): string {
+export function letterStudioResumeUrl(
+  draft: LettersCommandCenterDraft,
+  basePath = '/portal/letters',
+): string {
   const step = nextIncompleteDisputeStep(draft);
-  return `/portal/letters?tab=dispute&step=${step}`;
+  const path = basePath.split('?')[0] || '/portal/letters';
+  return `${path}?tab=dispute&step=${step}`;
 }
 
 export function isValidDisputeBuildStep(step: string | null): step is DisputeBuildStepId {

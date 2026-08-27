@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { ArrowRight, BadgeCheck, DollarSign, ShieldAlert, Wallet } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { PartnerWorkstationFrame, type PartnerEmbeddablePageProps } from '../../features/workspaceLightPreview/product/partner/PartnerWorkstationFrame';
+import { useMappedPartnerNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { useAuth } from '../../auth/AuthProvider';
 import { SellerNav } from '../../components/seller/SellerNav';
 import { getOrCreateSellerForSession } from '../../seller/getOrCreateSellerForSession';
@@ -23,8 +23,8 @@ import {
   finelyOsKpiTile,
 } from '../../features/os/finelyOsLightUi';
 
-export default function SellerDashboardPage() {
-  const navigate = useNavigate();
+export default function SellerDashboardPage({ embedded = false }: PartnerEmbeddablePageProps = {}) {
+  const navigate = useMappedPartnerNavigate();
   const auth = useAuth();
   const seller = useMemo(() => getOrCreateSellerForSession({ user: auth.user }), [auth.user]);
   const projection = useMemo(() => (seller ? computeSellerListingEarningsProjection(seller) : null), [seller]);
@@ -34,7 +34,7 @@ export default function SellerDashboardPage() {
   }, [seller]);
 
   return (
-    <PageShell
+    <PartnerWorkstationFrame embedded={embedded} kind="au-seller-workstation"
       badge="AU Seller"
       title="Seller Dashboard"
       subtitle="Manage your AU inventory supply: contracts, verification, listings, proof, and payouts."
@@ -107,8 +107,8 @@ export default function SellerDashboardPage() {
           </div>
         )}
 
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
       </div>
-    </PageShell>
+    </PartnerWorkstationFrame>
   );
 }

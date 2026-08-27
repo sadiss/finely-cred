@@ -85,6 +85,6 @@ export function summarizeSwarmStatus() {
     candidates: store.candidates.length,
     hot,
     actionBacklog: store.actions.filter((a) => a.approvalStatus === 'draft').length,
-    message: queued || running ? `Swarm active: ${queued} queued, ${running} running.` : 'Swarm is idle. Start continuous swarm.',
+    message: queued || running ? `Discovery active: ${queued} queued, ${running} running.` : 'Discovery is idle. Start continuous discovery.',
   };
 }

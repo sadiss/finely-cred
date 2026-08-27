@@ -1,11 +1,11 @@
 import React from 'react';
-import { PageShell } from '../../components/layout/PageShell';
+import { AdminWorkstationFrame, type AdminEmbeddablePageProps } from '../../features/workspaceLightPreview/product/admin/AdminWorkstationFrame';
 import { StudioUxCommandDashboard } from '../../features/studioCommandOs/StudioUxCommandDashboard';
 
-export default function AdminStudioUxCommandPage() {
+export default function AdminStudioUxCommandPage({ embedded = false }: AdminEmbeddablePageProps = {}) {
   return (
-    <PageShell badge="Admin" title="Studio UX Command OS" subtitle="Unified command layer for Media, Comms, Automation, Lead cleanup, and site-wide layout refactors." back={{ to: -1 }}>
+    <AdminWorkstationFrame embedded={embedded} kind="studio-ux-command-workstation" badge="Admin" title="Studio UX Command OS" subtitle="Unified command layer for Media, Comms, Automation, Lead cleanup, and site-wide layout refactors." back={{ to: -1 }}>
       <StudioUxCommandDashboard />
-    </PageShell>
+    </AdminWorkstationFrame>
   );
 }

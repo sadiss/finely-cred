@@ -29,6 +29,10 @@ const PUBLIC_PREFIXES = [
   '/disclaimer',
   '/pricing/personal-credit-restore',
   '/about',
+  '/login',
+  '/signup',
+  '/forgot-password',
+  '/reset-password',
 ];
 
 export function isPublicMarketingPath(pathname: string): boolean {

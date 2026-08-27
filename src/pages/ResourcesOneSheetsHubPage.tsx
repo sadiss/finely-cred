@@ -49,7 +49,7 @@ export default function ResourcesOneSheetsHubPage() {
           accent="violet"
           kpis={[
             { label: 'Packs', value: String(PUBLIC_ONE_SHEET_PACKS.length), accent: 'violet' },
-            { label: 'Format', value: 'PDF', accent: 'amber' },
+            { label: 'Format', value: 'PDF', accent: 'sky' },
           ]}
           primaryAction={{
             label: 'Business credit pack',
@@ -63,8 +63,8 @@ export default function ResourcesOneSheetsHubPage() {
                 key={pack.id}
                 type="button"
                 onClick={() => navigate(pack.path)}
-                className={`${finelyOsCatalogCard(pack.accent)} !p-5 text-left transition-all hover:brightness-110`}
-                data-fc-accent={pack.accent}
+                className={`${finelyOsCatalogCard(pack.accent === 'amber' || pack.accent === 'fuchsia' ? 'rose' : pack.accent)} text-left transition-all hover:brightness-110`}
+                data-fc-accent={pack.accent === 'amber' || pack.accent === 'fuchsia' ? 'rose' : pack.accent}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/15 bg-black/25">
@@ -74,8 +74,8 @@ export default function ResourcesOneSheetsHubPage() {
                     <span className={`${FINELY_OS_ENTITY_SUBLABEL}`}>{pack.badge}</span>
                   ) : null}
                 </div>
-                <div className={`mt-3 text-lg font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{pack.title}</div>
-                <p className={`mt-2 text-sm ${FINELY_OS_ENTITY_BODY}`}>{pack.desc}</p>
+                <div className={`mt-3 text-xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{pack.title}</div>
+                <p className={`mt-2 text-base ${FINELY_OS_ENTITY_BODY}`}>{pack.desc}</p>
                 <span className={`${FINELY_OS_PRIMARY_BTN} mt-4`}>
                   Open pack <ArrowRight size={14} />
                 </span>
@@ -83,7 +83,7 @@ export default function ResourcesOneSheetsHubPage() {
             ))}
           </div>
 
-          <div className={`mt-4 flex flex-wrap gap-3 ${finelyOsCatalogCard('sky')} !p-4`} data-fc-accent="sky">
+          <div className={`mt-4 flex flex-wrap gap-3 ${finelyOsCatalogCard('emerald')}`} data-fc-accent="emerald">
             <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/resources/guides')}>
               All free guides
             </button>

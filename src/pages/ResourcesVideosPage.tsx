@@ -110,7 +110,7 @@ export default function ResourcesVideosPage() {
                 <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
                   Factory watch-how tours — short MP4 walkthroughs for portal and public hubs. No account needed.
                 </p>
-                <div className={`space-y-3 ${finelyOsCatalogCard('violet')} !p-4`} data-fc-accent="violet">
+                <div className={`space-y-3 ${finelyOsCatalogCard('violet')}`} data-fc-accent="violet">
                   <FinelyOsPaginatedStack
                     items={TOUR_MANIFEST}
                     pageSize={6}
@@ -152,7 +152,7 @@ export default function ResourcesVideosPage() {
                   Studio uploads and education clips — not duplicated in the tour lane above.
                 </p>
                 {partnerLessons.length ? (
-                  <div className={`space-y-3 ${finelyOsCatalogCard('sky')} !p-4`} data-fc-accent="sky">
+                  <div className={`space-y-3 ${finelyOsCatalogCard('sky')}`} data-fc-accent="sky">
                     <FinelyOsPaginatedStack
                       items={partnerLessons}
                       pageSize={6}
@@ -191,13 +191,13 @@ export default function ResourcesVideosPage() {
                     />
                   </div>
                 ) : (
-                  <div className={`${FINELY_OS_LUXURY_EMPTY} ${finelyOsCatalogCard('sky')} !p-4`} data-fc-accent="sky">
+                  <div className={`${FINELY_OS_LUXURY_EMPTY} ${finelyOsCatalogCard('sky')}`} data-fc-accent="sky">
                     No partner lessons published yet — use the watch-how tours above for every major workflow.
                   </div>
                 )}
               </section>
 
-              <div className={`flex flex-wrap gap-3 ${finelyOsCatalogCard('amber')} !p-4`} data-fc-accent="amber">
+              <div className={`flex flex-wrap gap-3 ${finelyOsCatalogCard('emerald')}`} data-fc-accent="emerald">
                 <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/resources/guides')}>
                   All free guides
                 </button>
@@ -207,7 +207,7 @@ export default function ResourcesVideosPage() {
               </div>
             </div>
           ) : isAdmin ? (
-            <div className={`${finelyOsCatalogCard('sky')} !p-5`} data-fc-accent="sky">
+            <div className={`${finelyOsCatalogCard('sky')}`} data-fc-accent="sky">
               <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-sky-700`}>Video demos — admin only</div>
               <p className={`mt-2 text-sm ${FINELY_OS_ENTITY_BODY}`}>
                 Walkthrough and promo videos are hidden from the public site until they are polished. Preview drafts in Tour Studio.
@@ -217,7 +217,7 @@ export default function ResourcesVideosPage() {
               </button>
             </div>
           ) : (
-            <div className={`${FINELY_OS_LUXURY_EMPTY} ${finelyOsCatalogCard('violet')} !p-5`} data-fc-accent="violet">
+            <div className={`${FINELY_OS_LUXURY_EMPTY} ${finelyOsCatalogCard('violet')}`} data-fc-accent="violet">
               Public video demos are polishing. Meanwhile, open free guides or Ask Finely for step-by-step help.
               <div className="mt-4 flex flex-wrap gap-3">
                 <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => navigate('/resources/guides')}>
@@ -246,7 +246,7 @@ export default function ResourcesVideosPage() {
         <div className="fixed inset-0 z-[310]">
           <div className="absolute inset-0 bg-slate-900/70 backdrop-blur-sm" onClick={closeVideo} />
           <div className="absolute inset-x-0 top-10 px-4">
-            <div className={`mx-auto max-w-3xl overflow-hidden shadow-2xl ${finelyOsCatalogCard('violet')} !p-5`}>
+            <div className={`mx-auto max-w-3xl overflow-hidden shadow-2xl ${finelyOsCatalogCard('violet')}`}>
               <div className="flex items-start justify-between gap-4 border-b border-white/[0.08] p-4">
                 <div className="min-w-0">
                   <div className={`${FINELY_OS_ENTITY_SUBLABEL} font-bold text-sky-300`}>Video</div>

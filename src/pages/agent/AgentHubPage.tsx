@@ -12,8 +12,9 @@ import {
   Target,
   Users,
 } from 'lucide-react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { useSearchParams } from 'react-router-dom';
+import { PartnerWorkstationFrame, type PartnerEmbeddablePageProps } from '../../features/workspaceLightPreview/product/partner/PartnerWorkstationFrame';
+import { useMappedPartnerNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { AgentSplitCalculator } from '../../components/agent/AgentSplitCalculator';
 import { AgentWhiteLabelSetup } from '../../components/agent/AgentWhiteLabelSetup';
 import { DenefitsContractCalculator } from '../../components/calculators/BenefitsContractCalculator';
@@ -66,7 +67,7 @@ import {
   type AgentHubLauncherId,
 } from '../../components/partner/roleHubLauncherPresets';
 import {
-  FINELY_OS_COMPACT_PAGE,
+  FINELY_OS_PAGE,
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_EMPTY,
   FINELY_OS_ENTITY_SUBLABEL,
@@ -91,16 +92,16 @@ const QUICK_TOOLS = [
 const CS_TOOL_DECK: RoleHubTool[] = [
   { id: 'partners', label: 'Partner files', detail: 'Assigned caseload', path: '/admin/partners', icon: Users, accent: 'emerald', badge: 'Operate' },
   { id: 'letters', label: 'Letter studio', detail: 'Draft & mail disputes', path: '/portal/letters', icon: Rocket, accent: 'violet' },
-  { id: 'growth', label: 'Lead growth', detail: 'Pitch & capture', path: `${CS.hubPath}?tab=growth`, icon: Target, accent: 'amber' },
+  { id: 'growth', label: 'Lead growth', detail: 'Pitch & capture', path: `${CS.hubPath}?tab=growth`, icon: Target, accent: 'rose' },
   { id: 'training', label: 'Training', detail: 'Academy tracks', path: `${CS.hubPath}?tab=training`, icon: GraduationCap, accent: 'sky' },
-  { id: 'comms', label: 'Partnership line', detail: 'Message Finely', path: CS.messagesDeepLink, icon: MessageSquare, accent: 'fuchsia' },
+  { id: 'comms', label: 'Partnership line', detail: 'Message Finely', path: CS.messagesDeepLink, icon: MessageSquare, accent: 'violet' },
   { id: 'economics', label: 'Economics', detail: 'Keep % & payouts', path: `${CS.hubPath}?tab=economics`, icon: Calculator, accent: 'emerald' },
 ];
 
-export default function AgentHubPage() {
+export default function AgentHubPage({ embedded = false }: PartnerEmbeddablePageProps = {}) {
   const auth = useAuth();
   const { partner } = usePartnerSession();
-  const navigate = useNavigate();
+  const navigate = useMappedPartnerNavigate();
   const [searchParams] = useSearchParams();
   const meta = getUserProfileMeta(auth.user);
   const hubLauncher = usePartnerHubLauncher<AgentHubLauncherId>();
@@ -244,13 +245,13 @@ export default function AgentHubPage() {
 
   if (!gate.allowed) {
     return (
-      <PageShell
+      <PartnerWorkstationFrame embedded={embedded} kind="specialist-hub-workstation"
         badge={CS.programName}
         title={CS.hubName}
         subtitle="Train, message Finely, configure white-label, and run partner files on one stack."
         back={{ to: CS.pricingPath, label: 'Credit Specialist careers' }}
       >
-        <div className={`${FINELY_OS_COMPACT_PAGE} max-w-3xl space-y-3`}>
+        <div className={`${FINELY_OS_PAGE} max-w-3xl space-y-3`}>
           <FinelyOsAlertBanner tone={gate.reason === 'unauthenticated' ? 'info' : 'warning'} message={gate.message} />
           <div className="flex flex-wrap gap-2">
             {gate.cta ? (
@@ -262,20 +263,20 @@ export default function AgentHubPage() {
               Open Specialist Guide
             </button>
           </div>
-          <FinelyOsPageFooter />
+          {!embedded ? <FinelyOsPageFooter /> : null}
         </div>
-      </PageShell>
+      </PartnerWorkstationFrame>
     );
   }
 
   return (
-    <PageShell
+    <PartnerWorkstationFrame embedded={embedded} kind="specialist-hub-workstation"
       badge={CS.programName}
       title={CS.hubName}
       subtitle="Revenue-share partnership — train, message Finely, configure white-label, and run partner files on one stack."
       back={{ to: '/dashboard', label: 'Dashboard' }}
     >
-      <div className={`${FINELY_OS_COMPACT_PAGE} max-w-5xl`}>
+      <div className={`${FINELY_OS_PAGE} max-w-5xl`}>
         {saved ? <div className={FINELY_OS_NOTICE_SUCCESS}>Operating model saved.</div> : null}
 
         <CreditSpecialistHubCommandStrip clientCount={managedClientsCount} openTasks={openTasks} />
@@ -290,7 +291,6 @@ export default function AgentHubPage() {
         <FinelyNowDoThisStrip
           items={nowDoItems}
           currentIndex={managedClientsCount === 0 ? 0 : openTasks > 0 ? 0 : 1}
-          className="!p-4"
         />
 
         <FinelyUnifiedHubLayout
@@ -300,7 +300,7 @@ export default function AgentHubPage() {
           accent="emerald"
           kpis={[
             { label: 'Your keep', value: `${split.agentSharePct}%`, accent: 'emerald' },
-            { label: 'Partners', value: String(managedClientsCount), accent: 'amber' },
+            { label: 'Partners', value: String(managedClientsCount), accent: 'rose' },
             { label: 'Open tasks', value: String(openTasks), accent: 'sky' },
             { label: 'Training', value: split.phaseLabel, accent: 'violet' },
           ]}
@@ -326,7 +326,7 @@ export default function AgentHubPage() {
             guide={{ label: csGuide.label, path: csGuide.path }}
           />
           <RoleHubToolDeck tools={CS_TOOL_DECK} title="Specialist tools" subtitle="One tap to the job — partners, letters, growth, training." />
-          <div className={`${finelyOsCatalogCard('emerald')} !p-4 space-y-3`}>
+          <div className={`${finelyOsCatalogCard('emerald')} space-y-3`} data-fc-accent="emerald">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <div className={FINELY_OS_ENTITY_SUBLABEL}>Your caseload</div>
@@ -428,7 +428,7 @@ export default function AgentHubPage() {
           accent={ROLE_HUB_MODAL_ACCENT.setup}
         >
           <AgentWhiteLabelSetup capacityTierId={model.capacityTierId} />
-          <div className={`space-y-4 ${finelyOsCatalogCard('violet')} !p-6`} data-fc-accent="violet">
+          <div className={`space-y-4 ${finelyOsCatalogCard('violet')}`} data-fc-accent="violet">
             <div className={`text-sm font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Upgrade path</div>
             <div className="grid sm:grid-cols-2 gap-3">
               <FinelyOsPaginatedStack
@@ -449,7 +449,7 @@ export default function AgentHubPage() {
                           trainingPhase: t.recommendedTrainingPhase ?? model.trainingPhase,
                         })
                       }
-                      className={`text-left ${finelyOsListItem(active, 'amber')}`}
+                      className={`text-left ${finelyOsListItem(active, 'emerald')}`}
                     >
                       <div className={`${FINELY_OS_ENTITY_VALUE} text-sm`}>{t.name}</div>
                       <div className={`${FINELY_OS_ENTITY_BODY} text-xs mt-1 capitalize`}>{(t.whiteLabelLevel ?? '').replace(/_/g, ' ')}</div>
@@ -472,7 +472,7 @@ export default function AgentHubPage() {
           subtitle="Caseload, command center, and day-to-day partner file tools."
           accent={ROLE_HUB_MODAL_ACCENT.operate}
         >
-          <div className={`${finelyOsCatalogCard('emerald')} !p-4 space-y-3`}>
+          <div className={`${finelyOsCatalogCard('emerald')} space-y-3`} data-fc-accent="emerald">
             <div className={FINELY_OS_ENTITY_SUBLABEL}>Assigned partners</div>
             <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
               Partners where you are Credit Specialist, Coach, or Business partner on the care team.
@@ -499,7 +499,7 @@ export default function AgentHubPage() {
             )}
           </div>
           <AgentCommandCenter model={model} />
-          <div className={`space-y-3 ${finelyOsCatalogCard('emerald')} !p-4`} data-fc-accent="emerald">
+          <div className={`space-y-3 ${finelyOsCatalogCard('sky')}`} data-fc-accent="sky">
             <p className={FINELY_OS_ENTITY_BODY}>
               Day-to-day tools for running partner files — disputes, comms, documents, and tasks. Your revenue share improves as you
               move levers from Finely → Shared → You.
@@ -514,8 +514,8 @@ export default function AgentHubPage() {
           </div>
         </PartnerHubWorkModal>
 
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
       </div>
-    </PageShell>
+    </PartnerWorkstationFrame>
   );
 }

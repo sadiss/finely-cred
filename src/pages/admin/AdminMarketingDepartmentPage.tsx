@@ -136,11 +136,11 @@ export default function AdminMarketingDepartmentPage() {
 
   const kpis = [
     { label: 'Booked (7d)', value: String(metrics.booked7d), hint: 'CRM sessions', accent: 'emerald' as const },
-    { label: 'Needs review', value: String(metrics.needsReview), hint: 'Caleb find queue', accent: 'amber' as const },
+    { label: 'Needs review', value: String(metrics.needsReview), hint: 'Caleb find queue', accent: 'violet' as const },
     { label: 'Active nurture', value: String(metrics.activeNurture), hint: 'Email sequences ($0)', accent: 'sky' as const },
-    { label: 'Failed sends', value: String(metrics.failedSends), hint: metrics.failedSends ? 'Fix in Comms' : 'All clear', accent: 'fuchsia' as const },
+    { label: 'Failed sends', value: String(metrics.failedSends), hint: metrics.failedSends ? 'Fix in Comms' : 'All clear', accent: 'rose' as const },
     { label: 'Social review', value: String(metrics.socialReview), hint: 'Miriam queue', accent: 'violet' as const },
-    { label: 'New leads', value: String(metrics.leads), hint: 'Captured inbound', accent: 'emerald' as const },
+    { label: 'New leads', value: String(metrics.leads), hint: 'Captured inbound', accent: 'sky' as const },
   ];
 
   const renderTab = () => {
@@ -156,7 +156,7 @@ export default function AdminMarketingDepartmentPage() {
         );
       case 'plan':
         return (
-          <div className="space-y-3">
+          <div className="space-y-6">
             <GrowthCommandDepartmentPage />
             <FinelyCapabilityScorecard variant="compact" />
           </div>
@@ -165,14 +165,14 @@ export default function AdminMarketingDepartmentPage() {
         return <MarketingDeskEmbeddedPanel />;
       case 'team':
         return (
-          <div className="space-y-3">
+          <div className="space-y-6">
             <MarketingTeamHierarchy />
-            <div className="rounded-2xl border border-white/18 bg-white/[0.07] backdrop-blur-md p-4 space-y-3">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-white/55">Agent trail</p>
+            <div className={`${finelyOsCatalogCard('sky')} space-y-4`} data-fc-accent="sky">
+              <p className="text-sm font-extrabold uppercase tracking-widest text-sky-200">Team trail</p>
               <AgentTeamTrailFeed limit={5} />
-              <div className="rounded-xl border border-violet-400/25 bg-violet-500/10 px-4 py-3">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-violet-200/80">Architect brief</p>
-                <p className={`mt-1 text-sm font-medium text-white`}>{buildAgentArchitectBrief().headline}</p>
+              <div className={finelyOsCatalogCard('rose')} data-fc-accent="rose">
+                <p className="text-sm font-extrabold uppercase tracking-widest text-rose-200">Architect brief</p>
+                <p className={`mt-2 text-base font-semibold text-white`}>{buildAgentArchitectBrief().headline}</p>
               </div>
             </div>
           </div>
@@ -191,8 +191,8 @@ export default function AdminMarketingDepartmentPage() {
         );
       case 'capture':
         return (
-          <div className="space-y-3">
-            <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
+          <div className="space-y-6">
+            <p className={`text-base ${FINELY_OS_ENTITY_BODY}`}>
               Tracked links, QR codes, lead magnets, and syndication — Hannah Reed owns capture.
             </p>
             <div className="flex flex-wrap gap-2">
@@ -245,20 +245,21 @@ export default function AdminMarketingDepartmentPage() {
           secondaryAction={{ label: simpleMode ? 'Show all tabs' : 'Simple mode', onClick: toggleMode }}
           contentVariant="flush"
           detailSlot={
-            <div className="space-y-3">
-              <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
+            <div className="space-y-4">
+              <p className={`text-base ${FINELY_OS_ENTITY_BODY}`}>
                 Advanced tools stay one click away — checklists are delivery SOPs, not automation triggers.
               </p>
-              <div className="grid sm:grid-cols-2 gap-3">
-                {ADVANCED_LINKS.map((link) => (
+              <div className="grid sm:grid-cols-2 gap-4">
+                {ADVANCED_LINKS.map((link, idx) => (
                   <button
                     key={link.href}
                     type="button"
                     onClick={() => navigate(link.href)}
-                    className={`${finelyOsCatalogCard('violet')} !p-4 text-left`}
+                    className={`${finelyOsCatalogCard((['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4])} text-left`}
+                    data-fc-accent={(['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4]}
                   >
-                    <div className="font-bold text-white">{link.title}</div>
-                    <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>{link.detail}</p>
+                    <div className="text-xl font-extrabold text-white">{link.title}</div>
+                    <p className={`mt-2 text-base ${FINELY_OS_ENTITY_BODY}`}>{link.detail}</p>
                     {link.title.includes('preview') ? (
                       <span className={`mt-2 inline-block ${FINELY_OS_ENTITY_CHIP}`}>Simulation</span>
                     ) : null}

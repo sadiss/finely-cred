@@ -79,7 +79,7 @@ function BenefitCard({
       >
         <Icon size={26} />
       </div>
-      <h3 className="text-[11px] font-black uppercase tracking-[0.16em] text-[#f0cc75]">{title}</h3>
+      <h3 className="text-[11px] font-black uppercase tracking-[0.16em] text-violet-200">{title}</h3>
       <p className="mt-3 text-sm leading-relaxed text-white/58">{desc}</p>
     </div>
   );
@@ -96,7 +96,7 @@ function InsideCard({
 }) {
   return (
     <div className="agc-inside-card rounded-2xl p-6">
-      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-[#d4a447]/35 bg-[#d4a447]/10 text-[#f0cc75]">
+      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-emerald-400/35 bg-emerald-500/10 text-emerald-200">
         <Icon size={22} />
       </div>
       <h3 className="text-base font-bold text-white">{title}</h3>
@@ -120,7 +120,7 @@ function ResultCard({
     <div className="agc-result-card rounded-2xl">
       <img src={image} alt="" loading="lazy" />
       <div className="p-5">
-        <div className="agc-serif text-4xl font-bold text-[#f0cc75]">{stat}</div>
+        <div className="agc-serif text-4xl font-bold text-emerald-300">{stat}</div>
         <div className="mt-1 text-sm font-bold text-white">{title}</div>
         <p className="mt-2 text-xs leading-relaxed text-white/52">{desc}</p>
       </div>
@@ -139,12 +139,12 @@ export default function AgencyGuideLandingPage() {
   const scrollToDownload = () => document.getElementById('download')?.scrollIntoView({ behavior: 'smooth' });
 
   const benefits = [
-    { icon: Target, title: 'Offer Clarity', desc: 'Define irresistible offers that convert.', accent: 'border-[#d4a447]/40 bg-[#d4a447]/10 text-[#f0cc75]' },
-    { icon: Users, title: 'Partner Attraction', desc: 'Position your agency to attract ideal partners.', accent: 'border-amber-400/35 bg-amber-500/10 text-amber-200' },
-    { icon: Cog, title: 'Smart Systems', desc: 'Deliver consistently with scalable systems.', accent: 'border-orange-400/35 bg-orange-500/10 text-orange-300' },
-    { icon: BarChart3, title: 'Sustainable Growth', desc: 'Scale with confidence and more freedom.', accent: 'border-cyan-400/35 bg-cyan-500/10 text-cyan-300' },
-    { icon: Star, title: 'Strong Positioning', desc: 'Stand out in crowded markets with clarity.', accent: 'border-[#d4a447]/40 bg-[#d4a447]/10 text-[#f0cc75]' },
-    { icon: TreePalm, title: 'Freedom Through Structure', desc: 'Build income without sacrificing your life.', accent: 'border-emerald-400/35 bg-emerald-500/10 text-emerald-300' },
+    { icon: Target, title: 'Offer Clarity', desc: 'Define irresistible offers that convert.', accent: 'border-emerald-400/40 bg-emerald-500/10 text-emerald-200' },
+    { icon: Users, title: 'Partner Attraction', desc: 'Position your agency to attract ideal partners.', accent: 'border-violet-400/35 bg-violet-500/10 text-violet-200' },
+    { icon: Cog, title: 'Smart Systems', desc: 'Deliver consistently with scalable systems.', accent: 'border-sky-400/35 bg-sky-500/10 text-sky-200' },
+    { icon: BarChart3, title: 'Sustainable Growth', desc: 'Scale with confidence and more freedom.', accent: 'border-rose-400/35 bg-rose-500/10 text-rose-200' },
+    { icon: Star, title: 'Strong Positioning', desc: 'Stand out in crowded markets with clarity.', accent: 'border-emerald-400/40 bg-emerald-500/10 text-emerald-200' },
+    { icon: TreePalm, title: 'Freedom Through Structure', desc: 'Build income without sacrificing your life.', accent: 'border-violet-400/35 bg-violet-500/10 text-violet-200' },
   ];
 
   const inside = [
@@ -191,8 +191,8 @@ export default function AgencyGuideLandingPage() {
   ];
 
   return (
-    <main className="agc-page min-h-screen overflow-hidden bg-[#050a14] text-white selection:bg-[#d4a447]/30">
-      <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_72%_6%,rgba(212,164,71,0.14),transparent_28%),radial-gradient(circle_at_14%_24%,rgba(40,70,120,0.22),transparent_34%),linear-gradient(180deg,#050a14_0%,#0a1224_48%,#050a14_100%)]" />
+    <main className="agc-page min-h-screen overflow-hidden bg-[#050a14] text-white selection:bg-violet-400/30">
+      <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_72%_6%,rgba(167,139,250,0.16),transparent_28%),radial-gradient(circle_at_14%_24%,rgba(56,189,248,0.14),transparent_34%),radial-gradient(circle_at_88%_72%,rgba(52,211,153,0.1),transparent_32%),linear-gradient(180deg,#050a14_0%,#0a1224_48%,#050a14_100%)]" />
 
       {/* Hero — site-wide nav from App shell; no page-local menu */}
       <section className="relative z-10 border-b border-white/8 pt-20 pb-12 md:pt-24 md:pb-16 lg:pt-28">
@@ -214,7 +214,7 @@ export default function AgencyGuideLandingPage() {
             </div>
             <p className="agc-title-block mt-6 max-w-xl text-lg leading-relaxed text-white/68 lg:text-left">
               Build a Profitable Agency, Attract Better Partners, and Create More Time, Income, and{' '}
-              <span className="font-semibold text-[#f0cc75]">Freedom</span>.
+              <span className="font-semibold text-violet-200">Freedom</span>.
             </p>
             <p className="mt-5 max-w-xl text-sm leading-relaxed text-white/55">
               Clarity on offers · better partners · scalable systems · more time and freedom without burnout.
@@ -222,8 +222,8 @@ export default function AgencyGuideLandingPage() {
             <div className="agc-hero-form mt-6 rounded-2xl p-5 md:p-6">
               <PremiumLeadMagnetCaptureForm
                 funnelConfig={AGENCY_FUNNEL}
-                accentClass="focus:border-[#f0cc75] focus:ring-[#d4a447]/15"
-                buttonClass="agc-gold-btn group relative inline-flex h-14 w-full items-center justify-center overflow-hidden rounded-xl border px-7 text-[11px] font-black uppercase tracking-[0.14em] text-[#06101f] shadow-[0_18px_55px_rgba(212,164,71,0.32)] transition hover:-translate-y-0.5 hover:brightness-110 disabled:opacity-70"
+                accentClass="focus:border-emerald-300 focus:ring-emerald-400/15"
+                buttonClass="group relative inline-flex h-14 w-full items-center justify-center overflow-hidden rounded-xl border border-emerald-300/50 bg-emerald-500 px-7 text-[11px] font-black uppercase tracking-[0.14em] text-white shadow-[0_18px_55px_rgba(16,185,129,0.32)] transition hover:-translate-y-0.5 hover:bg-emerald-400 disabled:opacity-70"
               />
               <div className="mt-3 flex flex-wrap gap-4">
                 <Link to={AGENCY_GUIDE_READ_PATH} className="lm-secondary-book-link !mt-0">
@@ -246,7 +246,7 @@ export default function AgencyGuideLandingPage() {
               <LeadMagnetFunnelHeroVideo
                 config={AGENCY_FUNNEL}
                 theme={AGENCY_THEME}
-                colorGrade="gold"
+                colorGrade="emerald"
                 posterUrl="https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1600&q=90"
                 className="h-full w-full rounded-none border-0 shadow-none"
                 onGoForm={scrollToDownload}
@@ -298,14 +298,14 @@ export default function AgencyGuideLandingPage() {
         <div className="mx-auto grid max-w-7xl items-center gap-10 px-5 md:grid-cols-[1fr_auto_1fr] md:px-8">
           <div className="space-y-8 md:pr-4">
             <div>
-              <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl border border-[#d4a447]/35 text-[#f0cc75]">
+              <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl border border-emerald-400/35 text-emerald-200">
                 <Target size={20} />
               </div>
               <div className="text-sm font-bold text-white">Proven Frameworks</div>
               <p className="mt-1 text-xs text-white/50">Battle-tested agency growth strategies</p>
             </div>
             <div>
-              <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl border border-[#d4a447]/35 text-[#f0cc75]">
+              <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl border border-sky-400/35 text-sky-200">
                 <Settings size={20} />
               </div>
               <div className="text-sm font-bold text-white">Scalable Systems</div>
@@ -315,18 +315,18 @@ export default function AgencyGuideLandingPage() {
           <GuideMockup variant="bundle" />
           <div className="space-y-8 md:pl-4">
             <div>
-              <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl border border-[#d4a447]/35 text-[#f0cc75]">
+              <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl border border-rose-400/35 text-rose-200">
                 <TreePalm size={20} />
               </div>
               <div className="text-sm font-bold text-white">Time & Freedom</div>
               <p className="mt-1 text-xs text-white/50">Build income without sacrificing life</p>
             </div>
             <div className="agc-quote-card rounded-r-xl p-5">
-              <Quote size={18} className="text-[#d4a447]/60" />
+              <Quote size={18} className="text-violet-300/70" />
               <p className="agc-serif mt-3 text-lg italic leading-relaxed text-white/80">
                 The agencies that win don&apos;t just work harder. They build smarter.
               </p>
-              <p className="mt-3 text-[10px] font-black uppercase tracking-[0.18em] text-[#d4a447]">Strategy Today</p>
+              <p className="mt-3 text-[10px] font-black uppercase tracking-[0.18em] text-violet-300">Strategy Today</p>
             </div>
           </div>
         </div>
@@ -382,11 +382,11 @@ export default function AgencyGuideLandingPage() {
                   <div key={step.n} className="relative text-center">
                     {i < steps.length - 1 && (
                       <ChevronRight
-                        className="absolute -right-3 top-5 hidden text-[#d4a447]/40 md:block"
+                        className="absolute -right-3 top-5 hidden text-violet-300/40 md:block"
                         size={22}
                       />
                     )}
-                    <div className="agc-step-circle agc-serif mx-auto flex items-center justify-center text-lg font-bold text-[#f0cc75]">
+                    <div className="agc-step-circle agc-serif mx-auto flex items-center justify-center text-lg font-bold text-emerald-200">
                       {step.n}
                     </div>
                     <h3 className="mt-4 text-sm font-bold text-white">{step.title}</h3>
@@ -415,8 +415,8 @@ export default function AgencyGuideLandingPage() {
             <div className="mx-auto mt-8 max-w-xl">
               <PremiumLeadMagnetCaptureForm
                 funnelConfig={AGENCY_FUNNEL}
-                accentClass="focus:border-[#f0cc75] focus:ring-[#d4a447]/15"
-                buttonClass="agc-gold-btn group relative inline-flex h-14 w-full items-center justify-center overflow-hidden rounded-xl border px-7 text-[11px] font-black uppercase tracking-[0.14em] text-[#06101f] shadow-[0_18px_55px_rgba(212,164,71,0.32)] transition hover:-translate-y-0.5 hover:brightness-110 disabled:opacity-70"
+                accentClass="focus:border-emerald-300 focus:ring-emerald-400/15"
+                buttonClass="group relative inline-flex h-14 w-full items-center justify-center overflow-hidden rounded-xl border border-emerald-300/50 bg-emerald-500 px-7 text-[11px] font-black uppercase tracking-[0.14em] text-white shadow-[0_18px_55px_rgba(16,185,129,0.32)] transition hover:-translate-y-0.5 hover:bg-emerald-400 disabled:opacity-70"
               />
             </div>
           </div>

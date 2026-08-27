@@ -16,12 +16,12 @@ export function CreditSpecialistHubCommandStrip({ clientCount, partnerCount, ope
 
   return (
     <FinelyOsRoleCommandCenter
-      roleLabel="Credit Specialist · Role OS 2.0"
-      headline="Specialist command center"
-      subline="Partners · letters · growth · partnership line — one strip for today’s next step."
+      roleLabel="Credit Specialist"
+      headline="Your caseload today"
+      subline="Open a partner file, clear a task, or grow leads."
       tiles={[
         { id: 'partners', label: 'Partners', value: String(partners), accent: 'violet', onClick: () => navigate('/admin/partners') },
-        { id: 'tasks', label: 'Open tasks', value: String(openTasks), accent: 'amber', onClick: () => navigate('/portal/projects') },
+        { id: 'tasks', label: 'Open tasks', value: String(openTasks), accent: 'rose', onClick: () => navigate('/portal/my-tasks') },
         { id: 'growth', label: 'Growth', value: 'Pitch', accent: 'emerald', onClick: () => navigate(`${CS.hubPath}?tab=growth`) },
         { id: 'line', label: 'Partnership', value: 'Line', accent: 'sky', onClick: () => navigate(CS.messagesDeepLink) },
       ]}

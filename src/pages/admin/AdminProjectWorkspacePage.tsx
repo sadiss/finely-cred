@@ -15,7 +15,7 @@ import type { TaskItem, TaskStatus } from '../../domain/tasks';
 import type { Partner } from '../../domain/partners';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 
-export default function AdminProjectWorkspacePage() {
+export function AdminProjectWorkspaceContent({ embedded = false }: { embedded?: boolean } = {}) {
   const auth = useAuth();
   const ws = useProjectWorkspace();
   const [createOpen, setCreateOpen] = useState(false);
@@ -57,13 +57,22 @@ export default function AdminProjectWorkspacePage() {
 
   const bump = () => window.dispatchEvent(new Event('finely:store'));
 
-  if (!ws.projectId) return <PageShell badge="Admin" title="Project not found" subtitle="" />;
-  if (!project) return <PageShell badge="Admin" title="Project not found" subtitle="This project does not exist." />;
-  if (!partnerIds.has(project.partnerId)) return <PageShell badge="Admin" title="Not authorized" subtitle="That project belongs to a different tenant." />;
+  const stateMessage = (title: string, subtitle: string) =>
+    embedded ? (
+      <div className="rounded-2xl border border-rose-500/30 bg-slate-950 p-6 text-slate-100">
+        <h2 className="text-xl font-bold">{title}</h2>
+        {subtitle ? <p className="mt-2 text-sm text-slate-300">{subtitle}</p> : null}
+      </div>
+    ) : (
+      <PageShell badge="Admin" title={title} subtitle={subtitle} />
+    );
 
-  return (
-    <PageShell badge="Admin" title={project.title} subtitle={`Work OS workspace · ${partnerName || project.partnerId}`}>
-      <div className="space-y-6">
+  if (!ws.projectId) return stateMessage('Project not found', '');
+  if (!project) return stateMessage('Project not found', 'This project does not exist.');
+  if (!partnerIds.has(project.partnerId)) return stateMessage('Not authorized', 'That project belongs to a different tenant.');
+
+  const content = (
+    <div className="space-y-6">
       <ProjectWorkspaceBody
         project={project}
         tasks={tasks}
@@ -151,8 +160,19 @@ export default function AdminProjectWorkspacePage() {
         }}
         onCreateProject={() => {}}
       />
-        <FinelyOsPageFooter />
-</div>
+      {!embedded ? <FinelyOsPageFooter /> : null}
+    </div>
+  );
+
+  if (embedded) return content;
+
+  return (
+    <PageShell badge="Admin" title={project.title} subtitle={`Work OS workspace · ${partnerName || project.partnerId}`}>
+      {content}
     </PageShell>
   );
+}
+
+export default function AdminProjectWorkspacePage() {
+  return <AdminProjectWorkspaceContent />;
 }

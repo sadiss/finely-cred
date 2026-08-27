@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { ArrowLeft, ArrowRight, Scale, FileWarning, ChevronDown, ChevronRight, FileText, BookOpen, AlertTriangle, ShieldCheck, Gavel } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { debtHubHref, debtTabHref, isDebtProductPreviewPath } from '../../lib/debtProductPaths';
 import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
 import { getDebt, upsertDebt } from '../../data/debtRepo';
@@ -46,6 +47,7 @@ import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubL
 import { ValidationAdvisorChat } from '../../components/debt/ValidationAdvisorChat';
 import { CourtAdvisorChat } from '../../components/debt/CourtAdvisorChat';
 import { CollateralWorkstationSection } from '../../components/debt/CollateralWorkstationSection';
+import { PostJudgmentWorkspace } from '../../features/debt/PostJudgmentWorkspace';
 import { FdcpaPowerChips } from '../../components/debt/FdcpaPowerChips';
 import { SmartProofUploader } from '../../components/evidence/SmartProofUploader';
 import { DebtLetterDraftWorkspace } from '../../components/letters/DebtLetterPreview';
@@ -69,7 +71,6 @@ import {
   finelyOsInlineListItem,
   finelyOsStatusChip,
   FINELY_OS_COMPACT_PAGE,
-  finelyOsCatalogCardCompact,
 } from '../../features/os/finelyOsLightUi';
 
 const SCENARIO_OPTIONS: { value: DebtScenario; label: string }[] = [
@@ -78,7 +79,7 @@ const SCENARIO_OPTIONS: { value: DebtScenario; label: string }[] = [
   { value: 'post_validation', label: 'After validation request' },
   { value: 'time_barred', label: 'Debt may be time-barred (SOL)' },
   { value: 'summons_served', label: 'Summons / complaint served' },
-  { value: 'post_35_days', label: 'Past answer deadline (e.g. 35 days)' },
+  { value: 'post_35_days', label: 'Past answer deadline' },
   { value: 'unknown', label: 'Not sure — show all options' },
 ] as const;
 
@@ -87,14 +88,23 @@ function isCourtLetterId(id: string) {
   return isCourtTrackLetter({ letterType: id });
 }
 
-export default function PartnerDebtDetailPage() {
+export function PartnerDebtDetailWorkspace({
+  caseId: caseIdProp,
+  embedded = false,
+}: {
+  caseId?: string;
+  embedded?: boolean;
+}) {
   const auth = useAuth();
   const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
+  const { pathname, search } = useLocation();
+  const previewDebt = embedded || isDebtProductPreviewPath(pathname);
+  const { id: routeCaseId } = useParams<{ id: string }>();
+  const caseId = caseIdProp ?? routeCaseId;
   const { partner } = usePartnerSession();
-  const [debt, setDebtState] = useState(() => (id ? getDebt(id) : null));
+  const [debt, setDebtState] = useState(() => (caseId ? getDebt(caseId) : null));
   const [evidenceVersion, setEvidenceVersion] = useState(0);
-  const [courtOutcome, setCourtOutcome] = useState(() => (id ? getCourtOutcomeByDebtCase(id) : null));
+  const [courtOutcome, setCourtOutcome] = useState(() => (caseId ? getCourtOutcomeByDebtCase(caseId) : null));
 
   const [scenarioOverride, setScenarioOverride] = useState<DebtScenario | null>(null);
   const [expandedLegal, setExpandedLegal] = useState<string | null>(null);
@@ -241,48 +251,58 @@ export default function PartnerDebtDetailPage() {
     setDraft({ specId: letterType, type: 'validation', text });
   };
 
+  const lettersVaultPath = previewDebt ? '/preview/workspace-light/portal/letters-vault' : '/portal/letters/vault';
+  const debtHubPath = debtHubHref(pathname, search);
+
   if (!partner) {
-    return (
-      <PageShell badge="Partner Portal" title="Debt case" subtitle="Sign in with a partner profile to view debt and summons cases.">
-        <div className={FINELY_OS_PAGE}>
-          <div className={`${FINELY_OS_LUXURY_EMPTY} text-left`}>
-            No partner profile found. Use the main dashboard to access the portal.
-          </div>
+    const emptyPartner = (
+      <div className={FINELY_OS_PAGE}>
+        <div className={`${FINELY_OS_LUXURY_EMPTY} text-left`}>
+          No partner profile found. Use the main dashboard to access the portal.
+        </div>
+        {!embedded ? (
           <button type="button" onClick={() => navigate('/dashboard')} className={FINELY_OS_SUCCESS_BTN}>
             <ArrowLeft size={14} /> Back to Dashboard
           </button>
-        </div>
+        ) : null}
+      </div>
+    );
+    if (embedded) return <div className="fc-wlp-debt-workspace-embed">{emptyPartner}</div>;
+    return (
+      <PageShell badge="Partner Portal" title="Debt case" subtitle="Sign in with a partner profile to view debt and summons cases.">
+        {emptyPartner}
       </PageShell>
     );
   }
 
-  if (!id || !debt || debt.partnerId !== partner.id) {
+  if (!caseId || !debt || debt.partnerId !== partner.id) {
+    const notFound = (
+      <div className={FINELY_OS_PAGE}>
+        <div className={`${FINELY_OS_LUXURY_EMPTY} text-left`}>
+          This debt or summons case does not exist or you don&apos;t have access to it.
+        </div>
+        <button type="button" onClick={() => navigate(debtHubPath)} className={FINELY_OS_SUCCESS_BTN}>
+          <ArrowLeft size={14} /> Back to Debt Center
+        </button>
+      </div>
+    );
+    if (embedded) return <div className="fc-wlp-debt-workspace-embed">{notFound}</div>;
     return (
       <PageShell badge="Partner Portal" title="Debt case not found" subtitle="This case does not exist or you do not have access to it.">
-        <div className={FINELY_OS_PAGE}>
-          <div className={`${FINELY_OS_LUXURY_EMPTY} text-left`}>
-            This debt or summons case does not exist or you don&apos;t have access to it.
-          </div>
-          <button type="button" onClick={() => navigate('/portal/debt')} className={FINELY_OS_SUCCESS_BTN}>
-            <ArrowLeft size={14} /> Back to Debt Center
-          </button>
-        </div>
+        {notFound}
       </PageShell>
     );
   }
 
   const isSummons = isSummonsCase;
+  const showPostJudgmentWorkspace =
+    debt.type === 'judgment' || debt.type === 'levy' || Boolean(debt.mechanism);
 
   const caseAccent = isSummons ? 'fuchsia' : 'emerald';
   const citeClass = isSummons ? 'text-fuchsia-300' : 'text-emerald-300';
 
-  return (
-    <PageShell
-      badge="Partner Portal"
-      title={debt.name}
-      subtitle={isSummons ? 'Summons / court matter' : 'Debt / collection account'}
-    >
-      <EntitlementGate partnerId={partner.id} requiredKeys={[ENTITLEMENT_KEYS.debt]}>
+  const detailBody = (
+    <EntitlementGate partnerId={partner.id} requiredKeys={[ENTITLEMENT_KEYS.debt]}>
         {lastSavedLetter ? (
           <div className={`${FINELY_OS_NOTICE_SUCCESS} mb-6 flex flex-wrap items-center justify-between gap-3`}>
             <div className="min-w-0">
@@ -292,7 +312,7 @@ export default function PartnerDebtDetailPage() {
             <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
-                onClick={() => navigate(`/portal/letters/vault?letterId=${encodeURIComponent(lastSavedLetter.id)}`)}
+                onClick={() => navigate(`${lettersVaultPath}?letterId=${encodeURIComponent(lastSavedLetter.id)}`)}
                 className={FINELY_OS_SUCCESS_BTN}
               >
                 Open vault
@@ -462,7 +482,7 @@ export default function PartnerDebtDetailPage() {
                           setDraftBusy(false);
                         }
                       }}
-                      className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                      className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 text-white font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
                       title="Save this letter (PDF) into Letters Vault"
                     >
                       {draftBusy ? 'Saving…' : 'Save to Letters Vault'}
@@ -477,12 +497,14 @@ export default function PartnerDebtDetailPage() {
         <div className={`${FINELY_OS_PAGE} grid lg:grid-cols-12 gap-6`}>
           <div className="lg:col-span-7 space-y-8 min-w-0">
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <button type="button" onClick={() => navigate('/portal/debt')} className={FINELY_OS_BACK_LINK}>
+            <button type="button" onClick={() => navigate(debtHubPath)} className={FINELY_OS_BACK_LINK}>
               <ArrowLeft size={16} /> Debt Center
             </button>
-            <button type="button" onClick={() => navigate('/portal/dashboard')} className={FINELY_OS_BACK_LINK}>
-              <ArrowLeft size={16} /> Partner Dashboard
-            </button>
+            {!embedded ? (
+              <button type="button" onClick={() => navigate('/portal/dashboard')} className={FINELY_OS_BACK_LINK}>
+                <ArrowLeft size={16} /> Partner Dashboard
+              </button>
+            ) : null}
           </div>
 
         <FinelyUnifiedHubLayout
@@ -492,7 +514,7 @@ export default function PartnerDebtDetailPage() {
           accent={caseAccent}
           kpis={[
             { label: 'Type', value: debt.type, hint: 'Case', accent: isSummons ? 'fuchsia' : 'emerald' },
-            { label: 'Status', value: debt.status.replace('_', ' '), hint: 'Stage', accent: 'amber' },
+            { label: 'Status', value: debt.status.replace('_', ' '), hint: 'Stage', accent: 'rose' },
             {
               label: 'Amount',
               value: (debt.amountCents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }),
@@ -509,8 +531,8 @@ export default function PartnerDebtDetailPage() {
           ]}
           activeTab={debtTab}
           onTabChange={(id) => setDebtTab(id as DebtTab)}
-          primaryAction={{ label: 'Debt center', onClick: () => navigate('/portal/debt') }}
-          secondaryAction={{ label: 'Letters vault', onClick: () => navigate('/portal/letters/vault') }}
+          primaryAction={{ label: 'Debt center', onClick: () => navigate(debtHubPath) }}
+          secondaryAction={{ label: 'Letters vault', onClick: () => navigate(lettersVaultPath) }}
         >
         {partner ? (
           <div className="mb-4 space-y-3">
@@ -536,7 +558,7 @@ export default function PartnerDebtDetailPage() {
               summonsContext.amountClaimed ||
               summonsContext.dateServed) ? (
               <div
-                className={`rounded-xl border ${isSummons ? 'border-fuchsia-500/20' : 'border-emerald-500/20'} bg-black/25 !p-3 space-y-2`}
+                className={`${finelyOsCatalogCard(isSummons ? 'rose' : 'emerald')} space-y-3`}
               >
                 <div
                   className={`text-[10px] font-semibold uppercase tracking-widest ${isSummons ? 'text-fuchsia-200/80' : 'text-emerald-200/80'}`}
@@ -545,37 +567,37 @@ export default function PartnerDebtDetailPage() {
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {debtPartyInfo?.recipientName ? (
-                    <div className={`${finelyOsCatalogCardCompact('sky')} !px-3 !py-2`}>
+                    <div className={finelyOsCatalogCard('emerald')} data-fc-accent="emerald">
                       <div className={FINELY_OS_ENTITY_SUBLABEL}>Recipient</div>
                       <div className="text-sm font-semibold text-white">{debtPartyInfo.recipientName}</div>
                     </div>
                   ) : null}
                   {debtPartyInfo?.collectorName ? (
-                    <div className={`${finelyOsCatalogCardCompact('violet')} !px-3 !py-2`}>
+                    <div className={finelyOsCatalogCard('violet')} data-fc-accent="violet">
                       <div className={FINELY_OS_ENTITY_SUBLABEL}>Collector</div>
                       <div className="text-sm font-semibold text-white">{debtPartyInfo.collectorName}</div>
                     </div>
                   ) : null}
                   {debtPartyInfo?.originalCreditor ? (
-                    <div className={`${finelyOsCatalogCardCompact('amber')} !px-3 !py-2`}>
+                    <div className={finelyOsCatalogCard('sky')} data-fc-accent="sky">
                       <div className={FINELY_OS_ENTITY_SUBLABEL}>Original creditor</div>
                       <div className="text-sm font-semibold text-white">{debtPartyInfo.originalCreditor}</div>
                     </div>
                   ) : null}
                   {summonsContext.courtName ? (
-                    <div className={`${finelyOsCatalogCardCompact('sky')} !px-3 !py-2`}>
+                    <div className={finelyOsCatalogCard('rose')} data-fc-accent="rose">
                       <div className={FINELY_OS_ENTITY_SUBLABEL}>Court</div>
                       <div className="text-sm font-semibold text-white">{summonsContext.courtName}</div>
                     </div>
                   ) : null}
                   {summonsContext.amountClaimed ? (
-                    <div className={`${finelyOsCatalogCardCompact('amber')} !px-3 !py-2`}>
+                    <div className={finelyOsCatalogCard('emerald')} data-fc-accent="emerald">
                       <div className={FINELY_OS_ENTITY_SUBLABEL}>Amount claimed</div>
                       <div className="text-sm font-semibold text-white">{summonsContext.amountClaimed}</div>
                     </div>
                   ) : null}
                   {summonsContext.dateServed ? (
-                    <div className={`${finelyOsCatalogCardCompact('rose')} !px-3 !py-2`}>
+                    <div className={finelyOsCatalogCard('violet')} data-fc-accent="violet">
                       <div className={FINELY_OS_ENTITY_SUBLABEL}>Date served</div>
                       <div className="text-sm font-semibold text-white">{summonsContext.dateServed}</div>
                     </div>
@@ -589,13 +611,13 @@ export default function PartnerDebtDetailPage() {
               </div>
             ) : null}
             <div className="flex flex-wrap gap-2">
-              <button type="button" onClick={() => navigate('/portal/debt?tab=validation')} className={FINELY_OS_SECONDARY_BTN}>
+              <button type="button" onClick={() => navigate(debtTabHref('validation', pathname, search))} className={FINELY_OS_SECONDARY_BTN}>
                 Validation workstation
               </button>
-              <button type="button" onClick={() => navigate('/portal/debt?tab=court')} className={FINELY_OS_SECONDARY_BTN}>
+              <button type="button" onClick={() => navigate(debtTabHref('litigation', pathname, search))} className={FINELY_OS_SECONDARY_BTN}>
                 Affidavits & court
               </button>
-              <button type="button" onClick={() => navigate('/portal/debt?tab=bankruptcy')} className={FINELY_OS_SECONDARY_BTN}>
+              <button type="button" onClick={() => navigate(debtTabHref('bankruptcy', pathname, search))} className={FINELY_OS_SECONDARY_BTN}>
                 Bankruptcy center
               </button>
             </div>
@@ -604,6 +626,21 @@ export default function PartnerDebtDetailPage() {
 
         {debtTab === 'overview' && (
         <>
+        {showPostJudgmentWorkspace ? (
+          <PostJudgmentWorkspace
+            debt={debt}
+            debtorName={debtorName}
+            canonicalAddress={{
+              address1: canonicalIdentity?.address1 ?? canonicalIdentity?.addressLine1,
+              address2: canonicalIdentity?.address2,
+              city: canonicalIdentity?.city,
+              state: canonicalIdentity?.state,
+              postalCode: canonicalIdentity?.postalCode,
+            }}
+            onUpdateDebt={handleUpdateDebt}
+            onSavedToVault={(saved) => setLastSavedLetter(saved)}
+          />
+        ) : null}
         {courtOutcome ? (
           <PartnerCourtOutcomePanel
             outcome={courtOutcome}
@@ -611,7 +648,7 @@ export default function PartnerDebtDetailPage() {
             onMarkOrderOnFile={handleMarkCourtOrderOnFile}
           />
         ) : null}
-        <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-6`}>
+        <div className={`${finelyOsCatalogCard('violet')} space-y-6`}>
           <div className="flex items-center gap-3">
             {isSummons ? (
               <FileWarning size={24} className="text-violet-300" />
@@ -624,24 +661,24 @@ export default function PartnerDebtDetailPage() {
             </div>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+            <div className={`${finelyOsCatalogCard('emerald')} fc-surface-harmony`} data-fc-accent="emerald">
               <div className={FINELY_OS_ENTITY_SUBLABEL}>Amount</div>
               <div className={`mt-1 font-mono ${FINELY_OS_ENTITY_VALUE}`}>
                 {(debt.amountCents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
               </div>
             </div>
-            <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+            <div className={`${finelyOsCatalogCard('violet')} fc-surface-harmony`} data-fc-accent="violet">
               <div className={FINELY_OS_ENTITY_SUBLABEL}>Status</div>
               <div className={`mt-1 capitalize ${FINELY_OS_ENTITY_VALUE}`}>{debt.status.replace('_', ' ')}</div>
             </div>
             {debt.dueDate && (
-              <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+              <div className={`${finelyOsCatalogCard('sky')} fc-surface-harmony`} data-fc-accent="sky">
                 <div className={FINELY_OS_ENTITY_SUBLABEL}>Due date</div>
                 <div className={`mt-1 ${FINELY_OS_ENTITY_VALUE}`}>{new Date(debt.dueDate).toLocaleDateString()}</div>
               </div>
             )}
             {debt.courtCaseNumber && (
-              <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+              <div className={`${finelyOsCatalogCard('rose')} fc-surface-harmony`} data-fc-accent="rose">
                 <div className={FINELY_OS_ENTITY_SUBLABEL}>Case number</div>
                 <div className={`mt-1 font-mono text-sm ${FINELY_OS_ENTITY_VALUE}`}>{debt.courtCaseNumber}</div>
               </div>
@@ -655,7 +692,7 @@ export default function PartnerDebtDetailPage() {
             Legal strategy dates
           </h2>
           <p className={FINELY_OS_ENTITY_BODY}>
-            Enter dates so we can recommend which letter or affidavit to use (e.g. 30-day validation window, 35-day answer deadline, SOL).
+            Enter dates so we can recommend which letter or affidavit to use (e.g. 30-day validation window, the state answer calendar, SOL).
           </p>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
@@ -695,6 +732,72 @@ export default function PartnerDebtDetailPage() {
                 className={FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')}
               />
             </div>
+            <div>
+              <label className={`block ${FINELY_OS_ENTITY_LABEL} mb-1`}>Court track</label>
+              <select
+                value={debt.summonsCourtTrack ?? 'general'}
+                onChange={(e) =>
+                  handleUpdateDebt({
+                    summonsCourtTrack: e.target.value === 'small_claims' ? 'small_claims' : 'general',
+                  })
+                }
+                className={FINELY_OS_ENTITY_SELECT.replace('mt-2 ', '')}
+              >
+                <option value="general">General civil (default)</option>
+                <option value="small_claims">Small claims / lower court</option>
+              </select>
+            </div>
+            <div>
+              <label className={`block ${FINELY_OS_ENTITY_LABEL} mb-1`}>How the summons was served</label>
+              <select
+                value={debt.summonsServiceMethod ?? ''}
+                onChange={(e) =>
+                  handleUpdateDebt({
+                    summonsServiceMethod:
+                      e.target.value === 'other_or_out_of_state'
+                        ? 'other_or_out_of_state'
+                        : e.target.value === 'personal_in_state'
+                          ? 'personal_in_state'
+                          : undefined,
+                  })
+                }
+                className={FINELY_OS_ENTITY_SELECT.replace('mt-2 ', '')}
+              >
+                <option value="">Not sure — use the shorter window</option>
+                <option value="personal_in_state">Handed to me in this state</option>
+                <option value="other_or_out_of_state">Mail, substituted, or served outside the state</option>
+              </select>
+            </div>
+            <div>
+              <label className={`block ${FINELY_OS_ENTITY_LABEL} mb-1`}>What papers arrived</label>
+              <select
+                value={debt.summonsPapersServed ?? ''}
+                onChange={(e) =>
+                  handleUpdateDebt({
+                    summonsPapersServed:
+                      e.target.value === 'summons_only'
+                        ? 'summons_only'
+                        : e.target.value === 'summons_and_complaint'
+                          ? 'summons_and_complaint'
+                          : undefined,
+                  })
+                }
+                className={FINELY_OS_ENTITY_SELECT.replace('mt-2 ', '')}
+              >
+                <option value="">Not sure — use the shorter window</option>
+                <option value="summons_and_complaint">Summons and complaint together</option>
+                <option value="summons_only">Summons first — complaint not yet served</option>
+              </select>
+            </div>
+            <div>
+              <label className={`block ${FINELY_OS_ENTITY_LABEL} mb-1`}>Hearing / return date</label>
+              <input
+                type="date"
+                value={debt.hearingDate ?? ''}
+                onChange={(e) => handleUpdateDebt({ hearingDate: e.target.value || undefined })}
+                className={FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')}
+              />
+            </div>
           </div>
           <div>
             <label className={`block ${FINELY_OS_ENTITY_LABEL} mb-1`}>Override situation</label>
@@ -712,7 +815,7 @@ export default function PartnerDebtDetailPage() {
         </div>
 
         {scenarioRec && (
-          <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-3`}>
+          <div className={`${finelyOsCatalogCard('violet')} space-y-3`}>
             <h2 className={FINELY_OS_ENTITY_TITLE}>Your situation</h2>
             <p className={FINELY_OS_ENTITY_VALUE}>{scenarioRec.label}</p>
             <p className={FINELY_OS_ENTITY_BODY}>{scenarioRec.description}</p>
@@ -734,7 +837,7 @@ export default function PartnerDebtDetailPage() {
 
         {debtTab === 'letters' && (
         <div className={FINELY_OS_COMPACT_PAGE}>
-          <div className={`${finelyOsCatalogCardCompact(isSummons ? 'fuchsia' : 'emerald')} flex flex-wrap items-center justify-between gap-2`}>
+          <div className={`${finelyOsCatalogCard(isSummons ? 'rose' : 'emerald')} flex flex-wrap items-center justify-between gap-3`} data-fc-accent={isSummons ? 'rose' : 'emerald'}>
             <div className="flex items-center gap-2 min-w-0">
               {isSummons ? <Gavel size={16} className="text-fuchsia-300" /> : <ShieldCheck size={16} className="text-emerald-300" />}
               <div>
@@ -742,7 +845,7 @@ export default function PartnerDebtDetailPage() {
                 <div className={FINELY_OS_ENTITY_TITLE}>{isSummons ? 'Affidavit & court letters' : 'FDCPA validation letters'}</div>
               </div>
             </div>
-            <button type="button" onClick={() => navigate('/portal/debt')} className={FINELY_OS_SECONDARY_BTN}>
+            <button type="button" onClick={() => navigate(debtHubPath)} className={FINELY_OS_SECONDARY_BTN}>
               Full center <ArrowRight size={12} />
             </button>
           </div>
@@ -796,7 +899,7 @@ export default function PartnerDebtDetailPage() {
 
         {debtTab === 'legal' && (
         <>
-        <div className={`${finelyOsCatalogCard('violet')} !p-5 overflow-hidden`}>
+        <div className={`${finelyOsCatalogCard('violet')} overflow-hidden`}>
           <h2 className={`${FINELY_OS_ENTITY_TITLE} p-5 border-b border-white/[0.08]`}>Legal framework — contract, banking, procedure</h2>
           {[
             {
@@ -812,7 +915,7 @@ export default function PartnerDebtDetailPage() {
             {
               id: 'procedure',
               title: 'Civil procedure & SOL',
-              body: 'Statute of limitations varies by state and claim type (e.g. written contract, open account). Once the SOL has run, the right to sue may be extinguished. Asserting SOL is an affirmative defense; it must be raised in the answer. Answer deadlines (e.g. 20–35 days from service) are often jurisdictional—missing them can lead to default. If the deadline passed, a motion to set aside default with an affidavit and meritorious defenses may be available.',
+              body: 'Statute of limitations varies by state and claim type (e.g. written contract, open account). Once the SOL has run, the right to sue may be extinguished. Asserting SOL is an affirmative defense; it must be raised in the answer. Answer deadlines follow the state summons calendar (often 15–35 days from service, and Texas uses the Monday after 20 days) and are often jurisdictional—missing them can lead to default. If the deadline passed, a motion to set aside default with an affidavit and meritorious defenses may be available.',
             },
             {
               id: 'evidence',
@@ -984,7 +1087,7 @@ export default function PartnerDebtDetailPage() {
                             setDraftBusy(false);
                           }
                         }}
-                        className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                        className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 text-white font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
                         title="Save this letter (PDF) into Letters Vault"
                       >
                         {draftBusy ? 'Saving…' : 'Save to Letters Vault'}
@@ -993,13 +1096,13 @@ export default function PartnerDebtDetailPage() {
                   </div>
                 </div>
               ) : (
-                <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-3`}>
+                <div className={`${finelyOsCatalogCard('violet')} space-y-3`}>
                   <div className={FINELY_OS_ENTITY_VALUE}>Focused drafting</div>
                   <div className={FINELY_OS_ENTITY_BODY}>
                     Click <span className="text-fuchsia-300 font-semibold">Build draft</span> on any letter to open the editor here (desktop) or as a
                     modal (mobile).
                   </div>
-                  <button type="button" onClick={() => navigate('/portal/letters/vault')} className={FINELY_OS_SECONDARY_BTN}>
+                  <button type="button" onClick={() => navigate(lettersVaultPath)} className={FINELY_OS_SECONDARY_BTN}>
                     Open Letters Vault
                   </button>
                 </div>
@@ -1022,8 +1125,25 @@ export default function PartnerDebtDetailPage() {
           </CollateralWorkstationSection>
         ) : null}
 
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
       </EntitlementGate>
+  );
+
+  if (embedded) {
+    return <div className="fc-wlp-debt-workspace-embed">{detailBody}</div>;
+  }
+
+  return (
+    <PageShell
+      badge="Partner Portal"
+      title={debt.name}
+      subtitle={isSummons ? 'Summons / court matter' : 'Debt / collection account'}
+    >
+      {detailBody}
     </PageShell>
   );
+}
+
+export default function PartnerDebtDetailPage() {
+  return <PartnerDebtDetailWorkspace />;
 }

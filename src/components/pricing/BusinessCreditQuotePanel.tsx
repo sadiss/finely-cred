@@ -158,7 +158,7 @@ export function BusinessCreditQuotePanel() {
           >
             Continue with {quote.pkg.name}
           </button>
-          <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/book')}>
+          <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/enlightenment-session')}>
             Book a session
           </button>
         </div>

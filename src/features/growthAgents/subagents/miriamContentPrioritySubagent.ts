@@ -68,7 +68,7 @@ export async function runMiriamContentPriorityReview(): Promise<MiriamContentPri
           title: `Publish/promote — ${oldest.title}`,
           notes: [directive.reasoning, `Open: ${buildGrowthContentStudioPromoteUrl()}`].join('\n'),
           recordId: oldest.id,
-          href: '/admin/marketing?tab=content&room=video',
+          href: '/admin/content-studio?room=video',
           tags: ['miriam-content-priority', 'persona:social'],
           growthAgentId: 'social',
           priority: ageDays >= 3 ? 'high' : 'normal',

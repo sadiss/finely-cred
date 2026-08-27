@@ -33,6 +33,7 @@ import {
   StateLawScrutinyBanner,
 } from '../../components/resources/DoctrineArticleParts';
 import { DebtLitigationPlaybookCard } from '../../components/resources/DebtLitigationPlaybookCard';
+import { finelyOsCatalogCard } from '../../features/os/finelyOsLightUi';
 
 export default function DebtDefensePennsylvaniaPage() {
   const postJudgment = getPlaybook('credit_card', 'post_judgment_emergency');
@@ -105,7 +106,7 @@ export default function DebtDefensePennsylvaniaPage() {
         </div>
       </section>
 
-      <section className="rounded-[1.25rem] border border-amber-400/25 bg-amber-500/[0.04] p-5">
+      <section className={finelyOsCatalogCard('rose')} data-fc-accent="rose">
         <DoctrineSectionHeading Icon={FileWarning} title="What varies by state and is NOT covered here" eyebrow="Verify locally" />
         <DoctrineFieldList
           tone="warn"

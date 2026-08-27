@@ -46,7 +46,7 @@ function GoldButton({
       type={type}
       disabled={disabled}
       className={cn(
-        'group relative inline-flex h-14 items-center justify-center overflow-hidden rounded-xl border border-[#ffe7a3]/60 bg-[linear-gradient(135deg,#8c5b16_0%,#d7a73f_42%,#ffe7a3_68%,#b8791d_100%)] px-7 text-[12px] font-black uppercase tracking-[0.12em] text-[#06101f] shadow-[0_18px_55px_rgba(215,167,63,0.30),inset_0_1px_0_rgba(255,255,255,0.45)] transition duration-300 hover:-translate-y-0.5 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70',
+        'group relative inline-flex h-14 items-center justify-center overflow-hidden rounded-xl border border-emerald-300/60 bg-emerald-500 px-7 text-[12px] font-black uppercase tracking-[0.12em] text-white shadow-[0_18px_55px_rgba(16,185,129,0.30),inset_0_1px_0_rgba(255,255,255,0.25)] transition duration-300 hover:-translate-y-0.5 hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-70',
         className,
       )}
     >
@@ -58,7 +58,7 @@ function GoldButton({
 
 function SectionKicker({ children }: { children: React.ReactNode }) {
   return (
-    <div className="inline-flex items-center gap-2 rounded-full border border-[#d7a73f]/35 bg-[#d7a73f]/10 px-4 py-2 text-[11px] font-black uppercase tracking-[0.22em] text-[#f4d273] shadow-[0_0_30px_rgba(215,167,63,0.12)]">
+    <div className="inline-flex items-center gap-2 rounded-full border border-[#a78bfa]/35 bg-[#a78bfa]/10 px-4 py-2 text-[11px] font-black uppercase tracking-[0.22em] text-[#c4b5fd] shadow-[0_0_30px_rgba(167,139,250,0.12)]">
       <Sparkles size={14} />
       {children}
     </div>
@@ -78,7 +78,7 @@ function GlassPanel({
     <div
       className={cn(
         'relative overflow-hidden rounded-[1.5rem] border border-white/10 bg-white/[0.035] shadow-[0_30px_110px_rgba(0,0,0,0.46)] backdrop-blur-xl',
-        glow && 'before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_50%_0%,rgba(215,167,63,0.16),transparent_44%)]',
+        glow && 'before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_50%_0%,rgba(167,139,250,0.16),transparent_44%)]',
         className,
       )}
     >
@@ -91,7 +91,7 @@ function GlassPanel({
 function MiniCheck({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-start gap-3 text-sm leading-relaxed text-white/72">
-      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#d7a73f] text-[#05101e] shadow-[0_0_22px_rgba(215,167,63,0.24)]">
+      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#a78bfa] text-[#05101e] shadow-[0_0_22px_rgba(167,139,250,0.24)]">
         <CheckCircle2 size={13} strokeWidth={3} />
       </span>
       <span>{children}</span>
@@ -130,10 +130,10 @@ function GuideMockup({
 
 function ValueStackCard({ label, value }: { label: string; value: string }) {
   return (
-    <GlassPanel className="csr-value-card p-5 transition duration-300 hover:-translate-y-1 hover:border-[#d7a73f]/45">
-      <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[#d7a73f]">Included free</div>
+    <GlassPanel className="csr-value-card p-5 transition duration-300 hover:-translate-y-1 hover:border-[#a78bfa]/45">
+      <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[#a78bfa]">Included free</div>
       <div className="mt-3 text-sm font-semibold leading-snug text-white">{label}</div>
-      <div className="mt-3 text-2xl font-black tracking-[-0.03em] text-[#f4d273]">{value} value</div>
+      <div className="mt-3 text-2xl font-black tracking-[-0.03em] text-[#c4b5fd]">{value} value</div>
     </GlassPanel>
   );
 }
@@ -160,25 +160,36 @@ function DiscoveryCard({
   title,
   desc,
   featured = false,
+  accentIndex = 0,
 }: {
   icon: React.ComponentType<{ size?: number; className?: string }>;
   title: string;
   desc: string;
   featured?: boolean;
+  accentIndex?: number;
 }) {
+  const titleColor =
+    accentIndex === 1
+      ? 'text-[#34d399]'
+      : accentIndex === 2
+        ? 'text-[#38bdf8]'
+        : accentIndex === 3
+          ? 'text-[#fb7185]'
+          : 'text-[#c4b5fd]';
+
   return (
     <div
       className={cn(
-        'csr-discovery-card group relative overflow-hidden rounded-[1.35rem] p-6 text-center transition duration-300 hover:-translate-y-1 hover:border-[#d7a73f]/45',
+        'csr-discovery-card group relative overflow-hidden rounded-[1.35rem] p-6 text-center transition duration-300 hover:-translate-y-1 hover:border-[#a78bfa]/45',
         featured && 'csr-discovery-card--featured md:col-span-2 md:flex md:items-center md:gap-8 md:text-left',
       )}
     >
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#d7a73f]/70 to-transparent opacity-0 transition group-hover:opacity-100" />
-      <div className={cn('csr-discovery-icon mx-auto flex items-center justify-center rounded-full text-[#f4d273]', featured && 'md:mx-0 md:shrink-0')}>
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#a78bfa]/70 to-transparent opacity-0 transition group-hover:opacity-100" />
+      <div className={cn('csr-discovery-icon mx-auto flex items-center justify-center rounded-full text-[#c4b5fd]', featured && 'md:mx-0 md:shrink-0')}>
         <Icon size={featured ? 40 : 34} />
       </div>
       <div className={featured ? 'md:flex-1' : undefined}>
-        <h3 className="mt-5 text-[13px] font-black uppercase tracking-[0.1em] text-[#f4d273] md:mt-0">{title}</h3>
+        <h3 className={cn('mt-5 text-[13px] font-black uppercase tracking-[0.1em] md:mt-0', titleColor)}>{title}</h3>
         <p className="mt-3 text-sm leading-relaxed text-white/60">{desc}</p>
       </div>
     </div>
@@ -196,7 +207,7 @@ function Testimonial({
 }) {
   return (
     <div className="csr-testimonial-card relative overflow-hidden rounded-[1.35rem] p-6">
-      <div className="flex gap-1 text-[#f4d273]">
+      <div className="flex gap-1 text-[#c4b5fd]">
         {Array.from({ length: 5 }).map((_, i) => (
           <Star key={i} size={16} fill="currentColor" />
         ))}
@@ -206,7 +217,7 @@ function Testimonial({
         <div className="font-semibold text-white">- {name}</div>
         <div className="text-xs text-white/48">{role}</div>
       </div>
-      <div className="absolute bottom-5 right-5 flex h-16 w-16 items-center justify-center rounded-full border-2 border-[#d7a73f]/55 bg-gradient-to-br from-[#f4d273] to-[#2d8a67] text-[#06101f] shadow-[0_0_30px_rgba(215,167,63,0.22)]">
+      <div className="absolute bottom-5 right-5 flex h-16 w-16 items-center justify-center rounded-full border-2 border-[#a78bfa]/55 bg-gradient-to-br from-[#c4b5fd] to-[#2d8a67] text-[#06101f] shadow-[0_0_30px_rgba(167,139,250,0.22)]">
         <User size={26} />
       </div>
     </div>
@@ -248,7 +259,7 @@ export default function CreditScoreRoadmapLandingPage() {
   ];
 
   return (
-    <main className="csr-page min-h-screen overflow-hidden bg-[#020812] text-white selection:bg-[#d7a73f]/30 selection:text-white">
+    <main className="csr-page min-h-screen overflow-hidden bg-[#020812] text-white selection:bg-[#a78bfa]/30 selection:text-white">
       <style>{`
         .fc-premium-noise {
           background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,.13) 1px, transparent 0);
@@ -259,13 +270,13 @@ export default function CreditScoreRoadmapLandingPage() {
           -webkit-mask-image: radial-gradient(circle at 58% 38%, black 0%, black 58%, transparent 100%);
         }
       `}</style>
-      <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_70%_8%,rgba(215,167,63,0.18),transparent_30%),radial-gradient(circle_at_18%_28%,rgba(45,138,103,0.28),transparent_32%),linear-gradient(180deg,#020812_0%,#041326_42%,#020812_100%)]" />
+      <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_70%_8%,rgba(167,139,250,0.18),transparent_30%),radial-gradient(circle_at_18%_28%,rgba(45,138,103,0.28),transparent_32%),linear-gradient(180deg,#020812_0%,#041326_42%,#020812_100%)]" />
       <div className="fc-premium-noise pointer-events-none fixed inset-0 z-0 opacity-[0.045]" />
       <div className="pointer-events-none fixed inset-x-0 top-0 z-0 h-[420px] bg-gradient-to-b from-[#0b2543]/50 to-transparent" />
 
-      <section className="csr-hero-section csr-hero-section--editorial relative z-10 border-b border-[#d7a73f]/25 pt-20 md:pt-24">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_12%,rgba(215,167,63,0.22),transparent_42%),radial-gradient(circle_at_50%_88%,rgba(45,138,103,0.12),transparent_38%)]" />
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#d7a73f]/75 to-transparent" />
+      <section className="csr-hero-section csr-hero-section--editorial relative z-10 border-b border-[#a78bfa]/25 pt-20 md:pt-24">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_12%,rgba(167,139,250,0.22),transparent_42%),radial-gradient(circle_at_50%_88%,rgba(45,138,103,0.12),transparent_38%)]" />
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#a78bfa]/75 to-transparent" />
 
         <div className="relative z-10 mx-auto max-w-6xl px-5 pt-6 md:px-8 md:pt-10">
           <h1 className="csr-hero-title csr-serif text-white">
@@ -288,11 +299,11 @@ export default function CreditScoreRoadmapLandingPage() {
           <div className="csr-hero-bottom mx-auto max-w-3xl">
             <div className="csr-hero-form rounded-[1.35rem] p-5 md:p-6">
               <h2 className="mb-3 text-center text-lg font-black uppercase tracking-[0.08em] text-white md:text-xl">
-                Get Your <span className="text-[#f4d273]">Free</span> Guide Now
+                Get Your <span className="text-[#c4b5fd]">Free</span> Guide Now
               </h2>
               <PremiumLeadMagnetCaptureForm
                 funnelConfig={SCORE_ROADMAP_FUNNEL}
-                accentClass="focus:border-[#f4d273] focus:ring-[#d7a73f]/15"
+                accentClass="focus:border-[#c4b5fd] focus:ring-[#a78bfa]/15"
               />
               <div className="mt-3 flex flex-wrap items-center justify-center gap-4">
                 <Link to={SCORE_BOOST_READ_PATH} className="lm-secondary-book-link !mt-0">
@@ -324,7 +335,7 @@ export default function CreditScoreRoadmapLandingPage() {
         </div>
       </section>
 
-      <section id="csr-preview" className="csr-video-section csr-video-section--stacked relative z-10 scroll-mt-24 border-b border-[#d7a73f]/20">
+      <section id="csr-preview" className="csr-video-section csr-video-section--stacked relative z-10 scroll-mt-24 border-b border-[#a78bfa]/20">
         <div className="mx-auto max-w-4xl px-5 pb-6 text-center md:px-8">
           <SectionKicker>Exclusive video</SectionKicker>
           <h2 className="csr-serif mt-4 text-3xl font-black leading-tight tracking-[-0.035em] md:text-4xl">
@@ -336,7 +347,7 @@ export default function CreditScoreRoadmapLandingPage() {
         </div>
       </section>
 
-      <section className="relative z-10 border-y border-[#d7a73f]/20 py-8 md:py-10">
+      <section className="relative z-10 border-y border-[#a78bfa]/20 py-8 md:py-10">
         <div className="mx-auto max-w-7xl space-y-3 px-5 md:px-8">
           <details className="lm-seo-depth">
             <summary>
@@ -354,7 +365,7 @@ export default function CreditScoreRoadmapLandingPage() {
                     {i < 2 && <span className="csr-timeline-line" aria-hidden />}
                     <div className="csr-timeline-node shrink-0">{i + 1}</div>
                     <div className="pt-1">
-                      <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[#d7a73f]">{step.hour}</div>
+                      <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[#a78bfa]">{step.hour}</div>
                       <div className="mt-1 text-lg font-bold text-white">{step.title}</div>
                       <p className="mt-2 text-sm leading-relaxed text-white/58">{step.desc}</p>
                     </div>
@@ -383,7 +394,7 @@ export default function CreditScoreRoadmapLandingPage() {
             </summary>
             <div className="lm-seo-depth-body grid gap-4 md:grid-cols-2">
               {discoveries.map((item, i) => (
-                <DiscoveryCard key={item.title} {...item} featured={i === 0} />
+                <DiscoveryCard key={item.title} {...item} featured={i === 0} accentIndex={i} />
               ))}
             </div>
           </details>
@@ -419,19 +430,19 @@ export default function CreditScoreRoadmapLandingPage() {
         </div>
       </section>
 
-      <section id="download" className="relative z-10 border-t border-[#d7a73f]/25 px-5 pb-12 md:px-8">
-        <div className="mx-auto max-w-7xl overflow-visible rounded-[1.65rem] border border-[#d7a73f]/45 bg-gradient-to-r from-[#061326] via-[#071b33] to-[#0a1f18] shadow-[0_34px_120px_rgba(0,0,0,0.55)]">
+      <section id="download" className="relative z-10 border-t border-[#a78bfa]/25 px-5 pb-12 md:px-8">
+        <div className="mx-auto max-w-7xl overflow-visible rounded-[1.65rem] border border-[#a78bfa]/45 bg-gradient-to-r from-[#061326] via-[#071b33] to-[#0a1f18] shadow-[0_34px_120px_rgba(0,0,0,0.55)]">
           <div className="grid gap-0 overflow-hidden rounded-[1.65rem] lg:grid-cols-[0.92fr_1.08fr]">
             <div className="relative flex min-h-[320px] flex-col items-center justify-end overflow-visible p-6 pb-14 md:p-8 md:pb-16">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_60%,rgba(215,167,63,0.22),transparent_48%),radial-gradient(circle_at_50%_65%,rgba(45,138,103,0.12),transparent_42%)]" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_60%,rgba(167,139,250,0.22),transparent_48%),radial-gradient(circle_at_50%_65%,rgba(45,138,103,0.12),transparent_42%)]" />
               <GuideMockup footer className="relative z-10" />
-              <div className="relative z-10 mt-4 w-full max-w-xs rounded-xl border border-[#d7a73f]/35 bg-[#061326]/90 px-4 py-3 text-center backdrop-blur-sm">
-                <div className="text-[10px] font-black uppercase tracking-[0.18em] text-[#d7a73f]">Your roadmap to</div>
+              <div className="relative z-10 mt-4 w-full max-w-xs rounded-xl border border-[#a78bfa]/35 bg-[#061326]/90 px-4 py-3 text-center backdrop-blur-sm">
+                <div className="text-[10px] font-black uppercase tracking-[0.18em] text-[#a78bfa]">Your roadmap to</div>
                 <div className="text-sm font-black uppercase tracking-[0.06em] text-[#3db896]">Score breakthrough starts now.</div>
               </div>
             </div>
             <div className="p-8 md:p-10">
-              <h3 className="text-2xl font-black uppercase tracking-[0.07em] text-[#f4d273]">
+              <h3 className="text-2xl font-black uppercase tracking-[0.07em] text-[#c4b5fd]">
                 Get Instant Access to Your Free Guide
               </h3>
               <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/58">
@@ -440,7 +451,7 @@ export default function CreditScoreRoadmapLandingPage() {
               <div className="mt-6">
                 <PremiumLeadMagnetCaptureForm
                   funnelConfig={SCORE_ROADMAP_FUNNEL}
-                  accentClass="focus:border-[#f4d273] focus:ring-[#d7a73f]/15"
+                  accentClass="focus:border-[#c4b5fd] focus:ring-[#a78bfa]/15"
                 />
               </div>
             </div>

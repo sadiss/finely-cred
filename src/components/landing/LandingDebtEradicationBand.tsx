@@ -23,10 +23,9 @@ export function LandingDebtEradicationBand() {
 
       <div className="container mx-auto px-4 sm:px-6 max-w-6xl relative z-10">
         <Reveal>
-          <div className="relative overflow-hidden rounded-[1.75rem] border border-[#e0b24a]/30 bg-gradient-to-br from-[#060c2f]/90 via-[#0a1628]/85 to-[#020618]/95 px-6 py-10 sm:px-10 sm:py-12 lg:px-12 lg:py-14 shadow-[0_40px_100px_-40px_rgba(0,0,0,0.75)]">
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_55%_60%_at_90%_10%,rgba(224,178,74,0.16),transparent_60%)] pointer-events-none" />
+          <div className="relative overflow-hidden rounded-[1.75rem] border border-rose-500/30 bg-gradient-to-br from-[#060c2f]/90 via-[#0a1628]/85 to-[#020618]/95 px-6 py-10 sm:px-10 sm:py-12 lg:px-12 lg:py-14 shadow-[0_40px_100px_-40px_rgba(0,0,0,0.75)]">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_55%_60%_at_90%_10%,rgba(244,63,94,0.14),transparent_60%)] pointer-events-none" />
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_40%_50%_at_0%_100%,rgba(163,230,53,0.08),transparent_55%)] pointer-events-none" />
-            <div className="fc-sell-champagne-card__sheen opacity-40" />
 
             <div className="relative grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12 xl:gap-14">
               {/* Copy — left */}
@@ -36,7 +35,7 @@ export function LandingDebtEradicationBand() {
                   text="Collections stacking? "
                   accentText="Take the playbook."
                   className="fc-sell-serif text-4xl sm:text-5xl lg:text-[3.25rem] font-semibold leading-[1.08] text-white"
-                  accentClassName="text-[#ffd993] italic"
+                  accentClassName="text-rose-300 italic"
                   speedMs={46}
                   delayMs={140}
                 />
@@ -68,7 +67,7 @@ export function LandingDebtEradicationBand() {
                       onClick={() => navigate('/enlightenment-session')}
                       className="fc-sell-cta-ghost w-full sm:w-auto"
                     >
-                      Book an Enlightenment session
+                      Book a strategy call
                     </button>
                   </div>
                   <p className="fc-sell-compliance mt-5">Results vary · not legal advice · not outcome guarantees</p>

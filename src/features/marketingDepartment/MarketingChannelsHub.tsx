@@ -127,7 +127,7 @@ function SmsTwilioGrid() {
         <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/settings')}>
           Comms settings
         </button>
-        <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/phone')}>
+        <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/phone-hub')}>
           Phone Hub
         </button>
         <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/comms?room=sequences')}>

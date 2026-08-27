@@ -66,7 +66,7 @@ function OneSheetMockup({ accent, lines }: { accent: FinelyOsPublicAccent; lines
       <div className={`absolute inset-0 bg-gradient-to-br ${accentGlow} pointer-events-none`} />
       <div className="relative flex h-full flex-col p-2.5">
         <div className="flex items-center gap-1.5 border-b border-white/10 pb-1.5">
-          <FileText className="h-3 w-3 shrink-0 text-amber-300/90" />
+          <FileText className="h-3 w-3 shrink-0 text-sky-300/90" />
           <span className="text-[6px] font-black uppercase tracking-[0.18em] text-white/45">Finely Cred PDF</span>
         </div>
         <div className="mt-2 space-y-1">
@@ -77,7 +77,7 @@ function OneSheetMockup({ accent, lines }: { accent: FinelyOsPublicAccent; lines
           ))}
         </div>
         <div className="mt-auto pt-2">
-          <div className="h-1 w-8 rounded-full bg-amber-400/50" />
+          <div className="h-1 w-8 rounded-full bg-sky-400/50" />
         </div>
       </div>
     </div>
@@ -96,12 +96,12 @@ export function LandingMaterialsPreviewBand() {
       <div className="container mx-auto max-w-6xl px-4 sm:px-6">
         <Reveal>
           <div className="mb-8 text-center sm:text-left">
-            <p className="mb-2 text-[10px] font-black uppercase tracking-[0.28em] text-[#ffd993]/90">
+            <p className="mb-2 text-[10px] font-black uppercase tracking-[0.28em] text-sky-300/90">
               <Layers className="mr-1.5 inline h-3.5 w-3.5" />
               Partner materials
             </p>
             <h2 className="text-2xl font-semibold leading-tight text-white sm:text-3xl">
-              Free e-guide + <span className="text-[#ffd993]">one-sheet previews</span>
+              Free e-guide + <span className="text-sky-300">one-sheet previews</span>
             </h2>
             <p className="mt-2 max-w-2xl text-sm text-white/55 sm:text-base">
               Skim the dispute letter guide and business credit PDFs before you book — every download is partner-ready

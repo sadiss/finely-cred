@@ -86,7 +86,7 @@ export default function AdminFunnelExperimentsPage() {
         </button>
 
         <div className="grid lg:grid-cols-3 gap-6">
-          <div className={`lg:col-span-1 space-y-3 ${finelyOsCatalogCard('violet')} !p-5`} data-fc-accent="violet">
+          <div className={`lg:col-span-1 space-y-4 ${finelyOsCatalogCard('violet')}`} data-fc-accent="violet">
             <div className={`flex items-center justify-between ${FINELY_OS_ENTITY_SUBLABEL}`}>
               <span className="inline-flex items-center gap-1">
                 <FlaskConical size={14} /> Experiments
@@ -115,7 +115,7 @@ export default function AdminFunnelExperimentsPage() {
           </div>
 
           {active ? (
-            <div className={`lg:col-span-2 space-y-4 ${finelyOsCatalogCard('sky')} !p-5`} data-fc-accent="sky">
+            <div className={`lg:col-span-2 space-y-4 ${finelyOsCatalogCard('sky')}`} data-fc-accent="sky">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className={`${FINELY_OS_ENTITY_VALUE} text-lg font-bold`}>{active.name}</div>
                 <button type="button" onClick={() => patchActive({ enabled: !active.enabled })} className={FINELY_OS_SECONDARY_BTN}>
@@ -138,10 +138,11 @@ export default function AdminFunnelExperimentsPage() {
                 />
               </div>
 
-              {VARIANTS.map((v) => {
+              {VARIANTS.map((v, idx) => {
                 const stats = active.stats?.[v] ?? { impressions: 0, conversions: 0 };
+                const variantAccent = (['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4];
                 return (
-                  <div key={v} className={`${finelyOsCatalogCard('emerald')} !p-4 fc-surface-harmony space-y-2`} data-fc-accent="emerald">
+                  <div key={v} className={`${finelyOsCatalogCard(variantAccent)} fc-surface-harmony space-y-3`} data-fc-accent={variantAccent}>
                     <div className="flex flex-wrap justify-between gap-2">
                       <span className={`${FINELY_OS_ENTITY_SUBLABEL} uppercase`}>{v.replace('_', ' ')}</span>
                       <span className={`text-[10px] ${FINELY_OS_ENTITY_BODY}`}>

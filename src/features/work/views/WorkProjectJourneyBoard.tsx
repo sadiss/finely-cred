@@ -3,8 +3,11 @@ import { AlertTriangle, ArrowRight, ChevronLeft, ChevronRight, FolderKanban, Gri
 import type { Project, ProjectStage } from '../../../domain/projects';
 import type { Partner } from '../../../domain/partners';
 import { serviceLaneFromProjectTags } from '../../../domain/workSla';
-import { FINELY_OS_DRAG_HINT, FINELY_OS_ENTITY_BODY, FINELY_OS_ENTITY_EMPTY, FINELY_OS_ENTITY_INPUT, FINELY_OS_ENTITY_SUBLABEL, FINELY_OS_ENTITY_VALUE, FINELY_OS_KPI_ACCENTS, FINELY_OS_LUXURY_PAGINATION, FINELY_OS_LUXURY_PAGINATION_BTN, FINELY_OS_PRIMARY_BTN, finelyOsColumnTheme, finelyOsStatusChip } from '../../os/finelyOsLightUi';
+import { FINELY_OS_DRAG_HINT, FINELY_OS_ENTITY_BODY, FINELY_OS_ENTITY_EMPTY, FINELY_OS_ENTITY_INPUT, FINELY_OS_ENTITY_SUBLABEL, FINELY_OS_ENTITY_VALUE, FINELY_OS_LUXURY_PAGINATION, FINELY_OS_LUXURY_PAGINATION_BTN, finelyOsColumnTheme, finelyOsStatusChip } from '../../os/finelyOsLightUi';
 import { useBoardDragDrop } from '../../os/useBoardDragDrop';
+import './workBoardCards.css';
+
+const WORK_CARD_ACCENTS = ['emerald', 'violet', 'sky', 'rose'] as const;
 
 export type ProjectCardStats = { open: number; total: number; done: number; pct: number; slaCount?: number };
 
@@ -27,6 +30,7 @@ export function WorkProjectCard({
   enabledStages,
   dragHandleProps,
   stopDragOnControl,
+  accent = 'emerald',
 }: {
   project: Project;
   partner: Partner | null;
@@ -38,27 +42,26 @@ export function WorkProjectCard({
   enabledStages: Array<{ id: string; label: string }>;
   dragHandleProps?: React.HTMLAttributes<HTMLDivElement> & { draggable?: boolean };
   stopDragOnControl?: { onMouseDown: (e: React.MouseEvent) => void; draggable: false };
+  accent?: (typeof WORK_CARD_ACCENTS)[number];
 }) {
   const lane = serviceLaneFromProjectTags(project.tags);
   const atRisk = (stats.slaCount ?? 0) > 0 || project.health === 'red' || project.health === 'amber';
   const { className: dragClass, ...restDrag } = dragHandleProps ?? {};
-  const shell = atRisk
-    ? 'border-rose-500/35 bg-rose-500/10 ring-1 ring-rose-400/20'
-    : 'border-white/[0.08] bg-white/[0.06] ring-1 ring-inset ring-white/[0.08]';
+  const cardAccent = atRisk ? 'rose' : accent;
 
   return (
-    <div {...restDrag} className={`rounded-xl border p-3 shadow-sm transition-all hover:shadow-md hover:border-emerald-400/30 ${shell} ${dragClass ?? ''}`.trim()}>
+    <div {...restDrag} className={`fc-work-card ${dragClass ?? ''}`.trim()} data-accent={cardAccent}>
       <div className="flex items-start gap-1">
-        <GripVertical size={14} className="text-white/25 shrink-0 mt-0.5" />
+        <GripVertical size={14} className="text-white/45 shrink-0 mt-0.5" />
         <button type="button" onClick={onOpen} className="w-full text-left min-w-0">
         <div className="flex items-start justify-between gap-2">
           <span className={`inline-flex text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${lane.className}`}>
             {lane.label}
           </span>
-          {atRisk ? <AlertTriangle size={14} className="text-rose-400 shrink-0" /> : null}
+          {atRisk ? <AlertTriangle size={14} className="text-rose-200 shrink-0" /> : null}
         </div>
-        <div className={`mt-2 text-sm line-clamp-2 ${FINELY_OS_ENTITY_VALUE}`}>{project.title}</div>
-        <div className={`mt-1 text-xs truncate ${FINELY_OS_ENTITY_BODY}`}>{partner?.profile.fullName ?? project.partnerId}</div>
+        <div className="fc-work-card-title mt-2 line-clamp-2">{project.title}</div>
+        <div className="fc-work-card-meta mt-1 truncate">{partner?.profile.fullName ?? project.partnerId}</div>
         </button>
       </div>
 
@@ -105,7 +108,7 @@ export function WorkProjectCard({
       <button
         type="button"
         onClick={onOpen}
-        className={`mt-3 w-full ${FINELY_OS_PRIMARY_BTN}`}
+        className="fc-work-open-btn mt-3"
       >
         Open workspace <ArrowRight size={12} />
       </button>
@@ -157,23 +160,25 @@ export function WorkProjectJourneyBoard({
       <p className={FINELY_OS_DRAG_HINT}>
         <GripVertical size={12} /> Drag project cards to the next journey phase
       </p>
-      <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scroll-px-4 -mx-1 px-1">
+      <div className="fc-work-board-scroll">
+        <div className="fc-work-board-row">
         {enabledStages.map((stage, colIdx) => {
           const cards = byStage.get(stage.id) ?? [];
           const theme = finelyOsColumnTheme(colIdx);
+          const laneAccent = WORK_CARD_ACCENTS[colIdx % WORK_CARD_ACCENTS.length];
           const dropProps = columnDropProps(stage.id as ProjectStage, `${theme.drop} rounded-xl transition-all min-h-[160px] p-1`);
           return (
-            <div key={stage.id} className="min-w-[85vw] sm:min-w-[260px] w-[85vw] sm:w-[260px] shrink-0 snap-start">
-              <div className={`rounded-xl border px-3 py-2 mb-2 flex items-center justify-between ${theme.header}`}>
-                <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-white/85">
+            <div key={stage.id} className="fc-work-lane snap-start" data-accent={laneAccent}>
+              <div className="mb-3 flex items-center justify-between">
+                <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-white">
                   <span className={`h-2.5 w-2.5 rounded-full ${theme.dot}`} />
                   {stage.label}
                 </span>
-                <span className="text-xs font-semibold text-white/70 bg-white/[0.08] px-2 py-0.5 rounded-full">{cards.length}</span>
+                <span className="text-xs font-semibold text-white/80 bg-white/10 px-2 py-0.5 rounded-full">{cards.length}</span>
               </div>
-              <div {...dropProps} className={`space-y-2 min-h-[160px] rounded-xl ${theme.body} ${dropProps.className ?? ''}`}>
+              <div {...dropProps} className={`space-y-2 min-h-[160px] rounded-xl ${dropProps.className ?? ''}`}>
                 {cards.length === 0 ? (
-                  <div className="rounded-xl border border-dashed border-emerald-300/70 p-4 text-center text-xs text-emerald-600/80 m-1">Drop project here</div>
+                  <div className="rounded-xl border border-dashed border-white/25 p-4 text-center text-xs text-white/70 m-1">Drop project here</div>
                 ) : (
                   cards.map((p) => {
                     const stat = taskStats.get(p.id) ?? { open: 0, total: 0 };
@@ -187,6 +192,7 @@ export function WorkProjectJourneyBoard({
                         partner={partnerById.get(p.partnerId) ?? null}
                         stats={{ ...stat, done, pct, slaCount: slaByProject?.get(p.id) }}
                         stageLabel={stage.label}
+                        accent={laneAccent}
                         onOpen={() => onOpenProject(p.id)}
                         onStageChange={(st) => onProjectStageChange(p.id, st)}
                         onStatusChange={(st) => onProjectStatusChange(p.id, st)}
@@ -201,6 +207,7 @@ export function WorkProjectJourneyBoard({
             </div>
           );
         })}
+        </div>
       </div>
     </div>
   );
@@ -242,24 +249,26 @@ export function WorkProjectsListTable({
 
   return (
     <div className="space-y-4">
-      <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 min-w-0">
         {pageProjects.map((p, i) => {
           const partner = partnerById.get(p.partnerId) ?? null;
           const stat = taskStats.get(p.id) ?? { open: 0, total: 0 };
           const lane = serviceLaneFromProjectTags(p.tags);
           const pct = stat.total ? Math.round(((stat.total - stat.open) / stat.total) * 100) : 0;
+          const accent = WORK_CARD_ACCENTS[i % WORK_CARD_ACCENTS.length];
           return (
             <div
               key={p.id}
-              className={`rounded-2xl border p-4 shadow-sm hover:shadow-md transition-all ${FINELY_OS_KPI_ACCENTS[i % FINELY_OS_KPI_ACCENTS.length]}`}
+              className="fc-work-card min-w-0"
+              data-accent={accent}
             >
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <button type="button" onClick={() => onOpenProject(p.id)} className="text-left min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className={`font-bold line-clamp-2 ${FINELY_OS_ENTITY_VALUE}`}>{p.title}</span>
+                    <span className="fc-work-card-title line-clamp-2">{p.title}</span>
                     <span className={`inline-flex text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${lane.className}`}>{lane.label}</span>
                   </div>
-                  <div className={`text-xs mt-1 truncate ${FINELY_OS_ENTITY_BODY}`}>{partner?.profile.fullName ?? p.partnerId}</div>
+                  <div className="fc-work-card-meta mt-1 truncate">{partner?.profile.fullName ?? p.partnerId}</div>
                 </button>
                 <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border ${
                   p.status === 'active' ? finelyOsStatusChip('ok') :
@@ -289,7 +298,7 @@ export function WorkProjectsListTable({
                 <div className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
                   <span className={FINELY_OS_ENTITY_VALUE}>{stat.open}</span> open · {stat.total} tasks · {pct}% done
                 </div>
-                <button type="button" onClick={() => onOpenProject(p.id)} className={FINELY_OS_PRIMARY_BTN}>
+                <button type="button" onClick={() => onOpenProject(p.id)} className="fc-work-open-btn !w-auto !px-4">
                   Workspace
                 </button>
               </div>

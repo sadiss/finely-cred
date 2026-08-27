@@ -1,28 +1,21 @@
 import React, { useSyncExternalStore } from 'react';
-import { ShieldAlert, X } from 'lucide-react';
+import { ArrowLeft, ShieldAlert } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthProvider';
 import { isStaffEmail } from '../../auth/staffIdentity';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import {
-  clearAdminPartnerOverrideId,
+  exitAdminPartnerView,
   readAdminPartnerOverrideId,
   subscribeAdminPartnerOverride,
 } from '../../lib/adminPartnerViewAs';
-import {
-  FINELY_OS_ENTITY_BODY,
-  FINELY_OS_ENTITY_SUBLABEL,
-  FINELY_OS_ENTITY_VALUE,
-  FINELY_OS_NOTICE_WARN,
-  FINELY_OS_SECONDARY_BTN,
-} from '../../features/os/finelyOsLightUi';
+import './AdminPartnerViewAsBanner.css';
 
 function getOverrideSnapshot() {
   return readAdminPartnerOverrideId();
 }
 
-/** Shown on portal routes when an admin is viewing via local partner override. */
-export function AdminPartnerViewAsBanner() {
+function usePartnerViewAsState() {
   const auth = useAuth();
   const { partner, refresh } = usePartnerSession();
   const location = useLocation();
@@ -31,47 +24,69 @@ export function AdminPartnerViewAsBanner() {
 
   const email = (auth.user?.email || '').trim();
   const isStaff = email ? isStaffEmail(email) : false;
-
-  if (!isStaff || !overrideId) return null;
-  if (!location.pathname.startsWith('/portal') || location.pathname.startsWith('/portal/select-partner')) {
-    return null;
-  }
-
+  const onPortal = location.pathname.startsWith('/portal');
+  const visible = Boolean(isStaff && onPortal);
   const partnerLabel = partner?.profile?.fullName?.trim() || partner?.profile?.email?.trim() || overrideId;
 
   const exitView = () => {
-    clearAdminPartnerOverrideId();
+    exitAdminPartnerView(navigate, overrideId || partner?.id);
     refresh();
-    navigate('/portal/select-partner', { replace: true });
   };
 
+  return { visible, partnerLabel, overrideId, exitView };
+}
+
+/** Compact control for the product header. */
+export function AdminPartnerViewAsChip() {
+  const { visible, partnerLabel, overrideId, exitView } = usePartnerViewAsState();
+  if (!visible) return null;
+
   return (
-    <div className="fixed top-0 left-0 right-0 z-[110] px-4 pt-3 pointer-events-none">
-      <div className={`${FINELY_OS_NOTICE_WARN} pointer-events-auto space-y-2`}>
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 text-fuchsia-200">
-              <ShieldAlert size={16} aria-hidden="true" />
-              <span className={FINELY_OS_ENTITY_SUBLABEL}>Admin · partner view</span>
-            </div>
-            <p className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>
-              You are viewing the Partner Portal as{' '}
-              <span className={FINELY_OS_ENTITY_VALUE}>{partnerLabel}</span>. Actions apply to this partner file.
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2 shrink-0">
-            <button
-              type="button"
-              onClick={() => navigate(`/admin/partners/${overrideId}?tab=profile#admin-partner-access-panel`)}
-              className={FINELY_OS_SECONDARY_BTN}
-            >
-              Admin record
-            </button>
-            <button type="button" onClick={exitView} className={FINELY_OS_SECONDARY_BTN} title="Clear partner override">
-              <X size={14} aria-hidden="true" /> Exit partner view
-            </button>
-          </div>
-        </div>
+    <div className="fc-wlp-viewas-row">
+      <div className="fc-wlp-viewas-chip" role="status" aria-label="Viewing the partner portal as staff">
+        <ShieldAlert size={14} aria-hidden="true" />
+        <span className="fc-wlp-viewas-chip-copy">
+          {overrideId || partnerLabel ? (
+            <>
+              Viewing as <strong>{partnerLabel || 'partner'}</strong>
+            </>
+          ) : (
+            'Staff preview'
+          )}
+        </span>
+        <button type="button" className="fc-wlp-viewas-chip-btn" onClick={exitView}>
+          <ArrowLeft size={13} aria-hidden="true" />
+          Back to admin
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/** Always-visible return path while staff is inside a partner portal. */
+export function AdminPartnerViewAsBanner() {
+  const { visible, partnerLabel, overrideId, exitView } = usePartnerViewAsState();
+  if (!visible) return null;
+
+  return (
+    <div className="fc-admin-viewas-banner" role="status">
+      <div className="fc-admin-viewas-banner-inner">
+        <p className="fc-admin-viewas-banner-copy">
+          <ShieldAlert size={20} aria-hidden="true" />
+          <span>
+            {overrideId || partnerLabel ? (
+              <>
+                Viewing partner portal as <strong>{partnerLabel || 'this partner'}</strong>
+              </>
+            ) : (
+              'You are in the partner portal'
+            )}
+          </span>
+        </p>
+        <button type="button" className="fc-admin-viewas-banner-btn" onClick={exitView}>
+          <ArrowLeft size={16} aria-hidden="true" />
+          Back to admin
+        </button>
       </div>
     </div>
   );

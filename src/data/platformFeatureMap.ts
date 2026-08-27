@@ -60,7 +60,7 @@ export const PLATFORM_FEATURE_MAP: PlatformFeature[] = [
   {
     id: 'support_inbox',
     phase: 32,
-    title: 'Unified support inbox',
+    title: 'Partner conversations',
     summary: 'Meta + portal threads in one admin inbox with SLA timers at /admin/support.',
     route: '/admin/support',
     kbCategory: 'portal',

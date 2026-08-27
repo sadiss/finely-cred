@@ -316,7 +316,7 @@ export const SITEWIDE_PAGE_AUDIT: SitewidePageAuditRecord[] = [
   {
     "id": "pages_admin_AdminDashboardPage",
     "path": "src/pages/admin/AdminDashboardPage.tsx",
-    "route": "/admin/dashboard",
+    "route": "/admin",
     "zone": "admin",
     "priority": "medium",
     "currentIssue": "standardize_spacing_and_actions",

@@ -1,0 +1,187 @@
+/* Credit Specialist hub — caseload board (navigator + one file) */
+
+.fc-cs-workbench {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.fc-cs-workbench-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 300px) 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  .fc-cs-workbench-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fc-cs-partner-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 22px;
+  border-radius: 20px;
+  border: 1px solid rgba(16, 185, 129, 0.22);
+  background:
+    radial-gradient(circle at 0% 0%, rgba(16, 185, 129, 0.12), transparent 45%),
+    linear-gradient(160deg, rgba(16, 185, 129, 0.07), rgba(255, 255, 255, 0.5));
+  max-height: min(72vh, 720px);
+  overflow-y: auto;
+}
+
+.fc-cs-partner-nav-head {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 4px;
+}
+
+.fc-cs-partner-nav-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  text-align: left;
+  font-weight: 700;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+
+.fc-cs-partner-nav-item:hover {
+  border-color: rgba(16, 185, 129, 0.25);
+  background: rgba(16, 185, 129, 0.06);
+}
+
+.fc-cs-partner-nav-item[data-active='true'] {
+  border-color: rgba(16, 185, 129, 0.4);
+  background: rgba(16, 185, 129, 0.12);
+}
+
+.fc-cs-partner-nav-item-meta {
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.7;
+}
+
+.fc-cs-tool-rail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.fc-cs-tool-rail button {
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  font-size: 14px;
+  font-weight: 750;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+
+.fc-cs-tool-rail button:hover {
+  border-color: rgba(139, 92, 246, 0.3);
+  background: rgba(139, 92, 246, 0.05);
+}
+
+.fc-cs-tool-rail button[data-active='true'] {
+  border-color: rgba(139, 92, 246, 0.45);
+  background: rgba(139, 92, 246, 0.1);
+}
+
+.fc-cs-inspector {
+  min-width: 0;
+  padding: 24px 28px;
+  border-radius: 20px;
+  border: 1px solid rgba(139, 92, 246, 0.18);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(139, 92, 246, 0.08), transparent 42%),
+    rgba(255, 255, 255, 0.72);
+}
+
+.fc-cs-inspector-title {
+  font-size: 1.65rem;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+
+html[data-fc-theme='dark'] .fc-cs-partner-nav {
+  border-color: rgba(16, 185, 129, 0.32);
+  background:
+    radial-gradient(circle at 0% 0%, rgba(16, 185, 129, 0.14), transparent 45%),
+    rgba(15, 23, 42, 0.65);
+}
+
+html[data-fc-theme='dark'] .fc-cs-partner-nav-item:hover {
+  border-color: rgba(16, 185, 129, 0.35);
+  background: rgba(16, 185, 129, 0.1);
+}
+
+html[data-fc-theme='dark'] .fc-cs-partner-nav-item[data-active='true'] {
+  border-color: rgba(16, 185, 129, 0.5);
+  background: rgba(16, 185, 129, 0.16);
+}
+
+html[data-fc-theme='dark'] .fc-cs-tool-rail {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+html[data-fc-theme='dark'] .fc-cs-tool-rail button {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+html[data-fc-theme='dark'] .fc-cs-inspector {
+  border-color: rgba(139, 92, 246, 0.28);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(139, 92, 246, 0.12), transparent 42%),
+    rgba(15, 23, 42, 0.62);
+}
+
+/* Light site — ink on ivory workbench beds */
+html[data-fc-theme='light'] .fc-cs-partner-nav,
+html[data-fc-theme='light'] .fc-cs-inspector,
+html[data-fc-theme='light'] .fc-cs-partner-nav-head,
+html[data-fc-theme='light'] .fc-cs-partner-nav-item,
+html[data-fc-theme='light'] .fc-cs-inspector-title,
+html[data-fc-theme='light'] .fc-cs-tool-rail button {
+  color: var(--wlp-ink, #0a1628);
+}
+
+html[data-fc-theme='light'] .fc-cs-partner-nav-item-meta {
+  color: var(--wlp-muted, rgba(10, 22, 40, 0.62));
+  opacity: 1;
+}
+
+html[data-fc-theme='light'] .fc-cs-partner-nav-item:not([data-active='true']),
+html[data-fc-theme='light'] .fc-cs-tool-rail button:not([data-active='true']) {
+  color: var(--wlp-ink, #0a1628);
+  border-color: rgba(10, 22, 40, 0.12);
+  background: rgba(255, 255, 255, 0.94);
+}
+
+/* Dark site — light ink on navy workbench beds */
+html[data-fc-theme='dark'] .fc-cs-partner-nav-head,
+html[data-fc-theme='dark'] .fc-cs-partner-nav-item,
+html[data-fc-theme='dark'] .fc-cs-inspector-title,
+html[data-fc-theme='dark'] .fc-cs-tool-rail button {
+  color: var(--wlp-ink, #f1f5f9);
+}
+
+html[data-fc-theme='dark'] .fc-cs-partner-nav-item-meta {
+  color: var(--wlp-muted, #cbd5e1);
+  opacity: 1;
+}
+
+html[data-fc-theme='dark'] .fc-cs-partner-nav-item:not([data-active='true']),
+html[data-fc-theme='dark'] .fc-cs-tool-rail button:not([data-active='true']) {
+  color: #e2e8f0;
+}

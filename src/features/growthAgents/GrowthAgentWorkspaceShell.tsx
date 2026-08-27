@@ -142,7 +142,7 @@ export function GrowthAgentBreadcrumb({
 }) {
   return (
     <nav className={`text-xs ${FINELY_OS_ENTITY_BODY} flex flex-wrap items-center gap-1`}>
-      <Link to="/admin/marketing?tab=team" className="text-emerald-300/90 hover:underline">
+      <Link to="/admin/growth-agents" className="text-emerald-300/90 hover:underline">
         Growth Agents
       </Link>
       {agentName ? (

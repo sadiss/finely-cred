@@ -1,7 +1,8 @@
 import React from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { PageShell } from '../../components/layout/PageShell';
+import { AdminWorkstationFrame, type AdminEmbeddablePageProps } from '../../features/workspaceLightPreview/product/admin/AdminWorkstationFrame';
+import { useMappedAdminNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { FINELY_OS_BACK_LINK, FINELY_OS_COMPACT_PAGE } from '../../features/os/finelyOsLightUi';
 import { GrowthAgentsRoster } from '../../features/growthAgents/GrowthAgentsRoster';
 import { GrowthResultsScoreboard } from '../../features/growthAgents/GrowthResultsScoreboard';
@@ -9,22 +10,22 @@ import { GrowthAgentWorkspaceView } from '../../features/growthAgents/GrowthAgen
 import { GrowthAgentBreadcrumb } from '../../features/growthAgents/GrowthAgentWorkspaceShell';
 import { getGrowthAgent } from '../../features/growthAgents/growthAgentRegistry';
 
-export default function AdminGrowthAgentsPage() {
+export default function AdminGrowthAgentsPage({ embedded = false }: AdminEmbeddablePageProps = {}) {
   const { agentId } = useParams();
-  const navigate = useNavigate();
+  const navigate = useMappedAdminNavigate();
 
   if (agentId === 'results') {
     return (
-      <PageShell badge="Admin" title="Growth Agents" subtitle="Results and specialists.">
+      <AdminWorkstationFrame embedded={embedded} kind="growth-agent-detail-workstation" badge="Admin" title="Growth Agents" subtitle="Results and specialists.">
         <GrowthResultsScoreboard />
-      </PageShell>
+      </AdminWorkstationFrame>
     );
   }
 
   if (agentId) {
     const agent = getGrowthAgent(agentId);
     return (
-      <PageShell
+      <AdminWorkstationFrame embedded={embedded} kind="growth-agent-detail-workstation"
         badge="Admin"
         title={agent ? agent.name : 'Growth Agents'}
         subtitle={agent ? agent.roleTitle : 'Specialist'}
@@ -38,13 +39,13 @@ export default function AdminGrowthAgentsPage() {
           </div>
           <GrowthAgentWorkspaceView agentId={agentId} />
         </div>
-      </PageShell>
+      </AdminWorkstationFrame>
     );
   }
 
   return (
-    <PageShell badge="Admin" title="Growth Agents" subtitle="Find people, share links, see results — plain English.">
+    <AdminWorkstationFrame embedded={embedded} kind="growth-agent-detail-workstation" badge="Admin" title="Growth Agents" subtitle="Find people, share links, see results — plain English.">
       <GrowthAgentsRoster />
-    </PageShell>
+    </AdminWorkstationFrame>
   );
 }

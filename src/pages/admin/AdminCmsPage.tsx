@@ -1,7 +1,7 @@
 import React from 'react';
 import { ArrowLeft, ArrowRight, Layout, Library, Mail } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { AdminWorkstationFrame, type AdminEmbeddablePageProps } from '../../features/workspaceLightPreview/product/admin/AdminWorkstationFrame';
+import { useMappedAdminNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { FinelyOsGlassPanel } from '../../features/os/FinelyOsGlassPanel';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import {
@@ -26,11 +26,11 @@ function ModuleCard({
   title: string;
   description: string;
   icon: typeof Library;
-  accent: 'amber' | 'violet' | 'emerald';
+  accent: 'emerald' | 'violet' | 'sky';
   onClick: () => void;
 }) {
   return (
-    <button type="button" onClick={onClick} className={`${finelyOsCatalogCard(accent)} !p-5 w-full text-left transition-all hover:brightness-[1.02]`} data-fc-accent={accent}>
+    <button type="button" onClick={onClick} className={`${finelyOsCatalogCard(accent)} w-full text-left transition-all hover:brightness-[1.02]`} data-fc-accent={accent}>
       <div className={FINELY_OS_ENTITY_SUBLABEL}>{label}</div>
       <div className={`mt-2 ${FINELY_OS_ENTITY_VALUE} inline-flex items-center gap-2`}>
         <Icon size={16} className="text-violet-600" /> {title}
@@ -43,11 +43,11 @@ function ModuleCard({
   );
 }
 
-export default function AdminCmsPage() {
-  const navigate = useNavigate();
+export default function AdminCmsPage({ embedded = false }: AdminEmbeddablePageProps = {}) {
+  const navigate = useMappedAdminNavigate();
 
   return (
-    <PageShell
+    <AdminWorkstationFrame embedded={embedded} kind="cms-workstation"
       badge="Admin"
       title="CMS"
       subtitle="Content operations hub. This is the staging area for landing copy, guides, and reusable messaging."
@@ -64,14 +64,14 @@ export default function AdminCmsPage() {
           </p>
         </div>
 
-        <FinelyOsGlassPanel icon={Layout} title="Content modules" subtitle="Jump into the editors that power public and partner-facing pages." accent="amber">
+        <FinelyOsGlassPanel icon={Layout} title="Content modules" subtitle="Jump into the editors that power public and partner-facing pages." accent="emerald">
           <div className="grid md:grid-cols-3 gap-4">
             <ModuleCard
               label="Module"
               title="Resources"
               description="Edit public guides and partner-facing resources."
               icon={Library}
-              accent="amber"
+              accent="emerald"
               onClick={() => navigate('/admin/resources')}
             />
             <ModuleCard
@@ -85,16 +85,16 @@ export default function AdminCmsPage() {
             <ModuleCard
               label="Surface"
               title="Public pricing"
-              description="Audit what customers see (DIY vs DFY, categories, rails)."
+              description="Audit what partners see (DIY vs DFY, categories, rails)."
               icon={Layout}
-              accent="emerald"
+              accent="sky"
               onClick={() => navigate('/pricing')}
             />
           </div>
         </FinelyOsGlassPanel>
 
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
       </div>
-    </PageShell>
+    </AdminWorkstationFrame>
   );
 }

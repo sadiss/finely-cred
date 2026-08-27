@@ -14,6 +14,14 @@ import {
   finelyOsStatusChip,
 } from '../os/finelyOsLightUi';
 
+const FILTER_OPTIONS = [
+  { id: 'all' as const, label: 'All activity', tone: 'emerald' as const },
+  { id: 'manual' as const, label: 'Team notes', tone: 'violet' as const },
+  { id: 'pinned' as const, label: 'Pinned', tone: 'sky' as const },
+  { id: 'partner' as const, label: 'Partner-visible', tone: 'rose' as const },
+  { id: 'system' as const, label: 'System', tone: 'emerald' as const },
+];
+
 export function PartnerNotesTab({
   systemNotes,
   manualNotes,
@@ -29,6 +37,7 @@ export function PartnerNotesTab({
   onDeleteNote,
   legacyNotesText,
   onImportLegacy,
+  layout = 'stacked',
 }: {
   systemNotes: { createdAt: string; title: string; body: string }[];
   manualNotes: PartnerNote[];
@@ -44,8 +53,10 @@ export function PartnerNotesTab({
   onDeleteNote: (n: PartnerNote) => void;
   legacyNotesText?: string;
   onImportLegacy?: () => void;
+  layout?: 'stacked' | 'workbench';
 }) {
   const [emailPartnerAlso, setEmailPartnerAlso] = useState(false);
+  const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const timelineItems = [
     ...systemNotes.map((n, i) => ({
       id: `sys-${i}-${n.createdAt}`,
@@ -82,15 +93,219 @@ export function PartnerNotesTab({
       .sort((a, b) => Number(Boolean(b.pinned)) - Number(Boolean(a.pinned)) || b.createdAt.localeCompare(a.createdAt));
   }, [manualNotes, filter, query]);
 
+  const selectedNote = useMemo(
+    () => manualNotes.find((n) => n.id === selectedNoteId) ?? null,
+    [manualNotes, selectedNoteId],
+  );
+
+  const composePanel = (
+    <div className={`${finelyOsCatalogCard('violet')} space-y-5 p-6 lg:p-8`} data-fc-accent="violet">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p className={FINELY_OS_ENTITY_SUBLABEL}>Add team note</p>
+          <p className={`${FINELY_OS_ENTITY_BODY} max-w-2xl text-base font-bold`}>
+            Capture calls, evidence reminders, underwriting context, and partner-visible next steps.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button type="button" onClick={() => { setNotesVisibleToPartner(false); setEmailPartnerAlso(false); }} className={!notesVisibleToPartner ? FINELY_OS_PRIMARY_BTN : FINELY_OS_SECONDARY_BTN}>
+            <EyeOff size={14} /> Internal
+          </button>
+          <button
+            type="button"
+            onClick={() => setNotesVisibleToPartner(true)}
+            className={notesVisibleToPartner ? FINELY_OS_PRIMARY_BTN : FINELY_OS_SECONDARY_BTN}
+          >
+            <Eye size={14} /> Partner-visible
+          </button>
+        </div>
+      </div>
+      <textarea
+        value={notesDraft}
+        onChange={(e) => setNotesDraft(e.target.value)}
+        rows={5}
+        className={`${FINELY_OS_ENTITY_INPUT} resize-y min-h-[20rem] w-full`}
+        placeholder="Example: Partner uploading updated ID Friday; wants funding path after round 1 disputes."
+      />
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="space-y-2">
+          <label className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} normal-case tracking-normal`}>
+            <input type="checkbox" checked={notesPinned} onChange={(e) => setNotesPinned(e.target.checked)} className="accent-violet-500" />
+            Pinned
+          </label>
+          {notesVisibleToPartner ? (
+            <label className={`flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} normal-case tracking-normal`}>
+              <input
+                type="checkbox"
+                checked={emailPartnerAlso}
+                onChange={(e) => setEmailPartnerAlso(e.target.checked)}
+                className="accent-emerald-500"
+              />
+              Also email partner
+            </label>
+          ) : null}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => setNotesDraft('Call summary:\n\nDecision:\n\nNext step:\n\nOwner:\n\nDue date:')}>
+            Call template
+          </button>
+          <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => setNotesDraft('Partner-visible update:\n\nWhat changed:\n\nWhat to do next:\n\nWhere to click:')}>
+            Partner update template
+          </button>
+          <button
+            type="button"
+            className={FINELY_OS_PRIMARY_BTN}
+            disabled={!notesDraft.trim()}
+            onClick={() => {
+              onSaveNote({ emailPartner: emailPartnerAlso });
+              setEmailPartnerAlso(false);
+            }}
+          >
+            Save note
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (layout === 'workbench') {
+    return (
+      <div className="fc-wlp-notes-workbench w-full max-w-full" data-surface-layout="split-workbench">
+        <aside className="fc-wlp-notes-queue">
+          <div className={`${finelyOsCatalogCard('emerald')} p-5 space-y-3`} data-fc-accent="emerald">
+            <p className={FINELY_OS_ENTITY_SUBLABEL}>Note queue</p>
+            <div className="fc-wlp-notes-queue-filters">
+              {FILTER_OPTIONS.map((f) => (
+                <button
+                  key={f.id}
+                  type="button"
+                  className="fc-wlp-notes-queue-filter"
+                  data-active={filter === f.id ? 'true' : undefined}
+                  data-fcm-accent={f.tone}
+                  onClick={() => setFilter(f.id)}
+                >
+                  <span>{f.label}</span>
+                  <em>
+                    {f.id === 'all'
+                      ? noteStats.total
+                      : f.id === 'manual'
+                        ? noteStats.manual
+                        : f.id === 'pinned'
+                          ? noteStats.pinned
+                          : f.id === 'partner'
+                            ? noteStats.partnerVisible
+                            : noteStats.system}
+                  </em>
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="fc-wlp-notes-queue-search">
+            <Search size={15} className="text-slate-400 shrink-0" />
+            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search notes…" />
+          </div>
+          <div className="fc-wlp-notes-queue-list">
+            {filteredManualNotes.map((n, idx) => {
+              const accent = (['violet', 'sky', 'rose', 'emerald'] as const)[idx % 4];
+              return (
+                <button
+                  key={n.id}
+                  type="button"
+                  className="fc-wlp-notes-queue-item"
+                  data-active={selectedNoteId === n.id ? 'true' : undefined}
+                  data-fcm-accent={accent}
+                  onClick={() => setSelectedNoteId(n.id)}
+                >
+                  <strong>{n.title || 'Team note'}</strong>
+                  <span className="line-clamp-2">{n.body}</span>
+                  <span>{new Date(n.createdAt).toLocaleString()}</span>
+                </button>
+              );
+            })}
+            {filter !== 'system' && !filteredManualNotes.length ? (
+              <div className={`${FINELY_OS_ENTITY_BODY} rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-base font-bold`}>
+                No notes match this filter.
+              </div>
+            ) : null}
+          </div>
+        </aside>
+
+        <main className="fc-wlp-notes-compose space-y-4">{composePanel}</main>
+
+        <aside className="fc-wlp-notes-inspector">
+          {selectedNote ? (
+            <div className={`${finelyOsCatalogCard('rose')} p-6 lg:p-8 space-y-4`} data-fc-accent="rose">
+              <p className={FINELY_OS_ENTITY_SUBLABEL}>Selected note</p>
+              <div className={`text-2xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{selectedNote.title || 'Team note'}</div>
+              <div className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono text-sm`}>{new Date(selectedNote.createdAt).toLocaleString()}</div>
+              <div className="flex flex-wrap gap-2">
+                {selectedNote.pinned ? <span className={finelyOsStatusChip('warn')}>Pinned</span> : null}
+                {selectedNote.visibility === 'partner' ? <span className={finelyOsStatusChip('ok')}>Partner</span> : <span className={finelyOsStatusChip('blocked')}>Internal</span>}
+              </div>
+              <div className={`${FINELY_OS_ENTITY_BODY} text-base font-bold whitespace-pre-wrap`}>{selectedNote.body}</div>
+              <div className="flex flex-wrap gap-2 pt-2 border-t border-white/10">
+                <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => onToggleVisibility(selectedNote)}>
+                  {selectedNote.visibility === 'partner' ? <EyeOff size={14} /> : <Share2 size={14} />}
+                  {selectedNote.visibility === 'partner' ? 'Make internal' : 'Share'}
+                </button>
+                <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => onTogglePin(selectedNote)}>
+                  {selectedNote.pinned ? <PinOff size={14} /> : <Pin size={14} />}
+                  {selectedNote.pinned ? 'Unpin' : 'Pin'}
+                </button>
+                <button type="button" className={FINELY_OS_ENTITY_ACTION} onClick={() => onDeleteNote(selectedNote)}>
+                  <Trash2 size={14} className="text-red-300" /> Delete
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className={`${finelyOsCatalogCard('sky')} p-6 lg:p-8 space-y-3`} data-fc-accent="sky">
+              <p className={FINELY_OS_ENTITY_SUBLABEL}>Inspector</p>
+              <div className={`text-3xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{noteStats.total}</div>
+              <p className={`text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>Total notes on this partner file.</p>
+              <p className={`${FINELY_OS_ENTITY_BODY}`}>
+                {noteStats.pinned} pinned · {noteStats.partnerVisible} partner-visible · {noteStats.system} system
+              </p>
+            </div>
+          )}
+
+          {legacyNotesText?.trim() && !manualNotes.length && onImportLegacy ? (
+            <div className={`${finelyOsCatalogCard('violet')} p-6 space-y-3`} data-fc-accent="violet">
+              <p className={FINELY_OS_ENTITY_SUBLABEL}>Legacy profile notes</p>
+              <p className={`${FINELY_OS_ENTITY_BODY} whitespace-pre-wrap text-base font-bold`}>{legacyNotesText}</p>
+              <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={onImportLegacy}>
+                Import into timeline
+              </button>
+            </div>
+          ) : null}
+
+          {systemNotes.length && (filter === 'all' || filter === 'system') ? (
+            <details className={`${finelyOsCatalogCard('emerald')} p-6`} data-fc-accent="emerald">
+              <summary className={`cursor-pointer text-lg font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>System activity ({systemNotes.length})</summary>
+              <div className="mt-4 space-y-3">
+                {timelineItems.filter((i) => i.kind === 'system').slice(0, 8).map((item) => (
+                  <div key={item.id} className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                    <div className={`${FINELY_OS_ENTITY_VALUE} font-semibold line-clamp-2`}>{item.title}</div>
+                    <div className={`${FINELY_OS_ENTITY_SUBLABEL} mt-1 normal-case font-mono text-[11px]`}>{new Date(item.createdAt).toLocaleString()}</div>
+                    <div className={`${FINELY_OS_ENTITY_BODY} mt-3 text-sm line-clamp-4`}>{item.body}</div>
+                  </div>
+                ))}
+              </div>
+            </details>
+          ) : null}
+        </aside>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 w-full max-w-full">
       <div className="grid md:grid-cols-2 xl:grid-cols-5 gap-3">
         {[
-          { id: 'all', label: 'All activity', value: noteStats.total, hint: 'Notes + system' },
-          { id: 'manual', label: 'Team notes', value: noteStats.manual, hint: 'Saved by staff' },
-          { id: 'pinned', label: 'Pinned', value: noteStats.pinned, hint: 'Priority context' },
-          { id: 'partner', label: 'Partner-visible', value: noteStats.partnerVisible, hint: 'Shared notes' },
-          { id: 'system', label: 'System', value: noteStats.system, hint: 'Automatic updates' },
+          { id: 'all', label: 'All activity', value: noteStats.total, hint: 'Notes + system', tone: 'emerald' as const },
+          { id: 'manual', label: 'Team notes', value: noteStats.manual, hint: 'Saved by staff', tone: 'violet' as const },
+          { id: 'pinned', label: 'Pinned', value: noteStats.pinned, hint: 'Priority context', tone: 'sky' as const },
+          { id: 'partner', label: 'Partner-visible', value: noteStats.partnerVisible, hint: 'Shared notes', tone: 'rose' as const },
+          { id: 'system', label: 'System', value: noteStats.system, hint: 'Automatic updates', tone: 'emerald' as const },
         ].map((k) => (
           <button
             key={k.id}
@@ -98,7 +313,7 @@ export function PartnerNotesTab({
             onClick={() => {
               if (k.id === 'all' || k.id === 'manual' || k.id === 'system' || k.id === 'pinned' || k.id === 'partner') setFilter(k.id);
             }}
-            className="rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-3 text-left hover:bg-white/[0.06] transition-all"
+            className={`${finelyOsCatalogCard(k.tone)} text-left hover:bg-white/[0.06] transition-all`}
           >
             <div className={FINELY_OS_ENTITY_SUBLABEL}>{k.label}</div>
             <div className={`mt-1 text-2xl font-black ${FINELY_OS_ENTITY_VALUE}`}>{k.value}</div>
@@ -107,7 +322,7 @@ export function PartnerNotesTab({
         ))}
       </div>
 
-      <div className={`${finelyOsCatalogCard('violet')} !p-5 md:!p-6 space-y-5`}>
+      <div className={`${finelyOsCatalogCard('violet')} space-y-5`}>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className={FINELY_OS_ENTITY_SUBLABEL}>Add team note</p>
@@ -132,13 +347,13 @@ export function PartnerNotesTab({
           value={notesDraft}
           onChange={(e) => setNotesDraft(e.target.value)}
           rows={5}
-          className={`${FINELY_OS_ENTITY_INPUT} resize-y min-h-[120px] w-full`}
+          className={`${FINELY_OS_ENTITY_INPUT} resize-y min-h-[20rem] w-full`}
           placeholder="Example: Partner uploading updated ID Friday; wants funding path after round 1 disputes."
         />
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="space-y-2">
             <label className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} normal-case tracking-normal`}>
-              <input type="checkbox" checked={notesPinned} onChange={(e) => setNotesPinned(e.target.checked)} className="accent-amber-500" />
+              <input type="checkbox" checked={notesPinned} onChange={(e) => setNotesPinned(e.target.checked)} className="accent-violet-500" />
               Pinned
             </label>
             {notesVisibleToPartner ? (
@@ -176,7 +391,7 @@ export function PartnerNotesTab({
       </div>
 
       {legacyNotesText?.trim() && !manualNotes.length && onImportLegacy ? (
-        <div className={`${finelyOsCatalogCard('amber')} !p-5 space-y-3`}>
+        <div className={`${finelyOsCatalogCard('rose')} space-y-3`}>
           <p className={FINELY_OS_ENTITY_SUBLABEL}>Legacy profile notes</p>
           <p className={`${FINELY_OS_ENTITY_BODY} whitespace-pre-wrap`}>{legacyNotesText}</p>
           <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={onImportLegacy}>
@@ -185,7 +400,7 @@ export function PartnerNotesTab({
         </div>
       ) : null}
 
-      <div className={`${finelyOsCatalogCard('sky')} !p-5 space-y-4`}>
+      <div className={`${finelyOsCatalogCard('sky')} space-y-4`}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className={FINELY_OS_ENTITY_SUBLABEL}>Saved notes command deck</p>
@@ -242,7 +457,7 @@ export function PartnerNotesTab({
       </div>
 
       {(systemNotes.length && (filter === 'all' || filter === 'system')) ? (
-        <details className={`${finelyOsCatalogCard('emerald')} !p-5`}>
+        <details className={finelyOsCatalogCard('emerald')}>
           <summary className={`cursor-pointer ${FINELY_OS_ENTITY_VALUE}`}>System activity ({systemNotes.length})</summary>
           <div className="mt-4 grid md:grid-cols-2 xl:grid-cols-3 gap-3">
             {timelineItems.filter((i) => i.kind === 'system').slice(0, 18).map((item) => (

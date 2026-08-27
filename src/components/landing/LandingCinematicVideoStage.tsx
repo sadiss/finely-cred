@@ -50,22 +50,22 @@ export function LandingCinematicVideoStage() {
       className={`fc-sell py-14 sm:py-16 relative overflow-hidden ${finelyOsLandingContrastSection('fc-band-dark')}`}
       data-fc-contrast-band="1"
     >
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_55%_at_50%_0%,rgba(224,178,74,0.16),transparent_60%),radial-gradient(ellipse_50%_40%_at_10%_80%,rgba(16,185,129,0.12),transparent_55%)] pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_55%_at_50%_0%,rgba(52,211,153,0.16),transparent_60%),radial-gradient(ellipse_50%_40%_at_10%_80%,rgba(16,185,129,0.12),transparent_55%)] pointer-events-none" />
 
       <div className="container mx-auto px-4 sm:px-6 max-w-5xl relative z-10">
         <div className="text-center mb-8 sm:mb-10 max-w-2xl mx-auto">
           <Reveal>
-            <p className="fc-sell-kicker mb-4">What we offer partners</p>
+            <p className="fc-sell-kicker fc-sell-kicker--emerald mb-4">What we offer partners</p>
             <LandingTypewriterTitle
               text="Full credit solutions — "
               accentText="not a software tour"
               className="fc-sell-serif text-3xl sm:text-4xl lg:text-[2.75rem] font-semibold leading-[1.1] text-white"
-              accentClassName="text-[#ffd993] italic"
+              accentClassName="text-emerald-300 italic"
               speedMs={42}
             />
             <p className="mt-4 text-sm sm:text-base text-white/55 leading-relaxed">
               A full credit solutions company — not a SaaS demo. Personal restore, dispute letters, debt &amp; summons
-              response, business credit, and funding readiness with concierge execution or sovereign DIY access.
+              response, business credit, and funding readiness with concierge execution or self-guided DIY access.
             </p>
             <p className="mt-2 text-xs sm:text-sm text-emerald-200/55 leading-relaxed">
               FCRA-aware workflows · encrypted partner vault · one clear next step from messy file to fundable profile.
@@ -79,12 +79,12 @@ export function LandingCinematicVideoStage() {
               className="absolute -inset-[1px] rounded-[1.65rem] sm:rounded-[1.85rem] pointer-events-none"
               style={{
                 background:
-                  'linear-gradient(135deg, rgba(255,217,147,0.55), rgba(255,255,255,0.12) 28%, rgba(224,178,74,0.35) 55%, rgba(52,211,153,0.25) 78%, rgba(196,128,61,0.45))',
-                boxShadow: '0 40px 100px -36px rgba(0,0,0,0.85), 0 0 60px -20px rgba(224,178,74,0.35)',
+                  'linear-gradient(135deg, rgba(52,211,153,0.55), rgba(255,255,255,0.12) 28%, rgba(56,189,120,0.35) 55%, rgba(125,211,252,0.25) 78%, rgba(52,211,153,0.45))',
+                boxShadow: '0 40px 100px -36px rgba(0,0,0,0.85), 0 0 60px -20px rgba(52,211,153,0.35)',
               }}
               aria-hidden
             />
-            <div className="fc-home-video-green-stage lm-video-shell lm-video-shell--framed lm-video-grade--gold relative overflow-hidden rounded-[1.55rem] sm:rounded-[1.75rem] border border-emerald-400/25 aspect-video">
+            <div className="fc-home-video-green-stage lm-video-shell lm-video-shell--framed lm-video-grade--emerald relative overflow-hidden rounded-[1.55rem] sm:rounded-[1.75rem] border border-emerald-400/25 aspect-video">
               {/* Wealthy green stage — no raster poster / no FC shield artwork */}
               <div
                 className={`absolute inset-0 z-[0] transition-opacity duration-500 ${
@@ -93,7 +93,7 @@ export function LandingCinematicVideoStage() {
                 aria-hidden={playing}
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-[#0a2e1c] via-[#0c3d28] to-[#061a12]" />
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_70%_at_50%_35%,rgba(56,189,120,0.22),transparent_55%),radial-gradient(ellipse_60%_50%_at_85%_80%,rgba(224,178,74,0.14),transparent_50%)]" />
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_70%_at_50%_35%,rgba(56,189,120,0.22),transparent_55%),radial-gradient(ellipse_60%_50%_at_85%_80%,rgba(52,211,153,0.14),transparent_50%)]" />
                 <div className="absolute inset-0 opacity-[0.07] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCI+PHBhdGggZD0iTTAgMGg2MHY2MEgweiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9Ii4xNSIvPjwvc3ZnPg==')]" />
 
                 <div className="relative z-[1] flex h-full flex-col justify-between p-5 sm:p-8 pointer-events-none">
@@ -142,7 +142,7 @@ export function LandingCinematicVideoStage() {
                   className="absolute inset-0 z-[3] flex flex-col items-center justify-center gap-3 group"
                   aria-label="Play Finely Cred credit solutions overview"
                 >
-                  <span className="relative inline-flex h-[4.5rem] w-[4.5rem] sm:h-[5.25rem] sm:w-[5.25rem] items-center justify-center rounded-full border-2 border-[#ffd993]/70 bg-[linear-gradient(135deg,#ffeaa7_0%,#fdcb6e_18%,#f39c12_42%,#d68910_58%,#f39c12_72%,#fdcb6e_88%,#ffeaa7_100%)] text-[#1a1400] shadow-[0_0_0_12px_rgba(251,191,36,0.22),0_0_48px_rgba(224,178,74,0.45),0_24px_64px_rgba(0,0,0,0.5)] ring-1 ring-white/35 transition-transform duration-300 group-hover:scale-105">
+                  <span className="relative inline-flex h-[4.5rem] w-[4.5rem] sm:h-[5.25rem] sm:w-[5.25rem] items-center justify-center rounded-full border-2 border-emerald-200/70 bg-[linear-gradient(135deg,#ffeaa7_0%,#fdcb6e_18%,#f39c12_42%,#d68910_58%,#f39c12_72%,#fdcb6e_88%,#ffeaa7_100%)] text-[#1a1400] shadow-[0_0_0_12px_rgba(52,211,153,0.22),0_0_48px_rgba(52,211,153,0.35),0_24px_64px_rgba(0,0,0,0.5)] ring-1 ring-white/35 transition-transform duration-300 group-hover:scale-105">
                     <Play className="ml-1 h-9 w-9 sm:h-10 sm:w-10 fill-current text-[#1a1400]" strokeWidth={0} />
                   </span>
                   <span className="rounded-full bg-black/45 px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-white/95 border border-emerald-400/30 backdrop-blur-md">
@@ -163,7 +163,7 @@ export function LandingCinematicVideoStage() {
                 </button>
               ) : null}
 
-              <div className="absolute top-3 right-3 z-[2] px-3 py-1.5 rounded-full border border-[#e0b24a]/35 text-[9px] font-bold uppercase tracking-wider bg-black/40 backdrop-blur-md text-[#ffd993] pointer-events-none">
+              <div className="absolute top-3 right-3 z-[2] px-3 py-1.5 rounded-full border border-emerald-400/35 text-[9px] font-bold uppercase tracking-wider bg-black/40 backdrop-blur-md text-emerald-200 pointer-events-none">
                 Full credit solutions
               </div>
             </div>

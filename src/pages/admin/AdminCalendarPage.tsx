@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ArrowRight, Calendar, CheckCircle2, Clock, Link as LinkIcon, Plus, Send, Sparkles, X } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { AdminWorkstationFrame, type AdminEmbeddablePageProps } from '../../features/workspaceLightPreview/product/admin/AdminWorkstationFrame';
+import { useMappedAdminNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { getPartner, listPartnersByTenant } from '../../data/partnersRepo';
 import {
   listConsultationRequests,
@@ -30,6 +30,7 @@ import { FinelyOsOverviewStatTile } from '../../features/os/FinelyOsOverviewStat
 import { BookingInvitePanel } from '../../components/calendar/BookingInvitePanel';
 import { AdminMeetingComposer } from '../../components/calendar/AdminMeetingComposer';
 import { MeetingNotesEditor } from '../../components/calendar/MeetingNotesEditor';
+import { StartVideoCallButton } from '../../components/video/StartVideoCallButton';
 import { runMeetingReminderAutomation } from '../../lib/meetingReminderAutomation';
 import {
   buildFollowUpTaskFromMeeting,
@@ -72,8 +73,8 @@ function addMinutes(iso: string, minutes: number) {
   return d.toISOString();
 }
 
-export default function AdminCalendarPage() {
-  const navigate = useNavigate();
+export default function AdminCalendarPage({ embedded = false }: AdminEmbeddablePageProps = {}) {
+  const navigate = useMappedAdminNavigate();
   const auth = useAuth();
   const [version, setVersion] = useState(0);
 
@@ -297,7 +298,7 @@ export default function AdminCalendarPage() {
   };
 
   return (
-    <PageShell badge="Admin" title="Calendar & Scheduling" subtitle="Triage strategy call requests and schedule/confirm meetings.">
+    <AdminWorkstationFrame embedded={embedded} kind="calendar-workstation" badge="Admin" title="Calendar & Scheduling" subtitle="Triage strategy call requests and schedule/confirm meetings.">
       <div className={FINELY_OS_PAGE}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <button type="button" onClick={() => navigate('/admin')} className={FINELY_OS_BACK_LINK}>
@@ -310,9 +311,28 @@ export default function AdminCalendarPage() {
 
         <div className={FINELY_OS_BANNER}>
           <Calendar size={18} className="text-sky-600 shrink-0 mt-0.5" />
-          <p className={`${FINELY_OS_ENTITY_BODY} leading-relaxed`}>
-            Triage strategy call requests, schedule meetings, and manage public ops calendar slots.
-          </p>
+          <div className="flex-1 min-w-0 space-y-3">
+            <p className={`${FINELY_OS_ENTITY_BODY} leading-relaxed`}>
+              Triage strategy call requests, schedule meetings, and manage public ops calendar slots.
+            </p>
+            {upcomingEvents[0] && !upcomingEvents[0].partnerId.startsWith('public:') ? (
+              <div className="flex flex-wrap items-center gap-2">
+                <StartVideoCallButton
+                  partnerId={upcomingEvents[0].partnerId}
+                  displayName={auth.user?.email || 'Finely staff'}
+                  userRole="finely_staff"
+                  defaultTitle={upcomingEvents[0].title}
+                />
+                <button
+                  type="button"
+                  onClick={() => navigate(`/portal/meeting/${upcomingEvents[0].id}`)}
+                  className={FINELY_OS_SECONDARY_BTN}
+                >
+                  Join next scheduled room
+                </button>
+              </div>
+            ) : null}
+          </div>
         </div>
 
         <AdminMeetingComposer onScheduled={() => window.dispatchEvent(new Event('finely:store'))} />
@@ -352,7 +372,7 @@ export default function AdminCalendarPage() {
               </div>
             </div>
             <label className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} normal-case tracking-normal`}>
-              <input type="checkbox" checked={confirm} onChange={(e) => setConfirm(e.target.checked)} className="accent-amber-500" />
+              <input type="checkbox" checked={confirm} onChange={(e) => setConfirm(e.target.checked)} className="accent-emerald-500" />
               Confirm immediately
             </label>
             <button type="button" onClick={schedulePublic} className={FINELY_OS_SUCCESS_BTN}>
@@ -423,7 +443,7 @@ export default function AdminCalendarPage() {
             </div>
 
             <label className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} normal-case tracking-normal`}>
-              <input type="checkbox" checked={confirm} onChange={(e) => setConfirm(e.target.checked)} className="accent-amber-500" />
+              <input type="checkbox" checked={confirm} onChange={(e) => setConfirm(e.target.checked)} className="accent-emerald-500" />
               Confirm immediately
             </label>
 
@@ -566,9 +586,9 @@ export default function AdminCalendarPage() {
         )}
 
         {openPublicRequests.length > 0 && (
-          <div className={`${finelyOsCatalogCard('violet')} !p-5 border-emerald-200/70 space-y-4`}>
+          <div className={`${finelyOsCatalogCard('sky')} space-y-4`} data-fc-accent="sky">
             <div className="flex items-center justify-between gap-3">
-              <div className="inline-flex items-center gap-2 text-emerald-700">
+              <div className="inline-flex items-center gap-2 text-sky-700">
                 <Send size={18} />
                 <span className="text-xs font-semibold uppercase tracking-wider">Public appointment requests (visitors)</span>
               </div>
@@ -578,8 +598,8 @@ export default function AdminCalendarPage() {
               items={openPublicRequests}
               pageSize={6}
               emptyMessage="No open public requests."
-              renderItem={(r) => (
-                <div key={r.id} className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-3`}>
+              renderItem={(r, idx) => (
+                <div key={r.id} className={`${finelyOsCatalogCard((['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4])} fc-surface-harmony space-y-3`} data-fc-accent={(['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4]}>
                   <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{r.fullName}</div>
                   <div className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono`}>
                     {r.topic} • {r.status} • {fmtWhen(r.createdAt)}
@@ -649,9 +669,9 @@ export default function AdminCalendarPage() {
         )}
 
         <div className="grid lg:grid-cols-12 gap-6">
-          <div className={`lg:col-span-6 ${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+          <div className={`lg:col-span-6 ${finelyOsCatalogCard('emerald')} space-y-4`} data-fc-accent="emerald">
             <div className="flex items-center justify-between gap-3">
-              <div className="inline-flex items-center gap-2 text-violet-700">
+              <div className="inline-flex items-center gap-2 text-emerald-700">
                 <Send size={18} />
                 <span className={FINELY_OS_ENTITY_SUBLABEL}>Session requests</span>
               </div>
@@ -721,7 +741,7 @@ export default function AdminCalendarPage() {
             )}
           </div>
 
-          <div className={`lg:col-span-6 ${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+          <div className={`lg:col-span-6 ${finelyOsCatalogCard('violet')} space-y-4`}>
             <div className="flex items-center justify-between gap-3">
               <div className="inline-flex items-center gap-2 text-violet-700">
                 <Calendar size={18} />
@@ -739,10 +759,10 @@ export default function AdminCalendarPage() {
                 items={upcomingEvents}
                 pageSize={8}
                 emptyMessage="No upcoming events."
-                renderItem={(e) => {
+                renderItem={(e, idx) => {
                   const p = partnerById.get(e.partnerId);
                   return (
-                    <div key={e.id} className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-2`}>
+                    <div key={e.id} className={`${finelyOsCatalogCard((['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4])} fc-surface-harmony space-y-3`} data-fc-accent={(['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4]}>
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{e.title}</div>
@@ -759,6 +779,24 @@ export default function AdminCalendarPage() {
                         </button>
                       </div>
                       <div className={FINELY_OS_ENTITY_BODY}>{fmtWhen(e.startAt)}</div>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/portal/meeting/${e.id}`)}
+                          className={FINELY_OS_PRIMARY_BTN}
+                        >
+                          Join in-app room
+                        </button>
+                        {!e.partnerId.startsWith('public:') ? (
+                          <StartVideoCallButton
+                            partnerId={e.partnerId}
+                            displayName={auth.user?.email || 'Finely staff'}
+                            userRole="finely_staff"
+                            compact
+                            defaultTitle={e.title}
+                          />
+                        ) : null}
+                      </div>
                       {e.meetingUrl ? (
                         <button
                           type="button"
@@ -770,7 +808,7 @@ export default function AdminCalendarPage() {
                       ) : null}
                       {Date.parse(e.startAt) <= Date.now() && !isCalendarEventPast(e) ? (
                         <div className={`${FINELY_OS_NOTICE_WARN} !p-3 space-y-2`}>
-                          <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-amber-200`}>In session — capture live notes</div>
+                          <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-rose-200`}>In session — capture live notes</div>
                           <MeetingNotesEditor
                             value={editingNotesFor === e.id ? notesDraft : e.meetingNotes || ''}
                             onChange={(v) => {
@@ -838,7 +876,7 @@ export default function AdminCalendarPage() {
         </div>
 
         {postCallEvent ? (
-          <div className={`${finelyOsCatalogCard('emerald')} !p-5 space-y-4`}>
+          <div className={`${finelyOsCatalogCard('emerald')} space-y-4`}>
             <div className="flex items-start justify-between gap-3">
               <div>
                 <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-emerald-300`}>
@@ -907,7 +945,7 @@ export default function AdminCalendarPage() {
             </div>
 
             {postCallSummary ? (
-              <div className={`${finelyOsCatalogCard('sky')} !p-3`}>
+              <div className={`${finelyOsCatalogCard('sky')} space-y-2`} data-fc-accent="sky">
                 <div className={FINELY_OS_ENTITY_SUBLABEL}>Summary</div>
                 <p className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>{postCallSummary}</p>
               </div>
@@ -950,9 +988,9 @@ export default function AdminCalendarPage() {
         ) : null}
 
         {pastEvents.length > 0 ? (
-          <div className={`${finelyOsCatalogCard('emerald')} !p-5 space-y-4`}>
+          <div className={`${finelyOsCatalogCard('rose')} space-y-4`} data-fc-accent="rose">
             <div className="flex items-center justify-between gap-3">
-              <div className="inline-flex items-center gap-2 text-emerald-700">
+              <div className="inline-flex items-center gap-2 text-rose-700">
                 <CheckCircle2 size={18} />
                 <span className={FINELY_OS_ENTITY_SUBLABEL}>Recent sessions — post-call wrap-up</span>
               </div>
@@ -1049,9 +1087,9 @@ export default function AdminCalendarPage() {
             />
           )}
         </div>
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
 </div>
-    </PageShell>
+    </AdminWorkstationFrame>
   );
 }
 

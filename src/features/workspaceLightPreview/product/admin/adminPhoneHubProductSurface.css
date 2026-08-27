@@ -1,0 +1,197 @@
+/* Admin phone hub — control room (status grid + line inspector) */
+
+.fc-admin-phone-control {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.fc-admin-phone-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-width: 0;
+}
+
+.fc-admin-phone-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 1100px) {
+  .fc-admin-phone-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .fc-admin-phone-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fc-admin-phone-lane {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  padding: 16px 14px;
+  border-radius: 16px;
+  text-align: left;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.fc-admin-phone-lane:hover {
+  transform: translateY(-1px);
+}
+
+.fc-admin-phone-lane[data-selected='true'] {
+  box-shadow: 0 0 0 3px #fff, 0 0 0 8px #0ea5e9;
+}
+
+.fc-admin-phone-lane-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.fc-admin-phone-lane-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.fc-admin-phone-inspector {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.fc-admin-phone-inspector-bed {
+  padding: 22px 24px;
+  border-radius: 20px;
+  border: 1px solid rgba(14, 165, 233, 0.2);
+  background:
+    radial-gradient(circle at 8% 0%, rgba(14, 165, 233, 0.08), transparent 36%),
+    rgba(248, 250, 252, 0.9);
+}
+
+.fc-admin-phone-alert-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(244, 63, 94, 0.25);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(244, 63, 94, 0.1), transparent 40%),
+    rgba(255, 255, 255, 0.88);
+}
+
+.fc-admin-phone-alert-rail h3 {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+.fc-admin-phone-status-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.fc-admin-phone-status-cell {
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.fc-admin-phone-status-cell strong {
+  display: block;
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.fc-admin-phone-status-cell span {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.65;
+}
+
+.fc-admin-phone-route-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+/* Light site — ink on ivory control-room beds */
+html[data-fc-theme='light'] .fc-admin-phone-lane-value,
+html[data-fc-theme='light'] .fc-admin-phone-lane-head,
+html[data-fc-theme='light'] .fc-admin-phone-inspector-bed,
+html[data-fc-theme='light'] .fc-admin-phone-alert-rail,
+html[data-fc-theme='light'] .fc-admin-phone-status-cell,
+html[data-fc-theme='light'] .fc-admin-phone-route-row {
+  color: var(--wlp-ink, #0a1628);
+}
+
+html[data-fc-theme='light'] .fc-admin-phone-status-cell span {
+  color: var(--wlp-muted, rgba(10, 22, 40, 0.62));
+  opacity: 1;
+}
+
+html[data-fc-theme='light'] .fc-admin-phone-alert-rail h3 {
+  color: var(--wlp-muted, rgba(10, 22, 40, 0.62));
+  opacity: 1;
+}
+
+/* Dark site — navy glass on ivory beds */
+html[data-fc-theme='dark'] .fc-admin-phone-inspector-bed,
+html[data-fc-theme='dark'] .fc-admin-phone-alert-rail,
+html[data-fc-theme='dark'] .fc-admin-phone-status-cell,
+html[data-fc-theme='dark'] .fc-admin-phone-route-row {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(16, 23, 34, 0.92);
+  color: var(--wlp-ink, #f1f5f9);
+}
+
+html[data-fc-theme='dark'] .fc-admin-phone-inspector-bed {
+  border-color: rgba(14, 165, 233, 0.28);
+  background:
+    radial-gradient(circle at 8% 0%, rgba(14, 165, 233, 0.12), transparent 36%),
+    rgba(16, 23, 34, 0.94);
+}
+
+html[data-fc-theme='dark'] .fc-admin-phone-alert-rail {
+  border-color: rgba(244, 63, 94, 0.28);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(244, 63, 94, 0.12), transparent 40%),
+    rgba(16, 23, 34, 0.92);
+}
+
+html[data-fc-theme='dark'] .fc-admin-phone-alert-rail h3 {
+  color: var(--wlp-muted, #cbd5e1);
+  opacity: 1;
+}
+
+html[data-fc-theme='dark'] .fc-admin-phone-status-cell span {
+  color: var(--wlp-muted, #cbd5e1);
+  opacity: 1;
+}
+
+html[data-fc-theme='dark'] .fc-admin-phone-lane-value,
+html[data-fc-theme='dark'] .fc-admin-phone-lane-head {
+  color: var(--wlp-ink, #f1f5f9);
+}

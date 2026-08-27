@@ -57,9 +57,9 @@ export default function BusinessBureausPage() {
           eyebrow="Business credit OS"
           title="Business bureaus & scores"
           subtitle="D&B, Experian Business, and Equifax Business — what matters and how to track progress."
-          accent="amber"
+          accent="sky"
           kpis={[
-            { label: 'Snapshots', value: String(snapshots.length), accent: 'amber' },
+            { label: 'Snapshots', value: String(snapshots.length), accent: 'violet' },
             { label: 'Bureaus', value: '3', accent: 'emerald' },
           ]}
           tabs={[
@@ -77,7 +77,7 @@ export default function BusinessBureausPage() {
             {[
               {
                 bureau: 'Dun & Bradstreet (D&B)',
-                accent: 'amber' as const,
+                accent: 'violet' as const,
                 focus: 'Commercial identity anchor',
                 bullets: ['D-U-N-S number is your business SSN', 'PAYDEX scores payment behavior 0–100', 'Vendor reporting feeds PAYDEX over time', 'Target 80+ PAYDEX before high-limit apps'],
               },
@@ -94,10 +94,10 @@ export default function BusinessBureausPage() {
                 bullets: ['Equifax Business Score for creditworthiness', 'Used by some lenders and vendors', 'Cross-check with D&B for consistency', 'Dispute inaccurate entries via business dispute center'],
               },
             ].map((card) => (
-              <div key={card.bureau} className={`${finelyOsCatalogCard(card.accent)} !p-5 space-y-3`} data-fc-accent={card.accent}>
-                <div className={`text-sm font-black ${FINELY_OS_ENTITY_VALUE}`}>{card.bureau}</div>
-                <div className={`text-xs uppercase tracking-wider ${FINELY_OS_ENTITY_SUBLABEL}`}>{card.focus}</div>
-                <ul className={`list-disc pl-4 text-sm ${FINELY_OS_ENTITY_BODY} space-y-1`}>
+              <div key={card.bureau} className={`${finelyOsCatalogCard(card.accent)} space-y-4`} data-fc-accent={card.accent}>
+                <div className={`text-xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{card.bureau}</div>
+                <div className={FINELY_OS_ENTITY_SUBLABEL}>{card.focus}</div>
+                <ul className={`list-disc pl-4 text-base ${FINELY_OS_ENTITY_BODY} space-y-2`}>
                   {card.bullets.map((b) => (
                     <li key={b}>{b}</li>
                   ))}
@@ -106,7 +106,7 @@ export default function BusinessBureausPage() {
             ))}
           </div>
 
-          <div className={`${finelyOsCatalogCard('violet')} !p-6 space-y-4`} data-fc-accent="violet">
+          <div className={`${finelyOsCatalogCard('rose')} space-y-4`} data-fc-accent="rose">
             <div className="inline-flex items-center gap-2 text-violet-700">
               <ShieldCheck size={18} />
               <span className={FINELY_OS_ENTITY_SUBLABEL}>Profile consistency rules</span>
@@ -140,7 +140,7 @@ export default function BusinessBureausPage() {
 
           {tab === 'scores' && (
         <div className="grid lg:grid-cols-12 gap-6">
-          <div className={`lg:col-span-5 min-w-0 ${finelyOsCatalogCard('violet')} !p-6 space-y-4`} data-fc-accent="violet">
+          <div className={`lg:col-span-5 min-w-0 ${finelyOsCatalogCard('violet')} space-y-4`} data-fc-accent="violet">
             <div className={FINELY_OS_ENTITY_TITLE}>Manual score tracker (for now)</div>
             <div className={FINELY_OS_ENTITY_BODY}>
               Add score snapshots per bureau. Track <span className={FINELY_OS_ENTITY_VALUE}>reported tradelines</span> and{' '}
@@ -226,7 +226,7 @@ export default function BusinessBureausPage() {
             )}
           </div>
 
-          <div className={`lg:col-span-7 min-w-0 ${finelyOsCatalogCard('emerald')} !p-6`} data-fc-accent="emerald">
+          <div className={`lg:col-span-7 min-w-0 ${finelyOsCatalogCard('emerald')}`} data-fc-accent="emerald">
             <div className="flex items-center justify-between gap-3">
               <div className={FINELY_OS_ENTITY_TITLE}>Snapshots</div>
               <div className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono`}>{snapshots.length}</div>

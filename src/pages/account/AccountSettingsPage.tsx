@@ -289,7 +289,7 @@ export default function AccountSettingsPage() {
         </div>
 
         {tab === 'profile' && (
-          <section className={`scroll-mt-32 ${finelyOsCatalogCard('violet')} !p-5 space-y-5`}>
+          <section className={`scroll-mt-32 ${finelyOsCatalogCard('emerald')} space-y-5`} data-fc-accent="emerald">
             <div className="flex flex-wrap items-center gap-5">
               <UserAvatar user={auth.user} size="lg" avatarUrl={removeAvatar ? null : avatarPreview} />
               <div className="space-y-2">
@@ -359,7 +359,7 @@ export default function AccountSettingsPage() {
         )}
 
         {tab === 'contact' && (
-          <section className={`scroll-mt-32 ${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+          <section className={`scroll-mt-32 ${finelyOsCatalogCard('violet')} space-y-4`} data-fc-accent="violet">
             <div className="grid md:grid-cols-2 gap-4">
               <label className="md:col-span-2">
                 <span className={formLabel}>Login email</span>
@@ -393,7 +393,7 @@ export default function AccountSettingsPage() {
         )}
 
         {tab === 'notifications' && (
-          <section className={`scroll-mt-32 ${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+          <section className={`scroll-mt-32 ${finelyOsCatalogCard('sky')} space-y-4`} data-fc-accent="sky">
             <label className="block max-w-md">
               <span className={formLabel}>Preferred contact method</span>
               <select value={preferredContact} onChange={(e) => setPreferredContact(e.target.value as any)} className={formSelect}>
@@ -407,8 +407,8 @@ export default function AccountSettingsPage() {
                 { key: 'email', label: 'Email notifications', checked: notifyEmail, set: setNotifyEmail },
                 { key: 'sms', label: 'SMS notifications', checked: notifySms, set: setNotifySms },
                 { key: 'portal', label: 'Portal / in-app alerts', checked: notifyPortal, set: setNotifyPortal },
-              ].map((row) => (
-                <label key={row.key} className={`flex items-center gap-3 ${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony px-4 py-3 ${FINELY_OS_ENTITY_BODY} cursor-pointer`}>
+              ].map((row, idx) => (
+                <label key={row.key} className={`flex items-center gap-3 ${finelyOsCatalogCard((['emerald', 'violet', 'sky'] as const)[idx % 3])} fc-surface-harmony ${FINELY_OS_ENTITY_BODY} cursor-pointer`} data-fc-accent={(['emerald', 'violet', 'sky'] as const)[idx % 3]}>
                   <input type="checkbox" checked={row.checked} onChange={(e) => row.set(e.target.checked)} />
                   {row.label}
                 </label>
@@ -418,7 +418,7 @@ export default function AccountSettingsPage() {
         )}
 
         {tab === 'security' && (
-          <section className={`scroll-mt-32 ${finelyOsCatalogCard('violet')} !p-5 space-y-6`}>
+          <section className={`scroll-mt-32 ${finelyOsCatalogCard('rose')} space-y-6`} data-fc-accent="rose">
             {auth.isDevAuthEnabled ? (
               <div className={FINELY_OS_ENTITY_BODY}>Password changes are available on the live site after Supabase sign-in.</div>
             ) : (
@@ -447,7 +447,7 @@ export default function AccountSettingsPage() {
 
         {tab === 'account' && (
           <section className="scroll-mt-32 space-y-4">
-            <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-3`}>
+            <div className={`${finelyOsCatalogCard('emerald')} space-y-3`} data-fc-accent="emerald">
               <div className={FINELY_OS_ENTITY_SUBLABEL}>Quick links</div>
               <div className="flex flex-wrap gap-3">
                 <button type="button" onClick={() => navigate('/dashboard')} className={FINELY_OS_SECONDARY_BTN}>Dashboard</button>

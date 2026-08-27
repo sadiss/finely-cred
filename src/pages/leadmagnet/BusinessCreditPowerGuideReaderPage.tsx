@@ -133,7 +133,7 @@ export default function BusinessCreditPowerGuideReaderPage() {
                   className={cx(
                     'bcg-mono inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] transition',
                     i === idx
-                      ? 'border-[#c9a24a]/70 bg-[#c9a24a]/14 text-[#f0d089]'
+                      ? 'border-[#a78bfa]/70 bg-[#a78bfa]/14 text-[#c4b5fd]'
                       : i < idx
                         ? 'border-[#2fd4c4]/35 bg-[#2fd4c4]/[0.07] text-[#2fd4c4]/80 hover:border-[#2fd4c4]/60'
                         : 'border-white/10 bg-white/[0.02] text-white/40 hover:border-white/25 hover:text-white/70',
@@ -157,14 +157,14 @@ export default function BusinessCreditPowerGuideReaderPage() {
               { v: '12mo', l: 'Build plan' },
             ].map((k) => (
               <div key={k.l} className="bg-black/30 px-3 py-2.5 text-center">
-                <div className="bcg-display text-lg font-bold text-[#f0d089]">{k.v}</div>
+                <div className="bcg-display text-lg font-bold text-[#c4b5fd]">{k.v}</div>
                 <div className="bcg-mono text-[9px] uppercase tracking-[0.14em] text-white/40">{k.l}</div>
               </div>
             ))}
           </div>
 
           <div className="bcg-rail-panel rounded-xl p-4">
-            <div className="bcg-mono text-[9.5px] font-semibold uppercase tracking-[0.26em] text-[#c9a24a]">
+            <div className="bcg-mono text-[9.5px] font-semibold uppercase tracking-[0.26em] text-[#a78bfa]">
               Page index
             </div>
             <p className="bcg-display mt-2 text-[1.15rem] font-semibold leading-tight text-white">
@@ -206,7 +206,7 @@ export default function BusinessCreditPowerGuideReaderPage() {
         <section className="bcg-rail-panel mt-5 rounded-xl p-5 md:p-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="max-w-2xl">
-              <div className="bcg-mono text-[9.5px] font-semibold uppercase tracking-[0.26em] text-[#c9a24a]">
+              <div className="bcg-mono text-[9.5px] font-semibold uppercase tracking-[0.26em] text-[#a78bfa]">
                 Free to read · free to keep
               </div>
               <p className="bcg-display mt-2 text-xl font-semibold text-white">

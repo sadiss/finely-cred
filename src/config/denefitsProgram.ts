@@ -39,7 +39,7 @@ export const FINANCING_PREAPPROVAL_PUBLIC = {
     'Pairs with restore, tradelines, and funding paths',
   ],
   primaryCta: 'Check financing pre-approval',
-  secondaryCta: 'Book an Enlightenment session',
+  secondaryCta: 'Book a strategy call',
   tertiaryCta: 'See pricing',
   compliance: 'Results vary · financing subject to underwriting · not a credit guarantee',
   interestTag: 'financing_preapproval',
@@ -48,9 +48,9 @@ export const FINANCING_PREAPPROVAL_PUBLIC = {
 export const DENEFITS_SPECIALIST_COPY = {
   title: 'Denefit recurring commission',
   description:
-    'When your client enrolls in a Denefit in-house contract through your company, your share accrues across the full term — not just upfront. Payments build their credit on Equifax while you earn over time.',
+    'When your partner enrolls in a Denefit in-house contract through your company, your share accrues across the full term — not just upfront. Payments build their credit on Equifax while you earn over time.',
   bullets: [
-    'Equifax reporting as customers pay monthly',
+    'Equifax reporting as partners pay monthly',
     'Term-based recurring specialist share',
     'Stacks with your revenue-split levers on service fees',
   ],
@@ -59,7 +59,7 @@ export const DENEFITS_SPECIALIST_COPY = {
 export const DENEFITS_AFFILIATE_COPY = {
   title: 'Denefit referral stream',
   description:
-    'Refer customers into Denefit in-house contracts and earn a share of the payment stream for the life of the contract — easy to explain, easy to sell.',
+    'Refer partners into Denefit in-house contracts and earn a share of the payment stream for the life of the contract — easy to explain, easy to sell.',
   bullets: [
     'Equifax build-as-they-pay story for prospects',
     'Model contract value + term in your hub calculator',

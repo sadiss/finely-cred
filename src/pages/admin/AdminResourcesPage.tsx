@@ -69,7 +69,7 @@ export default function AdminResourcesPage() {
         title: g.title,
         subtitle: g.id,
         icon: BookOpen,
-        iconAccent: 'fuchsia',
+        iconAccent: 'rose',
         badges: isEdited
           ? [{ label: 'edited', className: FINELY_OS_ACTIVE_CHIP }]
           : undefined,
@@ -403,14 +403,14 @@ export default function AdminResourcesPage() {
         {notice && <div className={FINELY_OS_NOTICE_SUCCESS}>{notice}</div>}
 
         <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
-          <FinelyOsOverviewStatTile icon={BookOpen} label="Guides" value={guides.length} accent="fuchsia" iconAccent="fuchsia" hint="Built-in library" />
-          <FinelyOsOverviewStatTile icon={Save} label="Edited" value={editedCount} accent="emerald" iconAccent="emerald" hint="Overrides active" />
+          <FinelyOsOverviewStatTile icon={BookOpen} label="Guides" value={guides.length} accent="emerald" iconAccent="emerald" hint="Built-in library" />
+          <FinelyOsOverviewStatTile icon={Save} label="Edited" value={editedCount} accent="violet" iconAccent="violet" hint="Overrides active" />
           <FinelyOsOverviewStatTile icon={Paperclip} label="Sections" value={sectionCount} accent="sky" iconAccent="sky" hint={draft ? draft.title || 'Selected' : 'Select a guide'} />
-          <FinelyOsOverviewStatTile icon={Film} label="Videos" value={videos.length} accent="violet" iconAccent="violet" hint="Public library" />
+          <FinelyOsOverviewStatTile icon={Film} label="Videos" value={videos.length} accent="rose" iconAccent="rose" hint="Public library" />
         </div>
 
         <div className={FINELY_OS_VIEW_TABS} role="tablist">
-          <button type="button" role="tab" aria-selected={adminTab === 'guides'} onClick={() => setAdminTab('guides')} className={finelyOsViewTab(adminTab === 'guides', 'fuchsia')}>
+          <button type="button" role="tab" aria-selected={adminTab === 'guides'} onClick={() => setAdminTab('guides')} className={finelyOsViewTab(adminTab === 'guides', 'rose')}>
             Guide editor
           </button>
           <button type="button" role="tab" aria-selected={adminTab === 'videos'} onClick={() => setAdminTab('videos')} className={finelyOsViewTab(adminTab === 'videos', 'violet')}>
@@ -435,7 +435,7 @@ export default function AdminResourcesPage() {
 
         {adminTab === 'guides' ? (
         <div className="grid lg:grid-cols-12 gap-6">
-          <div className={`lg:col-span-3 ${finelyOsCatalogCard('amber')} !p-5`} data-fc-accent="amber">
+          <div className={`lg:col-span-3 ${finelyOsCatalogCard('emerald')}`} data-fc-accent="emerald">
             <FinelyOsCatalogBrowser
               items={guideCatalogItems}
               pageSize={16}
@@ -447,7 +447,7 @@ export default function AdminResourcesPage() {
             />
           </div>
 
-          <div className={`lg:col-span-9 space-y-5 ${finelyOsCatalogCard('violet')} !p-5`}>
+          <div className={`lg:col-span-9 space-y-5 ${finelyOsCatalogCard('violet')}`}>
             {!draft ? (
               <div className={FINELY_OS_ENTITY_BODY}>Select a guide to edit.</div>
             ) : (
@@ -488,7 +488,7 @@ export default function AdminResourcesPage() {
                 </div>
 
                 {importOpen && (
-                  <div className={`space-y-3 ${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+                  <div className={`space-y-3 ${finelyOsCatalogCard('sky')} fc-surface-harmony`}>
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <div className={`${FINELY_OS_ENTITY_VALUE} font-semibold`}>Import guide JSON</div>
@@ -544,7 +544,7 @@ export default function AdminResourcesPage() {
                   </label>
                 </div>
 
-                <div className={`space-y-4 ${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+                <div className={`space-y-4 ${finelyOsCatalogCard('sky')} fc-surface-harmony`}>
                   <div className="flex items-center justify-between gap-3">
                     <div className={`${FINELY_OS_ENTITY_VALUE} font-semibold`}>Sections</div>
                     <button
@@ -566,7 +566,7 @@ export default function AdminResourcesPage() {
                     {draft.sections.map((sec, idx) => {
                       const bulletLen = (sec.bullets ?? []).filter(Boolean).length;
                       return (
-                        <details key={idx} className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+                        <details key={idx} className={`${finelyOsCatalogCard((['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4])} fc-surface-harmony`} data-fc-accent={(['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4]}>
                           <summary className="cursor-pointer select-none">
                             <div className="flex items-start justify-between gap-3">
                               <div className="min-w-0">
@@ -677,7 +677,7 @@ export default function AdminResourcesPage() {
                               </div>
                             </div>
 
-                            <div className={`rounded-xl border border-violet-500/20 bg-violet-500/5 p-3 space-y-2 ${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+                            <div className={`rounded-xl border border-violet-500/20 bg-violet-500/5 p-6 space-y-2 ${finelyOsCatalogCard('rose')} fc-surface-harmony`} data-fc-accent="rose">
                               <div className={`${FINELY_OS_ENTITY_LABEL} inline-flex items-center gap-1.5 text-violet-300`}>
                                 <Paperclip size={12} /> Section attachment
                               </div>
@@ -722,7 +722,7 @@ export default function AdminResourcesPage() {
         ) : null}
 
         {adminTab === 'videos' ? (
-        <div className={`space-y-5 ${finelyOsCatalogCard('violet')} !p-5`}>
+        <div className={`space-y-5 ${finelyOsCatalogCard('violet')}`}>
             <div className="flex items-center justify-between gap-4">
               <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-violet-300`}>
                 <Film size={18} />
@@ -738,7 +738,7 @@ export default function AdminResourcesPage() {
             {videoErr && <div className={FINELY_OS_NOTICE_ERROR}>{videoErr}</div>}
 
             {preview && (
-              <div className={`space-y-3 ${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+              <div className={`space-y-3 ${finelyOsCatalogCard('sky')} fc-surface-harmony`}>
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
                     <div className={`${FINELY_OS_ENTITY_VALUE} font-semibold truncate`}>{preview.title}</div>
@@ -837,7 +837,7 @@ export default function AdminResourcesPage() {
                 <div className={`${FINELY_OS_LUXURY_EMPTY} lg:col-span-2`}>No videos yet.</div>
               ) : (
                 videos.map((v) => (
-                  <div key={v.id} className={`rounded-2xl border border-violet-500/20 bg-violet-500/5 overflow-hidden shadow-sm ${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+                  <div key={v.id} className={`rounded-2xl border border-violet-500/20 bg-violet-500/5 overflow-hidden shadow-sm ${finelyOsCatalogCard((['emerald', 'violet', 'sky', 'rose'] as const)[videos.indexOf(v) % 4])} fc-surface-harmony`} data-fc-accent={(['emerald', 'violet', 'sky', 'rose'] as const)[videos.indexOf(v) % 4]}>
                     <ResourceVideoThumb video={v} onClick={() => void openPreview(v.id)} />
                     <div className="p-4 flex items-start justify-between gap-4">
                       <div className="min-w-0">
@@ -875,7 +875,7 @@ export default function AdminResourcesPage() {
         ) : null}
 
         {adminTab === 'preview' ? (
-          <div className={`space-y-4 ${finelyOsCatalogCard('violet')} !p-5`}>
+          <div className={`space-y-4 ${finelyOsCatalogCard('violet')}`}>
             <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-emerald-300`}>
               <BookOpen size={18} />
               <span>Public preview — {draft?.title || 'Select a guide'}</span>
@@ -888,7 +888,7 @@ export default function AdminResourcesPage() {
                 <div className={FINELY_OS_ENTITY_BODY}>{draft.desc}</div>
                 <div className="space-y-4">
                   {(draft.sections ?? []).map((sec, idx) => (
-                    <div key={idx} className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`} data-fc-accent="sky">
+                    <div key={idx} className={`${finelyOsCatalogCard((['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4])} fc-surface-harmony`} data-fc-accent={(['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4]}>
                       <div className={`${FINELY_OS_ENTITY_VALUE} font-semibold`}>{sec.heading}</div>
                       <ul className={`mt-2 list-disc pl-5 ${FINELY_OS_ENTITY_BODY} space-y-1`}>
                         {(sec.bullets ?? []).filter(Boolean).map((b) => (

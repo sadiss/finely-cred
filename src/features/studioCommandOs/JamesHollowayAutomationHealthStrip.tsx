@@ -49,7 +49,7 @@ export function JamesHollowayAutomationHealthStrip() {
       <div className="grid sm:grid-cols-4 gap-3 mt-4">
         {[
           { label: 'Enabled rules', value: enabled, icon: Bot, tone: 'text-emerald-300' },
-          { label: 'Paused rules', value: blocked, icon: AlertTriangle, tone: 'text-amber-300' },
+          { label: 'Paused rules', value: blocked, icon: AlertTriangle, tone: 'text-rose-300' },
           { label: 'Live triggers', value: liveTriggers, icon: Plug, tone: 'text-violet-300' },
           { label: 'Event bridge', value: 'Active', icon: Server, tone: 'text-sky-300' },
         ].map((k) => (

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ArrowRight, Download, Eye, FileText, Heart, LayoutTemplate, Pencil, Search, Star, Upload } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { AdminWorkstationFrame, type AdminEmbeddablePageProps } from '../../features/workspaceLightPreview/product/admin/AdminWorkstationFrame';
+import { useMappedAdminNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import type { TemplateCategory, TemplateTone, TemplateVariantRecipe } from '../../domain/templates';
 import { TEMPLATE_BASES } from '../../templates';
 import { TEMPLATE_TONES, TEMPLATE_VARIANTS } from '../../templates/variants';
@@ -128,8 +128,8 @@ function stripHtmlForExport(html: string): string {
     .trim();
 }
 
-export default function AdminTemplatesPage() {
-  const navigate = useNavigate();
+export default function AdminTemplatesPage({ embedded = false }: AdminEmbeddablePageProps = {}) {
+  const navigate = useMappedAdminNavigate();
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<TemplateCategory | 'all'>('all');
   const [libraryView, setLibraryView] = useState<'outputs' | 'bases'>('outputs');
@@ -387,7 +387,7 @@ export default function AdminTemplatesPage() {
   ];
 
   return (
-    <PageShell
+    <AdminWorkstationFrame embedded={embedded} kind="templates-workstation"
       badge="Admin"
       title="Template Library"
       subtitle="Generator-first templates: multiple OCR-friendly variants, partner/state-aware context, and export to PDF/Word."
@@ -432,7 +432,7 @@ export default function AdminTemplatesPage() {
                 </div>
               </div>
               <div className="p-4 grid lg:grid-cols-2 gap-4 bg-fc-input">
-                <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+                <div className={`${finelyOsCatalogCard('sky')} fc-surface-harmony`}>
                   <div className={FINELY_OS_ENTITY_SUBLABEL}>Edit</div>
                   <div className="mt-3">
                     <RichTextEditor
@@ -495,7 +495,7 @@ export default function AdminTemplatesPage() {
         </div>
 
         <div className="space-y-12">
-          <section className={`${finelyOsCatalogCard('amber')} !p-5 space-y-5`} data-fc-accent="amber">
+          <section className={`${finelyOsCatalogCard('rose')} space-y-5`} data-fc-accent="rose">
             <div>
               <p className={FINELY_OS_ENTITY_SUBLABEL}>Step 1</p>
               <h2 className={`mt-1 ${FINELY_OS_ENTITY_TITLE}`}>Template library</h2>
@@ -527,7 +527,7 @@ export default function AdminTemplatesPage() {
               </div>
             </div>
 
-            <div className={`${finelyOsCatalogCard('violet')} !p-5 overflow-hidden`}>
+            <div className={`${finelyOsCatalogCard('violet')} overflow-hidden`}>
               <div className="px-5 py-3 border-b border-white/[0.08] flex flex-wrap items-center justify-between gap-2">
                 <div className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono normal-case tracking-normal`}>Templates</div>
                 <div className={FINELY_OS_VIEW_TABS}>
@@ -600,7 +600,7 @@ export default function AdminTemplatesPage() {
               )}
 
               <div className="p-4">
-                <div className={`${finelyOsCatalogCard('violet')} !p-5`} data-fc-accent="violet">
+                <div className={`${finelyOsCatalogCard('violet')}`} data-fc-accent="violet">
                   {libraryView === 'outputs' ? (
                     <FinelyOsCatalogBrowser
                       items={outputCatalogItems}
@@ -663,7 +663,7 @@ export default function AdminTemplatesPage() {
               <h2 className={`mt-1 ${FINELY_OS_ENTITY_TITLE}`}>Generate letter</h2>
               <p className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>Configure partner, variant, and tone — then build below.</p>
             </div>
-            <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-6`}>
+            <div className={`${finelyOsCatalogCard('violet')} space-y-6`}>
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-violet-300`}>
@@ -847,7 +847,7 @@ export default function AdminTemplatesPage() {
               <p className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>Full-width editor and preview stacked with generous spacing.</p>
             </div>
 
-            <div className={`${finelyOsCatalogCard('violet')} !p-5 overflow-hidden`}>
+            <div className={`${finelyOsCatalogCard('violet')} overflow-hidden`}>
               <div className="px-5 py-3 border-b border-white/[0.08] flex flex-wrap items-center justify-between gap-3">
                 <div className={FINELY_OS_VIEW_TABS}>
                   <button type="button" onClick={() => setWorkspaceTab('builder')} className={finelyOsViewTab(workspaceTab === 'builder', 'fuchsia')}>
@@ -925,10 +925,10 @@ export default function AdminTemplatesPage() {
           </section>
 
           <AnalysisReportBuilderPanel partners={partners} defaultPartnerId={partnerId} />
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
 </div>
       </div>
-    </PageShell>
+    </AdminWorkstationFrame>
   );
 }
 

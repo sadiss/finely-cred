@@ -525,7 +525,7 @@ export function VideoCreateWizard({
       <div className={`${FINELY_OS_MODAL_SHELL} relative w-full max-w-4xl !max-h-[min(94vh,920px)]`}>
         <div className={FINELY_OS_MODAL_HEADER}>
           <div>
-            <p className={`${FINELY_OS_ENTITY_SUBLABEL} text-amber-300`}>Video wizard · step {step} of 5</p>
+            <p className={`${FINELY_OS_ENTITY_SUBLABEL} text-violet-300`}>Video wizard · step {step} of 5</p>
             <h2 className={FINELY_OS_ENTITY_TITLE}>Create your video</h2>
           </div>
           <FinelyOsModalCloseButton onClick={() => onOpenChange(false)} aria-label="Close wizard" />
@@ -540,7 +540,7 @@ export function VideoCreateWizard({
                 key={s.id}
                 className={`rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-widest ${
                   active
-                    ? 'border-amber-400/40 bg-amber-500/15 text-amber-100'
+                    ? 'border-violet-400/40 bg-violet-500/15 text-violet-100'
                     : done
                       ? 'border-emerald-400/30 bg-emerald-500/10 text-emerald-100'
                       : 'border-white/10 text-white/40'
@@ -823,12 +823,12 @@ type VideoCreateWizardEntryProps = {
   activePreset?: VideoCreateWizardPresetId;
 };
 
-/** Landing card — one gold CTA opens the wizard. */
+/** Landing card — one primary CTA opens the wizard. */
 export function VideoCreateWizardEntry({ onStart, activePreset = 'reel_28' }: VideoCreateWizardEntryProps) {
   return (
     <div className={`${finelyOsCatalogCardCompact('amber')} space-y-3`}>
       <div>
-        <p className={`${FINELY_OS_ENTITY_SUBLABEL} text-amber-300`}>Easy mode</p>
+        <p className={`${FINELY_OS_ENTITY_SUBLABEL} text-violet-300`}>Easy mode</p>
         <h2 className={FINELY_OS_ENTITY_TITLE}>5-step video wizard</h2>
         <p className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY} max-w-2xl`}>
           Plan → format → scenes → edit &amp; style → export WebM — then publish to Resources or send to Hannah for tracked links.

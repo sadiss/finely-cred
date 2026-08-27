@@ -46,7 +46,7 @@ export default function UnsubscribePage() {
           <ArrowLeft size={16} /> Home
         </button>
 
-        <div className={`mt-6 max-w-lg ${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+        <div className={`mt-6 max-w-lg ${finelyOsCatalogCard('violet')} space-y-4`}>
           {done && result ? (
             <div className={`${FINELY_OS_NOTICE_SUCCESS} flex items-start gap-3`}>
               <ShieldCheck size={18} className="mt-0.5 shrink-0" />

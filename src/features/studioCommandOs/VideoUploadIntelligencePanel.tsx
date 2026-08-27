@@ -48,7 +48,7 @@ import { FINELY_OS_PRIMARY_BTN, FINELY_OS_SECONDARY_BTN } from '../os/finelyOsLi
 const CLASS_TONE: Record<VideoContentClass, string> = {
   educational: 'text-sky-300 bg-sky-500/15 border-sky-500/30',
   testimonial: 'text-emerald-300 bg-emerald-500/15 border-emerald-500/30',
-  commercial: 'text-amber-300 bg-amber-500/15 border-amber-500/30',
+  commercial: 'text-violet-300 bg-violet-500/15 border-violet-500/30',
   entertainment: 'text-fuchsia-300 bg-fuchsia-500/15 border-fuchsia-500/30',
   course_raw: 'text-violet-300 bg-violet-500/15 border-violet-500/30',
   internal: 'text-slate-300 bg-slate-500/15 border-slate-500/30',
@@ -57,7 +57,7 @@ const CLASS_TONE: Record<VideoContentClass, string> = {
 };
 
 const IMPORTANCE_TONE: Record<VideoImportance, string> = {
-  high: 'text-amber-200',
+  high: 'text-rose-200',
   medium: 'text-white/70',
   low: 'text-white/45',
 };
@@ -294,8 +294,8 @@ export function VideoUploadIntelligencePanel({
       ) : null}
 
       {showPromote && commandRecord ? (
-        <div className="rounded-2xl border border-amber-500/25 bg-amber-500/10 p-4 space-y-3">
-          <p className="text-sm font-semibold text-amber-100 flex items-center gap-2">
+        <div className="rounded-2xl border border-rose-500/25 bg-rose-500/10 p-4 space-y-3">
+          <p className="text-sm font-semibold text-rose-100 flex items-center gap-2">
             <Megaphone size={16} /> Promote with tracked links
           </p>
           <p className="text-sm text-white/70">

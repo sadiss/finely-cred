@@ -19,6 +19,7 @@ const ACCENT_DOT: Record<PublicNavAccent, string> = {
   emerald: 'bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.55)]',
   violet: 'bg-violet-400 shadow-[0_0_10px_rgba(167,139,250,0.55)]',
   fuchsia: 'bg-fuchsia-400 shadow-[0_0_10px_rgba(232,121,249,0.55)]',
+  rose: 'bg-rose-400 shadow-[0_0_10px_rgba(251,113,133,0.55)]',
   amber: 'bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.55)]',
   sky: 'bg-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.55)]',
 };
@@ -27,6 +28,7 @@ const ACCENT_ROW: Record<PublicNavAccent, string> = {
   emerald: 'hover:border-emerald-400/35 hover:bg-emerald-500/10 data-[active=true]:border-emerald-400/45 data-[active=true]:bg-emerald-500/15',
   violet: 'hover:border-violet-400/35 hover:bg-violet-500/10 data-[active=true]:border-violet-400/45 data-[active=true]:bg-violet-500/15',
   fuchsia: 'hover:border-fuchsia-400/35 hover:bg-fuchsia-500/10 data-[active=true]:border-fuchsia-400/45 data-[active=true]:bg-fuchsia-500/15',
+  rose: 'hover:border-rose-400/35 hover:bg-rose-500/10 data-[active=true]:border-rose-400/45 data-[active=true]:bg-rose-500/15',
   amber: 'hover:border-amber-400/35 hover:bg-amber-500/10 data-[active=true]:border-amber-400/45 data-[active=true]:bg-amber-500/15',
   sky: 'hover:border-sky-400/35 hover:bg-sky-500/10 data-[active=true]:border-sky-400/45 data-[active=true]:bg-sky-500/15',
 };

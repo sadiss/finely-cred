@@ -11,6 +11,7 @@ import {
   addRelationship,
   deleteEntity,
   deleteRelationship,
+  buildReadinessScoreExtras,
   getOrCreateCapitalPlan,
   setCapitalTargetBand,
   setDocNotes,
@@ -78,7 +79,10 @@ export default function BusinessBillionPathPage() {
   const [tab, setTab] = useState<'overview' | 'entities' | 'docs' | 'relationships'>('overview');
 
   const plan = useMemo(() => (partnerId ? getOrCreateCapitalPlan(partnerId) : null), [partnerId, version]);
-  const score = useMemo(() => (plan ? computeReadinessScore(plan) : 0), [plan]);
+  const score = useMemo(
+    () => (plan && partnerId ? computeReadinessScore(plan, buildReadinessScoreExtras(partnerId, partner)) : 0),
+    [plan, partnerId, partner],
+  );
 
   const docStats = useMemo(() => {
     const docs = plan?.docs ?? [];
@@ -109,6 +113,11 @@ export default function BusinessBillionPathPage() {
     return out.slice(0, 6);
   }, [plan]);
 
+  const firstMissingDoc = useMemo(
+    () => (plan?.docs ?? []).find((d) => d.status === 'missing') ?? null,
+    [plan],
+  );
+
   const saveBand = (band: any) => {
     if (!partnerId) return;
     setCapitalTargetBand(partnerId, band);
@@ -130,8 +139,8 @@ export default function BusinessBillionPathPage() {
   return (
     <PageShell
       badge="Business Portal"
-      title="Billion Path • Capital Readiness OS"
-      subtitle="Boardroom-grade readiness: multi-entity structure, underwriting document discipline, and bank/lender relationship tracking. No guarantees—just a clean system that reduces underwriting friction."
+      title="Capital readiness checklist"
+      subtitle="Prepare the documents and relationships lenders ask for before you apply — this is a checklist, not an approval."
     >
       <div className={FINELY_OS_PAGE}>
         <button type="button" onClick={() => navigate(-1)} className={FINELY_OS_BACK_LINK} title="Back">
@@ -144,12 +153,12 @@ export default function BusinessBillionPathPage() {
           <div className={FINELY_OS_NOTICE}>Sign in as a partner to access your Capital Readiness plan.</div>
         ) : (
           <FinelyUnifiedHubLayout
-            eyebrow="Boardroom capital readiness"
-            title="Billion Path • Capital Readiness OS"
-            subtitle="Multi-entity structure, underwriting document discipline, and bank/lender relationship tracking."
-            accent="amber"
+            eyebrow="Capital readiness"
+            title="Your lender checklist"
+            subtitle="Structure, documents, and relationships — tracked before you apply."
+            accent="violet"
             kpis={[
-              { label: 'Readiness', value: String(score), accent: 'amber' },
+              { label: 'Readiness', value: String(score), accent: 'violet' },
               { label: 'Docs ready', value: String(docStats.ready), hint: `${docStats.missing} missing`, accent: 'emerald' },
               { label: 'Entities', value: String(plan?.entities?.length ?? 0), accent: 'violet' },
               { label: 'Relationships', value: String(relStats.active), hint: `${relStats.meetings} meetings`, accent: 'sky' },
@@ -162,7 +171,10 @@ export default function BusinessBillionPathPage() {
             ]}
             activeTab={tab}
             onTabChange={(id) => setTab(id as typeof tab)}
-            primaryAction={{ label: 'Book session', onClick: () => navigate('/consultation?lane=' + encodeURIComponent('Business Credit')) }}
+            primaryAction={{
+              label: firstMissingDoc ? `Upload ${firstMissingDoc.label}` : 'Upload your next missing document',
+              onClick: () => setTab('docs'),
+            }}
             secondaryAction={{
               label: 'Export plan',
               onClick: () => {
@@ -177,7 +189,7 @@ export default function BusinessBillionPathPage() {
           >
             {tab === 'overview' ? (
               <div className="grid lg:grid-cols-12 gap-6">
-                <div className={`lg:col-span-7 min-w-0 ${finelyOsCatalogCard('fuchsia')} !p-6 space-y-4`} data-fc-accent="fuchsia">
+                <div className={`lg:col-span-7 min-w-0 ${finelyOsCatalogCard('rose')} space-y-4`} data-fc-accent="rose">
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0">
                       <div className={FINELY_OS_ENTITY_SUBLABEL}>Capital narrative</div>
@@ -204,11 +216,11 @@ export default function BusinessBillionPathPage() {
 
                   <div className="grid md:grid-cols-3 gap-3">
                     {[
-                      { t: 'Structure', d: 'HoldCo/OpCo/IP + clean ownership story', icon: <Building2 size={16} className="text-fuchsia-700" /> },
-                      { t: 'Docs', d: 'Bank-ready package + consistency across entities', icon: <FileText size={16} className="text-fuchsia-700" /> },
-                      { t: 'Relationships', d: 'Targeted banks + cadence before applications', icon: <Users size={16} className="text-fuchsia-700" /> },
+                      { t: 'Structure', d: 'HoldCo/OpCo/IP + clean ownership story', icon: <Building2 size={16} className="text-emerald-300" /> },
+                      { t: 'Docs', d: 'Bank-ready package + consistency across entities', icon: <FileText size={16} className="text-violet-300" /> },
+                      { t: 'Relationships', d: 'Targeted banks + cadence before applications', icon: <Users size={16} className="text-sky-300" /> },
                     ].map((x, idx) => (
-                      <div key={x.t} className={`${finelyOsCatalogCard((['emerald', 'sky', 'violet'] as const)[idx % 3])} !p-5`} data-fc-accent={(['emerald', 'sky', 'violet'] as const)[idx % 3]}>
+                      <div key={x.t} className={`${finelyOsCatalogCard((['emerald', 'violet', 'sky'] as const)[idx % 3])}`} data-fc-accent={(['emerald', 'violet', 'sky'] as const)[idx % 3]}>
                         <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_VALUE}`}>
                           {x.icon}
                           {x.t}
@@ -219,7 +231,7 @@ export default function BusinessBillionPathPage() {
                   </div>
                 </div>
 
-                <div className={`lg:col-span-5 min-w-0 ${finelyOsCatalogCard('violet')} !p-6 space-y-4`} data-fc-accent="violet">
+                <div className={`lg:col-span-5 min-w-0 ${finelyOsCatalogCard('violet')} space-y-4`} data-fc-accent="violet">
                   <div className="inline-flex items-center gap-2 text-violet-700">
                     <Shield size={18} />
                     <span className={FINELY_OS_ENTITY_SUBLABEL}>Next moves</span>
@@ -249,7 +261,7 @@ export default function BusinessBillionPathPage() {
             ) : null}
 
             {tab === 'entities' ? (
-              <div className={`${finelyOsCatalogCard('violet')} !p-6 space-y-4`} data-fc-accent="violet">
+              <div className={`${finelyOsCatalogCard('violet')} space-y-4`} data-fc-accent="violet">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className={FINELY_OS_ENTITY_TITLE}>Entity stack</div>
                   <button
@@ -333,7 +345,7 @@ export default function BusinessBillionPathPage() {
             ) : null}
 
             {tab === 'docs' ? (
-              <div className={`${finelyOsCatalogCard('violet')} !p-6 space-y-4`} data-fc-accent="violet">
+              <div className={`${finelyOsCatalogCard('violet')} space-y-4`} data-fc-accent="violet">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className={FINELY_OS_ENTITY_TITLE}>Underwriting document readiness</div>
                   <button type="button" onClick={() => navigate('/business/documents')} className={FINELY_OS_SECONDARY_BTN}>
@@ -389,7 +401,7 @@ export default function BusinessBillionPathPage() {
             ) : null}
 
             {tab === 'relationships' ? (
-              <div className={`${finelyOsCatalogCard('violet')} !p-6 space-y-4`} data-fc-accent="violet">
+              <div className={`${finelyOsCatalogCard('violet')} space-y-4`} data-fc-accent="violet">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className={FINELY_OS_ENTITY_TITLE}>Bank / lender relationships</div>
                   <button

@@ -121,7 +121,7 @@ export function buildBusinessProfileLauncherTiles(input: {
       description: 'Recommended vendor sequence and underwriting blockers before you apply for capital.',
       stat: stateHint,
       icon: Target,
-      accent: 'amber',
+      accent: 'emerald',
     }),
     tile({
       id: 'enterprise',
@@ -129,7 +129,7 @@ export function buildBusinessProfileLauncherTiles(input: {
       description: 'Underwriting readiness, monitoring credentials, and letter-ready identity data.',
       stat: 'Custom profile fields',
       icon: FileText,
-      accent: 'emerald',
+      accent: 'rose',
     }),
     tile({
       id: 'shortcuts',
@@ -181,7 +181,7 @@ export function buildAffiliateHubLauncherTiles(input: {
       description: 'Pending, paid, and payout history tied to your affiliate seat.',
       stat: input.status ?? '—',
       icon: Wallet,
-      accent: 'amber',
+      accent: 'violet',
     }),
     tile({
       id: 'training',
@@ -221,7 +221,7 @@ export function buildCaseHelpHubLauncherTiles(input: {
       description: 'Partner files in your scope — debt timelines, cases, and partner management.',
       stat: `${input.assignedCount} assigned`,
       icon: Users,
-      accent: 'amber',
+      accent: 'sky',
       badge: input.assignedCount > 0 ? 'In scope' : undefined,
     }),
     tile({
@@ -281,7 +281,7 @@ export function buildAgentHubLauncherTiles(input: {
       description: 'Capture leads, pitch packages, and grow your assigned partner caseload.',
       stat: input.partnerCount === 0 ? 'First lead' : 'Caseload active',
       icon: Target,
-      accent: 'amber',
+      accent: 'emerald',
     }),
     tile({
       id: 'communications',
@@ -323,7 +323,7 @@ export function buildAgencyHubLauncherTiles(input: {
       description: 'Command center, agency tools, workflow, and you-run / Finely-runs split.',
       stat: input.tenantLive ? 'Tenant live' : 'Setup',
       icon: Sparkles,
-      accent: 'amber',
+      accent: 'rose',
     }),
     tile({
       id: 'partners',
@@ -356,7 +356,7 @@ export function buildAgencyHubLauncherTiles(input: {
       description: 'Keep % center and payout history for agency partner volume.',
       stat: input.roleLabel,
       icon: Wallet,
-      accent: 'amber',
+      accent: 'violet',
     }),
     tile({
       id: 'training',
@@ -438,7 +438,7 @@ export function buildRealEstateHubLauncherTiles(input: {
       description: 'Tracked handoff links for restore, score roadmap, and AU education.',
       stat: input.hasReferralCode ? 'Ready' : 'Setup',
       icon: Target,
-      accent: 'amber',
+      accent: 'violet',
       badge: input.hasReferralCode ? 'Primary' : undefined,
     }),
     tile({
@@ -481,7 +481,7 @@ export function buildBusinessDashboardLauncherTiles(input: {
       description: 'How fundability is built — foundation, sequencing, and capital path.',
       stat: `${input.foundationPct}% foundation`,
       icon: Sparkles,
-      accent: 'amber',
+      accent: 'sky',
     }),
     tile({
       id: 'modules',
@@ -514,25 +514,25 @@ export function buildBusinessDashboardLauncherTiles(input: {
 /** Accent hint for PartnerHubWorkModal per launcher id. */
 export const ROLE_HUB_MODAL_ACCENT: Record<string, PartnerHubLauncherAccent> = {
   entity: 'violet',
-  fundability: 'amber',
-  enterprise: 'emerald',
+  fundability: 'emerald',
+  enterprise: 'rose',
   shortcuts: 'sky',
   overview: 'sky',
   calculator: 'violet',
   denefits: 'emerald',
-  payouts: 'amber',
+  payouts: 'violet',
   training: 'sky',
   operate: 'fuchsia',
-  matters: 'amber',
+  matters: 'sky',
   letters: 'violet',
   economics: 'violet',
-  growth: 'amber',
+  growth: 'emerald',
   communications: 'fuchsia',
   setup: 'sky',
   partners: 'sky',
   team: 'emerald',
   marketplace: 'violet',
-  referrals: 'amber',
+  referrals: 'violet',
   playbook: 'sky',
   modules: 'fuchsia',
   readiness: 'emerald',
@@ -549,7 +549,7 @@ export const CASE_HELP_MODAL_ICONS: Record<CaseHelpHubLauncherId, LucideIcon> = 
 
 export const CASE_HELP_TOOL_DECK = [
   { id: 'matters', label: 'Matters', detail: 'Assigned partners only', path: `${CASE_HELP.hubPath}?tab=matters`, icon: Users, accent: 'fuchsia' as const, badge: 'Primary' },
-  { id: 'debt', label: 'Debt desk', detail: 'Summons & timelines', path: '/portal/debt', icon: Gavel, accent: 'amber' as const },
+  { id: 'debt', label: 'Debt desk', detail: 'Summons & timelines', path: '/portal/debt', icon: Gavel, accent: 'rose' as const },
   { id: 'letters', label: 'Letters', detail: 'Packets & studio', path: '/portal/letters', icon: FileText, accent: 'violet' as const },
   { id: 'cases', label: 'Cases', detail: 'Scoped case board', path: '/admin/cases', icon: Scale, accent: 'sky' as const },
   { id: 'guide', label: 'Guide', detail: 'Case desk handbook', path: CASE_HELP.guideReadPath, icon: BookOpen, accent: 'emerald' as const },

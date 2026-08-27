@@ -118,11 +118,11 @@ export default function ContactPage() {
           ]}
           activeTab={contactTab}
           onTabChange={(id) => setContactTab(id as 'inquiry' | 'links')}
-          primaryAction={{ label: 'Book an Enlightenment session', onClick: () => navigate('/enlightenment-session') }}
+          primaryAction={{ label: 'Book a strategy call', onClick: () => navigate('/enlightenment-session') }}
           secondaryAction={{ label: 'FAQ', onClick: () => navigate('/faq') }}
         >
         {contactTab === 'inquiry' ? (
-        <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+        <div className={`${finelyOsCatalogCard('violet')} space-y-4`} data-fc-accent="violet">
             <div className="inline-flex items-center gap-2 text-fuchsia-400">
               <Send size={18} />
               <span className={FINELY_OS_ENTITY_SUBLABEL}>Send a message</span>
@@ -195,8 +195,8 @@ export default function ContactPage() {
         </div>
         ) : (
         <div className="space-y-4">
-          <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-4`}>
-            <div className="inline-flex items-center gap-2 text-fuchsia-400">
+          <div className={`${finelyOsCatalogCard('emerald')} fc-surface-harmony space-y-4`} data-fc-accent="emerald">
+            <div className="inline-flex items-center gap-2 text-emerald-400">
               <Mail size={18} />
               <span className={FINELY_OS_ENTITY_SUBLABEL}>Email</span>
             </div>
@@ -207,8 +207,8 @@ export default function ContactPage() {
               Email support <ArrowRight size={14} />
             </a>
           </div>
-          <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-4`}>
-            <div className="inline-flex items-center gap-2 text-fuchsia-400">
+          <div className={`${finelyOsCatalogCard('rose')} fc-surface-harmony space-y-4`} data-fc-accent="rose">
+            <div className="inline-flex items-center gap-2 text-rose-400">
               <Phone size={18} />
               <span className={FINELY_OS_ENTITY_SUBLABEL}>Helpful links</span>
             </div>

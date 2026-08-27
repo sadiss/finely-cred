@@ -56,6 +56,7 @@ export function RepossessionCenterView({
   onBuildCatalogDraft,
   letterHub = 'debt',
   adminPartnerId,
+  deskLayout = false,
 }: {
   debt: DebtCase | null;
   debtCases: DebtCase[];
@@ -72,6 +73,7 @@ export function RepossessionCenterView({
   onBuildCatalogDraft: (catalogId: string) => void;
   letterHub?: LetterCatalogHub;
   adminPartnerId?: string;
+  deskLayout?: boolean;
 }) {
   const nav = (href: string) => adminEmbeddedNavHref(adminPartnerId, href);
   const isCredit = letterHub === 'credit';
@@ -112,6 +114,7 @@ export function RepossessionCenterView({
   return (
     <CollateralDefenseShell
       theme="repossession"
+      layout={deskLayout ? 'runway' : 'shell'}
       icon={Car}
       eyebrow={isCredit ? 'Bureau cleanup' : 'Collateral defense'}
       title={isCredit ? 'Repossession credit letters' : 'Repossession command center'}

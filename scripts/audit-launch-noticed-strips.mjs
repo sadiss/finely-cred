@@ -6,6 +6,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readLocalSourceGraph } from './source-graph.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -49,7 +50,7 @@ for (const rel of REQUIRED) {
     failed += 1;
     continue;
   }
-  const ok = fs.readFileSync(abs, 'utf8').includes('FinelyNoticedStrip');
+  const ok = readLocalSourceGraph(abs, { projectRoot: root }).includes('FinelyNoticedStrip');
   console.log(`${ok ? '✓' : '✗'} ${rel}`);
   if (!ok) failed += 1;
 }

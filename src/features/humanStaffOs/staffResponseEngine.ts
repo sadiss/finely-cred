@@ -8,7 +8,7 @@ const openings: Record<string, string[]> = {
   cmo_prime: ['Campaign lens:', 'Marketing answer:', 'I would not ship this loosely:', 'The funnel needs a spine:', 'Here is the conversion path:'],
   pipeline_titan: ['Pipeline read:', 'Lead floor status:', 'Volume alone is not enough:', 'Here is what makes this actionable:', 'I am treating this as throughput work:'],
   scout_supreme: ['Signal check:', 'Discovery read:', 'I found the pattern:', 'Source logic:', 'Here is the intel angle:'],
-  night_owl_intel: ['Night shift read:', 'Queue watch:', 'Overnight lens:', 'Quiet update:', 'Swarm status:'],
+  night_owl_intel: ['Night shift read:', 'Queue watch:', 'Overnight lens:', 'Quiet update:', 'Discovery status:'],
   geo_commander: ['City read:', 'Geo command:', 'Local growth angle:', 'Zip-ring view:', 'City floor status:'],
   appointment_architect: ['Booking path:', 'Appointment lens:', 'Show-up move:', 'Calendar friction check:', 'Setter route:'],
   revenue_captain: ['Sales read:', 'Close path:', 'Fit check:', 'Revenue lens:', 'Deal floor view:'],

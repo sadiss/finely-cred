@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, BookOpen, Headphones, Library, Lock } from 'lucide-react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { useParams, useSearchParams } from 'react-router-dom';
+import { PartnerWorkstationFrame, type PartnerEmbeddablePageProps } from '../../features/workspaceLightPreview/product/partner/PartnerWorkstationFrame';
+import { useMappedPartnerNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { listBookstoreProducts } from '../../data/bookstoreRepo';
 import { ensureDemoLibraryGrant, hasLibraryBook, listLibraryEntitlements } from '../../data/libraryRepo';
@@ -25,9 +26,9 @@ import {
 
 type LibraryTab = 'overview' | 'owned' | 'store';
 
-export default function PartnerLibraryPage() {
+export default function PartnerLibraryPage({ embedded = false }: PartnerEmbeddablePageProps = {}) {
   usePageMeta('My Library', 'Read and listen to your purchased Finely Cred playbooks.');
-  const navigate = useNavigate();
+  const navigate = useMappedPartnerNavigate();
   const { slug } = useParams();
   const { partner } = usePartnerSession();
   const partnerId = partner?.id;
@@ -67,14 +68,26 @@ export default function PartnerLibraryPage() {
 
   if (activeProduct && canRead && partnerId) {
     return (
-      <PageShell badge="Library" title={activeProduct.title} subtitle="Read + listen with Finely Voice Studio">
+      <PartnerWorkstationFrame
+        embedded={embedded}
+        kind="library-workstation"
+        badge="Library"
+        title={activeProduct.title}
+        subtitle="Read + listen with Finely Voice Studio"
+      >
         <BookReaderPanel product={activeProduct} partnerId={partnerId} initialMode={listenMode ? 'listen' : 'read'} onBack={() => navigate('/portal/library')} />
-      </PageShell>
+      </PartnerWorkstationFrame>
     );
   }
 
   return (
-    <PageShell badge="Library" title="My Library" subtitle="Your purchased playbooks — read mode and neural narration per chapter.">
+    <PartnerWorkstationFrame
+      embedded={embedded}
+      kind="library-workstation"
+      badge="Library"
+      title="My Library"
+      subtitle="The books and guides you have access to, with audio if you prefer to listen."
+    >
       <div className={FINELY_OS_PAGE}>
         <button type="button" onClick={() => navigate('/portal/dashboard')} className={FINELY_OS_BACK_LINK}>
           <ArrowLeft size={16} /> Partner Dashboard
@@ -84,12 +97,12 @@ export default function PartnerLibraryPage() {
           eyebrow="Book library"
           title="Read + listen to your playbooks"
           subtitle="Finely Voice Studio narration syncs with each chapter — browse owned titles or discover more in the bookstore."
-          accent="amber"
+          accent="emerald"
           kpis={[
-            { label: 'Owned', value: String(owned.length), hint: 'Your shelf', accent: 'amber' },
+            { label: 'Owned', value: String(owned.length), hint: 'Your shelf', accent: 'emerald' },
             { label: 'Store', value: String(store.length), hint: 'Available', accent: 'violet' },
-            { label: 'Catalog', value: String(products.length), hint: 'All titles', accent: 'emerald' },
-            { label: 'Mode', value: 'Read + listen', hint: 'Voice Studio', accent: 'sky' },
+            { label: 'Catalog', value: String(products.length), hint: 'All titles', accent: 'sky' },
+            { label: 'Mode', value: 'Read + listen', hint: 'Voice Studio', accent: 'rose' },
           ]}
           tabs={[
             { id: 'overview', label: 'Overview' },
@@ -102,9 +115,9 @@ export default function PartnerLibraryPage() {
           secondaryAction={{ label: 'Education hub', onClick: () => navigate('/portal/education') }}
         >
           {tab === 'overview' && (
-            <div className={`${finelyOsCatalogCard('amber')} !p-6 flex flex-wrap items-center justify-between gap-3`} data-fc-accent="amber">
+            <div className={`${finelyOsCatalogCard('emerald')} flex flex-wrap items-center justify-between gap-3`} data-fc-accent="emerald">
               <div className="flex items-center gap-3">
-                <Library className="text-amber-700" size={22} />
+                <Library className="text-emerald-700" size={22} />
                 <div>
                   <div className={FINELY_OS_ENTITY_VALUE}>Voice-synced chapters</div>
                   <div className={`${FINELY_OS_ENTITY_BODY} text-sm`}>Open any owned title in read or listen mode — narration follows the chapter you are on.</div>
@@ -126,7 +139,7 @@ export default function PartnerLibraryPage() {
                   pageSize={4}
                   itemSpacingClassName="grid md:grid-cols-2 gap-4"
                   renderItem={(p, idx) => (
-                    <div key={p.id} className={`${finelyOsCatalogCard((['amber', 'emerald', 'sky'] as const)[idx % 3])} !p-5`} data-fc-accent={(['amber', 'emerald', 'sky'] as const)[idx % 3]}>
+                    <div key={p.id} className={finelyOsCatalogCard((['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4])} data-fc-accent={(['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4]}>
                       <div className={`${FINELY_OS_ENTITY_VALUE} font-semibold`}>{p.title}</div>
                       <div className={`${FINELY_OS_ENTITY_BODY} text-sm mt-1`}>{p.desc}</div>
                       <div className="flex flex-wrap gap-2 mt-4">
@@ -152,7 +165,7 @@ export default function PartnerLibraryPage() {
                 pageSize={4}
                 itemSpacingClassName="grid md:grid-cols-2 gap-4"
                 renderItem={(p, idx) => (
-                  <div key={p.id} className={`${finelyOsCatalogCard((['violet', 'fuchsia', 'sky'] as const)[idx % 3])} !p-5`} data-fc-accent={(['violet', 'fuchsia', 'sky'] as const)[idx % 3]}>
+                  <div key={p.id} className={finelyOsCatalogCard((['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4])} data-fc-accent={(['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4]}>
                     <div className="flex items-center gap-2 opacity-55 text-xs uppercase tracking-wider mb-2">
                       <Lock size={12} /> Not owned
                     </div>
@@ -167,8 +180,8 @@ export default function PartnerLibraryPage() {
           ) : null}
         </FinelyUnifiedHubLayout>
 
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
       </div>
-    </PageShell>
+    </PartnerWorkstationFrame>
   );
 }

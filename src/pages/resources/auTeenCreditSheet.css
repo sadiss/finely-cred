@@ -64,7 +64,7 @@
 }
 
 [data-fc-au-teen-sheet='1'] .fc-au-section-title--amber {
-  color: #fde68a !important;
+  color: #e9d5ff !important;
 }
 
 [data-fc-au-teen-sheet='1'] .fc-au-section-title--rose {
@@ -176,8 +176,8 @@
 }
 
 [data-fc-au-teen-sheet='1'] .fc-au-pop-amber {
-  background: linear-gradient(155deg, rgba(82, 50, 4, 0.72) 0%, rgba(24, 14, 2, 0.66) 100%) !important;
-  border-color: rgba(251, 191, 36, 0.42) !important;
+  background: linear-gradient(155deg, rgba(62, 16, 96, 0.74) 0%, rgba(26, 8, 46, 0.68) 100%) !important;
+  border-color: rgba(167, 139, 250, 0.44) !important;
 }
 
 [data-fc-au-teen-sheet='1'] .fc-au-pop-amber :is(h2, li, .text-white\/70, .text-white\/88) {
@@ -185,7 +185,7 @@
 }
 
 [data-fc-au-teen-sheet='1'] .fc-au-pop-amber h2 {
-  color: #fde68a !important;
+  color: #e9d5ff !important;
 }
 
 [data-fc-au-teen-sheet='1'] .fc-au-pop-rose {
@@ -428,7 +428,7 @@
 
 [data-fc-au-teen-sheet='1'] [data-fc-contrast-band='1'] .text-amber-200,
 [data-fc-au-teen-sheet='1'] [data-fc-contrast-band='1'] .text-amber-300 {
-  color: #fde047 !important;
+  color: #ddd6fe !important;
 }
 
 [data-fc-au-teen-sheet='1'] [data-fc-contrast-band='1'] .text-rose-200,
@@ -486,8 +486,9 @@
     0 0 22px -2px rgba(139, 92, 246, 0.48);
 }
 
-[data-fc-au-teen-sheet='1'] .fc-au-glow-figure--amber {
-  text-shadow: 0 0 28px rgba(251, 191, 36, 0.65), 0 0 48px rgba(251, 191, 36, 0.28);
+[data-fc-au-teen-sheet='1'] .fc-au-glow-figure--amber,
+[data-fc-au-teen-sheet='1'] .fc-au-glow-figure--violet {
+  text-shadow: 0 0 28px rgba(139, 92, 246, 0.65), 0 0 48px rgba(139, 92, 246, 0.28);
 }
 
 [data-fc-au-teen-sheet='1'] .fc-au-glow-figure--rose {
@@ -498,34 +499,34 @@
   text-shadow: 0 0 28px rgba(16, 185, 129, 0.58), 0 0 48px rgba(16, 185, 129, 0.24);
 }
 
-/* Wealthy showcase card */
+/* Wealthy showcase card — sapphire plastic, not gold fill */
 [data-fc-au-teen-sheet='1'] .fc-au-card--wealthy {
-  --au-ink: #1a1208;
-  --au-ink-dim: rgba(26, 18, 8, 0.68);
-  --au-edge: rgba(255, 236, 190, 0.72);
-  --au-chip-a: #fff8e1;
-  --au-chip-b: #c9922a;
+  --au-ink: #e8f4ff;
+  --au-ink-dim: rgba(232, 244, 255, 0.68);
+  --au-edge: rgba(125, 211, 252, 0.72);
+  --au-chip-a: #dbeafe;
+  --au-chip-b: #1d4ed8;
   background:
-    linear-gradient(148deg, #fffef8 0%, #f7e6b8 16%, #e8c56a 34%, #fff9eb 48%, #d4a843 68%, #f3dc9a 84%, #fff6e0 100%);
-  border: 1px solid rgba(255, 220, 140, 0.65);
+    linear-gradient(148deg, #1e3a8a 0%, #0f172a 18%, #1e40af 36%, #172554 52%, #2563eb 72%, #1e3a8a 88%, #0f172a 100%);
+  border: 1px solid rgba(125, 211, 252, 0.55);
   box-shadow:
     0 34px 72px -26px rgba(0, 0, 0, 0.72),
-    0 0 0 1px rgba(255, 215, 120, 0.38),
-    0 0 48px -8px rgba(251, 191, 36, 0.42),
-    inset 0 1px 0 rgba(255, 255, 255, 0.72),
-    inset 0 -1px 0 rgba(120, 80, 20, 0.12);
+    0 0 0 1px rgba(56, 189, 248, 0.38),
+    0 0 48px -8px rgba(59, 130, 246, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    inset 0 -1px 0 rgba(15, 23, 42, 0.35);
 }
 
 [data-fc-au-teen-sheet='1'] .fc-au-card--wealthy::before {
-  background: linear-gradient(112deg, transparent 32%, rgba(255, 255, 255, 0.65) 46%, transparent 58%);
+  background: linear-gradient(112deg, transparent 32%, rgba(255, 255, 255, 0.35) 46%, transparent 58%);
 }
 
 [data-fc-au-teen-sheet='1'] .fc-au-card--wealthy:hover {
   box-shadow:
     0 40px 84px -24px rgba(0, 0, 0, 0.78),
-    0 0 0 1px rgba(255, 215, 120, 0.48),
-    0 0 56px -6px rgba(251, 191, 36, 0.52),
-    inset 0 1px 0 rgba(255, 255, 255, 0.82);
+    0 0 0 1px rgba(56, 189, 248, 0.48),
+    0 0 56px -6px rgba(59, 130, 246, 0.52),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
 }
 
 [data-fc-au-teen-sheet='1'] .fc-au-card-caption--on-dark {

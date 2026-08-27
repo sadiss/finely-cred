@@ -37,24 +37,24 @@ export function PartnerHubLauncherTile<T extends string = string>({
     <button
       type="button"
       onClick={() => onOpen(id)}
-      className={`${PARTNER_HUB_ACTION_TINT[accent]} group w-full text-left !p-5 sm:!p-6 transition-transform hover:scale-[1.01] active:scale-[0.99]`}
+      className={`${PARTNER_HUB_ACTION_TINT[accent]} group w-full min-h-[12.5rem] text-left p-6 lg:p-8 transition-transform hover:scale-[1.01] active:scale-[0.99]`}
       data-fc-accent={accent}
       data-fc-hub-launcher={id}
     >
-      <div className="flex items-start justify-between gap-3">
-        <span className={`inline-flex h-11 w-11 items-center justify-center rounded-xl border ${partnerHubIconShellClass(accent)}`}>
-          <Icon size={22} />
+      <div className="flex items-start justify-between gap-4">
+        <span className={`inline-flex h-12 w-12 items-center justify-center rounded-xl ${partnerHubIconShellClass(accent)}`}>
+          <Icon size={24} strokeWidth={2.1} />
         </span>
         {badge ? (
-          <span className={`${FINELY_OS_ENTITY_SUBLABEL} rounded-full border border-current/20 px-2 py-0.5`}>{badge}</span>
+          <span className={`${FINELY_OS_ENTITY_SUBLABEL} rounded-full border border-white/25 px-3 py-1`}>{badge}</span>
         ) : null}
       </div>
-      <div className={`mt-4 ${FINELY_OS_ENTITY_VALUE} text-lg`}>{label}</div>
-      <p className={`mt-2 ${FINELY_OS_ENTITY_BODY} text-sm leading-snug`}>{description}</p>
-      <div className="mt-4 flex items-center justify-between gap-2">
-        {stat ? <span className={FINELY_OS_ENTITY_SUBLABEL}>{stat}</span> : <span />}
-        <span className={`inline-flex items-center gap-1 ${FINELY_OS_ENTITY_SUBLABEL} group-hover:gap-2 transition-all`}>
-          Open <ArrowRight size={12} />
+      <div className={`mt-5 text-2xl font-extrabold tracking-tight ${FINELY_OS_ENTITY_VALUE}`}>{label}</div>
+      <p className={`mt-3 text-base font-semibold leading-relaxed ${FINELY_OS_ENTITY_BODY}`}>{description}</p>
+      <div className="mt-6 flex items-center justify-between gap-3">
+        {stat ? <span className={`${FINELY_OS_ENTITY_SUBLABEL} text-sm`}>{stat}</span> : <span />}
+        <span className={`inline-flex items-center gap-2 text-sm font-extrabold ${FINELY_OS_ENTITY_SUBLABEL} group-hover:gap-3 transition-all`}>
+          Open <ArrowRight size={16} />
         </span>
       </div>
     </button>
@@ -72,7 +72,7 @@ export function PartnerHubLauncherGrid<T extends string = string>({ tiles, onOpe
   if (!tiles.length) return null;
 
   return (
-    <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 ${className}`} data-fc-partner-hub-launcher="1">
+    <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 ${className}`} data-fc-partner-hub-launcher="1">
       {tiles.map((tile) => (
         <PartnerHubLauncherTile key={tile.id} {...tile} onOpen={onOpen} />
       ))}

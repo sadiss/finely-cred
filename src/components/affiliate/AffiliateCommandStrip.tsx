@@ -70,7 +70,7 @@ export function AffiliateCommandStrip({ affiliate, loading }: Props) {
           label: 'Pending payout',
           value: pending,
           hint: `Paid: ${payout}`,
-          accent: 'amber',
+          accent: 'rose',
           onClick: () => navigate(`${AF.hubPath}?tab=payouts`),
         },
       ]}

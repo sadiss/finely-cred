@@ -5,6 +5,9 @@ import type { WorkBoardItem } from './types';
 import { enabledStages } from './types';
 import { WorkKanbanCardMeta } from './WorkKanbanCardMeta';
 import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
+import '../../features/work/views/workBoardCards.css';
+
+const WORK_CARD_ACCENTS = ['emerald', 'violet', 'sky', 'rose'] as const;
 
 function truncate(s: string, n: number) {
   const t = String(s || '');
@@ -80,28 +83,23 @@ export function WorkKanbanBoard({
 
   return (
     <DndContext sensors={sensors} onDragEnd={onDragEnd}>
-      <div className="overflow-x-auto">
-        <div className="flex gap-4 min-w-[980px]">
-          {cols.map((c) => {
+      <div className="fc-work-board-scroll">
+        <div className="fc-work-board-row">
+          {cols.map((c, colIdx) => {
             const colItems = byStage.get(c.id) ?? [];
-            return <KanbanColumn key={c.id} col={c} items={colItems} />;
+            return <KanbanColumn key={c.id} col={c} items={colItems} accent={WORK_CARD_ACCENTS[colIdx % WORK_CARD_ACCENTS.length]} />;
           })}
         </div>
       </div>
     </DndContext>
   );
 
-  function KanbanColumn({ col, items }: { col: WorkStageDefinition; items: WorkBoardItem[] }) {
+  function KanbanColumn({ col, items, accent }: { col: WorkStageDefinition; items: WorkBoardItem[]; accent: (typeof WORK_CARD_ACCENTS)[number] }) {
     const droppableId = `stage:${col.id}`;
     const { setNodeRef, isOver } = useDroppable({ id: droppableId, data: { stageId: col.id } });
     return (
-      <div className="w-[320px] shrink-0">
-        <div
-          ref={setNodeRef}
-          className={`rounded-2xl border bg-white/[0.07] backdrop-blur-xl p-4 transition-colors ${
-            isOver ? 'border-amber-500/35' : 'border-white/[0.08]'
-          }`}
-        >
+      <div className="fc-work-lane" data-accent={accent} data-over={isOver ? 'true' : undefined}>
+        <div ref={setNodeRef}>
           <div className="mb-3 flex items-center gap-2">
             <div
               className="h-2.5 w-2.5 rounded-full border border-white/[0.08]"
@@ -127,7 +125,7 @@ export function WorkKanbanBoard({
                 pageSize={8}
                 itemSpacingClassName="space-y-2"
                 emptyMessage="—"
-                renderItem={(it) => <KanbanCard key={it.id} it={it} stageColor={String((col as any).color || '')} />}
+                renderItem={(it) => <KanbanCard key={it.id} it={it} accent={accent} />}
               />
             )}
           </div>
@@ -136,7 +134,7 @@ export function WorkKanbanBoard({
     );
   }
 
-  function KanbanCard({ it, stageColor }: { it: WorkBoardItem; stageColor?: string }) {
+  function KanbanCard({ it, accent }: { it: WorkBoardItem; accent: (typeof WORK_CARD_ACCENTS)[number] }) {
     const draggableId = `item:${it.id}`;
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: draggableId, data: { itemId: it.id } });
     const style: React.CSSProperties = transform
@@ -161,20 +159,16 @@ export function WorkKanbanBoard({
             onOpenItem?.(it.id);
           }
         }}
-        className={`rounded-xl border bg-white/[0.02] p-3 space-y-2 transition-shadow cursor-pointer ${
-          isDragging ? 'opacity-70 shadow-lg shadow-amber-500/10' : 'border-white/[0.08] hover:border-amber-500/35 hover:bg-white/[0.04]'
-        }`}
+        className={`fc-work-card space-y-2 cursor-pointer ${isDragging ? 'opacity-70' : ''}`}
+        data-accent={accent}
       >
         <div className="flex items-start justify-between gap-3">
           <div className="w-full text-left min-w-0" title={it.title}>
             <div className="flex items-center gap-2">
-              <div
-                className="h-2 w-2 rounded-full border border-white/[0.08]"
-                style={{ backgroundColor: stageColor || 'rgba(255,255,255,0.18)' }}
-              />
-              <div className="text-white/85 font-semibold text-sm">{truncate(it.title, 92)}</div>
+              <div className="h-2 w-2 rounded-full bg-white/80" />
+              <div className="fc-work-card-title text-sm">{truncate(it.title, 92)}</div>
             </div>
-            {it.subtitle ? <div className="mt-1 text-white/55 text-xs">{truncate(it.subtitle, 120)}</div> : null}
+            {it.subtitle ? <div className="fc-work-card-meta mt-1">{truncate(it.subtitle, 120)}</div> : null}
           </div>
           {allowDrag ? (
             <button

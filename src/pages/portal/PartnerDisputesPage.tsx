@@ -1,11 +1,18 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ArrowRight, FileText, Gavel, ShieldAlert } from 'lucide-react';
 import { FinelyOsEmptyState } from '../../features/os/FinelyOsEmptyState';
 import { FinelyOsAlertBanner } from '../../features/os/FinelyOsAlertBanner';
 import { computeRestoreEvidenceCoverage } from '../../lib/evidenceCoverage';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import {
+  disputeCaseHref,
+  isDisputeProductPreviewPath,
+  resolveDisputeProductPath,
+} from '../../lib/disputeProductPaths';
 import { PageShell } from '../../components/layout/PageShell';
 import { listCasesByPartner } from '../../data/casesRepo';
+import { describeDisputeEffectiveness, summarizeDisputeEffectiveness } from '../../lib/disputeEffectiveness';
+import { syncDisputeDeadlinePassedTasks } from '../../lib/disputeDeadlineEngine';
 import { listReportsByPartner } from '../../data/reportsRepo';
 import { listEvidenceByPartner } from '../../data/evidenceRepo';
 import { listLettersByPartner } from '../../data/lettersRepo';
@@ -50,20 +57,52 @@ import {
   finelyOsViewTab,
 } from '../../features/os/finelyOsLightUi';
 
-export default function PartnerDisputesPage() {
+type DisputeHubTab = 'overview' | 'needs' | 'tracked' | 'cases';
+
+function normalizeDisputeHubTab(raw: string | null | undefined): DisputeHubTab {
+  if (raw === 'needs' || raw === 'tracked' || raw === 'cases') return raw;
+  return 'overview';
+}
+
+export function PartnerDisputesWorkspace({ embedded = false }: { embedded?: boolean }) {
   const navigate = useNavigate();
+  const { pathname, search } = useLocation();
+  const previewDisputes = embedded || isDisputeProductPreviewPath(pathname);
+  const go = (path: string) => navigate(resolveDisputeProductPath(path, pathname));
+  const [searchParams, setSearchParams] = useSearchParams();
   const [status, setStatus] = useState<'open' | 'closed' | 'all'>('open');
-  type DisputeHubTab = 'overview' | 'needs' | 'tracked' | 'cases';
-  const [hubTab, setHubTab] = useState<DisputeHubTab>('overview');
+  const [hubTab, setHubTab] = useState<DisputeHubTab>(() => normalizeDisputeHubTab(searchParams.get('tab')));
   const [coachVersion, setCoachVersion] = useState(0);
 
   const { partner } = usePartnerSession();
 
+  useEffect(() => {
+    if (!partner) return;
+    syncDisputeDeadlinePassedTasks(partner.id);
+  }, [partner?.id]);
+
+  useEffect(() => {
+    const fromUrl = normalizeDisputeHubTab(searchParams.get('tab'));
+    setHubTab((prev) => (prev === fromUrl ? prev : fromUrl));
+  }, [searchParams]);
+
+  const handleHubTabChange = (id: DisputeHubTab) => {
+    setHubTab(id);
+    if (previewDisputes) {
+      const params = new URLSearchParams(searchParams);
+      if (id === 'overview') params.delete('tab');
+      else params.set('tab', id);
+      setSearchParams(params, { replace: true });
+    }
+  };
+
+  const openCase = (caseId: string) => navigate(disputeCaseHref(caseId, pathname, search));
+
+  const allPartnerCases = useMemo(() => (partner ? listCasesByPartner(partner.id) : []), [partner]);
+
   const cases = useMemo(() => {
-    if (!partner) return [];
-    const all = listCasesByPartner(partner.id);
-    return status === 'all' ? all : all.filter((c) => c.status === status);
-  }, [partner, status]);
+    return status === 'all' ? allPartnerCases : allPartnerCases.filter((c) => c.status === status);
+  }, [allPartnerCases, status]);
 
   const reports = useMemo(() => {
     if (!partner) return [];
@@ -137,14 +176,23 @@ export default function PartnerDisputesPage() {
     return Array.from(m.entries()).sort((a, b) => b[1].length - a[1].length);
   }, [cases]);
 
+  const effectiveness = useMemo(() => summarizeDisputeEffectiveness(allPartnerCases), [allPartnerCases]);
+
   const disputeKpis = useMemo(
     () => [
       { label: 'Candidates', value: String(candidates.length), hint: 'From latest report', accent: 'violet' as const },
-      { label: 'Needs disputing', value: String(needsDisputing.length), hint: 'Not in a case yet', accent: 'amber' as const },
+      { label: 'Needs disputing', value: String(needsDisputing.length), hint: 'Not in a case yet', accent: 'rose' as const },
       { label: 'Already tracked', value: String(alreadyDisputed.length), hint: 'In dispute cases', accent: 'emerald' as const },
-      { label: 'Cases', value: String(cases.length), hint: `${status} view`, accent: 'sky' as const },
+      {
+        label: 'Cases',
+        value: String(cases.length),
+        hint: effectiveness.logged
+          ? `${describeDisputeEffectiveness(effectiveness)} · Results vary`
+          : `${status} view`,
+        accent: 'sky' as const,
+      },
     ],
-    [candidates.length, needsDisputing.length, alreadyDisputed.length, cases.length, status],
+    [candidates.length, needsDisputing.length, alreadyDisputed.length, cases.length, status, effectiveness],
   );
 
   const bureauFocus = useMemo(() => {
@@ -161,13 +209,7 @@ export default function PartnerDisputesPage() {
     return bureauFocus;
   }, [hubTab, bureauFocus]);
 
-  return (
-    <PageShell
-      badge="Partner Portal"
-      title="Dispute Center"
-      subtitle="Your cases are organized per bureau and tracked by round. Generate letters and follow-ups with evidence and reasons."
-    >
-      {!partner ? (
+  const workspaceBody = !partner ? (
         <FinelyOsEmptyState
           icon={Gavel}
           title="No partner profile"
@@ -178,33 +220,37 @@ export default function PartnerDisputesPage() {
       ) : (
         <EntitlementGate partnerId={partner.id} requiredKeys={[ENTITLEMENT_KEYS.disputes]}>
           <div className={FINELY_OS_PAGE}>
-            <PartnerCreditRestoreCommandStrip
-              partner={partner}
-              reportsCount={reports.length}
-              evidenceCount={evidence.length}
-              lettersCount={letters.length}
-              openCasesCount={openCasesCount}
-              negativesCount={needsDisputing.length}
-            />
+            {!embedded ? (
+              <>
+                <PartnerCreditRestoreCommandStrip
+                  partner={partner}
+                  reportsCount={reports.length}
+                  evidenceCount={evidence.length}
+                  lettersCount={letters.length}
+                  openCasesCount={openCasesCount}
+                  negativesCount={needsDisputing.length}
+                />
 
-            <FinelyNoticedStrip
-              items={buildDisputesNoticedItems({
-                hasReport: Boolean(latestParsedReport),
-                needsDisputingCount: needsDisputing.length,
-                lettersCount: letters.length,
-                evidenceMissingForDisputes:
-                  needsDisputing.length > 0 && evidenceCoverage.withProof < evidenceCoverage.totalCandidates,
-              })}
-            />
-            <FinelyNowDoThisStrip
-              currentIndex={
-                letters.length > 0 && evidence.length === 0
-                  ? 2
-                  : needsDisputing.length > 0 && letters.length === 0
-                    ? 1
-                    : 0
-              }
-            />
+                <FinelyNoticedStrip
+                  items={buildDisputesNoticedItems({
+                    hasReport: Boolean(latestParsedReport),
+                    needsDisputingCount: needsDisputing.length,
+                    lettersCount: letters.length,
+                    evidenceMissingForDisputes:
+                      needsDisputing.length > 0 && evidenceCoverage.withProof < evidenceCoverage.totalCandidates,
+                  })}
+                />
+                <FinelyNowDoThisStrip
+                  currentIndex={
+                    letters.length > 0 && evidence.length === 0
+                      ? 2
+                      : needsDisputing.length > 0 && letters.length === 0
+                        ? 1
+                        : 0
+                  }
+                />
+              </>
+            ) : null}
 
             {!latestParsedReport ? (
               <FinelyOsAlertBanner
@@ -220,9 +266,10 @@ export default function PartnerDisputesPage() {
               />
             ) : null}
 
+            {!embedded ? (
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex flex-wrap items-center gap-3">
-                <button type="button" onClick={() => navigate('/portal/dashboard')} className={FINELY_OS_BACK_LINK} title="Back to Partner Dashboard">
+                <button type="button" onClick={() => go('/portal/dashboard')} className={FINELY_OS_BACK_LINK} title="Back to Partner Dashboard">
                   <ArrowLeft size={16} /> Partner Dashboard
                 </button>
                 <button type="button" onClick={() => navigate('/dashboard')} className={FINELY_OS_BACK_LINK} title="Back to Finely Cred Dashboard">
@@ -230,12 +277,14 @@ export default function PartnerDisputesPage() {
                 </button>
               </div>
             </div>
+            ) : null}
 
             <FinelyUnifiedHubLayout
               eyebrow="Dispute center"
               title="Bureau disputes — one tab at a time"
               subtitle="Overview, items needing dispute, tracked tradelines, and active cases."
               accent="emerald"
+              variant={previewDisputes ? 'workspaceLight' : 'default'}
               kpis={disputeKpis}
               tabs={[
                 { id: 'overview', label: 'Overview', badge: needsDisputing.length || undefined },
@@ -244,9 +293,9 @@ export default function PartnerDisputesPage() {
                 { id: 'cases', label: 'Cases', badge: cases.length || undefined },
               ]}
               activeTab={hubTab}
-              onTabChange={(id) => setHubTab(id as DisputeHubTab)}
-              primaryAction={{ label: 'Letter Studio', onClick: () => navigate('/portal/letters?openPicker=1') }}
-              secondaryAction={{ label: 'Upload report', onClick: () => navigate('/portal/reports') }}
+              onTabChange={(id) => handleHubTabChange(id as DisputeHubTab)}
+              primaryAction={{ label: 'Letter Studio', onClick: () => go('/portal/letters?openPicker=1') }}
+              secondaryAction={{ label: 'Upload report', onClick: () => go('/portal/reports') }}
             >
               {hubTab !== 'overview' && partner ? (
                 <div className="mb-4">
@@ -271,8 +320,8 @@ export default function PartnerDisputesPage() {
                       icon={FileText}
                       title="Upload a credit report first"
                       description="Dispute candidates and cases appear after you upload and parse a report."
-                      primaryAction={{ label: 'Upload report', onClick: () => navigate('/portal/reports') }}
-                      secondaryAction={{ label: 'Partner dashboard', onClick: () => navigate('/portal/partner') }}
+                      primaryAction={{ label: 'Upload report', onClick: () => go('/portal/reports') }}
+                      secondaryAction={{ label: 'Partner dashboard', onClick: () => go('/portal/dashboard') }}
                     />
                   )}
                   {latestParsedReport && needsDisputing.length > 0 ? (
@@ -282,17 +331,28 @@ export default function PartnerDisputesPage() {
                         your bureau letter.
                       </p>
                       <div className="mt-4 flex flex-wrap gap-2">
-                        <Button variant="primary" size="sm" onClick={() => setHubTab('needs')}>
+                        <Button variant="primary" size="sm" onClick={() => handleHubTabChange('needs')}>
                           View needs disputing <ArrowRight size={14} />
                         </Button>
-                        <Button variant="outline" size="sm" onClick={() => navigate('/portal/letters?openPicker=1')}>
+                        <Button variant="outline" size="sm" onClick={() => go('/portal/letters?openPicker=1')}>
                           Generate letter <ArrowRight size={14} />
                         </Button>
                       </div>
                     </FinelyUnifiedSection>
                   ) : null}
 
-                  <SmartProofUploader partner={partner} email={partner.profile.email} uploadContext="bureau" />
+                  {embedded ? (
+                    <FinelyUnifiedSection
+                      title="Need to add proof?"
+                      subtitle="Source exhibits stay in Evidence vault so each crop or response has one trusted home."
+                    >
+                      <button type="button" onClick={() => go('/portal/evidence')} className={FINELY_OS_SECONDARY_BTN}>
+                        Open Evidence vault <ArrowRight size={14} />
+                      </button>
+                    </FinelyUnifiedSection>
+                  ) : (
+                    <SmartProofUploader partner={partner} email={partner.profile.email} uploadContext="bureau" />
+                  )}
 
                   <DisputeLaneHandoffStrip partnerId={partner.id} />
 
@@ -347,8 +407,8 @@ export default function PartnerDisputesPage() {
                 storageKey={`portal.disputes.needs.${status}`}
               >
                 <div className="space-y-4">
-                  {needsByBureau.map(([bureau, list]) => (
-                    <details key={bureau} className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony overflow-hidden`} open>
+                  {needsByBureau.map(([bureau, list], bureauIdx) => (
+                    <details key={bureau} className={`${finelyOsCatalogCard((['emerald', 'violet', 'sky', 'rose'] as const)[bureauIdx % 4])} fc-surface-harmony overflow-hidden`} data-fc-accent={(['emerald', 'violet', 'sky', 'rose'] as const)[bureauIdx % 4]} open>
                       <summary className="cursor-pointer select-none px-5 py-4 flex items-center justify-between gap-3 hover:bg-white/[0.04] transition-colors">
                         <div className={FINELY_OS_ENTITY_VALUE}>{bureau}</div>
                         <div className={FINELY_OS_ENTITY_SUBLABEL}>{list.length}</div>
@@ -359,8 +419,8 @@ export default function PartnerDisputesPage() {
                           pageSize={8}
                           itemSpacingClassName="grid md:grid-cols-2 gap-4"
                           emptyMessage="No items for this bureau."
-                          renderItem={(c) => (
-                          <div key={c.id} className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-3`}>
+                          renderItem={(c, idx) => (
+                          <div key={c.id} className={`${finelyOsCatalogCard((['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4])} fc-surface-harmony space-y-4`} data-fc-accent={(['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4]}>
                             <div className="min-w-0">
                               <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{c.account}</div>
                               <div className={`mt-1 ${FINELY_OS_ENTITY_SUBLABEL}`}>
@@ -369,10 +429,10 @@ export default function PartnerDisputesPage() {
                               <div className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>{c.status}</div>
                             </div>
                             <div className="flex flex-wrap items-center gap-2">
-                              <button type="button" onClick={() => navigate('/portal/letters?openPicker=1')} className={FINELY_OS_SUCCESS_BTN}>
+                              <button type="button" onClick={() => go('/portal/letters?openPicker=1')} className={FINELY_OS_SUCCESS_BTN}>
                                 Select in Letters <ArrowRight size={14} />
                               </button>
-                              <button type="button" onClick={() => navigate('/portal/reports?intelTab=collections')} className={FINELY_OS_SECONDARY_BTN}>
+                              <button type="button" onClick={() => go('/portal/reports?intelTab=collections')} className={FINELY_OS_SECONDARY_BTN}>
                                 Open report <ArrowRight size={14} />
                               </button>
                             </div>
@@ -389,8 +449,8 @@ export default function PartnerDisputesPage() {
                 icon={Gavel}
                 title="Nothing needs disputing"
                 description="All tradelines from your latest report are already tracked in cases, or your report has no disputable items."
-                primaryAction={{ label: 'View cases', onClick: () => setHubTab('cases') }}
-                secondaryAction={{ label: 'Upload report', onClick: () => navigate('/portal/reports') }}
+                primaryAction={{ label: 'View cases', onClick: () => handleHubTabChange('cases') }}
+                secondaryAction={{ label: 'Upload report', onClick: () => go('/portal/reports') }}
               />
             )}
                 </>
@@ -408,8 +468,8 @@ export default function PartnerDisputesPage() {
                 storageKey={`portal.disputes.already.${status}`}
               >
                 <div className="space-y-4">
-                  {alreadyByBureau.map(([bureau, list]) => (
-                    <details key={bureau} className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony overflow-hidden`}>
+                  {alreadyByBureau.map(([bureau, list], bureauIdx) => (
+                    <details key={bureau} className={`${finelyOsCatalogCard((['emerald', 'violet', 'sky', 'rose'] as const)[bureauIdx % 4])} fc-surface-harmony overflow-hidden`} data-fc-accent={(['emerald', 'violet', 'sky', 'rose'] as const)[bureauIdx % 4]}>
                       <summary className="cursor-pointer select-none px-5 py-4 flex items-center justify-between gap-3 hover:bg-white/[0.04] transition-colors">
                         <div className={FINELY_OS_ENTITY_VALUE}>{bureau}</div>
                         <div className={FINELY_OS_ENTITY_SUBLABEL}>{list.length}</div>
@@ -420,10 +480,10 @@ export default function PartnerDisputesPage() {
                           pageSize={8}
                           itemSpacingClassName="grid md:grid-cols-2 gap-4"
                           emptyMessage="No items for this bureau."
-                          renderItem={(c) => {
+                          renderItem={(c, idx) => {
                           const hit = disputedIndex.get(c.id) ?? null;
                           return (
-                            <div key={c.id} className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-3`}>
+                            <div key={c.id} className={`${finelyOsCatalogCard((['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4])} fc-surface-harmony space-y-4`} data-fc-accent={(['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4]}>
                               <div className="min-w-0">
                                 <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{c.account}</div>
                                 <div className={`mt-1 ${FINELY_OS_ENTITY_SUBLABEL}`}>
@@ -434,7 +494,7 @@ export default function PartnerDisputesPage() {
                               {hit ? (
                                 <div className={`${FINELY_OS_NOTICE} text-sm`}>
                                   Case:{' '}
-                                  <button type="button" onClick={() => navigate(`/portal/disputes/${hit.caseId}`)} className={FINELY_OS_ENTITY_ACCENT_LINK}>
+                                  <button type="button" onClick={() => openCase(hit.caseId)} className={FINELY_OS_ENTITY_ACCENT_LINK}>
                                     {hit.caseTitle}
                                   </button>{' '}
                                   <span className="text-white/40">•</span> <span>{hit.caseStatus}</span>
@@ -454,7 +514,7 @@ export default function PartnerDisputesPage() {
                 icon={FileText}
                 title="No tracked disputes yet"
                 description="Tradelines appear here once they are part of an open or closed dispute case."
-                primaryAction={{ label: 'Needs disputing', onClick: () => setHubTab('needs') }}
+                primaryAction={{ label: 'Needs disputing', onClick: () => handleHubTabChange('needs') }}
               />
             )}
                 </>
@@ -476,8 +536,8 @@ export default function PartnerDisputesPage() {
                 icon={Gavel}
                 title="No dispute cases yet"
                 description="Upload a report, capture screenshots, then generate your bureau letter in Letter Studio to create your first case."
-                primaryAction={{ label: 'Upload report', onClick: () => navigate('/portal/reports') }}
-                secondaryAction={{ label: 'Open Letter Studio', onClick: () => navigate('/portal/letters') }}
+                primaryAction={{ label: 'Upload report', onClick: () => go('/portal/reports') }}
+                secondaryAction={{ label: 'Open Letter Studio', onClick: () => go('/portal/letters') }}
               />
             ) : (
               <div className="space-y-4">
@@ -502,7 +562,7 @@ export default function PartnerDisputesPage() {
                           <button
                             key={c.id}
                             type="button"
-                            onClick={() => navigate(`/portal/disputes/${c.id}`)}
+                            onClick={() => openCase(c.id)}
                             className={`${finelyOsInlineListItem()} w-full text-left p-6 space-y-4`}
                             title="Open case details"
                           >
@@ -556,10 +616,30 @@ export default function PartnerDisputesPage() {
               )}
             </FinelyUnifiedHubLayout>
 
-            <FinelyOsPageFooter />
+            {!embedded ? <FinelyOsPageFooter /> : null}
           </div>
         </EntitlementGate>
-      )}
+      );
+
+  if (embedded) {
+    return (
+      <div className="fc-wlp-dispute-workspace-embed" data-surface-kind="real" data-surface-key="partner:disputes">
+        {workspaceBody}
+      </div>
+    );
+  }
+
+  return (
+    <PageShell
+      badge="Partner Portal"
+      title="Dispute Center"
+      subtitle="Your cases are organized per bureau and tracked by round. Generate letters and follow-ups with evidence and reasons."
+    >
+      {workspaceBody}
     </PageShell>
   );
+}
+
+export default function PartnerDisputesPage() {
+  return <PartnerDisputesWorkspace />;
 }

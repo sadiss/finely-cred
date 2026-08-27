@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, BadgeCheck, CheckCircle2, FileUp, ShieldAlert, ShieldCheck, Sparkles } from 'lucide-react';
-import { PageShell } from '../../components/layout/PageShell';
+import { PartnerWorkstationFrame, type PartnerEmbeddablePageProps } from '../../features/workspaceLightPreview/product/partner/PartnerWorkstationFrame';
+import { useMappedPartnerNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { useAuth } from '../../auth/AuthProvider';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { createTask } from '../../data/tasksRepo';
@@ -49,8 +50,8 @@ function safeInt(v: any) {
 const STEPS = ['eligibility', 'terms', 'docs', 'review'] as const;
 type Step = (typeof STEPS)[number];
 
-export default function AuRequestPage() {
-  const navigate = useNavigate();
+export default function AuRequestPage({ embedded = false }: PartnerEmbeddablePageProps = {}) {
+  const navigate = useMappedPartnerNavigate();
   const location = useLocation();
   const auth = useAuth();
   const { partner } = usePartnerSession();
@@ -134,12 +135,18 @@ export default function AuRequestPage() {
 
   if (!partner) {
     return (
-      <PageShell badge="AU" title="AU Request" subtitle="Unable to load your profile.">
+      <PartnerWorkstationFrame
+        embedded={embedded}
+        kind="au-request-workstation"
+        badge="AU"
+        title="AU Request"
+        subtitle="Unable to load your profile."
+      >
         <div className={FINELY_OS_PAGE}>
           <div className={FINELY_OS_ENTITY_EMPTY}>No partner profile found for this session.</div>
-          <FinelyOsPageFooter />
+          {!embedded ? <FinelyOsPageFooter /> : null}
         </div>
-      </PageShell>
+      </PartnerWorkstationFrame>
     );
   }
 
@@ -219,7 +226,13 @@ export default function AuRequestPage() {
     Boolean(order?.eligibility.understandsRemovalTimingVaries);
 
   return (
-    <PageShell badge="AU" title="AU Buyer Intake" subtitle="A guided flow to qualify, protect you, and keep ops processing fast and clean.">
+    <PartnerWorkstationFrame
+      embedded={embedded}
+      kind="au-request-workstation"
+      badge="AU"
+      title="AU Buyer Intake"
+      subtitle="Ask for a specific authorized user placement."
+    >
       <div className={FINELY_OS_PAGE}>
         <AuBuyerCommandStrip />
 
@@ -238,7 +251,7 @@ export default function AuRequestPage() {
           subtitle={`${listing.limit} • ${listing.age} • ${fmtUsd(listing.priceCents)}`}
           accent="emerald"
           kpis={[
-            { label: 'Order', value: order?.id?.slice(0, 8) ?? '…', accent: 'amber' },
+            { label: 'Order', value: order?.id?.slice(0, 8) ?? '…', accent: 'violet' },
             { label: 'Step', value: step.charAt(0).toUpperCase() + step.slice(1), accent: 'emerald' },
             { label: 'Price', value: fmtUsd(listing.priceCents), accent: 'sky' },
           ]}
@@ -249,7 +262,7 @@ export default function AuRequestPage() {
         >
 
         {step === 'eligibility' && order && (
-          <div className={`space-y-4 ${finelyOsCatalogCard('violet')} !p-5`}>
+          <div className={`space-y-4 ${finelyOsCatalogCard('violet')}`}>
             <div className="inline-flex items-center gap-2 text-fuchsia-400">
               <ShieldCheck size={18} />
               <span className={FINELY_OS_ENTITY_SUBLABEL}>Eligibility & expectations</span>
@@ -258,7 +271,7 @@ export default function AuRequestPage() {
               This is a self-attestation checklist so we can process quickly and avoid mismatches. Nothing here is a promise of results.
             </div>
 
-            <details className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`} open>
+            <details className={`${finelyOsCatalogCard('sky')} fc-surface-harmony`} open>
               <summary className={`cursor-pointer select-none ${FINELY_OS_ENTITY_VALUE}`}>Buyer details (required for matching)</summary>
               <div className={`mt-3 ${FINELY_OS_ENTITY_BODY}`}>
                 Enter the info we should use to match docs and prevent posting errors. Avoid sharing full SSNs (last-4 only, optional).
@@ -368,12 +381,12 @@ export default function AuRequestPage() {
         )}
 
         {step === 'terms' && order && (
-          <div className={`space-y-4 ${finelyOsCatalogCard('violet')} !p-5`}>
+          <div className={`space-y-4 ${finelyOsCatalogCard('violet')}`}>
             <div className="inline-flex items-center gap-2 text-fuchsia-400">
               <BadgeCheck size={18} />
               <span className={FINELY_OS_ENTITY_SUBLABEL}>Terms & consent</span>
             </div>
-            <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-2`}>
+            <div className={`${finelyOsCatalogCard('sky')} fc-surface-harmony space-y-2`}>
               <div className={FINELY_OS_ENTITY_VALUE}>Summary (plain language)</div>
               <ul className={`list-disc ml-5 space-y-1 ${FINELY_OS_ENTITY_BODY}`}>
                 <li>We coordinate an AU seat placement using verified inventory and operational checks.</li>
@@ -399,7 +412,7 @@ export default function AuRequestPage() {
 
         {step === 'docs' && order && (
           <div className="space-y-6">
-            <div className={`space-y-4 ${finelyOsCatalogCard('violet')} !p-5`}>
+            <div className={`space-y-4 ${finelyOsCatalogCard('violet')}`}>
               <div className="inline-flex items-center gap-2 text-fuchsia-400">
                 <FileUp size={18} />
                 <span className={FINELY_OS_ENTITY_SUBLABEL}>Upload documents</span>
@@ -414,7 +427,7 @@ export default function AuRequestPage() {
                     <option value="other">Other</option>
                   </select>
                 </label>
-                <div className={`${FINELY_OS_NOTICE_WARN} !p-4`}>Tip: Add a caption like “ID front” / “utility bill” so ops can verify fast.</div>
+                <div className={FINELY_OS_NOTICE_WARN}>Tip: Add a caption like “ID front” / “utility bill” so ops can verify fast.</div>
               </div>
             </div>
 
@@ -436,7 +449,7 @@ export default function AuRequestPage() {
               }}
             />
 
-            <div className={`space-y-4 ${finelyOsCatalogCard('violet')} !p-5`}>
+            <div className={`space-y-4 ${finelyOsCatalogCard('violet')}`}>
               <div className={FINELY_OS_ENTITY_VALUE}>Uploaded</div>
               <div className="space-y-2">
                 {order.evidence.length === 0 ? (
@@ -462,21 +475,21 @@ export default function AuRequestPage() {
         )}
 
         {step === 'review' && order && (
-          <div className={`space-y-4 ${finelyOsCatalogCard('violet')} !p-5`}>
-            <div className="inline-flex items-center gap-2 text-fuchsia-400">
+          <div className={`space-y-4 ${finelyOsCatalogCard('violet')}`}>
+            <div className="inline-flex items-center gap-2 text-rose-400">
               <Sparkles size={18} />
               <span className={FINELY_OS_ENTITY_SUBLABEL}>Review & submit</span>
             </div>
             <div className="grid md:grid-cols-3 gap-4">
-              <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-1`}>
+              <div className={`${finelyOsCatalogCard('emerald')} fc-surface-harmony space-y-1`} data-fc-accent="emerald">
                 <div className={FINELY_OS_ENTITY_SUBLABEL}>Eligibility</div>
                 <div className={FINELY_OS_ENTITY_BODY}>{order.eligibility.checked ? 'Complete' : 'Incomplete'}</div>
               </div>
-              <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-1`}>
+              <div className={`${finelyOsCatalogCard('violet')} fc-surface-harmony space-y-1`} data-fc-accent="violet">
                 <div className={FINELY_OS_ENTITY_SUBLABEL}>Terms</div>
                 <div className={FINELY_OS_ENTITY_BODY}>{order.terms.acceptedAt ? `Accepted (${order.terms.acceptedName})` : 'Not accepted'}</div>
               </div>
-              <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-1`}>
+              <div className={`${finelyOsCatalogCard('rose')} fc-surface-harmony space-y-1`} data-fc-accent="rose">
                 <div className={FINELY_OS_ENTITY_SUBLABEL}>Documents</div>
                 <div className={FINELY_OS_ENTITY_BODY}>{order.evidence.length} uploaded</div>
               </div>
@@ -502,8 +515,8 @@ export default function AuRequestPage() {
           buttonTone="secondary"
         />
 
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
       </div>
-    </PageShell>
+    </PartnerWorkstationFrame>
   );
 }

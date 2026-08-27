@@ -55,9 +55,125 @@ See **Partner API v6** `partner.funding_dossier_push` below.
 { "action": "pull.crm_profile", "clientId": "nora_uid" }
 ```
 
-Client helpers: `noraPullDossier`, `noraPullDossiers`, `noraPullCrmProfile`, `syncPartnerFundingFromNora` in `src/lib/noraCapitalPullClient.ts`.
+Client helpers: `noraPullDossier`, `noraPullDossiers`, `noraPullCrmProfile`, `noraPullLenderCatalog`, `syncPartnerFundingFromNora` in `src/lib/noraCapitalPullClient.ts`.
 
 **Nora must implement:** `GET /v1/partners/finelycred/dossiers`, `GET .../dossiers/:exportId`, `GET .../clients/profile?clientId=`
+
+### Lender catalog pull
+
+Finely Cred can request Nora’s curated lender stack (relationship banks, credit unions, fintech lanes) filtered by partner geography and middle score. **Until Nora implements the route, Finely receives `{ ok: true, lenders: [] }` — not an error.**
+
+#### Finely edge action
+
+**POST** `/functions/v1/nora-capital` (admin auth required)
+
+```json
+{
+  "action": "pull.lenderCatalog",
+  "state": "TX",
+  "middleScore": 720,
+  "zip": "78701"
+}
+```
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `state` | No | Two-letter US state (filters lenders with state coverage) |
+| `middleScore` | No | Partner middle bureau score (filters `minMiddleScore` on each lender) |
+| `zip` | No | Partner ZIP (geo / NCUA-nearby enrichment when Nora supports it) |
+
+#### Finely edge response (degraded — Nora not live yet)
+
+```json
+{
+  "ok": true,
+  "action": "pull.lenderCatalog",
+  "lenders": [],
+  "hint": "Nora must implement GET /v1/partners/finelycred/lenders?state=&middleScore=&zip= — see docs/NORA_CAPITAL_API.md § Lender catalog pull.",
+  "status": 404
+}
+```
+
+#### Finely edge response (Nora implemented)
+
+```json
+{
+  "ok": true,
+  "action": "pull.lenderCatalog",
+  "status": 200,
+  "lenders": [
+    {
+      "id": "nfcu_flagship",
+      "bank": "NAVY FEDERAL",
+      "product": "Business / Flagship Rewards (relationship)",
+      "projectedLimit": "$25k - $100k+",
+      "category": "credit_union",
+      "relationshipFriendly": true,
+      "noDocFriendly": true,
+      "limitBias": "high",
+      "stackingTier": "primary",
+      "why": "NCUA nearby",
+      "matchCity": "Austin",
+      "minMiddleScore": 680,
+      "states": ["TX", "VA"]
+    }
+  ]
+}
+```
+
+An empty `lenders` array with `ok: true` is always valid (no matches, or catalog not seeded).
+
+#### Nora must implement
+
+**GET** `/v1/partners/finelycred/lenders`
+
+Query parameters (all optional):
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `state` | string | Two-letter state code |
+| `middleScore` | integer | Partner middle score |
+| `zip` | string | Five-digit ZIP |
+
+**Response** `200 application/json`:
+
+```json
+{
+  "lenders": [
+    {
+      "id": "string (stable slug)",
+      "bank": "string (display name)",
+      "product": "string (product line)",
+      "projectedLimit": "string (e.g. \"$25k - $100k+\")",
+      "category": "national | credit_union | local | private | fintech | cdfi",
+      "relationshipFriendly": "boolean (optional)",
+      "noDocFriendly": "boolean (optional)",
+      "limitBias": "high | mid | low (optional)",
+      "stackingTier": "primary | secondary | national_low (optional)",
+      "why": "string (optional match reason)",
+      "matchCity": "string (optional)",
+      "minMiddleScore": "number (optional floor)",
+      "states": ["array of state codes (optional)"],
+      "color": "string (optional Tailwind gradient token)",
+      "accent": "string (optional text accent class)"
+    }
+  ],
+  "count": 12
+}
+```
+
+Field names align with Finely `LenderPreset` / `LenderMatch` in `src/data/localLenders.ts` so `LenderLogicEngine` can merge Nora results without a second schema.
+
+#### Client helper
+
+```ts
+import { noraPullLenderCatalog } from '@/lib/noraCapitalPullClient';
+
+const res = await noraPullLenderCatalog({ state: 'TX', middleScore: 720, zip: '78701' });
+const lenders = res.lenders ?? []; // always safe — empty when Nora not ready
+```
+
+Add `/v1/partners/finelycred/lenders` to `NORA_CAPITAL_ALLOWED_PATHS_JSON` (or shared prefix allowlist) when Nora deploys the route.
 
 ## Outbound generic proxy — `nora-capital`
 

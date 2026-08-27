@@ -1,0 +1,712 @@
+/**
+ * Finely Cred Materials ("fcm-*") — the shared luxury material layer.
+ *
+ * Imported once from `src/index.css` so the PUBLIC site and the WORKSPACE
+ * product surfaces (`src/features/workspaceLightPreview/product/`) draw from
+ * the same recipes instead of drifting apart. Techniques are ported from
+ * `digitalInviteCards.css` (stacked depth, lacquer, foil, seal) and
+ * `landingSellBands.css` (brushed platinum, jewel orb, champagne sheen),
+ * re-rendered in brand colors: EMERALD / VIOLET / SKY / ROSE / PLATINUM.
+ * Never gold/amber/brown as a fill — only as a thin foil-text or hairline
+ * accent, and even those default to emerald/platinum here.
+ *
+ * ---------------------------------------------------------------------------
+ * MOTION + PERFORMANCE BUDGET (read before adding a new material)
+ * ---------------------------------------------------------------------------
+ * This is a workspace people sit in all day across 23 pages, not a 40s
+ * marketing visit. Rules enforced below, not just documented:
+ *
+ *   1. Sheens/shimmers are OPT-IN. `.fcm-sheen` only animates when its host
+ *      also carries `data-fcm-motion="on"`. Budget: max 2 concurrent
+ *      `data-fcm-motion="on"` elements per view.
+ *   2. Never fast. Sheens 7-11s, floats 5.5-8s, jewel pulse 4.5s. Entrances
+ *      use `--fcm-ease-entrance`; seals/stamps use `--fcm-ease-stamp`.
+ *   3. `.fcm-glass` (backdrop-filter) is capped at ~3 instances per view —
+ *      it is the most expensive property here. Prefer solid + `.fcm-specular`
+ *      elsewhere.
+ *   4. Large surfaces animate `transform`/`opacity`, never `box-shadow` or
+ *      `background-position` (see `.fcm-jewel`, which is small on purpose).
+ *   5. `prefers-reduced-motion: reduce` kills every infinite/looping
+ *      animation below, keeps every static gradient/specular, and is
+ *      updated whenever a new `animation` is added to this file.
+ * ---------------------------------------------------------------------------
+ */
+
+:root {
+  /* ---- Tier 1: palette ramps (source of truth for every material) ---- */
+  --fcm-emerald-950: #021f16;
+  --fcm-emerald-900: #03422f;
+  --fcm-emerald-700: #045c44;
+  --fcm-emerald-600: #057256;
+  --fcm-emerald-500: #068a68;
+  --fcm-emerald-400: #0fc78d;
+  --fcm-emerald-200: #7fffd4;
+  --fcm-emerald-100: #eafff6;
+
+  --fcm-violet-900: #2c1a5e;
+  --fcm-violet-700: #4c2a9e;
+  --fcm-violet-600: #6336d1;
+  --fcm-violet-400: #9465ff;
+  --fcm-violet-200: #d9c9ff;
+  --fcm-violet-100: #f1ecff;
+
+  --fcm-sky-900: #04324a;
+  --fcm-sky-700: #075a80;
+  --fcm-sky-600: #0874aa;
+  --fcm-sky-400: #18b6ef;
+  --fcm-sky-200: #bfe9fb;
+
+  --fcm-rose-900: #5c1630;
+  --fcm-rose-700: #8f2140;
+  --fcm-rose-600: #bd2c55;
+  --fcm-rose-400: #ff4f7c;
+  --fcm-rose-200: #ffc2d3;
+
+  --fcm-platinum-100: #ffffff;
+  --fcm-platinum-200: #eef1f6;
+  --fcm-platinum-300: #ced5e0;
+  --fcm-platinum-400: #949dac;
+  --fcm-platinum-500: #7f8896;
+  --fcm-platinum-700: #4a5058;
+  --fcm-platinum-800: #2b3038;
+  --fcm-platinum-900: #0d0f13;
+
+  --fcm-graphite-300: #5b626b;
+  --fcm-graphite-500: #2b3038;
+  --fcm-graphite-700: #191c21;
+  --fcm-graphite-900: #0d0f13;
+  --fcm-graphite-950: #0a0d12;
+
+  /* Motion timing shared across every material + future components. */
+  --fcm-ease-entrance: cubic-bezier(0.22, 1, 0.36, 1);
+  --fcm-ease-stamp: cubic-bezier(0.34, 1.3, 0.64, 1);
+
+  /* ---- Tier 2: semantic roles (materials consume ONLY these) ----
+     Default bed = light (the workspace's native bed). Default accent =
+     emerald. Override per-node via [data-fcm-accent] / [data-bed]. */
+  --fcm-accent: var(--fcm-emerald-600);
+  --fcm-accent-rgb: 5, 114, 86;
+  --fcm-mix-rgb: 24, 182, 239;
+  --fcm-halo-rgb: 15, 199, 141;
+
+  /* DEEP accent ramp — dark beds only. A dark bed stacks four accent radials,
+     so feeding it the 600/400-level accents lifted the near-black base ramp all
+     the way to mid-tone (violet resolved to ~#9E79A2, and emerald+sky blended
+     into an off-brand teal), which is what put white text on a light fill. The
+     900-level equivalents keep the hue and saturation — so colour still reads
+     strongly — while staying dark enough for white type. */
+  --fcm-accent-deep-rgb: 3, 66, 47;
+  --fcm-mix-deep-rgb: 4, 50, 74;
+  --fcm-halo-deep-rgb: 4, 92, 68;
+
+  --fcm-bed: #edf2f8;
+  --fcm-ink: #0a1628;
+  --fcm-ink-muted: rgba(10, 22, 40, 0.72);
+  --fcm-ink-faint: rgba(10, 22, 40, 0.68);
+  --fcm-hairline: rgba(255, 255, 255, 0.65);
+
+  /* Shared metal-button recipes — consumed by `.fcm-btn-metal` AND by
+     `.fc-wlp-btn-primary` (workspaceProduct.css) so both stay identical by
+     construction instead of by copy-paste discipline. */
+  --fcm-metal-emerald-bg: linear-gradient(148deg, #0fc78d 0%, #057256 22%, #045c44 46%, #057256 68%, #03422f 100%);
+  --fcm-metal-emerald-border: rgba(15, 199, 141, 0.42);
+  --fcm-metal-emerald-shadow-idle:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.28),
+    0 16px 32px -18px rgba(15, 199, 141, 0.55);
+  --fcm-metal-emerald-shadow-hover:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.3),
+    0 20px 38px -16px rgba(15, 199, 141, 0.65);
+  --fcm-metal-emerald-pedestal-rgb: 15, 199, 141;
+
+  --fcm-metal-violet-bg: linear-gradient(148deg, #9465ff 0%, #6336d1 22%, #4c2a9e 46%, #6336d1 68%, #2c1a5e 100%);
+  --fcm-metal-violet-border: rgba(148, 101, 255, 0.42);
+  --fcm-metal-violet-shadow-idle:
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.3),
+    0 16px 32px -18px rgba(148, 101, 255, 0.55);
+  --fcm-metal-violet-shadow-hover:
+    inset 0 1px 0 rgba(255, 255, 255, 0.38),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.32),
+    0 20px 38px -16px rgba(148, 101, 255, 0.65);
+  --fcm-metal-violet-pedestal-rgb: 148, 101, 255;
+
+  --fcm-metal-graphite-bg: linear-gradient(148deg, #5b626b 0%, #2b3038 22%, #14161b 46%, #2b3038 68%, #0d0f13 100%);
+  --fcm-metal-graphite-border: rgba(226, 232, 240, 0.28);
+  --fcm-metal-graphite-shadow-idle:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.34),
+    0 16px 32px -18px rgba(10, 13, 18, 0.6);
+  --fcm-metal-graphite-shadow-hover:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.36),
+    0 20px 38px -16px rgba(10, 13, 18, 0.7);
+  --fcm-metal-graphite-pedestal-rgb: 226, 232, 240;
+}
+
+/* ---- Tier 2: accent roles ---- */
+[data-fcm-accent='emerald'] {
+  --fcm-accent: var(--fcm-emerald-600);
+  --fcm-accent-rgb: 5, 114, 86;
+  --fcm-mix-rgb: 24, 182, 239;
+  --fcm-halo-rgb: 15, 199, 141;
+  --fcm-accent-deep-rgb: 3, 66, 47;
+  --fcm-mix-deep-rgb: 4, 50, 74;
+  --fcm-halo-deep-rgb: 4, 92, 68;
+}
+[data-fcm-accent='violet'] {
+  --fcm-accent: var(--fcm-violet-600);
+  --fcm-accent-rgb: 99, 54, 209;
+  --fcm-mix-rgb: 255, 79, 124;
+  --fcm-halo-rgb: 148, 101, 255;
+  --fcm-accent-deep-rgb: 44, 26, 94;
+  --fcm-mix-deep-rgb: 92, 22, 48;
+  --fcm-halo-deep-rgb: 76, 42, 158;
+}
+[data-fcm-accent='sky'] {
+  --fcm-accent: var(--fcm-sky-600);
+  --fcm-accent-rgb: 8, 116, 170;
+  --fcm-mix-rgb: 15, 199, 141;
+  --fcm-halo-rgb: 24, 182, 239;
+  --fcm-accent-deep-rgb: 4, 50, 74;
+  --fcm-mix-deep-rgb: 3, 66, 47;
+  --fcm-halo-deep-rgb: 7, 90, 128;
+}
+[data-fcm-accent='rose'] {
+  --fcm-accent: var(--fcm-rose-600);
+  --fcm-accent-rgb: 189, 44, 85;
+  --fcm-mix-rgb: 148, 101, 255;
+  --fcm-halo-rgb: 255, 79, 124;
+  --fcm-accent-deep-rgb: 92, 22, 48;
+  --fcm-mix-deep-rgb: 44, 26, 94;
+  --fcm-halo-deep-rgb: 143, 33, 64;
+}
+[data-fcm-accent='platinum'] {
+  --fcm-accent: var(--fcm-platinum-400);
+  --fcm-accent-rgb: 148, 157, 172;
+  --fcm-mix-rgb: 24, 182, 239;
+  --fcm-halo-rgb: 255, 255, 255;
+  --fcm-accent-deep-rgb: 43, 48, 56;
+  --fcm-mix-deep-rgb: 4, 50, 74;
+  --fcm-halo-deep-rgb: 74, 80, 88;
+}
+
+/* ---- Tier 2: bed roles ---- */
+[data-bed='light'] {
+  --fcm-bed: #edf2f8;
+  --fcm-ink: #0a1628;
+  --fcm-ink-muted: rgba(10, 22, 40, 0.72);
+  --fcm-ink-faint: rgba(10, 22, 40, 0.68);
+  --fcm-hairline: rgba(255, 255, 255, 0.65);
+}
+[data-bed='dark'] {
+  --fcm-bed: #0a0d12;
+  --fcm-ink: #f4f6fb;
+  --fcm-ink-muted: rgba(244, 246, 251, 0.88);
+  --fcm-ink-faint: rgba(244, 246, 251, 0.74);
+  --fcm-hairline: rgba(255, 255, 255, 0.14);
+}
+
+/* Bed-aware ink. `--fcm-ink` is the other half of the `[data-bed]` contract:
+   a surface that declares its bed must also declare its text colour, or
+   descendants inherit ink written for the opposite bed. Scoped to material and
+   box hosts on purpose — a bare `[data-bed]` selector would also catch
+   decorative marker spans nested inside dark chrome. */
+.fcm-depth[data-bed],
+.fcm-plate[data-bed],
+.fcm-glass[data-bed],
+.pbx-object[data-bed] {
+  color: var(--fcm-ink);
+}
+
+/* =============================================================================
+   .fcm-depth — stacked radial colour depth (ported from `.fcdc-ink`)
+   Leading-corner bloom + opposite-corner mix hue + floor bounce + base ramp.
+   Put content in a child with `position: relative; z-index: 1` so it sits
+   above the ::before floor-bounce layer.
+   ============================================================================= */
+.fcm-depth {
+  position: relative;
+  isolation: isolate;
+  background-image:
+    radial-gradient(84% 66% at 6% -4%, rgba(var(--fcm-accent-rgb), 0.16) 0%, transparent 62%),
+    radial-gradient(78% 62% at 104% 16%, rgba(var(--fcm-mix-rgb), 0.13) 0%, transparent 60%),
+    radial-gradient(96% 74% at 82% 108%, rgba(var(--fcm-mix-rgb), 0.1) 0%, transparent 64%),
+    radial-gradient(120% 84% at 22% 112%, rgba(var(--fcm-halo-rgb), 0.08) 0%, transparent 66%),
+    linear-gradient(152deg, #fbfcfe 0%, #eef2f7 58%, #e3e9f1 100%);
+}
+.fcm-depth::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(58% 50% at 98% 104%, rgba(var(--fcm-halo-rgb), 0.07) 0%, transparent 68%),
+    radial-gradient(50% 44% at 2% 98%, rgba(var(--fcm-accent-rgb), 0.06) 0%, transparent 70%);
+}
+.fcm-depth[data-bed='dark'] {
+  color: var(--fcm-ink);
+  /* Opaque fallback under the radial layers below. Those radials average out to
+     ~73% alpha when a contrast-checking tool composites them as flat colour (it
+     has no notion of the fully-opaque base stop actually beneath them), so
+     without this it "sees" 27% of whatever sits behind this element — often a
+     much lighter ancestor — and under-estimates how dark this surface really
+     is. Real paint is unaffected: the gradient below is visually opaque either way. */
+  background-color: #01040a;
+  background-image:
+    radial-gradient(84% 66% at 6% -4%, rgba(var(--fcm-accent-deep-rgb), 0.72) 0%, transparent 62%),
+    radial-gradient(78% 62% at 104% 16%, rgba(var(--fcm-mix-deep-rgb), 0.6) 0%, transparent 60%),
+    radial-gradient(96% 74% at 82% 108%, rgba(var(--fcm-mix-deep-rgb), 0.44) 0%, transparent 64%),
+    radial-gradient(120% 84% at 22% 112%, rgba(var(--fcm-halo-deep-rgb), 0.34) 0%, transparent 66%),
+    linear-gradient(152deg, #141a2c 0%, #0a0e18 58%, #01040a 100%);
+}
+.fcm-depth[data-bed='dark']::before {
+  background-image:
+    radial-gradient(58% 50% at 98% 104%, rgba(var(--fcm-halo-deep-rgb), 0.24) 0%, transparent 68%),
+    radial-gradient(50% 44% at 2% 98%, rgba(var(--fcm-accent-deep-rgb), 0.22) 0%, transparent 70%);
+}
+
+/* =============================================================================
+   .fcm-lacquer — specular dome overlay (ported from `.fcdc-lacquer`)
+   Absolutely position over a `.fcm-depth` (or any) host; add `position:
+   relative` + `overflow: hidden` to the host.
+   ============================================================================= */
+.fcm-lacquer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background-image:
+    radial-gradient(78% 52% at 26% -12%, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.05) 46%, transparent 72%),
+    radial-gradient(46% 34% at 84% 6%, rgba(255, 255, 255, 0.12) 0%, transparent 68%);
+}
+/* Dark-bed sheen is deliberately weaker than the light-bed one. At 0.30 the
+   dome lifted a deep accent panel back into mid-tone near the top-left corner
+   — the exact region that usually holds a panel's heading — so the bed won the
+   colour battle but lost the contrast one. */
+.fcm-lacquer[data-bed='dark'] {
+  background-image:
+    radial-gradient(78% 52% at 26% -12%, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.04) 46%, transparent 72%),
+    radial-gradient(46% 34% at 84% 6%, rgba(255, 255, 255, 0.09) 0%, transparent 68%);
+}
+
+/* =============================================================================
+   .fcm-specular — inset highlight hairline. Combine with a colour fill by
+   layering box-shadow values, not by stacking classes (box-shadow is not
+   additive across classes on the same element).
+   ============================================================================= */
+.fcm-specular {
+  box-shadow: inset 0 1px 0 var(--fcm-hairline);
+}
+.fcm-specular[data-bed='dark'] {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+/* =============================================================================
+   .fcm-foil — background-clip:text foil type. Variants: emerald / platinum /
+   violet. Peak stops never exceed a thin sliver so multi-line text stays
+   legible. Falls back to a solid readable colour where text-clip is
+   unsupported.
+   ============================================================================= */
+.fcm-foil {
+  display: inline-block;
+  background-image: var(--fcm-foil-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.35)) drop-shadow(0 0 14px rgba(var(--fcm-foil-glow-rgb), 0.35));
+}
+.fcm-foil--emerald {
+  --fcm-foil-gradient: linear-gradient(
+    105deg,
+    var(--fcm-emerald-700) 0%,
+    var(--fcm-emerald-600) 14%,
+    var(--fcm-emerald-400) 30%,
+    var(--fcm-emerald-100) 46%,
+    #ffffff 54%,
+    var(--fcm-emerald-100) 62%,
+    var(--fcm-emerald-400) 78%,
+    var(--fcm-emerald-600) 92%,
+    var(--fcm-emerald-700) 100%
+  );
+  --fcm-foil-glow-rgb: 15, 199, 141;
+}
+.fcm-foil--platinum {
+  --fcm-foil-gradient: linear-gradient(
+    105deg,
+    var(--fcm-platinum-700) 0%,
+    var(--fcm-platinum-500) 14%,
+    var(--fcm-platinum-300) 30%,
+    var(--fcm-platinum-200) 46%,
+    #ffffff 54%,
+    var(--fcm-platinum-200) 62%,
+    var(--fcm-platinum-300) 78%,
+    var(--fcm-platinum-500) 92%,
+    var(--fcm-platinum-700) 100%
+  );
+  --fcm-foil-glow-rgb: 226, 232, 241;
+}
+.fcm-foil--violet {
+  --fcm-foil-gradient: linear-gradient(
+    105deg,
+    var(--fcm-violet-700) 0%,
+    var(--fcm-violet-600) 14%,
+    var(--fcm-violet-400) 30%,
+    var(--fcm-violet-200) 46%,
+    #ffffff 54%,
+    var(--fcm-violet-200) 62%,
+    var(--fcm-violet-400) 78%,
+    var(--fcm-violet-600) 92%,
+    var(--fcm-violet-700) 100%
+  );
+  --fcm-foil-glow-rgb: 148, 101, 255;
+}
+/* Dark-bed ramps are NOT defined here. `productFoilLightBed.css` owns every `[data-bed]`
+   variant of these gradients and loads later, so anything written here would be overridden
+   silently. Change the beds there. */
+
+@supports not (-webkit-background-clip: text) {
+  .fcm-foil {
+    background-image: none;
+    filter: none;
+    -webkit-text-fill-color: currentColor;
+    color: var(--fcm-foil-fallback, var(--fcm-emerald-600));
+  }
+  .fcm-foil--emerald {
+    color: var(--fcm-emerald-600);
+  }
+  .fcm-foil--platinum {
+    color: var(--fcm-platinum-700);
+  }
+  .fcm-foil--violet {
+    color: var(--fcm-violet-600);
+  }
+}
+
+/* =============================================================================
+   .fcm-jewel — the orb (ported from `.fc-sell-price-jewel`, recoloured).
+   Size via --fcm-jewel-size (default 64px; usable 40-96px).
+   Perf note: kept intentionally small so animating its box-shadow stays
+   cheap — do not scale this past ~96px without switching the pulse to a
+   transform-based glow.
+   ============================================================================= */
+.fcm-jewel {
+  --fcm-jewel-size: 64px;
+  position: relative;
+  display: inline-flex;
+  width: var(--fcm-jewel-size);
+  height: var(--fcm-jewel-size);
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background-image: radial-gradient(
+    circle at 35% 30%,
+    rgba(255, 255, 255, 0.92) 0%,
+    rgba(var(--fcm-accent-rgb), 0.6) 45%,
+    rgba(var(--fcm-mix-rgb), 0.38) 100%
+  );
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.5),
+    0 0 32px rgba(var(--fcm-accent-rgb), 0.3),
+    inset 0 2px 8px rgba(255, 255, 255, 0.42),
+    inset 0 -4px 12px rgba(0, 0, 0, 0.22);
+  animation: fcm-jewel-pulse 4.5s ease-in-out infinite;
+}
+@keyframes fcm-jewel-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.45),
+      0 0 26px rgba(var(--fcm-accent-rgb), 0.24),
+      inset 0 2px 8px rgba(255, 255, 255, 0.4),
+      inset 0 -4px 12px rgba(0, 0, 0, 0.22);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.65),
+      0 0 44px rgba(var(--fcm-accent-rgb), 0.4),
+      inset 0 2px 8px rgba(255, 255, 255, 0.5),
+      inset 0 -4px 12px rgba(0, 0, 0, 0.24);
+  }
+}
+
+/* =============================================================================
+   .fcm-plate — brushed metal plate (graphite/platinum only, never gold).
+   ============================================================================= */
+.fcm-plate {
+  position: relative;
+  isolation: isolate;
+  background-image: linear-gradient(
+    168deg,
+    #363c46 0%,
+    #7f8896 11%,
+    #ced5e0 25%,
+    #949dac 37%,
+    #e2e8f1 50%,
+    #8d96a5 62%,
+    #c5ccd8 73%,
+    #69707e 87%,
+    #2b3038 100%
+  );
+}
+.fcm-plate--graphite {
+  background-image: linear-gradient(148deg, #5b626b 0%, #23272d 30%, #4a5058 52%, #191c21 78%, #0d0f13 100%);
+}
+.fcm-plate::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.28;
+  background-image: repeating-linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0.06) 0px,
+    rgba(255, 255, 255, 0.06) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+}
+
+/* =============================================================================
+   .fcm-grain — SVG feTurbulence grain overlay. Keeps large colour fields off
+   the "flat fill" look. Opacity 0.03-0.06; tune per-surface via inline style.
+   ============================================================================= */
+.fcm-grain {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.045;
+  mix-blend-mode: overlay;
+  background-size: 180px 180px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+}
+
+/* =============================================================================
+   .fcm-glow-ring — the always-on accent glow ring, ported 1:1 from
+   FINELY_OS_GLOW's numbers (finelyOsLightUi.ts) so workspace materials read
+   as continuous with the OS chrome already in production.
+   ============================================================================= */
+.fcm-glow-ring {
+  border: 1px solid rgba(var(--fcm-accent-rgb), 0.45);
+  box-shadow: 0 0 0 1px rgba(var(--fcm-accent-rgb), 0.22), 0 0 14px rgba(var(--fcm-accent-rgb), 0.12);
+  transition: box-shadow 200ms ease, border-color 200ms ease;
+}
+.fcm-glow-ring:hover,
+.fcm-glow-ring:focus-within {
+  border-color: rgba(var(--fcm-accent-rgb), 0.65);
+  box-shadow: 0 0 0 1px rgba(var(--fcm-accent-rgb), 0.38), 0 0 20px rgba(var(--fcm-accent-rgb), 0.24);
+}
+
+/* =============================================================================
+   .fcm-pedestal — blurred radial glow beneath a luminous object.
+   ============================================================================= */
+.fcm-pedestal {
+  position: absolute;
+  left: 50%;
+  bottom: -8%;
+  width: 78%;
+  height: 28%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(closest-side, rgba(var(--fcm-accent-rgb), 0.38), rgba(var(--fcm-accent-rgb), 0.12) 45%, transparent 72%);
+  filter: blur(24px);
+}
+
+/* =============================================================================
+   .fcm-sheen — traveling specular pass. OPT-IN ONLY: idle infinite motion
+   requires `data-fcm-motion="on"` on the SAME element. Budget: max 2
+   concurrent `data-fcm-motion="on"` elements per view — pick the two that
+   matter most on a page and leave the rest static.
+   ============================================================================= */
+.fcm-sheen {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+  pointer-events: none;
+}
+.fcm-sheen::after {
+  content: '';
+  position: absolute;
+  inset: -20% -60%;
+  background-image: linear-gradient(105deg, transparent 36%, rgba(255, 255, 255, 0.3) 49%, transparent 62%);
+  transform: translateX(-120%) skewX(-14deg);
+}
+.fcm-sheen[data-fcm-motion='on']::after {
+  animation: fcm-sheen-travel 9s ease-in-out infinite;
+}
+@keyframes fcm-sheen-travel {
+  0%,
+  62%,
+  100% {
+    transform: translateX(-120%) skewX(-14deg);
+  }
+  78% {
+    transform: translateX(120%) skewX(-14deg);
+  }
+}
+
+/* =============================================================================
+   .fcm-corner-wash — letter-studio corner radial, scaled for panels.
+   `--panel` is the default-safe size for compact (!p-4) workspace cards;
+   the unmodified class is the hero-scale wash for wider surfaces.
+   ============================================================================= */
+.fcm-corner-wash {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: radial-gradient(900px 360px at 5% 0%, rgba(var(--fcm-accent-rgb), 0.12) 0%, transparent 58%);
+}
+.fcm-corner-wash--panel {
+  background-image: radial-gradient(480px 220px at 8% 0%, rgba(var(--fcm-accent-rgb), 0.12) 0%, transparent 58%);
+}
+
+/* =============================================================================
+   .fcm-glass — backdrop-filter glass. CAP: ~3 instances per view. Prefer
+   `.fcm-specular` + a solid fill everywhere else.
+   ============================================================================= */
+.fcm-glass {
+  backdrop-filter: blur(14px) saturate(1.08);
+  -webkit-backdrop-filter: blur(14px) saturate(1.08);
+  background-color: rgba(255, 255, 255, 0.72);
+}
+.fcm-glass[data-bed='dark'] {
+  background-color: rgba(10, 13, 18, 0.55);
+}
+
+/* =============================================================================
+   .fcm-btn-metal — green metallic primary button. Default = emerald;
+   `--violet` and `--graphite` modifiers share the same structure via the
+   `--fcm-metal-*` tokens defined on :root above (also consumed by
+   `.fc-wlp-btn-primary` in workspaceProduct.css — one recipe, two selectors).
+   Sheen is HOVER-ONLY by design (idle shimmer on a primary CTA would blow
+   the motion budget across 23 pages).
+   ============================================================================= */
+.fcm-btn-metal {
+  --fcm-btn-bg: var(--fcm-metal-emerald-bg);
+  --fcm-btn-border: var(--fcm-metal-emerald-border);
+  --fcm-btn-shadow-idle: var(--fcm-metal-emerald-shadow-idle);
+  --fcm-btn-shadow-hover: var(--fcm-metal-emerald-shadow-hover);
+  --fcm-btn-pedestal-rgb: var(--fcm-metal-emerald-pedestal-rgb);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--fcm-btn-border);
+  border-radius: 13px;
+  padding: 10px 18px;
+  font-size: 13px;
+  font-weight: 740;
+  color: #ffffff;
+  text-decoration: none;
+  background-image: var(--fcm-btn-bg);
+  box-shadow: var(--fcm-btn-shadow-idle);
+  transition: transform 200ms var(--fcm-ease-entrance), box-shadow 200ms ease, filter 200ms ease;
+}
+.fcm-btn-metal--violet {
+  --fcm-btn-bg: var(--fcm-metal-violet-bg);
+  --fcm-btn-border: var(--fcm-metal-violet-border);
+  --fcm-btn-shadow-idle: var(--fcm-metal-violet-shadow-idle);
+  --fcm-btn-shadow-hover: var(--fcm-metal-violet-shadow-hover);
+  --fcm-btn-pedestal-rgb: var(--fcm-metal-violet-pedestal-rgb);
+}
+.fcm-btn-metal--graphite {
+  --fcm-btn-bg: var(--fcm-metal-graphite-bg);
+  --fcm-btn-border: var(--fcm-metal-graphite-border);
+  --fcm-btn-shadow-idle: var(--fcm-metal-graphite-shadow-idle);
+  --fcm-btn-shadow-hover: var(--fcm-metal-graphite-shadow-hover);
+  --fcm-btn-pedestal-rgb: var(--fcm-metal-graphite-pedestal-rgb);
+  color: #eef1f6;
+}
+.fcm-btn-metal::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -60%;
+  z-index: -1;
+  width: 140%;
+  height: 90%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(closest-side, rgba(var(--fcm-btn-pedestal-rgb), 0.45), transparent 72%);
+  filter: blur(22px);
+}
+.fcm-btn-metal::after {
+  content: '';
+  position: absolute;
+  inset: -20% -60%;
+  pointer-events: none;
+  background-image: linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, 0.5) 50%, transparent 62%);
+  transform: translateX(-120%) skewX(-14deg);
+  opacity: 0;
+}
+.fcm-btn-metal:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.06);
+  box-shadow: var(--fcm-btn-shadow-hover);
+}
+.fcm-btn-metal:hover::after {
+  animation: fcm-btn-sheen-run 900ms var(--fcm-ease-entrance) forwards;
+}
+@keyframes fcm-btn-sheen-run {
+  0% {
+    opacity: 0;
+    transform: translateX(-120%) skewX(-14deg);
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(120%) skewX(-14deg);
+  }
+}
+.fcm-btn-metal:active {
+  transform: translateY(0);
+  filter: brightness(0.98);
+  transition-duration: 90ms;
+}
+.fcm-btn-metal:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.92);
+  outline-offset: 2px;
+  box-shadow: var(--fcm-btn-shadow-hover), 0 0 0 4px rgba(var(--fcm-btn-pedestal-rgb), 0.35);
+}
+
+/* =============================================================================
+   Reduced motion — every infinite/looping animation introduced above is
+   disabled here. Static gradients, specular highlights, and box-shadows are
+   left intact; only the LOOPS stop.
+   ============================================================================= */
+@media (prefers-reduced-motion: reduce) {
+  .fcm-jewel {
+    animation: none !important;
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.55),
+      0 0 34px rgba(var(--fcm-accent-rgb), 0.3),
+      inset 0 2px 8px rgba(255, 255, 255, 0.44),
+      inset 0 -4px 12px rgba(0, 0, 0, 0.22);
+  }
+  .fcm-sheen[data-fcm-motion='on']::after,
+  .fcm-btn-metal:hover::after {
+    animation: none !important;
+    opacity: 0 !important;
+  }
+  .fcm-btn-metal,
+  .fcm-btn-metal:hover,
+  .fcm-btn-metal:active {
+    transition: opacity 160ms ease;
+    transform: none !important;
+  }
+}

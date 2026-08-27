@@ -1,6 +1,6 @@
 import type { Bureau } from '../domain/creditReports';
 import type { DisputeCase, DisputeCaseItem, DisputeCaseRound } from '../domain/cases';
-import { addDaysIso, nowIso } from '../domain/cases';
+import { nowIso } from '../domain/cases';
 import { onPartnerFirstCaseOpened } from '../lib/partnerSuccessMilestones';
 import type { Project } from '../domain/projects';
 import { loadJson, saveJson } from './localJsonStore';
@@ -9,8 +9,15 @@ import { bureauShortCode } from '../utils/bureaus';
 import { createNotification } from './notificationsRepo';
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient';
 import type { DisputeRoundLabel, DisputeRoundStatus } from '../domain/disputeWorkflow';
+import { INTER_ROUND_GUIDANCE } from '../domain/disputeWorkflow';
+import { buildPriorRoundTransferNote, mergeTransferNote, PRIOR_ROUND_TRANSFER_PREFIX } from '../domain/disputeRoundTransfer';
+import { addDeadlineDaysSync } from '../lib/businessDays';
+import type { DisputeLetterMeta } from '../domain/letters';
+import { getLetter, upsertLetter } from './lettersRepo';
 import { recordDisputeCaseAction } from './disputeWorkflowRepo';
 import { runDisputeRoundCommsAutomation } from '../lib/disputeRoundCommsAutomation';
+import { getReport } from './reportsRepo';
+import { resolveDisputeCaseReportPair, suggestDisputeOutcomeFromReports } from '../domain/tradelineDiff';
 
 const KEY = 'finely.cases.v1';
 const PROJECTS_KEY = 'finely.projects.v1';
@@ -35,6 +42,30 @@ function loadProjectsStore(): ProjectsStore {
 
 function saveProjectsStore(store: ProjectsStore) {
   saveJson(PROJECTS_KEY, store, 1);
+}
+
+function calendarWindowDueAt(fromIso: string, round: DisputeRoundLabel): string {
+  const days = INTER_ROUND_GUIDANCE[round]?.typicalWindowDays ?? 30;
+  return `${addDeadlineDaysSync(fromIso, days, 'calendar')}T12:00:00.000Z`;
+}
+
+function attachTransferToLinkedLetter(letterId: string | undefined, transfer: string | null) {
+  if (!letterId || !transfer) return;
+  const letter = getLetter(letterId);
+  if (!letter) return;
+  const existingMeta = letter.meta && typeof letter.meta === 'object' ? letter.meta : {};
+  const alreadyNoted =
+    ('priorRoundTransferNote' in existingMeta && Boolean((existingMeta as DisputeLetterMeta).priorRoundTransferNote)) ||
+    letter.body.includes(PRIOR_ROUND_TRANSFER_PREFIX);
+  if (alreadyNoted) return;
+  upsertLetter({
+    ...letter,
+    body: letter.body.includes(PRIOR_ROUND_TRANSFER_PREFIX) ? letter.body : `${transfer}\n\n${letter.body}`,
+    meta: {
+      ...existingMeta,
+      priorRoundTransferNote: transfer,
+    } as DisputeLetterMeta,
+  });
 }
 
 function ensureDefaultProjectIdForPartner(args: { partnerId: string; scope: 'personal' | 'business' }): string {
@@ -176,7 +207,7 @@ export function createDisputeCase(args: {
       {
         ...args.initialRound,
         createdAt,
-        dueAt: args.initialRound.dueAt ?? addDaysIso(createdAt, 35),
+        dueAt: args.initialRound.dueAt ?? calendarWindowDueAt(createdAt, args.initialRound.round),
       },
     ],
   };
@@ -203,14 +234,19 @@ export function addRoundToCase(args: {
 }): DisputeCase | null {
   const c = getCase(args.caseId);
   if (!c) return null;
+  const createdAt = args.round.createdAt || nowIso();
+  const transfer = buildPriorRoundTransferNote(c, args.round.round);
+  const notes = mergeTransferNote(args.round.notes, transfer);
   const rounds = c.rounds.slice();
   const idx = rounds.findIndex((r) => r.round === args.round.round);
   const nextRound: DisputeCaseRound = {
     ...args.round,
-    createdAt: args.round.createdAt || nowIso(),
-    dueAt: args.round.dueAt ?? addDaysIso(args.round.createdAt || nowIso(), 35),
+    notes,
+    createdAt,
+    dueAt: args.round.dueAt ?? calendarWindowDueAt(createdAt, args.round.round),
     status: args.round.status ?? (args.round.letterId ? 'letter_generated' : 'draft'),
   };
+  attachTransferToLinkedLetter(nextRound.letterId, transfer);
   if (idx >= 0) {
     if (args.replaceIfSameRound) rounds[idx] = nextRound;
     else rounds.push(nextRound);
@@ -242,7 +278,7 @@ function patchLatestRound(
       round: roundLabel,
       tone: 'formal',
       createdAt: nowIso(),
-      dueAt: addDaysIso(nowIso(), 35),
+      dueAt: calendarWindowDueAt(nowIso(), roundLabel),
       ...patch,
     });
   } else {
@@ -268,12 +304,10 @@ export function markCaseRoundMailed(args: {
   createdBy?: 'partner' | 'admin';
 }): DisputeCase | null {
   const mailedAt = args.mailedAt ?? nowIso();
-  const dueAt = new Date(mailedAt);
-  dueAt.setDate(dueAt.getDate() + 35);
   const c = updateCaseRound({
     caseId: args.caseId,
     round: args.round,
-    patch: { status: 'mailed' as DisputeRoundStatus, mailedAt, dueAt: dueAt.toISOString() },
+    patch: { status: 'mailed' as DisputeRoundStatus, mailedAt, dueAt: calendarWindowDueAt(mailedAt, args.round) },
   });
   if (!c) return null;
   recordDisputeCaseAction({
@@ -342,11 +376,30 @@ export function attachBureauResponseToDisputeCase(args: {
     rounds.find((r) => r.status === 'mailed' || r.status === 'awaiting_response')?.round ||
     rounds[0]?.round ||
     'Round 1';
+
+  let notes = args.notes;
+  const reportPair = resolveDisputeCaseReportPair(c);
+  if (reportPair) {
+    const beforeTradelines = getReport(reportPair.beforeReportId)?.parsed?.tradelines;
+    const afterTradelines = getReport(reportPair.afterReportId)?.parsed?.tradelines;
+    if (beforeTradelines?.length && afterTradelines?.length) {
+      const suggestion = suggestDisputeOutcomeFromReports({
+        before: beforeTradelines,
+        after: afterTradelines,
+        disputedAccounts: c.items.map((item) => item.account),
+      });
+      if (suggestion) {
+        const suggestionLine = `Suggested outcome: ${suggestion.outcome} — ${suggestion.hint} (confirm before logging)`;
+        notes = notes ? `${notes}\n\n${suggestionLine}` : suggestionLine;
+      }
+    }
+  }
+
   const patched = patchLatestRound(c, targetRound, {
     status: 'response_received',
     responseReceivedAt: nowIso(),
     responseEvidenceId: args.evidenceId,
-    notes: args.notes,
+    notes,
   });
   recordDisputeCaseAction({
     caseId: patched.id,

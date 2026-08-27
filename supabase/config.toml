@@ -88,3 +88,6 @@ verify_jwt = false
 
 [functions.twilio-webhook]
 verify_jwt = false
+
+[functions.public-data]
+verify_jwt = false

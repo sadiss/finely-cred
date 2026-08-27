@@ -34,17 +34,22 @@ import { IntelligentLetterSuggestionsPanel } from '../letters/IntelligentLetterS
 import { LetterStudioSavedVaultStrip } from '../letters/LetterStudioSavedVaultStrip';
 import { FinelyOsKpiGrid } from '../os/FinelyOsKpiGrid';
 import { FdcpaPowerChips } from './FdcpaPowerChips';
+import { DebtWorkflowPanel } from './DebtWorkflowPanel';
 import {
   FINELY_OS_COMPACT_PAGE,
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_TITLE,
   FINELY_OS_FIELD_WIDTH_SM,
+  FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
+  finelyOsCatalogCard,
   finelyOsCatalogCardCompact,
   finelyOsGlowField,
   finelyOsMicroStat,
 } from '../../features/os/finelyOsLightUi';
+import './validationDebtLayout.css';
+import '../../features/workspaceLightPreview/product/partner/partnerDebtValidationDesk.css';
 
 type ReportRow = { id: string; parsed?: ParsedCreditReport | null };
 
@@ -80,6 +85,7 @@ export function ValidationCenterView({
   canMailLetters = false,
   onMailLetter,
   adminPartnerId,
+  deskLayout = false,
 }: {
   debt: DebtCase | null;
   debtId: string;
@@ -110,6 +116,8 @@ export function ValidationCenterView({
   onMailLetter?: (letter: LetterRecord) => void;
   /** When set, `/portal/*` links resolve to admin partner workspace routes. */
   adminPartnerId?: string;
+  /** Product debt desk — split workbench, no letter-studio stepper. */
+  deskLayout?: boolean;
 }) {
   const nav = (href: string) => adminEmbeddedNavHref(adminPartnerId, href);
   const [workModal, setWorkModal] = React.useState<StudioWorkstationModal>(null);
@@ -180,6 +188,237 @@ export function ValidationCenterView({
       ? (totalBalanceCents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
       : '—';
 
+  const pathSwitchers = (
+    <div className="flex flex-wrap items-center gap-2">
+      {showPathSwitcher && onSwitchToCourt ? (
+        <button type="button" onClick={onSwitchToCourt} className={FINELY_OS_SECONDARY_BTN}>
+          Court <ArrowRight size={14} />
+        </button>
+      ) : null}
+      {showPathSwitcher && onSwitchToBankruptcy ? (
+        <button type="button" onClick={onSwitchToBankruptcy} className={FINELY_OS_SECONDARY_BTN}>
+          Bankruptcy <ArrowRight size={14} />
+        </button>
+      ) : null}
+      <Link to={nav('/portal/escalations?tab=regulatory')} className={FINELY_OS_SECONDARY_BTN}>
+        Escalations
+      </Link>
+    </div>
+  );
+
+  const proofLaunchers = (
+    <FinelyOsStudioWorkstationLauncherRow
+      escalationLabel="Validation escalation ladder"
+      onScreenshots={() => setWorkModal('screenshots')}
+      onUploads={() => setWorkModal('uploads')}
+      onEscalation={() => setWorkModal('escalation')}
+    />
+  );
+
+  const letterWorkbench = (
+    <>
+      {letterSuggestions.crossLink?.track === 'litigation' ? (
+        <div className="rounded-2xl border border-rose-400/35 bg-rose-500/10 px-4 py-3 flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="text-sm font-extrabold uppercase tracking-widest text-rose-200">
+              Litigation detected — deadlines live on Court
+            </div>
+            <p className={`mt-1 text-base max-w-2xl ${FINELY_OS_ENTITY_BODY}`}>{letterSuggestions.crossLink.reason}</p>
+          </div>
+          {onSwitchToCourt ? (
+            <button type="button" onClick={onSwitchToCourt} className={`${FINELY_OS_SECONDARY_BTN} border-rose-400/45 text-rose-100`}>
+              {letterSuggestions.crossLink.label} <ArrowRight size={14} />
+            </button>
+          ) : (
+            <Link to={nav('/portal/debt?tab=court')} className={`${FINELY_OS_SECONDARY_BTN} border-rose-400/45 text-rose-100`}>
+              Open Court lane <ArrowRight size={14} />
+            </Link>
+          )}
+        </div>
+      ) : null}
+      <IntelligentLetterSuggestionsPanel
+        suggestions={letterSuggestions}
+        accent="sky"
+        busy={generateBusy}
+        error={generateError}
+        onBuild={({ letterType, catalogId }) => {
+          if (catalogId && onBuildCatalogDraft) onBuildCatalogDraft(catalogId);
+          else if (letterType) onBuildDraft(letterType);
+        }}
+      />
+      {partner ? (
+        <LetterStudioSavedVaultStrip
+          partnerId={partner.id}
+          types={['validation']}
+          storeVersion={storeVersion}
+          evidence={vaultEvidence}
+          accent="emerald"
+          title="Your validation letters"
+          subtitle="Saved when you generate — preview, mail, or delete here."
+          onOpenFullVault={onOpenLettersVault}
+          highlightLetterId={vaultHighlightLetterId}
+          suppressAutoPreview={suppressVaultAutoPreview}
+          onLetterSaved={onVaultLetterSaved}
+          canMail={canMailLetters}
+          onMailLetter={onMailLetter}
+        />
+      ) : null}
+      <LetterCatalogBrowser
+        category="validation"
+        accent="emerald"
+        compactHeader
+        extraCategories={VALIDATION_EXTRA_CATEGORIES}
+        letterHub="debt"
+        filterEntry={validationEntryFilter}
+        onBuild={(id, entry) => {
+          if (onBuildCatalogDraft) onBuildCatalogDraft(id);
+          else if (entry.letterType) onBuildDraft(entry.letterType);
+        }}
+      />
+    </>
+  );
+
+  if (deskLayout) {
+    return (
+      <div className="fc-wlp-validation-desk" data-surface-layout="command-deck" data-fc-debt-validation-desk="1">
+        <section className={`fc-wlp-validation-command ${finelyOsCatalogCard('emerald')}`} data-fc-accent="emerald" data-bed="dark">
+          <div className="fc-wlp-validation-command-copy">
+            <span className={finelyOsMicroStat('emerald')}>FDCPA § 1692g</span>
+            <h2 className={`${FINELY_OS_ENTITY_TITLE} mt-2`}>
+              {caseIsLitigation ? 'Demand proof — court filings stay on Litigation' : 'Make them prove the debt'}
+            </h2>
+            <p className={`${FINELY_OS_ENTITY_BODY} mt-2 max-w-3xl`}>
+              {caseIsLitigation
+                ? 'This desk only drafts validation and collector-proof letters. Answers, affidavits, and discovery live on Litigation.'
+                : 'Pick the collector, send the validation demand, then hold the 30-day clock. Do not pay or negotiate until they prove the account.'}
+            </p>
+          </div>
+          <FinelyOsKpiGrid
+            dense
+            glow="emerald"
+            columns={4}
+            items={[
+              { label: 'Reported', value: signals.length, accent: 'text-violet-300' },
+              { label: 'Balance', value: totalBalanceLabel, accent: 'text-sky-300' },
+              { label: 'Scenario', value: scenarioRec?.label?.split(' ').slice(0, 2).join(' ') || '—', accent: 'text-white/80' },
+              { label: 'Validation letters', value: visibleLetterPool.length, accent: 'text-emerald-300' },
+            ]}
+          />
+          <div id="fc-debt-step-case" className="fc-wlp-validation-case-row">
+            <div className={FINELY_OS_FIELD_WIDTH_SM}>
+              <label className={FINELY_OS_ENTITY_SUBLABEL}>Collection account</label>
+              <select value={debtId} onChange={(e) => onDebtIdChange(e.target.value)} className={`${finelyOsGlowField('emerald')} mt-1 w-full`}>
+                {debtCases.length === 0 ? <option value="">No cases</option> : null}
+                {debtCases.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.name} • {d.type}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {debt ? (
+              <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => onBuildDraft('validation_request')}>
+                Draft validation letter
+              </button>
+            ) : (
+              <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={onOpenDebtCenter}>
+                Add a case first
+              </button>
+            )}
+          </div>
+          {debt ? <FdcpaPowerChips debt={debt} /> : null}
+          {debt ? <DebtWorkflowPanel debt={debt} onOpenValidationDraft={() => onBuildDraft('validation_request')} /> : null}
+          {scenarioRec?.legalWarning ? (
+            <p className={`text-base font-semibold ${FINELY_OS_ENTITY_BODY} rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3`}>
+              {scenarioRec.legalWarning}
+            </p>
+          ) : null}
+        </section>
+
+        <div className="fc-wlp-validation-split">
+          <aside className={`fc-wlp-validation-intel ${finelyOsCatalogCard('sky')}`} data-fc-accent="sky" data-bed="dark">
+            <p className={FINELY_OS_ENTITY_SUBLABEL}>Collector file</p>
+            <h3 className="text-2xl font-extrabold text-white m-0 mt-1">Who is collecting</h3>
+            <p className={`${FINELY_OS_ENTITY_BODY} mt-2`}>Licensing, chain of title, and the mailing identity for this demand.</p>
+            <div className="mt-4">
+              <DebtCreditorIntelPanel
+                partnerId={debt?.partnerId || partner?.id || debtCases[0]?.partnerId || ''}
+                adminPartnerId={adminPartnerId}
+                debt={debt}
+                reports={reports}
+                processedDocuments={processedDocuments}
+                mode="validation"
+                senderFields={senderFields}
+                onDebtChange={onDebtChange}
+                onSenderPersist={onSenderPersist}
+                letterStoreVersion={storeVersion}
+                compact
+              />
+            </div>
+            <div className="mt-4">{proofLaunchers}</div>
+            <FinelyOsWorkstationCoachHub
+              accent="emerald"
+              launcherLabel="Validation coach & laws"
+              launcherHint="FDCPA steps · deficiency letters · rights"
+              modalTitle="Validation workstation"
+              modalSubtitle="Coach answers · Defense Book · Laws & Rights"
+              coachTab={
+                <ValidationAdvisorChat
+                  embedded
+                  scenario={recommendedScenario}
+                  debtName={debt?.name}
+                  stateJurisdiction={debt?.stateJurisdiction}
+                />
+              }
+              lawsTab={
+                <PartnerDefenseKnowledgePanel
+                  mode="both"
+                  trackFilter="validation"
+                  compact
+                  defaultOpen
+                  adminPartnerId={adminPartnerId}
+                />
+              }
+            />
+          </aside>
+
+          <div className={`fc-wlp-validation-letters ${finelyOsCatalogCard('violet')}`} data-fc-accent="violet" data-bed="dark">
+            <p className={FINELY_OS_ENTITY_SUBLABEL}>Demand letters</p>
+            <h3 className="text-2xl font-extrabold text-white m-0 mt-1">Choose the validation letter</h3>
+            <p className={`${FINELY_OS_ENTITY_BODY} mt-2`}>
+              Round 1 demand, deficiency follow-up, licensing, or chain of title — then mail certified and keep the receipt.
+            </p>
+            <div id="fc-debt-step-choose" className="mt-5 space-y-4">
+              {letterWorkbench}
+            </div>
+            {!canSeeTemplates ? (
+              <p className={`mt-3 text-sm font-semibold ${FINELY_OS_ENTITY_BODY}`}>Full template bodies unlock on paid tiers.</p>
+            ) : null}
+            <div id="fc-debt-step-proof" className="mt-4 rounded-xl border border-emerald-400/25 bg-black/20 p-4">
+              <p className={`text-base ${FINELY_OS_ENTITY_BODY}`}>
+                Upload collector notices and screenshots from <span className="text-emerald-200 font-extrabold">Proof & uploads</span> on the collector file.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <DebtVsDisputeExplainer variant="debt" />
+
+        {partner ? (
+          <FinelyOsStudioWorkstationModals
+            partner={partner}
+            open={workModal}
+            onClose={() => setWorkModal(null)}
+            screenshotEvidence={screenshotEvidence}
+            escalationTrack="debt_validation"
+            uploadContext="validation"
+            onUploaded={() => setProofVersion((v) => v + 1)}
+          />
+        ) : null}
+      </div>
+    );
+  }
+
   return (
     <div className={FINELY_OS_COMPACT_PAGE}>
       <DebtVsDisputeExplainer variant="debt" />
@@ -204,21 +443,7 @@ export function ValidationCenterView({
               </p>
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            {showPathSwitcher && onSwitchToCourt ? (
-              <button type="button" onClick={onSwitchToCourt} className={FINELY_OS_SECONDARY_BTN}>
-                Court <ArrowRight size={12} />
-              </button>
-            ) : null}
-            {showPathSwitcher && onSwitchToBankruptcy ? (
-              <button type="button" onClick={onSwitchToBankruptcy} className={FINELY_OS_SECONDARY_BTN}>
-                Bankruptcy <ArrowRight size={12} />
-              </button>
-            ) : null}
-            <Link to={nav('/portal/escalations?tab=regulatory')} className={FINELY_OS_SECONDARY_BTN}>
-              Escalations
-            </Link>
-          </div>
+          {pathSwitchers}
         </div>
 
         <FinelyOsKpiGrid

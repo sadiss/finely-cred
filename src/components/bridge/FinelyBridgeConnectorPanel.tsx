@@ -71,7 +71,7 @@ export function FinelyBridgeConnectorPanel({ partner, reportCount, letterCount, 
         tiles={[
           { id: 'phase', label: 'Finely phase', value: program.phase.replace(/_/g, ' '), accent: 'violet' },
           { id: 'score', label: 'Readiness', value: `${program.readinessScore}%`, accent: 'emerald' },
-          { id: 'gate', label: 'Export gate', value: program.exportGateOpen ? 'Open' : 'Blocked', accent: program.exportGateOpen ? 'emerald' : 'amber' },
+          { id: 'gate', label: 'Export gate', value: program.exportGateOpen ? 'Open' : 'Blocked', accent: program.exportGateOpen ? 'emerald' : 'rose' },
           { id: 'handoff', label: 'Handoff', value: program.bridgeHandoffQueued ? 'Queued' : program.phase === 'bridge_handoff' ? 'Active' : '—', accent: 'sky' },
         ]}
         primaryAction={

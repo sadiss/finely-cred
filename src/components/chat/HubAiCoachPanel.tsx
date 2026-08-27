@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronRight, ExternalLink, Mic, MicOff, RotateCcw, Send, Sparkles, UploadCloud } from 'lucide-react';
+import { ChevronRight, ExternalLink, Languages, Mic, MicOff, RotateCcw, Send, Sparkles, UploadCloud, Volume2 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import type { AiGatewayMessage } from '../../lib/aiClient';
 import { isFeatureEnabled } from '../../data/settingsRepo';
@@ -20,8 +20,17 @@ import {
 } from '../../data/staffRoster';
 import { staffMemberFullName, type StaffMember } from '../../domain/staffMember';
 import { StaffPortraitImg } from '../staff/StaffPortraitImg';
-import { resolveStaffPortraitUrl, STAFF_PORTRAIT_PHOTO_CLASS } from '../../lib/staffPortrait';
-import { getPublicChatPersonaPresentation } from './publicChatPersonaUi';
+import { STAFF_PORTRAIT_PHOTO_CLASS } from '../../lib/staffPortrait';
+import {
+  buildAiAssistSystemPrompt,
+  resolveChatStaffPresentation,
+} from '../../lib/chatStaffPresentation';
+import { buildWarmUnclassifiedReply, isUnclassifiableChatMessage } from '../../lib/chatMessageFallback';
+import {
+  buildConversationalSystemAddendum,
+  humanReplyDelayMs,
+  inferUserTone,
+} from '../../lib/publicChatEngine';
 import {
   AI_SUGGESTION_TREE,
   DASHBOARD_AI_COACH_SYSTEM,
@@ -49,11 +58,32 @@ import {
   finelyOsInlineListItem,
 } from '../../features/os/finelyOsLightUi';
 import { FinelyOsAiGatewayBanner } from '../../features/os/FinelyOsAiGatewayBanner';
-import { useFinelyVoiceInput } from '../../hooks/useFinelyVoiceInput';
+import { speakFinelyText, useFinelyVoiceInput } from '../../hooks/useFinelyVoiceInput';
 import {
   finelyPublicAnswer,
   shouldUseFinelyPublicAnswer,
 } from '../../lib/finelyBrain/finelyPublicAnswer';
+import { resolveWorkspaceProductPath } from '../../features/workspaceLightPreview/product/workspaceProductNav';
+import {
+  CHAT_LOCALE_LABELS,
+  CHAT_LOCALE_ORDER,
+  detectLocaleFromText,
+  isRtlLocale,
+  localeInstruction,
+  t,
+  type ChatLocale,
+} from '../../lib/publicChatI18n';
+
+const SPEECH_LOCALE: Record<ChatLocale, string> = {
+  en: 'en-US',
+  es: 'es-US',
+  ht: 'ht-HT',
+  fr: 'fr-FR',
+  pt: 'pt-BR',
+  zh: 'zh-CN',
+  vi: 'vi-VN',
+  ar: 'ar-SA',
+};
 
 type Props = {
   partnerId?: string;
@@ -62,6 +92,11 @@ type Props = {
   compact?: boolean;
   userName?: string;
   showAllAgents?: boolean;
+  navigationMode?: 'preview' | 'live';
+  workspaceRole?: 'partner' | 'admin';
+  draftPrompt?: string;
+  draftPromptKey?: number;
+  contextLabel?: string;
 };
 
 type ChatMessage = AiGatewayMessage & { id: string; ts: string; source?: 'gateway' | 'knowledge_local' };
@@ -70,15 +105,28 @@ function newMsgId() {
   return `msg_${Math.random().toString(16).slice(2)}_${Date.now()}`;
 }
 
-function buildCoachGreeting(firstName: string, userName?: string) {
+function buildCoachGreeting(staffBundle: ReturnType<typeof resolveChatStaffPresentation>, userName?: string) {
+  const welcome = staffBundle.welcomeWithAiDisclosure;
   const you = userName?.trim().split(/\s+/)[0];
-  if (you && you.length >= 2) {
-    return `Hey ${you} — I'm ${firstName}, your in-dashboard coach. What's on your mind? Tap a suggestion below, or tell me what you're working on.`;
+  if (you && you.length >= 2 && !new RegExp(`\\b${you.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(welcome)) {
+    return welcome.replace(/^(You're chatting|Hey|Hi|Welcome|Hello)( —|-|:)?/i, `$1, ${you}$2`);
   }
-  return `Hey — I'm ${firstName}, your in-dashboard coach. What's on your mind? Tap a suggestion below, or tell me what you're working on.`;
+  return welcome;
 }
 
-export function HubAiCoachPanel({ partnerId, lane, journeyStage, compact, userName, showAllAgents }: Props) {
+export function HubAiCoachPanel({
+  partnerId,
+  lane,
+  journeyStage,
+  compact,
+  userName,
+  showAllAgents,
+  navigationMode = 'live',
+  workspaceRole = 'partner',
+  draftPrompt,
+  draftPromptKey,
+  contextLabel,
+}: Props) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const enabled = isFeatureEnabled('aiGateway');
@@ -97,6 +145,19 @@ export function HubAiCoachPanel({ partnerId, lane, journeyStage, compact, userNa
   const [pendingAttachments, setPendingAttachments] = useState<ChatAttachmentTrayItem[]>([]);
   const [uploadBusy, setUploadBusy] = useState(false);
   const [uploadErr, setUploadErr] = useState<string | null>(null);
+  const [locale, setLocale] = useState<ChatLocale>(() => {
+    if (typeof window === 'undefined') return 'en';
+    try {
+      const saved = window.localStorage.getItem('fc_hub_locale') as ChatLocale | null;
+      return saved && CHAT_LOCALE_ORDER.includes(saved) ? saved : 'en';
+    } catch {
+      return 'en';
+    }
+  });
+  const navigateTo = useCallback(
+    (target: string) => navigate(resolveWorkspaceProductPath(workspaceRole, target, navigationMode)),
+    [navigate, navigationMode, workspaceRole],
+  );
 
   const rosterTabs = useMemo(
     () => (showAllAgents ? listAllMessageableStaff() : listPortalStaffForLane(lane)),
@@ -124,31 +185,53 @@ export function HubAiCoachPanel({ partnerId, lane, journeyStage, compact, userNa
     return resolveStaffOnDutyForLane(lane) ?? resolveStaffOnDuty(personaId);
   }, [activeStaffId, rosterTabs, personaId, lane, dutyTick]);
 
-  const presentation = useMemo(() => {
-    const base = getPublicChatPersonaPresentation(persona);
-    if (!activeStaff) return base;
-    return {
-      ...base,
-      firstName: activeStaff.firstName,
-      avatarUrl: resolveStaffPortraitUrl(activeStaff),
-      initials: `${activeStaff.firstName[0] ?? ''}${activeStaff.lastName[0] ?? ''}`.toUpperCase(),
-    };
-  }, [persona, activeStaff]);
+  const chatStaff = useMemo(() => {
+    void dutyTick;
+    return resolveChatStaffPresentation({
+      personaId,
+      lane,
+      staffMemberId: activeStaffId,
+      audience: 'partner',
+    });
+  }, [personaId, lane, activeStaffId, dutyTick]);
+
+  const presentation = chatStaff.presentation;
+  const aiAssistBadgeLabel = chatStaff.aiAssistBadgeLabel;
 
   const displayTitle = persona.displayTitle ?? persona.role;
 
-  const [messages, setMessages] = useState<ChatMessage[]>(() => [
-    {
-      id: newMsgId(),
-      role: 'assistant',
-      content: buildCoachGreeting('your coach', userName),
-      ts: new Date().toISOString(),
-    },
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>(() => {
+    const staffBundle = resolveChatStaffPresentation({ personaId, lane, audience: 'partner' });
+    return [
+      {
+        id: newMsgId(),
+        role: 'assistant',
+        content: buildCoachGreeting(staffBundle, userName),
+        ts: new Date().toISOString(),
+      },
+    ];
+  });
 
   const voice = useFinelyVoiceInput({
-    onResult: (text) => setInput((prev) => (prev.trim() ? `${prev.trim()} ${text}` : text)),
+    lang: SPEECH_LOCALE[locale],
+    onResult: (text) => {
+      const detected = detectLocaleFromText(text);
+      if (detected) setLocale(detected);
+      setInput((prev) => (prev.trim() ? `${prev.trim()} ${text}` : text));
+    },
   });
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem('fc_hub_locale', locale);
+    } catch {
+      // Language persistence is optional.
+    }
+  }, [locale]);
+
+  useEffect(() => {
+    if (draftPrompt?.trim()) setInput(draftPrompt.trim());
+  }, [draftPrompt, draftPromptKey]);
 
   const displayInput = useMemo(() => {
     if (!voice.listening || !voice.interimTranscript) return input;
@@ -163,12 +246,12 @@ export function HubAiCoachPanel({ partnerId, lane, journeyStage, compact, userNa
       {
         id: newMsgId(),
         role: 'assistant',
-        content: buildCoachGreeting(presentation.firstName, userName),
+        content: buildCoachGreeting(chatStaff, userName),
         ts: new Date().toISOString(),
       },
     ]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [presentation.firstName, userName]);
+  }, [presentation.firstName, presentation.staffMemberId, userName]);
 
   const ctx = useMemo(
     () => ({
@@ -180,8 +263,12 @@ export function HubAiCoachPanel({ partnerId, lane, journeyStage, compact, userNa
       personaId,
       staffMemberId: activeStaff?.id,
       pathname,
+      locale,
+      conversationalAddendum: contextLabel
+        ? `Current workspace context selected in the interface: ${contextLabel}.`
+        : undefined,
     }),
-    [partnerId, lane, journeyStage, userName, personaId, activeStaff?.id, pathname],
+    [partnerId, lane, journeyStage, userName, personaId, activeStaff?.id, pathname, locale, contextLabel],
   );
 
   useEffect(() => {
@@ -207,8 +294,8 @@ export function HubAiCoachPanel({ partnerId, lane, journeyStage, compact, userNa
           id: newMsgId(),
           role: 'assistant',
           content: handoff.leadId
-            ? `Welcome back — ${name} here (${title}). I see you connected from our site (ref ${handoff.leadId}). What would you like to tackle first in your portal?`
-            : `Welcome — ${name} here (${title}), continuing from your earlier conversation. How can I help in your dashboard today?`,
+            ? `Welcome back — you're chatting with Finely's AI, standing in for ${name}, ${title} (ref ${handoff.leadId}). What would you like to tackle first in your portal?`
+            : `Welcome — Finely's AI here, standing in for ${name}, ${title}, continuing from your earlier conversation. How can I help in your dashboard today?`,
           ts: new Date().toISOString(),
         },
       ]);
@@ -285,6 +372,9 @@ export function HubAiCoachPanel({ partnerId, lane, journeyStage, compact, userNa
     async (text: string) => {
       const trimmed = text.trim();
       if (!trimmed || busy) return;
+      const detectedLocale = detectLocaleFromText(trimmed);
+      const responseLocale = detectedLocale ?? locale;
+      if (detectedLocale && detectedLocale !== locale) setLocale(detectedLocale);
       if (uploadBusy) {
         setUploadErr('Your attachment is still uploading — wait a moment, then send.');
         return;
@@ -315,7 +405,36 @@ export function HubAiCoachPanel({ partnerId, lane, journeyStage, compact, userNa
       const history = [...messages, userMsg];
       setMessages(history);
 
-      if (shouldUseFinelyPublicAnswer(trimmed, pathname)) {
+      const delayMs = humanReplyDelayMs({ userMessage: trimmed });
+      await new Promise((r) => window.setTimeout(r, delayMs));
+
+      if (isUnclassifiableChatMessage(trimmed)) {
+        const staffBundle = resolveChatStaffPresentation({
+          personaId,
+          lane,
+          staffMemberId: activeStaffId,
+          audience: 'partner',
+        });
+        const fallback = buildWarmUnclassifiedReply({
+          presentation: staffBundle.presentation,
+          audience: 'partner',
+          sentContent: trimmed,
+        });
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: newMsgId(),
+            role: 'assistant',
+            content: fallback.reply,
+            ts: new Date().toISOString(),
+            source: 'knowledge_local',
+          },
+        ]);
+        setFollowUps(fallback.followUps);
+        return;
+      }
+
+      if (responseLocale === 'en' && shouldUseFinelyPublicAnswer(trimmed, pathname)) {
         try {
           const publicResult = finelyPublicAnswer({
             pathname,
@@ -349,10 +468,37 @@ export function HubAiCoachPanel({ partnerId, lane, journeyStage, compact, userNa
       }
 
       try {
+        const replyStaffBundle = resolveChatStaffPresentation({
+          personaId: activePersona.id,
+          lane,
+          staffMemberId: activeStaffId,
+          audience: 'partner',
+        });
+        const priorBot = messages.filter((m) => m.role === 'assistant').map((m) => m.content);
+        const addendum = buildConversationalSystemAddendum({
+          locale: responseLocale,
+          tone: inferUserTone(trimmed),
+          priorBotSnippets: priorBot,
+          staffName: replyStaffBundle.presentation.firstName,
+          onShiftRole: replyStaffBundle.presentation.title,
+          isPartner: true,
+          origin: typeof window !== 'undefined' ? window.location.origin : '',
+          userMessage: trimmed,
+          easyReadMode: true,
+        });
+        const systemPromptBase = buildAiAssistSystemPrompt({
+          presentation: replyStaffBundle.presentation,
+          persona: activePersona,
+          staff: replyStaffBundle.staff,
+          personalityHint: replyStaffBundle.personalityHint,
+          audience: 'partner',
+          extra: `${activePersona.systemPrompt}\n\n${DASHBOARD_AI_COACH_SYSTEM}\n\n${localeInstruction(responseLocale)}\n\n${addendum}`,
+        });
+
         const result = await converseWithFinelyAi({
           messages: history.map(({ role, content }) => ({ role, content })),
           userMessage: trimmed,
-          systemPromptBase: `${activePersona.systemPrompt}\n\n${DASHBOARD_AI_COACH_SYSTEM}`,
+          systemPromptBase,
           taskType: 'portal_chat',
           context: ctx,
           providerHint: 'openai',
@@ -376,7 +522,7 @@ export function HubAiCoachPanel({ partnerId, lane, journeyStage, compact, userNa
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [busy, messages, ctx, persona, personaId, pendingAttachments, uploadBusy, partnerId, activeStaff, lane],
+    [busy, messages, ctx, persona, personaId, pendingAttachments, uploadBusy, partnerId, activeStaff, lane, locale],
   );
 
   const onPickSuggestion = (node: AiSuggestionNode) => {
@@ -384,7 +530,7 @@ export function HubAiCoachPanel({ partnerId, lane, journeyStage, compact, userNa
       setPath((prev) => [...prev, node]);
       return;
     }
-    if (node.navigate) navigate(node.navigate);
+    if (node.navigate) navigateTo(node.navigate);
     if (node.prompt) void sendPrompt(node.prompt);
   };
 
@@ -393,7 +539,7 @@ export function HubAiCoachPanel({ partnerId, lane, journeyStage, compact, userNa
       {
         id: newMsgId(),
         role: 'assistant',
-        content: buildCoachGreeting(presentation.firstName, userName),
+        content: buildCoachGreeting(chatStaff, userName),
         ts: new Date().toISOString(),
       },
     ]);
@@ -412,7 +558,7 @@ export function HubAiCoachPanel({ partnerId, lane, journeyStage, compact, userNa
       kind: chip.kind,
     });
     if (chip.kind === 'navigate' || chip.kind === 'book_call') {
-      if (chip.navigate) navigate(chip.navigate);
+      if (chip.navigate) navigateTo(chip.navigate);
       return;
     }
     if (chip.kind === 'staff_ai' && chip.staffId) {
@@ -439,7 +585,7 @@ export function HubAiCoachPanel({ partnerId, lane, journeyStage, compact, userNa
 
   return (
     <div className="flex flex-col h-full min-h-[320px]">
-      <div className="shrink-0 px-4 py-2 border-b border-emerald-500/20 space-y-2 bg-white/[0.07]">
+      <div className="fc-comms-agent-rail shrink-0 px-4 py-2 border-b space-y-2">
         {handoffBanner ? (
           <div className="text-[11px] text-emerald-200/90 rounded-lg border border-emerald-500/25 bg-emerald-500/10 px-3 py-2">
             {handoffBanner}
@@ -455,13 +601,18 @@ export function HubAiCoachPanel({ partnerId, lane, journeyStage, compact, userNa
             <img src={presentation.avatarUrl} alt="" className={`w-10 h-10 rounded-full border border-emerald-400/30 ${STAFF_PORTRAIT_PHOTO_CLASS}`} />
           )}
           <div className="min-w-0 flex-1">
-            <div className="text-[10px] uppercase tracking-widest text-emerald-300/90 font-black inline-flex items-center gap-1.5">
+            <div className="text-xs uppercase tracking-widest text-emerald-300/90 font-black inline-flex items-center gap-1.5 flex-wrap">
               <Sparkles size={11} />
               {connecting ? 'Connecting…' : `${presentation.firstName} · ${displayTitle}`}
+              {!connecting ? (
+                <span className="text-xs px-1.5 py-0.5 rounded-full text-violet-100 border border-violet-400/35 bg-violet-500/15 normal-case tracking-normal font-bold">
+                  {aiAssistBadgeLabel}
+                </span>
+              ) : null}
               {!enabled ? <span className="text-white/40 normal-case font-semibold">(local)</span> : null}
             </div>
             {!connecting && activeStaff ? (
-              <div className="text-[9px] text-emerald-300/80 mt-0.5 inline-flex items-center gap-1">
+              <div className="text-xs text-emerald-300/80 mt-0.5 inline-flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Active now
               </div>
             ) : null}
@@ -472,7 +623,7 @@ export function HubAiCoachPanel({ partnerId, lane, journeyStage, compact, userNa
         </div>
 
         <p className="text-[10px] text-white/50">
-          Type your question — or pick a specialist below to talk directly with that agent.
+          Type your question — or pick a specialist below to talk with that team member.
         </p>
 
         <div className="space-y-2">
@@ -481,7 +632,7 @@ export function HubAiCoachPanel({ partnerId, lane, journeyStage, compact, userNa
             onClick={() => setAgentPickerOpen((v) => !v)}
             className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border border-emerald-500/25 text-emerald-200/90 hover:bg-emerald-500/10"
           >
-            {agentPickerOpen ? 'Hide agent roster' : 'Choose agent'}
+            {agentPickerOpen ? 'Hide specialist roster' : 'Choose specialist'}
           </button>
           {agentPickerOpen ? (
             <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
@@ -518,7 +669,7 @@ export function HubAiCoachPanel({ partnerId, lane, journeyStage, compact, userNa
             <button
               key={tool.id}
               type="button"
-              onClick={() => navigate(resolveToolPath(tool, { goal: lane, partnerId }))}
+              onClick={() => navigateTo(resolveToolPath(tool, { goal: lane, partnerId }))}
               className="px-2 py-0.5 rounded-full text-[9px] border border-emerald-500/20 text-emerald-200/80 hover:bg-emerald-500/10"
             >
               {tool.label}
@@ -544,22 +695,25 @@ export function HubAiCoachPanel({ partnerId, lane, journeyStage, compact, userNa
             ) : null}
             <div className="max-w-[92%] space-y-1">
               {m.role === 'assistant' ? (
-                <div className={`text-[10px] font-bold ${FINELY_OS_ENTITY_SUBLABEL} px-1`}>
-                  {presentation.firstName} · {displayTitle}
+                <div className={`text-xs font-bold ${FINELY_OS_ENTITY_SUBLABEL} px-1 flex flex-wrap items-center gap-2`}>
+                  <span>{presentation.firstName} · {displayTitle}</span>
+                  <span className="text-xs px-1.5 py-0.5 rounded-full text-violet-100 border border-violet-400/35 bg-violet-500/15 uppercase tracking-wider">
+                    {aiAssistBadgeLabel}
+                  </span>
                 </div>
               ) : null}
               <div
                 className={`text-sm leading-relaxed whitespace-pre-wrap ${
                   m.role === 'user'
-                    ? 'rounded-2xl px-4 py-3 text-black'
+                    ? 'rounded-2xl px-4 py-3 text-white'
                     : finelyOsMessageBubble('assistant')
                 }`}
                 style={
                   m.role === 'user'
                     ? {
                         backgroundImage:
-                          'linear-gradient(145deg, rgba(251,191,36,0.95) 0%, rgba(245,158,11,0.95) 45%, rgba(217,119,6,0.95) 100%)',
-                        boxShadow: '0 18px 44px -26px rgba(245,158,11,0.70)',
+                          'linear-gradient(145deg, rgba(14,165,233,0.95) 0%, rgba(59,130,246,0.95) 48%, rgba(124,58,237,0.95) 100%)',
+                        boxShadow: '0 18px 44px -26px rgba(59,130,246,0.70)',
                       }
                     : undefined
                 }
@@ -570,6 +724,16 @@ export function HubAiCoachPanel({ partnerId, lane, journeyStage, compact, userNa
                 <div className="text-[9px] text-white/30 px-1">
                   {m.source === 'gateway' ? `${presentation.firstName} · live` : `${presentation.firstName} · knowledge base`}
                 </div>
+              ) : null}
+              {m.role === 'assistant' ? (
+                <button
+                  type="button"
+                  onClick={() => speakFinelyText(m.content, SPEECH_LOCALE[locale])}
+                  className="inline-flex items-center gap-1 px-1 text-[10px] text-sky-200/75 hover:text-sky-100"
+                  title="Read this reply aloud"
+                >
+                  <Volume2 size={11} /> Read aloud
+                </button>
               ) : null}
             </div>
           </div>
@@ -623,7 +787,7 @@ export function HubAiCoachPanel({ partnerId, lane, journeyStage, compact, userNa
         </div>
       ) : null}
 
-      <div className="border-t border-white/[0.08] p-3 space-y-2 bg-white/[0.05]">
+      <div className="fc-comms-composer border-t p-3 space-y-2">
         {partnerId ? (
           <ChatAttachmentTray
             items={pendingAttachments}
@@ -637,10 +801,11 @@ export function HubAiCoachPanel({ partnerId, lane, journeyStage, compact, userNa
         <textarea
           value={displayInput}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Tell me what you're working on…"
+          placeholder={t(locale, 'sendPlaceholder')}
+          dir={isRtlLocale(locale) ? 'rtl' : 'ltr'}
           rows={3}
           className={`w-full resize-none ${FINELY_OS_COMPACT_TEXTAREA} !mt-0 border-emerald-500/20 focus:border-emerald-500/40 ${
-            voice.listening ? 'border-amber-400/35 shadow-[0_0_0_1px_rgba(251,191,36,0.2)]' : ''
+            voice.listening ? 'border-sky-400/40 shadow-[0_0_0_1px_rgba(56,189,248,0.22)]' : ''
           }`}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -654,6 +819,24 @@ export function HubAiCoachPanel({ partnerId, lane, journeyStage, compact, userNa
           <p className="text-[10px] text-emerald-200/75 animate-pulse">Listening — your words appear here as you speak…</p>
         ) : null}
         <div className="flex flex-wrap items-center gap-2">
+          <label
+            className={`inline-flex items-center gap-1.5 ${FINELY_OS_SECONDARY_BTN} !px-2`}
+            title="Choose the coach and microphone language"
+          >
+            <Languages size={14} />
+            <select
+              value={locale}
+              onChange={(event) => setLocale(event.target.value as ChatLocale)}
+              className="max-w-[8.5rem] bg-transparent text-inherit text-xs outline-none"
+              aria-label="Coach language"
+            >
+              {CHAT_LOCALE_ORDER.map((option) => (
+                <option key={option} value={option} className="bg-slate-950 text-white">
+                  {CHAT_LOCALE_LABELS[option]}
+                </option>
+              ))}
+            </select>
+          </label>
           {voice.supported ? (
             <button
               type="button"
@@ -701,7 +884,7 @@ export function HubAiCoachPanel({ partnerId, lane, journeyStage, compact, userNa
         </div>
       </div>
 
-      <div className="border-t border-white/[0.08] p-3 space-y-2 bg-white/[0.03]">
+      <div className="fc-comms-composer border-t p-3 space-y-2">
         <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-fuchsia-300/90 font-black">
           <Sparkles size={12} />
           {path.length === 0 ? 'Try asking about…' : path[path.length - 1]?.label}

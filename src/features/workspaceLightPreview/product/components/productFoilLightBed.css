@@ -1,0 +1,121 @@
+/**
+ * Light-bed foil correction.
+ *
+ * `.fcm-foil` (src/styles/finelyMaterials.css) paints text with a metallic ramp that peaks at
+ * `#ffffff` around the 54% stop. On a dark bed that white band is the specular highlight that makes
+ * the type look like polished metal. On a LIGHT bed it is simply white text on a near-white surface,
+ * so the middle of every word disappears — the jewel metric values on the build page rendered as
+ * ghost text ("4", "38%", "2.1yr" were all unreadable).
+ *
+ * Fix: on light beds the ramp stays inside the accent's dark half. There is still a sheen — the
+ * sliver steps up two stops rather than to white — so the material reads as brushed metal instead of
+ * flat ink, but every stop keeps enough weight against a white surface to stay legible.
+ *
+ * The dark-bed rules below restore the original ramp. They are last in source order and share the
+ * same (0,2,0) specificity as the light rules, so a `[data-bed="dark"]` region inside the workspace
+ * wins deterministically without needing `!important` or a `:not()` with a descendant combinator.
+ */
+
+.fc-wlp .fcm-foil--emerald,
+[data-bed='light'] .fcm-foil--emerald {
+  --fcm-foil-gradient: linear-gradient(
+    105deg,
+    var(--fcm-emerald-900) 0%,
+    var(--fcm-emerald-700) 18%,
+    var(--fcm-emerald-600) 42%,
+    var(--fcm-emerald-500) 52%,
+    var(--fcm-emerald-600) 62%,
+    var(--fcm-emerald-700) 82%,
+    var(--fcm-emerald-900) 100%
+  );
+}
+
+.fc-wlp .fcm-foil--violet,
+[data-bed='light'] .fcm-foil--violet {
+  --fcm-foil-gradient: linear-gradient(
+    105deg,
+    var(--fcm-violet-900) 0%,
+    var(--fcm-violet-700) 18%,
+    var(--fcm-violet-600) 46%,
+    var(--fcm-violet-400) 54%,
+    var(--fcm-violet-600) 62%,
+    var(--fcm-violet-700) 82%,
+    var(--fcm-violet-900) 100%
+  );
+}
+
+.fc-wlp .fcm-foil--platinum,
+[data-bed='light'] .fcm-foil--platinum {
+  --fcm-foil-gradient: linear-gradient(
+    105deg,
+    var(--fcm-platinum-900) 0%,
+    var(--fcm-platinum-800) 20%,
+    var(--fcm-platinum-700) 46%,
+    var(--fcm-platinum-500) 54%,
+    var(--fcm-platinum-700) 62%,
+    var(--fcm-platinum-800) 80%,
+    var(--fcm-platinum-900) 100%
+  );
+}
+
+/* The shared drop-shadow is a dark-bed device: a black 1px offset plus an accent bloom reads as
+   grime once the surface behind the type is white. */
+.fc-wlp .fcm-foil,
+[data-bed='light'] .fcm-foil {
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.72));
+}
+
+/* ---- Dark beds: polished ramp, with the floor raised ----
+ *
+ * The original dark ramp opened and closed on the `700` stop, which is near-black. Against a
+ * dark hero the first and last few characters of a heading sank into the panel — on the reports
+ * page "Your reports, findings, and source…" faded out at both ends and was reported as words
+ * you simply could not read.
+ *
+ * The ramp now starts two stops brighter and widens the specular plateau, so the whole word
+ * carries light. It still reads as metal — there is a bright band and darker shoulders — but the
+ * shoulders now sit above the panel rather than in it.
+ */
+[data-bed='dark'] .fcm-foil--emerald {
+  --fcm-foil-gradient: linear-gradient(
+    105deg,
+    var(--fcm-emerald-400) 0%,
+    var(--fcm-emerald-400) 10%,
+    var(--fcm-emerald-100) 30%,
+    #ffffff 50%,
+    var(--fcm-emerald-100) 70%,
+    var(--fcm-emerald-400) 90%,
+    var(--fcm-emerald-400) 100%
+  );
+}
+
+[data-bed='dark'] .fcm-foil--violet {
+  --fcm-foil-gradient: linear-gradient(
+    105deg,
+    var(--fcm-violet-400) 0%,
+    var(--fcm-violet-400) 10%,
+    var(--fcm-violet-200) 30%,
+    #ffffff 50%,
+    var(--fcm-violet-200) 70%,
+    var(--fcm-violet-400) 90%,
+    var(--fcm-violet-400) 100%
+  );
+}
+
+[data-bed='dark'] .fcm-foil--platinum {
+  --fcm-foil-gradient: linear-gradient(
+    105deg,
+    var(--fcm-platinum-300) 0%,
+    var(--fcm-platinum-300) 10%,
+    var(--fcm-platinum-200) 30%,
+    #ffffff 50%,
+    var(--fcm-platinum-200) 70%,
+    var(--fcm-platinum-300) 90%,
+    var(--fcm-platinum-300) 100%
+  );
+}
+
+[data-bed='dark'] .fcm-foil {
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.45))
+    drop-shadow(0 0 18px rgba(var(--fcm-foil-glow-rgb), 0.4));
+}

@@ -10,7 +10,7 @@ export function CmoLeadQuotaPanel() {
   return (
     <section className="fc-panel p-5 space-y-4">
       <div>
-        <p className="text-xs uppercase tracking-[0.24em] text-amber-300/80">200 Leads/Day Math</p>
+        <p className="text-xs uppercase tracking-[0.24em] text-violet-300/80">200 Leads/Day Math</p>
         <h2 className="text-2xl font-semibold text-white">Lead quota engine</h2>
         <p className="mt-2 text-sm text-slate-300">This is the operating plan, not fairy dust. The CMO divides the daily number across channels and shows the required actions.</p>
       </div>
@@ -23,8 +23,8 @@ export function CmoLeadQuotaPanel() {
         {plan.map((item) => (
           <div key={item.channel} className="fc-card p-4">
             <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2"><Target className="h-4 w-4 text-amber-300" /><h3 className="font-semibold text-white">{item.channel.replaceAll('_', ' ')}</h3></div>
-              <strong className="text-amber-100">{item.dailyLeadGoal}/day</strong>
+              <div className="flex items-center gap-2"><Target className="h-4 w-4 text-violet-300" /><h3 className="font-semibold text-white">{item.channel.replaceAll('_', ' ')}</h3></div>
+              <strong className="text-violet-100">{item.dailyLeadGoal}/day</strong>
             </div>
             <p className="mt-2 text-sm text-slate-300">{item.actionLabel}</p>
             <p className="mt-2 text-xs text-slate-500">Actions/day: {item.requiredDailyActions} | Assets needed: {item.minimumAssetsNeeded}</p>

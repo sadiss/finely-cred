@@ -1,6 +1,7 @@
 import type { User } from '@supabase/supabase-js';
 import type { Partner } from '../domain/partners';
 import type { ParsedCreditReport } from '../domain/creditReports';
+import { computeMiddleScore } from '../domain/creditScoreMiddle';
 import { getAgencyTierById } from '../config/pricingCatalog';
 import { CS } from '../config/creditSpecialistProgram';
 import { AF } from '../config/affiliateProgram';
@@ -24,13 +25,6 @@ export type DashboardMetricsContext = {
   cards: DashboardMetricCard[];
   hideLegacyCreditPanels: boolean;
 };
-
-function avgScoreFromReport(parsed: ParsedCreditReport | null | undefined): number | null {
-  const scores = parsed?.scores?.filter((s) => s.value >= 300 && s.value <= 850) ?? [];
-  if (!scores.length) return null;
-  const sum = scores.reduce((a, s) => a + s.value, 0);
-  return Math.round(sum / scores.length);
-}
 
 export function buildDashboardMetrics(args: {
   user: User | null;
@@ -57,7 +51,7 @@ export function buildDashboardMetrics(args: {
           id: 'agent_keep',
           label: 'Your revenue share',
           value: `${split.agentSharePct}%`,
-          sublabel: 'On client fees — shifts as you graduate training',
+          sublabel: 'On partner fees — shifts as you graduate training',
           accent: 'emerald',
           actionLabel: 'Adjust model',
           actionPath: `${CS.hubPath}?tab=economics`,
@@ -66,7 +60,7 @@ export function buildDashboardMetrics(args: {
           id: 'denefits_stream',
           label: 'Denefit contracts',
           value: 'Model',
-          sublabel: 'In-house financing • Equifax reporting as customers pay',
+          sublabel: 'In-house financing • Equifax reporting as partners pay',
           accent: 'emerald',
           actionLabel: 'Denefit calculator',
           actionPath: `${CS.hubPath}?tab=economics`,
@@ -229,7 +223,8 @@ export function buildDashboardMetrics(args: {
     };
   }
 
-  const reportScore = avgScoreFromReport(args.latestParsedReport);
+  const middleFromReport = computeMiddleScore(args.latestParsedReport?.scores ?? []);
+  const reportScore = middleFromReport.value;
   const routeKey = args.partner?.primaryRoute || 'personal_restore';
   const intake = args.partner?.routes?.[routeKey];
   const routeScore = intake?.score;
@@ -243,10 +238,13 @@ export function buildDashboardMetrics(args: {
       cards: [
         {
           id: 'credit_score',
-          label: 'Credit score',
+          label: 'Middle score',
           value: String(score),
-          sublabel: reportScore != null ? 'From latest uploaded report' : 'From your partner profile',
-          accent: score >= 670 ? 'emerald' : 'amber',
+          sublabel:
+            reportScore != null
+              ? `${middleFromReport.label} · Results vary`
+              : 'From your partner profile · Results vary',
+          accent: score >= 670 ? 'emerald' : 'sky',
           actionLabel: 'View reports',
           actionPath: '/portal/reports',
         },
@@ -283,9 +281,9 @@ export function buildDashboardMetrics(args: {
     cards: [
       {
         id: 'no_score',
-        label: 'Credit score',
+        label: 'Middle score',
         value: '—',
-        sublabel: 'Upload a credit report to see your real scores here',
+        sublabel: 'Upload a tri-merge report to see your middle bureau score',
         accent: 'neutral',
         actionLabel: 'Upload report',
         actionPath: '/portal/reports',

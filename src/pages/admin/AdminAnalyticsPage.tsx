@@ -39,7 +39,8 @@ import {
   FINELY_OS_ENTITY_TITLE,
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_ENTITY_EMPTY,
-  finelyOsCatalogCardCompact,
+  FINELY_OS_PRIMARY_BTN,
+  finelyOsCatalogCard,
 } from '../../features/os/finelyOsLightUi';
 
 function formatMonthLabel(month: string): string {
@@ -98,11 +99,17 @@ export default function AdminAnalyticsPage() {
   const maxMonthlyCents = Math.max(1, ...(revenue?.monthlyTrend.map((m) => m.totalCents) ?? [1]));
 
   return (
-    <PageShell badge="Admin" title="Analytics" subtitle="High-signal operational visibility (tenant-scoped where applicable).">
+    <PageShell badge="Admin" title="Analytics" subtitle="See whether partners are moving forward or stalling — and open the queue that fixes the worst signal.">
       <div className={FINELY_OS_COMPACT_PAGE}>
         <button type="button" onClick={() => navigate('/admin')} className={FINELY_OS_BACK_LINK} title="Back to Admin Dashboard">
           <ArrowLeft size={16} /> Admin dashboard
         </button>
+
+        <div className="flex flex-wrap gap-2">
+          <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => navigate('/admin/partners?filter=missing-report')}>
+            Open partners missing reports
+          </button>
+        </div>
 
         <div className={FINELY_OS_BANNER}>
           <BarChart3 size={18} className="text-emerald-700 shrink-0 mt-0.5" />
@@ -113,10 +120,10 @@ export default function AdminAnalyticsPage() {
 
         <div className="grid sm:grid-cols-2 xl:grid-cols-5 gap-3">
           <FinelyOsOverviewStatTile icon={Users} label="Leads" value={stats.leadsCount} accent="violet" iconAccent="violet" hint="Total captured" />
-          <FinelyOsOverviewStatTile icon={Target} label="Tasks" value={stats.tasksCount} accent="amber" iconAccent="amber" hint="Total" />
-          <FinelyOsOverviewStatTile icon={Target} label="Open tasks" value={stats.openTasksCount} accent="amber" iconAccent="amber" hint="Pending + in progress" />
+          <FinelyOsOverviewStatTile icon={Target} label="Tasks" value={stats.tasksCount} accent="sky" iconAccent="sky" hint="Total" />
+          <FinelyOsOverviewStatTile icon={Target} label="Open tasks" value={stats.openTasksCount} accent="rose" iconAccent="rose" hint="Pending + in progress" />
           <FinelyOsOverviewStatTile icon={Briefcase} label="Cases" value={stats.casesCount} accent="emerald" iconAccent="emerald" hint="Total" />
-          <FinelyOsOverviewStatTile icon={Briefcase} label="Open cases" value={stats.openCasesCount} accent="emerald" iconAccent="emerald" hint="Active disputes" />
+          <FinelyOsOverviewStatTile icon={Briefcase} label="Open cases" value={stats.openCasesCount} accent="sky" iconAccent="sky" hint="Active disputes" />
         </div>
 
         <FinelyOsSectionTitle icon={DollarSign} label="Revenue — three separate views, not one blended number" accent="emerald" />
@@ -142,8 +149,8 @@ export default function AdminAnalyticsPage() {
             icon={Building2}
             label="Agency revenue-share pipeline"
             value={revenueLoading ? '…' : formatPrice(revenue?.agencyRevenueSharePipelineCents ?? 0)}
-            accent="fuchsia"
-            iconAccent="fuchsia"
+            accent="rose"
+            iconAccent="rose"
             hint={`${revenue?.agencyBuyInCount ?? 0} buy-ins ($1K–$499K ladder, 30–68% share)`}
           />
           <FinelyOsOverviewStatTile
@@ -165,13 +172,13 @@ export default function AdminAnalyticsPage() {
         </div>
 
         {hasRevenueError ? (
-          <div className={`${finelyOsCatalogCardCompact('rose')} ${FINELY_OS_ENTITY_BODY}`} data-fc-accent="rose">
+          <div className={`${finelyOsCatalogCard('rose')} ${FINELY_OS_ENTITY_BODY}`} data-fc-accent="rose">
             Revenue data unavailable: {revenue?.error || 'Supabase not configured'}. Figures above show $0 until this is resolved.
           </div>
         ) : null}
 
         <div className="grid lg:grid-cols-2 gap-3">
-          <div className={`${finelyOsCatalogCardCompact('violet')} space-y-3`} data-fc-accent="violet">
+          <div className={`${finelyOsCatalogCard('violet')} space-y-3`} data-fc-accent="violet">
             <div className={FINELY_OS_ENTITY_TITLE}>Revenue by category</div>
             {revenue && revenue.revenueByCategory.length > 0 ? (
               <div className="space-y-2">
@@ -189,7 +196,7 @@ export default function AdminAnalyticsPage() {
             )}
           </div>
 
-          <div className={`${finelyOsCatalogCardCompact('fuchsia')} space-y-3`} data-fc-accent="fuchsia">
+          <div className={`${finelyOsCatalogCard('sky')} space-y-4`} data-fc-accent="sky">
             <div className={FINELY_OS_ENTITY_TITLE}>Agency buy-ins by tier</div>
             {revenue && revenue.agencyByTier.length > 0 ? (
               <div className="space-y-2">
@@ -209,7 +216,7 @@ export default function AdminAnalyticsPage() {
         </div>
 
         <div className="grid lg:grid-cols-2 gap-3">
-          <div className={`${finelyOsCatalogCardCompact('sky')} space-y-3`} data-fc-accent="sky">
+          <div className={`${finelyOsCatalogCard('sky')} space-y-3`} data-fc-accent="sky">
             <FinelyOsSectionTitle icon={TrendingUp} label="Ladder progression" accent="sky" />
             {revenue && revenue.ladderProgression.partnersWithMultipleAgreements > 0 ? (
               <>
@@ -233,7 +240,7 @@ export default function AdminAnalyticsPage() {
             )}
           </div>
 
-          <div className={`${finelyOsCatalogCardCompact('amber')} space-y-3`} data-fc-accent="amber">
+          <div className={`${finelyOsCatalogCard('violet')} space-y-3`} data-fc-accent="violet">
             <div className={FINELY_OS_ENTITY_TITLE}>Monthly revenue trend</div>
             {revenue && revenue.monthlyTrend.length > 0 ? (
               <div className="space-y-1.5">
@@ -242,7 +249,7 @@ export default function AdminAnalyticsPage() {
                     <span className={`w-10 shrink-0 ${FINELY_OS_ENTITY_SUBLABEL}`}>{formatMonthLabel(row.month)}</span>
                     <div className="flex-1 h-2 rounded-full bg-white/10 overflow-hidden">
                       <div
-                        className="h-full rounded-full bg-gradient-to-r from-amber-400/70 to-amber-300/90"
+                        className="h-full rounded-full bg-gradient-to-r from-sky-500 to-violet-400"
                         style={{ width: `${Math.max(4, Math.round((row.totalCents / maxMonthlyCents) * 100))}%` }}
                       />
                     </div>
@@ -276,7 +283,7 @@ export default function AdminAnalyticsPage() {
           />
         </div>
 
-        <div className={`${finelyOsCatalogCardCompact('violet')} !p-4 ${FINELY_OS_ENTITY_BODY}`} data-fc-accent="violet">
+        <div className={`${finelyOsCatalogCard('rose')} ${FINELY_OS_ENTITY_BODY}`} data-fc-accent="rose">
           Tenant-scoped task and case counts respect your admin partner access. Lead captures are global to this browser store until Supabase sync is active. Revenue figures are a live cross-partner query (not per-browser localStorage).
         </div>
 

@@ -29,38 +29,39 @@ export function BookstoreBundlesPanel({ compact }: { compact?: boolean }) {
         <Package size={14} className="text-violet-300" /> Read + listen bundles
       </div>
       {!compact ? (
-        <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
+        <p className={`text-base ${FINELY_OS_ENTITY_BODY}`}>
           Save on multi-title packs — each book unlocks in My Library with neural narration per chapter.
         </p>
       ) : null}
 
       <div className={`grid gap-4 ${compact ? '' : 'md:grid-cols-2'}`}>
-        {bundles.map((b) => {
+        {bundles.map((b, idx) => {
           const products = resolveBundleProducts(b);
           const list = bundleListPriceCents(b);
           const save = bundleSavingsCents(b);
+          const accent = (['emerald', 'sky', 'rose'] as const)[idx % 3];
           return (
-            <div key={b.id} className={`${finelyOsGlassShell('inner', 'amber')} p-4 space-y-3`}>
+            <div key={b.id} className={`${finelyOsGlassShell('inner', accent)} space-y-3`}>
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
-                  <div className={`${FINELY_OS_ENTITY_VALUE} font-semibold`}>{b.title}</div>
-                  <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>{b.description}</p>
+                  <div className={`${FINELY_OS_ENTITY_VALUE} text-xl font-extrabold`}>{b.title}</div>
+                  <p className={`mt-1 text-base ${FINELY_OS_ENTITY_BODY}`}>{b.description}</p>
                 </div>
                 {b.badge ? <span className={FINELY_OS_ENTITY_CHIP}>{b.badge}</span> : null}
               </div>
-              <div className="flex flex-wrap gap-1">
+              <div className="flex flex-wrap gap-2">
                 {products.map((p) => (
-                  <span key={p.slug} className={`${FINELY_OS_ENTITY_CHIP} text-[10px]`}>
-                    <Layers size={10} className="inline mr-1" />
+                  <span key={p.slug} className={FINELY_OS_ENTITY_CHIP}>
+                    <Layers size={12} className="inline mr-1" />
                     {p.title}
                   </span>
                 ))}
               </div>
               <div className="flex flex-wrap items-end justify-between gap-3">
                 <div>
-                  <div className="text-amber-300 font-black text-xl">{formatPrice(b.priceAmount)}</div>
+                  <div className={`${FINELY_OS_ENTITY_VALUE} font-extrabold text-2xl`}>{formatPrice(b.priceAmount)}</div>
                   {save > 0 ? (
-                    <div className={`text-[10px] ${FINELY_OS_ENTITY_SUBLABEL}`}>
+                    <div className={FINELY_OS_ENTITY_SUBLABEL}>
                       Was {formatPrice(list)} · save {formatPrice(save)}
                     </div>
                   ) : null}

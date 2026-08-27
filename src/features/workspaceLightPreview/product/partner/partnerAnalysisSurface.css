@@ -1,0 +1,66 @@
+/* Strategy vault — timeline runway + intel spine (not control-room clone) */
+
+.fc-wlp-strategy-vault-runway {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  padding: 4px 2px 12px;
+  scroll-snap-type: x mandatory;
+}
+
+.fc-wlp-strategy-vault-runway-node {
+  flex: 0 0 min(240px, 72vw);
+  scroll-snap-align: start;
+  border-radius: 18px;
+  transition: transform 0.15s ease, outline 0.15s ease;
+}
+
+.fc-wlp-strategy-vault-runway-node[data-latest='true'] {
+  flex-basis: min(280px, 80vw);
+}
+
+.fc-wlp-strategy-vault-runway-node[data-active='true'] {
+  outline: 2px solid color-mix(in srgb, var(--wlp-accent, #8b5cf6) 42%, transparent);
+  transform: translateY(-2px);
+}
+
+.fc-wlp-strategy-vault-spine {
+  display: grid;
+  grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .fc-wlp-strategy-vault-spine {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fc-wlp-strategy-vault-spine-tile {
+  width: 100%;
+  border-radius: 18px;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.fc-wlp-strategy-vault-spine-tile[data-active='true'] {
+  transform: translateY(-1px);
+  outline: 2px solid color-mix(in srgb, var(--wlp-accent, #8b5cf6) 35%, transparent);
+}
+
+.fc-wlp-strategy-vault-stage {
+  min-width: 0;
+}
+
+.fc-wlp-strategy-vault-hero {
+  position: relative;
+  overflow: hidden;
+}
+
+.fc-wlp-strategy-vault-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 100% 0%, rgba(139, 92, 246, 0.18), transparent 55%);
+  pointer-events: none;
+}

@@ -6,6 +6,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readLocalSourceGraph } from './source-graph.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -183,6 +184,7 @@ for (const surface of PLAIN_LANGUAGE_SURFACES) {
     continue;
   }
   const src = fs.readFileSync(abs, 'utf8');
+  const sourceGraph = readLocalSourceGraph(abs, { projectRoot: root });
 
   for (const phrase of surface.banned) {
     const hit = src.includes(phrase);
@@ -191,7 +193,7 @@ for (const surface of PLAIN_LANGUAGE_SURFACES) {
   }
 
   for (const needle of surface.require) {
-    const ok = src.includes(needle);
+    const ok = sourceGraph.includes(needle);
     console.log(`${ok ? '✓' : '✗'} ${surface.file} → ${needle}`);
     if (!ok) failed += 1;
   }

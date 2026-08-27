@@ -19,11 +19,11 @@ function msgId() {
   return `li_${Math.random().toString(16).slice(2)}_${Date.now()}`;
 }
 
-const CALEB_FIND_HREF = '/admin/marketing?tab=desk&helper=find';
+const CALEB_FIND_HREF = '/admin/marketing-desk?helper=find';
 const WORKER_TICK_FN = 'lead-intel-worker-tick';
 
 const GREETING =
-  'I am your Lead Intelligence copilot — strategy, staging, and safe internal steps. Live prospect search runs in Caleb Find (Marketing Desk) via the lead-intel edge (Serper). Overnight “deep swarm” queues are simulation / ops cadence unless GROWTH_WORKER_LIVE=true on the lead-intel-worker-tick function. Ask what to find, import, or launch; I will not pretend fake swarm counters are real leads.';
+  'I am your Lead Intelligence copilot — strategy, staging, and safe internal steps. Live prospect search runs in Caleb Find (Marketing Desk) via the lead-intel edge (Serper). Overnight lead-search queues are simulation / ops cadence unless GROWTH_WORKER_LIVE=true on the lead-intel-worker-tick function. Ask what to find, import, or launch; I will not pretend simulated counters are real leads.';
 
 type Props = {
   target: ProspectTarget;
@@ -144,7 +144,7 @@ export function LeadIntelCopilot({ target, query, results, selectedUrls, importe
     <div className="space-y-4">
       <FinelyOsAlertBanner
         tone="warning"
-        message={`Deep swarm / Overnight50 job queues are simulation by default — not multi-hour live scraping. Real finds: Caleb Find (Marketing Desk) or Live Lead Engine hunt below. Background ticks: Supabase function ${WORKER_TICK_FN} (simulation until GROWTH_WORKER_LIVE=true + SERPER on lead-intel).`}
+        message={`Overnight lead-search job queues are simulation by default — not multi-hour live scraping. Real finds: Caleb Find (Marketing Desk) or Live Lead Engine search below. Background ticks: Supabase function ${WORKER_TICK_FN} (simulation until GROWTH_WORKER_LIVE=true + SERPER on lead-intel).`}
       />
       <div className="flex flex-wrap gap-2">
         <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate(CALEB_FIND_HREF)}>
@@ -202,7 +202,7 @@ export function LeadIntelCopilot({ target, query, results, selectedUrls, importe
       <FinelyOsAIChatPanel
         icon={Sparkles}
         title="Lead Intelligence Director"
-        subtitle="Strategy + safe internal steps. Live search = Caleb Find / lead-intel. Swarm queue = simulation unless worker live."
+        subtitle="Strategy + safe internal steps. Live search = Caleb Find / lead-intel. Discovery queue = simulation unless worker live."
         messages={messages}
         draft={draft}
         onDraftChange={setDraft}

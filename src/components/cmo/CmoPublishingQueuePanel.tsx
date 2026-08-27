@@ -58,7 +58,7 @@ export function CmoPublishingQueuePanel() {
   return (
     <section className="fc-panel p-5 space-y-5">
       <div>
-        <p className="text-xs uppercase tracking-[0.28em] text-amber-200/70">Publishing governance</p>
+        <p className="text-xs uppercase tracking-[0.28em] text-emerald-200/70">Publishing governance</p>
         <h2 className="text-2xl font-semibold text-white">CMO Publishing Queue</h2>
         <p className="mt-1 text-sm text-slate-300">Approval-first publishing. The CMO prepares assets; humans approve; official APIs come after credentials and platform approval.</p>
       </div>
@@ -73,7 +73,7 @@ export function CmoPublishingQueuePanel() {
           <button type="button" className="fc-button-brand" onClick={createQueueItem} disabled={!firstAccount}>
             Create queue item
           </button>
-          {!firstAccount ? <p className="text-sm text-amber-100">Add a managed account first.</p> : null}
+          {!firstAccount ? <p className="text-sm text-emerald-100">Add a managed account first.</p> : null}
         </div>
       </div>
 
@@ -88,7 +88,7 @@ export function CmoPublishingQueuePanel() {
                   <p className="text-xs uppercase tracking-[0.2em] text-slate-400">{account?.label ?? job.platform}</p>
                   <h3 className="mt-1 font-semibold text-white">{asset?.title ?? 'Queued asset'}</h3>
                   <p className="mt-2 text-sm text-slate-300">{asset?.caption}</p>
-                  {asset?.riskFlags.length ? <p className="mt-2 text-xs text-amber-100">{asset.riskFlags.join(' ')}</p> : null}
+                  {asset?.riskFlags.length ? <p className="mt-2 text-xs text-emerald-100">{asset.riskFlags.join(' ')}</p> : null}
                 </div>
                 <div className="shrink-0 space-y-2 text-right">
                   <span className="inline-flex rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-200">{job.status}</span>

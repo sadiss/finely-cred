@@ -3,6 +3,7 @@ import { Maximize2, Minimize2, ZoomIn, ZoomOut } from 'lucide-react';
 import { highlightMissingLetterPlaceholders } from '../../lib/letterSenderBlock';
 import { plainTextToHtml, sanitizeHtmlForPreview } from '../../utils/richText';
 import { stripLetterVendorBranding, stripLetterVendorBrandingHtml } from '../../lib/letterBodySafety';
+import { FINELY_OS_ENTITY_BODY } from '../../features/os/finelyOsLightUi';
 import { LetterEditorShell } from './LetterEditorShell';
 
 const BRACKET_PLACEHOLDER_RE = /\[[A-Z0-9 #/.,&'-]+\]/g;
@@ -240,7 +241,7 @@ export function DebtLetterDraftWorkspace({
       >
         {view !== 'preview' ? (
           <div className="space-y-2">
-            <div className="text-sm font-semibold text-white/85">{editorLabel}</div>
+            <div className={`text-sm font-semibold ${FINELY_OS_ENTITY_BODY}`}>{editorLabel}</div>
             <textarea
               value={text}
               onChange={(e) => onTextChange(e.target.value)}

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, RefreshCw, ShieldAlert, Activity } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { AdminWorkstationFrame, type AdminEmbeddablePageProps } from '../../features/workspaceLightPreview/product/admin/AdminWorkstationFrame';
+import { useMappedAdminNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { supabase, isSupabaseConfigured } from '../../lib/supabaseClient';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { FinelyOsEmptyState } from '../../features/os/FinelyOsEmptyState';
@@ -76,8 +76,8 @@ function levelChip(level: EdgeEvent['level']) {
   return finelyOsStatusChip('ok');
 }
 
-export default function AdminMonitoringPage() {
-  const navigate = useNavigate();
+export default function AdminMonitoringPage({ embedded = false }: AdminEmbeddablePageProps = {}) {
+  const navigate = useMappedAdminNavigate();
   const [namespace, setNamespace] = useState<string>('(all)');
   const [limit, setLimit] = useState<number>(50);
   const [events, setEvents] = useState<EdgeEvent[]>([]);
@@ -113,7 +113,9 @@ export default function AdminMonitoringPage() {
   }, [nsParam, limit]);
 
   return (
-    <PageShell
+    <AdminWorkstationFrame
+      embedded={embedded}
+      kind="monitoring-workstation"
       badge="Admin"
       title="Monitoring"
       subtitle="Live integration telemetry: email/SMS/mail + webhooks. (Admin allowlist required.)"
@@ -242,8 +244,8 @@ export default function AdminMonitoringPage() {
           </div>
         </div>
 
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
       </div>
-    </PageShell>
+    </AdminWorkstationFrame>
   );
 }

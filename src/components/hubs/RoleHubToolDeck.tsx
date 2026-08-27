@@ -28,7 +28,7 @@ type Props = {
 };
 
 /**
- * Compact tool deck for role hubs — discoverability without a second KPI strip.
+ * Luxury tool deck for role hubs — discoverability without a second KPI strip.
  */
 export function RoleHubToolDeck({
   title = 'Tools · one tap',
@@ -41,12 +41,12 @@ export function RoleHubToolDeck({
   if (!tools.length) return null;
 
   return (
-    <section className={`space-y-2 ${className}`} data-fc-role-hub-tools="1">
+    <section className={`space-y-4 ${className}`} data-fc-role-hub-tools="1">
       <div>
         <p className={FINELY_OS_ENTITY_SUBLABEL}>{title}</p>
-        <p className={`mt-0.5 text-xs ${FINELY_OS_ENTITY_BODY}`}>{subtitle}</p>
+        <p className={`mt-1 text-base ${FINELY_OS_ENTITY_BODY}`}>{subtitle}</p>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         {tools.map((tool) => {
           const Icon = tool.icon;
           const accent = tool.accent ?? 'violet';
@@ -55,16 +55,16 @@ export function RoleHubToolDeck({
               key={tool.id}
               type="button"
               onClick={() => navigate(tool.path)}
-              className={`${finelyOsDeckTile(accent)} !p-3`}
+              className={`${finelyOsDeckTile(accent)} p-6 lg:p-8`}
             >
-              <div className="flex items-start justify-between gap-2">
-                <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-black/25 text-white/80">
-                  <Icon size={15} />
+              <div className="flex items-start justify-between gap-3">
+                <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl border border-white/10 bg-black/25 text-white/90">
+                  <Icon size={22} />
                 </span>
                 {tool.badge ? <span className={finelyOsMicroStat(accent)}>{tool.badge}</span> : null}
               </div>
-              <div className={`mt-2 text-sm font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{tool.label}</div>
-              <p className={`mt-0.5 text-[11px] leading-snug ${FINELY_OS_ENTITY_BODY}`}>{tool.detail}</p>
+              <div className={`mt-4 text-lg font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{tool.label}</div>
+              <p className={`mt-1 text-base leading-snug ${FINELY_OS_ENTITY_BODY}`}>{tool.detail}</p>
             </button>
           );
         })}

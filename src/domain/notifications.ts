@@ -21,6 +21,8 @@ export type AppNotification = {
   body?: string;
   /** Route to open when clicked */
   href?: string;
+  /** Preferred deep link for the row primary action (falls back to `href`). */
+  actionPath?: string;
   createdAt: string;
   readAt?: string;
   /** Extra metadata for filtering/analytics */

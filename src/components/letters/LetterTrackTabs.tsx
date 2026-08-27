@@ -65,7 +65,7 @@ export function LetterTrackTabs({
   return (
     <div className="-mx-1 overflow-x-auto pb-1 [scrollbar-width:thin]">
     <div
-      className={`flex flex-wrap sm:flex-nowrap gap-2 p-1 rounded-2xl border border-white/10 bg-black/30 min-w-max sm:min-w-0 ${className}`}
+      className={`flex flex-wrap sm:flex-nowrap gap-2 p-1 rounded-2xl border border-violet-400/20 min-w-max sm:min-w-0 ${className}`}
       role="tablist"
       aria-label={ariaLabel}
     >

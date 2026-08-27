@@ -56,7 +56,7 @@ function cn(...classes: Array<string | false | null | undefined>) {
 
 function SectionKicker({ children }: { children: React.ReactNode }) {
   return (
-    <div className="inline-flex items-center gap-2 rounded-full border border-[#e0b24a]/40 bg-[#e0b24a]/12 px-4 py-2 text-[11px] font-black uppercase tracking-[0.22em] text-[#ffd993] shadow-[0_0_30px_rgba(224, 178, 74,0.14)]">
+    <div className="inline-flex items-center gap-2 rounded-full border border-[#a78bfa]/40 bg-[#a78bfa]/12 px-4 py-2 text-[11px] font-black uppercase tracking-[0.22em] text-[#c4b5fd] shadow-[0_0_30px_rgba(167, 139, 250,0.14)]">
       <Sparkles size={14} />
       {children}
     </div>
@@ -76,7 +76,7 @@ function GlassPanel({
     <div
       className={cn(
         'relative overflow-hidden rounded-[1.35rem] border border-white/10 bg-white/[0.035] shadow-[0_30px_110px_rgba(0,0,0,0.46)] backdrop-blur-xl',
-        glow && 'before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_50%_0%,rgba(224, 178, 74,0.16),transparent_44%)]',
+        glow && 'before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_50%_0%,rgba(167, 139, 250,0.16),transparent_44%)]',
         className,
       )}
     >
@@ -89,7 +89,7 @@ function GlassPanel({
 function MiniCheck({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-start gap-3 text-sm leading-relaxed text-white/72">
-      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#e0b24a] text-[#040a36] shadow-[0_0_22px_rgba(224, 178, 74,0.24)]">
+      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#a78bfa] text-[#040a36] shadow-[0_0_22px_rgba(167, 139, 250,0.24)]">
         <CheckCircle2 size={13} strokeWidth={3} />
       </span>
       <span>{children}</span>
@@ -140,11 +140,11 @@ function ValueStackCard({ label, value }: { label: string; value: string }) {
     <GlassPanel className="del-value-card p-4 transition duration-300 hover:-translate-y-1">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[#e0b24a]">Included free</div>
+          <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[#a78bfa]">Included free</div>
           <div className="mt-2 text-sm font-semibold leading-snug text-white">{label}</div>
         </div>
         <div className="shrink-0 text-right">
-          <div className="text-2xl font-black tracking-[-0.03em] text-[#ffd993]">{value}</div>
+          <div className="text-2xl font-black tracking-[-0.03em] text-[#c4b5fd]">{value}</div>
           <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/40">value</div>
         </div>
       </div>
@@ -179,12 +179,12 @@ function DiscoveryCard({
   desc: string;
 }) {
   return (
-    <div className="del-discovery-card group relative overflow-hidden rounded-[1.35rem] p-5 text-center transition duration-300 hover:-translate-y-1 hover:border-[#e0b24a]/5">
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#e0b24a]/70 to-transparent opacity-60 transition group-hover:opacity-100" />
-      <div className="del-discovery-icon mx-auto flex items-center justify-center rounded-full text-[#ffd993]">
+    <div className="del-discovery-card group relative overflow-hidden rounded-[1.35rem] p-5 text-center transition duration-300 hover:-translate-y-1 hover:border-[#a78bfa]/5">
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#a78bfa]/70 to-transparent opacity-60 transition group-hover:opacity-100" />
+      <div className="del-discovery-icon mx-auto flex items-center justify-center rounded-full text-[#c4b5fd]">
         <Icon size={30} />
       </div>
-      <h3 className="mt-4 text-[12px] font-black uppercase tracking-[0.12em] text-[#ffd993]">{title}</h3>
+      <h3 className="mt-4 text-[12px] font-black uppercase tracking-[0.12em] text-[#c4b5fd]">{title}</h3>
       <p className="mt-2.5 text-[13px] leading-relaxed text-white/58">{desc}</p>
     </div>
   );
@@ -201,7 +201,7 @@ function Testimonial({
 }) {
   return (
     <div className="del-testimonial-card relative overflow-hidden rounded-[1.35rem] p-5">
-      <div className="flex gap-1 text-[#ffd993]">
+      <div className="flex gap-1 text-[#c4b5fd]">
         {Array.from({ length: 5 }).map((_, i) => <Star key={i} size={15} fill="currentColor" />)}
       </div>
       <p className="mt-4 pr-14 text-sm leading-relaxed text-white/74">"{quote}"</p>
@@ -209,7 +209,7 @@ function Testimonial({
         <div className="font-semibold text-white">— {name}</div>
         <div className="text-xs text-white/48">{role}</div>
       </div>
-      <div className="absolute bottom-4 right-4 flex h-14 w-14 items-center justify-center rounded-full border-2 border-[#e0b24a]/55 bg-gradient-to-br from-[#ffd993] to-[#c4803d] text-[#040a36] shadow-[0_0_30px_rgba(224, 178, 74,0.22)]">
+      <div className="absolute bottom-4 right-4 flex h-14 w-14 items-center justify-center rounded-full border-2 border-[#a78bfa]/55 bg-gradient-to-br from-[#c4b5fd] to-[#8b5cf6] text-[#040a36] shadow-[0_0_30px_rgba(167, 139, 250,0.22)]">
         <User size={22} />
       </div>
     </div>
@@ -276,19 +276,19 @@ export default function DebtEradicationLandingPage() {
   ];
 
   return (
-    <main className="del-page lm-lux-theme--navy min-h-screen overflow-hidden bg-[#000c3c] text-white selection:bg-[#e0b24a]/30 selection:text-white">
-      <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_28%_12%,rgba(224, 178, 74,0.2),transparent_28%),radial-gradient(circle_at_78%_28%,rgba(12, 24, 80,0.3),transparent_32%),linear-gradient(180deg,#000c3c_0%,#060c2f_42%,#000c3c_100%)]" />
+    <main className="del-page lm-lux-theme--navy min-h-screen overflow-hidden bg-[#000c3c] text-white selection:bg-[#a78bfa]/30 selection:text-white">
+      <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_28%_12%,rgba(167, 139, 250,0.2),transparent_28%),radial-gradient(circle_at_78%_28%,rgba(12, 24, 80,0.3),transparent_32%),linear-gradient(180deg,#000c3c_0%,#060c2f_42%,#000c3c_100%)]" />
       <div className="lm-lux-grain lm-lux-grain--fixed pointer-events-none" aria-hidden />
       <div className="pointer-events-none fixed inset-x-0 top-0 z-0 h-[420px] bg-gradient-to-b from-[#060c2f]/55 to-transparent" />
 
       {/* Hero — ivory field · full-width title · book LEFT | form RIGHT */}
-      <section className="del-hero-section del-hero-section--ivory relative z-10 border-b border-[#e0b24a]/30 pt-20 md:pt-24">
-        <div className="pointer-events-none absolute left-[8%] top-[18%] h-[380px] w-[380px] rounded-full bg-[#e0b24a]/12 blur-[110px]" />
+      <section className="del-hero-section del-hero-section--ivory relative z-10 border-b border-[#a78bfa]/30 pt-20 md:pt-24">
+        <div className="pointer-events-none absolute left-[8%] top-[18%] h-[380px] w-[380px] rounded-full bg-[#a78bfa]/12 blur-[110px]" />
         <div className="pointer-events-none absolute right-[10%] top-[22%] h-[320px] w-[320px] rounded-full bg-[#000c3c]/06 blur-[100px]" />
         <div className="absolute bottom-0 left-0 right-0 lm-lux-rule" />
         <div className="relative z-[2] mx-auto max-w-[94rem] px-5 md:px-8">
           <div className="del-hero-head del-hero-head--full text-center">
-            <p className="del-hero-kicker text-[11px] font-black uppercase tracking-[0.22em] text-[#c4803d]">
+            <p className="del-hero-kicker text-[11px] font-black uppercase tracking-[0.22em] text-[#8b5cf6]">
               Free debt &amp; summons guide
             </p>
             <h1 className="del-hero-title del-serif lm-lux-display del-hero-title--typewriter mt-3 md:mt-4">
@@ -342,11 +342,11 @@ export default function DebtEradicationLandingPage() {
             <div className="del-hero-form-col relative z-20 order-1 min-w-0 lg:order-2">
               <div className="del-hero-form del-hero-form--capture lm-lux-panel mx-auto lg:mx-0 lg:ml-auto">
                 <h2 className="del-hero-form-capture-title">
-                  Get Your <span className="text-[#ffd993]">Free</span> Guide Now
+                  Get Your <span className="text-[#c4b5fd]">Free</span> Guide Now
                 </h2>
                 <PremiumLeadMagnetCaptureForm
                   funnelConfig={DEBT_FUNNEL}
-                  accentClass="focus:border-[#ffd993] focus:ring-[#e0b24a]/15"
+                  accentClass="focus:border-[#c4b5fd] focus:ring-[#a78bfa]/15"
                   submitLabel={ctaOverride}
                   onCaptured={onGuideCaptured}
                 />
@@ -355,7 +355,7 @@ export default function DebtEradicationLandingPage() {
                 </p>
                 <Link
                   to={DEBT_GUIDE_READ_PATH}
-                  className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#e0b24a]/45 bg-[#e0b24a]/10 px-4 py-2.5 text-[11px] font-black uppercase tracking-[0.14em] text-[#ffd993] transition hover:border-[#ffd993]/70 hover:bg-[#e0b24a]/16"
+                  className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#a78bfa]/45 bg-[#a78bfa]/10 px-4 py-2.5 text-[11px] font-black uppercase tracking-[0.14em] text-[#c4b5fd] transition hover:border-[#c4b5fd]/70 hover:bg-[#a78bfa]/16"
                 >
                   <BookOpen size={14} /> Read all {DEBT_GUIDE_CHAPTERS.length} pages free — no signup
                 </Link>
@@ -374,12 +374,12 @@ export default function DebtEradicationLandingPage() {
       {/* Mobile-only click-to-call bar (B7) — high-intent partners often prefer calling from a phone */}
       <a
         href={telHref}
-        className="del-mobile-call-bar fixed inset-x-3 bottom-3 z-40 flex sm:hidden items-center justify-center gap-2 rounded-xl border border-[#ffe7b0]/55 bg-[linear-gradient(135deg,#c4803d_0%,#e0b24a_42%,#ffe7b0_68%,#d19d45_100%)] px-4 py-3 text-[11px] font-black uppercase tracking-[0.14em] text-[#040a36] shadow-[0_16px_40px_rgba(224,178,74,0.4)]"
+        className="del-mobile-call-bar fixed inset-x-3 bottom-3 z-40 flex sm:hidden items-center justify-center gap-2 rounded-xl border border-[#ddd6fe]/55 bg-[linear-gradient(135deg,#8b5cf6_0%,#a78bfa_42%,#ddd6fe_68%,#6d28d9_100%)] px-4 py-3 text-[11px] font-black uppercase tracking-[0.14em] text-[#040a36] shadow-[0_16px_40px_rgba(167,139,250,0.35)]"
       >
         <Phone size={16} /> Call now — {supportPhone}
       </a>
 
-      <section className="del-video-section relative z-10 border-b border-[#e0b24a]/20">
+      <section className="del-video-section relative z-10 border-b border-[#a78bfa]/20">
         <div className="del-video-grid mx-auto grid gap-14 px-5 md:px-8 lg:grid-cols-2 lg:items-center lg:gap-20 xl:gap-32">
           <div className="del-video-column del-video-column--left w-full">
             <VideoPreview onGoForm={scrollToDownload} />
@@ -391,7 +391,7 @@ export default function DebtEradicationLandingPage() {
               text="See How This System Can Change Your Life"
               className="del-serif mt-5 text-4xl font-black leading-[1.08] tracking-[-0.035em] md:text-5xl xl:text-6xl"
               highlight="Change Your Life"
-              highlightClassName="text-[#ffd993]"
+              highlightClassName="text-[#c4b5fd]"
               speedMs={34}
               delayMs={200}
             />
@@ -408,7 +408,7 @@ export default function DebtEradicationLandingPage() {
             <button
               type="button"
               onClick={scrollToDownload}
-              className="group relative mt-8 inline-flex h-12 items-center justify-center overflow-hidden rounded-xl border border-[#ffe7b0]/55 bg-[linear-gradient(135deg,#c4803d_0%,#e0b24a_42%,#ffe7b0_68%,#d19d45_100%)] px-7 text-[11px] font-black uppercase tracking-[0.12em] text-[#040a36] shadow-[0_16px_48px_rgba(224, 178, 74,0.28)] transition duration-300 hover:-translate-y-0.5 hover:brightness-110"
+              className="group relative mt-8 inline-flex h-12 items-center justify-center overflow-hidden rounded-xl border border-[#ddd6fe]/55 bg-[linear-gradient(135deg,#8b5cf6_0%,#a78bfa_42%,#ddd6fe_68%,#6d28d9_100%)] px-7 text-[11px] font-black uppercase tracking-[0.12em] text-[#040a36] shadow-[0_16px_48px_rgba(167, 139, 250,0.28)] transition duration-300 hover:-translate-y-0.5 hover:brightness-110"
             >
               <span className="relative z-10">Get the free guide</span>
               <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent transition duration-700 group-hover:translate-x-full" />
@@ -418,7 +418,7 @@ export default function DebtEradicationLandingPage() {
       </section>
 
       {/* Page index — the manual is readable in-app before any signup */}
-      <section id="read-online" className="relative z-10 border-b border-[#e0b24a]/20 py-9 md:py-12">
+      <section id="read-online" className="relative z-10 border-b border-[#a78bfa]/20 py-9 md:py-12">
         <div className="mx-auto max-w-7xl px-5 md:px-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div className="max-w-2xl">
@@ -433,7 +433,7 @@ export default function DebtEradicationLandingPage() {
             </div>
             <Link
               to={DEBT_GUIDE_READ_PATH}
-              className="group inline-flex h-12 shrink-0 items-center justify-center gap-2 overflow-hidden rounded-xl border border-[#ffe7b0]/55 bg-[linear-gradient(135deg,#c4803d_0%,#e0b24a_42%,#ffe7b0_68%,#d19d45_100%)] px-6 text-[11px] font-black uppercase tracking-[0.12em] text-[#040a36] shadow-[0_16px_48px_rgba(224,178,74,0.28)] transition hover:-translate-y-0.5 hover:brightness-110"
+              className="group inline-flex h-12 shrink-0 items-center justify-center gap-2 overflow-hidden rounded-xl border border-[#ddd6fe]/55 bg-[linear-gradient(135deg,#8b5cf6_0%,#a78bfa_42%,#ddd6fe_68%,#6d28d9_100%)] px-6 text-[11px] font-black uppercase tracking-[0.12em] text-[#040a36] shadow-[0_16px_48px_rgba(167,139,250,0.28)] transition hover:-translate-y-0.5 hover:brightness-110"
             >
               <BookOpen size={15} /> Open Page I
             </Link>
@@ -446,11 +446,11 @@ export default function DebtEradicationLandingPage() {
                 to={`${DEBT_GUIDE_READ_PATH}?chapter=${ch.id}`}
                 className="del-discovery-card group flex items-start gap-3.5 rounded-[1.1rem] p-4 text-left transition duration-300 hover:-translate-y-1"
               >
-                <span className="del-serif mt-0.5 shrink-0 text-2xl leading-none text-[#ffd993]">{ch.number}</span>
+                <span className="del-serif mt-0.5 shrink-0 text-2xl leading-none text-[#c4b5fd]">{ch.number}</span>
                 <span className="min-w-0">
                   <span className="block text-sm font-bold leading-snug text-white">{ch.title}</span>
                   <span className="mt-1 block text-[12.5px] leading-relaxed text-white/55">{ch.teaser}</span>
-                  <span className="mt-1.5 block text-[10px] font-black uppercase tracking-[0.16em] text-[#c4803d]">
+                  <span className="mt-1.5 block text-[10px] font-black uppercase tracking-[0.16em] text-[#8b5cf6]">
                     {ch.readMinutes} min · {ch.kicker}
                   </span>
                 </span>
@@ -461,7 +461,7 @@ export default function DebtEradicationLandingPage() {
         </div>
       </section>
 
-      <section id="free-toolkit" className="del-band del-band--toolkit relative z-10 border-y border-[#e0b24a]/20 py-8 md:py-10">
+      <section id="free-toolkit" className="del-band del-band--toolkit relative z-10 border-y border-[#a78bfa]/20 py-8 md:py-10">
         <div className="mx-auto max-w-7xl px-5 md:px-8 space-y-3">
           <details className="lm-seo-depth">
             <summary>
@@ -471,7 +471,7 @@ export default function DebtEradicationLandingPage() {
             <div className="lm-seo-depth-body">
               <div className="mx-auto mb-6 max-w-3xl text-center">
                 <h2 className="del-serif text-3xl font-black tracking-[-0.035em] md:text-4xl">
-                  Everything Included <span className="text-[#ffd993]">At No Cost</span>
+                  Everything Included <span className="text-[#c4b5fd]">At No Cost</span>
                 </h2>
                 <p className="mt-3 text-sm leading-relaxed text-white/60">
                   Unlock the full validation playbook plus interactive tools, checklists, scripts, and portal preview when you request the guide.
@@ -498,7 +498,7 @@ export default function DebtEradicationLandingPage() {
             <div className="lm-seo-depth-body">
               <div className="mx-auto mb-6 max-w-3xl text-center">
                 <h2 className="del-serif del-section-title text-3xl font-black tracking-[-0.035em] md:text-4xl">
-                  Your Roadmap to <span className="text-[#ffd993]">Total Debt Eradication</span>
+                  Your Roadmap to <span className="text-[#c4b5fd]">Total Debt Eradication</span>
                 </h2>
               </div>
               <div className="grid gap-3.5 md:grid-cols-2 lg:grid-cols-5">
@@ -511,11 +511,11 @@ export default function DebtEradicationLandingPage() {
         </div>
       </section>
 
-      <section className="del-stats-strip relative z-10 border-y border-[#e0b24a]/20 py-8">
+      <section className="del-stats-strip relative z-10 border-y border-[#a78bfa]/20 py-8">
         <div className="mx-auto grid max-w-7xl gap-3 px-5 md:grid-cols-4 md:px-8">
           {stats.map((stat) => (
             <div key={stat.label} className="del-stat-tile flex items-center gap-3.5">
-              <div className="del-stat-icon flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[#e0b24a]/4 bg-[#e0b24a]/12 text-[#ffd993]">
+              <div className="del-stat-icon flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[#a78bfa]/4 bg-[#a78bfa]/12 text-[#c4b5fd]">
                 <stat.icon size={22} />
               </div>
               <div>
@@ -539,7 +539,7 @@ export default function DebtEradicationLandingPage() {
             </summary>
             <div className="lm-seo-depth-body">
               <div className="mb-6 text-center">
-                <div className="text-[11px] font-black uppercase tracking-[0.28em] text-[#e0b24a]">Real partners. Real results.</div>
+                <div className="text-[11px] font-black uppercase tracking-[0.28em] text-[#a78bfa]">Real partners. Real results.</div>
                 <h2 className="del-serif del-section-title mt-3 text-3xl font-black tracking-[-0.035em] md:text-4xl">
                   Stories of Freedom and Relief
                 </h2>
@@ -569,14 +569,14 @@ export default function DebtEradicationLandingPage() {
         </div>
       </section>
 
-      <section id="download" className="relative z-10 border-t border-[#e0b24a]/25 px-5 pb-12 pt-2 md:px-8">
+      <section id="download" className="relative z-10 border-t border-[#a78bfa]/25 px-5 pb-12 pt-2 md:px-8">
         <div className="del-cta-panel mx-auto max-w-7xl overflow-visible rounded-[1.65rem]">
           <div className="relative z-10 grid gap-0 overflow-hidden rounded-[1.65rem] lg:grid-cols-[0.92fr_1.08fr]">
             <div className="relative flex min-h-[300px] flex-col items-center justify-end overflow-visible p-6 pb-12 md:p-8 md:pb-14">
               <GuideMockup footer className="relative z-10" />
               <div className="del-cta-caption relative z-10 mt-4 w-full max-w-xs rounded-xl px-4 py-3 text-center backdrop-blur-sm">
-                <div className="text-[10px] font-black uppercase tracking-[0.18em] text-[#c4803d]">Your roadmap to</div>
-                <div className="text-sm font-black uppercase tracking-[0.06em] text-[#1a1408]">Debt freedom starts now.</div>
+                <div className="text-[10px] font-black uppercase tracking-[0.18em] text-[#8b5cf6]">Your roadmap to</div>
+                <div className="text-sm font-black uppercase tracking-[0.06em] text-white">Debt freedom starts now.</div>
               </div>
             </div>
             <div className="relative z-10 p-7 md:p-10">
@@ -589,7 +589,7 @@ export default function DebtEradicationLandingPage() {
               <div className="mt-6">
                 <PremiumLeadMagnetCaptureForm
                   funnelConfig={DEBT_FUNNEL}
-                  accentClass="focus:border-[#c4803d] focus:ring-[#e0b24a]/20"
+                  accentClass="focus:border-[#8b5cf6] focus:ring-[#a78bfa]/20"
                   submitLabel={ctaOverride}
                   onCaptured={onGuideCaptured}
                 />

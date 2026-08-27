@@ -41,7 +41,7 @@ const OPTIONS: Array<{
   {
     id: 'building_as_specialist',
     title: 'I am building a credit specialist practice',
-    subtitle: 'Operator path — client files, white-label workflows, and specialist hub.',
+    subtitle: 'Operator path — partner files, white-label workflows, and specialist hub.',
     icon: Users,
   },
 ];

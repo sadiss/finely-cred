@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, BookOpen, Headphones, Loader2, Plus, Save, Search, Trash2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { AdminWorkstationFrame, type AdminEmbeddablePageProps } from '../../features/workspaceLightPreview/product/admin/AdminWorkstationFrame';
+import { useMappedAdminNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import type { BookstoreProduct } from '../../domain/bookstore';
 import {
   createBookstoreProduct,
@@ -50,8 +50,8 @@ function textToBullets(text: string) {
     .slice(0, 24);
 }
 
-export default function AdminBookstorePage() {
-  const navigate = useNavigate();
+export default function AdminBookstorePage({ embedded = false }: AdminEmbeddablePageProps = {}) {
+  const navigate = useMappedAdminNavigate();
   const [version, setVersion] = useState(0);
   const [q, setQ] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -115,7 +115,7 @@ export default function AdminBookstorePage() {
   };
 
   return (
-    <PageShell badge="Admin" title="Bookstore" subtitle="Create, edit, publish, and expand in-depth books.">
+    <AdminWorkstationFrame embedded={embedded} kind="bookstore-workstation" badge="Admin" title="Bookstore" subtitle="Create, edit, publish, and expand in-depth books.">
       <div className={FINELY_OS_PAGE}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <button type="button" onClick={() => navigate('/admin')} className={FINELY_OS_BACK_LINK}>
@@ -143,7 +143,7 @@ export default function AdminBookstorePage() {
         </div>
 
         <div className="grid lg:grid-cols-12 gap-6">
-          <div className={`lg:col-span-4 space-y-4 ${finelyOsCatalogCard('violet')} !p-5`} data-fc-accent="violet">
+          <div className={`lg:col-span-4 space-y-4 ${finelyOsCatalogCard('violet')}`} data-fc-accent="violet">
             <div className={`flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
               <Search size={16} className="text-violet-700 shrink-0" />
               <input
@@ -183,7 +183,7 @@ export default function AdminBookstorePage() {
             />
           </div>
 
-          <div className={`lg:col-span-8 space-y-5 ${finelyOsCatalogCard('emerald')} !p-5`} data-fc-accent="emerald">
+          <div className={`lg:col-span-8 space-y-5 ${finelyOsCatalogCard('emerald')}`} data-fc-accent="emerald">
             {!draft ? (
               <div className={FINELY_OS_LUXURY_EMPTY}>Select a book to edit.</div>
             ) : (
@@ -332,8 +332,8 @@ export default function AdminBookstorePage() {
             )}
           </div>
         </div>
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
       </div>
-    </PageShell>
+    </AdminWorkstationFrame>
   );
 }

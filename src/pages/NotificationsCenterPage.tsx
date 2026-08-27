@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Bell, CheckCheck, Settings } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { PageShell } from '../components/layout/PageShell';
+import { PartnerWorkstationFrame } from '../features/workspaceLightPreview/product/partner/PartnerWorkstationFrame';
+import { useMappedAdminNavigate, useMappedPartnerNavigate } from '../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import {
   listNotifications,
   markAllRead,
@@ -13,6 +13,10 @@ import type { NotificationAudience } from '../domain/notifications';
 import { usePartnerSession } from '../auth/PartnerSessionContext';
 import { useAuth } from '../auth/AuthProvider';
 import { isAdminEmail } from '../auth/admin';
+import {
+  notificationActionPath,
+  pickHighestPriorityUnreadNotification,
+} from '../lib/notificationNavigation';
 import { buildNotificationDigest, formatDigestSummary } from '../lib/notificationDigestEngine';
 import { FinelyOsPaginatedStack } from '../features/os/FinelyOsPaginatedStack';
 import {
@@ -27,8 +31,16 @@ import {
 
 type Surface = 'admin' | 'portal';
 
-export default function NotificationsCenterPage({ surface }: { surface: Surface }) {
-  const navigate = useNavigate();
+export default function NotificationsCenterPage({
+  surface,
+  embedded = false,
+}: {
+  surface: Surface;
+  embedded?: boolean;
+}) {
+  const partnerNavigate = useMappedPartnerNavigate();
+  const adminNavigate = useMappedAdminNavigate();
+  const navigate = surface === 'admin' ? adminNavigate : partnerNavigate;
   const auth = useAuth();
   const { partner } = usePartnerSession();
   const [version, setVersion] = useState(0);
@@ -76,6 +88,8 @@ export default function NotificationsCenterPage({ surface }: { surface: Surface 
     [partner?.id, auth.user?.id, version],
   );
 
+  const mutedKinds = prefs.mutedKinds ?? [];
+
   function toggleEmailInstantMessages() {
     upsertNotificationPrefs({ ...prefs, emailInstantMessages: !prefs.emailInstantMessages });
     setVersion((v) => v + 1);
@@ -86,7 +100,19 @@ export default function NotificationsCenterPage({ surface }: { surface: Surface 
     setVersion((v) => v + 1);
   }
 
-  const mutedKinds = prefs.mutedKinds ?? [];
+  const priorityUnread = useMemo(
+    () => pickHighestPriorityUnreadNotification(items),
+    [items],
+  );
+
+  const priorityPath = priorityUnread ? notificationActionPath(priorityUnread) : undefined;
+
+  function openNotification(n: (typeof items)[number]) {
+    markNotificationRead(n.id);
+    setVersion((v) => v + 1);
+    const path = notificationActionPath(n);
+    if (path) navigate(path);
+  }
 
   function toggleMute(kind: string) {
     const next = mutedKinds.includes(kind) ? mutedKinds.filter((k) => k !== kind) : [...mutedKinds, kind];
@@ -101,17 +127,25 @@ export default function NotificationsCenterPage({ surface }: { surface: Surface 
 
   if (!canUse) {
     return (
-      <PageShell badge="Notifications" title="Notifications" subtitle="Sign in to view alerts.">
+      <PartnerWorkstationFrame
+        embedded={embedded}
+        kind="notifications-workstation"
+        badge="Notifications"
+        title="Notifications"
+        subtitle="Sign in to view alerts."
+      >
         <p className={FINELY_OS_ENTITY_BODY}>No session available for this surface.</p>
-      </PageShell>
+      </PartnerWorkstationFrame>
     );
   }
 
   return (
-    <PageShell
+    <PartnerWorkstationFrame
+      embedded={embedded}
+      kind="notifications-workstation"
       badge={surface === 'admin' ? 'Admin' : 'Portal'}
       title="Notifications Center"
-      subtitle="Task alerts, leads, purchases, trial reminders, and platform events — with digest preferences."
+      subtitle="Alerts that need you now — everything else stays out of the way."
     >
       <div className="space-y-6 max-w-3xl">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -135,21 +169,32 @@ export default function NotificationsCenterPage({ surface }: { surface: Surface 
               Unread
             </button>
             {unread > 0 ? (
-              <button
-                type="button"
-                className={FINELY_OS_SECONDARY_BTN}
-                onClick={() => {
-                  markAllRead({ partnerId: surface === 'portal' ? partner?.id : undefined, audience });
-                  setVersion((v) => v + 1);
-                }}
-              >
-                <CheckCheck size={14} className="inline mr-1" /> Mark all read
-              </button>
+              <>
+                {priorityPath ? (
+                  <button
+                    type="button"
+                    className={FINELY_OS_PRIMARY_BTN}
+                    onClick={() => priorityUnread && openNotification(priorityUnread)}
+                  >
+                    Open the item that needs you
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  className={FINELY_OS_SECONDARY_BTN}
+                  onClick={() => {
+                    markAllRead({ partnerId: surface === 'portal' ? partner?.id : undefined, audience });
+                    setVersion((v) => v + 1);
+                  }}
+                >
+                  <CheckCheck size={14} className="inline mr-1" /> Mark all read
+                </button>
+              </>
             ) : null}
           </div>
         </div>
 
-        <div className={`${finelyOsCatalogCard('sky')} !p-4`} data-fc-accent="sky">
+        <div className={`${finelyOsCatalogCard('emerald')}`} data-fc-accent="emerald">
           <div className={`text-xs ${FINELY_OS_ENTITY_SUBLABEL}`}>24h digest</div>
           <p className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>{formatDigestSummary(digest)}</p>
           {prefs.emailDigest ? (
@@ -158,7 +203,7 @@ export default function NotificationsCenterPage({ surface }: { surface: Surface 
         </div>
 
         {surface === 'portal' ? (
-          <div className={`${finelyOsCatalogCard('violet')} !p-4 space-y-3`} data-fc-accent="violet">
+          <div className={`${finelyOsCatalogCard('violet')} space-y-3`} data-fc-accent="violet">
             <div className={`flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
               <Settings size={12} /> Preferences
             </div>
@@ -231,7 +276,7 @@ export default function NotificationsCenterPage({ surface }: { surface: Surface 
           </div>
         ) : null}
 
-        <div className={`${finelyOsCatalogCard('sky')} !p-0 overflow-hidden`} data-fc-accent="sky">
+        <div className={`${finelyOsCatalogCard('sky')} overflow-hidden`} data-fc-accent="sky">
           {items.length === 0 ? (
             <div className={`p-8 text-center text-sm ${FINELY_OS_ENTITY_BODY}`}>No notifications yet.</div>
           ) : (
@@ -245,11 +290,7 @@ export default function NotificationsCenterPage({ surface }: { surface: Surface 
                 key={n.id}
                 type="button"
                 className={`w-full text-left px-5 py-4 hover:bg-black/[0.03] transition ${n.readAt ? 'opacity-55' : ''}`}
-                onClick={() => {
-                  markNotificationRead(n.id);
-                  setVersion((v) => v + 1);
-                  if (n.href) navigate(n.href);
-                }}
+                onClick={() => openNotification(n)}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -267,6 +308,6 @@ export default function NotificationsCenterPage({ surface }: { surface: Surface 
           )}
         </div>
       </div>
-    </PageShell>
+    </PartnerWorkstationFrame>
   );
 }

@@ -21,6 +21,7 @@ import {
 import { ensurePartnerEntitlementsAsync, SERVICE_ACCESS_BUNDLES, type EntitlementKey } from '../../billing/entitlements';
 import { PartnerServicesAccessCard } from './PartnerServicesAccessCard';
 import { AdminPartnerViewAsButton } from './AdminPartnerViewAsButton';
+import { AdminPartnerPreviewControls } from './AdminPartnerPreviewControls';
 import { SensitiveActionCodeGate } from './SensitiveActionCodeGate';
 import { LetterStreamStatusCard } from '../letters/LetterStreamStatusCard';
 import {
@@ -74,6 +75,7 @@ type Props = {
   partner: Partner;
   userRole?: string;
   onUpdated?: () => void;
+  focusSection?: 'invite' | 'grant';
 };
 
 function inviteFieldGuide(role: string, lane?: string): Array<{ label: string; detail: string }> {
@@ -111,7 +113,7 @@ function inviteFieldGuide(role: string, lane?: string): Array<{ label: string; d
   ];
 }
 
-export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props) {
+export function AdminPartnerAccessPanel({ partner, userRole, onUpdated, focusSection }: Props) {
   const auth = useAuth();
   const [busy, setBusy] = useState<'reset' | 'welcome' | 'access' | 'invite' | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -155,10 +157,18 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
 
   React.useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (window.location.hash !== '#admin-partner-access-panel') return;
-    const el = document.getElementById('admin-partner-access-panel');
+    const targetId =
+      focusSection === 'invite'
+        ? 'admin-partner-send-invite'
+        : focusSection === 'grant'
+          ? 'admin-partner-grant-access'
+          : window.location.hash === '#admin-partner-access-panel'
+            ? 'admin-partner-access-panel'
+            : null;
+    if (!targetId) return;
+    const el = document.getElementById(targetId);
     el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, [partner.id]);
+  }, [partner.id, focusSection]);
 
   const email = (partner.profile.email || '').trim();
   const careerRole = careerRoleForPartner(partner);
@@ -399,9 +409,10 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
   return (
     <div id="admin-partner-access-panel" className="space-y-4 scroll-mt-8">
       <PartnerSignupActivityPanel partner={partner} />
+      <AdminPartnerPreviewControls partner={partner} />
 
       {/* Access & authority — deep navy solid panel. This is the weighty "who can get in" box. */}
-      <div className={`${fcAdminCard('p-5', 'navy', 'solid')} space-y-4`}>
+      <div id="admin-partner-grant-access" className={`${fcAdminCard('p-5', 'navy', 'solid')} space-y-4 scroll-mt-8`}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex items-center gap-2">
             <Shield size={16} />
@@ -413,7 +424,7 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
           />
         </div>
         <p className={`${NAVY_BODY} text-xs`}>
-          Grant modules first (below). Invite emails and outreach live in the gold panel; approval toggles are secondary.
+          Grant modules first. Send the signup invite in the invite panel below. Approval toggles are secondary.
         </p>
 
         {staffCaps.canManagePartnerAccess ? (
@@ -586,7 +597,7 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
       </div>
 
       {/* Invite setups & signup outreach — gold panel, deliberately distinct from the navy authority box above. */}
-      <div className={`${fcAdminCard('p-5', 'gold', 'solid')} space-y-4`}>
+      <div id="admin-partner-send-invite" className={`${fcAdminCard('p-5', 'gold', 'solid')} space-y-4 scroll-mt-8`}>
         <div className="flex items-center gap-2">
           <Mail size={16} />
           <div className={GOLD_VALUE}>Invite setups & signup outreach</div>

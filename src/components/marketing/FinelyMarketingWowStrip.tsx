@@ -24,7 +24,7 @@ type Props = {
 export function FinelyMarketingWowStrip({
   chips = FINELY_WOW_CHIPS,
   title = 'Why Finely feels different',
-  subtitle = 'Live tools, fight-back debt lane, and credit-building financing — not “missing features.”',
+  subtitle = 'Live portal tools, debt validation help, and credit-building financing.',
   compact = false,
   className = '',
 }: Props) {
@@ -34,7 +34,7 @@ export function FinelyMarketingWowStrip({
 
   const resolveChipPath = (chip: FinelyWowChip) => {
     if (chip.path === '/free-guide') {
-      return resolveFinelyCtaPath('personal_free_trial', { isAuthed: Boolean(auth.user) });
+      return resolveFinelyCtaPath('personal_free_guide', { isAuthed: Boolean(auth.user) });
     }
     return chip.path;
   };

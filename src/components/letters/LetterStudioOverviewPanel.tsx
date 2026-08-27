@@ -4,7 +4,7 @@ import type { EvidenceItem } from '../../domain/evidence';
 import type { LetterRecord, LetterType } from '../../domain/letters';
 import { PartnerCreditWorkloadStrip } from '../partner/PartnerCreditWorkloadStrip';
 import { LetterStudioSavedVaultStrip } from './LetterStudioSavedVaultStrip';
-import { FINELY_OS_ENTITY_BODY, finelyOsCatalogCardCompact } from '../../features/os/finelyOsLightUi';
+import { FINELY_OS_ENTITY_BODY, FINELY_OS_ENTITY_VALUE, finelyOsCatalogCardCompact } from '../../features/os/finelyOsLightUi';
 import type { LetterStudioTrackMode } from './LetterTrackTabs';
 
 const ALL_STUDIO_LETTER_TYPES: LetterType[] = ['dispute', 'validation', 'court'];
@@ -49,8 +49,8 @@ export function LetterStudioOverviewPanel({
       {mode === 'credit' ? (
         <section className={`${finelyOsCatalogCardCompact('sky')} !p-4 space-y-3`}>
           <div>
-            <div className="text-[10px] font-black uppercase tracking-widest text-sky-200/90">Credit analysis</div>
-            <h3 className="text-base font-black text-white tracking-tight mt-0.5">What needs attention on your report</h3>
+            <div className="text-[10px] font-black uppercase tracking-widest text-sky-600">Credit analysis</div>
+            <h3 className={`text-base font-extrabold tracking-tight mt-0.5 ${FINELY_OS_ENTITY_VALUE}`}>What needs attention on your report</h3>
             <p className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>
               Negative counts, open cases, and letter progress — review here before you work in Bureaus.
             </p>
@@ -59,8 +59,8 @@ export function LetterStudioOverviewPanel({
         </section>
       ) : (
         <section className={`${finelyOsCatalogCardCompact('violet')} !p-4`}>
-          <div className="text-[10px] font-black uppercase tracking-widest text-violet-200/90">Letters overview</div>
-          <h3 className="text-base font-black text-white tracking-tight mt-0.5">All saved letters</h3>
+          <div className="text-[10px] font-black uppercase tracking-widest text-violet-600">Letters overview</div>
+          <h3 className={`text-base font-extrabold tracking-tight mt-0.5 ${FINELY_OS_ENTITY_VALUE}`}>All saved letters</h3>
           <p className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>
             Bureau disputes, validation, and court/affidavit PDFs in one place. Each work tab also keeps its own vault for letters you generate there.
           </p>

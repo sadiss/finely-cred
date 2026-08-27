@@ -34,7 +34,7 @@ export default function DebtDefensePostJudgmentPage() {
       accentWord="the end of your options."
       subtitle="Once a judgment is entered, federal law — and often broader state law — still limits how much can be garnished and protects certain income categories outright. Acting fast on an exemption claim or a motion to vacate matters. Here is the doctrine, by debt type."
       sourceNote="Sourced from Finely Cred's debt-litigation doctrine repository — real, verifiable federal and state statutes only. General legal education, not legal advice."
-      accent="fuchsia"
+      accent="rose"
       chatRoleId="dispute_coach"
       chatGoal="debt"
       chatRoleLabel="debt defense"
@@ -57,7 +57,7 @@ export default function DebtDefensePostJudgmentPage() {
         </p>
         <div className="mt-4 space-y-3">
           {playbooks.map((p, i) => (
-            <DebtLitigationPlaybookCard key={p.id} playbook={p} accent="fuchsia" defaultOpen={i === 0} />
+            <DebtLitigationPlaybookCard key={p.id} playbook={p} accent="rose" defaultOpen={i === 0} />
           ))}
         </div>
       </section>

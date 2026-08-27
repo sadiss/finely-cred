@@ -43,7 +43,7 @@ export function CommsTemplateCard({ template, active, onClick }: Props) {
           : 'border-white/10 bg-gradient-to-br from-white/[0.06] to-black/30 hover:border-white/20 hover:from-white/[0.08]'
       }`}
     >
-      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-fuchsia-500/60 via-amber-400/50 to-emerald-400/50 opacity-80" />
+      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-fuchsia-500/60 via-sky-400/50 to-emerald-400/50 opacity-80" />
       <div className="p-4 space-y-3">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
@@ -51,7 +51,7 @@ export function CommsTemplateCard({ template, active, onClick }: Props) {
               <span className={`inline-flex items-center justify-center w-8 h-8 rounded-xl border ${
                 template.channel === 'sms' ? 'border-sky-500/30 bg-sky-500/10 text-sky-300' :
                 template.channel === 'portal' ? 'border-violet-500/30 bg-violet-500/10 text-violet-300' :
-                'border-amber-500/30 bg-amber-500/10 text-amber-300'
+                'border-rose-500/30 bg-rose-500/10 text-rose-300'
               }`}>
                 <Icon size={15} />
               </span>

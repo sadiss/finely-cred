@@ -1,0 +1,114 @@
+.fc-wlp-dispute-workspace {
+  width: 100%;
+  min-width: 0;
+}
+
+.fc-wlp-dispute-workspace-embed {
+  width: 100%;
+  min-width: 0;
+}
+
+.fc-wlp-dispute-workspace-embed .finely-unified-hub-layout,
+.fc-wlp-dispute-workspace .finely-unified-hub-layout {
+  min-width: 0;
+}
+
+/* Shared scope for hub + embedded dispute workstation in light preview and live product shell */
+:is([data-fc-workspace-light-preview='1'], .fc-wlp) :is(.fc-wlp-dispute-workspace, .fc-wlp-dispute-workspace-embed) {
+  --fc-wlp-dispute-scope: 1;
+}
+
+/* ——— Light preview: blocking alert on rose wash ——— */
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-dispute-workspace, .fc-wlp-dispute-workspace-embed) .border-rose-500\/45.bg-rose-500\/15,
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-dispute-workspace, .fc-wlp-dispute-workspace-embed) [class*='border-rose-500'][class*='bg-rose-500'] {
+  color: #9f1239 !important;
+  background: rgba(255, 241, 242, 0.96) !important;
+  border-color: rgba(190, 18, 60, 0.38) !important;
+}
+
+/* ——— Light preview: embedded bureau coach (OnDutyStaffCoachHeader + HubAiCoachPanel) ——— */
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-dispute-workspace, .fc-wlp-dispute-workspace-embed) .from-violet-500\/10 {
+  background: linear-gradient(90deg, rgba(245, 241, 255, 0.96), rgba(255, 255, 255, 0.92)) !important;
+  border-color: rgba(10, 22, 40, 0.12) !important;
+}
+
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-dispute-workspace, .fc-wlp-dispute-workspace-embed) .from-violet-500\/10 .text-white,
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-dispute-workspace, .fc-wlp-dispute-workspace-embed) .from-violet-500\/10 .text-base.font-black {
+  color: #0a1628 !important;
+}
+
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-dispute-workspace, .fc-wlp-dispute-workspace-embed) .from-violet-500\/10 [class*='text-emerald-2'],
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-dispute-workspace, .fc-wlp-dispute-workspace-embed) .from-violet-500\/10 [class*='text-emerald-3'] {
+  color: #047857 !important;
+}
+
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-dispute-workspace, .fc-wlp-dispute-workspace-embed) .from-violet-500\/10 [class*='text-white/'] {
+  color: rgba(10, 22, 40, 0.78) !important;
+}
+
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-dispute-workspace, .fc-wlp-dispute-workspace-embed) span[class*='text-violet-1'][class*='bg-violet-500'],
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-dispute-workspace, .fc-wlp-dispute-workspace-embed) span[class*='border-violet-400'][class*='bg-violet-500'] {
+  color: #5b21b6 !important;
+  background: rgba(139, 92, 246, 0.16) !important;
+  border-color: rgba(91, 33, 182, 0.42) !important;
+}
+
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-dispute-workspace, .fc-wlp-dispute-workspace-embed) .border-emerald-500\/20.bg-white\/\[0\.07\] {
+  background: rgba(255, 255, 255, 0.94) !important;
+  border-color: rgba(10, 22, 40, 0.1) !important;
+}
+
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-dispute-workspace, .fc-wlp-dispute-workspace-embed) .border-emerald-500\/20 [class*='text-emerald-2'],
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-dispute-workspace, .fc-wlp-dispute-workspace-embed) .border-emerald-500\/20 [class*='text-emerald-3'] {
+  color: #047857 !important;
+}
+
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-dispute-workspace, .fc-wlp-dispute-workspace-embed) .border-emerald-500\/20 [class*='text-fuchsia-3'] {
+  color: #a21caf !important;
+}
+
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-dispute-workspace, .fc-wlp-dispute-workspace-embed) .border-emerald-500\/20 [class*='text-white/'] {
+  color: rgba(10, 22, 40, 0.78) !important;
+}
+
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-dispute-workspace, .fc-wlp-dispute-workspace-embed) .border-emerald-500\/20 .bg-emerald-500\/10,
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-dispute-workspace, .fc-wlp-dispute-workspace-embed) .border-emerald-500\/20 .bg-emerald-500\/5,
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-dispute-workspace, .fc-wlp-dispute-workspace-embed) .border-emerald-500\/20 .bg-fuchsia-500\/10,
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-dispute-workspace, .fc-wlp-dispute-workspace-embed) .border-emerald-500\/20 .bg-white\/\[0\.03\] {
+  background: rgba(10, 22, 40, 0.04) !important;
+}
+
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-dispute-workspace, .fc-wlp-dispute-workspace-embed) .border-emerald-500\/20 button {
+  font-size: 0.75rem !important;
+}
+
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-dispute-workspace, .fc-wlp-dispute-workspace-embed) .border-emerald-500\/20 button[class*='text-emerald-2'] {
+  color: #047857 !important;
+}
+
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-dispute-workspace, .fc-wlp-dispute-workspace-embed) .border-emerald-500\/20 .text-xs.font-semibold[class*='text-emerald-1'] {
+  color: #0a1628 !important;
+}
+
+/* Coach suggestion footer + partner success pills on light beds */
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-dispute-workspace, .fc-wlp-dispute-workspace-embed) [class*='text-fuchsia-3'] {
+  color: #a21caf !important;
+}
+
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-dispute-workspace, .fc-wlp-dispute-workspace-embed) [class*='text-[9px]'],
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-dispute-workspace, .fc-wlp-dispute-workspace-embed) [class*='text-[10px]'],
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-dispute-workspace, .fc-wlp-dispute-workspace-embed) [class*='text-[11px]'] {
+  font-size: 0.75rem !important;
+}
+
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-dispute-workspace, .fc-wlp-dispute-workspace-embed) button[class*='text-slate-400'] {
+  color: rgba(10, 22, 40, 0.78) !important;
+}
+
+html[data-fc-workspace-light-preview='1'] [data-surface-key='partner:disputes'] span[class*='text-violet-100'][class*='bg-violet-500'],
+html[data-fc-workspace-light-preview='1'] .fc-wlp-dispute-workspace span[class*='text-violet-100'][class*='bg-violet-500'],
+html[data-fc-workspace-light-preview='1'] .fc-wlp-dispute-workspace-embed span[class*='text-violet-100'][class*='bg-violet-500'] {
+  color: #5b21b6 !important;
+  background-color: rgba(139, 92, 246, 0.2) !important;
+  border-color: rgba(91, 33, 182, 0.45) !important;
+}

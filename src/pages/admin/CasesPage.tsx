@@ -9,6 +9,7 @@ import { useAuth } from '../../auth/AuthProvider';
 import { getAccessiblePartnerIdsForAdmin } from '../../tenancy/adminPartnerScope';
 import { bureauShortCode } from '../../utils/bureaus';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
+import { CourtListenerOpinionSearch } from '../../features/admin/CourtListenerOpinionSearch';
 import {
   FINELY_OS_PAGE,
   FINELY_OS_BACK_LINK,
@@ -77,9 +78,9 @@ export default function CasesPage() {
           </button>
         </div>
 
-        <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+        <div className={`${finelyOsCatalogCard('violet')} space-y-4`}>
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className={`flex items-center gap-3 ${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony px-3 py-2`}>
+            <div className={`flex items-center gap-3 ${finelyOsCatalogCard('sky')} fc-surface-harmony px-3 py-2`}>
               <Search size={16} className="text-violet-400 shrink-0" />
               <input
                 value={q}
@@ -100,7 +101,7 @@ export default function CasesPage() {
         </div>
 
         {cases.length === 0 ? (
-          <div className={`${finelyOsCatalogCard('violet')} !p-5 ${FINELY_OS_ENTITY_BODY}`}>
+          <div className={`${finelyOsCatalogCard('violet')} ${FINELY_OS_ENTITY_BODY}`}>
             No cases yet. Generate a bureau letter from Partner Detail → Letters to create the first case.
           </div>
         ) : (
@@ -151,6 +152,7 @@ export default function CasesPage() {
             })}
           </div>
         )}
+        <CourtListenerOpinionSearch />
         <FinelyOsPageFooter />
       </div>
     </PageShell>

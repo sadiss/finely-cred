@@ -41,7 +41,7 @@ import {
  * and this page links back to `/results` for the full numbers/funding library.
  */
 
-const GALLERY_THEME_ROTATION: BeforeAfterGraphicThemeId[] = ['emerald', 'violet', 'amber'];
+const GALLERY_THEME_ROTATION: BeforeAfterGraphicThemeId[] = ['emerald', 'violet'];
 
 const CONTENT_REF = '/results/before-after';
 
@@ -51,7 +51,7 @@ function GalleryTile({ caseStudy, themeId }: { caseStudy: CaseStudy; themeId: Be
   const delta = (caseStudy.endingScore as number) - (caseStudy.startingScore as number);
 
   return (
-    <div className={`${finelyOsCatalogCard('emerald')} !p-4 space-y-3`} data-fc-accent="emerald">
+    <div className={`${finelyOsCatalogCard(themeId === 'violet' ? 'violet' : 'emerald')} space-y-3`} data-fc-accent={themeId === 'violet' ? 'violet' : 'emerald'}>
       <BeforeAfterScoreGraphicCanvas
         ref={setCanvasEl}
         startingScore={caseStudy.startingScore as number}
@@ -115,7 +115,7 @@ export default function BeforeAfterGalleryPage() {
       subtitle="The same score-delta numbers on /results, rendered as shareable before/after graphics — at a glance."
     >
       <div className={FINELY_OS_PAGE}>
-        <div className={`space-y-3 ${finelyOsCatalogCard('violet')} !p-6`} data-fc-accent="violet">
+        <div className={`space-y-3 ${finelyOsCatalogCard('violet')}`} data-fc-accent="violet">
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-violet-300">
               <ImageIcon size={13} /> Visual proof gallery
@@ -129,17 +129,17 @@ export default function BeforeAfterGalleryPage() {
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <div className={`${finelyOsCatalogCard('emerald')} !p-4`} data-fc-accent="emerald">
+          <div className={`${finelyOsCatalogCard('emerald')}`} data-fc-accent="emerald">
             <div className={FINELY_OS_ENTITY_SUBLABEL}>Graphics shown</div>
             <div className={`mt-1 text-2xl font-bold ${FINELY_OS_ENTITY_TITLE}`}>{scoreDeltaStudies.length}</div>
           </div>
-          <div className={`${finelyOsCatalogCard('sky')} !p-4`} data-fc-accent="sky">
+          <div className={`${finelyOsCatalogCard('sky')}`} data-fc-accent="sky">
             <div className={FINELY_OS_ENTITY_SUBLABEL}>Avg score lift shown</div>
             <div className={`mt-1 text-2xl font-bold ${FINELY_OS_ENTITY_TITLE}`}>
               {stats.avgScoreLift != null ? `+${stats.avgScoreLift}` : '—'}
             </div>
           </div>
-          <div className={`${finelyOsCatalogCard('amber')} !p-4 sm:col-span-2 lg:col-span-2`} data-fc-accent="amber">
+          <div className={`${finelyOsCatalogCard('rose')} sm:col-span-2 lg:col-span-2`} data-fc-accent="rose">
             <div className={FINELY_OS_ENTITY_SUBLABEL}>Source</div>
             <div className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>
               Rendered live from <code className="text-white/80">caseStudiesRepo.ts</code> — the same repository behind{' '}
@@ -160,12 +160,12 @@ export default function BeforeAfterGalleryPage() {
             ))}
           </div>
         ) : (
-          <div className={`${finelyOsCatalogCard('rose')} !p-6`}>
+          <div className={`${finelyOsCatalogCard('rose')}`} data-fc-accent="rose">
             <p className={FINELY_OS_ENTITY_BODY}>No score-delta case studies are documented yet.</p>
           </div>
         )}
 
-        <div className={`${finelyOsLeadMagnetPanel('sky')} !p-6`} data-fc-accent="sky">
+        <div className={`${finelyOsLeadMagnetPanel('sky')}`} data-fc-accent="sky">
           <div className="flex items-start gap-2">
             <Layers size={16} className="mt-0.5 shrink-0 text-sky-300" />
             <div className={FINELY_OS_ENTITY_SUBLABEL}>Want funding numbers too?</div>

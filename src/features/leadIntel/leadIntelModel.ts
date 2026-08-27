@@ -43,19 +43,19 @@ export type LeadIntelTemplate = { label: string; target: ProspectTarget; query: 
 
 export const LEAD_INTEL_TEMPLATES: LeadIntelTemplate[] = [
   {
-    label: 'Customers • Business credit readiness (US)',
+    label: 'Partners • Business credit readiness (US)',
     target: 'clients',
     query: 'business credit help funding readiness consult',
     location: 'United States',
   },
   {
-    label: 'Customers • Credit repair demand (US)',
+    label: 'Partners • Credit repair demand (US)',
     target: 'clients',
     query: 'fix my credit help credit repair consultation',
     location: 'United States',
   },
   {
-    label: 'Customers • Free guide / signup intent',
+    label: 'Partners • Free guide / signup intent',
     target: 'clients',
     query: 'free credit dispute letter guide download email',
     location: 'United States',
@@ -91,7 +91,7 @@ export const LEAD_INTEL_TEMPLATES: LeadIntelTemplate[] = [
     location: 'United States',
   },
   {
-    label: 'Customers • Metro2 / bureau dispute help',
+    label: 'Partners • Metro2 / bureau dispute help',
     target: 'clients',
     query: 'credit bureau dispute letter help inaccurate reporting',
     location: 'United States',

@@ -1,0 +1,1053 @@
+/**
+ * P2 page sweep — live `.fc-wlp` product shell embed scope.
+ * Mirrors workspaceLightPreview.css recipes for transferred dashboard/workstation pages
+ * without requiring `[data-fc-workspace-light-preview="1"]`.
+ * Scoped under `.fc-wlp` + embed markers — never public marketing.
+ */
+
+/* ——— Embed scope marker ——— */
+.fc-wlp-embed-scope {
+  min-width: 0;
+}
+
+/* ——— Kill glass blur stacks inside product shell ——— */
+.fc-wlp :is(
+  .fc-wlp-embed-scope,
+  [data-surface-kind],
+  .fc-wlp-module-primary,
+  [class*='-workspace-embed']
+) :is(
+  .fc-light-glass-panel,
+  .fc-light-chrome-panel,
+  .fc-luxury-glass,
+  .fc-pop-surface,
+  .fc-spotlight-panel
+) {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* ——— Accent card recipe: partner-home / partner-profile luxury glass (not white water-wash) ——— */
+.fc-wlp {
+  --fc-wlp-card-accent: 167, 139, 250;
+}
+
+.fc-wlp .fc-accent-card:not([data-fc-kpi-surface='light']):not(.fc-partner-hub-glow-tile):not([class*='fc-admin-solid-']):not(.fc-admin-ink-panel):not(.fc-wl-kpi):not(.fc-wlp-kpi):not(.fc-wlp-metric):not(.fc-wlp-signal) {
+  border-width: 2px !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: linear-gradient(165deg, rgba(46, 16, 72, 0.88) 0%, rgba(8, 14, 24, 0.92) 100%) !important;
+  border-color: rgba(167, 139, 250, 0.58) !important;
+  box-shadow: 0 0 32px -12px rgba(167, 139, 250, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+.fc-wlp .fc-accent-card[class*='border-emerald'] { --fc-wlp-card-accent: 52, 211, 153; }
+.fc-wlp .fc-accent-card[class*='border-violet'] { --fc-wlp-card-accent: 167, 139, 250; }
+.fc-wlp .fc-accent-card:is([class*='border-sky'], [class*='border-cyan']) { --fc-wlp-card-accent: 56, 189, 248; }
+.fc-wlp .fc-accent-card[class*='border-fuchsia'] { --fc-wlp-card-accent: 232, 121, 249; }
+.fc-wlp .fc-accent-card[class*='border-rose'] { --fc-wlp-card-accent: 251, 113, 133; }
+/* Amber is button metal only — borrow violet for card fills */
+.fc-wlp .fc-accent-card[class*='border-amber'] { --fc-wlp-card-accent: 167, 139, 250; }
+
+.fc-wlp [data-fc-accent='emerald'].fc-accent-card,
+.fc-wlp [data-accent='emerald'].fc-accent-card {
+  --fc-wlp-card-accent: 52, 211, 153;
+}
+.fc-wlp [data-fc-accent='violet'].fc-accent-card,
+.fc-wlp [data-accent='violet'].fc-accent-card {
+  --fc-wlp-card-accent: 167, 139, 250;
+}
+.fc-wlp [data-fc-accent='sky'].fc-accent-card,
+.fc-wlp [data-accent='sky'].fc-accent-card {
+  --fc-wlp-card-accent: 56, 189, 248;
+}
+.fc-wlp [data-fc-accent='fuchsia'].fc-accent-card,
+.fc-wlp [data-accent='fuchsia'].fc-accent-card {
+  --fc-wlp-card-accent: 232, 121, 249;
+}
+.fc-wlp [data-fc-accent='rose'].fc-accent-card,
+.fc-wlp [data-accent='rose'].fc-accent-card {
+  --fc-wlp-card-accent: 251, 113, 133;
+}
+
+/* Beat index.css light-theme glass + ivory water-wash inside product shell */
+html[data-fc-theme='light'] .fc-wlp .fc-accent-card:not([data-fc-kpi-surface='light']):not(.fc-partner-hub-glow-tile):not([class*='fc-admin-solid-']):not(.fc-admin-ink-panel):not(.fc-wlp-kpi):not(.fc-wlp-metric):not(.fc-wlp-signal)[class*='border-emerald'],
+html[data-fc-theme='light'] .fc-wlp [data-accent='emerald'].fc-accent-card:not([class*='fc-admin-solid-']),
+html[data-fc-theme='light'] .fc-wlp [data-fc-accent='emerald'].fc-accent-card:not([class*='fc-admin-solid-']) {
+  background: linear-gradient(165deg, rgba(4, 56, 42, 0.94) 0%, rgba(8, 14, 24, 0.92) 100%) !important;
+  border-color: rgba(52, 211, 153, 0.58) !important;
+  box-shadow: 0 0 36px -10px rgba(52, 211, 153, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp .fc-accent-card:not([data-fc-kpi-surface='light']):not(.fc-partner-hub-glow-tile):not([class*='fc-admin-solid-']):not(.fc-admin-ink-panel):not(.fc-wlp-kpi):not(.fc-wlp-metric):not(.fc-wlp-signal)[class*='border-violet'],
+html[data-fc-theme='light'] .fc-wlp [data-accent='violet'].fc-accent-card:not([class*='fc-admin-solid-']),
+html[data-fc-theme='light'] .fc-wlp [data-fc-accent='violet'].fc-accent-card:not([class*='fc-admin-solid-']) {
+  background: linear-gradient(165deg, rgba(52, 18, 82, 0.94) 0%, rgba(8, 14, 24, 0.92) 100%) !important;
+  border-color: rgba(167, 139, 250, 0.58) !important;
+  box-shadow: 0 0 36px -10px rgba(167, 139, 250, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp .fc-accent-card:not([data-fc-kpi-surface='light']):not(.fc-partner-hub-glow-tile):not([class*='fc-admin-solid-']):not(.fc-admin-ink-panel):not(.fc-wlp-kpi):not(.fc-wlp-metric):not(.fc-wlp-signal)[class*='border-sky'],
+html[data-fc-theme='light'] .fc-wlp .fc-accent-card:not([data-fc-kpi-surface='light']):not(.fc-partner-hub-glow-tile):not([class*='fc-admin-solid-']):not(.fc-admin-ink-panel):not(.fc-wlp-kpi):not(.fc-wlp-metric):not(.fc-wlp-signal)[class*='border-cyan'],
+html[data-fc-theme='light'] .fc-wlp [data-accent='sky'].fc-accent-card:not([class*='fc-admin-solid-']),
+html[data-fc-theme='light'] .fc-wlp [data-fc-accent='sky'].fc-accent-card:not([class*='fc-admin-solid-']) {
+  background: linear-gradient(165deg, rgba(8, 52, 82, 0.94) 0%, rgba(8, 14, 24, 0.92) 100%) !important;
+  border-color: rgba(56, 189, 248, 0.58) !important;
+  box-shadow: 0 0 36px -10px rgba(56, 189, 248, 0.46), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp .fc-accent-card:not([data-fc-kpi-surface='light']):not(.fc-partner-hub-glow-tile):not([class*='fc-admin-solid-']):not(.fc-admin-ink-panel):not(.fc-wlp-kpi):not(.fc-wlp-metric):not(.fc-wlp-signal)[class*='border-fuchsia'],
+html[data-fc-theme='light'] .fc-wlp [data-accent='fuchsia'].fc-accent-card:not([class*='fc-admin-solid-']),
+html[data-fc-theme='light'] .fc-wlp [data-fc-accent='fuchsia'].fc-accent-card:not([class*='fc-admin-solid-']) {
+  background: linear-gradient(165deg, rgba(82, 8, 88, 0.94) 0%, rgba(8, 14, 24, 0.92) 100%) !important;
+  border-color: rgba(232, 121, 249, 0.58) !important;
+  box-shadow: 0 0 36px -10px rgba(217, 70, 239, 0.46), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp .fc-accent-card:not([data-fc-kpi-surface='light']):not(.fc-partner-hub-glow-tile):not([class*='fc-admin-solid-']):not(.fc-admin-ink-panel):not(.fc-wlp-kpi):not(.fc-wlp-metric):not(.fc-wlp-signal)[class*='border-rose'],
+html[data-fc-theme='light'] .fc-wlp [data-accent='rose'].fc-accent-card:not([class*='fc-admin-solid-']),
+html[data-fc-theme='light'] .fc-wlp [data-fc-accent='rose'].fc-accent-card:not([class*='fc-admin-solid-']) {
+  background: linear-gradient(165deg, rgba(88, 12, 32, 0.94) 0%, rgba(8, 14, 24, 0.92) 100%) !important;
+  border-color: rgba(251, 113, 133, 0.58) !important;
+  box-shadow: 0 0 36px -10px rgba(244, 63, 94, 0.44), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp .fc-accent-card:not([data-fc-kpi-surface='light']):not(.fc-partner-hub-glow-tile):not([class*='fc-admin-solid-']):not(.fc-admin-ink-panel):not(.fc-wlp-kpi):not(.fc-wlp-metric):not(.fc-wlp-signal)[class*='border-amber'] {
+  background: linear-gradient(165deg, rgba(52, 18, 82, 0.94) 0%, rgba(8, 14, 24, 0.92) 100%) !important;
+  border-color: rgba(167, 139, 250, 0.58) !important;
+  box-shadow: 0 0 36px -10px rgba(167, 139, 250, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+/* ——— Light-readable ink on light cards (not luxury glass, buttons, or links) ——— */
+html[data-fc-theme='light'] .fc-wlp .fc-light-readable:not(.fc-accent-card):not(.fc-luxury-glass) :is(h1, h2, h3, h4, h5, h6, .text-white, .text-white\/90, .text-white\/85):not(button):not(a):not(.fc-premium-chart-card *):not(.fc-wlp-kpi *):not(.fc-wlp-metric[data-bed='dark'] *):not([data-bed='dark'] *) {
+  color: #0a1628 !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp .fc-light-readable:not(.fc-accent-card):not(.fc-luxury-glass) :is(.text-white\/80, .text-white\/75, .text-white\/70):not(button):not(a):not([data-bed='dark'] *) {
+  color: rgba(10, 22, 40, 0.76) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp .fc-light-readable:not(.fc-accent-card):not(.fc-luxury-glass) :is(.text-white\/65, .text-white\/60, .text-white\/55, .text-white\/50, .text-white\/45, .text-white\/40, .text-white\/35):not(button):not(a):not([data-bed='dark'] *) {
+  color: rgba(10, 22, 40, 0.78) !important;
+}
+
+/* Vault / workstation surfaces inside product shell — light site only */
+html[data-fc-theme='light'] .fc-wlp :is(
+  [data-surface-kind='letters-studio'],
+  [data-surface-kind='letters-vault'],
+  [data-surface-kind='evidence-vault'],
+  [data-surface-kind='documents-vault'],
+  [data-surface-kind='reports-workstation'],
+  [data-surface-kind='real'],
+  .fc-wlp-debt-workspace,
+  .fc-wlp-debt-workspace-embed,
+  .fc-wlp-dispute-workspace,
+  .fc-wlp-dispute-workspace-embed,
+  .fc-wlp-bankruptcy-workspace-embed
+) :is(h1, h2, h3, h4, h5, h6, .text-white, .text-white\/90, .text-white\/85):not(button):not(a):not(label.from-emerald-700):not(.fc-premium-chart-card *):not(.fc-wlp-kpi *):not(.fc-wlp-metric[data-bed='dark'] *):not([data-bed='dark'] *) {
+  color: #0a1628 !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp :is(
+  [data-surface-kind='letters-studio'],
+  [data-surface-kind='letters-vault'],
+  [data-surface-kind='evidence-vault'],
+  [data-surface-kind='documents-vault'],
+  [data-surface-kind='reports-workstation'],
+  [data-surface-kind='real'],
+  .fc-wlp-debt-workspace,
+  .fc-wlp-debt-workspace-embed,
+  .fc-wlp-dispute-workspace,
+  .fc-wlp-dispute-workspace-embed,
+  .fc-wlp-bankruptcy-workspace-embed
+) :is(.text-white\/80, .text-white\/75, .text-white\/70):not(button):not(a):not([data-bed='dark'] *):not(.fc-premium-chart-card *) {
+  color: rgba(10, 22, 40, 0.76) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp :is(
+  [data-surface-kind='letters-studio'],
+  [data-surface-kind='letters-vault'],
+  [data-surface-kind='evidence-vault'],
+  [data-surface-kind='documents-vault'],
+  [data-surface-kind='reports-workstation'],
+  [data-surface-kind='real'],
+  .fc-wlp-debt-workspace,
+  .fc-wlp-debt-workspace-embed,
+  .fc-wlp-dispute-workspace,
+  .fc-wlp-dispute-workspace-embed,
+  .fc-wlp-bankruptcy-workspace-embed
+) :is(.text-white\/65, .text-white\/60, .text-white\/55, .text-white\/50, .text-white\/45, .text-white\/40, .text-white\/35):not(button):not(a):not([data-bed='dark'] *):not(.fc-premium-chart-card *) {
+  color: rgba(10, 22, 40, 0.78) !important;
+}
+
+/* ——— Embed scope: all embedded workstations — theme ink ——— */
+html[data-fc-theme='light'] .fc-wlp :is(
+  .fc-wlp-embed-scope,
+  [class*='-workspace-embed']
+) :is(
+  h1, h2, h3, h4, h5, h6,
+  .text-white,
+  .text-white\/90,
+  .text-white\/85,
+  .text-white\/80,
+  .text-white\/75
+):not(button):not(a):not(label):not(.fc-premium-chart-card *):not(.fc-wlp-kpi *):not(.fc-wlp-metric[data-bed='dark'] *):not([data-bed='dark'] *) {
+  color: var(--wlp-ink, #0a1628) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp :is(.fc-wlp-embed-scope, [class*='-workspace-embed']) :is(
+  .text-white\/70,
+  .text-white\/65,
+  .text-white\/60,
+  .text-white\/55,
+  .text-white\/50,
+  .text-white\/45,
+  .text-white\/40,
+  .text-white\/35
+):not(button):not(a):not([data-bed='dark'] *) {
+  color: var(--wlp-muted, rgba(10, 22, 40, 0.76)) !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp :is(
+  .fc-wlp-embed-scope,
+  [data-surface-kind],
+  [class*='-workspace-embed']
+) :is(
+  h1, h2, h3, h4, h5, h6,
+  .text-white,
+  .text-white\/90,
+  .text-white\/85,
+  .text-white\/80,
+  .text-white\/75
+):not(button):not(a):not(label):not([data-bed='light'] *):not(.fc-wlp-kpi[data-bed='light'] *) {
+  color: var(--wlp-ink, #f1f5f9) !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp :is(.fc-wlp-embed-scope, [class*='-workspace-embed']) :is(
+  .text-white\/70,
+  .text-white\/65,
+  .text-white\/60,
+  .text-white\/55,
+  .text-white\/50,
+  .text-white\/45,
+  .text-white\/40,
+  .text-white\/35
+):not(button):not(a):not([data-bed='light'] *) {
+  color: var(--wlp-muted, #cbd5e1) !important;
+}
+
+/* ——— Pale ivory / champagne shells → tinted product cards ——— */
+html[data-fc-theme='light'] .fc-wlp :is(.fc-wlp-embed-scope, [data-surface-kind], .fc-wlp-module-primary) :is(
+  .fc-landing-wealthy-ivory,
+  .fc-landing-ivory-card,
+  .fc-light-mesh-section
+) {
+  border-color: rgba(167, 139, 250, 0.58) !important;
+  background: linear-gradient(165deg, rgba(52, 18, 82, 0.94) 0%, rgba(8, 14, 24, 0.92) 100%) !important;
+  color: #f1f5f9 !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp :is(.fc-wlp-embed-scope, [data-surface-kind], .fc-wlp-module-primary) .fc-landing-ivory-card :is(h1, h2, h3, h4, .font-bold, .font-semibold),
+html[data-fc-theme='light'] .fc-wlp :is(.fc-wlp-embed-scope, [data-surface-kind], .fc-wlp-module-primary) .fc-landing-wealthy-ivory :is(h1, h2, h3) {
+  color: rgba(255, 255, 255, 0.96) !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp :is(.fc-wlp-embed-scope, [data-surface-kind], .fc-wlp-module-primary) :is(
+  .fc-landing-wealthy-ivory,
+  .fc-landing-ivory-card,
+  .fc-light-mesh-section
+) {
+  border-color: rgba(139, 92, 246, 0.28) !important;
+  background:
+    radial-gradient(880px 260px at 4% 0%, rgba(139, 92, 246, 0.14) 0%, transparent 58%),
+    var(--wlp-panel, #101722) !important;
+  color: var(--wlp-ink, #f1f5f9) !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp :is(.fc-wlp-embed-scope, [data-surface-kind], .fc-wlp-module-primary) .fc-landing-ivory-card :is(h1, h2, h3, h4, .font-bold, .font-semibold),
+html[data-fc-theme='dark'] .fc-wlp :is(.fc-wlp-embed-scope, [data-surface-kind], .fc-wlp-module-primary) .fc-landing-wealthy-ivory :is(h1, h2, h3) {
+  color: var(--wlp-ink, #f1f5f9) !important;
+}
+
+/* Empty states + chrome panels (FINELY_OS_LUXURY_EMPTY) */
+html[data-fc-theme='light'] .fc-wlp :is(.fc-wlp-embed-scope, [data-surface-kind], .fc-wlp-module-primary) .fc-light-chrome-panel,
+html[data-fc-theme='light'] .fc-wlp :is(.fc-wlp-embed-scope, [data-surface-kind], .fc-wlp-module-primary) .fc-light-glass-panel {
+  border: 2px solid rgba(139, 92, 246, 0.32) !important;
+  background:
+    radial-gradient(circle at 100% 0, rgba(139, 92, 246, 0.18), transparent 38%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(139, 92, 246, 0.1)) !important;
+  color: var(--wlp-ink, #0a1628) !important;
+  box-shadow: 0 22px 38px -32px rgba(10, 22, 39, 0.55) !important;
+}
+
+/* Rotate accent on sibling chrome panels */
+html[data-fc-theme='light'] .fc-wlp :is(.fc-wlp-embed-scope, [data-surface-kind], .fc-wlp-module-primary) .fc-light-chrome-panel:nth-of-type(4n + 2),
+html[data-fc-theme='light'] .fc-wlp :is(.fc-wlp-embed-scope, [data-surface-kind], .fc-wlp-module-primary) .fc-light-glass-panel:nth-of-type(4n + 2) {
+  border-color: rgba(16, 185, 129, 0.34) !important;
+  background:
+    radial-gradient(circle at 100% 0, rgba(16, 185, 129, 0.18), transparent 38%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(16, 185, 129, 0.1)) !important;
+  box-shadow: 0 22px 38px -32px rgba(10, 22, 39, 0.55) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp :is(.fc-wlp-embed-scope, [data-surface-kind], .fc-wlp-module-primary) .fc-light-chrome-panel:nth-of-type(4n + 3),
+html[data-fc-theme='light'] .fc-wlp :is(.fc-wlp-embed-scope, [data-surface-kind], .fc-wlp-module-primary) .fc-light-glass-panel:nth-of-type(4n + 3) {
+  border-color: rgba(14, 165, 233, 0.34) !important;
+  background:
+    radial-gradient(circle at 100% 0, rgba(14, 165, 233, 0.18), transparent 38%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(14, 165, 233, 0.1)) !important;
+  box-shadow: 0 22px 38px -32px rgba(10, 22, 39, 0.55) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp :is(.fc-wlp-embed-scope, [data-surface-kind], .fc-wlp-module-primary) .fc-light-chrome-panel:nth-of-type(4n + 4),
+html[data-fc-theme='light'] .fc-wlp :is(.fc-wlp-embed-scope, [data-surface-kind], .fc-wlp-module-primary) .fc-light-glass-panel:nth-of-type(4n + 4) {
+  border-color: rgba(244, 63, 94, 0.32) !important;
+  background:
+    radial-gradient(circle at 100% 0, rgba(244, 63, 94, 0.16), transparent 38%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(244, 63, 94, 0.08)) !important;
+  box-shadow: 0 22px 38px -32px rgba(10, 22, 39, 0.55) !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp :is(.fc-wlp-embed-scope, [data-surface-kind], .fc-wlp-module-primary) .fc-light-chrome-panel:nth-of-type(4n + 2),
+html[data-fc-theme='dark'] .fc-wlp :is(.fc-wlp-embed-scope, [data-surface-kind], .fc-wlp-module-primary) .fc-light-glass-panel:nth-of-type(4n + 2) {
+  border-color: rgba(16, 185, 129, 0.32) !important;
+  background:
+    radial-gradient(720px 240px at 8% 0%, rgba(16, 185, 129, 0.14) 0%, transparent 58%),
+    var(--wlp-panel, #101722) !important;
+  box-shadow: 0 14px 40px -24px rgba(16, 185, 129, 0.28) !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp :is(.fc-wlp-embed-scope, [data-surface-kind], .fc-wlp-module-primary) .fc-light-chrome-panel:nth-of-type(4n + 3),
+html[data-fc-theme='dark'] .fc-wlp :is(.fc-wlp-embed-scope, [data-surface-kind], .fc-wlp-module-primary) .fc-light-glass-panel:nth-of-type(4n + 3) {
+  border-color: rgba(14, 165, 233, 0.32) !important;
+  background:
+    radial-gradient(720px 240px at 8% 0%, rgba(14, 165, 233, 0.14) 0%, transparent 58%),
+    var(--wlp-panel, #101722) !important;
+  box-shadow: 0 14px 40px -24px rgba(14, 165, 233, 0.28) !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp :is(.fc-wlp-embed-scope, [data-surface-kind], .fc-wlp-module-primary) .fc-light-chrome-panel:nth-of-type(4n + 4),
+html[data-fc-theme='dark'] .fc-wlp :is(.fc-wlp-embed-scope, [data-surface-kind], .fc-wlp-module-primary) .fc-light-glass-panel:nth-of-type(4n + 4) {
+  border-color: rgba(244, 63, 94, 0.32) !important;
+  background:
+    radial-gradient(720px 240px at 8% 0%, rgba(244, 63, 94, 0.12) 0%, transparent 58%),
+    var(--wlp-panel, #101722) !important;
+  box-shadow: 0 14px 40px -24px rgba(244, 63, 94, 0.26) !important;
+}
+
+/* ——— Ghost rows: bg-white/[0.03] and bg-black/30 — theme-aware beds ——— */
+html[data-fc-theme='light'] .fc-wlp :is(.fc-wlp-embed-scope, [data-surface-kind], .fc-wlp-module-primary, [class*='-workspace-embed']) :is(
+  [class*='bg-white/\\[0\\.03\\]'],
+  [class*='bg-white/\\[0\\.04\\]'],
+  [class*='bg-white/\\[0\\.05\\]'],
+  [class*='bg-white/\\[0\\.06\\]'],
+  [class*='bg-white/\\[0\\.07\\]']
+) {
+  background: rgba(10, 22, 40, 0.04) !important;
+  border-color: rgba(10, 22, 40, 0.1) !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp :is(.fc-wlp-embed-scope, [data-surface-kind], .fc-wlp-module-primary, [class*='-workspace-embed']) :is(
+  [class*='bg-white/\\[0\\.03\\]'],
+  [class*='bg-white/\\[0\\.04\\]'],
+  [class*='bg-white/\\[0\\.05\\]'],
+  [class*='bg-white/\\[0\\.06\\]'],
+  [class*='bg-white/\\[0\\.07\\]']
+) {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp :is(.fc-wlp-embed-scope, [data-surface-kind], .fc-wlp-module-primary, [class*='-workspace-embed']) :is(
+  .bg-black\/30,
+  .bg-black\/35,
+  [class*='bg-black/30'],
+  [class*='bg-black/35']
+) {
+  background: rgba(255, 255, 255, 0.88) !important;
+  color: var(--wlp-ink, #0a1628) !important;
+  border-color: rgba(10, 22, 40, 0.12) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp :is(.fc-wlp-embed-scope, [data-surface-kind], .fc-wlp-module-primary, [class*='-workspace-embed']) .bg-black\/30 :is(input, textarea, select),
+html[data-fc-theme='light'] .fc-wlp :is(.fc-wlp-embed-scope, [data-surface-kind], .fc-wlp-module-primary, [class*='-workspace-embed']) .bg-black\/35 :is(input, textarea, select) {
+  color: var(--wlp-ink, #0a1628) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp :is(.fc-wlp-embed-scope, [data-surface-kind], .fc-wlp-module-primary, [class*='-workspace-embed']) .bg-black\/30 input::placeholder,
+html[data-fc-theme='light'] .fc-wlp :is(.fc-wlp-embed-scope, [data-surface-kind], .fc-wlp-module-primary, [class*='-workspace-embed']) .bg-black\/35 input::placeholder {
+  color: rgba(10, 22, 40, 0.48) !important;
+}
+
+/* ——— Unified hub content tray ——— */
+.fc-wlp .fc-unified-hub-content {
+  background: #ffffff !important;
+  border: 1.5px solid rgba(10, 22, 40, 0.14) !important;
+  border-radius: 1rem !important;
+  backdrop-filter: none !important;
+  box-shadow: 0 12px 40px -24px rgba(10, 22, 40, 0.14) !important;
+}
+
+/* ——— Tab strips: visible chips, accent rotation ——— */
+.fc-wlp .fc-view-tabs {
+  background: rgba(10, 22, 40, 0.05) !important;
+  border: 1px solid rgba(10, 22, 40, 0.12) !important;
+}
+
+.fc-wlp .fc-view-tabs > button:not([aria-selected='true']),
+.fc-wlp .fc-view-tabs > button[aria-selected='false'] {
+  --fc-wlp-tab-accent: 16, 185, 129;
+  --fc-wlp-tab-ink: 4, 120, 87;
+  background: rgba(var(--fc-wlp-tab-accent), 0.2) !important;
+  border: 1.5px solid rgba(var(--fc-wlp-tab-accent), 0.5) !important;
+  color: rgb(var(--fc-wlp-tab-ink)) !important;
+}
+
+.fc-wlp .fc-view-tabs > button:nth-of-type(4n + 2) { --fc-wlp-tab-accent: 139, 92, 246; --fc-wlp-tab-ink: 109, 40, 217; }
+.fc-wlp .fc-view-tabs > button:nth-of-type(4n + 3) { --fc-wlp-tab-accent: 14, 165, 233; --fc-wlp-tab-ink: 3, 105, 161; }
+.fc-wlp .fc-view-tabs > button:nth-of-type(4n + 4) { --fc-wlp-tab-accent: 217, 70, 239; --fc-wlp-tab-ink: 162, 28, 175; }
+
+.fc-wlp [data-fc-hub-tab] {
+  --fc-wlp-tab-accent: 16, 185, 129;
+  --fc-wlp-tab-ink: 4, 120, 87;
+  background: rgba(var(--fc-wlp-tab-accent), 0.26) !important;
+  border: 1.5px solid rgba(var(--fc-wlp-tab-accent), 0.65) !important;
+  color: rgb(var(--fc-wlp-tab-ink)) !important;
+  font-weight: 800;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7) !important;
+}
+
+.fc-wlp [data-fc-hub-tab]:nth-of-type(4n + 2) { --fc-wlp-tab-accent: 139, 92, 246; --fc-wlp-tab-ink: 109, 40, 217; }
+.fc-wlp [data-fc-hub-tab]:nth-of-type(4n + 3) { --fc-wlp-tab-accent: 14, 165, 233; --fc-wlp-tab-ink: 3, 105, 161; }
+.fc-wlp [data-fc-hub-tab]:nth-of-type(4n + 4) { --fc-wlp-tab-accent: 217, 70, 239; --fc-wlp-tab-ink: 162, 28, 175; }
+
+.fc-wlp [data-fc-hub-tab]:not([aria-selected='true']) * {
+  color: rgb(var(--fc-wlp-tab-ink)) !important;
+}
+
+.fc-wlp [aria-selected='true'][data-fc-hub-tab],
+.fc-wlp .fc-view-tabs > button[aria-selected='true'] {
+  --fc-wlp-tab-ink: 4, 120, 87;
+  border-color: rgba(var(--fc-wlp-tab-ink), 0.55) !important;
+  background-image: linear-gradient(150deg, rgb(var(--fc-wlp-tab-ink)) 0%, rgba(var(--fc-wlp-tab-ink), 0.88) 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 12px 24px -14px rgba(var(--fc-wlp-tab-ink), 0.55) !important;
+}
+
+.fc-wlp [aria-selected='true'][data-fc-hub-tab]:nth-of-type(4n + 2),
+.fc-wlp .fc-view-tabs > button[aria-selected='true']:nth-of-type(4n + 2) { --fc-wlp-tab-ink: 109, 40, 217; }
+.fc-wlp [aria-selected='true'][data-fc-hub-tab]:nth-of-type(4n + 3),
+.fc-wlp .fc-view-tabs > button[aria-selected='true']:nth-of-type(4n + 3) { --fc-wlp-tab-ink: 3, 105, 161; }
+.fc-wlp [aria-selected='true'][data-fc-hub-tab]:nth-of-type(4n + 4),
+.fc-wlp .fc-view-tabs > button[aria-selected='true']:nth-of-type(4n + 4) { --fc-wlp-tab-ink: 162, 28, 175; }
+
+.fc-wlp [aria-selected='true'][data-fc-hub-tab],
+.fc-wlp [aria-selected='true'][data-fc-hub-tab] *,
+.fc-wlp .fc-view-tabs > button[aria-selected='true'],
+.fc-wlp .fc-view-tabs > button[aria-selected='true'] * {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp .fc-view-tabs button[aria-selected='true'][class*='from-emerald'],
+html[data-fc-theme='light'] .fc-wlp .fc-view-tabs button[aria-selected='true'][class*='from-violet'],
+html[data-fc-theme='light'] .fc-wlp .fc-view-tabs button[aria-selected='true'][class*='from-sky'],
+html[data-fc-theme='light'] .fc-wlp .fc-view-tabs button[aria-selected='true'][class*='from-fuchsia'],
+html[data-fc-theme='light'] .fc-wlp .fc-view-tabs button[aria-selected='true'][class*='from-rose'] {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+/* Dark theme: idle tabs were inheriting light ink on a dark bed — lift contrast */
+html[data-fc-theme='dark'] .fc-wlp .fc-view-tabs {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp .fc-view-tabs > button:not([aria-selected='true']),
+html[data-fc-theme='dark'] .fc-wlp .fc-view-tabs > button[aria-selected='false'] {
+  --fc-wlp-tab-ink: 110, 231, 183;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1.5px solid rgba(var(--fc-wlp-tab-accent), 0.55) !important;
+  color: rgb(var(--fc-wlp-tab-accent)) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp .fc-view-tabs > button:nth-of-type(4n + 2):not([aria-selected='true']) {
+  --fc-wlp-tab-accent: 167, 139, 250;
+}
+html[data-fc-theme='dark'] .fc-wlp .fc-view-tabs > button:nth-of-type(4n + 3):not([aria-selected='true']) {
+  --fc-wlp-tab-accent: 56, 189, 248;
+}
+html[data-fc-theme='dark'] .fc-wlp .fc-view-tabs > button:nth-of-type(4n + 4):not([aria-selected='true']) {
+  --fc-wlp-tab-accent: 232, 121, 249;
+}
+
+html[data-fc-theme='dark'] .fc-wlp [data-fc-hub-tab]:not([aria-selected='true']) {
+  --fc-wlp-tab-accent: 52, 211, 153;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1.5px solid rgba(var(--fc-wlp-tab-accent), 0.55) !important;
+  color: rgb(var(--fc-wlp-tab-accent)) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp [data-fc-hub-tab]:not([aria-selected='true']) * {
+  color: rgb(var(--fc-wlp-tab-accent)) !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp .fc-view-tab-idle {
+  border-color: rgba(255, 255, 255, 0.22) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #e2e8f0 !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp .fc-view-tab-idle:hover {
+  border-color: rgba(255, 255, 255, 0.38) !important;
+  background: rgba(255, 255, 255, 0.16) !important;
+  color: #f8fafc !important;
+}
+
+/* ——— Accent ink on colored labels inside workstations (light site) ——— */
+html[data-fc-theme='light'] .fc-wlp :is(.fc-wlp-embed-scope, [data-surface-kind], .fc-wlp-module-primary) :is(.text-emerald-300, .text-emerald-200, .text-emerald-100) {
+  color: #065f46 !important;
+}
+
+/* Luxury glass cards — light ink on the dark partner-home/profile recipe */
+html[data-fc-theme='light'] .fc-wlp .fc-accent-card:not([data-fc-kpi-surface='light']):not(.fc-partner-hub-glow-tile):not([class*='fc-admin-solid-']):not(.fc-wlp-kpi):not(.fc-wlp-metric):not(.fc-wlp-signal) :is(
+  h1, h2, h3, h4, h5, h6,
+  .text-white,
+  .text-white\/90,
+  .text-white\/85,
+  .text-white\/80,
+  .text-white\/75,
+  .font-semibold,
+  .font-bold,
+  .font-extrabold
+):not(button):not(a):not(.fc-premium-chart-card *) {
+  color: rgba(255, 255, 255, 0.96) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp .fc-accent-card:not([data-fc-kpi-surface='light']):not(.fc-partner-hub-glow-tile):not([class*='fc-admin-solid-']):not(.fc-wlp-kpi):not(.fc-wlp-metric):not(.fc-wlp-signal) :is(
+  p,
+  .text-sm,
+  .text-xs,
+  .text-white\/70,
+  .text-white\/65,
+  .text-white\/60,
+  .text-white\/55,
+  .text-white\/50
+):not(button):not(a) {
+  color: rgba(255, 255, 255, 0.78) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp .fc-accent-card .text-fuchsia-100 {
+  color: #f0abfc !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp .fc-accent-card .text-emerald-200 {
+  color: #6ee7b7 !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp .fc-accent-card .text-rose-200 {
+  color: #fda4af !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp :is(.fc-wlp-embed-scope, [data-surface-kind], .fc-wlp-module-primary) :is(.text-violet-300, .text-violet-200, .text-violet-100) {
+  color: #6d28d9 !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp :is(.fc-wlp-embed-scope, [data-surface-kind], .fc-wlp-module-primary) :is(.text-sky-300, .text-sky-200, .text-cyan-300) {
+  color: #0369a1 !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp :is(.fc-wlp-embed-scope, [data-surface-kind], .fc-wlp-module-primary) :is(.text-fuchsia-300, .text-fuchsia-200) {
+  color: #a21caf !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp :is(.fc-wlp-embed-scope, [data-surface-kind], .fc-wlp-module-primary) :is(.text-rose-100, .text-rose-200) {
+  color: #9f1239 !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp :is(.fc-wlp-embed-scope, [data-surface-kind], .fc-wlp-module-primary) :is(.text-emerald-300, .text-emerald-200) {
+  color: #6ee7b7 !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp :is(.fc-wlp-embed-scope, [data-surface-kind], .fc-wlp-module-primary) :is(.text-violet-300, .text-violet-200) {
+  color: #c4b5fd !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp :is(.fc-wlp-embed-scope, [data-surface-kind], .fc-wlp-module-primary) :is(.text-sky-300, .text-sky-200, .text-cyan-300) {
+  color: #7dd3fc !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp :is(.fc-wlp-embed-scope, [data-surface-kind], .fc-wlp-module-primary) :is(.text-fuchsia-300, .text-fuchsia-200) {
+  color: #e879f9 !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp :is(.fc-wlp-embed-scope, [data-surface-kind], .fc-wlp-module-primary) :is(.text-rose-100, .text-rose-200) {
+  color: #fda4af !important;
+}
+
+/* ——— Dark theme: keep dark glass panels readable ——— */
+html[data-fc-theme='dark'] .fc-wlp .fc-accent-card:not([data-fc-kpi-surface='light']):not(.fc-partner-hub-glow-tile):not([class*='fc-admin-solid-']):not(.fc-admin-ink-panel):not(.fc-wlp-kpi):not(.fc-wlp-metric) {
+  background:
+    radial-gradient(920px 340px at 8% 0%, rgba(var(--fc-wlp-card-accent), 0.18) 0%, transparent 58%),
+    radial-gradient(680px 280px at 96% 100%, rgba(var(--fc-wlp-card-accent), 0.08) 0%, transparent 54%),
+    var(--wlp-panel, #101722) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 0 0 1px rgba(var(--fc-wlp-card-accent), 0.22),
+    0 18px 44px -26px rgba(var(--fc-wlp-card-accent), 0.35) !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp .fc-light-readable :is(h1, h2, h3, h4, h5, h6, .text-white):not(button):not(a):not(.fc-premium-chart-card *) {
+  color: var(--wlp-ink, #f1f5f9) !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp .fc-light-readable :is(.text-white\/80, .text-white\/75, .text-white\/70, .text-white\/65, .text-white\/60, .text-white\/55):not(button):not(a) {
+  color: var(--wlp-muted, #cbd5e1) !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp :is(.fc-wlp-embed-scope, [data-surface-kind], .fc-wlp-module-primary) .fc-light-chrome-panel,
+html[data-fc-theme='dark'] .fc-wlp :is(.fc-wlp-embed-scope, [data-surface-kind], .fc-wlp-module-primary) .fc-light-glass-panel {
+  background:
+    radial-gradient(720px 240px at 8% 0%, rgba(var(--fc-wlp-card-accent), 0.14) 0%, transparent 58%),
+    var(--wlp-panel, #101722) !important;
+  color: var(--wlp-ink, #f1f5f9) !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp .fc-unified-hub-content {
+  background: var(--wlp-panel, #101722) !important;
+  border-color: var(--wlp-border, #2a3240) !important;
+  color: var(--wlp-ink, #f1f5f9) !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp :is(.fc-wlp-embed-scope, [data-surface-kind], .fc-wlp-module-primary, [class*='-workspace-embed']) :is(
+  .bg-black\/30,
+  .bg-black\/35,
+  [class*='bg-black/30'],
+  [class*='bg-black/35']
+) {
+  background: rgba(15, 23, 35, 0.92) !important;
+  color: var(--wlp-ink, #f1f5f9) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* ——— Dispute / debt embedded coach + alert washes ——— */
+html[data-fc-theme='light'] .fc-wlp :is(.fc-wlp-dispute-workspace, .fc-wlp-dispute-workspace-embed, .fc-wlp-debt-workspace, .fc-wlp-debt-workspace-embed) .border-rose-500\/45.bg-rose-500\/15,
+html[data-fc-theme='light'] .fc-wlp :is(.fc-wlp-dispute-workspace, .fc-wlp-dispute-workspace-embed) [class*='border-rose-500'][class*='bg-rose-500'] {
+  color: #9f1239 !important;
+  background: rgba(255, 241, 242, 0.96) !important;
+  border-color: rgba(190, 18, 60, 0.38) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp :is(.fc-wlp-dispute-workspace, .fc-wlp-dispute-workspace-embed, .fc-wlp-debt-workspace, .fc-wlp-debt-workspace-embed) .from-violet-500\/10 {
+  background: linear-gradient(90deg, rgba(245, 241, 255, 0.96), rgba(255, 255, 255, 0.92)) !important;
+  border-color: rgba(10, 22, 40, 0.12) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp :is(.fc-wlp-dispute-workspace, .fc-wlp-dispute-workspace-embed, .fc-wlp-debt-workspace, .fc-wlp-debt-workspace-embed) .border-emerald-500\/20.bg-white\/\[0\.07\] {
+  background: rgba(255, 255, 255, 0.94) !important;
+  border-color: rgba(10, 22, 40, 0.1) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp :is(.fc-wlp-dispute-workspace, .fc-wlp-dispute-workspace-embed, .fc-wlp-debt-workspace, .fc-wlp-debt-workspace-embed) .border-emerald-500\/20 .bg-white\/\[0\.03\] {
+  background: rgba(10, 22, 40, 0.04) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp :is(.fc-wlp-dispute-workspace, .fc-wlp-dispute-workspace-embed, .fc-wlp-debt-workspace, .fc-wlp-debt-workspace-embed) .border-emerald-400\/25.bg-black\/30 {
+  background: linear-gradient(145deg, rgba(236, 253, 245, 0.92), rgba(240, 249, 255, 0.88)) !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp :is(.fc-wlp-dispute-workspace, .fc-wlp-dispute-workspace-embed, .fc-wlp-debt-workspace, .fc-wlp-debt-workspace-embed) .border-rose-500\/45.bg-rose-500\/15,
+html[data-fc-theme='dark'] .fc-wlp :is(.fc-wlp-dispute-workspace, .fc-wlp-dispute-workspace-embed) [class*='border-rose-500'][class*='bg-rose-500'] {
+  color: #fecdd3 !important;
+  background: rgba(159, 18, 57, 0.28) !important;
+  border-color: rgba(244, 63, 94, 0.42) !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp :is(.fc-wlp-dispute-workspace, .fc-wlp-dispute-workspace-embed, .fc-wlp-debt-workspace, .fc-wlp-debt-workspace-embed) .from-violet-500\/10 {
+  background: linear-gradient(90deg, rgba(76, 29, 149, 0.35), rgba(16, 23, 34, 0.92)) !important;
+  border-color: rgba(167, 139, 250, 0.28) !important;
+  color: var(--wlp-ink, #f1f5f9) !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp :is(.fc-wlp-dispute-workspace, .fc-wlp-dispute-workspace-embed, .fc-wlp-debt-workspace, .fc-wlp-debt-workspace-embed) .border-emerald-500\/20.bg-white\/\[0\.07\] {
+  background: rgba(16, 23, 34, 0.92) !important;
+  border-color: rgba(52, 211, 153, 0.28) !important;
+  color: var(--wlp-ink, #f1f5f9) !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp :is(.fc-wlp-dispute-workspace, .fc-wlp-dispute-workspace-embed, .fc-wlp-debt-workspace, .fc-wlp-debt-workspace-embed) .border-emerald-400\/25.bg-black\/30 {
+  background: linear-gradient(145deg, rgba(6, 78, 59, 0.42), rgba(15, 23, 34, 0.94)) !important;
+  border-color: rgba(52, 211, 153, 0.32) !important;
+  color: var(--wlp-ink, #f1f5f9) !important;
+}
+
+/* Platinum buttons on light workstation beds */
+html[data-fc-theme='light'] .fc-wlp :is([data-surface-kind='reports-workstation'], [data-surface-kind='letters-studio']) .fc-button-platinum,
+html[data-fc-theme='light'] .fc-wlp :is([data-surface-kind='reports-workstation'], [data-surface-kind='letters-studio']) .fc-button-platinum-surface,
+html[data-fc-theme='light'] .fc-wlp :is([data-surface-kind='reports-workstation'], [data-surface-kind='letters-studio']) .fc-unified-hub-shell button.fc-button-platinum {
+  color: var(--wlp-ink, #0a1628) !important;
+  border-color: rgba(10, 22, 40, 0.16) !important;
+  background: linear-gradient(145deg, #f8fafc 0%, #e2e8f0 100%) !important;
+  box-shadow: 0 10px 24px -18px rgba(10, 22, 40, 0.28) !important;
+}
+
+.fc-wlp .fc-button-soft {
+  color: #38206d !important;
+  border-color: rgba(109, 40, 217, 0.26) !important;
+  background:
+    radial-gradient(circle at 86% 12%, rgba(255, 255, 255, 0.72), transparent 26%),
+    linear-gradient(140deg, #f4efff 0%, #e7ddfb 52%, #d9eef8 100%) !important;
+  box-shadow: 0 14px 30px -22px rgba(91, 47, 171, 0.55) !important;
+}
+
+.fc-wlp .fc-wlp-light-notice {
+  color: #4c1d95 !important;
+  border-color: rgba(139, 92, 246, 0.3) !important;
+  background: linear-gradient(135deg, rgba(245, 241, 255, 0.98), rgba(248, 217, 229, 0.76)) !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp .fc-wlp-light-notice {
+  color: #e9d5ff !important;
+  border-color: rgba(167, 139, 250, 0.35) !important;
+  background: linear-gradient(135deg, rgba(76, 29, 149, 0.35), rgba(30, 27, 75, 0.65)) !important;
+}
+
+/* Report tradeline rows — pale ghost rows on light bed */
+html[data-fc-theme='light'] .fc-wlp :is([data-surface-kind='reports-workstation'], [data-surface-kind='strategy-reports']) .border-white\/10.bg-white\/\[0\.03\] {
+  border-color: rgba(14, 165, 233, 0.22) !important;
+  background:
+    radial-gradient(640px 200px at 0% 0%, rgba(14, 165, 233, 0.1) 0%, transparent 58%),
+    #ffffff !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp :is([data-surface-kind='reports-workstation'], [data-surface-kind='strategy-reports']) .border-white\/10.bg-white\/\[0\.03\] .text-white {
+  color: var(--wlp-ink, #0a1628) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp :is([data-surface-kind='reports-workstation'], [data-surface-kind='strategy-reports']) .border-rose-400\/30.bg-rose-500\/5 {
+  border-color: rgba(190, 18, 60, 0.32) !important;
+  background: rgba(255, 241, 242, 0.96) !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp :is([data-surface-kind='reports-workstation'], [data-surface-kind='strategy-reports']) .border-white\/10.bg-white\/\[0\.03\] {
+  border-color: rgba(14, 165, 233, 0.35) !important;
+  background:
+    radial-gradient(640px 200px at 0% 0%, rgba(14, 165, 233, 0.12) 0%, transparent 58%),
+    var(--wlp-panel, #101722) !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp :is([data-surface-kind='reports-workstation'], [data-surface-kind='strategy-reports']) .border-white\/10.bg-white\/\[0\.03\] :is(.text-white, .text-white\/85, .text-white\/70) {
+  color: var(--wlp-ink, #f1f5f9) !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp :is([data-surface-kind='reports-workstation'], [data-surface-kind='strategy-reports']) .border-rose-400\/30.bg-rose-500\/5 {
+  border-color: rgba(244, 63, 94, 0.38) !important;
+  background: rgba(159, 18, 57, 0.22) !important;
+  color: #fecdd3 !important;
+}
+
+/* Leftover hub workstations — rotate accent on hub KPI siblings */
+.fc-wlp :is(
+  [data-surface-kind='education-workstation'],
+  [data-surface-kind='my-tasks-workstation'],
+  [data-surface-kind='affiliate-hub-workstation'],
+  [data-surface-kind='case-help-hub-workstation'],
+  [data-surface-kind='real-estate-hub-workstation'],
+  [data-surface-kind='au-seller-hub-workstation'],
+  [data-surface-kind='library-workstation'],
+  [data-surface-kind='templates-workstation'],
+  [data-surface-kind='barter-workstation'],
+  [data-surface-kind='hos-hub-workstation']
+) .fc-accent-card:nth-of-type(4n + 1) { --fc-wlp-card-accent: 16, 185, 129; }
+.fc-wlp :is(
+  [data-surface-kind='education-workstation'],
+  [data-surface-kind='my-tasks-workstation'],
+  [data-surface-kind='affiliate-hub-workstation'],
+  [data-surface-kind='case-help-hub-workstation'],
+  [data-surface-kind='real-estate-hub-workstation'],
+  [data-surface-kind='au-seller-hub-workstation'],
+  [data-surface-kind='library-workstation'],
+  [data-surface-kind='templates-workstation'],
+  [data-surface-kind='barter-workstation'],
+  [data-surface-kind='hos-hub-workstation']
+) .fc-accent-card:nth-of-type(4n + 2) { --fc-wlp-card-accent: 139, 92, 246; }
+.fc-wlp :is(
+  [data-surface-kind='education-workstation'],
+  [data-surface-kind='my-tasks-workstation'],
+  [data-surface-kind='affiliate-hub-workstation'],
+  [data-surface-kind='case-help-hub-workstation'],
+  [data-surface-kind='real-estate-hub-workstation'],
+  [data-surface-kind='au-seller-hub-workstation'],
+  [data-surface-kind='library-workstation'],
+  [data-surface-kind='templates-workstation'],
+  [data-surface-kind='barter-workstation'],
+  [data-surface-kind='hos-hub-workstation']
+) .fc-accent-card:nth-of-type(4n + 3) { --fc-wlp-card-accent: 14, 165, 233; }
+.fc-wlp :is(
+  [data-surface-kind='education-workstation'],
+  [data-surface-kind='my-tasks-workstation'],
+  [data-surface-kind='affiliate-hub-workstation'],
+  [data-surface-kind='case-help-hub-workstation'],
+  [data-surface-kind='real-estate-hub-workstation'],
+  [data-surface-kind='au-seller-hub-workstation'],
+  [data-surface-kind='library-workstation'],
+  [data-surface-kind='templates-workstation'],
+  [data-surface-kind='barter-workstation'],
+  [data-surface-kind='hos-hub-workstation']
+) .fc-accent-card:nth-of-type(4n + 4) { --fc-wlp-card-accent: 244, 63, 94; }
+
+/* ——— Credit Intel inner rows (reports tab embed) ——— */
+html[data-fc-theme='light'] .fc-wlp [data-fc-credit-intel='1'] .bg-white\/\[0\.03\],
+html[data-fc-theme='light'] .fc-wlp [data-fc-credit-intel='1'] .hover\:bg-white\/\[0\.04\]:hover,
+html[data-fc-theme='light'] .fc-wlp [data-fc-credit-intel='1'] .hover\:bg-white\/\[0\.03\]:hover {
+  background: rgba(14, 165, 233, 0.08) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp [data-fc-credit-intel='1'] .border-white\/10.bg-white\/\[0\.03\] {
+  border-color: rgba(14, 165, 233, 0.22) !important;
+  background:
+    radial-gradient(640px 200px at 0% 0%, rgba(14, 165, 233, 0.1) 0%, transparent 58%),
+    #ffffff !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp [data-fc-credit-intel='1'] .border-white\/10 {
+  border-color: rgba(10, 22, 40, 0.12) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp [data-fc-credit-intel='1'] .bg-black\/20,
+html[data-fc-theme='light'] .fc-wlp [data-fc-credit-intel='1'] .bg-black\/20 li {
+  background: rgba(255, 255, 255, 0.92) !important;
+  border-color: rgba(10, 22, 40, 0.1) !important;
+  color: var(--wlp-ink, #0a1628) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp [data-fc-credit-intel='1'] .fc-soft-surface,
+html[data-fc-theme='light'] .fc-wlp [data-fc-credit-intel='1'] .fc-soft-surface.bg-white\/\[0\.06\] {
+  border: 2px solid rgba(167, 139, 250, 0.58) !important;
+  background: linear-gradient(165deg, rgba(52, 18, 82, 0.94) 0%, rgba(8, 14, 24, 0.92) 100%) !important;
+  color: #f1f5f9 !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp [data-fc-credit-intel='1'] .fc-light-glass-panel.fc-light-chrome-panel {
+  border: 2px solid rgba(52, 211, 153, 0.58) !important;
+  background: linear-gradient(165deg, rgba(4, 56, 42, 0.94) 0%, rgba(8, 14, 24, 0.92) 100%) !important;
+  color: #f1f5f9 !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp [data-fc-credit-intel='1'] .fc-light-glass-panel.fc-light-chrome-panel:nth-of-type(4n + 2) {
+  border-color: rgba(167, 139, 250, 0.58) !important;
+  background: linear-gradient(165deg, rgba(52, 18, 82, 0.94) 0%, rgba(8, 14, 24, 0.92) 100%) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp [data-fc-credit-intel='1'] .fc-light-glass-panel.fc-light-chrome-panel:nth-of-type(4n + 3) {
+  border-color: rgba(56, 189, 248, 0.58) !important;
+  background: linear-gradient(165deg, rgba(8, 52, 82, 0.94) 0%, rgba(8, 14, 24, 0.92) 100%) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp [data-fc-credit-intel='1'] .fc-light-glass-panel.fc-light-chrome-panel:nth-of-type(4n + 4) {
+  border-color: rgba(251, 113, 133, 0.58) !important;
+  background: linear-gradient(165deg, rgba(88, 12, 32, 0.94) 0%, rgba(8, 14, 24, 0.92) 100%) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp [data-fc-credit-intel='1'] :is(.fc-soft-surface, .fc-light-glass-panel, .fc-accent-card) :is(.text-white, .text-white\/85, .text-white\/70, .text-white\/60, .text-white\/40, h1, h2, h3, .font-bold):not(button):not(a) {
+  color: rgba(255, 255, 255, 0.96) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp [data-fc-credit-intel='1'] :is(.text-white\/80, .text-white\/75, .text-white\/65, .text-white\/55, .text-white\/50, .text-white\/45):not(button):not(a):not([data-bed='dark'] *) {
+  color: rgba(10, 22, 40, 0.78) !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp [data-fc-credit-intel='1'] .border-white\/10.bg-white\/\[0\.03\] {
+  background: var(--wlp-panel, #101722) !important;
+  border-color: rgba(14, 165, 233, 0.35) !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp [data-fc-credit-intel='1'] :is(.text-white, .text-white\/85, .text-white\/70):not(button):not(a) {
+  color: var(--wlp-ink, #f1f5f9) !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp [data-fc-credit-intel='1'] .fc-light-glass-panel.fc-light-chrome-panel {
+  background:
+    radial-gradient(560px 180px at 0% 0%, rgba(16, 185, 129, 0.14) 0%, transparent 58%),
+    var(--wlp-panel, #101722) !important;
+  color: var(--wlp-ink, #f1f5f9) !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp [data-fc-credit-intel='1'] .bg-white\/\[0\.03\],
+html[data-fc-theme='dark'] .fc-wlp [data-fc-credit-intel='1'] .hover\:bg-white\/\[0\.04\]:hover,
+html[data-fc-theme='dark'] .fc-wlp [data-fc-credit-intel='1'] .hover\:bg-white\/\[0\.03\]:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp [data-fc-credit-intel='1'] .border-white\/10 {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp [data-fc-credit-intel='1'] .bg-black\/20,
+html[data-fc-theme='dark'] .fc-wlp [data-fc-credit-intel='1'] .bg-black\/20 li {
+  background: rgba(15, 23, 35, 0.92) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: var(--wlp-ink, #f1f5f9) !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp [data-fc-credit-intel='1'] .fc-soft-surface,
+html[data-fc-theme='dark'] .fc-wlp [data-fc-credit-intel='1'] .fc-soft-surface.bg-white\/\[0\.06\] {
+  border-color: rgba(139, 92, 246, 0.32) !important;
+  background:
+    radial-gradient(560px 180px at 0% 0%, rgba(139, 92, 246, 0.14) 0%, transparent 58%),
+    var(--wlp-panel, #101722) !important;
+  color: var(--wlp-ink, #f1f5f9) !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp [data-fc-credit-intel='1'] :is(.text-white\/80, .text-white\/75, .text-white\/65, .text-white\/55, .text-white\/50):not(button):not(a) {
+  color: var(--wlp-muted, #cbd5e1) !important;
+}
+
+/* Leftover workstation ivory / white slabs inside product shell */
+html[data-fc-theme='light'] .fc-wlp .fc-wlp-embed-scope :is(.bg-white, .bg-slate-50, .bg-gray-50, .bg-neutral-50):not(button):not(input):not(textarea):not(select) {
+  background-color: #ffffff !important;
+  background-image: radial-gradient(880px 280px at 6% 0%, rgba(139, 92, 246, 0.12) 0%, transparent 58%) !important;
+  border-color: rgba(109, 40, 217, 0.22);
+  color: var(--wlp-ink, #0a1628);
+}
+
+html[data-fc-theme='light'] .fc-wlp .fc-wlp-embed-scope :is(.bg-white, .bg-slate-50, .bg-gray-50, .bg-neutral-50) :is(
+  .text-white,
+  .text-white\/90,
+  .text-white\/85,
+  .text-white\/80,
+  .text-white\/75,
+  .text-white\/70
+):not(button):not(a):not([data-bed='dark'] *) {
+  color: var(--wlp-ink, #0a1628) !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp .fc-wlp-embed-scope :is(.bg-white, .bg-slate-50, .bg-gray-50, .bg-neutral-50):not(button):not(input):not(textarea):not(select) {
+  background-color: var(--wlp-panel, #101722) !important;
+  background-image: radial-gradient(880px 280px at 6% 0%, rgba(139, 92, 246, 0.18) 0%, transparent 58%) !important;
+  border-color: rgba(139, 92, 246, 0.22);
+  color: var(--wlp-ink, #f1f5f9);
+}
+
+html[data-fc-theme='dark'] .fc-wlp .fc-wlp-embed-scope :is(.bg-white, .bg-slate-50, .bg-gray-50, .bg-neutral-50) :is(
+  .text-white,
+  .text-white\/90,
+  .text-white\/85,
+  .text-white\/80,
+  .text-white\/75,
+  .text-white\/70
+):not(button):not(a):not([data-bed='light'] *) {
+  color: var(--wlp-ink, #f1f5f9) !important;
+}
+
+/* ——— Letters studio + vault in product shell (mirror partnerVaultWorkspace preview fixes) ——— */
+.fc-wlp :is([data-surface-kind='letters-studio'], [data-surface-kind='letters-vault']) [data-fc-partner-vault-workspace='1'] .fc-vault-eyebrow,
+.fc-wlp [data-fc-partner-vault-workspace='1'][data-fc-partner-vault-surface='light'] .fc-vault-eyebrow {
+  color: #065f46 !important;
+}
+
+.fc-wlp [data-fc-partner-vault-workspace='1'][data-fc-partner-vault-surface='light'] :is(
+  .fc-vault-title,
+  .fc-vault-section-title,
+  .fc-vault-ledger-title,
+  .fc-vault-value,
+  .fc-vault-stat-value,
+  .fc-vault-callout-title
+) {
+  color: #0a1628 !important;
+}
+
+.fc-wlp [data-fc-partner-vault-workspace='1'][data-fc-partner-vault-surface='light'] :is(.fc-vault-body, .fc-vault-sublabel) {
+  color: rgba(10, 22, 40, 0.78) !important;
+}
+
+.fc-wlp [data-fc-partner-vault-workspace='1'] .fc-view-tabs button:not([class*='from-emerald-6']):not([class*='from-violet-6']):not([class*='from-sky-6']):not([class*='from-fuchsia-6']):not([class*='from-rose-6']) {
+  color: rgba(10, 22, 40, 0.82) !important;
+}
+
+.fc-wlp :is(
+  [data-surface-kind='letters-studio'],
+  [data-surface-kind='letters-vault'],
+  [data-fc-partner-vault-workspace='1']
+) .fc-view-tabs button[class*='from-emerald-6'],
+.fc-wlp :is(
+  [data-surface-kind='letters-studio'],
+  [data-surface-kind='letters-vault'],
+  [data-fc-partner-vault-workspace='1']
+) .fc-view-tabs button[class*='from-violet-6'],
+.fc-wlp :is(
+  [data-surface-kind='letters-studio'],
+  [data-surface-kind='letters-vault'],
+  [data-fc-partner-vault-workspace='1']
+) .fc-view-tabs button[class*='from-sky-6'],
+.fc-wlp :is(
+  [data-surface-kind='letters-studio'],
+  [data-surface-kind='letters-vault'],
+  [data-fc-partner-vault-workspace='1']
+) .fc-view-tabs button[class*='from-fuchsia-6'],
+.fc-wlp :is(
+  [data-surface-kind='letters-studio'],
+  [data-surface-kind='letters-vault'],
+  [data-fc-partner-vault-workspace='1']
+) .fc-view-tabs button[class*='from-rose-6'],
+.fc-wlp :is(
+  [data-surface-kind='letters-studio'],
+  [data-surface-kind='letters-vault'],
+  [data-fc-partner-vault-workspace='1']
+) .fc-light-chrome-strip.fc-view-tabs button.text-white[class*='from-emerald-6'],
+.fc-wlp :is(
+  [data-surface-kind='letters-studio'],
+  [data-surface-kind='letters-vault'],
+  [data-fc-partner-vault-workspace='1']
+) .fc-light-chrome-strip.fc-view-tabs button.text-white[class*='from-violet-6'],
+.fc-wlp :is(
+  [data-surface-kind='letters-studio'],
+  [data-surface-kind='letters-vault'],
+  [data-fc-partner-vault-workspace='1']
+) .fc-light-chrome-strip.fc-view-tabs button.text-white[class*='from-sky-6'],
+.fc-wlp :is(
+  [data-surface-kind='letters-studio'],
+  [data-surface-kind='letters-vault'],
+  [data-fc-partner-vault-workspace='1']
+) .fc-light-chrome-strip.fc-view-tabs button.text-white[class*='from-fuchsia-6'],
+.fc-wlp :is(
+  [data-surface-kind='letters-studio'],
+  [data-surface-kind='letters-vault'],
+  [data-fc-partner-vault-workspace='1']
+) .fc-light-chrome-strip.fc-view-tabs button.text-white[class*='from-rose-6'] {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.fc-wlp :is(
+  [data-surface-kind='letters-studio'],
+  [data-surface-kind='letters-vault'],
+  [data-fc-partner-vault-workspace='1']
+) button[class*='from-emerald-7'],
+.fc-wlp :is(
+  [data-surface-kind='letters-studio'],
+  [data-surface-kind='letters-vault'],
+  [data-fc-partner-vault-workspace='1']
+) button[class*='from-emerald-6'][class*='to-teal'] {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+/* Beat index.css ivory-shell `.fc-accent-card .text-white` → dark ink on gradient CTAs */
+.fc-wlp .fc-accent-card button.text-white[class*='from-emerald-7'],
+.fc-wlp .fc-accent-card button.text-white[class*='from-emerald-6'],
+.fc-wlp .fc-accent-card button.text-white[class*='from-violet-6'],
+.fc-wlp .fc-accent-card button.text-white[class*='from-sky-6'],
+.fc-wlp .fc-accent-card button.text-white[class*='from-fuchsia-6'],
+.fc-wlp .fc-accent-card button.text-white[class*='from-rose-6'],
+.fc-wlp .fc-accent-card button.bg-gradient-to-r[class*='from-emerald-7'],
+.fc-wlp [data-fc-partner-vault-workspace='1'] button.text-white[class*='from-emerald-7'],
+.fc-wlp [data-surface-kind='letters-studio'] button.text-white[class*='from-emerald-7'],
+.fc-wlp [data-surface-kind='letters-vault'] button.text-white[class*='from-emerald-7'] {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}

@@ -30,9 +30,11 @@ export function FinelyOsGlassPanel({
   className = '',
   children,
 }: FinelyOsGlassPanelProps) {
-  const catalogAccent = (accent === 'rose' ? 'fuchsia' : accent) as 'violet' | 'emerald' | 'sky' | 'amber' | 'fuchsia';
-  const shell = `${finelyOsCatalogCard(catalogAccent)} ${variant === 'inner' ? '!p-4 fc-surface-harmony' : variant === 'catalog' ? '!p-5' : '!p-6'}`;
-  const badgeAccent = iconAccent ?? (accent as FinelyOsIconAccent);
+  const catalogAccent = (
+    accent === 'rose' ? 'fuchsia' : accent === 'amber' ? 'violet' : accent
+  ) as 'violet' | 'emerald' | 'sky' | 'fuchsia';
+  const shell = `${finelyOsCatalogCard(catalogAccent)} ${variant === 'inner' ? 'fc-surface-harmony' : ''}`;
+  const badgeAccent = (iconAccent ?? (accent === 'amber' ? 'violet' : accent)) as FinelyOsIconAccent;
 
   return (
     <section className={`fc-light-black-scope ${shell} ${className}`.trim()} data-fc-accent={accent}>

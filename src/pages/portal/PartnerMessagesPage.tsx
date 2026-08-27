@@ -90,9 +90,9 @@ export default function PartnerMessagesPage() {
               subtitle="Paired with Calendar for booking and video sessions."
               accent="fuchsia"
               kpis={[
-                { label: 'Lane', value: (partner.lane ?? 'client').replace(/_/g, ' '), hint: 'Your path', accent: 'violet' },
+                { label: 'Lane', value: partner.lane ? partner.lane.replace(/_/g, ' ') : 'Partner', hint: 'Your path', accent: 'violet' },
                 { label: 'Stage', value: partner.journeyStage ?? 'intake', hint: 'Journey', accent: 'emerald' },
-                { label: 'Mode', value: isSpecialist ? 'Specialist' : 'Customer', hint: 'Portal role', accent: 'amber' },
+                { label: 'Mode', value: isSpecialist ? 'Specialist' : 'Partner', hint: 'Portal role', accent: 'rose' },
                 { label: 'Tab', value: hubTab, hint: 'Active panel', accent: 'sky' },
               ]}
               tabs={[
@@ -113,7 +113,7 @@ export default function PartnerMessagesPage() {
             {isSpecialist ? (
               <FinelyOsAlertBanner
                 tone="info"
-                message={`${CS.supportThreadSubject} — pinned for Credit Specialists. Customer threads stay separate in Team chat.`}
+                message={`${CS.supportThreadSubject} — pinned for Credit Specialists. Partner threads stay separate in Team chat.`}
               />
             ) : null}
 

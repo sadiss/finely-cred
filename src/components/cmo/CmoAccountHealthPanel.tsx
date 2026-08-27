@@ -21,7 +21,7 @@ export function CmoAccountHealthPanel() {
     <section className="fc-panel p-5 space-y-5">
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.28em] text-amber-200/70">Account intelligence</p>
+          <p className="text-xs uppercase tracking-[0.28em] text-violet-200/70">Account intelligence</p>
           <h2 className="text-2xl font-semibold text-white">CMO Account Health</h2>
           <p className="mt-1 text-sm text-slate-300">Find broken auth, weak velocity, missing lead paths, and compliance blocks before they cost money.</p>
         </div>
@@ -38,7 +38,7 @@ export function CmoAccountHealthPanel() {
                 <p className="text-xs uppercase tracking-[0.2em] text-slate-400">{report.platform}</p>
                 <h3 className="mt-1 text-lg font-semibold text-white">Health score {report.healthScore}</h3>
               </div>
-              <span className="rounded-full border border-amber-300/20 bg-amber-300/10 px-3 py-1 text-xs text-amber-100">{report.checkedAt.slice(0, 10)}</span>
+              <span className="rounded-full border border-violet-300/20 bg-violet-300/10 px-3 py-1 text-xs text-violet-100">{report.checkedAt.slice(0, 10)}</span>
             </div>
             {report.warnings.length ? (
               <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-slate-300">
@@ -46,7 +46,7 @@ export function CmoAccountHealthPanel() {
               </ul>
             ) : <p className="mt-3 text-sm text-slate-300">No warnings. Keep feeding the machine.</p>}
             {report.recommendedActions.length ? (
-              <p className="mt-3 text-sm text-amber-100">Next: {report.recommendedActions[0]}</p>
+              <p className="mt-3 text-sm text-violet-100">Next: {report.recommendedActions[0]}</p>
             ) : null}
           </article>
         ))}

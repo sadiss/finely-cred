@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, Search, ShieldAlert, Trash2 } from 'lucide-react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { useLocation } from 'react-router-dom';
+import { PartnerWorkstationFrame, type PartnerEmbeddablePageProps } from '../../features/workspaceLightPreview/product/partner/PartnerWorkstationFrame';
+import { useMappedPartnerNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import type { Partner } from '../../domain/partners';
 import { listPartners } from '../../data/partnersRepo';
 import { ADMIN_PARTNER_OVERRIDE_KEY } from '../../portal/getOrCreatePartnerForSession';
@@ -19,10 +20,10 @@ import {
   finelyOsCatalogCard,
 } from '../../features/os/finelyOsLightUi';
 
-const SELECT_ACCENTS = ['emerald', 'sky', 'violet', 'amber', 'fuchsia'] as const;
+const SELECT_ACCENTS = ['emerald', 'sky', 'violet', 'rose'] as const;
 
-export default function PortalPartnerSelectPage() {
-  const navigate = useNavigate();
+export default function PortalPartnerSelectPage({ embedded = false }: PartnerEmbeddablePageProps = {}) {
+  const navigate = useMappedPartnerNavigate();
   const location = useLocation();
   const auth = useAuth();
 
@@ -80,7 +81,7 @@ export default function PortalPartnerSelectPage() {
   }, []);
 
   return (
-    <PageShell
+    <PartnerWorkstationFrame embedded={embedded} kind="select-partner-workstation"
       badge="Partner Portal"
       title="Select partner context"
       subtitle="You're signed in as an admin. Pick a partner profile to view the Partner Portal modules (letters, reports, evidence, debt workflows)."
@@ -153,8 +154,8 @@ export default function PortalPartnerSelectPage() {
           />
         </div>
 
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
       </div>
-    </PageShell>
+    </PartnerWorkstationFrame>
   );
 }

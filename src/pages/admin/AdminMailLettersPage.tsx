@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Mail, Search, Send } from 'lucide-react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { fetchAllPartnersAsAdmin } from '../../data/partnersRepo';
 import { listLettersByPartner, upsertLetter } from '../../data/lettersRepo';
@@ -21,8 +21,9 @@ import {
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_PRIMARY_BTN,
+  FINELY_OS_SUCCESS_BTN,
   FINELY_OS_SECONDARY_BTN,
-  finelyOsCatalogCardCompact,
+  finelyOsCatalogCard,
 } from '../../features/os/finelyOsLightUi';
 import { FINELY_MAIL_COPY } from '../../lib/mailWhiteLabel';
 import { notifyLetterMailed } from '../../lib/letterMailedNotify';
@@ -30,16 +31,39 @@ import { backfillPartnerLettersMailTo } from '../../lib/letterMailToBackfill';
 import { useAuth } from '../../auth/AuthProvider';
 import { isLetterPhysicallyMailed } from '../../lib/letterMailState';
 
+function AdminMailLettersFrame({
+  embedded,
+  children,
+}: {
+  embedded: boolean;
+  children: React.ReactNode;
+}) {
+  if (embedded) return <>{children}</>;
+  return (
+    <PageShell
+      badge="Admin"
+      title="Mail letters for partners"
+      subtitle={`${FINELY_MAIL_COPY.serviceName}: Pick → Confirm → Mail → Email notify.`}
+    >
+      {children}
+    </PageShell>
+  );
+}
+
 /**
  * Admin-as-mailer: Pick partner → Confirm letters → Mail → Email notify.
  * Owner path for mailing partner letters via LetterStream / Finely Mail today.
  */
-export default function AdminMailLettersPage() {
+export default function AdminMailLettersPage({ embedded = false }: { embedded?: boolean } = {}) {
   const navigate = useNavigate();
+  const location = useLocation();
   const auth = useAuth();
   const [params] = useSearchParams();
   const presetPartnerId = (params.get('partnerId') || '').trim();
   const mailingOn = isFeatureEnabled('letterMailing');
+  const inWorkspacePreview = location.pathname.startsWith('/preview/workspace-light');
+  const mailPath = inWorkspacePreview ? '/preview/workspace-light/admin/mail' : '/admin/mail';
+  const partnersPath = inWorkspacePreview ? '/preview/workspace-light/admin/partners' : '/admin/partners';
 
   const [partners, setPartners] = useState<Partner[]>([]);
   const [loading, setLoading] = useState(true);
@@ -198,24 +222,29 @@ export default function AdminMailLettersPage() {
   };
 
   return (
-    <PageShell
-      badge="Admin"
-      title="Mail letters for partners"
-      subtitle={`${FINELY_MAIL_COPY.serviceName}: Pick → Confirm → Mail → Email notify.`}
-    >
-      <div className={`${FINELY_OS_COMPACT_PAGE} max-w-5xl space-y-3`}>
-        <button type="button" className={FINELY_OS_BACK_LINK} onClick={() => navigate('/admin/partners')}>
-          <ArrowLeft size={14} /> Partner directory
-        </button>
+    <AdminMailLettersFrame embedded={embedded}>
+      <div className={`${FINELY_OS_COMPACT_PAGE} ${embedded ? 'w-full max-w-none' : 'max-w-5xl'} space-y-3`}>
+        {!embedded ? (
+          <button type="button" className={FINELY_OS_BACK_LINK} onClick={() => navigate(partnersPath)}>
+            <ArrowLeft size={14} /> Partner directory
+          </button>
+        ) : (
+          <div>
+            <div className={FINELY_OS_ENTITY_SUBLABEL}>Live mailing workspace</div>
+            <p className={`${FINELY_OS_ENTITY_BODY} mt-1 text-sm`}>
+              Pick a partner, confirm PDF-ready letters and addresses, then dispatch through {FINELY_MAIL_COPY.serviceName}.
+            </p>
+          </div>
+        )}
 
         <FinelyNowDoThisStrip
           title="Admin mail easy path"
           currentIndex={pathStep}
           items={[
-            { label: 'Pick partner', detail: 'Search directory and select who you are mailing for', to: '/admin/mail' },
-            { label: 'Confirm letters', detail: 'Check PDF-ready letters, then open Confirm address', to: '/admin/mail' },
-            { label: 'Mail', detail: 'Confirm To/From → one tap Mail via Finely Mail', to: '/admin/mail' },
-            { label: 'Email notify', detail: 'Partner gets Finely Mail confirmation (commsDelivery on)', to: '/admin/mail' },
+            { label: 'Pick partner', detail: 'Search directory and select who you are mailing for', to: mailPath },
+            { label: 'Confirm letters', detail: 'Check PDF-ready letters, then open Confirm address', to: mailPath },
+            { label: 'Mail', detail: 'Confirm To/From → one tap Mail via Finely Mail', to: mailPath },
+            { label: 'Email notify', detail: 'Partner gets Finely Mail confirmation (commsDelivery on)', to: mailPath },
           ]}
         />
 
@@ -233,13 +262,13 @@ export default function AdminMailLettersPage() {
                 key={n}
                 className={`rounded-xl border px-2 py-2 text-center ${
                   on
-                    ? 'border-amber-400/55 bg-amber-500/15'
+                    ? 'border-violet-400/50 bg-violet-500/15'
                     : done
                       ? 'border-emerald-400/35 bg-emerald-500/10'
                       : 'border-white/10 bg-black/25'
                 }`}
               >
-                <div className="text-[10px] font-black text-amber-200/90">{n}</div>
+                <div className="text-[10px] font-black text-violet-200/90">{n}</div>
                 <div className="text-[10px] font-semibold text-white/85 leading-tight">{label}</div>
               </div>
             );
@@ -258,17 +287,18 @@ export default function AdminMailLettersPage() {
 
         {notice ? <FinelyOsAlertBanner tone="success" message={notice} /> : null}
 
-        <div className={`${finelyOsCatalogCardCompact('amber')} !p-4 space-y-3`}>
+        <div className={`${finelyOsCatalogCard('emerald')} space-y-4`} data-fc-accent="emerald">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <div className={FINELY_OS_ENTITY_SUBLABEL}>Step 1 · Pick partner</div>
               <p className={`${FINELY_OS_ENTITY_BODY} text-sm`}>Search the directory — same list as Admin Partners.</p>
             </div>
-            <Mail size={16} className="text-amber-300" />
+            <Mail size={16} className="text-sky-300" />
           </div>
           <div className="flex items-center gap-2">
             <Search size={14} className="text-white/40" />
             <input
+              aria-label="Search partners"
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Search partners…"
@@ -294,7 +324,7 @@ export default function AdminMailLettersPage() {
                   }}
                   className={`text-left rounded-xl border px-3 py-3 transition-colors ${
                     partnerId === p.id
-                      ? 'border-amber-400/50 bg-amber-500/15'
+                      ? 'border-sky-400/50 bg-sky-500/15'
                       : 'border-white/10 bg-black/30 hover:border-white/25'
                   }`}
                 >
@@ -307,7 +337,7 @@ export default function AdminMailLettersPage() {
         </div>
 
         {partner ? (
-          <div className={`${finelyOsCatalogCardCompact('violet')} !p-4 space-y-3`}>
+          <div className={`${finelyOsCatalogCard('violet')} space-y-4`} data-fc-accent="violet">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <div className={FINELY_OS_ENTITY_SUBLABEL}>Step 2 · Confirm letters for {partner.profile.fullName}</div>
@@ -319,13 +349,13 @@ export default function AdminMailLettersPage() {
                 <button
                   type="button"
                   className={FINELY_OS_SECONDARY_BTN}
-                  onClick={() => navigate(`/admin/partners/${partner.id}?tab=letters`)}
+                  onClick={() => navigate(`${partnersPath}/${partner.id}?tab=letters`)}
                 >
                   Open partner letters
                 </button>
                 <button
                   type="button"
-                  className={`${FINELY_OS_PRIMARY_BTN} disabled:opacity-60 !min-h-[3rem] !text-sm !font-extrabold !px-5`}
+                  className={`${embedded ? FINELY_OS_SUCCESS_BTN : FINELY_OS_PRIMARY_BTN} disabled:opacity-60 !min-h-[3rem] !text-sm !font-extrabold !px-5`}
                   disabled={!mailingOn || selectedReady.length === 0}
                   onClick={() => setWizardOpen(true)}
                 >
@@ -380,6 +410,6 @@ export default function AdminMailLettersPage() {
           />
         ) : null}
       </div>
-    </PageShell>
+    </AdminMailLettersFrame>
   );
 }

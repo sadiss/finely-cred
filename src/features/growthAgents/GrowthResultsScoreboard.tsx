@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BarChart3, Mail, PlayCircle, Users } from 'lucide-react';
 import {
@@ -22,9 +22,14 @@ import { GrowthAgentInfraStrip } from './GrowthAgentInfraStrip';
 import { GrowthAgentBreadcrumb } from './GrowthAgentWorkspaceShell';
 import { countGrowthMlLabels } from './growthMlLabels';
 
-export function GrowthResultsScoreboard() {
+type GrowthResultsScoreboardProps = {
+  variant?: 'full' | 'slim';
+};
+
+export function GrowthResultsScoreboard({ variant = 'full' }: GrowthResultsScoreboardProps) {
   const navigate = useNavigate();
   const [tick, setTick] = useState(0);
+  const slim = variant === 'slim';
 
   useEffect(() => {
     captureGrowthBaselineIfEmpty();
@@ -49,30 +54,40 @@ export function GrowthResultsScoreboard() {
   }, [tick]);
 
   return (
-    <div className={FINELY_OS_COMPACT_PAGE}>
-      <GrowthAgentBreadcrumb section="Results" />
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <div className={FINELY_OS_ENTITY_SUBLABEL}>Results</div>
-          <h2 className={`${FINELY_OS_ENTITY_TITLE} text-white`}>What happened this week</h2>
-          <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>Booked calls and signups — not vanity counts.</p>
+    <div className={slim ? 'space-y-3' : FINELY_OS_COMPACT_PAGE}>
+      {!slim ? <GrowthAgentBreadcrumb section="Results" /> : null}
+      {!slim ? (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <div className={FINELY_OS_ENTITY_SUBLABEL}>Results</div>
+            <h2 className={`${FINELY_OS_ENTITY_TITLE} text-white`}>What happened this week</h2>
+            <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>Booked calls and signups — not vanity counts.</p>
+          </div>
+          <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => navigate('/admin/growth-agents/lead-discovery')}>
+            Caleb Brooks · Find new people
+          </button>
         </div>
-        <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => navigate('/admin/growth-agents/lead-discovery')}>
-          Caleb · Find new people
-        </button>
-      </div>
+      ) : (
+        <div>
+          <div className={FINELY_OS_ENTITY_SUBLABEL}>This week</div>
+          <p className="mt-1 text-sm font-bold text-white">{snap.todaySentence}</p>
+          <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>Focus: {snap.weekFocusLabel}</p>
+        </div>
+      )}
 
-      <div className={finelyOsCatalogCardCompact('emerald')}>
-        <div className={FINELY_OS_ENTITY_SUBLABEL}>What to do today</div>
-        <p className="mt-1 text-sm font-medium text-white">{snap.todaySentence}</p>
-        <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>Focus: {snap.weekFocusLabel}</p>
-      </div>
+      {!slim ? (
+        <div className={finelyOsCatalogCardCompact('emerald')}>
+          <div className={FINELY_OS_ENTITY_SUBLABEL}>What to do today</div>
+          <p className="mt-1 text-sm font-medium text-white">{snap.todaySentence}</p>
+          <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>Focus: {snap.weekFocusLabel}</p>
+        </div>
+      ) : null}
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className={slim ? 'grid grid-cols-2 lg:grid-cols-3 gap-2' : 'grid sm:grid-cols-2 lg:grid-cols-3 gap-3'}>
         <FinelyOsOverviewStatTile icon={Users} label="Booked calls (7d)" value={String(snap.booked7d)} accent="emerald" iconAccent="emerald" />
         <FinelyOsOverviewStatTile icon={BarChart3} label="Guide signups (7d)" value={String(snap.signups7d)} accent="sky" iconAccent="sky" />
         <FinelyOsOverviewStatTile icon={PlayCircle} label="Video signups (7d)" value={String(snap.videoSignups7d)} accent="fuchsia" iconAccent="fuchsia" />
-        <FinelyOsOverviewStatTile icon={Users} label="People saved (7d)" value={String(snap.foundSaved7d)} accent="amber" iconAccent="amber" />
+        <FinelyOsOverviewStatTile icon={Users} label="People saved (7d)" value={String(snap.foundSaved7d)} accent="violet" iconAccent="violet" />
         <FinelyOsOverviewStatTile icon={Mail} label="Replies (7d)" value={String(snap.replies7d)} accent="rose" iconAccent="rose" />
         <FinelyOsOverviewStatTile icon={BarChart3} label="Needs review" value={String(snap.needsReview)} accent="violet" iconAccent="violet" />
       </div>
@@ -109,24 +124,28 @@ export function GrowthResultsScoreboard() {
         </p>
       ) : null}
 
-      <GrowthAgentInfraStrip />
+      {!slim ? <GrowthAgentInfraStrip /> : null}
 
-      <GrowthFailurePlaybooks replies7d={snap.replies7d} />
+      {!slim ? <GrowthFailurePlaybooks replies7d={snap.replies7d} /> : null}
 
-      <GrowthDailyPlaybook />
+      {!slim ? <GrowthDailyPlaybook /> : null}
 
-      <div className="flex flex-wrap gap-2">
-        <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/growth-agents')}>
-          All specialists
-        </button>
-        <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/marketing?tab=desk')}>
-          Marketing Desk
-        </button>
-      </div>
+      {!slim ? (
+        <div className="flex flex-wrap gap-2">
+          <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/growth-agents')}>
+            All specialists
+          </button>
+          <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/marketing-desk')}>
+            Marketing Desk
+          </button>
+        </div>
+      ) : null}
 
-      <p className={`text-[10px] ${FINELY_OS_ENTITY_BODY}`}>
-        Results vary · not legal advice · funding subject to underwriting
-      </p>
+      {!slim ? (
+        <p className={`text-[10px] ${FINELY_OS_ENTITY_BODY}`}>
+          Results vary · not legal advice · funding subject to underwriting
+        </p>
+      ) : null}
     </div>
   );
 }

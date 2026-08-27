@@ -32,7 +32,7 @@ const TONE_TITLE: Record<PublicLaneTone, string> = {
 };
 
 function eyebrowColor(tone: PublicLaneTone): string {
-  return tone === 'ivory' ? 'text-[#b8860b]' : 'text-amber-300';
+  return tone === 'ivory' ? 'text-violet-700' : 'text-violet-300';
 }
 
 function renderEyebrow(kit: PublicLaneKit, eyebrow: string, icon: React.ReactNode | undefined, tone: PublicLaneTone) {
@@ -43,8 +43,8 @@ function renderEyebrow(kit: PublicLaneKit, eyebrow: string, icon: React.ReactNod
       <span
         className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-black uppercase tracking-[0.22em] ${
           tone === 'ivory'
-            ? 'border-amber-800/20 bg-amber-500/10 text-[#0a1628]'
-            : 'border-white/15 bg-white/5 text-amber-300'
+            ? 'border-violet-800/20 bg-violet-500/10 text-[#0a1628]'
+            : 'border-white/15 bg-white/5 text-violet-300'
         }`}
       >
         {icon}
@@ -58,7 +58,7 @@ function renderEyebrow(kit: PublicLaneKit, eyebrow: string, icon: React.ReactNod
       <div className="space-y-1.5">
         <span className={`text-[11px] font-black uppercase tracking-[0.28em] ${color}`}>{eyebrow}</span>
         {kit.divider ? (
-          <span className="block h-[2px] w-16 bg-gradient-to-r from-amber-400 via-amber-300/60 to-transparent" aria-hidden />
+          <span className="block h-[2px] w-16 bg-gradient-to-r from-violet-400 via-violet-300/60 to-transparent" aria-hidden />
         ) : null}
       </div>
     );
@@ -117,7 +117,7 @@ export function PublicLaneTitle({
   const kit: PublicLaneKit = { ...getPublicLaneKit(lane), ...kitOverride };
   const sizeCls = SIZE_CLASS[kit.titleSize];
   const toneCls = TONE_TITLE[tone];
-  const highlightCls = tone === 'ivory' ? 'fc-landing-ivory-accent' : 'text-amber-400 font-semibold';
+  const highlightCls = tone === 'ivory' ? 'fc-landing-ivory-accent' : 'text-violet-400 font-semibold';
   const titleCls = titleClassName || `${sizeCls} ${toneCls}`;
 
   const titleNode = (
@@ -195,7 +195,7 @@ export function PublicLaneTitle({
 const RAIL_BORDER: Record<FinelyOsPublicAccent, string> = {
   violet: 'border-l-violet-400',
   emerald: 'border-l-emerald-400',
-  amber: 'border-l-amber-400',
+  amber: 'border-l-violet-400',
   fuchsia: 'border-l-fuchsia-400',
   sky: 'border-l-sky-400',
   rose: 'border-l-rose-400',

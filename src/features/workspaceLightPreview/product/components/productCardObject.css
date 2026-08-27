@@ -1,0 +1,377 @@
+/* Workspace credit-card object — compact AU / payment representation.
+   Namespaced fc-wlp-card-*; metal ramps ported from landing .fc-au-card. */
+
+.fc-wlp-card {
+  --fc-wlp-card-ink: rgba(255, 255, 255, 0.95);
+  --fc-wlp-card-ink-dim: rgba(255, 255, 255, 0.62);
+  --fc-wlp-card-edge: rgba(255, 255, 255, 0.18);
+  --fc-wlp-card-chip-a: #e2e8f1;
+  --fc-wlp-card-chip-b: #7f8896;
+
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  aspect-ratio: 1.586 / 1;
+  width: var(--fc-wlp-card-width, 180px);
+  padding: 0.62rem 0.68rem;
+  border: 1px solid var(--fc-wlp-card-edge);
+  border-radius: 0.62rem;
+  color: var(--fc-wlp-card-ink);
+  text-align: left;
+  box-shadow:
+    0 14px 32px -18px rgba(0, 0, 0, 0.72),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    inset 0 -8px 14px rgba(0, 0, 0, 0.24),
+    inset 0 8px 12px rgba(255, 255, 255, 0.08);
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.28s ease;
+}
+
+.fc-wlp-card--sm {
+  --fc-wlp-card-width: 120px;
+  padding: 0.42rem 0.48rem;
+  border-radius: 0.48rem;
+}
+
+.fc-wlp-card--md {
+  --fc-wlp-card-width: 180px;
+}
+
+.fc-wlp-card--lg {
+  --fc-wlp-card-width: 260px;
+  padding: 1rem 1.05rem;
+  border-radius: 1rem;
+}
+
+button.fc-wlp-card {
+  cursor: pointer;
+  font: inherit;
+  appearance: none;
+}
+
+button.fc-wlp-card:hover,
+button.fc-wlp-card:focus-visible {
+  transform: translateY(-4px);
+  box-shadow:
+    0 18px 38px -16px rgba(0, 0, 0, 0.78),
+    0 0 0 1px rgba(15, 199, 141, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    inset 0 -8px 14px rgba(0, 0, 0, 0.26),
+    inset 0 8px 12px rgba(255, 255, 255, 0.1);
+  outline: none;
+}
+
+/* Specular sweep — hover-only unless parent opts in via data-fcm-motion */
+.fc-wlp-card__sheen {
+  position: absolute;
+  inset: -20%;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(112deg, transparent 36%, rgba(255, 255, 255, 0.3) 47%, transparent 58%);
+  transform: translateX(-115%);
+}
+
+.fc-wlp-card:hover .fc-wlp-card__sheen,
+.fc-wlp-card:focus-visible .fc-wlp-card__sheen {
+  animation: fc-wlp-card-shine 1.4s ease-out 1;
+}
+
+[data-fcm-motion='on'] .fc-wlp-card__sheen {
+  animation: fc-wlp-card-shine-idle 9s ease-in-out infinite;
+}
+
+@keyframes fc-wlp-card-shine {
+  0% { transform: translateX(-115%); }
+  100% { transform: translateX(115%); }
+}
+
+@keyframes fc-wlp-card-shine-idle {
+  0%, 62%, 100% { transform: translateX(-115%); }
+  78% { transform: translateX(115%); }
+}
+
+.fc-wlp-card > *:not(.fc-wlp-card__sheen) {
+  position: relative;
+  z-index: 1;
+}
+
+/* Metal tier ramps */
+.fc-wlp-card--platinum {
+  --fc-wlp-card-ink: #111620;
+  --fc-wlp-card-ink-dim: rgba(17, 22, 32, 0.62);
+  --fc-wlp-card-edge: rgba(255, 255, 255, 0.6);
+  --fc-wlp-card-chip-a: #eef1f6;
+  --fc-wlp-card-chip-b: #949dac;
+  background:
+    radial-gradient(120% 90% at 18% 4%, rgba(255, 255, 255, 0.94), transparent 48%),
+    linear-gradient(148deg, #f8fafc 0%, #c5ceda 24%, #eef2f7 46%, #aeb8c6 69%, #e3e8ef 100%);
+  box-shadow:
+    0 24px 48px -24px rgba(174, 184, 198, 0.7),
+    0 0 0 1px rgba(255, 255, 255, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -10px 18px rgba(55, 65, 81, 0.14);
+}
+
+.fc-wlp-card--obsidian {
+  --fc-wlp-card-edge: rgba(148, 101, 255, 0.28);
+  background: linear-gradient(148deg, #23262d 0%, #0d0f13 38%, #2b2f38 58%, #090b0e 100%);
+}
+
+.fc-wlp-card--emerald {
+  --fc-wlp-card-edge: rgba(15, 199, 141, 0.32);
+  --fc-wlp-card-chip-a: #7fffd4;
+  --fc-wlp-card-chip-b: #045c44;
+  background: linear-gradient(148deg, #12402e 0%, #06180f 40%, #1b5a3e 62%, #051009 100%);
+}
+
+/* Verde — the flagship member finish. Deep brand green with a gold-free metallic sweep and a
+   brighter specular edge than `emerald`, so the top tiers read as "earned object" rather than
+   "another dark card". This is the hero card on the partner dashboard. */
+.fc-wlp-card--verde {
+  --fc-wlp-card-edge: rgba(94, 245, 190, 0.42);
+  --fc-wlp-card-chip-a: #d5fff0;
+  --fc-wlp-card-chip-b: #046b4a;
+  background:
+    radial-gradient(115% 80% at 18% 12%, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 46%),
+    linear-gradient(148deg, #0c5c41 0%, #03231a 34%, #17805b 58%, #041a12 82%, #0a4b36 100%);
+  box-shadow:
+    0 18px 40px -18px rgba(2, 30, 22, 0.86),
+    inset 0 1px 0 rgba(174, 255, 224, 0.32),
+    inset 0 -8px 16px rgba(0, 0, 0, 0.3),
+    inset 0 8px 14px rgba(120, 255, 208, 0.1);
+}
+
+.fc-wlp-card--sapphire {
+  --fc-wlp-card-edge: rgba(24, 182, 239, 0.3);
+  --fc-wlp-card-chip-a: #bfe9fb;
+  --fc-wlp-card-chip-b: #075a80;
+  background: linear-gradient(148deg, #12224f 0%, #050a1c 40%, #1b3170 62%, #04081a 100%);
+}
+
+.fc-wlp-card--titanium {
+  --fc-wlp-card-edge: rgba(226, 232, 240, 0.34);
+  background: linear-gradient(148deg, #4a5058 0%, #23272d 38%, #5b626b 60%, #191c21 100%);
+}
+
+.fc-wlp-card__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.35rem;
+}
+
+.fc-wlp-card__issuer {
+  font-size: 6.5px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--fc-wlp-card-ink-dim);
+}
+
+.fc-wlp-card--md .fc-wlp-card__issuer {
+  font-size: 7px;
+}
+.fc-wlp-card--lg .fc-wlp-card__issuer { font-size: 10px; }
+
+.fc-wlp-card__label {
+  margin-top: 1px;
+  font-size: 0.62rem;
+  font-weight: 780;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  color: var(--fc-wlp-card-ink);
+}
+
+.fc-wlp-card--md .fc-wlp-card__label {
+  font-size: 0.78rem;
+}
+.fc-wlp-card--lg .fc-wlp-card__label { margin-top: 3px; font-size: 1.05rem; }
+
+.fc-wlp-card__sublabel {
+  margin-top: 1px;
+  font-size: 6.5px;
+  font-weight: 650;
+  color: var(--fc-wlp-card-ink-dim);
+}
+
+.fc-wlp-card--md .fc-wlp-card__sublabel {
+  font-size: 7.5px;
+}
+.fc-wlp-card--lg .fc-wlp-card__sublabel { margin-top: 3px; font-size: 10px; }
+
+.fc-wlp-card__badge {
+  flex-shrink: 0;
+  padding: 0.14rem 0.32rem;
+  border: 1px solid currentColor;
+  border-radius: 0.28rem;
+  font-size: 5.5px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fc-wlp-card-ink-dim);
+}
+
+.fc-wlp-card--md .fc-wlp-card__badge {
+  font-size: 6.5px;
+}
+.fc-wlp-card--lg .fc-wlp-card__badge { padding: 0.25rem 0.48rem; font-size: 9px; }
+
+.fc-wlp-card__chip-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.28rem;
+}
+
+.fc-wlp-card__chip {
+  width: 1.35rem;
+  height: 1rem;
+  flex-shrink: 0;
+  border: 1px solid rgba(0, 0, 0, 0.22);
+  border-radius: 0.22rem;
+  background:
+    linear-gradient(90deg, transparent 30%, rgba(0, 0, 0, 0.28) 30%, rgba(0, 0, 0, 0.28) 32%, transparent 32%),
+    linear-gradient(0deg, transparent 44%, rgba(0, 0, 0, 0.28) 44%, rgba(0, 0, 0, 0.28) 47%, transparent 47%),
+    linear-gradient(140deg, var(--fc-wlp-card-chip-a) 0%, var(--fc-wlp-card-chip-b) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+.fc-wlp-card--md .fc-wlp-card__chip {
+  width: 1.65rem;
+  height: 1.2rem;
+  border-radius: 0.26rem;
+}
+.fc-wlp-card--lg .fc-wlp-card__chip {
+  width: 2.2rem;
+  height: 1.6rem;
+  border-radius: 0.35rem;
+}
+
+.fc-wlp-card__chip-grid {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  padding: 2px;
+  opacity: 0.82;
+}
+
+.fc-wlp-card__chip-grid span {
+  border-radius: 1px;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.fc-wlp-card__hologram {
+  position: absolute;
+  right: 0.42rem;
+  bottom: 0.38rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 9999px;
+  opacity: 0.62;
+  pointer-events: none;
+  background: conic-gradient(from 180deg, #e2e8f1, #a78bfa, #22c55e, #38bdf8, #e2e8f1);
+  filter: blur(0.2px);
+}
+
+.fc-wlp-card--md .fc-wlp-card__hologram {
+  right: 0.52rem;
+  bottom: 0.48rem;
+  width: 1.35rem;
+  height: 1.35rem;
+}
+.fc-wlp-card--lg .fc-wlp-card__hologram {
+  right: 0.8rem;
+  bottom: 0.72rem;
+  width: 1.8rem;
+  height: 1.8rem;
+  filter: none;
+}
+
+.fc-wlp-card__pan {
+  margin-top: 0.22rem;
+  font-family: ui-monospace, 'SFMono-Regular', 'Cascadia Mono', Menlo, monospace;
+  font-size: 0.48rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--fc-wlp-card-ink);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.14);
+}
+
+.fc-wlp-card--md .fc-wlp-card__pan {
+  font-size: 0.58rem;
+}
+
+.fc-wlp-card__bottom {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.35rem;
+}
+
+.fc-wlp-card__stat-label {
+  font-size: 5.5px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--fc-wlp-card-ink-dim);
+}
+
+.fc-wlp-card--md .fc-wlp-card__stat-label {
+  font-size: 6.5px;
+}
+.fc-wlp-card--lg .fc-wlp-card__stat-label { font-size: 9px; }
+
+.fc-wlp-card__stat-value {
+  font-size: 0.52rem;
+  font-weight: 800;
+  color: var(--fc-wlp-card-ink);
+}
+
+.fc-wlp-card--md .fc-wlp-card__stat-value {
+  font-size: 0.62rem;
+}
+.fc-wlp-card--lg .fc-wlp-card__stat-value { font-size: 0.85rem; }
+
+.fc-wlp-card-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.fc-wlp-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+  align-items: start;
+}
+
+@media (max-width: 375px) {
+  .fc-wlp-card--md {
+    --fc-wlp-card-width: 148px;
+  }
+  .fc-wlp-card--lg {
+    --fc-wlp-card-width: min(230px, 82vw);
+  }
+
+  .fc-wlp-card-grid {
+    grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
+    gap: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fc-wlp-card__sheen,
+  [data-fcm-motion='on'] .fc-wlp-card__sheen {
+    animation: none !important;
+  }
+
+  button.fc-wlp-card:hover,
+  button.fc-wlp-card:focus-visible {
+    transform: none;
+  }
+}

@@ -488,7 +488,7 @@ export default function AdminDashboardLayoutPreview() {
             stat: 'Validate',
           },
           {
-            title: 'Support Inbox',
+            title: 'Partner conversations',
             description: 'Threaded partner support: triage, reply, and convert to tasks.',
             path: '/admin/support',
             icon: MessageSquareText,

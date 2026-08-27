@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ChevronDown, Plus, Search, Trash2, Shield, Users, Calendar, FileText } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { AdminWorkstationFrame, type AdminEmbeddablePageProps } from '../../features/workspaceLightPreview/product/admin/AdminWorkstationFrame';
+import { useMappedAdminNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { useAuth } from '../../auth/AuthProvider';
 import { ActionLink, CollapsibleSection } from '../../components/ui';
 import {
@@ -58,7 +58,7 @@ function defaultPermissionsForRole(role: MembershipRole): Record<string, boolean
   if (role === 'read_only_admin') {
     return Object.fromEntries(
       ENTERPRISE_PERMISSION_GROUPS.filter((k) =>
-        ['canViewAllClients', 'canViewBilling', 'canViewReports', 'canViewLetters', 'canViewCases', 'canViewTasks', 'canViewCourses', 'canViewLeads', 'canViewAutomations', 'canViewAnalytics', 'canViewAuditLogs'].includes(k),
+        ['canViewAllClients', 'canPreviewAllRoles', 'canViewBilling', 'canViewReports', 'canViewLetters', 'canViewCases', 'canViewTasks', 'canViewCourses', 'canViewLeads', 'canViewAutomations', 'canViewAnalytics', 'canViewAuditLogs'].includes(k),
       ).map((k) => [k, true]),
     );
   }
@@ -85,8 +85,8 @@ function defaultPermissionsForRole(role: MembershipRole): Record<string, boolean
   return undefined;
 }
 
-export default function AdminTeamRolesPage() {
-  const navigate = useNavigate();
+export default function AdminTeamRolesPage({ embedded = false }: AdminEmbeddablePageProps = {}) {
+  const navigate = useMappedAdminNavigate();
   const auth = useAuth();
   const [storeVersion, setStoreVersion] = useState(0);
   const [draftEmail, setDraftEmail] = useState('');
@@ -206,7 +206,7 @@ export default function AdminTeamRolesPage() {
     );
 
   return (
-    <PageShell
+    <AdminWorkstationFrame embedded={embedded} kind="team-workstation"
       badge="Admin"
       title="Team & Roles"
       subtitle="Enterprise RBAC: 116+ permissions, 12 roles, 6 statuses. Invite members, assign granular access per tenant."
@@ -237,14 +237,14 @@ export default function AdminTeamRolesPage() {
         </div>
 
         <div className="grid md:grid-cols-4 gap-3">
-          <FinelyOsOverviewStatTile icon={Shield} label="Permissions" value={ENTERPRISE_PERMISSION_GROUPS.length} accent="violet" iconAccent="violet" hint="Granular controls" />
-          <FinelyOsOverviewStatTile icon={Users} label="Roles" value={ENTERPRISE_ROLES.length} accent="amber" iconAccent="amber" hint="Platform Admin to Partner" />
+          <FinelyOsOverviewStatTile icon={Shield} label="Permissions" value={ENTERPRISE_PERMISSION_GROUPS.length} accent="emerald" iconAccent="emerald" hint="Granular controls" />
+          <FinelyOsOverviewStatTile icon={Users} label="Roles" value={ENTERPRISE_ROLES.length} accent="violet" iconAccent="violet" hint="Platform Admin to Partner" />
           <FinelyOsOverviewStatTile icon={Calendar} label="Statuses" value={ENTERPRISE_STATUSES.length} accent="sky" iconAccent="sky" hint="Active, Invited, Suspended" />
-          <FinelyOsOverviewStatTile icon={Users} label="Members" value={members.length} accent="emerald" iconAccent="emerald" hint="In this tenant" />
+          <FinelyOsOverviewStatTile icon={Users} label="Members" value={members.length} accent="rose" iconAccent="rose" hint="In this tenant" />
         </div>
 
         <div className="grid lg:grid-cols-12 gap-6">
-          <div className={`lg:col-span-5 ${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+          <div className={`lg:col-span-5 ${finelyOsCatalogCard('emerald')} space-y-4`} data-fc-accent="emerald">
             <div className={FINELY_OS_ENTITY_SUBLABEL}>Invite member</div>
 
             <div className="space-y-3">
@@ -286,7 +286,7 @@ export default function AdminTeamRolesPage() {
                   <input
                     value={draftJobTitle}
                     onChange={(e) => setDraftJobTitle(e.target.value)}
-                    placeholder="e.g. Agent"
+                    placeholder="e.g. Credit Specialist"
                     className={FINELY_OS_ENTITY_INPUT}
                   />
                 </div>
@@ -310,7 +310,7 @@ export default function AdminTeamRolesPage() {
                   value={draftInviteNotes}
                   onChange={(e) => setDraftInviteNotes(e.target.value)}
                   placeholder="Internal note for this invite"
-                  rows={2}
+                  rows={4}
                   className={`${FINELY_OS_ENTITY_INPUT} resize-none`}
                 />
               </div>
@@ -323,7 +323,7 @@ export default function AdminTeamRolesPage() {
             </div>
           </div>
 
-          <div className={`lg:col-span-7 ${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+          <div className={`lg:col-span-7 ${finelyOsCatalogCard('sky')} space-y-4`} data-fc-accent="sky">
             <div className={FINELY_OS_ENTITY_SUBLABEL}>Members</div>
 
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -432,15 +432,15 @@ export default function AdminTeamRolesPage() {
 
                     <CollapsibleSection
                       title="Permissions"
-                      subtitle={`116 permissions by group. Collapse to keep compact.`}
+                      subtitle={`116 permissions by group. Collapse unused groups.`}
                       count={`enabled: ${enabledCount(m)}`}
                       defaultOpen={false}
                       storageKey={`admin.team.${tenantId}.${m.id}.perms`}
                       className="bg-violet-500/5"
                     >
                       <div className="space-y-4">
-                        {permissionGroups.map(([groupName, keys]) => (
-                          <details key={groupName} className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony group/details`}>
+                        {permissionGroups.map(([groupName, keys], idx) => (
+                          <details key={groupName} className={`${finelyOsCatalogCard((['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4])} fc-surface-harmony group/details`} data-fc-accent={(['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4]}>
                             <summary className={`cursor-pointer ${FINELY_OS_ENTITY_SUBLABEL} flex items-center justify-between normal-case tracking-normal`}>
                               {groupName}
                               <span className={FINELY_OS_ENTITY_BODY}>
@@ -482,7 +482,7 @@ export default function AdminTeamRolesPage() {
                       <div className="pt-2 border-t border-white/[0.08]">
                         <CollapsibleSection
                           title="Assigned partners"
-                          subtitle="Only needed when “view all customers” is off."
+                          subtitle="Only needed when “view all partners” is off."
                           count={`${Array.isArray((m.permissions as any)?.assignedPartnerIds) ? (m.permissions as any).assignedPartnerIds.length : 0} assigned`}
                           defaultOpen={false}
                           storageKey={`admin.team.${tenantId}.${m.id}.assignedPartners`}
@@ -529,7 +529,7 @@ export default function AdminTeamRolesPage() {
                                 );
                               }}
                             />
-                            <div className={`${FINELY_OS_ENTITY_BODY} text-xs`}>Members without “view all customers” must be assigned partners to access customer files.</div>
+                            <div className={`${FINELY_OS_ENTITY_BODY} text-xs`}>Members without “view all partners” must be assigned partners to access partner files.</div>
                           </div>
                         </CollapsibleSection>
                       </div>
@@ -540,8 +540,8 @@ export default function AdminTeamRolesPage() {
             )}
           </div>
         </div>
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
 </div>
-    </PageShell>
+    </AdminWorkstationFrame>
   );
 }

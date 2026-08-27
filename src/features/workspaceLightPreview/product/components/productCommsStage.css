@@ -1,0 +1,177 @@
+/**
+ * productCommsStage.css — new styles for the workspace communication surfaces
+ * (PartnerMessagesProductSurface, AdminPrimarySignatureSurface comms tab).
+ *
+ * Layered on top of `finelyMaterials.css` (`.fcm-*`) and `workspaceProduct.css`
+ * (`.fc-wlp-*`) — no existing selectors are redefined here, only new ones.
+ */
+
+/* Jewel-case frame around the embedded FinelyCommunicationHub. */
+.fc-wlp-comms-stage {
+  border-radius: 26px;
+  padding: 8px;
+  margin-top: 2px;
+}
+.fc-wlp-comms-stage-inner {
+  position: relative;
+  z-index: 1;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+/* The product communication hub is intentionally violet/navy. Keep its dark utility text
+   contract intact; forcing white classes to light-theme ink made headings black on purple. */
+.fc-wlp-comms-stage-inner[data-bed='dark'] { color: #f8fafc; }
+.fc-wlp-comms-stage-inner[data-bed='dark'] :is(.text-white, .text-white\/90, .text-white\/85) {
+  color: rgba(255, 255, 255, 0.96) !important;
+}
+.fc-wlp-comms-stage-inner[data-bed='dark'] :is(.text-white\/80, .text-white\/75, .text-white\/70) {
+  color: rgba(241, 245, 249, 0.82) !important;
+}
+.fc-wlp-comms-stage-inner[data-bed='dark']
+  :is(.text-white\/65, .text-white\/60, .text-white\/55, .text-white\/50, .text-white\/45, .text-white\/40, .text-white\/35) {
+  color: rgba(226, 232, 240, 0.82) !important;
+}
+
+.fc-wlp-comms-stage-inner :is(p, span).text-white\/55,
+.fc-wlp-comms-stage-inner :is(p, span).text-white\/50,
+.fc-wlp-comms-stage-inner :is(p, span).text-white\/45 {
+  color: rgba(226, 232, 240, 0.84) !important;
+}
+
+/* Hub coach / roster chips ship at 11px — raise to the 12px floor inside the product comms stage. */
+.fc-wlp-comms-stage-inner :is(.text-\[11px\], .text-\[11\.5px\]) {
+  font-size: 12px !important;
+}
+
+/* Quick-nav row above the stage (AI coach / Team chat / Meetings / Guide). */
+.fc-wlp-comms-quick-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 4px 0 12px;
+}
+.fc-wlp-comms-quick-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border-radius: 12px;
+  padding: 8px 13px;
+  background: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--fcm-accent, #057256);
+  cursor: pointer;
+  transition: transform 160ms ease;
+}
+.fc-wlp-comms-quick-chip:hover {
+  transform: translateY(-1px);
+}
+.fc-wlp-comms-quick-chip:active {
+  transform: translateY(0);
+}
+
+/* The care-team roster strip lives in `productCareTeamStrip.css`, imported by its own component
+   so it stays styled on pages that use the strip without the comms stage. */
+
+/* Small "now viewing" focus caption above the admin stage. */
+.fc-wlp-comms-focus-note {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--wlp-muted, #64748b);
+  margin: 2px 2px 10px;
+}
+.fc-wlp-comms-focus-note strong {
+  color: var(--wlp-ink, #0a1628);
+}
+
+/* Demo preview — three static "what real mode looks like" cards. */
+.fc-wlp-comms-demo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+@media (max-width: 860px) {
+  .fc-wlp-comms-demo-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.fc-wlp-comms-demo-card {
+  position: relative;
+  border: 1px solid rgba(var(--fcm-accent-rgb), 0.2);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 92% 4%, rgba(var(--fcm-accent-rgb), 0.22), transparent 40%),
+    linear-gradient(145deg, rgba(var(--fcm-accent-rgb), 0.1), rgba(255, 255, 255, 0.94));
+  padding: 14px;
+  overflow: hidden;
+  min-height: 132px;
+}
+.fc-wlp-comms-demo-card-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 100%;
+}
+.fc-wlp-comms-demo-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.fc-wlp-comms-demo-card-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  flex: 0 0 auto;
+  background: linear-gradient(145deg, rgba(var(--fcm-accent-rgb), 0.96), rgba(var(--fcm-accent-rgb), 0.68));
+  color: #fff;
+  box-shadow: 0 10px 18px -13px rgba(var(--fcm-accent-rgb), 0.9);
+}
+.fc-wlp-comms-demo-card-title {
+  min-width: 0;
+}
+.fc-wlp-comms-demo-card-title strong {
+  display: block;
+  font-size: var(--wlp-text-body, 13px);
+  line-height: 1.3;
+  font-weight: 800;
+  color: var(--fcm-ink);
+}
+.fc-wlp-comms-demo-card-title span {
+  display: block;
+  font-size: var(--wlp-text-kicker, 12px);
+  line-height: 1.3;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--fcm-ink-faint);
+}
+.fc-wlp-comms-demo-card-body {
+  font-size: var(--wlp-text-body, 13px);
+  line-height: 1.45;
+  color: var(--fcm-ink-muted);
+  margin: 0;
+}
+.fc-wlp-comms-demo-card-tag {
+  margin-top: auto;
+  display: inline-flex;
+  align-self: flex-start;
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: var(--wlp-text-kicker, 12px);
+  line-height: 1.2;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--fcm-ink-muted);
+  border: 1px solid rgba(var(--fcm-accent-rgb), 0.18);
+  background: rgba(var(--fcm-accent-rgb), 0.1);
+}

@@ -725,7 +725,7 @@ ${args.debtorName}`;
 
 /** Recommend scenario(s) from debt case dates. */
 export function recommendScenarioFromDebt(debt: {
-  type: 'debt' | 'summons';
+  type: 'debt' | 'summons' | 'judgment' | 'levy';
   firstContactDate?: string;
   lastPaymentDate?: string;
   dateServed?: string;
@@ -842,3 +842,9 @@ export function getLetterBody(
   }
   return stripLetterVendorBranding(body);
 }
+
+export {
+  POST_JUDGMENT_LETTER_SPECS,
+  getPostJudgmentLetterBody,
+  type PostJudgmentLetterType,
+} from './postJudgmentTemplates';

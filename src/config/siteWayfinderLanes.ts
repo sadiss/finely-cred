@@ -25,7 +25,7 @@ export const SITE_WAYFINDER_LANES: SiteWayfinderLane[] = [
   {
     id: 'debt',
     label: 'Debt & legal',
-    hint: 'Fight-back validation OS',
+    hint: 'Validation and court help',
     path: '/pricing/debt-legal',
     accent: 'fuchsia',
   },
@@ -38,7 +38,7 @@ export const SITE_WAYFINDER_LANES: SiteWayfinderLane[] = [
   },
 ];
 
-export type PublicNavAccent = 'emerald' | 'violet' | 'fuchsia' | 'amber' | 'sky';
+export type PublicNavAccent = 'emerald' | 'violet' | 'fuchsia' | 'rose' | 'amber' | 'sky';
 
 export type PublicNavLink = {
   id: string;
@@ -70,7 +70,7 @@ export const PUBLIC_CORE_NAV: { id: string; label: string; path: string; match: 
   },
   {
     id: 'enlightenment-session',
-    label: 'Enlightenment session',
+    label: 'Strategy call',
     path: '/enlightenment-session',
     match: (p) => p.startsWith('/enlightenment-session') || p.startsWith('/consultation'),
   },
@@ -188,12 +188,12 @@ export const PUBLIC_RESOURCES_SECTIONS: PublicNavSection[] = [
         badge: 'Popular',
         accent: 'emerald',
       },
-      { id: 'free-debt', label: 'Debt & summons guide', path: '/free-debt-guide', hint: 'Fight-back validation lane', accent: 'fuchsia' },
-      { id: 'case-desk', label: 'Case Desk Operator Guide', path: '/case-desk-guide', accent: 'amber' },
+      { id: 'free-debt', label: 'Debt & summons guide', path: '/free-debt-guide', hint: 'Validation and court help', accent: 'rose' },
+      { id: 'case-desk', label: 'Case Desk Operator Guide', path: '/case-desk-guide', accent: 'sky' },
       { id: 'free-business', label: 'Business credit guide', path: '/free-business-guide', accent: 'violet' },
       { id: 'free-tradeline', label: 'Tradeline guide', path: '/free-tradeline-guide', accent: 'emerald' },
       { id: 'free-score', label: 'Score roadmap', path: '/free-score-roadmap', accent: 'sky' },
-      { id: 'free-agency', label: 'Agency guide', path: '/free-agency-guide', accent: 'amber' },
+      { id: 'free-agency', label: 'Agency guide', path: '/free-agency-guide', accent: 'rose' },
     ],
   },
   {
@@ -293,7 +293,7 @@ export const PUBLIC_RESOURCES_SECTIONS: PublicNavSection[] = [
 export const PUBLIC_CONTACT_LINKS: PublicNavLink[] = [
   { id: 'contact', label: 'Contact us', path: '/contact', hint: 'Message the team', accent: 'sky' },
   { id: 'help', label: 'Help center', path: '/help-center', hint: 'Plain-English playbooks', accent: 'emerald' },
-  { id: 'session', label: 'Enlightenment session', path: '/enlightenment-session', hint: 'Book an Enlightenment session with a specialist', accent: 'amber' },
+  { id: 'session', label: 'Strategy call', path: '/enlightenment-session', hint: 'Book a strategy call with a specialist', accent: 'amber' },
   { id: 'about', label: 'About Finely', path: '/about', accent: 'violet' },
   { id: 'faq', label: 'FAQ', path: '/faq', accent: 'sky' },
 ];

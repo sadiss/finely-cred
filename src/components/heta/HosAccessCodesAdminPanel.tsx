@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Check, Copy, ExternalLink, KeyRound, Plus, RefreshCw, ShieldOff, User, ChevronDown, ChevronUp, FileDown } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   assigneeDisplayName,
   generateHosAccessCodeRemote,
@@ -24,6 +24,10 @@ type Props = {
 export function HosAccessCodesAdminPanel({ compact = false, variant }: Props) {
   const resolvedVariant = variant ?? (compact ? 'dashboard' : 'full');
   const navigate = useNavigate();
+  const location = useLocation();
+  const rolePreviewPath = location.pathname.startsWith('/preview/workspace-light')
+    ? '/preview/workspace-light/admin/role-preview?role=heta_society'
+    : '/admin/role-preview?role=heta_society';
   const [codes, setCodes] = useState<HosAccessCode[]>(() => listHosAccessCodes());
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -112,10 +116,10 @@ export function HosAccessCodesAdminPanel({ compact = false, variant }: Props) {
 
   if (resolvedVariant === 'dashboard') {
     return (
-      <div className="rounded-2xl border border-amber-500/20 bg-gradient-to-r from-amber-500/[0.08] via-black/40 to-black/50 overflow-hidden">
+      <div data-hos-access-panel="true" className="rounded-2xl border border-violet-500/25 bg-gradient-to-r from-violet-500/[0.09] via-black/40 to-black/50 overflow-hidden">
         <div className="flex flex-wrap items-center gap-3 p-3 sm:p-4">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-400/25 bg-amber-500/15 shadow-lg shadow-amber-900/20">
-            <KeyRound className="h-5 w-5 text-amber-200" />
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-violet-400/30 bg-violet-500/15 shadow-lg shadow-violet-950/20">
+            <KeyRound className="h-5 w-5 text-violet-200" />
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-black text-white leading-tight">Head of Society</p>
@@ -144,13 +148,13 @@ export function HosAccessCodesAdminPanel({ compact = false, variant }: Props) {
             <button
               type="button"
               className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white/75 hover:bg-white/10"
-              onClick={() => navigate('/admin/role-preview?role=heta_society')}
+              onClick={() => navigate(rolePreviewPath)}
             >
               <ExternalLink size={13} /> Preview
             </button>
             <button
               type="button"
-              className="inline-flex items-center gap-1.5 rounded-xl border border-amber-400/30 bg-amber-500/15 px-3 py-1.5 text-xs font-bold text-amber-100 hover:bg-amber-500/25"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-violet-400/30 bg-violet-500/15 px-3 py-1.5 text-xs font-bold text-violet-100 hover:bg-violet-500/25"
               onClick={() => setExpanded((v) => !v)}
             >
               {expanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
@@ -187,7 +191,7 @@ export function HosAccessCodesAdminPanel({ compact = false, variant }: Props) {
               {leads.length > 0 ? (
                 <div className="sm:col-span-2 lg:col-span-4">
                   <label className={FINELY_OS_ENTITY_LABEL}>Prefill from lead</label>
-                  <select value={leadPick} onChange={(e) => fillFromLead(e.target.value)} className={FINELY_OS_ENTITY_INPUT}>
+                  <select aria-label="Prefill from lead" value={leadPick} onChange={(e) => fillFromLead(e.target.value)} className={FINELY_OS_ENTITY_INPUT}>
                     <option value="">— Select lead —</option>
                     {leads.map((l) => (
                       <option key={l.id} value={l.id}>{l.fullName || l.email}</option>
@@ -197,22 +201,22 @@ export function HosAccessCodesAdminPanel({ compact = false, variant }: Props) {
               ) : null}
               <div>
                 <label className={FINELY_OS_ENTITY_LABEL}>First name *</label>
-                <input value={firstName} onChange={(e) => setFirstName(e.target.value)} className={FINELY_OS_ENTITY_INPUT} />
+                <input aria-label="First name" value={firstName} onChange={(e) => setFirstName(e.target.value)} className={FINELY_OS_ENTITY_INPUT} />
               </div>
               <div>
                 <label className={FINELY_OS_ENTITY_LABEL}>Last name *</label>
-                <input value={lastName} onChange={(e) => setLastName(e.target.value)} className={FINELY_OS_ENTITY_INPUT} />
+                <input aria-label="Last name" value={lastName} onChange={(e) => setLastName(e.target.value)} className={FINELY_OS_ENTITY_INPUT} />
               </div>
               <div>
                 <label className={FINELY_OS_ENTITY_LABEL}>Email *</label>
-                <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" className={FINELY_OS_ENTITY_INPUT} />
+                <input aria-label="Email" value={email} onChange={(e) => setEmail(e.target.value)} type="email" className={FINELY_OS_ENTITY_INPUT} />
               </div>
               <div>
                 <label className={FINELY_OS_ENTITY_LABEL}>Expires (days)</label>
-                <input value={expiresDays} onChange={(e) => setExpiresDays(e.target.value)} type="number" min={1} className={FINELY_OS_ENTITY_INPUT} />
+                <input aria-label="Expiration in days" value={expiresDays} onChange={(e) => setExpiresDays(e.target.value)} type="number" min={1} className={FINELY_OS_ENTITY_INPUT} />
               </div>
             </div>
-            <Button variant="gold" size="sm" disabled={busy} onClick={() => void create()}>
+            <Button variant="royal" size="sm" disabled={busy} onClick={() => void create()}>
               <Plus size={16} /> {busy ? 'Generating…' : 'Generate key'}
             </Button>
 
@@ -225,7 +229,7 @@ export function HosAccessCodesAdminPanel({ compact = false, variant }: Props) {
                   return (
                     <div key={c.id} className="flex items-center justify-between gap-2 rounded-lg border border-white/[0.06] bg-black/20 px-2.5 py-1.5">
                       <div className="min-w-0 text-xs">
-                        <code className="font-bold text-amber-100">{c.code}</code>
+                        <code className="font-bold text-violet-100">{c.code}</code>
                         <span className="text-white/40 ml-2 truncate">{assigneeDisplayName(c)}</span>
                       </div>
                       <div className="flex gap-1 shrink-0">
@@ -246,13 +250,13 @@ export function HosAccessCodesAdminPanel({ compact = false, variant }: Props) {
 
             <button
               type="button"
-              className="inline-flex items-center gap-2 text-xs font-semibold text-amber-200/80 hover:text-amber-100"
+              className="inline-flex items-center gap-2 text-xs font-semibold text-violet-200/80 hover:text-violet-100"
               onClick={() => setShowFlyer((v) => !v)}
             >
               <FileDown size={14} /> {showFlyer ? 'Hide access flyer' : 'Show access flyer'}
             </button>
             {showFlyer ? (
-              <div className="rounded-xl border border-amber-500/15 bg-black/25 p-3 max-h-[420px] overflow-y-auto">
+              <div className="rounded-xl border border-violet-500/20 bg-black/25 p-3 max-h-[420px] overflow-y-auto">
                 <HosAccessFlyer
                   showDownload
                   onEnterKey={() => {
@@ -268,11 +272,11 @@ export function HosAccessCodesAdminPanel({ compact = false, variant }: Props) {
   }
 
   return (
-    <div className="rounded-2xl border border-amber-500/25 bg-black/30 p-5 space-y-4">
+    <div data-hos-access-panel="true" className="rounded-2xl border border-violet-500/30 bg-black/30 p-5 space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex items-start gap-3 min-w-0">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-400/30 bg-amber-500/10">
-            <KeyRound className="h-5 w-5 text-amber-200" />
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-violet-400/30 bg-violet-500/10">
+            <KeyRound className="h-5 w-5 text-violet-200" />
           </div>
           <div className="min-w-0">
             <p className="font-black text-white">Head of Society — person-assigned keys</p>
@@ -306,11 +310,11 @@ export function HosAccessCodesAdminPanel({ compact = false, variant }: Props) {
       ) : null}
 
       <div className="rounded-xl border border-white/[0.08] bg-black/20 p-4 space-y-3">
-        <p className="text-xs font-bold uppercase tracking-wide text-amber-200/80">Assign to a specific person</p>
+        <p className="text-xs font-bold uppercase tracking-wide text-violet-200/80">Assign to a specific person</p>
         {leads.length > 0 ? (
           <div>
             <label className={FINELY_OS_ENTITY_LABEL}>Prefill from lead (optional)</label>
-            <select value={leadPick} onChange={(e) => fillFromLead(e.target.value)} className={FINELY_OS_ENTITY_INPUT}>
+            <select aria-label="Prefill from lead" value={leadPick} onChange={(e) => fillFromLead(e.target.value)} className={FINELY_OS_ENTITY_INPUT}>
               <option value="">— Select lead —</option>
               {leads.map((l) => (
                 <option key={l.id} value={l.id}>{l.fullName || l.email} · {l.email}</option>
@@ -321,34 +325,34 @@ export function HosAccessCodesAdminPanel({ compact = false, variant }: Props) {
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
             <label className={FINELY_OS_ENTITY_LABEL}>First name *</label>
-            <input value={firstName} onChange={(e) => setFirstName(e.target.value)} className={FINELY_OS_ENTITY_INPUT} />
+            <input aria-label="First name" value={firstName} onChange={(e) => setFirstName(e.target.value)} className={FINELY_OS_ENTITY_INPUT} />
           </div>
           <div>
             <label className={FINELY_OS_ENTITY_LABEL}>Last name *</label>
-            <input value={lastName} onChange={(e) => setLastName(e.target.value)} className={FINELY_OS_ENTITY_INPUT} />
+            <input aria-label="Last name" value={lastName} onChange={(e) => setLastName(e.target.value)} className={FINELY_OS_ENTITY_INPUT} />
           </div>
           <div>
             <label className={FINELY_OS_ENTITY_LABEL}>Email * (must match at signup)</label>
-            <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" className={FINELY_OS_ENTITY_INPUT} />
+            <input aria-label="Email" value={email} onChange={(e) => setEmail(e.target.value)} type="email" className={FINELY_OS_ENTITY_INPUT} />
           </div>
           <div>
             <label className={FINELY_OS_ENTITY_LABEL}>Phone</label>
-            <input value={phone} onChange={(e) => setPhone(e.target.value)} className={FINELY_OS_ENTITY_INPUT} />
+            <input aria-label="Phone" value={phone} onChange={(e) => setPhone(e.target.value)} className={FINELY_OS_ENTITY_INPUT} />
           </div>
           <div>
             <label className={FINELY_OS_ENTITY_LABEL}>Cohort / batch</label>
-            <input value={cohort} onChange={(e) => setCohort(e.target.value)} className={FINELY_OS_ENTITY_INPUT} placeholder="March 2026 cohort" />
+            <input aria-label="Cohort or batch" value={cohort} onChange={(e) => setCohort(e.target.value)} className={FINELY_OS_ENTITY_INPUT} placeholder="March 2026 cohort" />
           </div>
           <div>
             <label className={FINELY_OS_ENTITY_LABEL}>Expires (days)</label>
-            <input value={expiresDays} onChange={(e) => setExpiresDays(e.target.value)} type="number" min={1} className={FINELY_OS_ENTITY_INPUT} />
+            <input aria-label="Expiration in days" value={expiresDays} onChange={(e) => setExpiresDays(e.target.value)} type="number" min={1} className={FINELY_OS_ENTITY_INPUT} />
           </div>
           <div className="sm:col-span-2">
             <label className={FINELY_OS_ENTITY_LABEL}>Internal notes</label>
-            <input value={notes} onChange={(e) => setNotes(e.target.value)} className={FINELY_OS_ENTITY_INPUT} placeholder="Referral source, coach, etc." />
+            <input aria-label="Internal notes" value={notes} onChange={(e) => setNotes(e.target.value)} className={FINELY_OS_ENTITY_INPUT} placeholder="Referral source, coach, etc." />
           </div>
         </div>
-        <Button variant="gold" size="sm" disabled={busy} onClick={() => void create()}>
+        <Button variant="royal" size="sm" disabled={busy} onClick={() => void create()}>
           <Plus size={16} /> {busy ? 'Generating…' : 'Generate key for this person'}
         </Button>
       </div>
@@ -364,7 +368,7 @@ export function HosAccessCodesAdminPanel({ compact = false, variant }: Props) {
               <div key={c.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/[0.08] bg-black/20 px-3 py-2.5">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <code className="font-bold text-amber-100">{c.code}</code>
+                    <code className="font-bold text-violet-100">{c.code}</code>
                     {c.revoked ? <span className="text-[10px] font-bold uppercase text-rose-300">Revoked</span>
                       : spent ? <span className="text-[10px] font-bold uppercase text-white/40">Redeemed</span>
                       : expired ? <span className="text-[10px] font-bold uppercase text-rose-300">Expired</span>
@@ -388,17 +392,28 @@ export function HosAccessCodesAdminPanel({ compact = false, variant }: Props) {
         )}
       </div>
 
-      <div className="rounded-xl border border-amber-500/20 bg-black/25 p-4 space-y-3">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-wide text-amber-200/80">Access flyer</p>
-          <p className="mt-1 text-sm text-white/50">Private HOS handoff poster — admin only.</p>
+      <div className="rounded-xl border border-violet-500/25 bg-black/25 p-4 space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wide text-violet-200/80">Access flyer</p>
+            <p className="mt-1 text-sm text-white/50">Private HOS handoff poster — admin only.</p>
+          </div>
+          <button
+            type="button"
+            className="inline-flex items-center gap-2 rounded-xl border border-violet-400/30 bg-violet-500/15 px-3 py-2 text-xs font-bold text-violet-100 hover:bg-violet-500/25"
+            onClick={() => setShowFlyer((value) => !value)}
+          >
+            <FileDown size={14} /> {showFlyer ? 'Hide flyer' : 'Preview flyer'}
+          </button>
         </div>
-        <HosAccessFlyer
-          showDownload
-          onEnterKey={() => {
-            window.open(`${HEAD_OF_SOCIETY_PATH}#hos-access`, '_blank', 'noopener,noreferrer');
-          }}
-        />
+        {showFlyer ? (
+          <HosAccessFlyer
+            showDownload
+            onEnterKey={() => {
+              window.open(`${HEAD_OF_SOCIETY_PATH}#hos-access`, '_blank', 'noopener,noreferrer');
+            }}
+          />
+        ) : null}
       </div>
     </div>
   );

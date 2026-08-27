@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ArrowRight, Scale, FileWarning, Plus, Gavel, AlertTriangle, ChevronDown, ChevronUp, BookOpen } from 'lucide-react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { debtCaseHref, debtHubHref, debtTabHref, isDebtProductPreviewPath } from '../../lib/debtProductPaths';
 import { PageShell } from '../../components/layout/PageShell';
 import { listDebtByPartner, createDebtCase } from '../../data/debtRepo';
 import { getDebtLaneFocus, saveDebtLaneFocus } from '../../data/debtLaneStateRepo';
@@ -35,7 +36,6 @@ import {
   FINELY_OS_ENTITY_LABEL,
   finelyOsAlertBanner,
   finelyOsCatalogCard,
-  finelyOsCatalogCardCompact,
   finelyOsGlowTile,
   FINELY_OS_ENTITY_SELECT,
   FINELY_OS_ENTITY_SUBLABEL,
@@ -81,7 +81,7 @@ const DEBT_DEFENSE_REMEDY_LABELS: Record<DebtLitigationPlaybook['remedyAction'][
 };
 
 /** Compact chip-driven explorer over the debt-litigation doctrine repo — no dropdowns. */
-function DebtDefensePlaybookExplorer() {
+export function DebtDefensePlaybookExplorer() {
   const [debtType, setDebtType] = useState<DebtLitigationPlaybook['debtType'] | null>(null);
   const [phase, setPhase] = useState<DebtLitigationPlaybook['phase'] | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -126,19 +126,19 @@ function DebtDefensePlaybookExplorer() {
           icon={FileWarning}
           label="Debt types covered"
           value={String(debtTypesCovered)}
-          accent="fuchsia"
+          accent="sky"
           hint="Credit card to timeshare"
         />
         <FinelyOsOverviewStatTile
           icon={Gavel}
           label="Litigation phases"
           value={String(phasesCovered)}
-          accent="amber"
+          accent="rose"
           hint="Pre-suit to counter-suit"
         />
       </div>
 
-      <div className={`${finelyOsCatalogCardCompact('violet')} space-y-3`}>
+      <div className={`${finelyOsCatalogCard('violet')} space-y-4`} data-fc-accent="violet">
         <div>
           <div className={FINELY_OS_ENTITY_SUBLABEL}>1. What kind of debt is this?</div>
           <div className="mt-2 flex flex-wrap gap-2">
@@ -174,8 +174,8 @@ function DebtDefensePlaybookExplorer() {
                       key={opt.id}
                       type="button"
                       onClick={() => handleSelectPhase(opt.id)}
-                      className={`px-3 py-1.5 text-[11px] font-bold ${finelyOsGlowTile(active ? 'amber' : 'sky', active)} ${
-                        active ? 'text-amber-100' : 'text-white/70'
+                      className={`px-3 py-1.5 text-[11px] font-bold ${finelyOsGlowTile(active ? 'violet' : 'sky', active)} ${
+                        active ? 'text-violet-100' : 'text-white/70'
                       }`}
                     >
                       {opt.label}
@@ -190,7 +190,7 @@ function DebtDefensePlaybookExplorer() {
 
       {debtType && phase ? (
         matchingPlaybook ? (
-          <div className={`${finelyOsCatalogCardCompact('emerald')} space-y-3`}>
+          <div className={`${finelyOsCatalogCard('emerald')} space-y-4`} data-fc-accent="emerald">
             <button
               type="button"
               onClick={() => setExpandedId((prev) => (prev === matchingPlaybook.id ? null : matchingPlaybook.id))}
@@ -283,7 +283,7 @@ function DebtDefensePlaybookExplorer() {
   );
 }
 
-function AddCaseForm({
+export function AddCaseForm({
   addType,
   setAddType,
   addName,
@@ -311,7 +311,7 @@ function AddCaseForm({
   const formLabel = `block ${FINELY_OS_ENTITY_LABEL} mb-1`;
 
   return (
-    <form onSubmit={onSubmit} className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony border-fuchsia-500/25 space-y-4`}>
+    <form onSubmit={onSubmit} className={`${finelyOsCatalogCard('sky')} fc-surface-harmony space-y-4`} data-fc-accent="sky">
       <h3 className={FINELY_OS_ENTITY_TITLE}>{compact ? 'Add debt or summons case' : 'Add case'}</h3>
       <div className={compact ? 'grid sm:grid-cols-2 gap-4' : 'space-y-4'}>
         <div>
@@ -364,8 +364,10 @@ function AddCaseForm({
   );
 }
 
-export default function PartnerDebtPage() {
+export function PartnerDebtWorkspace({ embedded = false }: { embedded?: boolean }) {
   const navigate = useNavigate();
+  const { pathname, search } = useLocation();
+  const previewDebt = embedded || isDebtProductPreviewPath(pathname);
   const [searchParams, setSearchParams] = useSearchParams();
   const [caseRefresh, setCaseRefresh] = useState(0);
   const { partner } = usePartnerSession();
@@ -451,7 +453,7 @@ export default function PartnerDebtPage() {
         return {
           title: 'Foreclosure command center',
           subtitle: 'RESPA, loss mitigation, dual-track stops, note/assignment demands — with live coach.',
-          accent: 'amber' as const,
+          accent: 'rose' as const,
         };
       case 'repossession':
         return {
@@ -463,7 +465,7 @@ export default function PartnerDebtPage() {
         return {
           title: 'Litigation Command',
           subtitle: 'Hearing countdown, docket/summons scrape, affidavits, answers, and day-of defense — one home for court work.',
-          accent: 'fuchsia' as const,
+          accent: 'rose' as const,
         };
       case 'bankruptcy':
         return {
@@ -479,9 +481,9 @@ export default function PartnerDebtPage() {
         };
       default:
         return {
-          title: 'Debt Letters',
+          title: 'Debt & Court workstations',
           subtitle: 'Validation, affidavits & court, and debt tracks — pick a workstation below. Bureau credit disputes are under Credit Letters.',
-          accent: 'fuchsia' as const,
+          accent: 'rose' as const,
         };
     }
   }, [workstationTab]);
@@ -491,8 +493,8 @@ export default function PartnerDebtPage() {
       workstationTab
         ? undefined
         : [
-            { label: 'Cases', value: String(cases.length), hint: 'Total', accent: 'amber' as const },
-            { label: 'Active', value: String(openCount + disputedCount), hint: 'Open + disputed', accent: 'emerald' as const },
+            { label: 'Cases', value: String(cases.length), hint: 'Total', accent: 'emerald' as const },
+            { label: 'Active', value: String(openCount + disputedCount), hint: 'Open + disputed', accent: 'violet' as const },
             {
               label: 'On report',
               value: debtSnapshot?.reportedCents
@@ -505,7 +507,7 @@ export default function PartnerDebtPage() {
               label: 'In cases',
               value: (totalDollars / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }),
               hint: 'Claimed total',
-              accent: 'violet' as const,
+              accent: 'rose' as const,
             },
             {
               label: 'Summons',
@@ -513,7 +515,7 @@ export default function PartnerDebtPage() {
               hint: debtSnapshot?.summonsClaimedCents
                 ? (debtSnapshot.summonsClaimedCents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
                 : 'None yet',
-              accent: 'fuchsia' as const,
+              accent: 'emerald' as const,
             },
           ],
     [cases.length, openCount, disputedCount, totalDollars, workstationTab, debtSnapshot],
@@ -536,10 +538,12 @@ export default function PartnerDebtPage() {
     setAddName('');
     setAddAmount('');
     setAddCaseNumber('');
-    navigate(`/portal/debt/${created.id}`);
+    navigate(debtCaseHref(created.id, pathname, search));
   };
 
-  const navLinks = (
+  const lettersPath = previewDebt ? '/preview/workspace-light/portal/letters' : '/portal/letters';
+
+  const navLinks = embedded ? null : (
     <div className="flex flex-wrap items-center justify-between gap-4">
       <div className="flex flex-wrap items-center gap-3">
         <button type="button" onClick={() => navigate('/portal/dashboard')} className={FINELY_OS_BACK_LINK}>
@@ -571,32 +575,28 @@ export default function PartnerDebtPage() {
     </div>
   );
 
-  return (
-    <PageShell
-      badge="Partner Portal"
-      title="Debt Letters"
-      subtitle="Validation, Litigation Command (court defense), foreclosure, repossession, and bankruptcy — FDCPA/contract focus. Credit bureau disputes live under Credit Letters."
-    >
-      {!partner ? (
-        <div className={FINELY_OS_PAGE}>
-          <div className={`${FINELY_OS_LUXURY_EMPTY} text-left`}>
-            No partner profile found for this account. If you're an admin, use Partner Management to pick a partner.
-          </div>
-          <button type="button" onClick={() => navigate('/dashboard')} className={FINELY_OS_PRIMARY_BTN}>
-            <ArrowLeft size={14} /> Back to Dashboard
-          </button>
-        </div>
-      ) : (
-        <EntitlementGate partnerId={partner.id} requiredKeys={[ENTITLEMENT_KEYS.debt]}>
-          <div className={FINELY_OS_PAGE}>
-            {navLinks}
+  const workspaceBody = !partner ? (
+    <div className={FINELY_OS_PAGE}>
+      <div className={`${FINELY_OS_LUXURY_EMPTY} text-left`}>
+        No partner profile found for this account. If you're an admin, use Partner Management to pick a partner.
+      </div>
+      {!embedded ? (
+        <button type="button" onClick={() => navigate('/dashboard')} className={FINELY_OS_PRIMARY_BTN}>
+          <ArrowLeft size={14} /> Back to Dashboard
+        </button>
+      ) : null}
+    </div>
+  ) : (
+    <EntitlementGate partnerId={partner.id} requiredKeys={[ENTITLEMENT_KEYS.debt]}>
+      <div className={FINELY_OS_PAGE}>
+        {navLinks}
 
-            <FinelyUnifiedHubLayout
-              eyebrow="Debt Letters"
+        <FinelyUnifiedHubLayout
+              eyebrow="Debt & Court"
               title={hubMeta.title}
               subtitle={hubMeta.subtitle}
               accent={hubMeta.accent}
-              kpis={debtKpis}
+              kpis={embedded ? undefined : debtKpis}
               contentVariant={workstationTab === 'foreclosure' || workstationTab === 'repossession' ? 'flush' : 'card'}
               tabDensity="comfortable"
               tabs={[
@@ -612,7 +612,7 @@ export default function PartnerDebtPage() {
               activeTab={tab === 'court' ? 'litigation' : tab}
               onTabChange={(id) => handleTabChange(id as DebtTab)}
               primaryAction={{ label: 'Add case', onClick: () => setShowAdd(true) }}
-              secondaryAction={{ label: 'Credit Letters', onClick: () => navigate('/portal/letters') }}
+              secondaryAction={{ label: 'Credit Letters', onClick: () => navigate(lettersPath) }}
               detailSlot={tab === 'overview' ? letterTypesPanel : undefined}
               detailLabel="Letter types available"
             >
@@ -697,14 +697,14 @@ export default function PartnerDebtPage() {
                   <DebtLaneHandoffStrip partnerId={partner.id} />
 
                   {/* Defense Book lives on Litigation Command — thin cross-link only (no duplicate panel). */}
-                  <div className={`${finelyOsCatalogCard('violet')} !p-4 flex flex-wrap items-center justify-between gap-3`}>
+                  <div className={`${finelyOsCatalogCard('violet')} flex flex-wrap items-center justify-between gap-3`} data-fc-accent="violet">
                     <div>
                       <div className={FINELY_OS_ENTITY_SUBLABEL}>Court defense</div>
                       <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>
                         Hearing countdown, docket scrape, affidavit & answer builds, and Defense Book — all in Litigation Command.
                       </p>
                     </div>
-                    <Link to="/portal/debt?tab=litigation" className={FINELY_OS_PRIMARY_BTN} onClick={() => handleTabChange('litigation')}>
+                    <Link to={debtTabHref('litigation', pathname, search)} className={FINELY_OS_PRIMARY_BTN} onClick={() => handleTabChange('litigation')}>
                       Open Litigation <ArrowRight size={14} />
                     </Link>
                   </div>
@@ -775,7 +775,7 @@ export default function PartnerDebtPage() {
                         <button
                           key={c.id}
                           type="button"
-                          onClick={() => navigate(`/portal/debt/${c.id}`)}
+                          onClick={() => navigate(debtCaseHref(c.id, pathname, search))}
                           className="w-full text-left px-4 py-3 flex items-center justify-between gap-4 hover:bg-white/5 transition"
                         >
                           <div className="flex items-center gap-3 min-w-0">
@@ -802,11 +802,31 @@ export default function PartnerDebtPage() {
               {tab === 'guides' && <DebtDefensePlaybookExplorer />}
             </FinelyUnifiedHubLayout>
 
-            <PartnerRestoreWorkspaceDock variant="portal" className="mt-6 sticky bottom-3 z-20" />
-            <FinelyOsPageFooter />
-          </div>
-        </EntitlementGate>
-      )}
+        {!embedded ? <PartnerRestoreWorkspaceDock variant="portal" className="mt-6 sticky bottom-3 z-20" /> : null}
+        {!embedded ? <FinelyOsPageFooter /> : null}
+      </div>
+    </EntitlementGate>
+  );
+
+  if (embedded) {
+    return (
+      <div className="fc-wlp-debt-workspace-embed" data-surface-kind="real" data-surface-key="partner:debt">
+        {workspaceBody}
+      </div>
+    );
+  }
+
+  return (
+    <PageShell
+      badge="Partner Portal"
+      title="Debt & Court"
+      subtitle="Validation, Litigation Command (court defense), foreclosure, repossession, and bankruptcy — FDCPA/contract focus. Credit bureau disputes live under Credit Letters."
+    >
+      {workspaceBody}
     </PageShell>
   );
+}
+
+export default function PartnerDebtPage() {
+  return <PartnerDebtWorkspace />;
 }

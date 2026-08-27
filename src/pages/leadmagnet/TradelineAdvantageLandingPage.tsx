@@ -47,7 +47,7 @@ function GoldButton({
       type={type}
       disabled={disabled}
       className={cn(
-        'group relative inline-flex h-14 items-center justify-center overflow-hidden rounded-xl border border-[#f5dfa0]/60 bg-[linear-gradient(135deg,#7a5a14_0%,#d4a447_42%,#f0cc75_68%,#a67c1a_100%)] px-7 text-[12px] font-black uppercase tracking-[0.12em] text-[#06101f] shadow-[0_18px_55px_rgba(212,164,71,0.30),inset_0_1px_0_rgba(255,255,255,0.45)] transition duration-300 hover:-translate-y-0.5 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70',
+        'group relative inline-flex h-14 items-center justify-center overflow-hidden rounded-xl border border-[#a7f3d0]/60 bg-emerald-500 px-7 text-[12px] font-black uppercase tracking-[0.12em] text-white shadow-[0_18px_55px_rgba(16,185,129,0.30),inset_0_1px_0_rgba(255,255,255,0.25)] transition duration-300 hover:-translate-y-0.5 hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-70',
         className,
       )}
     >
@@ -59,8 +59,8 @@ function GoldButton({
 
 function SectionKicker({ children }: { children: React.ReactNode }) {
   return (
-    <div className="inline-flex items-center gap-2 rounded-full border border-[#7b3f8f]/45 bg-[#2a1430]/65 px-4 py-2 text-[11px] font-black uppercase tracking-[0.22em] text-[#f0cc75] shadow-[0_0_30px_rgba(92,45,84,0.2)]">
-      <Sparkles size={14} className="text-[#d4a447]" />
+    <div className="inline-flex items-center gap-2 rounded-full border border-[#7b3f8f]/45 bg-[#2a1430]/65 px-4 py-2 text-[11px] font-black uppercase tracking-[0.22em] text-[#c4b5fd] shadow-[0_0_30px_rgba(92,45,84,0.2)]">
+      <Sparkles size={14} className="text-[#a78bfa]" />
       {children}
     </div>
   );
@@ -79,7 +79,7 @@ function GlassPanel({
     <div
       className={cn(
         'relative overflow-hidden rounded-[1.5rem] border border-white/10 bg-white/[0.035] shadow-[0_30px_110px_rgba(0,0,0,0.46)] backdrop-blur-xl',
-        glow && 'before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_50%_0%,rgba(212,164,71,0.16),transparent_44%)]',
+        glow && 'before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_50%_0%,rgba(167,139,250,0.18),transparent_44%)]',
         className,
       )}
     >
@@ -92,7 +92,7 @@ function GlassPanel({
 function MiniCheck({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-start gap-3 text-sm leading-relaxed text-white/72">
-      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#d4a447] text-[#05101e] shadow-[0_0_22px_rgba(212,164,71,0.24)]">
+      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#a78bfa] text-[#05101e] shadow-[0_0_22px_rgba(167,139,250,0.28)]">
         <CheckCircle2 size={13} strokeWidth={3} />
       </span>
       <span>{children}</span>
@@ -137,10 +137,10 @@ function GuideMockup({
 
 function ValueStackCard({ label, value }: { label: string; value: string }) {
   return (
-    <GlassPanel className="tla-value-card p-5 transition duration-300 hover:-translate-y-1 hover:border-[#d4a447]/45">
-      <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[#d4a447]">Included free</div>
+    <GlassPanel className="tla-value-card p-5 transition duration-300 hover:-translate-y-1 hover:border-[#a78bfa]/45">
+      <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[#a78bfa]">Included free</div>
       <div className="mt-3 text-sm font-semibold leading-snug text-white">{label}</div>
-      <div className="mt-3 text-2xl font-black tracking-[-0.03em] text-[#f0cc75]">{value} value</div>
+      <div className="mt-3 text-2xl font-black tracking-[-0.03em] text-[#c4b5fd]">{value} value</div>
     </GlassPanel>
   );
 }
@@ -162,13 +162,13 @@ function VideoPreview({ onGoForm }: { onGoForm?: () => void }) {
   );
 }
 
-const DISCOVERY_ACCENTS = ['emerald', 'sapphire', 'plum', 'gold'] as const;
+const DISCOVERY_ACCENTS = ['emerald', 'sapphire', 'plum', 'rose'] as const;
 
 function DiscoveryCard({
   icon: Icon,
   title,
   desc,
-  accent = 'gold',
+  accent = 'rose',
   className,
 }: {
   icon: React.ComponentType<{ size?: number; className?: string }>;
@@ -184,7 +184,7 @@ function DiscoveryCard({
         ? 'text-[#8bafe8]'
         : accent === 'plum'
           ? 'text-[#c48fd4]'
-          : 'text-[#f0cc75]';
+          : 'text-[#c4b5fd]';
 
   return (
     <div
@@ -194,7 +194,7 @@ function DiscoveryCard({
         className,
       )}
     >
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#d4a447]/70 to-transparent opacity-0 transition group-hover:opacity-100" />
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#a78bfa]/70 to-transparent opacity-0 transition group-hover:opacity-100" />
       <div className={cn('tla-discovery-icon tla-discovery-icon--' + accent, 'mx-auto flex items-center justify-center rounded-full')}>
         <Icon size={34} />
       </div>
@@ -215,7 +215,7 @@ function Testimonial({
 }) {
   return (
     <div className="tla-testimonial-card relative overflow-hidden rounded-[1.35rem] p-6">
-      <div className="flex gap-1 text-[#f0cc75]">
+      <div className="flex gap-1 text-[#c4b5fd]">
         {Array.from({ length: 5 }).map((_, i) => (
           <Star key={i} size={16} fill="currentColor" />
         ))}
@@ -225,7 +225,7 @@ function Testimonial({
         <div className="font-semibold text-white">- {name}</div>
         <div className="text-xs text-white/48">{role}</div>
       </div>
-      <div className="absolute bottom-5 right-5 flex h-16 w-16 items-center justify-center rounded-full border-2 border-[#7b3f8f]/55 bg-gradient-to-br from-[#f0cc75] to-[#1a3a6e] text-[#06101f] shadow-[0_0_30px_rgba(92,45,84,0.22)]">
+      <div className="absolute bottom-5 right-5 flex h-16 w-16 items-center justify-center rounded-full border-2 border-[#7b3f8f]/55 bg-gradient-to-br from-[#c4b5fd] to-[#1a3a6e] text-[#06101f] shadow-[0_0_30px_rgba(92,45,84,0.22)]">
         <User size={26} />
       </div>
     </div>
@@ -266,7 +266,7 @@ export default function TradelineAdvantageLandingPage() {
       icon: TrendingUp,
       title: 'Funding Readiness',
       desc: 'Education framed for real fit, timing, and alternatives — no outcome guarantees or hype.',
-      accent: 'gold' as const,
+      accent: 'rose' as const,
     },
   ];
 
@@ -282,13 +282,13 @@ export default function TradelineAdvantageLandingPage() {
           -webkit-mask-image: radial-gradient(circle at 58% 38%, black 0%, black 58%, transparent 100%);
         }
       `}</style>
-      <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_72%_6%,rgba(212,164,71,0.14),transparent_28%),radial-gradient(circle_at_12%_22%,rgba(92,45,84,0.32),transparent_34%),radial-gradient(circle_at_88%_48%,rgba(26,58,110,0.26),transparent_30%),radial-gradient(circle_at_42%_88%,rgba(13,92,74,0.18),transparent_28%),linear-gradient(180deg,#0e0614_0%,#1a0f24_45%,#0e0614_100%)]" />
+      <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_72%_6%,rgba(167,139,250,0.16),transparent_28%),radial-gradient(circle_at_12%_22%,rgba(92,45,84,0.32),transparent_34%),radial-gradient(circle_at_88%_48%,rgba(56,189,248,0.14),transparent_30%),radial-gradient(circle_at_42%_88%,rgba(52,211,153,0.16),transparent_28%),linear-gradient(180deg,#0e0614_0%,#1a0f24_45%,#0e0614_100%)]" />
       <div className="fc-premium-noise pointer-events-none fixed inset-0 z-0 opacity-[0.04]" />
       <div className="pointer-events-none fixed inset-x-0 top-0 z-0 h-[420px] bg-gradient-to-b from-[#2a1430]/55 to-transparent" />
 
       <section className="tla-hero-section relative z-10 border-b border-[#5c2d54]/40 pt-20 md:pt-24">
-        <div className="fc-hero-vignette absolute inset-0 bg-[radial-gradient(circle_at_22%_55%,rgba(212,164,71,0.16),transparent_28%),radial-gradient(circle_at_18%_62%,rgba(92,45,84,0.22),transparent_30%),radial-gradient(circle_at_30%_70%,rgba(26,58,110,0.14),transparent_26%)]" />
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#d4a447]/60 via-[#7b3f8f]/50 to-transparent" />
+        <div className="fc-hero-vignette absolute inset-0 bg-[radial-gradient(circle_at_22%_55%,rgba(167,139,250,0.18),transparent_28%),radial-gradient(circle_at_18%_62%,rgba(92,45,84,0.22),transparent_30%),radial-gradient(circle_at_30%_70%,rgba(56,189,248,0.12),transparent_26%)]" />
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#a78bfa]/60 via-[#7b3f8f]/50 to-transparent" />
         <div className="tla-hero-grid mx-auto grid items-center gap-10 px-5 md:px-8 lg:items-center">
           <div className="tla-hero-mockup-col relative z-10 order-2 flex items-center justify-center lg:order-1 lg:justify-start">
             <GuideMockup tall className="w-full" />
@@ -308,15 +308,15 @@ export default function TradelineAdvantageLandingPage() {
 
             <div className="tla-hero-form mt-7 max-w-xl rounded-[1.35rem] p-5 md:p-6">
               <h2 className="mb-3 text-lg font-black uppercase tracking-[0.08em] text-white md:text-xl">
-                Get Your <span className="text-[#f0cc75]">Free</span> Guide Now
+                Get Your <span className="text-[#c4b5fd]">Free</span> Guide Now
               </h2>
               <PremiumLeadMagnetCaptureForm
                 funnelConfig={TRADELINE_FUNNEL}
-                accentClass="focus:border-[#f0cc75] focus:ring-[#d4a447]/15"
+                accentClass="focus:border-[#c4b5fd] focus:ring-[#a78bfa]/15"
               />
               <Link
                 to={TL_GUIDE_READ_PATH}
-                className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#d4a447]/45 bg-[#d4a447]/10 px-4 py-2.5 text-[11px] font-black uppercase tracking-[0.14em] text-[#f0cc75] transition hover:border-[#f0cc75]/70 hover:bg-[#d4a447]/16"
+                className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#a78bfa]/45 bg-[#a78bfa]/10 px-4 py-2.5 text-[11px] font-black uppercase tracking-[0.14em] text-[#c4b5fd] transition hover:border-[#c4b5fd]/70 hover:bg-[#a78bfa]/16"
               >
                 <BookOpen size={14} /> Read all {TL_GUIDE_CHAPTERS.length} pages free — no signup
               </Link>
@@ -378,9 +378,9 @@ export default function TradelineAdvantageLandingPage() {
               <Link
                 key={ch.id}
                 to={`${TL_GUIDE_READ_PATH}?chapter=${ch.id}`}
-                className="group rounded-[1.1rem] border border-white/10 bg-white/[0.035] p-4 text-left backdrop-blur-xl transition hover:-translate-y-1 hover:border-[#d4a447]/45"
+                className="group rounded-[1.1rem] border border-white/10 bg-white/[0.035] p-4 text-left backdrop-blur-xl transition hover:-translate-y-1 hover:border-[#a78bfa]/45"
               >
-                <div className="font-mono text-xs font-bold tracking-[0.18em] text-[#f0cc75]">{ch.number}</div>
+                <div className="font-mono text-xs font-bold tracking-[0.18em] text-[#c4b5fd]">{ch.number}</div>
                 <div className="mt-2 text-sm font-bold leading-snug text-white">{ch.title}</div>
                 <p className="mt-1.5 text-[12.5px] leading-relaxed text-white/55">{ch.teaser}</p>
                 <div className="mt-2 text-[10px] font-black uppercase tracking-[0.16em] text-[#8bafe8]">
@@ -475,7 +475,7 @@ export default function TradelineAdvantageLandingPage() {
               <GuideMockup footer className="relative z-10 w-full" />
             </div>
             <div className="p-8 md:p-10">
-              <h3 className="text-2xl font-black uppercase tracking-[0.07em] text-[#f0cc75]">
+              <h3 className="text-2xl font-black uppercase tracking-[0.07em] text-[#c4b5fd]">
                 Get Instant Access to Your Free Guide
               </h3>
               <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/58">
@@ -484,7 +484,7 @@ export default function TradelineAdvantageLandingPage() {
               <div className="mt-6">
                 <PremiumLeadMagnetCaptureForm
                   funnelConfig={TRADELINE_FUNNEL}
-                  accentClass="focus:border-[#f0cc75] focus:ring-[#d4a447]/15"
+                  accentClass="focus:border-[#c4b5fd] focus:ring-[#a78bfa]/15"
                 />
               </div>
             </div>

@@ -2,23 +2,12 @@ import React, { useMemo, useState } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
-  Cross,
   BadgeCheck,
-  BriefcaseBusiness,
-  Building2,
-  Crown,
-  ExternalLink,
-  Gavel,
-  Home,
-  Share2,
-  Shield,
-  UserCog,
-  Users,
-  Wallet,
   FileSignature,
-  ShoppingBag,
+  Wallet,
 } from 'lucide-react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useMappedAdminNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { PageShell } from '../../components/layout/PageShell';
 import { HosAccessCodesAdminPanel } from '../../components/heta/HosAccessCodesAdminPanel';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
@@ -31,349 +20,67 @@ import {
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_PRIMARY_BTN,
+  FINELY_OS_SUCCESS_BTN,
   FINELY_OS_SECONDARY_BTN,
   FINELY_OS_VIEW_TABS,
   finelyOsInlineListItem,
   finelyOsViewTab,
 } from '../../features/os/finelyOsLightUi';
 import { capabilitiesForRole, workflowIdForCapabilityRole, type RoleCapabilityRole } from '../../config/roleCapabilityMatrix';
+import {
+  ROLE_PREVIEW_ORDER,
+  parseRolePreviewRole,
+  rolePreviewEntry,
+  type RolePreviewRole,
+} from '../../config/rolePreviewCatalog';
+import { activateRolePreview } from '../../lib/adminRolePreview';
 import { RoleWorkflowPanel } from '../../components/workflow/RoleWorkflowPanel';
 import { demoRoleWorkflowProgress } from '../../lib/roleWorkflowProgress';
-import { LAUNCH_ROLE_COURSES } from '../../config/launchRoleCourses';
-import { AGENCY } from '../../config/agencyPartnersProgram';
-import { CASE_HELP } from '../../config/caseHelpProgram';
-import { RE } from '../../config/realEstateProgram';
+import {
+  ROLE_PREVIEW_CONFIG,
+  ROLE_PREVIEW_DETAIL_TABS,
+  ROLE_PREVIEW_ORDER_LIST,
+  ROLE_PREVIEW_TAB_ACCENTS,
+  rolePreviewLaunchCourse,
+  rolePreviewProvisionHint,
+  type RolePreviewDetailTab,
+  type RolePreviewSurfaceRole,
+} from '../../features/workspaceLightPreview/product/admin/rolePreviewSurfaceModel';
 
-type RoleType =
-  | 'partner'
-  | 'business'
-  | 'agent'
-  | 'affiliate'
-  | 'au_seller'
-  | 'au_buyer'
-  | 'agency'
-  | 'case_help'
-  | 'real_estate'
-  | 'heta_society'
-  | 'admin';
+type RoleType = RolePreviewSurfaceRole;
+const ROLE_CONFIG = ROLE_PREVIEW_CONFIG;
+const ROLE_ORDER = ROLE_PREVIEW_ORDER_LIST;
+const TAB_ACCENTS = ROLE_PREVIEW_TAB_ACCENTS;
+const DETAIL_TABS = ROLE_PREVIEW_DETAIL_TABS;
+type DetailTab = RolePreviewDetailTab;
 
-type RoleConfig = {
-  title: string;
-  shortLabel: string;
-  icon: React.ComponentType<{ size?: number; className?: string }>;
-  accent: 'violet' | 'fuchsia' | 'emerald' | 'sky' | 'amber';
-  previewPath: string;
-  addPath: string;
-  addLabel: string;
-  preview: string[];
-  access: { label: string; path: string }[];
-  contracts: string[];
-  payouts: string[];
-};
+function AdminRolePreviewFrame({
+  embedded,
+  children,
+}: {
+  embedded: boolean;
+  children: React.ReactNode;
+}) {
+  if (embedded) return <>{children}</>;
+  return (
+    <PageShell
+      badge="Admin"
+      title="Role preview"
+      subtitle="Inspect what each role sees — access, contracts, and payouts."
+    >
+      {children}
+    </PageShell>
+  );
+}
 
-const ROLE_CONFIG: Record<RoleType, RoleConfig> = {
-  partner: {
-    title: 'Partner (customer portal)',
-    shortLabel: 'Partner',
-    icon: Users,
-    accent: 'sky',
-    previewPath: '/portal/dashboard',
-    addPath: '/admin/partners#create-partner',
-    addLabel: 'Create partner',
-    preview: [
-      'Personal restore/build workspace: reports, disputes, letters, tasks',
-      'Billing, documents, education, and messaging with their assigned team',
-      'Scoped to one partner record — no admin or tenant settings',
-      'Entitlements gate premium modules (debt kill, business build, etc.)',
-    ],
-    access: [
-      { label: 'Portal dashboard', path: '/portal/dashboard' },
-      { label: 'Credit reports', path: '/portal/reports' },
-      { label: 'Disputes & letters', path: '/portal/disputes' },
-      { label: 'Billing', path: '/portal/billing' },
-    ],
-    contracts: ['Service agreement on onboarding', 'Dispute authorization letters (per round)', 'Optional add-on entitlements at checkout'],
-    payouts: ['N/A — client pays Finely; no outbound payouts to partner role'],
-  },
-  business: {
-    title: 'Business credit lane',
-    shortLabel: 'Business',
-    icon: BriefcaseBusiness,
-    accent: 'emerald',
-    previewPath: '/business/dashboard',
-    addPath: '/admin/partners?lane=business_credit#create-partner',
-    addLabel: 'Add business partner',
-    preview: [
-      'Vendor stack, funding readiness, lender logic, and bureau disputes',
-      'Separate nav from personal portal — business profile + documents',
-      'Admin sees same partner record under Partner Management',
-    ],
-    access: [
-      { label: 'Business dashboard', path: '/business/dashboard' },
-      { label: 'Vendor catalog', path: '/business/vendors' },
-      { label: 'Lender Logic', path: '/business/lender-logic' },
-      { label: 'Business disputes', path: '/business/disputes' },
-    ],
-    contracts: ['Business credit service terms', 'Vendor enrollment agreements where applicable'],
-    payouts: ['N/A — revenue is inbound client fees'],
-  },
-  agent: {
-    title: 'Credit specialist (agent)',
-    shortLabel: 'Agent',
-    icon: UserCog,
-    accent: 'fuchsia',
-    previewPath: '/credit-specialist/hub',
-    addPath: '/admin/team',
-    addLabel: 'Invite agent',
-    preview: [
-      'Hub with assigned partners only — tasks, messages, calendar',
-      'Revenue split calculator reflects training phase and value levers',
-      'Cannot access tenant billing, other admins, or unassigned partners',
-    ],
-    access: [
-      { label: 'Agent hub', path: '/credit-specialist/hub' },
-      { label: 'Assigned partner files', path: '/admin/partners' },
-      { label: 'Ops tasks', path: '/admin/workflow' },
-    ],
-    contracts: ['Agent operating agreement (program terms)', 'Customer /engagement under Finely brand'],
-    payouts: ['Agent split on client revenue — see Finance / agent hub payout center', 'Configure method in agent profile'],
-  },
-  affiliate: {
-    title: 'Affiliate partner',
-    shortLabel: 'Affiliate',
-    icon: Share2,
-    accent: 'violet',
-    previewPath: '/affiliate/hub',
-    addPath: '/admin/partners?add=affiliate#create-partner',
-    addLabel: 'Add affiliate',
-    preview: [
-      'Referral links, conversion tracking, and commission ledger',
-      'Lane=affiliate on partner record; public program at /affiliate',
-      'Payout center shows pending / paid referral commissions',
-    ],
-    access: [
-      { label: 'Affiliate hub', path: '/affiliate/hub' },
-      { label: 'Public program page', path: '/affiliate' },
-    ],
-    contracts: ['Affiliate program terms', 'Referral disclosure requirements'],
-    payouts: ['Commission on qualified referrals', 'Payout center — bank / Cash App / Zelle when configured'],
-  },
-  au_seller: {
-    title: 'AU seller',
-    shortLabel: 'AU seller',
-    icon: BadgeCheck,
-    accent: 'emerald',
-    previewPath: '/seller/hub',
-    addPath: '/admin/au-sellers',
-    addLabel: 'Add AU seller',
-    preview: [
-      'List tradeline inventory, verification uploads, contracts',
-      'Admin approves listings before marketplace visibility',
-      'Seller share of AU placement gross per program defaults',
-    ],
-    access: [
-      { label: 'Seller hub', path: '/seller/hub' },
-      { label: 'Listings', path: '/seller/listings' },
-      { label: 'Contracts', path: '/seller/contracts' },
-      { label: 'Payouts', path: '/seller/payouts' },
-    ],
-    contracts: ['AU seller agreement', 'Listing verification attestations'],
-    payouts: ['Seller share of AU placement gross (see AU program defaults)', 'Payout method required before disbursement'],
-  },
-  au_buyer: {
-    title: 'AU buyer',
-    shortLabel: 'AU buyer',
-    icon: ShoppingBag,
-    accent: 'sky',
-    previewPath: '/au/marketplace',
-    addPath: '/au/request',
-    addLabel: 'Start buyer intake',
-    preview: [
-      'Browse marketplace inventory and submit structured AU placement requests',
-      'Document checklist and eligibility attestation on intake',
-      'Order tracking through fulfillment — no seller-side listing tools',
-    ],
-    access: [
-      { label: 'AU marketplace', path: '/au/marketplace' },
-      { label: 'Submit request', path: '/au/request' },
-      { label: 'My orders', path: '/au/orders' },
-    ],
-    contracts: ['AU placement terms', 'Authorization and eligibility attestations'],
-    payouts: ['N/A — buyer pays for tradeline placement'],
-  },
-  agency: {
-    title: 'Agency partner',
-    shortLabel: 'Agency',
-    icon: Building2,
-    accent: 'amber',
-    previewPath: AGENCY.hubPath,
-    addPath: AGENCY.signupPath,
-    addLabel: 'Create agency workspace',
-    preview: [
-      'Agency Hub after tenant create — partners, letters, team, payouts, white-label',
-      'Gate: active membership on an agency-type tenant (tenant_owner / agency staff)',
-      'Separate from Credit Specialist lane — agency_* buy-in IDs never equal cs_*',
-    ],
-    access: [
-      { label: 'Agency Hub', path: AGENCY.hubPath },
-      { label: 'Agency signup', path: AGENCY.signupPath },
-      { label: 'Public careers', path: AGENCY.publicPath },
-      { label: 'Team & roles', path: '/admin/team' },
-    ],
-    contracts: ['Agency buy-in / operating terms', 'White-label brand settings on tenant'],
-    payouts: ['Agency keep % on partner files — configure in Finance / payout center'],
-  },
-  case_help: {
-    title: 'Case Help (case desk)',
-    shortLabel: 'Case Help',
-    icon: Gavel,
-    accent: 'fuchsia',
-    previewPath: CASE_HELP.hubPath,
-    addPath: '/admin/team',
-    addLabel: 'Invite case desk seat',
-    preview: [
-      'Hub only after admin approval → claim/signup — never promised on bare apply',
-      'Membership roles: paralegal / attorney / consultant with assignedPartnerIds scope',
-      'Matters desk: debt, letters, packets — educational; not legal representation',
-    ],
-    access: [
-      { label: 'Case Help Hub', path: CASE_HELP.hubPath },
-      { label: 'Careers apply', path: CASE_HELP.publicPath },
-      { label: 'Case desk guide', path: CASE_HELP.guidePath },
-      { label: 'Team invites', path: '/admin/team' },
-    ],
-    contracts: ['Case desk membership after approval', 'Scoped partner assignment'],
-    payouts: ['Seat / engagement terms set per matter — not a public self-serve payout hub'],
-  },
-  real_estate: {
-    title: 'Real Estate (tagged affiliate)',
-    shortLabel: 'RE',
-    icon: Home,
-    accent: 'emerald',
-    previewPath: RE.hubPath,
-    addPath: RE.signupPath,
-    addLabel: 'RE affiliate signup',
-    preview: [
-      'LOCKED: same affiliate auth role — interest=real_estate tag + filtered hub',
-      'No new auth role enum in v1 — referrals, handoff, score CTA, playbook',
-      'Full campaigns/payouts remain on Affiliate Hub',
-    ],
-    access: [
-      { label: 'Real Estate Hub', path: RE.hubPath },
-      { label: 'RE careers', path: RE.publicPath },
-      { label: 'Affiliate Hub', path: '/affiliate/hub' },
-      { label: 'Operator guide', path: RE.guidePath },
-    ],
-    contracts: ['Affiliate program terms', 'RE interest tag on signup / journeySignals'],
-    payouts: ['Same affiliate commission ladder — RE is a filtered view, not a new payout role'],
-  },
-  heta_society: {
-    title: 'Head of Society (HOS)',
-    shortLabel: 'HOS',
-    icon: Cross,
-    accent: 'amber',
-    previewPath: '/head-of-society',
-    addPath: '/admin/role-preview?role=heta_society',
-    addLabel: 'Generate access keys',
-    preview: [
-      'Men\'s restoration & building program — invite-only at /head-of-society',
-      'Admin-generated access keys unlock member registration (no public signup)',
-      '5 dispute slots, free letter guide, business credit starter, and growth paths',
-      'Access key → lead capture → onboarding lane=heta_society → /portal/hos member hub',
-    ],
-    access: [
-      { label: 'HOS signup landing', path: '/head-of-society' },
-      { label: 'HOS member portal', path: '/portal/hos' },
-      { label: 'Free dispute guide', path: '/free-guide' },
-      { label: 'Member login', path: '/onboarding?lane=heta_society&next=/portal/hos' },
-    ],
-    contracts: ['HOS access key + program consent on registration', 'Dispute authorization when mailing round one'],
-    payouts: ['N/A — free member program; optional upsell to specialist/agent lanes'],
-  },
-  admin: {
-    title: 'Platform admin',
-    shortLabel: 'Admin',
-    icon: Crown,
-    accent: 'violet',
-    previewPath: '/admin',
-    addPath: '/admin/access',
-    addLabel: 'Control center',
-    preview: [
-      'Full tenant ops: partners, cases, CRM, automations, finance',
-      'Role preview (this page) — inspect every lane before go-live',
-      'Team & Roles for RBAC-lite; entitlements and billing overrides',
-    ],
-    access: [
-      { label: 'Admin dashboard', path: '/admin' },
-      { label: 'Partner management', path: '/admin/partners' },
-      { label: 'Finance & payouts', path: '/admin/finance' },
-      { label: 'Team & roles', path: '/admin/team' },
-    ],
-    contracts: ['Platform operator agreements', 'Template management in Comms Studio'],
-    payouts: ['Admin configures vendor / agent / affiliate payout rules in Finance'],
-  },
-};
-
-const ROLE_ORDER: RoleType[] = [
-  'partner',
-  'heta_society',
-  'business',
-  'agent',
-  'affiliate',
-  'real_estate',
-  'agency',
-  'case_help',
-  'au_seller',
-  'au_buyer',
-  'admin',
-];
-
-const ICON_BOX: Record<RoleConfig['accent'], string> = {
-  violet: 'border-violet-500/30 bg-violet-500/10 text-violet-300',
-  fuchsia: 'border-fuchsia-500/30 bg-fuchsia-500/10 text-fuchsia-300',
-  emerald: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300',
-  sky: 'border-sky-500/30 bg-sky-500/10 text-sky-300',
-  amber: 'border-amber-500/30 bg-amber-500/10 text-amber-300',
-};
-
-const TAB_ACCENTS: Record<RoleType, 'violet' | 'fuchsia' | 'emerald' | 'sky' | 'amber'> = {
-  partner: 'sky',
-  heta_society: 'amber',
-  business: 'emerald',
-  agent: 'fuchsia',
-  affiliate: 'violet',
-  real_estate: 'emerald',
-  agency: 'amber',
-  case_help: 'fuchsia',
-  au_seller: 'emerald',
-  au_buyer: 'sky',
-  admin: 'violet',
-};
-
-const DETAIL_TABS = [
-  { id: 'experience', label: 'Experience' },
-  { id: 'routes', label: 'Routes' },
-  { id: 'contracts', label: 'Contracts' },
-  { id: 'capabilities', label: 'Capabilities' },
-] as const;
-
-type DetailTab = (typeof DETAIL_TABS)[number]['id'];
-
-const ROLE_COURSE_ID: Partial<Record<RoleType, string>> = {
-  partner: 'course-partner-client',
-  heta_society: 'course-partner-client',
-  affiliate: 'course-affiliate',
-  agent: 'course-agent',
-  admin: 'course-admin-ops',
-  business: 'course-business',
-};
-
-export default function AdminRolePreviewPage() {
-  const navigate = useNavigate();
+export default function AdminRolePreviewPage({ embedded = false }: { embedded?: boolean } = {}) {
+  const navigate = useMappedAdminNavigate();
+  const rawNavigate = useNavigate();
+  const location = useLocation();
   const [params] = useSearchParams();
   const [detailTab, setDetailTab] = useState<DetailTab>('experience');
-  const roleRaw = params.get('role')?.toLowerCase() ?? 'partner';
-  const role: RoleType = ROLE_ORDER.includes(roleRaw as RoleType) ? (roleRaw as RoleType) : 'partner';
+  const roleRaw = params.get('role');
+  const role: RoleType = parseRolePreviewRole(roleRaw);
 
   const config = useMemo(() => ROLE_CONFIG[role], [role]);
   const capabilities = useMemo(() => capabilitiesForRole(role as RoleCapabilityRole), [role]);
@@ -382,29 +89,47 @@ export default function AdminRolePreviewPage() {
     () => (workflowId ? demoRoleWorkflowProgress(workflowId) : undefined),
     [workflowId],
   );
-  const launchCourse = useMemo(
-    () => LAUNCH_ROLE_COURSES.find((c) => c.id === ROLE_COURSE_ID[role]) ?? null,
-    [role],
-  );
+  const launchCourse = useMemo(() => rolePreviewLaunchCourse(role), [role]);
   const Icon = config.icon;
+  const goToRolePreview = (nextRole: RoleType) => {
+    navigate(`${location.pathname}?role=${nextRole}`);
+    if (nextRole !== 'admin') activateRolePreview(nextRole);
+  };
+  const goToProvisioning = () => {
+    if (config.addPath.startsWith('/admin/role-preview')) {
+      const suffix = config.addPath.slice('/admin/role-preview'.length);
+      navigate(`${location.pathname}${suffix}`);
+      return;
+    }
+    navigate(config.addPath);
+  };
 
   return (
-    <PageShell
-      badge="Admin"
-      title="Role preview"
-      subtitle={`Inspect what each role sees — access, contracts, and payouts.`}
-    >
+    <AdminRolePreviewFrame embedded={embedded}>
       <div className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <button type="button" onClick={() => navigate('/admin')} className={FINELY_OS_BACK_LINK}>
-            <ArrowLeft size={16} /> Admin Dashboard
-          </button>
-          <div className={`${FINELY_OS_VIEW_TABS} flex flex-wrap gap-1 max-w-full`}>
+          {!embedded ? (
+            <button type="button" onClick={() => navigate('/admin')} className={FINELY_OS_BACK_LINK}>
+              <ArrowLeft size={16} /> Admin Dashboard
+            </button>
+          ) : (
+            <div className="fc-wlp-role-preview-intro">
+              <div className={FINELY_OS_ENTITY_SUBLABEL}>Role access studio</div>
+              <p className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>Inspect every product lane before provisioning access.</p>
+            </div>
+          )}
+          <div
+            className={`${FINELY_OS_VIEW_TABS} flex flex-wrap gap-1 max-w-full max-h-[min(40vh,14rem)] overflow-y-auto overscroll-contain`}
+            role="tablist"
+            aria-label="Role previews"
+          >
             {ROLE_ORDER.map((r) => (
               <button
                 key={r}
                 type="button"
-                onClick={() => navigate(`/admin/role-preview?role=${r}`)}
+                role="tab"
+                aria-selected={role === r}
+                onClick={() => goToRolePreview(r)}
                 className={finelyOsViewTab(role === r, TAB_ACCENTS[r])}
               >
                 {ROLE_CONFIG[r].shortLabel}
@@ -418,11 +143,20 @@ export default function AdminRolePreviewPage() {
           title={config.title}
           subtitle="What this role experiences — routes, contracts, payouts, and capability matrix."
           accent={config.accent}
+          variant={embedded ? 'workspaceLight' : 'default'}
           tabs={DETAIL_TABS.map((t) => ({ id: t.id, label: t.label }))}
           activeTab={detailTab}
           onTabChange={(id) => setDetailTab(id as DetailTab)}
-          primaryAction={{ label: config.addLabel, onClick: () => navigate(config.addPath) }}
-          secondaryAction={{ label: 'Open live view', onClick: () => window.open(config.previewPath, '_blank') }}
+          primaryAction={{ label: config.addLabel, onClick: goToProvisioning }}
+          secondaryAction={{
+            label: 'Open live view',
+            onClick: () => {
+              const path = activateRolePreview(role);
+              rawNavigate(path);
+            },
+          }}
+          primaryActionClassName={embedded ? FINELY_OS_SUCCESS_BTN : undefined}
+          secondaryActionClassName={embedded ? FINELY_OS_SECONDARY_BTN : undefined}
         >
           {detailTab === 'experience' && (
             <div className="space-y-4">
@@ -515,12 +249,12 @@ export default function AdminRolePreviewPage() {
         </FinelyUnifiedHubLayout>
 
         {launchCourse ? (
-          <div className={`${finelyOsCatalogCard('amber')} !p-5 space-y-3`} data-fc-accent="amber">
+          <div className={`${finelyOsCatalogCard('violet')} space-y-3`} data-fc-accent="violet">
             <div className={FINELY_OS_ENTITY_SUBLABEL}>Launch training track</div>
             <div className={FINELY_OS_ENTITY_VALUE}>{launchCourse.title}</div>
             <p className={FINELY_OS_ENTITY_BODY}>{launchCourse.desc}</p>
             <div className="flex flex-wrap gap-2">
-              <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => navigate(launchCourse.hubPath)}>
+              <button type="button" className={embedded ? FINELY_OS_SUCCESS_BTN : FINELY_OS_PRIMARY_BTN} onClick={() => navigate(launchCourse.hubPath)}>
                 Open training hub <ArrowRight size={14} />
               </button>
               <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/launch-os')}>
@@ -533,22 +267,17 @@ export default function AdminRolePreviewPage() {
         <div className={`${FINELY_OS_BANNER} flex flex-wrap items-center justify-between gap-4`}>
           <div>
             <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-emerald-300`}>Provision this role</div>
-            <p className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>
-              {role === 'partner' && 'Create a partner in Partner Management and send a claim link for portal access.'}
-              {role === 'business' && 'Create partner with business lane or route; client uses /business/* after login.'}
-              {role === 'agent' && 'Team & Roles → invite with Agent role; assign partners for scoped access.'}
-              {role === 'affiliate' && 'Partner Management with lane=Affiliate, or application via /affiliate.'}
-              {role === 'au_seller' && 'AU Sellers → Add seller; they complete verification and payout setup.'}
-              {role === 'au_buyer' && 'Public marketplace + /au/request intake — no seller tools; track in /au/orders.'}
-              {role === 'admin' && 'Control Center grants admin/owner; use least privilege for day-to-day ops.'}
+            <p className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>{rolePreviewProvisionHint(role)}</p>
+            <p className={`mt-2 text-xs font-mono text-white/45`}>
+              Live lane: {rolePreviewEntry(role).previewPath}
             </p>
           </div>
-          <button type="button" onClick={() => navigate(config.addPath)} className={FINELY_OS_PRIMARY_BTN}>
+          <button type="button" onClick={goToProvisioning} className={embedded ? FINELY_OS_SUCCESS_BTN : FINELY_OS_PRIMARY_BTN}>
             {config.addLabel} <ArrowRight size={14} />
           </button>
         </div>
         <FinelyOsPageFooter />
       </div>
-    </PageShell>
+    </AdminRolePreviewFrame>
   );
 }

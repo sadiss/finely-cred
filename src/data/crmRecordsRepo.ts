@@ -2,7 +2,7 @@ import type { Prospect } from '../domain/crmProspects';
 import type { LeadCapture } from '../domain/leads';
 import type { LeadOp } from '../domain/leadOps';
 import type { CrmRecord, CrmRecordKind, CrmRecordStage, CrmTimelineEntry } from '../domain/crmRecords';
-import { listProspects, setProspectStage, getProspect, patchProspect, logProspectWorkBridge } from './crmProspectsRepo';
+import { listProspects, setProspectStage, getProspect, patchProspect, logProspectWorkBridge, addProspectNote, assignProspect } from './crmProspectsRepo';
 import { listLeadCaptures, createLeadCapture, patchLeadCapture } from './leadsRepo';
 import { getLeadOp, setLeadStage, linkLeadToPartner, addLeadNote, upsertLeadOp } from './leadOpsRepo';
 import { createPartner, findPartnerByEmail } from './partnersRepo';
@@ -414,6 +414,34 @@ export function createCrmInboundLead(args: {
   const result = applyCrmRoutingRules(base.id) ?? base;
   syncRecordServerSide(result);
   return result;
+}
+
+/** Append an outreach/contact note to the record's underlying prospect or lead. */
+export function addCrmRecordNote(recordId: string, text: string): CrmRecord | null {
+  const trimmed = text.trim();
+  if (!trimmed) return null;
+  const record = getCrmRecord(recordId);
+  if (!record?.sourceRef) return null;
+  if (record.sourceRef.type === 'prospect') {
+    addProspectNote(record.sourceRef.id, trimmed);
+  } else if (record.sourceRef.type === 'lead') {
+    addLeadNote(record.sourceRef.id, trimmed);
+  } else {
+    return null;
+  }
+  const updated = getCrmRecord(recordId);
+  syncRecordServerSide(updated);
+  return updated;
+}
+
+/** Assign (or clear) the owner on the record's underlying prospect. Inbound leads track ownership via tasks/notes. */
+export function assignCrmRecordOwner(recordId: string, owner: { userId?: string; email?: string } | null): CrmRecord | null {
+  const record = getCrmRecord(recordId);
+  if (!record?.sourceRef || record.sourceRef.type !== 'prospect') return null;
+  assignProspect(record.sourceRef.id, owner);
+  const updated = getCrmRecord(recordId);
+  syncRecordServerSide(updated);
+  return updated;
 }
 
 export function updateCrmRecordConsent(

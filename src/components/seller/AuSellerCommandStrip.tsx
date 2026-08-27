@@ -46,7 +46,7 @@ export function AuSellerCommandStrip({ seller, loading }: Props) {
           id: 'kyc',
           label: 'KYC',
           value: verification,
-          accent: verification === 'verified' ? 'emerald' : 'amber',
+          accent: verification === 'verified' ? 'emerald' : 'rose',
           onClick: () => navigate(AU_SELLER.contractsPath),
         },
         {

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ArrowRight, BriefcaseBusiness, ExternalLink, ShieldAlert, Sparkles } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { AdminWorkstationFrame, type AdminEmbeddablePageProps } from '../../features/workspaceLightPreview/product/admin/AdminWorkstationFrame';
+import { useMappedAdminNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { getNoraCapitalSettings } from '../../data/settingsRepo';
 import { fetchAllPartnersAsAdmin } from '../../data/partnersRepo';
 import type { Partner } from '../../domain/partners';
@@ -108,8 +108,8 @@ function saveNoraPayloads(payloads: NoraTestPayload[]) {
   }
 }
 
-export default function AdminNoraCapitalPage() {
-  const navigate = useNavigate();
+export default function AdminNoraCapitalPage({ embedded = false }: AdminEmbeddablePageProps = {}) {
+  const navigate = useMappedAdminNavigate();
   const nora = useMemo(() => getNoraCapitalSettings(), []);
 
   const [busy, setBusy] = useState(false);
@@ -226,7 +226,7 @@ export default function AdminNoraCapitalPage() {
   };
 
   return (
-    <PageShell
+    <AdminWorkstationFrame embedded={embedded} kind="nora-capital-workstation"
       badge="Admin"
       title="Nora Capital Group API"
       subtitle="Secure server-side integration shim (auth + allowlist + rate limiting + monitoring). Configure secrets in Supabase, then test calls here."
@@ -247,7 +247,7 @@ export default function AdminNoraCapitalPage() {
         </div>
 
         <div className={`${FINELY_OS_BANNER} space-y-3`}>
-          <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-fuchsia-300`}>
+          <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-sky-300`}>
             <BriefcaseBusiness size={18} />
             <span>Configuration</span>
           </div>
@@ -267,7 +267,7 @@ export default function AdminNoraCapitalPage() {
           </div>
         </div>
 
-        <div className={`${finelyOsCatalogCard('violet')} !p-6 space-y-3 mb-6`} data-fc-accent="violet">
+        <div className={`${finelyOsCatalogCard('violet')} space-y-4`} data-fc-accent="violet">
           <div className={FINELY_OS_ENTITY_SUBLABEL}>Funding pipeline</div>
           {pipelineErr ? (
             <FinelyOsDataErrorBanner
@@ -306,8 +306,8 @@ export default function AdminNoraCapitalPage() {
 
         <div className="grid lg:grid-cols-12 gap-6">
           <div className="lg:col-span-5 space-y-4">
-            <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-4`}>
-              <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-fuchsia-300`}>
+            <div className={`${finelyOsCatalogCard('emerald')} fc-surface-harmony space-y-4`} data-fc-accent="emerald">
+              <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-emerald-300`}>
                 <Sparkles size={18} />
                 <span>Quick test</span>
               </div>
@@ -319,7 +319,7 @@ export default function AdminNoraCapitalPage() {
               </div>
             </div>
 
-            <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-4`}>
+            <div className={`${finelyOsCatalogCard('violet')} fc-surface-harmony space-y-4`} data-fc-accent="violet">
               <div className={FINELY_OS_ENTITY_VALUE}>Allowlisted request</div>
               <div className={FINELY_OS_ENTITY_BODY}>
                 This endpoint blocks unknown paths by default for security. Extend allowlist via{' '}
@@ -394,7 +394,7 @@ export default function AdminNoraCapitalPage() {
               </button>
             </div>
 
-            <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-4`}>
+            <div className={`${finelyOsCatalogCard('rose')} fc-surface-harmony space-y-4`} data-fc-accent="rose">
               <div className={FINELY_OS_ENTITY_VALUE}>finely-partner-api (Nora reads readiness)</div>
               <label className="block">
                 <div className={FINELY_OS_ENTITY_LABEL}>Partner ID</div>
@@ -418,7 +418,7 @@ export default function AdminNoraCapitalPage() {
                 <div>{err}</div>
               </div>
             )}
-            <div className={`${finelyOsCatalogCard('violet')} !p-6`} data-fc-accent="violet">
+            <div className={`${finelyOsCatalogCard('sky')} space-y-3`} data-fc-accent="sky">
               <div className={FINELY_OS_ENTITY_SUBLABEL}>Response</div>
               <pre className={`mt-3 whitespace-pre-wrap ${FINELY_OS_ENTITY_BODY} leading-relaxed font-mono text-xs`}>
                 {out || 'Run a test to see output here.'}
@@ -426,8 +426,8 @@ export default function AdminNoraCapitalPage() {
             </div>
           </div>
         </div>
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
       </div>
-    </PageShell>
+    </AdminWorkstationFrame>
   );
 }

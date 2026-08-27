@@ -173,7 +173,7 @@ export function CommsCommandLibrary() {
           </div>
 
           {active.subjectTemplate ? (
-            <div className="rounded-3xl border border-amber-400/20 bg-amber-500/10 p-5 text-amber-100 mt-4">
+            <div className="rounded-3xl border border-violet-400/20 bg-violet-500/10 p-5 text-violet-100 mt-4">
               <div className="text-[10px] uppercase tracking-widest opacity-70">Subject</div>
               <div className="mt-2 font-semibold">{active.subjectTemplate}</div>
             </div>

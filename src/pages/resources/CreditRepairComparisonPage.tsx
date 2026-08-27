@@ -34,7 +34,7 @@ import {
   FINELY_OS_ENTITY_CHIP,
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,
-  finelyOsCatalogCardCompact,
+  finelyOsCatalogCard,
   finelyOsViewTab,
 } from '../../features/os/finelyOsLightUi';
 
@@ -59,7 +59,7 @@ const APPROACH_META: Record<ApproachId, { label: string; sublabel: string; icon:
     label: 'Traditional agency',
     sublabel: 'Legacy credit-repair companies',
     icon: <Building2 size={16} />,
-    accent: 'text-amber-300',
+    accent: 'text-rose-300',
   },
 };
 
@@ -267,12 +267,12 @@ export default function CreditRepairComparisonPage() {
         </div>
         <div className="mt-4 grid gap-3 md:grid-cols-3">
           {APPROACH_ORDER.map((id) => (
-            <div key={id} className={finelyOsCatalogCardCompact(id === 'finely_dfy' ? 'emerald' : id === 'diy' ? 'sky' : 'amber')}>
-              <div className={`flex items-center gap-1.5 text-xs font-black uppercase tracking-wide ${APPROACH_META[id].accent}`}>
+            <div key={id} className={finelyOsCatalogCard(id === 'finely_dfy' ? 'emerald' : id === 'diy' ? 'sky' : 'rose')} data-fc-accent={id === 'finely_dfy' ? 'emerald' : id === 'diy' ? 'sky' : 'rose'}>
+              <div className={`flex items-center gap-1.5 text-sm font-black uppercase tracking-wide ${APPROACH_META[id].accent}`}>
                 {APPROACH_META[id].icon} {APPROACH_META[id].label}
               </div>
-              <div className="mt-0.5 text-[10px] font-semibold uppercase tracking-wide text-white/40">{APPROACH_META[id].sublabel}</div>
-              <p className={`mt-2.5 text-xs leading-relaxed ${FINELY_OS_ENTITY_BODY}`}>{activeDimension.detail[id]}</p>
+              <div className={`mt-1 ${FINELY_OS_ENTITY_SUBLABEL}`}>{APPROACH_META[id].sublabel}</div>
+              <p className={`mt-3 text-base leading-relaxed ${FINELY_OS_ENTITY_BODY}`}>{activeDimension.detail[id]}</p>
             </div>
           ))}
         </div>

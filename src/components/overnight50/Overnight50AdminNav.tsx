@@ -15,7 +15,7 @@ export function Overnight50AdminNav({ compact = false, className = '' }: Props) 
     { path: '/admin/overnight', label: 'Overnight50', icon: Moon },
     { path: '/admin/geo-war-room', label: 'Geo War Room', icon: MapPin },
     { path: '/admin/staff?view=roster&kind=ai_staff', label: 'Staff Command', icon: Users },
-    { path: '/admin/lead-intel', label: 'Lead Intel Swarm', icon: Radar },
+    { path: '/admin/lead-intel', label: 'Lead Intel Discovery', icon: Radar },
   ] as const;
 
   return (
@@ -29,7 +29,7 @@ export function Overnight50AdminNav({ compact = false, className = '' }: Props) 
         </div>
         <div className="flex flex-wrap gap-2 text-xs">
           <span className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-white/70">
-            Swarm: <strong className={swarmOn ? 'text-emerald-300' : 'text-amber-200'}>{swarmOn ? 'active' : 'paused'}</strong>
+            Discovery: <strong className={swarmOn ? 'text-emerald-300' : 'text-amber-200'}>{swarmOn ? 'active' : 'paused'}</strong>
           </span>
           <span className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-white/70">
             12h leads: <strong className="text-white">{overnight.total}</strong>

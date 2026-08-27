@@ -325,6 +325,12 @@ export function canViewAllClients(membership: Membership | null): boolean {
   return permBool(membership.permissions?.canViewAllClients);
 }
 
+export function canPreviewAllRoles(membership: Membership | null): boolean {
+  if (!membership || membership.status !== 'active') return false;
+  if (membership.role === 'platform_admin' || membership.role === 'tenant_owner') return true;
+  return permBool(membership.permissions?.canPreviewAllRoles);
+}
+
 /** Coarse admin-area gate (used for route/module access). */
 export function canAccessAdminArea(membership: Membership | null): boolean {
   if (!membership || membership.status !== 'active') return false;

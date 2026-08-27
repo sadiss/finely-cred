@@ -33,7 +33,7 @@ function GuideBookMockup({ onOpen, tall }: { onOpen: () => void; tall?: boolean 
 function MiniCheck({ children }: { children: React.ReactNode }) {
   return (
     <li className="flex items-start gap-3 text-[15px] leading-relaxed text-white/80">
-      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#d4a447] text-[#06101f]">
+      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-400 text-[#06101f]">
         <Check size={12} strokeWidth={3} />
       </span>
       <span>{children}</span>
@@ -74,7 +74,7 @@ export default function RealEstateGuideLandingPage() {
   };
 
   return (
-    <main className="reg-page lm-lux-theme--navy relative min-h-screen overflow-x-hidden selection:bg-[#d4a447]/30">
+    <main className="reg-page lm-lux-theme--navy relative min-h-screen overflow-x-hidden selection:bg-violet-400/30">
       <div className="reg-atmosphere pointer-events-none fixed inset-0 z-0" aria-hidden />
       <div className="lm-lux-grain lm-lux-grain--fixed pointer-events-none" aria-hidden />
 
@@ -156,7 +156,7 @@ export default function RealEstateGuideLandingPage() {
                 className="reg-chapter-card"
               >
                 <div className="flex items-baseline justify-between gap-2">
-                  <span className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-200/70">
+                  <span className="text-[10px] font-black uppercase tracking-[0.22em] text-violet-200/70">
                     Ch {ch.number}
                   </span>
                   <span className="text-[10px] font-bold uppercase tracking-wider text-white/35">{ch.kicker}</span>
@@ -178,7 +178,7 @@ export default function RealEstateGuideLandingPage() {
               const Icon = p.icon;
               return (
                 <div key={p.title} className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-amber-300/30 bg-amber-400/10 text-amber-200">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-violet-300/30 bg-violet-400/10 text-violet-200">
                     <Icon size={22} />
                   </div>
                   <h3 className="mt-4 text-lg font-bold text-white">{p.title}</h3>

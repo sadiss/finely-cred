@@ -4,7 +4,7 @@
 // Actions:
 // - ping
 // - catalog — list pull operations
-// - pull.dossier | pull.dossiers | pull.client_status | pull.crm_profile | pull.application
+// - pull.dossier | pull.dossiers | pull.client_status | pull.crm_profile | pull.application | pull.lenderCatalog
 // - request — generic allowlisted proxy (legacy)
 //
 import { corsHeaders } from '../_shared/cors.ts';
@@ -24,6 +24,7 @@ type ReqBody =
   | { action: 'pull.client_status'; clientId: string; idempotencyKey?: string }
   | { action: 'pull.crm_profile'; clientId: string; idempotencyKey?: string }
   | { action: 'pull.application'; applicationId: string; idempotencyKey?: string }
+  | { action: 'pull.lenderCatalog'; state?: string; middleScore?: number; zip?: string; idempotencyKey?: string }
   | {
       action: 'request';
       path: string;
@@ -257,6 +258,47 @@ Deno.serve(async (req) => {
       return json({ ok: true, action: 'pull.application', status: res.status, data: { application: res.parsed } });
     }
 
+    if (body.action === 'pull.lenderCatalog') {
+      const state = String((body as any).state || '').trim();
+      const zip = String((body as any).zip || '').trim();
+      const middleScoreRaw = (body as any).middleScore;
+      const middleScore =
+        middleScoreRaw != null && Number.isFinite(Number(middleScoreRaw)) ? Math.round(Number(middleScoreRaw)) : undefined;
+      const query: Record<string, string> = {};
+      if (state) query.state = state;
+      if (zip) query.zip = zip;
+      if (middleScore != null) query.middleScore = String(middleScore);
+      const res = await noraFetch({
+        baseUrl,
+        apiKey,
+        headerName,
+        prefix,
+        path: '/v1/partners/finelycred/lenders',
+        method: 'GET',
+        query,
+      });
+      await logEdgeEvent({
+        namespace: 'nora-capital',
+        level: 'info',
+        event: 'pull.lenderCatalog',
+        meta: { status: res.status, state: state || undefined, zip: zip || undefined, middleScore },
+      });
+      if (!res.ok) {
+        return json({
+          ok: true,
+          action: 'pull.lenderCatalog',
+          lenders: [],
+          hint:
+            'Nora must implement GET /v1/partners/finelycred/lenders?state=&middleScore=&zip= — see docs/NORA_CAPITAL_API.md § Lender catalog pull.',
+          status: res.status,
+        });
+      }
+      const lenders = Array.isArray((res.parsed as { lenders?: unknown })?.lenders)
+        ? (res.parsed as { lenders: unknown[] }).lenders
+        : [];
+      return json({ ok: true, action: 'pull.lenderCatalog', status: res.status, lenders });
+    }
+
     if (body.action === 'request') {
       const path = safePath(body.path);
       if (!path) return json({ ok: false, error: 'Invalid path' }, { status: 400 });
@@ -280,7 +322,7 @@ Deno.serve(async (req) => {
     return json({
       ok: false,
       error: 'Unknown action',
-      hint: 'Use action: catalog | pull.dossier | pull.dossiers | pull.client_status | pull.crm_profile | ping | request',
+      hint: 'Use action: catalog | pull.dossier | pull.dossiers | pull.client_status | pull.crm_profile | pull.lenderCatalog | ping | request',
     }, { status: 400 });
   } catch (e) {
     await logEdgeEvent({

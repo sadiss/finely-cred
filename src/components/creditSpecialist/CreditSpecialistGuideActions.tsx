@@ -18,8 +18,8 @@ export type CreditSpecialistGuideActionsTone = 'gold' | 'onDark' | 'onLight' | '
 
 type Props = {
   /**
-   * `gold` for surfaces with no gold primary yet, `onDark` when a gold CTA already owns the
-   * viewport, `onLight` for ivory panels, `os` for theme-aware Finely OS surfaces.
+   * `gold` key kept for call sites; paint is emerald / violet (no gold fill).
+   * `onDark` when a primary CTA already owns the viewport, `onLight` for ivory panels, `os` for OS surfaces.
    */
   tone?: CreditSpecialistGuideActionsTone;
   size?: 'md' | 'sm' | 'lg';
@@ -46,22 +46,22 @@ const SIZE: Record<'md' | 'sm' | 'lg', string> = {
 type StyledTone = Exclude<CreditSpecialistGuideActionsTone, 'os'>;
 
 const READ_TONE: Record<StyledTone, string> = {
-  gold: 'border border-amber-200/60 bg-gradient-to-r from-[#f4d488] via-[#d4a447] to-[#b8862b] text-[#0a1628] shadow-lg shadow-amber-500/25 hover:brightness-110',
+  gold: 'border border-emerald-300/60 bg-emerald-500 text-white shadow-lg shadow-emerald-500/25 hover:bg-emerald-400',
   onDark: 'border border-white/80 bg-white text-[#0a1628] shadow-lg shadow-black/30 hover:bg-white/90',
   onLight: 'border border-slate-900 bg-slate-900 text-white shadow-md shadow-slate-900/20 hover:bg-slate-800',
 };
 
 const DOWNLOAD_TONE: Record<StyledTone, string> = {
-  gold: 'border-2 border-[#95e000]/70 bg-[#95e000]/15 text-[#c9f56b] hover:border-[#95e000] hover:bg-[#95e000]/25 hover:text-white',
+  gold: 'border-2 border-violet-300/70 bg-violet-500/15 text-violet-100 hover:border-violet-300 hover:bg-violet-500/25 hover:text-white',
   onDark: 'border-2 border-white/70 bg-white/10 text-white hover:border-white hover:bg-white/20',
   onLight: 'border-2 border-slate-900/30 bg-white text-slate-900 hover:border-slate-900/60 hover:bg-slate-50',
 };
 
 const JOIN_TONE: Record<CreditSpecialistGuideActionsTone, string> = {
-  gold: 'text-white/60 hover:text-[#f0cc75]',
+  gold: 'text-white/60 hover:text-violet-200',
   onDark: 'text-white/60 hover:text-white',
   onLight: 'text-slate-600 hover:text-slate-900',
-  os: 'text-white/60 hover:text-amber-300',
+  os: 'text-white/60 hover:text-emerald-300',
 };
 
 export function CreditSpecialistGuideActions({

@@ -44,7 +44,9 @@ export function computeRestoreEvidenceCoverage(args: {
       totalCandidates: 0,
       withProof: 0,
       evidenceFiles,
-      summary: evidenceFiles ? `${evidenceFiles} file(s) in vault — upload a report to map proof to tradelines.` : 'Upload ID, proof of address, and bureau screenshots to the Evidence Vault.',
+      summary: evidenceFiles
+        ? `${evidenceFiles} source exhibit(s) in Evidence Vault — upload a report to map proof to tradelines.`
+        : 'Capture report crops and bureau or creditor responses in Evidence Vault. Keep ID and proof of address in Documents.',
       tone: evidenceFiles ? 'warning' : 'blocking',
     };
   }

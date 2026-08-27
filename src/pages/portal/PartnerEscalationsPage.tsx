@@ -181,11 +181,11 @@ export default function PartnerEscalationsPage() {
               eyebrow="Complaints & escalations"
               title="Formal tracking with audit trail"
               subtitle="Submit service escalations, track responses, and draft regulatory complaints with evidence attached."
-              accent="fuchsia"
+              accent="rose"
               kpis={[
-                { label: 'Open', value: String(openCount), hint: 'Escalations', accent: 'fuchsia' },
+                { label: 'Open', value: String(openCount), hint: 'Escalations', accent: 'rose' },
                 { label: 'Regulatory', value: String(openComplaints), hint: 'Active drafts', accent: 'violet' },
-                { label: 'Cases', value: String(cases.length), hint: 'Linkable', accent: 'amber' },
+                { label: 'Cases', value: String(cases.length), hint: 'Linkable', accent: 'sky' },
                 { label: 'Evidence', value: String(evidence.length), hint: 'Vault items', accent: 'emerald' },
               ]}
               tabs={[
@@ -198,12 +198,12 @@ export default function PartnerEscalationsPage() {
               primaryAction={{ label: 'Communication hub', onClick: () => navigate('/portal/messages') }}
               secondaryAction={{ label: 'Debt center', onClick: () => navigate('/portal/debt') }}
             >
-            <div className={`${finelyOsCatalogCard('violet')} !p-4 mb-3`}>
+            <div className={`${finelyOsCatalogCard('violet')} mb-3`}>
               <div className={`${FINELY_OS_ENTITY_SUBLABEL} mb-2`}>Quick links & filing portals</div>
-              <LegalResourceStrip links={resourcesForEscalations()} accentClass="text-fuchsia-300" />
+              <LegalResourceStrip links={resourcesForEscalations()} accentClass="text-rose-300" />
             </div>
             {tab === 'submit' && planOutcome ? (
-              <details className={`${finelyOsCatalogCard('fuchsia')} !p-4 mb-3 group`}>
+              <details className={`${finelyOsCatalogCard('rose')} mb-3 group`} data-fc-accent="rose">
                 <summary className="cursor-pointer select-none list-none">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0">
@@ -292,7 +292,7 @@ export default function PartnerEscalationsPage() {
               </details>
             ) : null}
             {tab === 'submit' && (
-            <div className={`${finelyOsCatalogCard('violet')} !p-4 border-fuchsia-500/25 space-y-3`}>
+            <div className={`${finelyOsCatalogCard('violet')} border-fuchsia-500/25 space-y-3`}>
               <h2 className={`${FINELY_OS_ENTITY_TITLE} flex items-center gap-2 text-lg`}>
                 <Send size={18} className="text-fuchsia-300" />
                 Submit an escalation
@@ -445,11 +445,11 @@ export default function PartnerEscalationsPage() {
             )}
 
             {tab === 'regulatory' && (
-            <div className={`${finelyOsCatalogCard('violet')} !p-4 space-y-3`}>
+            <div className={`${finelyOsCatalogCard('sky')} space-y-4`}>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <h2 className={`${FINELY_OS_ENTITY_TITLE} flex items-center gap-2 flex-wrap`}>
-                    <Scale size={16} className="text-fuchsia-300" />
+                    <Scale size={16} className="text-sky-300" />
                     Regulatory complaints
                     {openComplaints > 0 ? <span className={finelyOsStatusChip('warn')}>{openComplaints} active</span> : null}
                   </h2>
@@ -474,7 +474,7 @@ export default function PartnerEscalationsPage() {
                   { id: 'naag', label: 'Find your AG', href: 'https://www.naag.org/find-my-ag/', external: true },
                   { id: 'bbb', label: 'BBB complaint', href: 'https://www.bbb.org/file-a-complaint', external: true },
                 ]}
-                accentClass="text-amber-200"
+                accentClass="text-violet-200"
               />
 
               <FinelyOsKpiGrid
@@ -487,7 +487,7 @@ export default function PartnerEscalationsPage() {
                 ]}
               />
 
-              <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony border-fuchsia-500/25 space-y-4`}>
+              <div className={`${finelyOsCatalogCard('sky')} fc-surface-harmony border-fuchsia-500/25 space-y-4`}>
                 <div className={FINELY_OS_ENTITY_LABEL}>Create a complaint draft</div>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
@@ -564,7 +564,7 @@ export default function PartnerEscalationsPage() {
                   </div>
                 </div>
 
-                <details className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+                <details className={`${finelyOsCatalogCard('sky')} fc-surface-harmony`}>
                   <summary className="cursor-pointer select-none flex items-center justify-between gap-3">
                     <div className={`${FINELY_OS_ENTITY_LABEL} flex items-center gap-2`}>
                       <Paperclip size={14} className="text-fuchsia-300" /> Attach evidence ({complaintEvidenceIds.length})
@@ -632,8 +632,8 @@ export default function PartnerEscalationsPage() {
                   <div className={FINELY_OS_ENTITY_BODY}>No regulatory complaints yet.</div>
                 ) : (
                   <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
-                    {complaints.map((c) => (
-                      <div key={c.id} className={`${finelyOsCatalogCard('violet')} !p-4 space-y-3 min-h-[160px] flex flex-col`}>
+                    {complaints.map((c, idx) => (
+                      <div key={c.id} className={`${finelyOsCatalogCard((['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4])} space-y-4 min-h-[180px] flex flex-col`} data-fc-accent={(['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4]}>
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
                             <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>
@@ -688,7 +688,7 @@ export default function PartnerEscalationsPage() {
                         </div>
 
                         {c.evidenceIds.length ? (
-                          <details className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+                          <details className={`${finelyOsCatalogCard('sky')} fc-surface-harmony`}>
                             <summary className={`cursor-pointer select-none ${FINELY_OS_ENTITY_LABEL}`}>Exhibits (open)</summary>
                             <div className="mt-3 space-y-2">
                               {c.evidenceIds.slice(0, 8).map((id) => {

@@ -1,0 +1,325 @@
+.fc-wlp-report-workspace {
+  display: grid;
+  gap: 20px;
+  border: 1px solid rgba(42, 167, 220, 0.2);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 96% 0, rgba(143, 92, 246, 0.12), transparent 31%),
+    linear-gradient(145deg, rgba(233, 248, 255, 0.96), rgba(244, 239, 255, 0.92));
+  padding: 20px 22px 24px;
+  box-shadow:
+    0 26px 52px -42px rgba(13, 50, 80, 0.52),
+    inset 0 1px 0 #fff;
+}
+
+.fc-wlp-report-workspace[data-layout='embedded'] {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+
+.fc-wlp-report-workspace-head h2 {
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.fc-wlp-report-workspace-head p {
+  font-size: 1rem;
+}
+
+.fc-wlp-report-workspace-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+}
+.fc-wlp-report-workspace-head > div:first-child > span {
+  color: #177ca9;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.fc-wlp-report-workspace-head h2 {
+  margin: 5px 0 0;
+  color: #15253b;
+  font-family: Sora, Inter, sans-serif;
+  font-size: 22px;
+  font-weight: 780;
+  letter-spacing: -0.045em;
+}
+.fc-wlp-report-workspace-head p {
+  margin: 6px 0 0;
+  color: #64758b;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.fc-wlp-report-workspace-state {
+  display: grid;
+  min-width: 112px;
+  justify-items: end;
+  border: 1px solid rgba(42, 167, 220, 0.18);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.68);
+  padding: 10px 12px;
+}
+.fc-wlp-report-workspace-state strong {
+  color: #157fae;
+  font-family: Sora, Inter, sans-serif;
+  font-size: 23px;
+  letter-spacing: -0.05em;
+}
+.fc-wlp-report-workspace-state span {
+  color: #718197;
+  font-size: 8px;
+  font-weight: 760;
+  text-transform: uppercase;
+}
+
+.fc-wlp-report-room-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+.fc-wlp-report-room-tabs > button {
+  --fc-report-room-rgb: 42, 167, 220;
+  display: grid;
+  min-width: 0;
+  min-height: 70px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid rgba(var(--fc-report-room-rgb), 0.22);
+  border-radius: 14px;
+  background:
+    linear-gradient(140deg, rgba(var(--fc-report-room-rgb), 0.12), rgba(255, 255, 255, 0.78));
+  padding: 11px;
+  color: #17263b;
+  text-align: left;
+  cursor: pointer;
+}
+.fc-wlp-report-room-tabs > button[data-accent='emerald'] { --fc-report-room-rgb: 15, 187, 139; }
+.fc-wlp-report-room-tabs > button[data-accent='violet'] { --fc-report-room-rgb: 143, 92, 246; }
+.fc-wlp-report-room-tabs > button[data-active='true'] {
+  border-color: rgba(var(--fc-report-room-rgb), 0.56);
+  background:
+    linear-gradient(140deg, rgba(var(--fc-report-room-rgb), 0.92), rgba(var(--fc-report-room-rgb), 0.68));
+  color: #fff;
+  box-shadow: 0 16px 26px -22px rgba(var(--fc-report-room-rgb), 0.92);
+}
+.fc-wlp-report-room-tabs > button > svg { color: rgb(var(--fc-report-room-rgb)); }
+.fc-wlp-report-room-tabs > button[data-active='true'] > svg { color: #fff; }
+.fc-wlp-report-room-tabs button span { min-width: 0; }
+.fc-wlp-report-room-tabs button strong {
+  display: block;
+  font-size: 10px;
+  font-weight: 820;
+}
+.fc-wlp-report-room-tabs button small {
+  display: block;
+  margin-top: 3px;
+  overflow: hidden;
+  color: currentColor;
+  font-size: 8px;
+  opacity: 0.58;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fc-wlp-report-room-tabs button em {
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.78);
+  padding: 4px 7px;
+  color: rgb(var(--fc-report-room-rgb));
+  font-size: 8px;
+  font-style: normal;
+  font-weight: 850;
+}
+
+.fc-wlp-report-upload-stage {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.72fr) minmax(0, 1.28fr);
+  gap: 11px;
+}
+.fc-wlp-report-upload-copy,
+.fc-wlp-report-uploader-shell {
+  border: 1px solid rgba(15, 187, 139, 0.2);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 100% 0, rgba(15, 187, 139, 0.18), transparent 42%),
+    linear-gradient(145deg, #e8fbf5, #f5fffc);
+  padding: 16px;
+}
+.fc-wlp-report-uploader-shell {
+  border-color: rgba(42, 167, 220, 0.2);
+  background:
+    radial-gradient(circle at 100% 0, rgba(42, 167, 220, 0.16), transparent 42%),
+    linear-gradient(145deg, #eaf8ff, #f8fcff);
+}
+.fc-wlp-report-upload-copy > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #0c8b68;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.fc-wlp-report-upload-copy h3 {
+  margin: 9px 0 0;
+  color: #14263b;
+  font-family: Sora, Inter, sans-serif;
+  font-size: 18px;
+  font-weight: 780;
+  letter-spacing: -0.04em;
+}
+.fc-wlp-report-upload-copy p,
+.fc-wlp-report-upload-copy li {
+  color: #64778b;
+  font-size: 10px;
+  line-height: 1.5;
+}
+.fc-wlp-report-upload-copy ul { margin: 12px 0 0; padding-left: 17px; }
+
+.fc-wlp-report-viewer-stage {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 250px minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+}
+.fc-wlp-report-file-rail {
+  display: grid;
+  gap: 7px;
+  border: 1px solid rgba(143, 92, 246, 0.18);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 0 0, rgba(143, 92, 246, 0.15), transparent 42%),
+    linear-gradient(145deg, #f2edff, #fbfaff);
+  padding: 12px;
+}
+.fc-wlp-report-file-rail-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 2px 2px 7px;
+  color: #6d44d3;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+.fc-wlp-report-file-rail > button {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(31, 47, 68, 0.1);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.75);
+  padding: 9px;
+  color: #17263a;
+  text-align: left;
+  cursor: pointer;
+}
+.fc-wlp-report-file-rail > button[data-selected='true'] {
+  border-color: rgba(143, 92, 246, 0.48);
+  background: linear-gradient(145deg, rgba(143, 92, 246, 0.15), #fff);
+  box-shadow: inset 3px 0 #8f5cf6;
+}
+.fc-wlp-report-file-icon {
+  display: inline-flex;
+  width: 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: linear-gradient(145deg, #8f5cf6, #5e32c4);
+  color: #fff;
+}
+.fc-wlp-report-file-rail button span { min-width: 0; }
+.fc-wlp-report-file-rail button strong {
+  display: block;
+  overflow: hidden;
+  font-size: 9px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fc-wlp-report-file-rail button small {
+  display: block;
+  margin-top: 3px;
+  color: #748298;
+  font-size: 7px;
+}
+.fc-wlp-report-file-rail button em {
+  border-radius: 999px;
+  background: rgba(15, 187, 139, 0.12);
+  padding: 4px 6px;
+  color: #0a8c68;
+  font-size: 7px;
+  font-style: normal;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.fc-wlp-report-viewer {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(42, 167, 220, 0.18);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 100% 0, rgba(42, 167, 220, 0.12), transparent 36%),
+    #f8fcff;
+  padding: 12px;
+}
+.fc-wlp-report-viewer-empty,
+.fc-wlp-report-file-empty {
+  display: grid;
+  min-height: 220px;
+  place-items: center;
+  align-content: center;
+  gap: 7px;
+  color: #2a90ba;
+  text-align: center;
+}
+.fc-wlp-report-file-empty { min-height: 180px; }
+.fc-wlp-report-viewer-empty h3,
+.fc-wlp-report-file-empty strong {
+  margin: 0;
+  color: #17263a;
+  font-size: 14px;
+}
+.fc-wlp-report-viewer-empty p,
+.fc-wlp-report-file-empty span {
+  max-width: 52ch;
+  margin: 0;
+  color: #6b7b90;
+  font-size: 9px;
+  line-height: 1.5;
+}
+.fc-wlp-report-viewer-empty button,
+.fc-wlp-report-file-empty button {
+  border: 1px solid rgba(42, 167, 220, 0.28);
+  border-radius: 10px;
+  background: linear-gradient(145deg, rgba(42, 167, 220, 0.16), rgba(143, 92, 246, 0.1));
+  padding: 8px 10px;
+  color: #216f94;
+  font-size: 9px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+@media (max-width: 900px) {
+  .fc-wlp-report-upload-stage,
+  .fc-wlp-report-viewer-stage { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 680px) {
+  .fc-wlp-report-workspace-head { align-items: flex-start; flex-direction: column; }
+  .fc-wlp-report-workspace-state { justify-items: start; }
+  .fc-wlp-report-room-tabs { display: flex; overflow-x: auto; }
+  .fc-wlp-report-room-tabs > button { min-width: 200px; }
+}

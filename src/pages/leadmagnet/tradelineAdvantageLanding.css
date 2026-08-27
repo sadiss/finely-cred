@@ -1,8 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&display=swap');
 
 .tla-page {
-  --tla-gold: #d4a447;
-  --tla-gold-soft: #f0cc75;
+  --tla-gold: #a78bfa;
+  --tla-gold-soft: #c4b5fd;
   --tla-emerald: #0d5c4a;
   --tla-emerald-soft: #2a9d7a;
   --tla-plum: #5c2d54;
@@ -28,7 +28,7 @@
   top: 50%;
   width: 72px;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(212, 164, 71, 0.75), transparent);
+  background: linear-gradient(90deg, transparent, rgba(167, 139, 250, 0.75), transparent);
 }
 
 .tla-section-title::before {
@@ -40,7 +40,7 @@
 }
 
 .tla-hero-form {
-  border: 1px solid rgba(212, 164, 71, 0.38);
+  border: 1px solid rgba(167, 139, 250, 0.38);
   background: linear-gradient(165deg, rgba(42, 20, 48, 0.92) 0%, rgba(14, 6, 20, 0.9) 100%);
   box-shadow:
     0 28px 90px rgba(0, 0, 0, 0.45),
@@ -113,7 +113,7 @@
   margin-top: 0.12em;
   padding-bottom: 0.06em;
   padding-right: 0.35em;
-  color: #f0cc75;
+  color: #c4b5fd;
   overflow: visible;
 }
 
@@ -121,7 +121,7 @@
   width: 110px;
   height: 2px;
   margin-top: 1.35rem;
-  background: linear-gradient(90deg, #d4a447, #5c2d54 55%, #3d5f9a);
+  background: linear-gradient(90deg, #a78bfa, #38bdf8 55%, #34d399);
 }
 
 /* ── Mockup showcase (book + phone composite — no pedestal) ── */
@@ -185,7 +185,7 @@
   position: absolute;
   inset: 6% 8% 10%;
   z-index: 0;
-  border: 1px solid rgba(212, 164, 71, 0.22);
+  border: 1px solid rgba(167, 139, 250, 0.22);
   border-radius: 0.15rem;
   pointer-events: none;
 }
@@ -194,7 +194,7 @@
 .tla-mockup-gold-frame::after {
   content: '';
   position: absolute;
-  background: rgba(212, 164, 71, 0.45);
+  background: rgba(167, 139, 250, 0.45);
 }
 
 .tla-mockup-gold-frame::before {
@@ -298,7 +298,7 @@
   border-radius: 1.35rem;
   background: linear-gradient(
     155deg,
-    rgba(212, 164, 71, 0.42) 0%,
+    rgba(167, 139, 250, 0.42) 0%,
     rgba(92, 45, 84, 0.32) 38%,
     rgba(26, 58, 110, 0.28) 72%,
     rgba(13, 92, 74, 0.22) 100%
@@ -397,11 +397,11 @@
   width: 5.75rem;
   height: 5.75rem;
   border-radius: 50%;
-  border: 2px solid rgba(212, 164, 71, 0.82);
+  border: 2px solid rgba(167, 139, 250, 0.82);
   background: rgba(26, 15, 36, 0.78);
   backdrop-filter: blur(10px);
   box-shadow:
-    0 0 52px rgba(212, 164, 71, 0.28),
+    0 0 52px rgba(167, 139, 250, 0.28),
     0 22px 64px rgba(0, 0, 0, 0.55);
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
@@ -409,7 +409,7 @@
 .tla-video-inner .lm-video-placeholder:hover .lm-video-play-ring {
   transform: scale(1.05);
   box-shadow:
-    0 0 64px rgba(212, 164, 71, 0.38),
+    0 0 64px rgba(167, 139, 250, 0.38),
     0 24px 70px rgba(0, 0, 0, 0.58);
 }
 
@@ -421,19 +421,19 @@
 }
 
 .tla-video-inner .lm-video-placeholder .text-\[10px\] {
-  color: rgba(240, 204, 117, 0.72);
+  color: rgba(196, 181, 253, 0.72);
   letter-spacing: 0.22em;
 }
 
 .tla-video-inner .lm-video-badge {
-  border-color: rgba(212, 164, 71, 0.38) !important;
-  color: #f0cc75 !important;
+  border-color: rgba(167, 139, 250, 0.38) !important;
+  color: #c4b5fd !important;
   background: rgba(26, 15, 36, 0.72) !important;
 }
 
 .tla-discovery-card {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.015) 100%);
-  border: 1px solid rgba(212, 164, 71, 0.22);
+  border: 1px solid rgba(167, 139, 250, 0.22);
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
 }
 
@@ -449,15 +449,16 @@
   border-color: rgba(123, 63, 143, 0.28);
 }
 
-.tla-discovery-card--gold {
-  border-color: rgba(212, 164, 71, 0.32);
+.tla-discovery-card--gold,
+.tla-discovery-card--rose {
+  border-color: rgba(251, 113, 133, 0.32);
 }
 
 .tla-discovery-icon {
   width: 88px;
   height: 88px;
-  border: 2px solid rgba(212, 164, 71, 0.55);
-  background: radial-gradient(circle at 30% 20%, rgba(240, 204, 117, 0.16), rgba(92, 45, 84, 0.08) 55%, transparent 100%);
+  border: 2px solid rgba(167, 139, 250, 0.55);
+  background: radial-gradient(circle at 30% 20%, rgba(196, 181, 253, 0.16), rgba(56, 189, 248, 0.08) 55%, transparent 100%);
   box-shadow: 0 0 40px rgba(92, 45, 84, 0.14);
 }
 
@@ -479,6 +480,12 @@
   box-shadow: 0 0 40px rgba(92, 45, 84, 0.18);
 }
 
+.tla-discovery-icon--rose {
+  border-color: rgba(251, 113, 133, 0.55);
+  color: #fb7185;
+  box-shadow: 0 0 40px rgba(225, 29, 72, 0.18);
+}
+
 .tla-testimonial-card {
   border: 1px solid rgba(92, 45, 84, 0.32);
   background: linear-gradient(160deg, rgba(42, 20, 48, 0.35) 0%, rgba(255, 255, 255, 0.02) 100%);
@@ -486,12 +493,12 @@
 }
 
 .tla-value-card {
-  border: 1px solid rgba(212, 164, 71, 0.24);
+  border: 1px solid rgba(167, 139, 250, 0.24);
   background: linear-gradient(155deg, rgba(92, 45, 84, 0.12) 0%, rgba(26, 58, 110, 0.08) 50%, rgba(255, 255, 255, 0.02) 100%);
 }
 
 .tla-download-panel {
-  border: 1px solid rgba(212, 164, 71, 0.38);
+  border: 1px solid rgba(167, 139, 250, 0.38);
   background: linear-gradient(125deg, #2a1430 0%, #1a2d5c 48%, #0d3d35 100%);
   box-shadow: 0 34px 120px rgba(0, 0, 0, 0.55);
 }

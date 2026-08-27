@@ -1,4 +1,4 @@
-import type { Bureau, CreditReportProvider, ParsedCreditReport, ParsedPersonalInfo, ParsedScore, ParsedSection, ParsedSectionItem, ParsedTradeline, PaymentHistory2Y, TradelineRow } from '../domain/creditReports';
+import type { Bureau, CreditReportProvider, ParsedCreditReport, ParsedPersonalInfo, ParsedScore, ParsedSection, ParsedSectionItem, ParsedTradeline, PaymentHistory2Y, ReportSourceAnchor, TradelineRow } from '../domain/creditReports';
 import {
   applyCreditorContactsToTradelines,
   buildCreditorContacts,
@@ -11,6 +11,57 @@ import { enrichParsedTradeline } from './enrichParsedTradeline';
 
 function text(el: Element | null | undefined) {
   return (el?.textContent ?? '').replace(/\s+/g, ' ').trim();
+}
+
+const HTML_SOURCE_PARSE_VERSION = 'html-source-v1';
+
+function sourceTextFingerprint(value: string): string {
+  let hash = 0x811c9dc5;
+  const normalized = value.replace(/\s+/g, ' ').trim().toLowerCase().slice(0, 500);
+  for (let index = 0; index < normalized.length; index += 1) {
+    hash ^= normalized.charCodeAt(index);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return `fnv1a-${(hash >>> 0).toString(16).padStart(8, '0')}`;
+}
+
+function cssEscapePart(value: string): string {
+  return value.replace(/([^a-zA-Z0-9_-])/g, '\\$1');
+}
+
+function htmlLocatorFor(element: Element): string {
+  const id = element.getAttribute('id');
+  if (id) return `#${cssEscapePart(id)}`;
+
+  const parts: string[] = [];
+  let current: Element | null = element;
+  while (current && current.tagName.toLowerCase() !== 'html' && parts.length < 9) {
+    const tag = current.tagName.toLowerCase();
+    const parent: Element | null = current.parentElement;
+    if (!parent) {
+      parts.unshift(tag);
+      break;
+    }
+    const currentTag = current.tagName;
+    const sameTagSiblings = (Array.from(parent.children) as Element[]).filter(
+      (child) => child.tagName === currentTag,
+    );
+    const index = Math.max(0, sameTagSiblings.indexOf(current)) + 1;
+    parts.unshift(`${tag}:nth-of-type(${index})`);
+    current = parent;
+  }
+  return parts.join(' > ');
+}
+
+function htmlSourceAnchorFor(element: Element, bureau?: Bureau): ReportSourceAnchor {
+  return {
+    fileType: 'html',
+    htmlLocator: htmlLocatorFor(element),
+    textFingerprint: sourceTextFingerprint(text(element)),
+    bureau,
+    parseVersion: HTML_SOURCE_PARSE_VERSION,
+    confidence: 'exact',
+  };
 }
 
 function textWithBreaks(el: Element | null | undefined) {
@@ -1305,6 +1356,7 @@ function parseCreditReportHtmlDocument(doc: Document, provider: CreditReportProv
       creditorName,
       fields,
       paymentHistory2y,
+      sourceAnchor: htmlSourceAnchorFor(sh),
     });
   }
 
@@ -1352,7 +1404,12 @@ function parseCreditReportHtmlDocument(doc: Document, provider: CreditReportProv
       const creditorName = guessName(t) || `Tradeline ${++n}`;
       const paymentTable = findPaymentHistoryTableNear(t) ?? findFollowingPaymentHistoryTable(t);
       const paymentHistory2y = paymentTable ? parsePaymentHistory(paymentTable) : undefined;
-      tradelines.push({ creditorName, fields, paymentHistory2y });
+      tradelines.push({
+        creditorName,
+        fields,
+        paymentHistory2y,
+        sourceAnchor: htmlSourceAnchorFor(t),
+      });
       fallbackUsed = true;
       if (tradelines.length >= 60) break;
     }
@@ -1417,6 +1474,14 @@ function parseCreditReportHtmlDocument(doc: Document, provider: CreditReportProv
     scores: dedupScores.length ? dedupScores : undefined,
     personalInfo: personalInfo ?? undefined,
     creditorContacts: creditorContacts.length ? creditorContacts : undefined,
+    sourceMap: {
+      version: HTML_SOURCE_PARSE_VERSION,
+      fileType: 'html',
+      html: {
+        sanitized: true,
+        remoteResourcesRemoved: true,
+      },
+    },
     debug: {
       tablesFound: doc.querySelectorAll('table').length,
       subHeadersFound: subHeaders.length,

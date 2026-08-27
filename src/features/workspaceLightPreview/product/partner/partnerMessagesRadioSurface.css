@@ -1,0 +1,138 @@
+/* Partner messages — radio / inbox studio (distinct from admin comms) */
+
+.fc-partner-radio-studio {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.fc-partner-radio-hero {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 20px;
+  padding: 28px 32px;
+  border-radius: 24px;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.12) 0%, rgba(56, 189, 248, 0.08) 55%, rgba(244, 63, 94, 0.05) 100%);
+}
+
+@media (max-width: 768px) {
+  .fc-partner-radio-hero {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fc-partner-radio-layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .fc-partner-radio-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fc-partner-radio-dial {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+  border-radius: 20px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.fc-partner-radio-dial-label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.fc-partner-radio-channel {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.85);
+  text-align: left;
+  font-weight: 700;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.fc-partner-radio-channel:hover {
+  transform: translateX(2px);
+}
+
+.fc-partner-radio-channel[data-active='true'] {
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.35);
+}
+
+.fc-partner-radio-channel-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.fc-partner-radio-channel-copy strong {
+  display: block;
+  font-size: 15px;
+}
+
+.fc-partner-radio-channel-copy span {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.65;
+}
+
+.fc-partner-radio-inbox {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 640px) {
+  .fc-partner-radio-inbox {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fc-partner-radio-inbox-tile {
+  padding: 16px 18px;
+  border-radius: 16px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  text-align: left;
+}
+
+.fc-partner-radio-inbox-tile strong {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.fc-partner-radio-inbox-tile span {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.65;
+}
+
+.fc-partner-radio-stage-wrap {
+  min-width: 0;
+}

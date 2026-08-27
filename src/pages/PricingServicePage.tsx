@@ -45,7 +45,6 @@ import {
   FINELY_OS_SUCCESS_BTN,
   FINELY_OS_VIEW_TABS,
   finelyOsCatalogCard,
-  finelyOsCatalogCardCompact,
   finelyOsLandingIvoryCard,
   finelyOsIvorySolidTile,
   finelyOsRestoreLaneHeroShell,
@@ -142,8 +141,8 @@ function serviceMetaFromSlug(slugRaw: string | undefined): ServiceMeta | null {
 
 function hubAccentFor(category: PricingCategory | 'agency' | null): FinelyOsPublicAccent {
   if (category === 'business_credit') return 'violet';
-  if (category === 'debt_legal') return 'fuchsia';
-  if (category === 'tradeline_promo' || category === 'wealth_builder' || category === 'agency') return 'amber';
+  if (category === 'debt_legal') return 'rose';
+  if (category === 'tradeline_promo' || category === 'wealth_builder' || category === 'agency') return 'violet';
   if (category === 'privacy_id') return 'sky';
   return 'emerald';
 }
@@ -283,7 +282,7 @@ export default function PricingServicePage() {
           className={
             isRestoreLane
               ? `${finelyOsRestoreLaneHeroShell()} fc-restore-solutions-hero`
-              : `${finelyOsCatalogCardCompact(accent)} !p-5 sm:!p-6`
+              : finelyOsCatalogCard(accent === 'amber' || accent === 'fuchsia' ? 'rose' : accent)
           }
           data-fc-accent={accent}
         >
@@ -307,7 +306,7 @@ export default function PricingServicePage() {
               onClick={() => setChooserOpen(true)}
               className={
                 isRestoreLane
-                  ? 'shrink-0 self-start inline-flex items-center gap-2 rounded-xl border-2 border-amber-300/45 bg-gradient-to-r from-amber-500/25 via-amber-400/15 to-emerald-500/20 px-4 py-2.5 text-xs font-bold text-amber-50 shadow-[0_0_24px_rgba(251,191,36,0.22)] hover:border-amber-200/60 transition'
+                  ? 'shrink-0 self-start inline-flex items-center gap-2 rounded-xl border-2 border-violet-300/45 bg-violet-500/20 px-5 py-3 text-sm font-extrabold text-violet-50 hover:border-violet-200/60 transition'
                   : `shrink-0 self-start ${FINELY_OS_GLOW_INCLUDES_BTN}`
               }
             >
@@ -375,7 +374,7 @@ export default function PricingServicePage() {
 
         {isRestoreLane ? (
           <div
-            className="fc-admin-solid-emerald rounded-2xl border !p-4 sm:!p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shadow-[0_14px_40px_-14px_rgba(16,185,129,0.55)] mt-1"
+            className="fc-admin-solid-emerald rounded-2xl border p-6 lg:p-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shadow-[0_14px_40px_-14px_rgba(16,185,129,0.55)] mt-1"
             data-fc-accent="emerald"
           >
             <div className="min-w-0 space-y-1.5">
@@ -404,17 +403,17 @@ export default function PricingServicePage() {
         {category === 'business_credit' ? (
           <>
             <BusinessCreditQuotePanel />
-            <div className={`${finelyOsCatalogCard('amber')} !p-4`}>
-              <div className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>
+            <div className={finelyOsCatalogCard('violet')} data-fc-accent="violet">
+              <div className={`text-xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>
                 Program + vendor outlay → potential BC capital (approx)
               </div>
-              <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>
+              <p className={`mt-2 text-base ${FINELY_OS_ENTITY_BODY}`}>
                 Three figures: Finely Cred program fee · estimated vendor/trade/deposit outlay (partner cash while
                 building) · potential capital (business credit only). Results vary · not guaranteed · business credit
                 only · funding subject to underwriting · outlay varies by vendors.
               </p>
               <div className="mt-3 overflow-x-auto">
-                <table className="w-full text-xs text-left">
+                <table className="w-full text-base text-left">
                   <thead>
                     <tr className="text-white/50 border-b border-white/10">
                       <th className="py-2 pr-3 font-semibold">Package</th>
@@ -433,7 +432,7 @@ export default function PricingServicePage() {
                             <td className="py-2 pr-3">{p.name}</td>
                             <td className="py-2 pr-3">{o.programLabel}</td>
                             <td className="py-2 pr-3">{o.outlayLabel}</td>
-                            <td className="py-2 text-amber-200/90">{o.potentialLabel}</td>
+                            <td className={`py-2 font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{o.potentialLabel}</td>
                           </tr>
                         );
                       })}
@@ -446,15 +445,15 @@ export default function PricingServicePage() {
         ) : null}
 
         {category === 'debt_legal' ? (
-          <div className={`${finelyOsCatalogCard('fuchsia')} !p-4 flex items-start gap-3`}>
-            <AlertCircle size={18} className="mt-0.5 text-fuchsia-400 shrink-0" />
+          <div className={`${finelyOsCatalogCard('rose')} flex items-start gap-3`} data-fc-accent="rose">
+            <AlertCircle size={18} className="mt-0.5 text-rose-400 shrink-0" />
             <div className="min-w-0">
-              <div className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Typical debt balance → starting package</div>
-              <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>
+              <div className={`text-xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>Typical debt balance → starting package</div>
+              <p className={`mt-2 text-base ${FINELY_OS_ENTITY_BODY}`}>
                 Illustrative guidance only — exact package and pricing confirmed after intake. Sticker prices unchanged.
               </p>
               <div className="mt-3 overflow-x-auto">
-                <table className="w-full text-xs text-left">
+                <table className="w-full text-base text-left">
                   <thead>
                     <tr className="text-white/50 border-b border-white/10">
                       <th className="py-2 pr-3 font-semibold">Typical debt / complexity</th>
@@ -486,10 +485,10 @@ export default function PricingServicePage() {
                 isRestoreLane
                   ? `fc-restore-mode-tile rounded-2xl p-5 sm:p-6 text-left transition-all border-2 ${
                       mode === 'DIY'
-                        ? 'border-amber-400/55 bg-gradient-to-br from-amber-600/25 via-amber-900/20 to-[#0a1420] shadow-[0_0_32px_rgba(251,191,36,0.2)]'
-                        : 'border-white/10 bg-[#0a1420]/40 hover:border-amber-400/25'
+                        ? 'border-violet-400/55 bg-violet-600/25 shadow-[0_0_32px_rgba(139,92,246,0.2)]'
+                        : 'border-white/10 bg-[#0a1420]/40 hover:border-violet-400/25'
                     }`
-                  : finelyOsListItem(mode === 'DIY', 'amber')
+                  : finelyOsListItem(mode === 'DIY', 'violet')
               }
             >
               <div className={isRestoreLane ? 'font-bold tracking-tight text-white text-lg' : FINELY_OS_ENTITY_VALUE}>
@@ -524,7 +523,7 @@ export default function PricingServicePage() {
 
         {category === 'agency' ? (
           <div className="space-y-6">
-            <div className={`${finelyOsCatalogCard('emerald')} !p-5 sm:!p-6 space-y-3`}>
+            <div className={`${finelyOsCatalogCard('emerald')} space-y-4`} data-fc-accent="emerald">
               <div className="text-[10px] font-black uppercase tracking-widest text-emerald-300">Step 1 — one-time buy-in</div>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {agencyBuyInTiers.map((b) => (

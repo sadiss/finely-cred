@@ -62,9 +62,9 @@ function newMsgId() {
 function greeting(firstName: string, userName?: string) {
   const you = userName?.trim().split(/\s+/)[0];
   if (you && you.length >= 2) {
-    return `Hey ${you} — I'm ${firstName}. Just talk to me like a person. I'll route you to the right specialist when you need a human — no dropdowns, no picking threads.`;
+    return `Hey ${you} — I'm ${firstName}. Tell me what you need and I'll connect you with the right specialist.`;
   }
-  return `Hey — I'm ${firstName}. Talk naturally; I'll suggest the right person or team when it helps.`;
+  return `Hey — I'm ${firstName}. Tell me what you need and I'll connect you with the right specialist.`;
 }
 
 export function HubUnifiedConversationPanel({
@@ -361,7 +361,7 @@ export function HubUnifiedConversationPanel({
 
   return (
     <div className="flex flex-col h-full min-h-[320px]">
-      <div className="shrink-0 px-4 py-2 border-b border-emerald-500/20 space-y-2 bg-white/[0.07]">
+      <div className="fc-comms-agent-rail shrink-0 px-4 py-2 border-b space-y-2">
         <div className="flex items-center gap-3">
           {activeStaff ? (
             <StaffPortraitImg staff={activeStaff} className="w-10 h-10 rounded-full border border-emerald-400/30" />

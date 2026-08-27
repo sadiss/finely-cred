@@ -384,7 +384,7 @@ export function HeroSection({ onGetStarted }: HeroSectionProps) {
   const heroKicker = (tenant.settings.content?.landingHeroKicker || 'Private Wealth · Credit Division').trim();
   const heroSubtitle = (
     tenant.settings.content?.landingHeroSubtitle ||
-    'Institutional-grade credit architecture for personal, business, debt resolution, tradelines, and capital readiness — concierge execution or sovereign DIY access.'
+    'Institutional-grade credit architecture for personal, business, debt resolution, tradelines, and capital readiness — concierge execution or self-guided DIY access.'
   ).trim();
 
   // The card fan is designed on a fixed 600×560 stage. We scale that whole stage
@@ -419,8 +419,8 @@ export function HeroSection({ onGetStarted }: HeroSectionProps) {
         <div className="grid lg:grid-cols-2 gap-10 lg:gap-12 items-center">
           <div className="space-y-7 text-center lg:text-left">
             <Reveal>
-              <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-gradient-to-r from-amber-500/12 via-violet-500/8 to-transparent border border-amber-400/30 text-amber-200 shadow-[0_0_32px_-8px_rgba(251,191,36,0.35)]">
-                <FlashyIcon icon={Award} color="amber" size="xs" className="!w-9 !h-9 !rounded-xl shrink-0" />
+              <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-gradient-to-r from-emerald-500/12 via-violet-500/10 to-transparent border border-emerald-400/30 text-emerald-200 shadow-[0_0_32px_-8px_rgba(52,211,153,0.35)]">
+                <FlashyIcon icon={Award} color="emerald" size="xs" className="!w-9 !h-9 !rounded-xl shrink-0" />
                 <span className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.22em]">{heroKicker}</span>
               </div>
             </Reveal>
@@ -443,10 +443,10 @@ export function HeroSection({ onGetStarted }: HeroSectionProps) {
             <Reveal delay={250}>
               <div className="finely-institutional-bar mx-auto lg:mx-0 max-w-2xl">
                 {[
-                  { icon: Verified, label: 'Full credit solutions', tone: 'text-emerald-300/90' },
-                  { icon: BadgeCheck, label: 'FCRA compliant', tone: 'text-sky-300/90' },
-                  { icon: Lock, label: 'Encrypted vault', tone: 'text-emerald-300/90' },
-                  { icon: Shield, label: 'Partner OS access', tone: 'text-sky-300/90' },
+                  { icon: Verified, label: 'Personal & business credit', tone: 'text-emerald-300/90' },
+                  { icon: BadgeCheck, label: 'FCRA compliant', tone: 'text-violet-300/90' },
+                  { icon: Lock, label: 'Encrypted vault', tone: 'text-sky-300/90' },
+                  { icon: Shield, label: 'Partner portal', tone: 'text-rose-300/90' },
                 ].map(({ icon: Icon, label, tone }) => (
                   <span key={label} className="finely-institutional-bar-item">
                     <Icon size={12} className={`${tone} shrink-0`} />
@@ -463,42 +463,49 @@ export function HeroSection({ onGetStarted }: HeroSectionProps) {
             </Reveal>
 
             <Reveal delay={450}>
-              <div className="flex flex-wrap justify-center lg:justify-start gap-4">
-                <Button variant="gold" onClick={() => navigate('/enlightenment-session')} size="lg">
-                  Book an Enlightenment session <ArrowRight size={18} />
+              <div className="flex flex-wrap justify-center lg:justify-start gap-3 sm:gap-4">
+                <Button
+                  variant="gold"
+                  onClick={() => finelyCtaNavigate(navigate, 'personal_free_guide', { isAuthed: Boolean(auth.user) })}
+                  size="lg"
+                >
+                  Start free guide <ArrowRight size={18} />
                 </Button>
-                <Button variant="gold" onClick={onGetStarted} size="lg">
-                  Build business credit <ArrowRight size={18} />
+                <Button variant="platinum" onClick={() => navigate('/enlightenment-session')} size="lg">
+                  Book a strategy call
                 </Button>
-                <Button variant="platinum" onClick={() => navigate('/pricing')} size="lg">
-                  See all solutions
+                <Button variant="platinum" onClick={() => navigate('/pricing')} size="md">
+                  See pricing
                 </Button>
-                <Button variant="emerald" onClick={() => finelyCtaNavigate(navigate, 'personal_free_trial', { isAuthed: Boolean(auth.user) })} size="lg">
-                  Start free trial <ArrowRight size={18} />
-                </Button>
+                <button
+                  type="button"
+                  onClick={onGetStarted}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-bold text-white/70 hover:text-white transition-colors"
+                >
+                  Business credit path <ArrowRight size={16} />
+                </button>
               </div>
-              <p className="mt-3 text-sm text-white/45 max-w-xl mx-auto lg:mx-0 font-light">
-                Start with the free dispute guide — no card required — or explore business credit and full solution paths.
+              <p className="mt-4 text-base text-white/50 max-w-xl mx-auto lg:mx-0">
+                Free dispute guide and portal access — no card required.
               </p>
             </Reveal>
 
             <Reveal delay={550}>
-              <FinelyOsComplianceStrip className="mx-auto lg:mx-0 lg:text-left text-center pt-2" />
-            </Reveal>
-
-            <Reveal delay={600}>
-              <div className="grid grid-cols-3 gap-2 sm:gap-4 pt-6 sm:pt-8 border-t border-amber-500/15">
+              <div className="grid grid-cols-3 gap-3 sm:gap-5 pt-8 sm:pt-10 border-t border-white/10">
                 {[
-                  { value: <><AnimatedCounter value={98} suffix="%" /></>, label: 'Partner success' },
-                  { value: <>24<span className="finely-gold-foil-text text-lg sm:text-xl">hr</span></>, label: 'Priority response' },
-                  { value: <>$<AnimatedCounter value={500} />M+</>, label: 'Funding pathways' },
+                  { value: <><AnimatedCounter value={98} suffix="%" /></>, label: 'Partner success', accent: 'text-emerald-300' },
+                  { value: <>24<span className="text-violet-300 text-lg sm:text-xl font-extrabold">hr</span></>, label: 'Priority response', accent: 'text-sky-300' },
+                  { value: <>$<AnimatedCounter value={500} />M+</>, label: 'Funding pathways', accent: 'text-rose-300' },
                 ].map((stat) => (
                   <div key={stat.label} className="finely-wealth-stat text-center lg:text-left">
-                    <p className="text-xl sm:text-2xl lg:text-3xl font-light finely-wealth-stat-value">{stat.value}</p>
-                    <p className="text-[9px] sm:text-[10px] text-amber-100/45 uppercase tracking-[0.16em] mt-1.5">{stat.label}</p>
+                    <p className={`text-2xl sm:text-3xl lg:text-4xl font-extrabold finely-wealth-stat-value ${stat.accent}`}>{stat.value}</p>
+                    <p className="text-[10px] sm:text-xs text-white/50 uppercase tracking-[0.14em] mt-2 font-bold">{stat.label}</p>
                   </div>
                 ))}
               </div>
+              <FinelyOsComplianceStrip className="mx-auto lg:mx-0 lg:text-left text-center pt-4">
+                Results vary · not legal advice · funding subject to underwriting
+              </FinelyOsComplianceStrip>
             </Reveal>
           </div>
 
@@ -508,7 +515,7 @@ export function HeroSection({ onGetStarted }: HeroSectionProps) {
               className="relative w-full overflow-visible"
               style={{ height: CARD_STAGE_H * cardStageScale }}
             >
-              <div className="absolute -inset-10 rounded-[3rem] bg-gradient-to-br from-amber-500/18 via-amber-200/5 to-amber-600/10 blur-3xl pointer-events-none" />
+              <div className="absolute -inset-10 rounded-[3rem] bg-gradient-to-br from-emerald-500/18 via-violet-500/8 to-sky-500/10 blur-3xl pointer-events-none" />
               {/* Positioning wrapper — centered on phone/tablet, right-aligned on desktop */}
               <div className="absolute top-0 left-1/2 -translate-x-1/2 lg:left-auto lg:right-0 lg:translate-x-4">
                 {/* Fixed-size design stage, scaled uniformly to fit the column */}
@@ -538,25 +545,25 @@ export function HeroSection({ onGetStarted }: HeroSectionProps) {
 
 /** Wealth ribbon — sits directly under hero on home page. */
 export function WealthInstitutionalRibbon() {
-  const pillars = [
-    { icon: Building2, title: 'Institutional', desc: 'Bank-grade dispute & funding workflows' },
-    { icon: DollarSign, title: 'Capital Ready', desc: 'Score, structure, and lender sequencing' },
-    { icon: Shield, title: 'Protected', desc: 'Encrypted vault + compliance guardrails' },
-    { icon: Sparkles, title: 'Concierge', desc: 'Done-for-you or sovereign DIY paths' },
+  const pillars: Array<{ icon: typeof Building2; title: string; desc: string; accent: 'emerald' | 'violet' | 'sky' | 'rose' }> = [
+    { icon: Building2, title: 'Institutional', desc: 'Bank-grade dispute & funding workflows', accent: 'emerald' },
+    { icon: DollarSign, title: 'Capital Ready', desc: 'Score, structure, and lender sequencing', accent: 'violet' },
+    { icon: Shield, title: 'Protected', desc: 'Encrypted vault + compliance guardrails', accent: 'sky' },
+    { icon: Sparkles, title: 'Concierge', desc: 'Done-for-you or self-guided DIY paths', accent: 'rose' },
   ];
   return (
     <div className="finely-wealth-ribbon py-8 sm:py-10">
       <div className="container mx-auto px-4 sm:px-6 lg:px-12">
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          {pillars.map(({ icon: Icon, title, desc }) => (
+          {pillars.map(({ icon: Icon, title, desc, accent }) => (
             <div
               key={title}
-              className="group flex items-start gap-3 p-4 rounded-2xl border border-white/6 bg-white/[0.02] hover:border-amber-400/25 hover:bg-amber-500/[0.04] transition-all duration-300"
+              className="group flex items-start gap-3 p-5 rounded-2xl border border-white/8 bg-white/[0.03] hover:border-white/20 hover:bg-white/[0.05] transition-all duration-300"
             >
-              <FlashyIcon icon={Icon} color="amber" size="xs" className="shrink-0" />
+              <FlashyIcon icon={Icon} color={accent} size="xs" className="shrink-0" />
               <div>
-                <p className="text-sm font-semibold text-white/90 tracking-wide">{title}</p>
-                <p className="text-xs text-white/45 mt-1 leading-relaxed">{desc}</p>
+                <p className="text-base font-extrabold text-white/90 tracking-wide">{title}</p>
+                <p className="text-sm text-white/50 mt-1.5 leading-relaxed">{desc}</p>
               </div>
             </div>
           ))}
@@ -569,6 +576,13 @@ export function WealthInstitutionalRibbon() {
 // ============================================================================
 // VIOLATION LIVE FEED
 // ============================================================================
+const TICKER_CODE_ACCENTS = [
+  { chip: 'bg-violet-500/20 text-violet-400 border-violet-500/30' },
+  { chip: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
+  { chip: 'bg-sky-500/20 text-sky-400 border-sky-500/30' },
+  { chip: 'bg-rose-500/20 text-rose-400 border-rose-500/30' },
+] as const;
+
 export function ViolationLiveFeed() {
   const violations = [
     { code: "FCRA § 604", msg: "UNAUTHORIZED INQUIRY SUPPRESSION ACTIVE", status: "CLEARED" },
@@ -578,9 +592,9 @@ export function ViolationLiveFeed() {
   ];
 
   return (
-    <div className="w-full bg-black/80 border-y border-amber-500/20">
+    <div className="w-full bg-black/80 border-y border-violet-500/20">
       <div className="container mx-auto px-4 py-1.5 flex flex-wrap items-center justify-center gap-2 text-[10px] text-white/45 uppercase tracking-wider">
-        <span className="text-amber-400/80">Illustrative workflow ticker</span>
+        <span className="text-sky-400/80">Illustrative workflow ticker</span>
         <span className="text-white/25">·</span>
         <span>Not live enforcement · educational examples only</span>
       </div>
@@ -588,7 +602,7 @@ export function ViolationLiveFeed() {
       <div className="flex items-center whitespace-nowrap animate-marquee">
         {[...violations, ...violations].map((v, i) => (
           <div key={i} className="flex items-center gap-6 px-8">
-            <span className="px-3 py-1 text-[10px] font-bold rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">
+            <span className={`px-3 py-1 text-[10px] font-bold rounded border ${TICKER_CODE_ACCENTS[i % TICKER_CODE_ACCENTS.length].chip}`}>
               {v.code}
             </span>
             <span className="text-xs text-white/50 uppercase tracking-wider">{v.msg}</span>
@@ -610,8 +624,8 @@ export function ViolationLiveFeed() {
 // ============================================================================
 export function QualifyFundingSection() {
   const navigate = useNavigate();
-  const pillars: Array<{ label: string; desc: string; accent: 'amber' | 'emerald' | 'sky'; icon: typeof ArrowRight }> = [
-    { label: 'Debt strategy', desc: 'Organize collections and payoff sequencing', accent: 'amber', icon: DollarSign },
+  const pillars: Array<{ label: string; desc: string; accent: 'rose' | 'emerald' | 'sky'; icon: typeof ArrowRight }> = [
+    { label: 'Debt strategy', desc: 'Organize collections and payoff sequencing', accent: 'rose', icon: DollarSign },
     { label: 'Credit restore', desc: 'Disputes, evidence, and bureau follow-through', accent: 'emerald', icon: CreditCard },
     { label: 'Funding prep', desc: 'Profile structure when lenders are watching', accent: 'sky', icon: Building2 },
   ];
@@ -675,7 +689,7 @@ export function ServicesSection({ onNavigate }: { onNavigate: (page: string) => 
       icon: Building2, 
       title: "Business Credit", 
       desc: "Build your EIN credit separate from your SSN for stronger approvals and long-term fundability.",
-      accent: 'amber' as const,
+      accent: 'sky' as const,
       path: '/pricing/business-credit',
     },
     { 
@@ -699,9 +713,9 @@ export function ServicesSection({ onNavigate }: { onNavigate: (page: string) => 
       <div className="container mx-auto px-6 max-w-6xl">
         <div className="text-center mb-16">
           <Reveal>
-            <p className="text-xs font-bold tracking-[0.3em] text-amber-400 uppercase mb-4">Our Services</p>
+            <p className="text-xs font-bold tracking-[0.3em] text-sky-400 uppercase mb-4">Our Services</p>
             <h2 className="text-3xl lg:text-5xl font-light text-white">
-              Complete Credit <span className="text-amber-400 font-medium">Solutions</span>
+              Complete Credit <span className="text-sky-400 font-medium">Solutions</span>
             </h2>
             <p className="mt-4 text-white/50 max-w-xl mx-auto text-sm leading-relaxed">
               Personal restore, business build, and debt strategy — each with its own workflow inside Finely.
@@ -717,10 +731,10 @@ export function ServicesSection({ onNavigate }: { onNavigate: (page: string) => 
                 className={`group cursor-pointer ${finelyOsCatalogCard(service.accent)} hover:brightness-[1.02] transition-all duration-300`}
                 data-fc-accent={service.accent}
               >
-                <FlashyIcon icon={service.icon} color={service.accent === 'emerald' ? 'emerald' : service.accent === 'violet' ? 'violet' : 'amber'} size="lg" />
+                <FlashyIcon icon={service.icon} color={service.accent} size="lg" />
                 <h3 className="text-xl font-semibold text-white mt-6 mb-3">{service.title}</h3>
                 <p className="text-white/55 text-sm leading-relaxed">{service.desc}</p>
-                <div className="mt-6 flex items-center gap-2 text-amber-300 text-sm font-semibold opacity-80 group-hover:opacity-100 transition-opacity">
+                <div className="mt-6 flex items-center gap-2 text-sky-300 text-sm font-semibold opacity-80 group-hover:opacity-100 transition-opacity">
                   Learn more <ArrowRight size={16} />
                 </div>
               </div>
@@ -743,13 +757,13 @@ export function TradelineDualSection({
   onAddToCart?: (line: any) => void;
 }) {
   return (
-    <section className={`py-24 ${finelyOsLightMeshSection('fc-band-ember')}`}>
+    <section className={`py-24 ${finelyOsLightMeshSection('fc-band-azure')}`}>
       <div className="container mx-auto px-6 max-w-7xl">
         <div className="text-center mb-16">
           <Reveal>
-            <p className="text-xs font-bold tracking-[0.3em] text-amber-500 uppercase mb-4">Premium Tradelines</p>
+            <p className="text-xs font-bold tracking-[0.3em] text-violet-400 uppercase mb-4">Premium Tradelines</p>
             <h2 className="text-3xl lg:text-5xl font-light text-white mb-6">
-              Choose your lane — <span className="text-amber-500">AU</span> or <span className="text-emerald-400">Primary</span>
+              Choose your lane — <span className="text-violet-400">AU</span> or <span className="text-emerald-400">Primary</span>
             </h2>
             <p className="text-white/50 max-w-2xl mx-auto">
               One section. Two options. If you want an instant AU boost, shop inventory. If you need a primary tradeline,
@@ -786,21 +800,21 @@ export function TradelineDualSection({
           <Reveal delay={200}>
             <div
               onClick={() => onNavigate('tradelines_au')}
-              className={`group cursor-pointer relative ${finelyOsCatalogCard('amber')} !p-8`}
-              data-fc-accent="amber"
+              className={`group cursor-pointer relative ${finelyOsCatalogCard('violet')} !p-8`}
+              data-fc-accent="violet"
             >
-              <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/30">
-                <span className="text-[10px] font-bold text-amber-700 uppercase">Popular</span>
+              <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-violet-500/20 border border-violet-500/30">
+                <span className="text-[10px] font-bold text-violet-200 uppercase">Popular</span>
               </div>
 
-              <FlashyIcon icon={Users} color="amber" size="md" className="mb-6" />
+              <FlashyIcon icon={Users} color="violet" size="md" className="mb-6" />
 
               <h3 className="text-2xl font-medium mb-3">AU Marketplace</h3>
               <p className="text-sm leading-relaxed mb-6 opacity-75">
                 Get added to seasoned tradelines with high limits and perfect payment history. Instant score boost.
               </p>
 
-              <div className="flex items-center gap-2 text-amber-700 font-medium">
+              <div className="flex items-center gap-2 text-violet-300 font-medium">
                 Browse Assets <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
               </div>
             </div>
@@ -822,7 +836,7 @@ export function TradelineDualSection({
             </div>
             <div className="flex flex-wrap gap-3">
               <Button onClick={() => onNavigate('consultation')} size="sm">
-                Book an Enlightenment session <ArrowRight size={16} />
+                Book a strategy call <ArrowRight size={16} />
               </Button>
               <Button variant="outline" onClick={() => onNavigate('tradelines_primary')} size="sm">
                 Explore primary options
@@ -838,7 +852,7 @@ export function TradelineDualSection({
               { title: 'Education-first strategy', note: 'We confirm the safest path before any financing.', accent: 'emerald' as const },
               { title: 'Credit-building reporting', note: 'Adds a positive installment tradeline to your profile.', accent: 'sky' as const },
               { title: 'Lender readiness', note: 'When ready, we can route you to lender pathways (no guarantees).', accent: 'violet' as const },
-              { title: 'Built for thin/new credit', note: 'Ideal when 6‑month plans are not realistic upfront.', accent: 'amber' as const },
+              { title: 'Built for thin/new credit', note: 'Ideal when 6‑month plans are not realistic upfront.', accent: 'sky' as const },
             ].map((x) => (
               <div key={x.title} className={`${finelyOsCatalogCard(x.accent)} !p-5`} data-fc-accent={x.accent}>
                 <div className="font-semibold text-sm">{x.title}</div>
@@ -853,10 +867,10 @@ export function TradelineDualSection({
         </div>
 
         {/* AU inventory preview (credit-card visuals) */}
-        <div className={`mt-10 ${finelyOsCatalogCard('amber')} !p-8`} data-fc-accent="amber">
+        <div className={`mt-10 ${finelyOsCatalogCard('sky')} !p-8`} data-fc-accent="sky">
           <div className="flex flex-wrap items-end justify-between gap-6">
             <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/15 border border-amber-600/25 text-amber-800">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sky-500/15 border border-sky-600/25 text-sky-200">
                 <Zap size={14} />
                 <span className="text-[10px] font-bold uppercase tracking-widest">AU inventory preview</span>
               </div>
@@ -891,7 +905,7 @@ export function TradelineDualSection({
 export function WhatMakesDifferentSection() {
   const items = [
     { icon: Target, title: 'Solution Driven', desc: 'Coverage for any credit situation — practical paths for every economic status.', accent: 'emerald' as const },
-    { icon: Award, title: 'Unique Services', desc: 'Products and workflows you will not find in generic DIY dispute kits.', accent: 'amber' as const },
+    { icon: Award, title: 'Unique Services', desc: 'Products and workflows you will not find in generic DIY dispute kits.', accent: 'sky' as const },
     { icon: Heart, title: 'Truly Care', desc: 'Personal success, sustainable pace, and mental well-being built into the journey.', accent: 'fuchsia' as const },
   ];
 
@@ -917,7 +931,7 @@ export function WhatMakesDifferentSection() {
                 <div className="flex justify-center">
                   <FlashyIcon
                     icon={item.icon}
-                    color={item.accent === 'emerald' ? 'emerald' : item.accent === 'fuchsia' ? 'fuchsia' : 'amber'}
+                    color={item.accent}
                     size="lg"
                   />
                 </div>
@@ -944,14 +958,14 @@ export function BusinessCreditSection() {
   ];
 
   return (
-    <section className={`py-24 ${finelyOsLightMeshSection('fc-band-ember')}`}>
+    <section className={`py-24 ${finelyOsLightMeshSection('fc-band-violet')}`}>
       <div className="container mx-auto px-6 max-w-6xl">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           <Reveal>
             <div className="space-y-6">
-              <p className="text-xs font-bold tracking-[0.3em] text-amber-500 uppercase">Corporate Credit</p>
+              <p className="text-xs font-bold tracking-[0.3em] text-sky-400 uppercase">Corporate Credit</p>
               <h2 className="text-3xl lg:text-5xl font-light text-white leading-tight">
-                Advanced <span className="text-amber-500">Business Credit</span>
+                Advanced <span className="text-sky-400">Business Credit</span>
               </h2>
               <p className="text-white/50 leading-relaxed">
                 Start building your EIN's credit which is separate from your SSN. Corporate Credit 
@@ -959,7 +973,7 @@ export function BusinessCreditSection() {
               </p>
               <p className="text-white/50 leading-relaxed">
                 Many thriving businesses take advantage of this to increase their borrowing power into the{' '}
-                <span className="text-amber-500 font-semibold">multi-millions</span>.
+                <span className="text-sky-400 font-semibold">multi-millions</span>.
               </p>
               <Button size="lg" onClick={() => navigate('/pricing/business-credit')}>
                 Learn more <ArrowRight size={18} />
@@ -974,12 +988,12 @@ export function BusinessCreditSection() {
                 {bureaus.map((bureau, i) => (
                   <div
                     key={i}
-                    className={`p-6 text-center ${finelyOsCatalogCard(i === 1 ? 'violet' : i === 0 ? 'emerald' : 'amber')}`}
-                    data-fc-accent={i === 1 ? 'violet' : i === 0 ? 'emerald' : 'amber'}
+                    className={`p-6 text-center ${finelyOsCatalogCard(i === 1 ? 'violet' : i === 0 ? 'emerald' : 'sky')}`}
+                    data-fc-accent={i === 1 ? 'violet' : i === 0 ? 'emerald' : 'sky'}
                   >
-                    <FlashyIcon icon={Building2} color={i === 1 ? 'violet' : 'amber'} size="sm" className="mx-auto mb-3" />
+                    <FlashyIcon icon={Building2} color={i === 1 ? 'violet' : i === 0 ? 'emerald' : 'sky'} size="sm" className="mx-auto mb-3" />
                     <p className="text-sm font-semibold">{bureau.name}</p>
-                    <p className="text-[10px] text-amber-700 uppercase tracking-wider">{bureau.sub}</p>
+                    <p className="text-[10px] text-sky-300 uppercase tracking-wider">{bureau.sub}</p>
                   </div>
                 ))}
               </div>
@@ -993,11 +1007,11 @@ export function BusinessCreditSection() {
                   <div key={i} className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="opacity-70">{item.label}</span>
-                      <span className="text-amber-700 font-semibold">{item.value}%</span>
+                      <span className="text-sky-300 font-semibold">{item.value}%</span>
                     </div>
                     <div className="h-2 bg-black/10 rounded-full overflow-hidden">
                       <div 
-                        className="h-full bg-gradient-to-r from-amber-600 to-amber-400 rounded-full transition-all duration-1000"
+                        className="h-full bg-gradient-to-r from-sky-600 to-sky-400 rounded-full transition-all duration-1000"
                         style={{ width: `${item.value}%` }}
                       />
                     </div>
@@ -1084,11 +1098,11 @@ export function MasteryOSSection() {
       <div className="container mx-auto px-4 sm:px-6 max-w-7xl relative z-10">
         <div className="text-center mb-16">
           <Reveal>
-            <p className="text-xs font-bold tracking-[0.3em] text-amber-500 uppercase mb-4">
+            <p className="text-xs font-bold tracking-[0.3em] text-violet-400 uppercase mb-4">
               <Cpu size={14} className="inline mr-2" /> Full credit solutions
             </p>
             <h2 className="text-3xl lg:text-5xl font-light text-white mb-4">
-              Restore, dispute, defend, <span className="text-amber-500">fundamp; fund</span>
+              Restore, dispute, defend, <span className="text-violet-400">fund &amp; fund</span>
             </h2>
             <p className="text-white/55 max-w-2xl mx-auto">
               Tablet + phone preview of the partner path — clear next steps for personal restore, debt &amp; summons,
@@ -1106,7 +1120,7 @@ export function MasteryOSSection() {
                 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[110%] pointer-events-none -z-0"
                 style={{
                   background:
-                    'radial-gradient(ellipse 50% 45% at 50% 45%, rgba(251,191,36,0.22) 0%, transparent 65%), radial-gradient(ellipse 40% 40% at 75% 60%, rgba(16,185,129,0.2) 0%, transparent 70%)',
+                    'radial-gradient(ellipse 50% 45% at 50% 45%, rgba(139,92,246,0.22) 0%, transparent 65%), radial-gradient(ellipse 40% 40% at 75% 60%, rgba(16,185,129,0.2) 0%, transparent 70%)',
                   filter: 'blur(40px)',
                 }}
                 aria-hidden
@@ -1118,8 +1132,8 @@ export function MasteryOSSection() {
               <div 
                 className="absolute inset-0 rounded-[28px] lg:rounded-[36px] fc-landing-device-bezel"
                 style={{
-                  boxShadow:
-                    '0 0 0 1px rgba(52,211,153,0.35), 0 0 48px -8px rgba(251,191,36,0.45), 0 50px 100px -20px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.1)',
+                    boxShadow:
+                    '0 0 0 1px rgba(52,211,153,0.35), 0 0 48px -8px rgba(139,92,246,0.45), 0 50px 100px -20px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.1)',
                 }}
               />
               
@@ -1161,8 +1175,8 @@ export function MasteryOSSection() {
                 {/* App header */}
                 <div className="absolute top-8 lg:top-10 left-0 right-0 px-4 lg:px-6 py-3 border-b border-white/[0.08] flex justify-between items-center">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-lg">
-                      <Cpu size={16} className="text-black" />
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center shadow-lg">
+                      <Cpu size={16} className="text-white" />
                     </div>
                     <div>
                       <span className="text-white text-xs lg:text-sm font-semibold">Partner solutions</span>
@@ -1173,8 +1187,8 @@ export function MasteryOSSection() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="px-2 py-1 rounded-full bg-amber-500/20 border border-amber-400/40 shadow-[0_0_16px_-4px_rgba(251,191,36,0.7)]">
-                      <span className="text-[9px] lg:text-[10px] text-amber-200 font-semibold">START FREE</span>
+                    <div className="px-2 py-1 rounded-full bg-violet-500/20 border border-violet-400/40 shadow-[0_0_16px_-4px_rgba(139,92,246,0.7)]">
+                      <span className="text-[9px] lg:text-[10px] text-violet-200 font-semibold">START FREE</span>
                     </div>
                   </div>
                 </div>
@@ -1203,7 +1217,7 @@ export function MasteryOSSection() {
                       <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 px-2">
                         <span className="text-white/55 text-xs lg:text-sm">{app.bank}</span>
                         <span className="text-white/25">•</span>
-                        <span className="text-amber-400/85 text-xs lg:text-sm">{app.type}</span>
+                        <span className="text-sky-400/85 text-xs lg:text-sm">{app.type}</span>
                       </div>
                       <p className="mt-2 text-[10px] lg:text-xs text-white/35 tracking-wide">{app.location}</p>
                     </div>
@@ -1219,7 +1233,7 @@ export function MasteryOSSection() {
                           {notif.icon === 'check' && <CheckCircle2 size={12} className="text-emerald-400" />}
                           {notif.icon === 'trending' && <TrendingUp size={12} className="text-emerald-400" />}
                           {notif.icon === 'shield' && <Shield size={12} className="text-emerald-400" />}
-                          {notif.icon === 'dollar' && <DollarSign size={12} className="text-amber-400" />}
+                          {notif.icon === 'dollar' && <DollarSign size={12} className="text-sky-400" />}
                         </div>
                         <span className="text-[10px] lg:text-xs text-white/70">{notif.text}</span>
                         <span className="text-[9px] text-white/40">{notif.time}</span>
@@ -1281,9 +1295,9 @@ export function MasteryOSSection() {
                   {/* Phone overlay: multi-service success story */}
                   <div className="absolute inset-x-2.5 top-[44px] bottom-3 z-20 rounded-2xl bg-fc-section/75 border border-white/[0.08] backdrop-blur-md p-2.5 flex flex-col gap-2 min-h-0">
                     <div className="flex items-center justify-between">
-                      <div className="text-[9px] uppercase tracking-[0.26em] text-amber-200/90 font-bold">Your next step</div>
-                      <div className="px-2 py-1 rounded-full bg-amber-500/20 border border-amber-400/40 shadow-[0_0_12px_-2px_rgba(251,191,36,0.65)]">
-                        <span className="text-[8px] uppercase tracking-widest text-amber-200 font-bold">claim free</span>
+                      <div className="text-[9px] uppercase tracking-[0.26em] text-violet-200/90 font-bold">Your next step</div>
+                      <div className="px-2 py-1 rounded-full bg-violet-500/20 border border-violet-400/40 shadow-[0_0_12px_-2px_rgba(139,92,246,0.65)]">
+                        <span className="text-[8px] uppercase tracking-widest text-violet-200 font-bold">claim free</span>
                       </div>
                     </div>
 
@@ -1298,7 +1312,7 @@ export function MasteryOSSection() {
                           ) : s.icon === 'shield' ? (
                             <Shield size={12} className="text-emerald-300" />
                           ) : (
-                            <DollarSign size={12} className="text-amber-300" />
+                            <DollarSign size={12} className="text-sky-300" />
                           );
                         return (
                           <div
@@ -1319,7 +1333,7 @@ export function MasteryOSSection() {
                             </div>
                             <div className="flex items-end justify-between">
                               <span className="text-[9px] uppercase tracking-widest text-white/40">Result</span>
-                              <span className="text-[12px] font-black text-amber-300">{s.value}</span>
+                              <span className="text-[12px] font-black text-sky-300">{s.value}</span>
                             </div>
                           </div>
                         );
@@ -1347,7 +1361,7 @@ export function MasteryOSSection() {
                       <div className="flex justify-center mb-2">
                         <FinelyCredLogo size="md" forceLight />
                       </div>
-                      <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-amber-500 to-transparent mx-auto my-3" />
+                      <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-violet-500 to-transparent mx-auto my-3" />
                       <p className={`text-2xl sm:text-3xl lg:text-4xl font-light text-white tabular-nums mb-1`}>
                         {creditScore}
                       </p>
@@ -1373,7 +1387,7 @@ export function MasteryOSSection() {
 
         <Reveal delay={350}>
           <div className="mt-12 flex flex-col sm:flex-row flex-wrap items-center justify-center gap-4">
-            <Button variant="gold" size="lg" onClick={() => navigate('/portal/partner')}>
+            <Button variant="gold" size="lg" onClick={() => navigate('/portal/dashboard')}>
               See partner portal <ArrowRight size={18} />
             </Button>
             <Button variant="platinum" size="lg" onClick={() => finelyCtaNavigate(navigate, 'personal_intake')}>
@@ -1456,10 +1470,10 @@ export function MarketplaceCard({ bank, limit, age, price, date, theme = 'platin
             Curated for <span className="text-white/90 font-semibold">low‑utilization optics</span> when balances stay low.
           </p>
         </div>
-        <div className="rounded-xl border border-amber-500/20 bg-gradient-to-br from-amber-500/[0.08] to-black/40 backdrop-blur-xl p-3.5">
+        <div className="rounded-xl border border-violet-500/20 bg-gradient-to-br from-violet-500/[0.08] to-black/40 backdrop-blur-xl p-3.5">
           <div className="flex items-center gap-2 mb-2">
-            <span className="w-6 h-6 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center shrink-0">
-              <BadgeCheck className="w-3 h-3 text-amber-300" />
+            <span className="w-6 h-6 rounded-lg bg-violet-500/15 border border-violet-500/30 flex items-center justify-center shrink-0">
+              <BadgeCheck className="w-3 h-3 text-violet-300" />
             </span>
             <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/60">Verified</span>
           </div>
@@ -1668,7 +1682,7 @@ export function TradelineMarketplace({ onAddToCart }: { onAddToCart?: (line: any
           Live inventory — {sellerLines.length} verified seller listing{sellerLines.length === 1 ? '' : 's'} from Supabase.
         </div>
       ) : showDemo ? (
-        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+        <div className="rounded-2xl border border-sky-500/30 bg-sky-500/10 px-4 py-3 text-sm text-sky-100">
           Demo catalog — publish verified AU seller listings in Admin → AU Sellers to replace this preview inventory.
         </div>
       ) : (
@@ -1689,7 +1703,7 @@ export function TradelineMarketplace({ onAddToCart }: { onAddToCart?: (line: any
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search bank / limit / age…"
-            className="w-64 max-w-full bg-fc-input border border-white/[0.08] rounded-xl px-4 py-2 text-white/80 placeholder:text-white/30 focus:outline-none focus:border-amber-500 transition-colors text-sm"
+            className="w-64 max-w-full bg-fc-input border border-white/[0.08] rounded-xl px-4 py-2 text-white/80 placeholder:text-white/30 focus:outline-none focus:border-violet-500 transition-colors text-sm"
           />
           <select
             value={sort}
@@ -1723,7 +1737,7 @@ export function TradelineMarketplace({ onAddToCart }: { onAddToCart?: (line: any
             <span className="px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-200 text-[10px] font-black uppercase tracking-widest">
               Utilization &lt; 15%
             </span>
-            <span className="px-3 py-1 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-200 text-[10px] font-black uppercase tracking-widest">
+            <span className="px-3 py-1 rounded-full border border-violet-500/30 bg-violet-500/10 text-violet-200 text-[10px] font-black uppercase tracking-widest">
               Verified inventory
             </span>
           </div>
@@ -1733,7 +1747,7 @@ export function TradelineMarketplace({ onAddToCart }: { onAddToCart?: (line: any
           {[
             { icon: Activity, chip: 'bg-emerald-500/15 border-emerald-500/30', ic: 'text-emerald-300', title: 'Lower utilization', body: 'A higher limit drops your ratio when balances stay low.' },
             { icon: BarChart3, chip: 'bg-sky-500/15 border-sky-500/30', ic: 'text-sky-300', title: 'Thicker profile', body: 'Added age + limit support stronger approval odds.' },
-            { icon: Target, chip: 'bg-amber-500/15 border-amber-500/30', ic: 'text-amber-300', title: 'Underwriting optics', body: 'Utilization can sway decisions during application windows.' },
+            { icon: Target, chip: 'bg-violet-500/15 border-violet-500/30', ic: 'text-violet-300', title: 'Underwriting optics', body: 'Utilization can sway decisions during application windows.' },
           ].map((c) => (
             <div key={c.title} className="fc-light-glass-panel fc-light-chrome-panel rounded-xl p-4">
               <span className={`w-9 h-9 rounded-lg border ${c.chip} flex items-center justify-center mb-3`}>
@@ -1895,13 +1909,13 @@ export function TestimonialDossier({
 
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-4 min-w-0 w-full">
         <div className="w-10 h-10 shrink-0 rounded-full bg-black/[0.04] border border-black/10 flex items-center justify-center">
-          <Star size={16} className="text-amber-700" />
+          <Star size={16} className="text-sky-500" />
         </div>
         <div className="min-w-0 flex-1 w-full">
           <p className="text-sm font-semibold break-words">{name}</p>
           <div className="flex gap-0.5 mt-1">
             {[...Array(5)].map((_, i) => (
-              <Star key={i} size={10} className="text-amber-700 fill-amber-500" />
+              <Star key={i} size={10} className="text-sky-500 fill-sky-400" />
             ))}
           </div>
           {service ? (
@@ -2224,21 +2238,13 @@ export function Footer({ onNavigate }: { onNavigate: (page: string) => void }) {
                     href={url as string}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-11 h-11 fc-light-glass-panel fc-light-chrome-panel rounded-xl flex items-center justify-center text-white/50 hover:text-amber-300 hover:border-amber-400/35 hover:shadow-[0_0_20px_-6px_rgba(251,191,36,0.4)] transition-all"
+                    className="w-11 h-11 fc-light-glass-panel fc-light-chrome-panel rounded-xl flex items-center justify-center text-white/50 hover:text-emerald-300 hover:border-emerald-400/35 hover:shadow-[0_0_20px_-6px_rgba(52,211,153,0.4)] transition-all"
                     title={key}
                   >
                     <Icon size={18} strokeWidth={1.75} />
                   </a>
                 ))
-              ) : (
-                <a
-                  href="/admin/settings"
-                  className="text-xs text-white/30 hover:text-amber-500 transition-colors"
-                  title="Add social links in Admin Settings"
-                >
-                  Add socials in Admin Settings
-                </a>
-              )}
+              ) : null}
             </div>
           </div>
           
@@ -2247,14 +2253,14 @@ export function Footer({ onNavigate }: { onNavigate: (page: string) => void }) {
             <p className="text-sm font-semibold text-white uppercase tracking-wider">Solutions</p>
             <ul className="space-y-3 text-sm text-white/40">
               {[
-                { label: 'Personal restore', path: 'pricing' },
-                { label: 'Business credit', path: 'pricing' },
-                { label: 'Debt & legal', path: 'pricing' },
+                { label: 'Personal restore', path: 'pricing_personal' },
+                { label: 'Business credit', path: 'pricing_business' },
+                { label: 'Debt & legal', path: 'pricing_debt' },
                 { label: 'Tradelines', path: 'tradelines' },
                 { label: 'Payment plans', path: 'pricing' },
               ].map((item) => (
                 <li key={item.label}>
-                  <button type="button" onClick={() => onNavigate(item.path)} className="hover:text-amber-500 transition-colors">
+                  <button type="button" onClick={() => onNavigate(item.path)} className="hover:text-sky-400 transition-colors">
                     {item.label}
                   </button>
                 </li>
@@ -2267,22 +2273,22 @@ export function Footer({ onNavigate }: { onNavigate: (page: string) => void }) {
             <p className="text-sm font-semibold text-white uppercase tracking-wider">Resources</p>
             <ul className="space-y-3 text-sm text-white/40">
               <li>
-                <button type="button" onClick={() => onNavigate('bookstore')} className="hover:text-amber-500 transition-colors">
+                <button type="button" onClick={() => onNavigate('bookstore')} className="hover:text-sky-400 transition-colors">
                   e-Books
                 </button>
               </li>
               <li>
-                <button type="button" onClick={() => onNavigate('resources')} className="hover:text-amber-500 transition-colors">
+                <button type="button" onClick={() => onNavigate('resources')} className="hover:text-sky-400 transition-colors">
                   Resource hub
                 </button>
               </li>
               <li>
-                <button type="button" onClick={() => onNavigate('agents')} className="hover:text-amber-500 transition-colors">
+                <button type="button" onClick={() => onNavigate('agents')} className="hover:text-sky-400 transition-colors">
                   Credit specialists
                 </button>
               </li>
               <li>
-                <button type="button" onClick={() => onNavigate('faq')} className="hover:text-amber-500 transition-colors">
+                <button type="button" onClick={() => onNavigate('faq')} className="hover:text-sky-400 transition-colors">
                   FAQs
                 </button>
               </li>
@@ -2290,7 +2296,7 @@ export function Footer({ onNavigate }: { onNavigate: (page: string) => void }) {
                 <button
                   type="button"
                   onClick={() => onNavigate('head_of_society')}
-                  className="hover:text-amber-500 transition-colors"
+                  className="hover:text-sky-400 transition-colors"
                 >
                   Head of Society
                 </button>
@@ -2303,15 +2309,15 @@ export function Footer({ onNavigate }: { onNavigate: (page: string) => void }) {
             <p className="text-sm font-semibold text-white uppercase tracking-wider">Contact</p>
             <ul className="space-y-3 text-sm text-white/40">
               <li className="flex items-center gap-2">
-                <Phone size={14} className="text-amber-500" />
+                <Phone size={14} className="text-emerald-400" />
                 {site.supportPhone || '800-307-4057'}
               </li>
               <li className="flex items-center gap-2">
-                <Mail size={14} className="text-amber-500" />
+                <Mail size={14} className="text-violet-400" />
                 {site.supportEmail || 'info@finelycred.com'}
               </li>
               <li className="flex items-start gap-2">
-                <MapPin size={14} className="text-amber-500 mt-0.5" />
+                <MapPin size={14} className="text-sky-400 mt-0.5" />
                 <span>224 W 35th St Ste 500<br />#1035, New York, NY 10001</span>
               </li>
             </ul>
@@ -2337,7 +2343,7 @@ export function Footer({ onNavigate }: { onNavigate: (page: string) => void }) {
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-xs text-white/30">© 2026 {displayDomain} All Rights Reserved</p>
           <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 text-xs text-white/30">
-            <span className="font-mono text-amber-500/70" title={`${brand} build version`}>
+            <span className="font-mono text-sky-400/70" title={`${brand} build version`}>
               Build: {brand} · v1.0.0
             </span>
             <button onClick={() => onNavigate('privacy')} className="hover:text-white transition-colors">Privacy Policy</button>

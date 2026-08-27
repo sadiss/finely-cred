@@ -15,7 +15,7 @@ const KIND_META: Record<
   human_staff: {
     label: 'Human team',
     short: 'Human',
-    className: 'border-amber-400/35 bg-amber-500/12 text-amber-100',
+    className: 'border-rose-400/35 bg-rose-500/12 text-rose-100',
     Icon: UserRound,
   },
   future_hire: {
@@ -41,7 +41,7 @@ export function StaffKindBadge({ kind, compact = false }: { kind: StaffKind; com
   const Icon = meta.Icon;
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[9px] font-black uppercase tracking-widest ${meta.className}`}
+      className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-black uppercase tracking-widest ${meta.className}`}
     >
       <Icon size={compact ? 10 : 11} aria-hidden />
       {compact ? meta.short : meta.label}

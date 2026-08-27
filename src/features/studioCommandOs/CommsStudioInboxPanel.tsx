@@ -90,7 +90,7 @@ export function CommsStudioInboxPanel() {
             <div className={`text-xs mt-2 ${FINELY_OS_ENTITY_BODY}`}>Live partner threads — full inbox workspace</div>
           </div>
           <button type="button" className={`${FINELY_OS_SECONDARY_BTN} mt-3 w-fit`} onClick={() => navigate('/admin/support')}>
-            Open support inbox <ExternalLink size={12} />
+            Open partner conversations <ExternalLink size={12} />
           </button>
         </div>
       </div>
@@ -146,7 +146,7 @@ export function CommsStudioInboxPanel() {
                           s.status === 'sent' || s.status === 'inbound'
                             ? 'border-emerald-500/30 text-emerald-200'
                             : s.status === 'dry_run'
-                              ? 'border-amber-500/30 text-amber-200'
+                              ? 'border-rose-500/30 text-rose-200'
                               : 'border-rose-500/30 text-rose-200'
                         }`}
                       >

@@ -31,6 +31,8 @@ export type DisputeLetterMeta = {
   /** Bureau mailing block saved from draft (overrides canonical PO box when set). */
   bureauMailingName?: string;
   bureauMailingAddress?: string;
+  /** Factual findings carried from the prior round onto this letter (not a second account list). */
+  priorRoundTransferNote?: string;
 };
 
 export type BusinessDisputeLetterMeta = {
@@ -121,6 +123,10 @@ export type LetterRecord = {
     expectedDeliveryDate?: string;
     /** Provider status snapshot (best-effort). */
     status?: string;
+    /** Carrier tracking number (staff-entered or provider-supplied). */
+    trackingNumber?: string;
+    /** ISO timestamp when delivery was confirmed. */
+    deliveredAt?: string;
     /** Last error (for failed attempts). */
     lastError?: string;
     to: { name: string; addressLine1: string; addressLine2?: string; city: string; state: string; zip: string };

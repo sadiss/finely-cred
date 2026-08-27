@@ -33,7 +33,7 @@ export function CmoAccountOpsPanel() {
     <section className="fc-panel p-5 space-y-5">
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.28em] text-amber-200/70">Phase 4</p>
+          <p className="text-xs uppercase tracking-[0.28em] text-rose-200/70">Phase 4</p>
           <h2 className="text-2xl font-semibold text-white">CMO Account Command</h2>
           <p className="mt-1 max-w-3xl text-sm text-slate-300">
             Manage every growth account from one place: social channels, Shorts, email, SMS, affiliates, and manual publishing paths.
@@ -95,11 +95,11 @@ function AccountCard({ account }: { account: CmoManagedAccount }) {
     <article className="fc-card p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-amber-200/60">{account.platform}</p>
+          <p className="text-xs uppercase tracking-[0.2em] text-rose-200/60">{account.platform}</p>
           <h3 className="mt-1 text-lg font-semibold text-white">{account.label}</h3>
           <p className="mt-1 text-sm text-slate-400">{account.handle || account.publicUrl || 'Handle/link not configured yet'}</p>
         </div>
-        <span className="rounded-full border border-amber-300/20 bg-amber-300/10 px-3 py-1 text-xs text-amber-100">{account.status}</span>
+        <span className="rounded-full border border-rose-300/20 bg-rose-300/10 px-3 py-1 text-xs text-rose-100">{account.status}</span>
       </div>
       <div className="mt-4 grid gap-2 text-sm text-slate-300 sm:grid-cols-3">
         <span>Leads/day: {account.dailyLeadTarget ?? 0}</span>

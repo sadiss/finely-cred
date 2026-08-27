@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { ArrowLeft, ArrowRight, BriefcaseBusiness, ExternalLink, RefreshCw, Sparkles } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { AdminWorkstationFrame, type AdminEmbeddablePageProps } from '../../features/workspaceLightPreview/product/admin/AdminWorkstationFrame';
+import { useMappedAdminNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { fetchAllPartnersAsAdmin } from '../../data/partnersRepo';
 import { fetchBridgeOpsSnapshot, getProviderGatewayUrl, runMlPipelineInsights } from '../../lib/finelyBridgeClient';
 import { buildClientCreditProgram } from '../../lib/finelyBridgeCreditProgram';
@@ -31,8 +31,8 @@ type OpsSnapshot = {
   recentHandoffs: Array<{ partnerId: string; fullName: string | null; at: string }>;
 };
 
-export default function FinelyBridgeOpsPage() {
-  const navigate = useNavigate();
+export default function FinelyBridgeOpsPage({ embedded = false }: AdminEmbeddablePageProps = {}) {
+  const navigate = useMappedAdminNavigate();
   const gatewayUrl = getProviderGatewayUrl();
   const [ops, setOps] = useState<OpsSnapshot | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -105,9 +105,9 @@ export default function FinelyBridgeOpsPage() {
   const kpis = ops?.kpis;
 
   return (
-    <PageShell title="Finely Cred ↔ Bridge ops" subtitle="Fund-ready queue, handoffs, and ML pipeline scan">
+    <AdminWorkstationFrame embedded={embedded} kind="bridge-ops-workstation" badge="Admin" title="Finely Cred ↔ Bridge ops" subtitle="Fund-ready queue, handoffs, and ML pipeline scan">
       <div className={FINELY_OS_PAGE}>
-        <button type="button" className={FINELY_OS_BACK_LINK} onClick={() => navigate('/admin/dashboard')}>
+        <button type="button" className={FINELY_OS_BACK_LINK} onClick={() => navigate('/admin')}>
           <ArrowLeft size={14} /> Admin Command
         </button>
 
@@ -227,8 +227,8 @@ export default function FinelyBridgeOpsPage() {
           </button>
         </div>
 
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
       </div>
-    </PageShell>
+    </AdminWorkstationFrame>
   );
 }

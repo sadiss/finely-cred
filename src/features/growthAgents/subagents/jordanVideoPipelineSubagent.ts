@@ -60,7 +60,7 @@ export async function runJordanVideoPipelineReview(): Promise<JordanVideoPipelin
           title: `Video pipeline — ${latest.title} (${latest.lifecycle})`,
           notes: [directive.reasoning, `Open: ${buildGrowthContentStudioPromoteUrl(latest.resourceVideoId)}`].join('\n'),
           recordId: latest.id,
-          href: '/admin/marketing?tab=content&room=video',
+          href: '/admin/content-studio?room=video',
           tags: ['jordan-video-pipeline', 'persona:media'],
           growthAgentId: 'media',
           priority: stageAgeDays >= 5 ? 'high' : 'normal',

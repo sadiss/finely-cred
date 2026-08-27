@@ -78,5 +78,5 @@ export function buildRebeccaApplyMetrics(): RebeccaApplyMetrics {
 
 /** Marketing Desk Mail deep link — specialist apply nurture sequence. */
 export function rebeccaMailHandoffHref(): string {
-  return `/admin/marketing?tab=desk&helper=mail&sequence=${REBECCA_SPECIALIST_SEQUENCE_ID}`;
+  return `/admin/marketing-desk?helper=mail&sequence=${REBECCA_SPECIALIST_SEQUENCE_ID}`;
 }

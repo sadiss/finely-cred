@@ -28,7 +28,7 @@ const DOMAIN_ACCENT: Record<FinelyCapabilityDomainId, FinelyOsDeckAccent> = {
   video_wizard: 'sky',
   video_pipeline: 'violet',
   voice_previews: 'fuchsia',
-  course_builder: 'amber',
+  course_builder: 'rose',
   marketing: 'emerald',
   ctas: 'sky',
   agents: 'violet',
@@ -46,7 +46,7 @@ const DOMAIN_TAGLINE: Partial<Record<FinelyCapabilityDomainId, string>> = {
 
 function healthLabel(domain: FinelyCapabilityDomain): { text: string; shell: string } {
   if (domain.tone === 'ok') return { text: 'Healthy', shell: 'bg-emerald-950/50 border-emerald-200/60 text-emerald-100' };
-  if (domain.tone === 'warn') return { text: 'Needs attention', shell: 'bg-amber-950/50 border-amber-200/60 text-amber-100' };
+  if (domain.tone === 'warn') return { text: 'Needs attention', shell: 'bg-fuchsia-950/50 border-fuchsia-200/60 text-fuchsia-100' };
   return { text: 'Blocked', shell: 'bg-rose-950/50 border-rose-200/60 text-rose-100' };
 }
 
@@ -111,7 +111,7 @@ function PipelineStageStrip({ tick }: { tick: number }) {
     return computeVideoPipelineMaturity().stages;
   }, [tick]);
 
-  const stageAccents: FinelyOsDeckAccent[] = ['sky', 'violet', 'fuchsia', 'emerald', 'amber'];
+    const stageAccents: FinelyOsDeckAccent[] = ['sky', 'violet', 'fuchsia', 'emerald', 'rose'];
 
   return (
     <div className="mt-3 pt-3 border-t border-white/15">

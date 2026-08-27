@@ -139,19 +139,19 @@ export const PORTAL_NAV_LANES: PortalNavLaneDef[] = [
 export const PORTAL_STICKY_TABS: Array<{
   path: string;
   label: string;
-  accent: 'emerald' | 'violet' | 'sky' | 'amber';
+  accent: 'emerald' | 'violet' | 'sky' | 'rose';
 }> = [
   { path: '/portal/dashboard', label: 'Overview', accent: 'emerald' },
   { path: '/portal/reports', label: 'Reports', accent: 'sky' },
-  { path: '/portal/documents', label: 'Documents', accent: 'sky' },
-  { path: '/portal/disputes', label: 'Disputes', accent: 'violet' },
-  { path: '/portal/projects', label: 'Tasks', accent: 'emerald' },
-  { path: '/portal/calendar', label: 'Calendar', accent: 'sky' },
+  { path: '/portal/letters', label: 'Credit Letters', accent: 'violet' },
+  { path: '/portal/documents', label: 'Documents', accent: 'rose' },
+  { path: '/portal/disputes', label: 'Disputes', accent: 'emerald' },
+  { path: '/portal/projects', label: 'Tasks', accent: 'sky' },
+  { path: '/portal/calendar', label: 'Calendar', accent: 'violet' },
 ];
 
 /** Secondary destinations — letter station, connect, grow (de-emphasized in main nav). */
 export const PORTAL_SECONDARY_LINKS: PortalNavLinkDef[] = [
-  { path: '/portal/letters', label: 'Credit Letters', icon: Gavel },
   { path: '/portal/debt', label: 'Debt Letters', icon: Scale },
   { path: '/portal/templates', label: 'Letter templates', icon: BookOpen },
   { path: '/portal/messages', label: 'Messages', icon: MessageSquare },
@@ -166,15 +166,14 @@ export const PORTAL_SECONDARY_LINKS: PortalNavLinkDef[] = [
 export const PORTAL_FULL_NAV_TABS: Array<{
   path: string;
   label: string;
-  accent: 'emerald' | 'violet' | 'sky' | 'amber';
+  accent: 'emerald' | 'violet' | 'sky' | 'rose';
 }> = [
   ...PORTAL_STICKY_TABS,
-  { path: '/portal/letters', label: 'Credit Letters', accent: 'violet' },
-  { path: '/portal/debt', label: 'Debt Letters', accent: 'amber' },
+  { path: '/portal/debt', label: 'Debt Letters', accent: 'rose' },
   { path: '/portal/templates', label: 'Templates', accent: 'sky' },
   { path: '/portal/messages', label: 'Messages', accent: 'emerald' },
-  { path: '/portal/build', label: 'Credit Build', accent: 'emerald' },
-  { path: '/business/dashboard', label: 'Business Credit', accent: 'amber' },
+  { path: '/portal/build', label: 'Credit Build', accent: 'sky' },
+  { path: '/business/dashboard', label: 'Business Credit', accent: 'rose' },
   { path: '/portal/education', label: 'Education', accent: 'violet' },
   { path: '/portal/billing', label: 'Billing', accent: 'sky' },
   { path: '/account/settings', label: 'Account', accent: 'violet' },

@@ -1,17 +1,15 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, ChevronDown, ChevronRight, FileText, RefreshCcw, ShieldCheck, Trash2 } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronRight, FileText, RefreshCcw, ShieldCheck, Trash2, TrendingUp } from 'lucide-react';
 import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
 import { deleteReport, listReportsByPartner, upsertReport } from '../../data/reportsRepo';
 import { isSupabaseConfigured } from '../../lib/supabaseClient';
-import { listEvidenceByPartner, upsertEvidence, deleteEvidence } from '../../data/evidenceRepo';
+import { listEvidenceByPartner } from '../../data/evidenceRepo';
 import { listCreditAnalysisReportsByPartner, upsertCreditAnalysisReport } from '../../data/creditAnalysisReportsRepo';
 import { CreditAnalysisDeliverableStrip } from '../../components/reports/CreditAnalysisDeliverableCard';
 import { ReportUploader } from '../../components/reports/ReportUploader';
 import { ReportActionsBar, ReportFileStrip } from '../../components/reports/ReportFileStrip';
 import { CreditIntelTabs } from '../../components/creditIntel/CreditIntelTabs';
-import { SmartProofUploader } from '../../components/evidence/SmartProofUploader';
-import { EvidenceList } from '../../components/evidence/EvidenceList';
 import { ParsedReportOverviewPanel } from '../../components/reports/ParsedReportOverviewPanel';
 import { PdfReportFallbackView } from '../../components/reports/PdfReportFallbackView';
 import { LegacyPendingReportNotice } from '../../components/reports/LegacyPendingReportNotice';
@@ -29,7 +27,7 @@ import {
 } from '../../lib/reportParsePipeline';
 import { assessCreditorContactRecovery } from '../../creditReports/creditorContactExtract';
 import { persistRefreshedCreditorContactsOnReport } from '../../lib/debtCreditorIntel';
-import { computeReportIdentityCheck } from '../../creditReports/identityCheck';
+import { computeReportIdentityCheck, identityFaultTitle } from '../../creditReports/identityCheck';
 import { createDisputeCase } from '../../data/casesRepo';
 import { candidateToCaseItem, nowIso } from '../../domain/cases';
 import type { DisputeCandidate } from '../../domain/creditReports';
@@ -90,10 +88,20 @@ import { PartnerCreditRestoreCommandStrip } from '../../components/partner/Partn
 import { FinelyOsAlertBanner } from '../../features/os/FinelyOsAlertBanner';
 import { computeRestoreEvidenceCoverage } from '../../lib/evidenceCoverage';
 import { buildCollectionContactBoard } from '../../lib/collectionContactBoard';
+import { LineChartCard } from '../../components/charts';
 
-export default function PartnerReportsPage() {
+export default function PartnerReportsPage({
+  embedded = false,
+  mapPortalHref,
+  dataMode = 'real',
+}: {
+  embedded?: boolean;
+  mapPortalHref?: (href: string) => string;
+  dataMode?: 'demo' | 'real';
+} = {}) {
   const auth = useAuth();
-  const navigate = useNavigate();
+  const rawNavigate = useNavigate();
+  const navigate = (href: string) => rawNavigate(mapPortalHref?.(href) ?? href);
   const location = useLocation();
   const email = auth.user?.email || '';
   const { partner } = usePartnerSession();
@@ -111,7 +119,6 @@ export default function PartnerReportsPage() {
 
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
   const [reportsVersion, setReportsVersion] = useState(0);
-  const [evidenceVersion, setEvidenceVersion] = useState(0);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteErr, setDeleteErr] = useState<string | null>(null);
   const [reparseId, setReparseId] = useState<string | null>(null);
@@ -148,8 +155,7 @@ export default function PartnerReportsPage() {
     return reports.find((r) => r.id === selectedReportId) ?? null;
   }, [reports, selectedReportId]);
 
-  const [tab, setTab] = useState<'reports' | 'evidence'>('reports');
-  const evidence = useMemo(() => (partner ? listEvidenceByPartner(partner.id) : []), [partner, evidenceVersion]);
+  const evidence = useMemo(() => (partner ? listEvidenceByPartner(partner.id) : []), [partner]);
   const letters = useMemo(() => (partner ? listLettersByPartner(partner.id) : []), [partner]);
   const cases = useMemo(() => (partner ? listCasesByPartner(partner.id) : []), [partner]);
   const openCasesCount = useMemo(() => cases.filter((c) => c.status === 'open').length, [cases]);
@@ -171,10 +177,9 @@ export default function PartnerReportsPage() {
     () => [
       { label: 'Reports', value: String(reports.length), hint: 'Uploaded files', accent: 'violet' as const },
       { label: 'Parsed', value: String(reports.filter((r) => r.parsed).length), hint: 'Ready for intel', accent: 'emerald' as const },
-      { label: 'Evidence', value: String(evidence.length), hint: 'Vault files', accent: 'sky' as const },
-      { label: 'Candidates', value: String(disputeCandidates.length), hint: 'Disputable items', accent: 'amber' as const },
+      { label: 'Candidates', value: String(disputeCandidates.length), hint: 'Disputable items', accent: 'rose' as const },
     ],
-    [reports, evidence.length, disputeCandidates.length],
+    [reports, disputeCandidates.length],
   );
 
   const scoreSnapshots = useMemo(
@@ -247,7 +252,7 @@ export default function PartnerReportsPage() {
   const analysisReports = useMemo(() => {
     if (!partner) return [];
     return listCreditAnalysisReportsByPartner(partner.id);
-  }, [partner?.id, analysisReportsVersion, evidenceVersion]);
+  }, [partner?.id, analysisReportsVersion]);
 
   useEffect(() => {
     // Apply template settings (variant + engine) when the saved template changes.
@@ -270,9 +275,12 @@ export default function PartnerReportsPage() {
 
   const identityCheck = useMemo(() => {
     if (!partner || !selected?.parsed) return null;
-    // Prefer the identityCheck stored on the report at upload time; fallback to a fresh compute for older records.
-    return (selected as any)?.identityCheck ?? computeReportIdentityCheck({ partnerId: partner.id, parsed: selected.parsed });
-  }, [partner?.id, selected?.id, Boolean(selected?.parsed)]);
+    return computeReportIdentityCheck({
+      partnerId: partner.id,
+      parsed: selected.parsed,
+      extraText: selected.pdfText,
+    });
+  }, [partner?.id, selected?.id, selected?.parsed, selected?.pdfText]);
 
   // Contacts on older reports: a refresh recovers them from the stored parse;
   // only a parse that never captured contact data needs the raw file re-parsed.
@@ -424,6 +432,15 @@ export default function PartnerReportsPage() {
   }
 
   if (!partner) {
+    if (embedded) {
+      return (
+        <div className={FINELY_OS_PAGE}>
+          <div className={`${FINELY_OS_LUXURY_EMPTY} text-left`}>
+            Sign in with a partner account to upload and view credit reports.
+          </div>
+        </div>
+      );
+    }
     return (
       <PageShell
         badge="Partner Portal"
@@ -433,31 +450,52 @@ export default function PartnerReportsPage() {
     );
   }
 
-  return (
-    <PageShell
-      badge="Partner Portal"
-      title="My Credit Reports"
-      subtitle="Upload your IdentityIQ/MyScoreIQ exports (HTML or PDF). HTML files parse into tradelines + 2-year payment history tables."
-    >
-      <EntitlementGate partnerId={partner.id} requiredKeys={[ENTITLEMENT_KEYS.reports]}>
-        <div className={FINELY_OS_PAGE}>
-          <FinelyNowDoThisStrip currentIndex={reports.length === 0 ? 0 : 2} />
+  const scoreTrendPoints = scoreSnapshots
+    .filter((snapshot) => typeof snapshot.headlineScore === 'number')
+    .slice()
+    .reverse();
+  const showDemoTrend = embedded && dataMode === 'demo' && scoreTrendPoints.length === 0;
+  const showScoreTrend = scoreTrendPoints.length > 0 || showDemoTrend;
+  const showScorePanel = embedded || showScoreTrend;
+  const scoreTrendLabels = showDemoTrend
+    ? ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
+    : scoreTrendPoints.map((snapshot) => {
+        const date = new Date(snapshot.reportDate ?? snapshot.capturedAt);
+        return Number.isNaN(date.getTime())
+          ? 'Report'
+          : date.toLocaleDateString(undefined, { month: 'short', year: '2-digit' });
+      });
+  const scoreTrendValues = showDemoTrend
+    ? [618, 626, 641, 653, 667, 681]
+    : scoreTrendPoints.map((snapshot) => snapshot.headlineScore as number);
+
+  const workspace = (
+    <EntitlementGate partnerId={partner.id} requiredKeys={[ENTITLEMENT_KEYS.reports]}>
+        <div className={FINELY_OS_PAGE} data-fc-partner-portal="1">
+          <FinelyNowDoThisStrip currentIndex={reports.length === 0 ? 0 : 2} surface={embedded ? 'light' : 'dark'} />
           <FinelyNoticedStrip
+            surface={embedded ? 'light' : 'dark'}
             items={buildPortalNoticedItems({
               reportsCount: reports.length,
               lettersCount: letters.length,
               openCasesCount: openCasesCount,
               evidenceCount: evidence.length,
-            })}
+            }).map((item) => ({
+              ...item,
+              to: mapPortalHref?.(item.to) ?? item.to,
+            }))}
           />
-          <PartnerCreditRestoreCommandStrip
-            partner={partner}
-            reportsCount={reports.length}
-            evidenceCount={evidence.length}
-            lettersCount={letters.length}
-            openCasesCount={openCasesCount}
-            negativesCount={disputeCandidates.length}
-          />
+          {!embedded ? (
+            <PartnerCreditRestoreCommandStrip
+              partner={partner}
+              reportsCount={reports.length}
+              evidenceCount={evidence.length}
+              lettersCount={letters.length}
+              openCasesCount={openCasesCount}
+              negativesCount={disputeCandidates.length}
+              resolvePath={mapPortalHref}
+            />
+          ) : null}
 
           {reports.length === 0 ? (
             <FinelyOsAlertBanner
@@ -471,7 +509,7 @@ export default function PartnerReportsPage() {
             />
           ) : null}
 
-          <div className="flex flex-wrap items-center justify-between gap-4">
+          {!embedded ? <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex flex-wrap items-center gap-3">
               <button type="button" onClick={() => navigate('/portal/dashboard')} className={FINELY_OS_BACK_LINK} title="Back to Partner Dashboard">
                 <ArrowLeft size={16} /> Partner Dashboard
@@ -490,8 +528,9 @@ export default function PartnerReportsPage() {
                 </button>
               ) : null}
             </div>
-          </div>
+          </div> : null}
 
+        <div className={showScorePanel ? 'grid min-w-0 gap-3 xl:grid-cols-[minmax(0,1.35fr)_minmax(340px,.65fr)]' : ''}>
         <div className="rounded-2xl border border-emerald-400/30 bg-gradient-to-br from-emerald-500/10 via-transparent to-transparent p-4 md:p-5 space-y-3">
           <div className="flex flex-wrap items-end justify-between gap-2">
             <div>
@@ -526,19 +565,37 @@ export default function PartnerReportsPage() {
           }}
         />
         </div>
+        {showScoreTrend ? (
+          <LineChartCard
+            title="Credit score momentum"
+            subtitle={
+              showDemoTrend
+                ? 'Illustrative demo history · live charts use saved report snapshots.'
+                : 'Highest FICO-like score captured from each saved report.'
+            }
+            labels={scoreTrendLabels}
+            series={[{ id: 'headline', label: 'Headline score', color: '#38bdf8', values: scoreTrendValues }]}
+            height={220}
+          />
+        ) : embedded ? (
+          <div className="fc-premium-chart-card flex min-h-[252px] min-w-0 flex-col overflow-hidden rounded-2xl border border-sky-300/20 bg-[linear-gradient(145deg,rgba(12,25,42,0.98),rgba(24,20,55,0.96))] p-4 text-white shadow-[0_24px_54px_-36px_rgba(56,189,248,0.8)]">
+            <div className="font-semibold">Credit score momentum</div>
+            <div className="mt-1 text-sm text-white/65">Real report snapshots build this chart automatically.</div>
+            <div className="mt-4 flex flex-1 flex-col items-center justify-center rounded-xl border border-dashed border-sky-300/25 bg-[linear-gradient(rgba(56,189,248,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(139,92,246,0.06)_1px,transparent_1px)] bg-[size:28px_28px] px-5 text-center">
+              <TrendingUp size={30} className="text-sky-300" />
+              <strong className="mt-3 text-sm text-white">Upload your first report to start the trend</strong>
+              <span className="mt-1 text-xs leading-relaxed text-white/60">A second saved score reveals movement over time.</span>
+            </div>
+          </div>
+        ) : null}
+        </div>
 
         <FinelyUnifiedHubLayout
           eyebrow="Credit reports"
-          title="Reports & evidence — tab-first"
-          subtitle="Credit intel from parsed bureau files and your evidence vault."
+          title="Credit report workstation"
+          subtitle="Review uploaded bureau files, parsed tradelines, score history, creditor contacts, and dispute findings. Source exhibits live in Evidence Vault."
           accent="emerald"
-          kpis={reportsKpis}
-          tabs={[
-            { id: 'reports', label: 'Credit intel', badge: reports.length || undefined },
-            { id: 'evidence', label: 'Evidence vault', badge: evidence.length || undefined },
-          ]}
-          activeTab={tab}
-          onTabChange={(id) => setTab(id as 'reports' | 'evidence')}
+          kpis={embedded ? undefined : reportsKpis}
           primaryAction={{ label: 'Dispute center', onClick: () => navigate('/portal/disputes') }}
           secondaryAction={{ label: 'Letter Studio', onClick: () => navigate('/portal/letters') }}
         >
@@ -551,14 +608,14 @@ export default function PartnerReportsPage() {
           <div className={reportSyncNotice.ok ? FINELY_OS_NOTICE : FINELY_OS_NOTICE_WARN}>{reportSyncNotice.message}</div>
         ) : null}
 
-        {tab === 'reports' && (
           <div className="space-y-6 w-full max-w-full overflow-visible">
             <ReportFileStrip
               reports={reports}
               selectedId={selectedReportId}
               onSelect={setSelectedReportId}
               label="Your uploads"
-              accent="amber"
+              accent="violet"
+              partnerId={partner.id}
             />
 
             {(deleteErr || reparseErr) && (
@@ -569,10 +626,10 @@ export default function PartnerReportsPage() {
             )}
 
             {selected ? (
-              <div className="rounded-2xl border-2 border-amber-400/45 bg-gradient-to-br from-amber-500/15 via-orange-500/5 to-transparent p-4 md:p-6 shadow-[0_0_40px_rgba(251,191,36,0.12)] space-y-3">
+              <div className="rounded-2xl border-2 border-sky-400/45 bg-gradient-to-br from-sky-500/15 via-violet-500/5 to-transparent p-4 md:p-6 shadow-[0_0_40px_rgba(56,189,248,0.12)] space-y-3">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <div className="text-[11px] font-black uppercase tracking-[0.22em] text-amber-300">2 · Active report file</div>
+                    <div className="text-[11px] font-black uppercase tracking-[0.22em] text-sky-300">2 · Active report file</div>
                     <div className="mt-2 text-xl md:text-2xl font-light text-white truncate" title={selected.filename}>
                       {selected.filename}
                     </div>
@@ -595,7 +652,7 @@ export default function PartnerReportsPage() {
                   {!isLegacyPendingReportBlob(selected.rawBlobRef) && canAccessReportBlob(selected.rawBlobRef) ? (
                     <button
                       type="button"
-                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-400 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 shadow-[0_0_24px_rgba(251,191,36,0.35)]"
+                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 text-white font-black uppercase tracking-widest text-[10px] hover:brightness-110 shadow-[0_0_24px_rgba(16,185,129,0.35)]"
                       title="Open stored report file"
                       onClick={async () => {
                         try {
@@ -670,7 +727,7 @@ export default function PartnerReportsPage() {
             ) : null}
 
             {selected?.parsed && showContactRecoveryBanner ? (
-              <div className={`${finelyOsCatalogCard('amber')} !p-4 space-y-2`}>
+              <div className={`${finelyOsCatalogCard('violet')} space-y-2`}>
                 <div className={FINELY_OS_ENTITY_VALUE}>Creditor mailing addresses missing</div>
                 <div className={FINELY_OS_ENTITY_BODY}>
                   We found {contactRecovery.tradelineCount} account(s) on this report but no creditor or collector mailing
@@ -714,10 +771,11 @@ export default function PartnerReportsPage() {
                       <CreditIntelTabs
                         parsed={selected.parsed}
                         reportId={selected.id}
+                        reportRecord={selected}
                         partnerId={partner.id}
                         evidence={evidence as any}
                         availableReports={reports.map((r) => ({ id: r.id, receivedAt: r.receivedAt, filename: r.filename, parsed: r.parsed }))}
-                        onOpenEvidenceVault={() => setTab('evidence')}
+                        onOpenEvidenceVault={() => navigate('/portal/evidence')}
                         onOpenTasks={() => navigate('/portal/projects')}
                         onReparseRequest={canReparseSelected ? () => void handleReparse(selected as any) : undefined}
                         initialTab={(deepLink.intelTab as any) || undefined}
@@ -739,9 +797,9 @@ export default function PartnerReportsPage() {
                   ) : null}
                 </div>
               ) : selected?.parsed ? (
-                <div className="rounded-2xl border-2 border-fuchsia-400/40 bg-gradient-to-br from-fuchsia-500/12 via-violet-500/5 to-transparent p-4 md:p-6 space-y-6 shadow-[0_0_48px_rgba(232,121,249,0.12)]">
+                <div className={`${finelyOsCatalogCard('rose')} space-y-6`} data-fc-accent="rose">
                   <div>
-                    <div className="text-[11px] font-black uppercase tracking-[0.22em] text-fuchsia-300">3 · Credit Intelligence</div>
+                    <div className="text-[11px] font-black uppercase tracking-[0.22em] text-rose-300">3 · Credit Intelligence</div>
                     <p className="mt-1 text-sm text-white/65">
                       Creditors, collections, strategy, education, and simulation for this report — separate from the file actions above.
                     </p>
@@ -753,14 +811,15 @@ export default function PartnerReportsPage() {
                   ) : null}
 
                   {identityCheck?.faults?.length ? (
-                    <div className={`${finelyOsCatalogCard('violet')} !p-5 border-fuchsia-500/25 space-y-4`}>
+                    <div className={`${finelyOsCatalogCard('sky')} space-y-4`} data-fc-accent="sky">
                       <div className="flex flex-wrap items-start justify-between gap-4">
                         <div className="min-w-0">
                           <div className={FINELY_OS_ENTITY_LABEL}>Identity + report match</div>
                           <div className={`mt-2 ${FINELY_OS_ENTITY_VALUE}`}>We detected possible mismatches</div>
                           <div className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>
-                            If the report belongs to a different person (or your saved mailing info is incomplete), letters may auto-fill incorrectly.
-                            Fix these before generating and mailing dispute packets.
+                            If this file belongs to a different person — or your saved mailing info is incomplete — letters may auto-fill incorrectly.
+                            Confirm name, SSN last four, address, employer, freeze, and fraud-alert status before you generate packets.
+                            Results vary · not legal advice.
                           </div>
                         </div>
                         <div className="shrink-0 flex flex-wrap gap-2">
@@ -780,26 +839,32 @@ export default function PartnerReportsPage() {
                       </div>
 
                       <div className="grid lg:grid-cols-2 gap-4">
-                        <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
-                          <div className={FINELY_OS_ENTITY_LABEL}>Canonical (profile)</div>
+                        <div className={`${finelyOsCatalogCard('emerald')} fc-surface-harmony`} data-fc-accent="emerald">
+                          <div className={FINELY_OS_ENTITY_LABEL}>Your profile</div>
                           <div className={`mt-3 ${FINELY_OS_ENTITY_BODY} font-mono whitespace-pre-wrap break-words space-y-1`}>
                             <div>name: {identityCheck.canonical?.fullName || '—'}</div>
                             <div>addr: {identityCheck.canonical?.addressLine1 || '—'}</div>
                             <div>csz: {identityCheck.canonical?.cityStateZip || '—'}</div>
+                            <div>ssn last 4: {identityCheck.canonical?.ssnLast4 ? `•••${identityCheck.canonical.ssnLast4}` : '—'}</div>
+                            <div>employer: {identityCheck.canonical?.employer || '—'}</div>
                           </div>
                         </div>
-                        <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
-                          <div className={FINELY_OS_ENTITY_LABEL}>From report (extracted)</div>
+                        <div className={`${finelyOsCatalogCard('violet')} fc-surface-harmony`} data-fc-accent="violet">
+                          <div className={FINELY_OS_ENTITY_LABEL}>From this report</div>
                           <div className={`mt-3 ${FINELY_OS_ENTITY_BODY} font-mono whitespace-pre-wrap break-words space-y-1`}>
                             <div>name: {identityCheck.report?.fullName || '—'}</div>
                             <div>addr: {identityCheck.report?.addressLine1 || '—'}</div>
                             <div>csz: {identityCheck.report?.cityStateZip || '—'}</div>
+                            <div>ssn last 4: {identityCheck.report?.ssnLast4 ? `•••${identityCheck.report.ssnLast4}` : '—'}</div>
+                            <div>employer: {identityCheck.report?.employer || '—'}</div>
+                            <div>file freeze: {identityCheck.report?.fileFrozen ? 'Shown on file' : 'Not detected'}</div>
+                            <div>fraud alert: {identityCheck.report?.fraudAlert ? 'Shown on file' : 'Not detected'}</div>
                           </div>
                         </div>
                       </div>
 
                       <div className="space-y-2">
-                        {identityCheck.faults.map((f: any, idx: number) => {
+                        {identityCheck.faults.map((f, idx) => {
                           const tone =
                             f.severity === 'error'
                               ? FINELY_OS_NOTICE_ERROR
@@ -809,7 +874,7 @@ export default function PartnerReportsPage() {
                           return (
                             <div key={`${f.kind}_${idx}`} className={tone}>
                               <div className="flex items-center justify-between gap-3">
-                                <div className="font-semibold">{f.kind.replace(/_/g, ' ')}</div>
+                                <div className="font-semibold">{identityFaultTitle(f.kind)}</div>
                                 <div className={FINELY_OS_ENTITY_SUBLABEL}>{f.severity}</div>
                               </div>
                               <div className="mt-2">{f.message}</div>
@@ -823,10 +888,11 @@ export default function PartnerReportsPage() {
                   <CreditIntelTabs
                     parsed={selected.parsed}
                     reportId={selected.id}
+                    reportRecord={selected}
                     partnerId={partner.id}
                     evidence={evidence as any}
                     availableReports={reports.map((r) => ({ id: r.id, receivedAt: r.receivedAt, filename: r.filename, parsed: r.parsed }))}
-                    onOpenEvidenceVault={() => setTab('evidence')}
+                    onOpenEvidenceVault={() => navigate('/portal/evidence')}
                     onOpenTasks={() => navigate('/portal/projects')}
                     onReparseRequest={canReparseSelected ? () => void handleReparse(selected as any) : undefined}
                     initialTab={(deepLink.intelTab as any) || undefined}
@@ -856,7 +922,7 @@ export default function PartnerReportsPage() {
                     variant="partner"
                   />
                 ) : (
-                  <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-3`}>
+                  <div className={`${finelyOsCatalogCard('violet')} space-y-3`}>
                     <div className={FINELY_OS_ENTITY_VALUE}>Parsing data missing</div>
                     <div className={FINELY_OS_ENTITY_BODY}>
                       This upload doesn’t currently have parsed tradelines attached. Click <span className="text-fuchsia-300 font-semibold">Re-parse</span> to generate the overview and tradelines.
@@ -873,35 +939,12 @@ export default function PartnerReportsPage() {
                   </div>
                 )
               ) : (
-                <div className={`${finelyOsCatalogCard('violet')} !p-5 ${FINELY_OS_ENTITY_BODY}`}>
+                <div className={`${finelyOsCatalogCard('violet')} ${FINELY_OS_ENTITY_BODY}`}>
                   Upload a report to view parsed tradelines.
                 </div>
               )}
             </div>
           </div>
-        )}
-
-        {tab === 'evidence' && (
-          <div className="space-y-6">
-            <SmartProofUploader
-              partner={partner}
-              email={partner.profile?.email}
-              uploadContext="bureau"
-              onUploaded={() => setEvidenceVersion((v) => v + 1)}
-            />
-            <EvidenceList
-              items={evidence}
-              onDelete={(id) => {
-                deleteEvidence(id);
-                setEvidenceVersion((v) => v + 1);
-              }}
-              onUpsert={(item) => {
-                upsertEvidence(item);
-                setEvidenceVersion((v) => v + 1);
-              }}
-            />
-          </div>
-        )}
         </FinelyUnifiedHubLayout>
 
         {parseOverviewOpen && selected?.parsed ? (
@@ -910,7 +953,7 @@ export default function PartnerReportsPage() {
             onClick={() => setParseOverviewOpen(false)}
           >
             <div
-              className={`relative w-full max-w-4xl max-h-[85vh] overflow-y-auto ${finelyOsCatalogCard('violet')} !p-5 shadow-2xl`}
+              className={`relative w-full max-w-4xl max-h-[85vh] overflow-y-auto ${finelyOsCatalogCard('violet')} shadow-2xl`}
               role="dialog"
               aria-modal="true"
               onClick={(e) => e.stopPropagation()}
@@ -926,10 +969,27 @@ export default function PartnerReportsPage() {
           </div>
         ) : null}
 
-        <PartnerRestoreWorkspaceDock variant="portal" className="mt-6 sticky bottom-3 z-20" />
-        <FinelyOsPageFooter />
+        {!embedded ? <PartnerRestoreWorkspaceDock variant="portal" className="mt-6 sticky bottom-3 z-20" /> : null}
+        {!embedded ? <FinelyOsPageFooter /> : null}
         </div>
-      </EntitlementGate>
+    </EntitlementGate>
+  );
+
+  if (embedded) {
+    return (
+      <section data-surface-kind="reports-workstation">
+        {workspace}
+      </section>
+    );
+  }
+
+  return (
+    <PageShell
+      badge="Partner Portal"
+      title="My Credit Reports"
+      subtitle="Upload your IdentityIQ/MyScoreIQ exports (HTML or PDF). HTML files parse into tradelines + 2-year payment history tables."
+    >
+      {workspace}
     </PageShell>
   );
 }

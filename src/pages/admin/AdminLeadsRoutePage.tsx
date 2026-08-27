@@ -1,13 +1,7 @@
 import React from 'react';
-import { Navigate, useSearchParams } from 'react-router-dom';
 import AdminLeadsOsPage from './AdminLeadsOsPage';
 
-/** Owner power tools with ?tab= stay on full page; default path → Marketing Department hub. */
+/** `/admin/leads` stays on the dedicated Leads OS workstation — it does not dump into Marketing tabs. */
 export default function AdminLeadsRoutePage() {
-  const [params] = useSearchParams();
-  const tab = params.get('tab');
-  if (tab && tab !== 'launcher') {
-    return <AdminLeadsOsPage />;
-  }
-  return <Navigate to="/admin/marketing?tab=leads" replace />;
+  return <AdminLeadsOsPage />;
 }

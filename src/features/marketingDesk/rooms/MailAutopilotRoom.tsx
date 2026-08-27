@@ -43,7 +43,7 @@ export function MailAutopilotRoom() {
 
   return (
     <div className="space-y-3">
-      <div className="sticky top-0 z-10 rounded-2xl border border-sky-400/25 bg-black/70 backdrop-blur-md !p-4 space-y-2">
+      <div className="sticky top-0 z-10 rounded-2xl border border-sky-400/25 bg-black/70 backdrop-blur-md p-6 space-y-3">
         <div className="flex flex-wrap items-center gap-2">
           <div className={FINELY_OS_ENTITY_SUBLABEL}>Mail on autopilot</div>
           <span className={finelyOsStatusChip(chip)}>{mail.label}</span>
@@ -88,7 +88,7 @@ export function MailAutopilotRoom() {
         />
       ) : null}
 
-      <section className={`${finelyOsDeckTile('sky')} !p-4 space-y-2`}>
+        <section className={`${finelyOsDeckTile('emerald')} p-6 space-y-3`}>
         <div className={FINELY_OS_ENTITY_SUBLABEL}>Ready checklist</div>
         <ul className="space-y-2">
           {mail.checklist.map((item) => {
@@ -129,7 +129,7 @@ export function MailAutopilotRoom() {
 
       <div className="grid sm:grid-cols-2 gap-3">
         {mail.sequenceTiles.map((tile) => (
-          <div key={tile.id} className={`${finelyOsDeckTile('sky')} !p-4`}>
+          <div key={tile.id} className={`${finelyOsDeckTile('violet')} p-6`}>
             <div className="flex items-start justify-between gap-2">
               <div className="font-semibold text-white text-sm">{tile.name}</div>
               <span className={finelyOsMicroStat('sky')}>{tile.active} active</span>

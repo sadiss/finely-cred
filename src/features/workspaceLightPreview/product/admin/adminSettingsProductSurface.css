@@ -1,0 +1,181 @@
+/* Admin settings — control room (status grid + alert rail + inspector) */
+
+.fc-admin-settings-control {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.fc-admin-settings-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-width: 0;
+}
+
+.fc-admin-settings-alert-rail {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 900px) {
+  .fc-admin-settings-alert-rail {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fc-admin-settings-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.fc-admin-settings-family-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  max-height: none;
+  overflow: visible;
+}
+
+@media (max-width: 1100px) {
+  .fc-admin-settings-family-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .fc-admin-settings-family-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fc-admin-settings-family-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.fc-admin-settings-family-tile[data-selected='true'] {
+  box-shadow: 0 0 0 3px #fff, 0 0 0 8px #8b5cf6;
+}
+
+.fc-admin-settings-family-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.fc-admin-settings-inspector {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.fc-admin-settings-inspector-bed {
+  padding: 22px 24px;
+  border-radius: 20px;
+  border: 1px solid rgba(139, 92, 246, 0.22);
+  background:
+    radial-gradient(circle at 0% 0%, rgba(139, 92, 246, 0.08), transparent 42%),
+    radial-gradient(circle at 100% 0%, rgba(14, 165, 233, 0.06), transparent 38%),
+    rgba(255, 255, 255, 0.92);
+}
+
+.fc-admin-settings-alert-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fc-admin-settings-alert-item {
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.fc-admin-settings-alert-item:hover {
+  transform: translateY(-1px);
+}
+
+/* Embedded settings inspector — control-room body */
+.fc-wlp-settings-control-inspector {
+  overflow: auto;
+  max-height: min(78vh, 960px);
+  border: 1px solid rgba(139, 92, 246, 0.18);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 6% 0%, rgba(139, 92, 246, 0.08), transparent 34%),
+    radial-gradient(circle at 96% 6%, rgba(14, 165, 233, 0.06), transparent 30%),
+    rgba(248, 250, 252, 0.82);
+  padding: 16px 18px;
+  scrollbar-gutter: stable;
+}
+
+.fc-wlp-settings-control-inspector :is(input:not([type='checkbox']):not([type='radio']), select, textarea) {
+  min-height: 40px;
+}
+
+.fc-wlp-control-room-family {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  padding: 16px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: left;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.fc-wlp-control-room-family:hover {
+  transform: translateY(-1px);
+}
+
+.fc-wlp-control-room-family[data-selected='true'] {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.14);
+}
+
+.fc-wlp-control-room-family-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Site theme — ivory control-room beds lift to navy glass on dark site */
+html[data-fc-theme='dark'] .fc-admin-settings-family-tile,
+html[data-fc-theme='dark'] .fc-admin-settings-alert-item {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(16, 23, 34, 0.92);
+  color: var(--wlp-ink, #f1f5f9);
+}
+
+html[data-fc-theme='dark'] .fc-admin-settings-inspector-bed,
+html[data-fc-theme='dark'] .fc-wlp-settings-control-inspector {
+  border-color: rgba(139, 92, 246, 0.28);
+  background:
+    radial-gradient(circle at 6% 0%, rgba(139, 92, 246, 0.14), transparent 34%),
+    radial-gradient(circle at 96% 6%, rgba(14, 165, 233, 0.1), transparent 30%),
+    rgba(16, 23, 34, 0.94);
+  color: var(--wlp-ink, #f1f5f9);
+}
+
+html[data-fc-theme='dark'] .fc-wlp-settings-control-inspector :is(input:not([type='checkbox']):not([type='radio']), select, textarea) {
+  color: var(--wlp-ink, #f1f5f9);
+  border-color: var(--wlp-border, rgba(255, 255, 255, 0.14));
+  background: var(--wlp-soft, rgba(11, 17, 25, 0.92));
+}

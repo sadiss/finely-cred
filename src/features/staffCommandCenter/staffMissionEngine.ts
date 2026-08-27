@@ -231,7 +231,7 @@ function checklistForMission(type: StaffMissionType, risk: StaffRiskLevel) {
 }
 
 function buttonForMission(type: StaffMissionType) {
-  if (type === 'deep_swarm') return 'Start Staff-Owned Swarm';
+  if (type === 'deep_swarm') return 'Start Discovery Mission';
   if (type === 'city_growth_sprint') return 'Build City Mission';
   if (type === 'lead_action_review') return 'Open Action Center';
   if (type === 'appointment_blitz') return 'Prepare Booking Blitz';

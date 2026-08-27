@@ -144,7 +144,7 @@ export default function AdminLeadAcquisitionPage() {
         <ArrowLeft size={16} /> Back to admin
       </button>
 
-      <div className={`${finelyOsCatalogCard('sky')} !p-5 mb-6 border border-sky-400/25`}>
+      <div className={`${finelyOsCatalogCard('sky')} mb-6 border border-sky-400/25`}>
         <p className={FINELY_OS_ENTITY_SUBLABEL}>What this can do vs. what needs your accounts</p>
         <div className="mt-3 grid md:grid-cols-2 gap-4 text-sm">
           <div>
@@ -170,7 +170,7 @@ export default function AdminLeadAcquisitionPage() {
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6 mb-6">
-        <div className={`${finelyOsCatalogCard('emerald')} !p-5 lg:col-span-2`}>
+        <div className={`${finelyOsCatalogCard('emerald')} lg:col-span-2`}>
           <div className="flex items-center gap-2">
             <Webhook size={18} className="text-emerald-300" />
             <p className={FINELY_OS_ENTITY_SUBLABEL}>Action · webhook syndication</p>
@@ -212,7 +212,7 @@ export default function AdminLeadAcquisitionPage() {
           ) : null}
         </div>
 
-        <div className={`${finelyOsCatalogCard('violet')} !p-5`}>
+        <div className={finelyOsCatalogCard('violet')}>
           <div className="flex items-center gap-2">
             <Rss size={18} className="text-violet-300" />
             <p className={FINELY_OS_ENTITY_SUBLABEL}>Public feeds</p>
@@ -240,7 +240,7 @@ export default function AdminLeadAcquisitionPage() {
         </div>
       </div>
 
-      <div className={`${finelyOsCatalogCard('amber')} !p-5 mb-6`}>
+      <div className={`${finelyOsCatalogCard('rose')} mb-6`} data-fc-accent="rose">
         <div className="flex flex-wrap items-end gap-4">
           <div>
             <label className={FINELY_OS_ENTITY_SUBLABEL}>Referral code (optional)</label>
@@ -282,7 +282,7 @@ export default function AdminLeadAcquisitionPage() {
           const url = buildLaneAcquisitionUrl(lane, { referralCode: referralCode.trim() || undefined, utmSource: 'acquisition_hub' });
           const payload = copySyndicationPayload(lane, referralCode.trim() || undefined);
           return (
-            <div key={lane.id} className={`${finelyOsCatalogCard('violet')} !p-4`}>
+            <div key={lane.id} className={finelyOsCatalogCard((['emerald', 'violet', 'sky', 'rose'] as const)[lanes.indexOf(lane) % 4])}>
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <p className={FINELY_OS_ENTITY_SUBLABEL}>{lane.audience.replace('_', ' ')}</p>
@@ -312,7 +312,7 @@ export default function AdminLeadAcquisitionPage() {
         })}
       </div>
 
-      <div className={`${finelyOsCatalogCard('sky')} !p-5 mt-6`}>
+      <div className={`${finelyOsCatalogCard('sky')} mt-6`}>
         <div className="flex items-center gap-2">
           <Zap size={18} className="text-sky-300" />
           <p className={FINELY_OS_ENTITY_VALUE}>GitHub Action · runs on deploy</p>

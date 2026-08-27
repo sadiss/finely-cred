@@ -1,0 +1,226 @@
+/* Partner lender logic — funding timeline + catalog mosaic */
+
+.fc-partner-lender-funding-runway {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.fc-partner-lender-runway-band {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 20px;
+  padding: 28px 32px;
+  border-radius: 24px;
+  border: 1px solid rgba(16, 185, 129, 0.32);
+  background:
+    radial-gradient(ellipse 120% 90% at 0% 0%, rgba(16, 185, 129, 0.14), transparent 52%),
+    radial-gradient(ellipse 80% 70% at 100% 0%, rgba(56, 189, 248, 0.1), transparent 48%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.9));
+  box-shadow: 0 22px 56px -34px rgba(5, 150, 105, 0.28);
+}
+
+@media (max-width: 960px) {
+  .fc-partner-lender-runway-band {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fc-partner-lender-runway-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(5, 150, 105, 0.82);
+}
+
+.fc-partner-lender-runway-title {
+  margin: 10px 0 0;
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  font-weight: 800;
+  line-height: 1.15;
+  color: #0a1628;
+}
+
+.fc-partner-lender-runway-purpose {
+  margin: 12px 0 0;
+  max-width: 54ch;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.5;
+  color: rgba(10, 22, 40, 0.72);
+}
+
+.fc-partner-lender-runway-chips {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  align-content: center;
+}
+
+@media (min-width: 720px) {
+  .fc-partner-lender-runway-chips {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.fc-partner-lender-runway-chip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.88);
+  text-align: left;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.fc-partner-lender-runway-chip:hover {
+  transform: translateY(-1px);
+}
+
+.fc-partner-lender-runway-chip[data-active='true'] {
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.35);
+}
+
+.fc-partner-lender-runway-chip[data-fc-accent='emerald'] {
+  border-color: rgba(16, 185, 129, 0.28);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(255, 255, 255, 0.94));
+}
+
+.fc-partner-lender-runway-chip[data-fc-accent='rose'] {
+  border-color: rgba(244, 63, 94, 0.28);
+  background: linear-gradient(135deg, rgba(244, 63, 94, 0.1), rgba(255, 255, 255, 0.94));
+}
+
+.fc-partner-lender-runway-chip[data-fc-accent='sky'] {
+  border-color: rgba(56, 189, 248, 0.28);
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(255, 255, 255, 0.94));
+}
+
+.fc-partner-lender-runway-chip[data-fc-accent='violet'] {
+  border-color: rgba(139, 92, 246, 0.28);
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(255, 255, 255, 0.94));
+}
+
+.fc-partner-lender-runway-chip-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  flex-shrink: 0;
+  color: #fff;
+}
+
+.fc-partner-lender-runway-chip[data-fc-accent='emerald'] .fc-partner-lender-runway-chip-icon {
+  background: linear-gradient(145deg, #059669, #10b981);
+}
+
+.fc-partner-lender-runway-chip[data-fc-accent='rose'] .fc-partner-lender-runway-chip-icon {
+  background: linear-gradient(145deg, #e11d48, #fb7185);
+}
+
+.fc-partner-lender-runway-chip[data-fc-accent='sky'] .fc-partner-lender-runway-chip-icon {
+  background: linear-gradient(145deg, #0284c7, #38bdf8);
+}
+
+.fc-partner-lender-runway-chip[data-fc-accent='violet'] .fc-partner-lender-runway-chip-icon {
+  background: linear-gradient(145deg, #6d28d9, #a78bfa);
+}
+
+.fc-partner-lender-runway-chip-copy strong {
+  display: block;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0a1628;
+}
+
+.fc-partner-lender-runway-chip-copy span {
+  display: block;
+  margin-top: 2px;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(10, 22, 40, 0.58);
+}
+
+.fc-partner-lender-alert-rail {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 18px 22px;
+  border-radius: 18px;
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.12), rgba(255, 255, 255, 0.94));
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.5;
+  color: #0a1628;
+}
+
+.fc-partner-lender-mosaic {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.fc-partner-lender-mosaic-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  padding: 20px 22px;
+  border-radius: 18px;
+  text-align: left;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.fc-partner-lender-mosaic-tile:hover {
+  transform: translateY(-2px);
+}
+
+.fc-partner-lender-mosaic-tile[data-selected='true'] {
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.35);
+}
+
+.fc-partner-lender-spotlight {
+  padding: 24px 28px;
+  border-radius: 22px;
+}
+
+.fc-partner-lender-spotlight-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 20px;
+  align-items: end;
+}
+
+@media (max-width: 720px) {
+  .fc-partner-lender-spotlight-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fc-partner-lender-spotlight-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+@media (max-width: 720px) {
+  .fc-partner-lender-spotlight-actions {
+    align-items: stretch;
+  }
+}
+
+.fc-partner-lender-engine-bed {
+  border-radius: 22px;
+  overflow: hidden;
+  padding: 4px;
+}

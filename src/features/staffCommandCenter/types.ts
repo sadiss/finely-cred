@@ -84,7 +84,7 @@ export type StaffMember = {
   /** Legal / display name — first + last */
   firstName: string;
   lastName: string;
-  /** Internal codename shown as secondary label (e.g. "Scout Supreme") */
+  /** Internal job role shown as secondary label (e.g. "Lead Research Lead") */
   codename: string;
   /** @deprecated use firstName + lastName — kept for compatibility */
   name: string;

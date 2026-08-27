@@ -118,12 +118,12 @@ export function ProfileAndAccountStep({
               <input
                 type="email"
                 value={data.email || ''}
-                onChange={lockedEmail ? undefined : (e) => update({ email: e.target.value.trim() })}
-                readOnly={lockedEmail}
+                onChange={lockedEmail || emailLocked ? undefined : (e) => update({ email: e.target.value.trim() })}
+                readOnly={lockedEmail || emailLocked}
                 placeholder="you@email.com"
                 className={
                   'w-full bg-fc-input border border-white/[0.08] rounded-xl pl-10 pr-4 py-3 text-white text-sm focus:outline-none focus:border-violet-500 ' +
-                  (emailLocked ? 'opacity-80 cursor-not-allowed' : '')
+                  (lockedEmail || emailLocked ? 'opacity-80 cursor-not-allowed' : '')
                 }
                 autoComplete="email"
               />

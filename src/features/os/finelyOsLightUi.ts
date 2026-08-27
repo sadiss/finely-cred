@@ -4,21 +4,21 @@
  * Side rail + comms widgets use distinct obsidian / amber / emerald treatments.
  */
 
-export const FINELY_OS_PAGE = 'space-y-4';
+export const FINELY_OS_PAGE = 'space-y-6';
 
-/** Compact workspace density — default for portal tools, coaches, escalations. */
-export const FINELY_OS_COMPACT_PAGE = 'space-y-3';
+/** Legacy alias — keep roomy. Do not shrink pages that still import this name. */
+export const FINELY_OS_COMPACT_PAGE = 'space-y-6';
 export const FINELY_OS_COMPACT_TEXTAREA =
-  'w-full rounded-xl border border-white/10 bg-black/35 px-3 py-2 text-sm text-white/90 placeholder:text-white/35 focus:outline-none focus:border-violet-400/50 resize-y min-h-[3.25rem]';
+  'w-full rounded-xl border border-white/10 bg-black/35 px-4 py-3 text-base font-semibold text-white/90 placeholder:text-white/35 focus:outline-none focus:border-violet-400/50 resize-y min-h-[7rem]';
 export const FINELY_OS_COMPACT_INPUT =
-  'w-full max-w-md rounded-xl border border-white/10 bg-black/35 px-3 py-2 text-sm text-white/90 placeholder:text-white/35 focus:outline-none focus:border-violet-400/50';
+  'w-full max-w-md rounded-xl border border-white/10 bg-black/35 px-4 py-3 text-base font-semibold text-white/90 placeholder:text-white/35 focus:outline-none focus:border-violet-400/50';
 
 /** Constrain form fields in workstations — not full-bleed horizontal bars. */
 export const FINELY_OS_FIELD_WIDTH = 'max-w-md w-full';
 export const FINELY_OS_FIELD_WIDTH_SM = 'max-w-xs w-full';
 
 export const FINELY_OS_LETTER_CHIP_BTN =
-  'inline-flex items-center gap-1 rounded-lg border border-white/15 bg-white/5 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest text-white/80 hover:bg-white/10 transition';
+  'inline-flex items-center gap-1 rounded-lg border border-white/15 bg-white/5 px-2.5 py-1 text-xs font-black uppercase tracking-widest text-white/80 hover:bg-white/10 transition';
 
 /** Accent-colored glow borders on dark fields/tiles — visible without focus (no ivory fills). */
 export type FinelyOsGlowAccent = 'violet' | 'emerald' | 'fuchsia' | 'sky' | 'amber' | 'rose';
@@ -80,7 +80,7 @@ const FINELY_OS_GLOW: Record<
 export function finelyOsGlowField(accent: FinelyOsGlowAccent = 'violet', extra = '') {
   const g = FINELY_OS_GLOW[accent];
   return [
-    'w-full rounded-xl border bg-black/35 px-3 py-2.5 text-sm text-white/90 placeholder:text-white/35 focus:outline-none transition-all',
+    'w-full rounded-xl border bg-black/35 px-4 py-3 text-base font-semibold text-white/90 placeholder:text-white/35 focus:outline-none transition-all',
     g.border,
     g.shadow,
     g.focus,
@@ -124,7 +124,7 @@ const FC_LIGHT_CHROME_STRIP =
   'fc-light-chrome-strip rounded-2xl border backdrop-blur-md transition-all';
 const FC_LIGHT_CHROME_PANEL = 'fc-light-chrome-panel rounded-2xl border backdrop-blur-md transition-all';
 const FC_LIGHT_CHROME_BTN =
-  'fc-light-chrome-btn inline-flex items-center gap-2 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-60';
+  'fc-light-chrome-btn inline-flex items-center gap-2 rounded-xl border text-xs font-black uppercase tracking-widest transition-all disabled:opacity-60';
 
 /** Light studio glass panels — ivory/silver chrome stacks (Part CW wave 50). */
 const FC_LIGHT_GLASS_PANEL =
@@ -183,16 +183,16 @@ export function finelyOsModuleAccentText(index: number) {
 }
 
 export const FINELY_OS_BADGE_LIVE =
-  'px-3 py-1.5 rounded-lg border border-emerald-500/35 bg-emerald-500/15 text-[9px] font-bold text-emerald-200 uppercase tracking-wide whitespace-nowrap shrink-0';
+  'px-3 py-1.5 rounded-lg border border-emerald-500/35 bg-emerald-500/15 text-xs font-bold text-emerald-200 uppercase tracking-wide whitespace-nowrap shrink-0';
 
 export const FINELY_OS_BADGE_MUTED =
-  'px-2 py-1 rounded-full border border-white/15 bg-white/[0.07] text-[9px] font-bold text-white/55 uppercase tracking-wide whitespace-nowrap';
+  'px-2 py-1 rounded-full border border-white/15 bg-white/[0.07] text-xs font-bold text-white/55 uppercase tracking-wide whitespace-nowrap';
 
 export const FINELY_OS_BADGE_WARN =
-  'px-2 py-1 rounded-full border border-fuchsia-500/35 bg-fuchsia-500/15 text-[9px] font-bold text-fuchsia-200 uppercase tracking-wide whitespace-nowrap';
+  'px-2 py-1 rounded-full border border-fuchsia-500/35 bg-fuchsia-500/15 text-xs font-bold text-fuchsia-200 uppercase tracking-wide whitespace-nowrap';
 
 export const FINELY_OS_DRAG_HINT =
-  'text-[10px] font-semibold uppercase tracking-wider text-violet-300/80 mb-2 flex items-center gap-1.5';
+  'text-xs font-semibold uppercase tracking-wider text-violet-300/80 mb-2 flex items-center gap-1.5';
 
 /** Column header + drop zone accents — dark frosted glass (no white CRM/task columns) */
 export const FINELY_OS_COLUMN_THEMES = [
@@ -275,26 +275,34 @@ export const FINELY_OS_CATALOG_SHELL = FINELY_OS_GLASS_CATALOG;
 export const FINELY_OS_VIEW_TABS =
   `fc-view-tabs ${FC_LIGHT_CHROME_STRIP} inline-flex flex-wrap gap-2 p-1.5`;
 
+/**
+ * An unselected tab used to be pure text — no fill, no edge — so a tab strip read as a row
+ * of floating labels rather than a control, and on a light bed it looked transparent. Both
+ * states now carry a `border` (transparent when selected) so selecting a tab never shifts
+ * layout by a pixel, and the resting state gets a real chip fill.
+ */
 export function finelyOsViewTab(
   active: boolean,
   accent: 'emerald' | 'violet' | 'sky' | 'fuchsia' | 'amber' | 'rose' = 'emerald',
 ) {
   const activeStyles = {
-    emerald: 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md ring-1 ring-emerald-400/30',
-    violet: 'bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white shadow-md ring-1 ring-violet-400/30',
-    sky: 'bg-gradient-to-r from-sky-600 to-cyan-600 text-white shadow-md ring-1 ring-sky-400/30',
-    fuchsia: 'bg-gradient-to-r from-fuchsia-600 to-violet-600 text-white shadow-md ring-1 ring-fuchsia-400/30',
-    amber: 'bg-gradient-to-r from-amber-500 to-yellow-600 text-black shadow-md ring-1 ring-amber-400/40',
-    rose: 'bg-gradient-to-r from-rose-600 to-red-600 text-white shadow-md ring-1 ring-rose-400/30',
+    emerald: 'border-transparent bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md ring-1 ring-emerald-400/30',
+    violet: 'border-transparent bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white shadow-md ring-1 ring-violet-400/30',
+    sky: 'border-transparent bg-gradient-to-r from-sky-600 to-cyan-600 text-white shadow-md ring-1 ring-sky-400/30',
+    fuchsia: 'border-transparent bg-gradient-to-r from-fuchsia-600 to-violet-600 text-white shadow-md ring-1 ring-fuchsia-400/30',
+    amber: 'border-transparent bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white shadow-md ring-1 ring-violet-400/30',
+    rose: 'border-transparent bg-gradient-to-r from-rose-600 to-red-600 text-white shadow-md ring-1 ring-rose-400/30',
   };
-  return `inline-flex items-center justify-center gap-1.5 min-w-[6.5rem] px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold normal-case tracking-normal whitespace-nowrap text-center leading-snug transition-all ${
-    active ? activeStyles[accent] : 'text-white/55 hover:bg-white/[0.06] hover:text-white/90'
+  return `inline-flex items-center justify-center gap-1.5 min-w-[6.5rem] px-4 sm:px-5 py-2.5 rounded-xl border text-sm sm:text-base font-bold normal-case tracking-normal whitespace-nowrap text-center leading-snug transition-all ${
+    active
+      ? activeStyles[accent]
+      : 'fc-view-tab-idle border-slate-400/35 bg-transparent text-slate-800 font-extrabold hover:border-violet-400/45 hover:bg-violet-500/8 dark:border-white/20 dark:text-white/85 dark:hover:bg-violet-500/15 dark:hover:border-violet-300/40 dark:hover:text-white'
   }`;
 }
 
 /** Wider hub tabs for debt / letter studios with longer labels */
 export function finelyOsHubTab(active: boolean, accent: 'emerald' | 'violet' | 'sky' | 'fuchsia' | 'amber' | 'rose' = 'emerald') {
-  const mapped = accent === 'rose' ? 'fuchsia' : accent;
+  const mapped = accent === 'fuchsia' || accent === 'amber' ? 'rose' : accent;
   return `${finelyOsViewTab(active, mapped)} !min-w-[7.5rem] sm:!min-w-[8.5rem] px-5 sm:px-6`;
 }
 
@@ -313,15 +321,28 @@ export function finelyOsGlassFill(accent: FinelyOsGlassAccent = 'violet') {
   return GLASS_FILLS[accent];
 }
 
-export const FINELY_OS_ENTITY_LABEL = 'text-[10px] font-bold uppercase tracking-[0.14em] text-amber-300/70';
+/** Theme-aware entity ink — frost on dark beds, wlp-ink on light ivory (finelyOsEntityInk.css). */
+const FC_OS_ENTITY_INK = 'text-[color:var(--fc-os-entity-ink)]';
+const FC_OS_ENTITY_BODY_INK = 'text-[color:var(--fc-os-entity-body)]';
+const FC_OS_ENTITY_MUTED_INK = 'text-[color:var(--fc-os-entity-muted)]';
+const FC_OS_ENTITY_FAINT_INK = 'text-[color:var(--fc-os-entity-faint)]';
+const FC_OS_ENTITY_CHIP_INK = 'text-[color:var(--fc-os-entity-chip)]';
+const FC_OS_ENTITY_LABEL_INK = 'text-[color:var(--fc-os-entity-label)]';
+const FC_OS_ENTITY_LINK_INK =
+  'text-[color:var(--fc-os-entity-link)] hover:text-[color:var(--fc-os-entity-link-hover)]';
 
-export const FINELY_OS_ENTITY_SUBLABEL = 'text-[10px] font-semibold uppercase tracking-[0.12em] text-white/60';
+export const FINELY_OS_ENTITY_LABEL =
+  `text-sm font-extrabold uppercase tracking-[0.14em] ${FC_OS_ENTITY_LABEL_INK}`;
 
-export const FINELY_OS_ENTITY_TITLE = 'text-xl font-semibold tracking-tight text-white';
+export const FINELY_OS_ENTITY_SUBLABEL =
+  `text-sm font-bold uppercase tracking-[0.12em] ${FC_OS_ENTITY_MUTED_INK}`;
 
-export const FINELY_OS_ENTITY_BODY = 'text-sm leading-relaxed text-white/75';
+export const FINELY_OS_ENTITY_TITLE = `text-3xl font-extrabold tracking-tight ${FC_OS_ENTITY_INK}`;
 
-export const FINELY_OS_ENTITY_VALUE = 'font-semibold tracking-tight text-white/90';
+export const FINELY_OS_ENTITY_BODY = `text-base font-semibold leading-relaxed ${FC_OS_ENTITY_BODY_INK}`;
+
+export const FINELY_OS_ENTITY_VALUE =
+  `text-2xl font-extrabold tracking-tight tabular-nums ${FC_OS_ENTITY_INK}`;
 
 export const FINELY_OS_ENTITY_INPUT = 'fc-input mt-2';
 
@@ -329,13 +350,13 @@ export const FINELY_OS_ENTITY_INPUT = 'fc-input mt-2';
 export const FINELY_OS_MOBILE_FORM_COMPACT = 'fc-mobile-form-compact';
 
 export const FINELY_OS_ENTITY_CHIP =
-  'px-3 py-2 fc-light-glass-panel fc-light-chrome-panel rounded-xl text-white/70 text-[10px] font-black uppercase tracking-wide whitespace-normal text-center leading-snug';
+  `px-3 py-2 fc-light-glass-panel fc-light-chrome-panel rounded-xl ${FC_OS_ENTITY_CHIP_INK} text-xs font-black uppercase tracking-wide whitespace-normal text-center leading-snug`;
 
 export const FINELY_OS_ENTITY_EMPTY =
-  'mt-4 rounded-xl border border-dashed border-white/12 bg-white/[0.03] p-4 text-sm text-white/55';
+  `mt-4 rounded-xl border border-dashed p-4 text-sm ${FC_OS_ENTITY_FAINT_INK} [border-color:var(--fc-os-entity-empty-border)] [background:var(--fc-os-entity-empty-bg)]`;
 
 export const FINELY_OS_ENTITY_ACCENT_LINK =
-  'text-amber-300 hover:text-amber-100 underline underline-offset-4 decoration-amber-500/40 transition-colors';
+  `${FC_OS_ENTITY_LINK_INK} underline underline-offset-4 decoration-sky-500/40 transition-colors`;
 
 export const FINELY_OS_ENTITY_ACTION = 'fc-button-soft';
 
@@ -397,12 +418,12 @@ export function finelyOsMicroStat(accent: FinelyOsDeckAccent = 'violet') {
     fuchsia: 'border-fuchsia-400/20 bg-fuchsia-500/10 text-fuchsia-100',
     rose: 'border-rose-400/20 bg-rose-500/10 text-rose-100',
   };
-  return `rounded-lg border px-2 py-1 text-[9px] font-black uppercase tracking-widest ${map[accent]}`;
+  return `rounded-lg border px-2 py-1 text-xs font-black uppercase tracking-widest ${map[accent]}`;
 }
 
 export function finelyOsOverviewStatTile(accent: FinelyOsGlassAccent = 'violet') {
-  void accent;
-  return 'fc-spotlight-panel min-h-[7.5rem] lg:min-h-[8.5rem] p-5 lg:p-6';
+  const family = (accent === 'amber' ? 'violet' : accent) as FinelyOsPublicAccent;
+  return `${finelyOsCatalogCard(family)} min-h-[8.5rem] lg:min-h-[9.5rem]`;
 }
 
 /** White stat cards with dark text + colorful icon — for Work/CRM boards on dark shells */
@@ -411,14 +432,14 @@ export function finelyOsContrastStatTile() {
 }
 
 export const FINELY_OS_CONTRAST_LABEL =
-  'text-[10px] font-bold uppercase tracking-[0.12em] text-slate-600';
+  'text-xs font-bold uppercase tracking-[0.12em] text-slate-600';
 
-export const FINELY_OS_CONTRAST_VALUE = 'font-bold tracking-tight text-slate-900 tabular-nums';
+export const FINELY_OS_CONTRAST_VALUE = 'text-2xl font-bold tracking-tight text-slate-900 tabular-nums';
 
 export const FINELY_OS_COLUMN_HEADER_LABEL =
   'text-xs font-black uppercase tracking-wider text-slate-900';
 
-export const FINELY_OS_COLUMN_HEADER_HINT = 'text-[10px] font-semibold text-slate-700';
+export const FINELY_OS_COLUMN_HEADER_HINT = 'text-xs font-semibold text-slate-700';
 
 export const FINELY_OS_COLUMN_HEADER_COUNT =
   'text-xs font-bold text-slate-900 bg-white/85 px-2 py-0.5 rounded-full border border-slate-300/70 shadow-sm';
@@ -430,8 +451,9 @@ export const FINELY_OS_BACK_LINK = 'inline-flex items-center gap-2 text-sm text-
 
 export const FINELY_OS_PRIMARY_BTN = 'fc-button-brand';
 
+/** 600-level emerald puts white label text at 3.7:1; the 700 ramp clears the WCAG AA floor. */
 export const FINELY_OS_SUCCESS_BTN =
-  'inline-flex items-center justify-center gap-2 min-w-0 min-h-[44px] rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-3 sm:px-4 py-2 text-[10px] font-black uppercase tracking-wide whitespace-normal text-center leading-snug text-white shadow-md ring-1 ring-emerald-400/30 hover:brightness-110 transition-all disabled:opacity-60';
+  'inline-flex items-center justify-center gap-2 min-w-0 min-h-[44px] rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 px-3 sm:px-4 py-2 text-xs font-black uppercase tracking-wide whitespace-normal text-center leading-snug text-white shadow-md ring-1 ring-emerald-400/30 hover:brightness-110 transition-all disabled:opacity-60';
 
 /** Soft gold/emerald glow CTA — pricing “What’s included” / browse solutions (noticeable, not neon). */
 export const FINELY_OS_GLOW_INCLUDES_BTN =
@@ -442,25 +464,25 @@ export const FINELY_OS_GLOW_INCLUDES_BTN =
  * black uppercase weight so it owns the CTA row (never a twin of Select).
  */
 export const FINELY_OS_INCLUDES_STANDALONE_BTN =
-  'inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-[#f3e2a8] bg-gradient-to-r from-[#fff8dc] via-[#efc96a] to-[#c99228] px-4 py-2.5 text-[11px] sm:text-xs font-black uppercase tracking-[0.08em] text-[#1a1400] shadow-[inset_0_1px_0_rgba(255,255,255,0.85),0_0_0_1px_rgba(251,191,36,0.5),0_10px_24px_-8px_rgba(180,120,20,0.7),0_0_22px_rgba(251,191,36,0.32)] transition hover:brightness-105 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_0_0_1px_rgba(251,191,36,0.6),0_12px_28px_-6px_rgba(180,120,20,0.78),0_0_26px_rgba(251,191,36,0.4)]';
+  'inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-[#f3e2a8] bg-gradient-to-r from-[#fff8dc] via-[#efc96a] to-[#c99228] px-4 py-2.5 text-xs sm:text-sm font-black uppercase tracking-[0.08em] text-[#1a1400] shadow-[inset_0_1px_0_rgba(255,255,255,0.85),0_0_0_1px_rgba(251,191,36,0.5),0_10px_24px_-8px_rgba(180,120,20,0.7),0_0_22px_rgba(251,191,36,0.32)] transition hover:brightness-105 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_0_0_1px_rgba(251,191,36,0.6),0_12px_28px_-6px_rgba(180,120,20,0.78),0_0_26px_rgba(251,191,36,0.4)]';
 
 /**
  * Gold-card Includes — deep ink fill + champagne rim so it still pops on gold solids
  * (champagne-on-champagne would blend).
  */
 export const FINELY_OS_INCLUDES_STANDALONE_BTN_ON_GOLD =
-  'inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-[#1a1400]/85 bg-gradient-to-r from-[#1a1400] via-[#2a1e08] to-[#14100a] px-4 py-2.5 text-[11px] sm:text-xs font-black uppercase tracking-[0.08em] text-[#f6e2a8] shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_0_0_1px_rgba(26,20,0,0.4),0_10px_24px_-8px_rgba(26,20,0,0.55),0_0_16px_rgba(251,191,36,0.22)] transition hover:brightness-110';
+  'inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-[#1a1400]/85 bg-gradient-to-r from-[#1a1400] via-[#2a1e08] to-[#14100a] px-4 py-2.5 text-xs sm:text-sm font-black uppercase tracking-[0.08em] text-[#f6e2a8] shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_0_0_1px_rgba(26,20,0,0.4),0_10px_24px_-8px_rgba(26,20,0,0.55),0_0_16px_rgba(251,191,36,0.22)] transition hover:brightness-110';
 
 /** Quiet Select on solid package cards — bold emerald CTA (subordinate to What’s included). */
 export const FINELY_OS_PACKAGE_SELECT_BTN =
-  'inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-emerald-200/55 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 px-4 py-2.5 text-[11px] sm:text-xs font-black uppercase tracking-[0.1em] text-white shadow-[0_0_0_1px_rgba(52,211,153,0.35),0_12px_28px_-10px_rgba(16,185,129,0.65),0_0_24px_rgba(52,211,153,0.28)] transition hover:brightness-110 hover:shadow-[0_0_0_1px_rgba(110,231,183,0.55),0_14px_32px_-8px_rgba(16,185,129,0.75),0_0_32px_rgba(52,211,153,0.38)]';
+  'inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-emerald-200/55 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 px-4 py-2.5 text-xs sm:text-sm font-black uppercase tracking-[0.1em] text-white shadow-[0_0_0_1px_rgba(52,211,153,0.35),0_12px_28px_-10px_rgba(16,185,129,0.65),0_0_24px_rgba(52,211,153,0.28)] transition hover:brightness-110 hover:shadow-[0_0_0_1px_rgba(110,231,183,0.55),0_14px_32px_-8px_rgba(16,185,129,0.75),0_0_32px_rgba(52,211,153,0.38)]';
 
 /** Gold-card Select — ink + champagne rim. */
 export const FINELY_OS_PACKAGE_SELECT_BTN_ON_GOLD =
-  'inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-[#1a1400]/70 bg-gradient-to-r from-[#1a1400] via-[#2d2208] to-[#14100a] px-4 py-2.5 text-[11px] sm:text-xs font-black uppercase tracking-[0.1em] text-[#f6e2a8] shadow-[0_10px_24px_-10px_rgba(26,20,0,0.55),0_0_20px_rgba(251,191,36,0.22)] transition hover:brightness-110';
+  'inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-[#1a1400]/70 bg-gradient-to-r from-[#1a1400] via-[#2d2208] to-[#14100a] px-4 py-2.5 text-xs sm:text-sm font-black uppercase tracking-[0.1em] text-[#f6e2a8] shadow-[0_10px_24px_-10px_rgba(26,20,0,0.55),0_0_20px_rgba(251,191,36,0.22)] transition hover:brightness-110';
 
 export const FINELY_OS_DANGER_BTN =
-  'inline-flex items-center justify-center gap-2 min-w-0 rounded-xl border border-rose-500/50 bg-gradient-to-r from-rose-600 to-rose-700 px-3 sm:px-4 py-2 text-[10px] font-black uppercase tracking-wide whitespace-normal text-center leading-snug text-white shadow-md ring-1 ring-rose-400/40 hover:brightness-110 transition-all disabled:opacity-60';
+  'inline-flex items-center justify-center gap-2 min-w-0 rounded-xl border border-rose-500/50 bg-gradient-to-r from-rose-600 to-rose-700 px-3 sm:px-4 py-2 text-xs font-black uppercase tracking-wide whitespace-normal text-center leading-snug text-white shadow-md ring-1 ring-rose-400/40 hover:brightness-110 transition-all disabled:opacity-60';
 
 export const FINELY_OS_DANGER_PANEL =
   'rounded-2xl border border-rose-500/35 bg-[radial-gradient(900px_320px_at_0%_0%,rgba(244,63,94,0.16)_0%,transparent_60%)] p-5 backdrop-blur-md ring-1 ring-inset ring-rose-400/15';
@@ -481,7 +503,7 @@ export function finelyOsPayoutStatusChip(status: string) {
     failed: 'border-rose-500/50 bg-rose-600/30 text-white',
     cancelled: 'border-white/15 bg-white/[0.07] text-white/55',
   };
-  return `px-2 py-0.5 rounded-full border text-[9px] font-black uppercase ${styles[status] ?? styles.pending}`;
+  return `px-2 py-0.5 rounded-full border text-xs font-black uppercase ${styles[status] ?? styles.pending}`;
 }
 
 export function finelyOsCalcMetricTile(highlight = false, accent: 'violet' | 'fuchsia' | 'emerald' | 'sky' = 'violet') {
@@ -549,7 +571,7 @@ export function finelyOsStatusChip(tone: 'ok' | 'warn' | 'blocked') {
     warn: 'border-fuchsia-500/30 bg-fuchsia-500/10 text-fuchsia-100',
     blocked: 'border-rose-500/30 bg-rose-500/10 text-rose-200',
   };
-  return `inline-flex items-center px-2.5 py-1 rounded-lg border text-[10px] font-black uppercase tracking-widest ${styles[tone]}`;
+  return `inline-flex items-center px-2.5 py-1 rounded-lg border text-xs font-black uppercase tracking-widest ${styles[tone]}`;
 }
 
 /* ─── Chrome layers (distinct from workspace fc-panel) ─── */
@@ -563,14 +585,14 @@ export const FINELY_OS_SIDE_RAIL_GLOW =
 
 export const FINELY_OS_SIDE_RAIL_GROUP = 'rounded-2xl border border-white/[0.08] bg-fc-elevated/35 overflow-hidden';
 
-export const FINELY_OS_SIDE_RAIL_LABEL = 'text-[10px] uppercase tracking-[0.34em] text-violet-300/80 font-black';
+export const FINELY_OS_SIDE_RAIL_LABEL = 'text-xs uppercase tracking-[0.34em] text-violet-300/80 font-black';
 
 export const FINELY_OS_SIDE_RAIL_TITLE = 'text-white font-semibold text-sm';
 
-export const FINELY_OS_SIDE_RAIL_HINT = 'text-[11px] text-white/55';
+export const FINELY_OS_SIDE_RAIL_HINT = 'text-xs text-white/55';
 
 export const FINELY_OS_SIDE_RAIL_BADGE =
-  'px-2.5 py-1 rounded-full border border-white/[0.08] bg-fc-elevated/40 text-[10px] font-black uppercase tracking-widest text-white/65';
+  'px-2.5 py-1 rounded-full border border-white/[0.08] bg-fc-elevated/40 text-xs font-black uppercase tracking-widest text-white/65';
 
 export function finelyOsSideRailNavItem(active: boolean) {
   return `w-full text-left inline-flex items-center gap-3 px-3 py-2.5 rounded-2xl border transition-all ${
@@ -584,29 +606,28 @@ export function finelyOsSideRailNavItem(active: boolean) {
 export const FINELY_OS_PORTAL_NAV_STRIP =
   'inline-flex flex-wrap gap-1 fc-light-glass-panel fc-light-chrome-panel p-1.5 shadow-md ring-1 ring-inset ring-violet-500/10';
 
-/** Communication Hub — fuchsia / violet / sky spotlight dock (not brown amber) */
+/** Communication Hub — dashboard-matched obsidian shell */
 export const FINELY_OS_COMMS_SHELL =
-  'rounded-[28px] border border-white/[0.08] bg-fc-chrome/96 backdrop-blur-xl shadow-[0_26px_70px_-32px_rgba(0,0,0,0.65)] ring-1 ring-inset ring-fuchsia-500/15 overflow-hidden flex flex-col';
+  'rounded-[28px] border border-white/[0.08] fc-comms-solid-shell shadow-[0_26px_70px_-32px_rgba(0,0,0,0.65)] ring-1 ring-inset ring-white/[0.06] overflow-hidden flex flex-col';
 
 export const FINELY_OS_COMMS_HEADER =
-  'shrink-0 sticky top-0 z-30 border-b border-white/[0.08] bg-fc-chrome/98 backdrop-blur-xl';
+  'shrink-0 sticky top-0 z-30 border-b border-white/[0.08] fc-comms-solid-header';
 
 export const FINELY_OS_COMMS_HEADER_INNER =
-  'p-4 flex items-center justify-between gap-3 border-b border-white/5 bg-[radial-gradient(900px_320px_at_0%_0%,rgba(217,70,239,0.14)_0%,transparent_55%),radial-gradient(700px_280px_at_100%_0%,rgba(56,189,248,0.10)_0%,transparent_50%),linear-gradient(180deg,rgba(255,255,255,0.06)_0%,transparent_100%)]';
+  'fc-comms-header-inner p-4 flex items-center justify-between gap-3 border-b border-white/5';
 
+/** Closed hub button — same solid rail paint as the dashboard left menu. No glass, no blur. */
 export const FINELY_OS_COMMS_LAUNCHER =
-  'group rounded-[26px] border border-fuchsia-500/30 px-5 py-4 shadow-[0_22px_60px_-36px_rgba(192,38,211,0.4)] transition-all hover:border-sky-400/40 hover:scale-[1.02] bg-[radial-gradient(ellipse_at_84%_18%,rgba(255,255,255,0.10)_0%,transparent_55%),linear-gradient(145deg,rgba(139,92,246,0.16)_0%,rgba(30,41,38,0.92)_48%,rgba(26,38,35,0.88)_100%)] backdrop-blur-xl';
+  'group fc-comms-launcher-solid rounded-[26px] border border-fuchsia-500/30 px-5 py-4 shadow-[0_22px_60px_-36px_rgba(7,10,15,0.85)] transition-all hover:border-sky-400/40 hover:scale-[1.02]';
 
-export const FINELY_OS_COMMS_LABEL = 'text-[10px] uppercase tracking-[0.34em] text-fuchsia-300/90 font-black';
+export const FINELY_OS_COMMS_LABEL = 'text-xs uppercase tracking-[0.34em] text-fuchsia-300/90 font-black';
 
 export const FINELY_OS_COMMS_ICON =
   'w-11 h-11 rounded-2xl bg-fuchsia-500/15 border border-fuchsia-500/30 flex items-center justify-center shrink-0';
 
 export function finelyOsCommsTab(active: boolean) {
-  return `flex-1 min-w-[88px] px-3 py-3 text-[10px] font-black uppercase tracking-widest transition-all ${
-    active
-      ? 'text-fuchsia-200 border-b-2 border-fuchsia-400 bg-fuchsia-500/10'
-      : 'text-white/50 hover:text-white/75 hover:bg-white/[0.03]'
+  return `fc-comms-tab flex-1 min-w-[88px] px-3 py-3 text-xs font-black uppercase tracking-widest${
+    active ? ' is-active' : ''
   }`;
 }
 
@@ -621,32 +642,54 @@ export const FINELY_OS_AI_WIDGET_ICON =
 
 /** Public marketing — compliance footnote (stats, testimonials, AI). */
 export const FINELY_OS_COMPLIANCE_FOOTNOTE =
-  'text-[10px] sm:text-xs text-white/40 leading-relaxed text-center max-w-3xl mx-auto';
+  'text-xs sm:text-sm text-white/40 leading-relaxed text-center max-w-3xl mx-auto';
 
 /** Public marketing — rich accent catalog surface (harmonizes with mesh + nested content). */
 export type FinelyOsPublicAccent = 'violet' | 'emerald' | 'amber' | 'fuchsia' | 'sky' | 'rose';
 
+/** Partner-dashboard recipe — 2px ink border, 30%+ radial wash, solid icon chip (see partnerPortalVisual.css). */
 const PUBLIC_ACCENT: Record<FinelyOsPublicAccent, string> = {
-  violet: 'border-violet-500/25 bg-[radial-gradient(900px_280px_at_12%_0%,rgba(139,92,246,0.14)_0%,transparent_58%)] hover:border-violet-400/40',
-  emerald: 'border-emerald-500/25 bg-[radial-gradient(900px_280px_at_12%_0%,rgba(16,185,129,0.14)_0%,transparent_58%)] hover:border-emerald-400/40',
-  amber: 'border-amber-500/25 bg-[radial-gradient(900px_280px_at_12%_0%,rgba(245,158,11,0.12)_0%,transparent_58%)] hover:border-amber-400/40',
-  fuchsia: 'border-fuchsia-500/25 bg-[radial-gradient(900px_280px_at_12%_0%,rgba(217,70,239,0.12)_0%,transparent_58%)] hover:border-fuchsia-400/40',
-  sky: 'border-sky-500/25 bg-[radial-gradient(900px_280px_at_12%_0%,rgba(14,165,233,0.12)_0%,transparent_58%)] hover:border-sky-400/40',
-  rose: 'border-rose-500/25 bg-[radial-gradient(900px_280px_at_12%_0%,rgba(244,63,94,0.12)_0%,transparent_58%)] hover:border-rose-400/40',
+  violet:
+    'border-violet-500/50 bg-[radial-gradient(920px_320px_at_8%_0%,rgba(139,92,246,0.32)_0%,transparent_58%)] hover:border-violet-400/65',
+  emerald:
+    'border-emerald-500/50 bg-[radial-gradient(920px_320px_at_8%_0%,rgba(16,185,129,0.30)_0%,transparent_58%)] hover:border-emerald-400/65',
+  amber:
+    'border-violet-500/50 bg-[radial-gradient(920px_320px_at_8%_0%,rgba(139,92,246,0.32)_0%,transparent_58%)] hover:border-violet-400/65',
+  fuchsia:
+    'border-fuchsia-500/50 bg-[radial-gradient(920px_320px_at_8%_0%,rgba(217,70,239,0.30)_0%,transparent_58%)] hover:border-fuchsia-400/65',
+  sky:
+    'border-sky-500/50 bg-[radial-gradient(920px_320px_at_8%_0%,rgba(14,165,233,0.30)_0%,transparent_58%)] hover:border-sky-400/65',
+  rose:
+    'border-rose-500/50 bg-[radial-gradient(920px_320px_at_8%_0%,rgba(244,63,94,0.28)_0%,transparent_58%)] hover:border-rose-400/65',
 };
 
-export function finelyOsCatalogCard(accent: FinelyOsPublicAccent = 'violet') {
-  return `fc-accent-card fc-luxury-glass fc-pop-surface fc-light-readable fc-surface-harmony rounded-2xl border backdrop-blur-md p-6 lg:p-8 transition-all ${PUBLIC_ACCENT[accent]}`;
+/** Solid saturated icon chip — matches partner hub launcher / dashboard KPI chips. */
+export function finelyOsSolidIconChip(accent: FinelyOsPublicAccent = 'emerald', size: 'md' | 'lg' = 'md') {
+  const pad = size === 'lg' ? 'w-12 h-12' : 'w-10 h-10';
+  const map: Record<FinelyOsPublicAccent, string> = {
+    emerald: `inline-flex items-center justify-center shrink-0 rounded-xl ${pad} bg-emerald-500 text-white shadow-[0_10px_18px_-12px_rgba(16,185,129,0.95)]`,
+    violet: `inline-flex items-center justify-center shrink-0 rounded-xl ${pad} bg-violet-500 text-white shadow-[0_10px_18px_-12px_rgba(139,92,246,0.95)]`,
+    sky: `inline-flex items-center justify-center shrink-0 rounded-xl ${pad} bg-sky-500 text-white shadow-[0_10px_18px_-12px_rgba(14,165,233,0.95)]`,
+    rose: `inline-flex items-center justify-center shrink-0 rounded-xl ${pad} bg-rose-500 text-white shadow-[0_10px_18px_-12px_rgba(244,63,94,0.95)]`,
+    fuchsia: `inline-flex items-center justify-center shrink-0 rounded-xl ${pad} bg-fuchsia-500 text-white shadow-[0_10px_18px_-12px_rgba(217,70,239,0.95)]`,
+    amber: `inline-flex items-center justify-center shrink-0 rounded-xl ${pad} bg-violet-500 text-white shadow-[0_10px_18px_-12px_rgba(139,92,246,0.95)]`,
+  };
+  return map[accent === 'amber' ? 'violet' : accent];
 }
 
-/** Accent catalog card at compact padding (!p-4) — default for workspace tools. */
+export function finelyOsCatalogCard(accent: FinelyOsPublicAccent = 'violet') {
+  const family = accent === 'amber' ? 'violet' : accent;
+  return `fc-accent-card fc-luxury-glass fc-pop-surface fc-light-readable fc-surface-harmony rounded-2xl border backdrop-blur-md p-6 lg:p-8 transition-all ${PUBLIC_ACCENT[family]}`;
+}
+
+/** Legacy name — roomy padding so old call sites stop looking cramped. */
 export function finelyOsCatalogCardCompact(accent: FinelyOsPublicAccent = 'violet') {
-  return `${finelyOsCatalogCard(accent)} !p-4`;
+  return `${finelyOsCatalogCard(accent)} !p-6`;
 }
 
 /** Glass shell helper — delegates to accent catalog cards (Part CT token unification). */
 export function finelyOsGlassShell(variant: 'panel' | 'inner' | 'catalog', accent: FinelyOsGlassAccent = 'violet') {
-  const pad = variant === 'inner' ? '!p-4' : variant === 'catalog' ? '!p-5' : '!p-6';
+  const pad = variant === 'inner' ? '!p-6' : variant === 'catalog' ? '!p-6' : '!p-8';
   const harmony = variant === 'inner' ? 'fc-surface-harmony' : '';
   return `${finelyOsCatalogCard(accent as FinelyOsPublicAccent)} ${pad} ${harmony}`.trim();
 }
@@ -705,11 +748,11 @@ export const FINELY_OS_LANDING_IVORY_TITLE = `${FINELY_OS_LANDING_SELL_TITLE} te
 
 export const FINELY_OS_LANDING_IVORY_BODY = 'text-[15px] sm:text-base leading-relaxed text-[#0a1628]/70';
 export const FINELY_OS_LANDING_IVORY_KICKER =
-  'text-[11px] font-black uppercase tracking-[0.28em] text-[#b8860b]';
+  'text-xs font-black uppercase tracking-[0.28em] text-[#b8860b]';
 
 /** Dark ink on `finelyOsIvorySolidTile` / ivory `PageShell` profile bands */
 export const FINELY_OS_IVORY_ENTITY_LABEL =
-  'text-[10px] font-bold uppercase tracking-[0.14em] text-[#0a1628]/55';
+  'text-xs font-bold uppercase tracking-[0.14em] text-[#0a1628]/55';
 export const FINELY_OS_IVORY_ENTITY_BODY = FINELY_OS_LANDING_IVORY_BODY;
 export const FINELY_OS_IVORY_ENTITY_VALUE = 'font-semibold tracking-tight text-[#0a1628]';
 export const FINELY_OS_IVORY_ENTITY_INPUT = 'fc-input fc-ivory-field mt-2';
@@ -738,7 +781,7 @@ export function finelyOsRestoreLaneHeroShell() {
 }
 
 export const FINELY_OS_RESTORE_HERO_KICKER =
-  'text-[11px] font-black uppercase tracking-[0.28em] text-amber-200/95';
+  'text-xs font-black uppercase tracking-[0.28em] text-amber-200/95';
 
 export const FINELY_OS_RESTORE_HERO_TITLE =
   'text-3xl sm:text-4xl lg:text-[2.85rem] font-bold tracking-tight text-white leading-[1.08]';
@@ -770,9 +813,9 @@ export const FINELY_OS_MODAL_CLOSE =
 
 /** AI draft button styling (Letter Studio). */
 export const FINELY_OS_AI_DRAFT_BTN =
-  'inline-flex items-center gap-2 rounded-xl border border-fuchsia-500/30 bg-fuchsia-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-fuchsia-100 hover:bg-fuchsia-500/15 transition-all disabled:opacity-60 disabled:cursor-not-allowed';
+  'inline-flex items-center gap-2 rounded-xl border border-fuchsia-500/30 bg-fuchsia-500/10 px-4 py-2 text-xs font-black uppercase tracking-widest text-fuchsia-100 hover:bg-fuchsia-500/15 transition-all disabled:opacity-60 disabled:cursor-not-allowed';
 export const FINELY_OS_AI_DRAFT_BTN_SM =
-  'inline-flex items-center gap-2 rounded-xl border border-fuchsia-500/30 bg-fuchsia-500/10 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-fuchsia-100 hover:bg-fuchsia-500/15 transition-all disabled:opacity-60';
+  'inline-flex items-center gap-2 rounded-xl border border-fuchsia-500/30 bg-fuchsia-500/10 px-3 py-2 text-xs font-black uppercase tracking-widest text-fuchsia-100 hover:bg-fuchsia-500/15 transition-all disabled:opacity-60';
 
 /** Public alert banner variants (amber / emerald / sky). */
 export function finelyOsAlertBanner(tone: 'info' | 'warning' | 'success' = 'info') {

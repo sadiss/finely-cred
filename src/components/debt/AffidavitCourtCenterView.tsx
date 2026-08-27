@@ -59,6 +59,7 @@ import {
 } from '../../features/os/finelyOsLightUi';
 import { DEBT_GUIDE_READ_PATH } from '../../pages/leadmagnet/debtEradicationGuideContent';
 import { adminEmbeddedNavHref } from '../../lib/adminPartnerRoutes';
+import '../../features/workspaceLightPreview/product/partner/partnerDebtLitigationDesk.css';
 
 type ReportRow = { id: string; parsed?: ParsedCreditReport | null };
 
@@ -151,6 +152,7 @@ export function AffidavitCourtCenterView({
   suppressVaultAutoPreview = false,
   onVaultLetterSaved,
   adminPartnerId,
+  deskLayout = false,
 }: {
   debt: DebtCase | null;
   debtId: string;
@@ -183,6 +185,7 @@ export function AffidavitCourtCenterView({
   suppressVaultAutoPreview?: boolean;
   onVaultLetterSaved?: () => void;
   adminPartnerId?: string;
+  deskLayout?: boolean;
 }) {
   const nav = (href: string) => adminEmbeddedNavHref(adminPartnerId, href);
   const [params] = useSearchParams();
@@ -447,7 +450,7 @@ export function AffidavitCourtCenterView({
             : 'Open court-day kit (UI) → vault is for mailed letters only'
 
   return (
-    <div className={`${FINELY_OS_COMPACT_PAGE} relative`}>
+    <div className={`${FINELY_OS_COMPACT_PAGE} relative ${deskLayout ? 'fc-wlp-litigation-desk' : ''}`} data-surface-layout={deskLayout ? 'timeline' : undefined}>
       <style>{`
         @keyframes fcLitGlow {
           0%, 100% { opacity: 0.4; }
@@ -463,18 +466,22 @@ export function AffidavitCourtCenterView({
 
       {/* Always-visible HUD — hearing + next action */}
       <section
-        className={`sticky top-0 z-30 fc-lit-in rounded-2xl border px-4 py-3 backdrop-blur-md shadow-[0_12px_40px_-16px_rgba(0,0,0,0.85)] ${
-          urgent
-            ? 'border-amber-400/55 bg-black/85'
-            : 'border-white/15 bg-black/80'
-        }`}
+        className={
+          deskLayout
+            ? `fc-wlp-litigation-hud fc-lit-in ${urgent ? 'ring-2 ring-rose-400/50' : ''}`
+            : `sticky top-0 z-30 fc-lit-in rounded-2xl border px-4 py-3 backdrop-blur-md shadow-[0_12px_40px_-16px_rgba(0,0,0,0.85)] ${
+                urgent ? 'border-violet-400/55 bg-black/85' : 'border-white/15 bg-black/80'
+              }`
+        }
         aria-label="Hearing countdown and next action"
       >
-        <div className="fc-lit-glow pointer-events-none absolute -top-16 right-4 h-40 w-40 rounded-full blur-3xl bg-amber-400/25" />
+        {deskLayout ? null : (
+          <div className="fc-lit-glow pointer-events-none absolute -top-16 right-4 h-40 w-40 rounded-full blur-3xl bg-violet-400/25" />
+        )}
         <div className="relative flex flex-wrap items-end justify-between gap-3">
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.18em] text-amber-200/90">
-              <Gavel size={13} /> Litigation Command · Step {active.n} of {PIPELINE.length}
+            <div className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.18em] text-violet-200">
+              <Gavel size={13} /> Litigation · Step {active.n} of {PIPELINE.length}
             </div>
             <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <span className="text-3xl font-black tracking-tight text-white">
@@ -485,7 +492,7 @@ export function AffidavitCourtCenterView({
                 {buyerIntel.patternId !== 'unknown' ? ` · ${buyerIntel.label}` : ''}
               </span>
             </div>
-            <p className={`mt-1 text-sm font-semibold text-amber-100/95`}>
+            <p className={`mt-1 text-sm font-semibold ${deskLayout ? 'text-violet-100' : 'text-violet-100'}`}>
               Next: {matterDecided ? decidedNextLine : nextActionPlain}
             </p>
             <p className={`mt-1 text-xs max-w-2xl ${FINELY_OS_ENTITY_BODY}`}>{buyerIntel.doNowOneLiner}</p>
@@ -493,7 +500,7 @@ export function AffidavitCourtCenterView({
               <button
                 type="button"
                 disabled={generateBusy}
-                className={`${FINELY_OS_PRIMARY_BTN} mt-2 !bg-amber-400 !text-black hover:!brightness-110 disabled:opacity-60`}
+                className={`${FINELY_OS_PRIMARY_BTN} mt-2 disabled:opacity-60`}
                 onClick={() => {
                   const target =
                     letterSuggestions.primary.uiOnly || letterSuggestions.primary.productKind === 'hearing_kit_ui'
@@ -533,7 +540,7 @@ export function AffidavitCourtCenterView({
                 value={hearingIso}
                 disabled={!debt}
                 onChange={(e) => setHearingDate(e.target.value)}
-                className={`${finelyOsGlowField('amber')} mt-1 w-full`}
+                className={`${finelyOsGlowField('violet')} mt-1 w-full`}
               />
             </div>
             {rooseveltMatter ? (
@@ -606,11 +613,30 @@ export function AffidavitCourtCenterView({
 
       {/* Numbered path — tap to jump; only current step body below */}
       <div className="fc-lit-in space-y-2 mt-2">
-        <div className="text-[10px] uppercase tracking-widest text-white/45 px-1">Your easy path (do in order)</div>
-        <div className="grid grid-cols-5 gap-1.5">
+        <div className="text-[10px] uppercase tracking-widest text-white/45 px-1">Your path — do these in order</div>
+        <div className={deskLayout ? 'fc-wlp-litigation-runway' : 'grid grid-cols-5 gap-1.5'}>
           {PIPELINE.map((j, idx) => {
             const on = idx === step;
             const done = doneFlags[idx];
+            if (deskLayout) {
+              return (
+                <button
+                  key={j.id}
+                  type="button"
+                  data-active={on ? 'true' : undefined}
+                  data-done={done ? 'true' : undefined}
+                  className="fc-wlp-litigation-runway-step"
+                  onClick={() => setStep(idx)}
+                >
+                  <span className="fc-wlp-litigation-runway-n">{done && !on ? <CheckCircle2 size={16} /> : j.n}</span>
+                  <span className="fc-wlp-litigation-runway-copy">
+                    <strong>{j.title}</strong>
+                    <span>{j.plain}</span>
+                  </span>
+                  {on ? <span className="fc-wlp-litigation-runway-here">You are here</span> : null}
+                </button>
+              );
+            }
             return (
               <button
                 key={j.id}
@@ -618,7 +644,7 @@ export function AffidavitCourtCenterView({
                 onClick={() => setStep(idx)}
                 className={`rounded-xl border px-1.5 py-2 text-center transition-all ${
                   on
-                    ? 'border-amber-400/70 bg-amber-500/20 shadow-[0_0_22px_-8px_rgba(251,191,36,0.55)]'
+                    ? 'border-violet-400/70 bg-violet-500/20 shadow-[0_0_22px_-8px_rgba(139,92,246,0.55)]'
                     : done
                       ? 'border-emerald-400/40 bg-emerald-500/10'
                       : 'border-white/10 bg-black/25 hover:border-white/25'
@@ -626,7 +652,7 @@ export function AffidavitCourtCenterView({
               >
                 <span
                   className={`mx-auto flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-black ${
-                    on ? 'bg-amber-400 text-black' : done ? 'bg-emerald-400 text-black' : 'bg-white/10 text-white/70'
+                    on ? 'bg-violet-400 text-black' : done ? 'bg-emerald-400 text-black' : 'bg-white/10 text-white/70'
                   }`}
                 >
                   {done && !on ? <CheckCircle2 size={13} /> : j.n}
@@ -639,7 +665,7 @@ export function AffidavitCourtCenterView({
       </div>
 
       {/* Active step card — only one at a time */}
-      <section className={`${finelyOsCatalogCardCompact('fuchsia')} !p-4 fc-lit-in space-y-4 border-amber-400/25`}>
+      <section className={`${finelyOsCatalogCardCompact('violet')} !p-4 fc-lit-in space-y-4`}>
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div className="min-w-0">
             <h2 className={`${FINELY_OS_ENTITY_TITLE} text-white`}>
@@ -659,8 +685,8 @@ export function AffidavitCourtCenterView({
         {step === 0 ? (
           <div id="fc-lit-drop" className="space-y-3 scroll-mt-28">
             {!appliedOnce && !hasSummonsDoc && !caseNumber ? (
-              <div className="rounded-2xl border-2 border-dashed border-amber-400/45 bg-amber-500/10 px-4 py-6 text-center space-y-2">
-                <Upload className="mx-auto text-amber-300" size={28} />
+              <div className="rounded-2xl border-2 border-dashed border-violet-400/45 bg-violet-500/10 px-4 py-6 text-center space-y-2">
+                <Upload className="mx-auto text-violet-300" size={28} />
                 <p className="text-base font-bold text-white">No court file yet — start here</p>
                 <p className={`text-sm max-w-md mx-auto ${FINELY_OS_ENTITY_BODY}`}>
                   Drop the summons, docket PDF, affidavit, or collector letter below. Finely scrapes the fields, then{' '}
@@ -668,7 +694,7 @@ export function AffidavitCourtCenterView({
                 </p>
                 <Link
                   to={`${DEBT_GUIDE_READ_PATH}?chapter=summons`}
-                  className="inline-block text-[11px] text-amber-200/90 underline underline-offset-2 hover:text-amber-100"
+                  className="inline-block text-[11px] text-violet-200 underline underline-offset-2 hover:text-violet-100"
                 >
                   First time reading court papers? Free field manual Page V — redacted summons &amp; complaint samples
                 </Link>
@@ -897,8 +923,8 @@ export function AffidavitCourtCenterView({
         {/* STEP 5 — Hearing + mail-ready */}
         {step === 4 ? (
           <div className="space-y-3">
-            <div className="rounded-xl border border-amber-400/35 bg-amber-500/10 px-4 py-3 space-y-2">
-              <div className="text-[10px] uppercase tracking-widest text-amber-200/85">
+            <div className="rounded-xl border border-rose-400/35 bg-rose-500/10 px-4 py-3 space-y-2">
+              <div className="text-[10px] uppercase tracking-widest text-rose-200">
                 Day-of hearing card · UI guidance only (not a mailed letter)
               </div>
               <ol className={`list-decimal pl-4 space-y-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>
@@ -1076,9 +1102,9 @@ export function AffidavitCourtCenterView({
           since the pipeline CTA above no longer names the real next step. */}
       {!matterDecided ? (
         <div className="sticky bottom-2 z-20 fc-lit-in">
-          <div className="rounded-2xl border border-amber-400/50 bg-black/90 backdrop-blur-md px-4 py-3 flex flex-wrap items-center justify-between gap-3 shadow-[0_10px_48px_-12px_rgba(0,0,0,0.9)]">
+          <div className="rounded-2xl border border-violet-400/50 bg-black/90 backdrop-blur-md px-4 py-3 flex flex-wrap items-center justify-between gap-3 shadow-[0_10px_48px_-12px_rgba(0,0,0,0.9)]">
             <div className="min-w-0">
-              <div className="text-[10px] uppercase tracking-widest text-amber-200/80">Do this next</div>
+              <div className="text-[10px] uppercase tracking-widest text-violet-200">Do this next</div>
               <div className="text-sm font-bold text-white truncate">
                 Step {active.n}: {active.title}
               </div>

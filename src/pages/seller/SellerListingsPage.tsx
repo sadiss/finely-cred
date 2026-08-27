@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { ArrowRight, Image as ImageIcon, Plus, UploadCloud } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { PartnerWorkstationFrame, type PartnerEmbeddablePageProps } from '../../features/workspaceLightPreview/product/partner/PartnerWorkstationFrame';
+import { useMappedPartnerNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { useAuth } from '../../auth/AuthProvider';
 import { SellerNav } from '../../components/seller/SellerNav';
 import { getOrCreateSellerForSession } from '../../seller/getOrCreateSellerForSession';
@@ -37,8 +37,8 @@ function fmtPrice(cents: number) {
   return `$${(v / 100).toFixed(2)}`;
 }
 
-export default function SellerListingsPage() {
-  const navigate = useNavigate();
+export default function SellerListingsPage({ embedded = false }: PartnerEmbeddablePageProps = {}) {
+  const navigate = useMappedPartnerNavigate();
   const auth = useAuth();
   const seller = useMemo(() => getOrCreateSellerForSession({ user: auth.user }), [auth.user]);
 
@@ -121,7 +121,7 @@ export default function SellerListingsPage() {
   };
 
   return (
-    <PageShell badge="AU Seller" title="Listings" subtitle="Create supply listings and attach proof for admin review.">
+    <PartnerWorkstationFrame embedded={embedded} kind="au-seller-cards-workstation" badge="AU Seller" title="Listings" subtitle="Create supply listings and attach proof for admin review.">
       <div className={FINELY_OS_PAGE}>
         <SellerNav />
 
@@ -129,7 +129,7 @@ export default function SellerListingsPage() {
           <div className={FINELY_OS_ENTITY_EMPTY}>No seller profile found.</div>
         ) : (
           <div className="space-y-6">
-            <div className={`space-y-4 ${finelyOsCatalogCard('violet')} !p-5`}>
+            <div className={`space-y-4 ${finelyOsCatalogCard('emerald')}`} data-fc-accent="emerald">
               <div className={FINELY_OS_ENTITY_SUBLABEL}>New listing</div>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
@@ -203,7 +203,7 @@ export default function SellerListingsPage() {
 
             {uploadErr && <div className={FINELY_OS_NOTICE_ERROR}>{uploadErr}</div>}
 
-            <div className={`space-y-4 ${finelyOsCatalogCard('violet')} !p-5`}>
+            <div className={`space-y-4 ${finelyOsCatalogCard('sky')}`} data-fc-accent="sky">
               <div className="flex items-center justify-between gap-3 flex-wrap">
                 <div>
                   <div className={FINELY_OS_ENTITY_SUBLABEL}>Your inventory</div>
@@ -267,8 +267,8 @@ export default function SellerListingsPage() {
           </div>
         )}
 
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
       </div>
-    </PageShell>
+    </PartnerWorkstationFrame>
   );
 }

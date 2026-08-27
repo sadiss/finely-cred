@@ -188,8 +188,13 @@ export function PageShell({
     applyTenantBranding(tenant);
   }, [tenant]);
 
+  const isWorkspaceLightPreview = pathname.startsWith('/preview/workspace-light');
+  const wlPreviewAdmin = pathname.startsWith('/preview/workspace-light/admin');
+  const wlPreviewPortal = pathname.startsWith('/preview/workspace-light/portal');
+
   // If the fixed public nav is not shown, don't reserve 112px of top padding.
   const useLargeTopPad =
+    !isWorkspaceLightPreview &&
     !pathname.startsWith('/portal') &&
     !pathname.startsWith('/admin') &&
     !pathname.startsWith('/business') &&
@@ -216,9 +221,10 @@ export function PageShell({
       : 'pt-28'
     : 'pt-[max(0.75rem,env(safe-area-inset-top))]';
   const shellTopPad = laneHero ? 'pt-0' : topPad;
-  const isAdmin = pathname.startsWith('/admin');
-  const isPortal = pathname.startsWith('/portal');
-  const isPartnerDashboard = pathname === '/portal/dashboard';
+  const isAdmin = pathname.startsWith('/admin') || wlPreviewAdmin;
+  const isPortal = pathname.startsWith('/portal') || wlPreviewPortal;
+  const isPartnerDashboard =
+    pathname === '/portal/dashboard' || pathname === '/preview/workspace-light/portal/dashboard';
   const isBusiness = pathname.startsWith('/business');
   const isAppRoute =
     isAdmin ||

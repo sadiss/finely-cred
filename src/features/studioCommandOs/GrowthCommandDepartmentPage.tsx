@@ -40,7 +40,7 @@ const LANE_TOOLS: Record<
     { title: 'Resources', detail: 'Guides and downloadable assets', href: '/admin/resources', accent: 'sky', purpose: 'Lead magnets' },
   ],
   communicate: [
-    { title: 'Support Inbox', detail: 'Live partner threads', href: '/admin/support', accent: 'emerald', purpose: 'Conversations' },
+    { title: 'Partner conversations', detail: 'Live partner threads', href: '/admin/support', accent: 'emerald', purpose: 'Conversations' },
     { title: 'Comms campaigns', detail: 'Broadcasts + segments', href: '/admin/comms?room=campaigns', accent: 'fuchsia', purpose: 'Broadcasts' },
     { title: 'Calendar', detail: 'Strategy calls + video bridges', href: '/admin/calendar', accent: 'sky', purpose: 'Book sessions' },
     { title: 'Phone Hub', detail: 'SMS, voicemail, co-owner escalation', href: '/admin/phone-hub', accent: 'amber', purpose: 'Voice/SMS' },

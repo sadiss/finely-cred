@@ -1,8 +1,8 @@
 /**
- * Light theme is admin-preview only until `lightThemePublic` feature flag is enabled.
+ * Light (white) is the product default. Dark is opt-in via the workspace Light | Dark toggle.
+ * `lightThemePublic` still gates the public-marketing theme control, not the dashboard default.
  */
 
-import { isAdminEmail } from '../auth/admin';
 import { isFeatureEnabled } from '../data/settingsRepo';
 import type { FinelySiteThemePreference, FinelySiteThemeResolved } from './finelySiteTheme';
 import { resolveEffectiveTheme, resolveSystemTheme } from './finelySiteTheme';
@@ -40,11 +40,9 @@ export function readSessionEmail(): string | null {
   return null;
 }
 
-/** Admins always preview light; everyone else only when public flag is on. */
-export function canUseLightTheme(email?: string | null): boolean {
-  if (isLightThemePublicEnabled()) return true;
-  const resolved = email ?? readSessionEmail();
-  return isAdminEmail(resolved);
+/** Light is the default look. Dark remains available from the workspace toggle. */
+export function canUseLightTheme(_email?: string | null): boolean {
+  return true;
 }
 
 export function clampThemePreference(

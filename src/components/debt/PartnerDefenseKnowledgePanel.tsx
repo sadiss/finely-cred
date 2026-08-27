@@ -335,7 +335,7 @@ export function PartnerDefenseKnowledgePanel({
                 <ol className={`mt-2 list-decimal pl-4 space-y-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>
                   {FIVE_GATE_STRATEGY.gates.map((g) => (
                     <li key={g.id}>
-                      <span className="text-white/85 font-medium">{g.title}: </span>
+                      <span className={`font-medium text-[color:var(--fc-os-entity-ink)]`}>{g.title}: </span>
                       {g.question}
                     </li>
                   ))}
@@ -360,7 +360,7 @@ export function PartnerDefenseKnowledgePanel({
                 <ol className={`mt-2 list-decimal pl-4 space-y-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>
                   {LAW_STACK_MAP.layers.map((l) => (
                     <li key={l.id}>
-                      <span className="text-white/85 font-medium">{l.title}: </span>
+                      <span className={`font-medium text-[color:var(--fc-os-entity-ink)]`}>{l.title}: </span>
                       {l.question}
                     </li>
                   ))}

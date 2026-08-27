@@ -117,7 +117,7 @@ const CORE_HUMAN_RECIPES: AutomationRecipe[] = [
   }),
   mkHumanNotify({
     key: 'human_session_no_show',
-    name: 'Human: enlightenment no-show recovery',
+    name: 'Human: strategy-call no-show recovery',
     everyHours: 24,
     title: 'Session no-show',
     body: 'Reschedule slot + assign appointment setter within 24h.',

@@ -1,0 +1,195 @@
+/* HOS hub — catalog mosaic */
+
+.fc-hos-mosaic {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.fc-hos-member-hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 26px 30px;
+  border-radius: 22px;
+  border: 1px solid rgba(139, 92, 246, 0.28);
+  background:
+    radial-gradient(circle at 0% 0%, rgba(139, 92, 246, 0.14), transparent 42%),
+    radial-gradient(circle at 100% 100%, rgba(244, 63, 94, 0.08), transparent 38%),
+    linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(244, 63, 94, 0.05));
+}
+
+.fc-hos-slot-meter {
+  min-width: 220px;
+}
+
+.fc-hos-slot-meter-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.fc-hos-slot-meter-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #8b5cf6, #a78bfa);
+}
+
+.fc-hos-mosaic-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.fc-hos-mosaic-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 140px;
+  padding: 22px 24px;
+  border-radius: 18px;
+  border: 1px solid rgba(15, 23, 42, 0.09);
+  text-align: left;
+  font-weight: 800;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.fc-hos-mosaic-tile:hover {
+  transform: translateY(-2px);
+}
+
+.fc-hos-mosaic-tile[data-active='true'] {
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.45);
+}
+
+.fc-hos-mosaic-tile-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fc-hos-mosaic-tile-icon[data-fc-accent='emerald'] {
+  background: rgba(16, 185, 129, 0.14);
+  color: #047857;
+}
+
+.fc-hos-mosaic-tile-icon[data-fc-accent='violet'] {
+  background: rgba(139, 92, 246, 0.14);
+  color: #6d28d9;
+}
+
+.fc-hos-mosaic-tile-icon[data-fc-accent='sky'] {
+  background: rgba(56, 189, 248, 0.14);
+  color: #0369a1;
+}
+
+.fc-hos-mosaic-tile-icon[data-fc-accent='rose'] {
+  background: rgba(244, 63, 94, 0.14);
+  color: #be123c;
+}
+
+.fc-hos-mosaic-tile-hint {
+  font-size: 14px;
+  font-weight: 600;
+  opacity: 0.78;
+}
+
+.fc-hos-mosaic-detail {
+  padding: 26px 30px;
+  border-radius: 22px;
+  border: 1px solid rgba(139, 92, 246, 0.16);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(56, 189, 248, 0.06), transparent 40%),
+    rgba(255, 255, 255, 0.72);
+}
+
+.fc-hos-growth-mosaic {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.fc-hos-growth-card {
+  padding: 22px 24px;
+  border-radius: 18px;
+  text-align: left;
+  font-weight: 800;
+  transition: transform 0.12s ease;
+}
+
+.fc-hos-growth-card:hover {
+  transform: translateY(-2px);
+}
+
+.fc-hos-growth-card p {
+  margin-top: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+html[data-fc-theme='dark'] .fc-hos-member-hero {
+  border-color: rgba(139, 92, 246, 0.35);
+  background:
+    radial-gradient(circle at 0% 0%, rgba(139, 92, 246, 0.16), transparent 42%),
+    radial-gradient(circle at 100% 100%, rgba(244, 63, 94, 0.12), transparent 38%),
+    rgba(15, 23, 42, 0.72);
+}
+
+html[data-fc-theme='dark'] .fc-hos-slot-meter-bar {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+html[data-fc-theme='dark'] .fc-hos-mosaic-tile {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+html[data-fc-theme='dark'] .fc-hos-mosaic-detail {
+  border-color: rgba(139, 92, 246, 0.28);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(56, 189, 248, 0.1), transparent 40%),
+    rgba(15, 23, 42, 0.62);
+}
+
+/* Light site — ink on ivory mosaic beds */
+html[data-fc-theme='light'] .fc-hos-member-hero,
+html[data-fc-theme='light'] .fc-hos-mosaic-tile,
+html[data-fc-theme='light'] .fc-hos-mosaic-detail,
+html[data-fc-theme='light'] .fc-hos-growth-card {
+  color: var(--wlp-ink, #0a1628);
+}
+
+html[data-fc-theme='light'] .fc-hos-mosaic-tile-hint,
+html[data-fc-theme='light'] .fc-hos-growth-card p {
+  color: var(--wlp-muted, rgba(10, 22, 40, 0.68));
+  opacity: 1;
+}
+
+html[data-fc-theme='light'] .fc-hos-mosaic-tile:not([data-active='true']) {
+  color: var(--wlp-ink, #0a1628);
+}
+
+/* Dark site — light ink on tinted hero + navy panels */
+html[data-fc-theme='dark'] .fc-hos-member-hero,
+html[data-fc-theme='dark'] .fc-hos-mosaic-tile,
+html[data-fc-theme='dark'] .fc-hos-mosaic-detail,
+html[data-fc-theme='dark'] .fc-hos-growth-card {
+  color: var(--wlp-ink, #f1f5f9);
+}
+
+html[data-fc-theme='dark'] .fc-hos-mosaic-tile-hint,
+html[data-fc-theme='dark'] .fc-hos-growth-card p {
+  color: var(--wlp-muted, #cbd5e1);
+  opacity: 1;
+}
+
+html[data-fc-theme='dark'] .fc-hos-mosaic-tile:not([data-active='true']) {
+  color: #e2e8f0;
+}

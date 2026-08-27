@@ -1,7 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { ArrowLeft, ArrowRight, Plus, Trash2, FileText, Paperclip } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { useLocation, useParams } from 'react-router-dom';
+import { businessDisputeHubHref } from '../../lib/businessDisputeProductPaths';
+import { PartnerWorkstationFrame, type PartnerEmbeddablePageProps } from '../../features/workspaceLightPreview/product/partner/PartnerWorkstationFrame';
+import { useMappedPartnerNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { EvidencePickerModal } from '../../components/evidence/EvidencePickerModal';
 import { listEvidenceByPartner, upsertEvidence, deleteEvidence } from '../../data/evidenceRepo';
@@ -93,10 +95,17 @@ function buildLetterText(args: {
   return lines.join('\n');
 }
 
-export default function BusinessDisputeDetailPage() {
-  const navigate = useNavigate();
+export function BusinessDisputeDetailWorkspace({
+  disputeId: disputeIdProp,
+  embedded = false,
+}: {
+  disputeId?: string;
+  embedded?: boolean;
+} = {}) {
+  const navigate = useMappedPartnerNavigate();
+  const { pathname, search } = useLocation();
   const params = useParams();
-  const disputeId = String(params.id || '').trim();
+  const disputeId = disputeIdProp ?? String(params.id || '').trim();
   const { partner } = usePartnerSession();
   const [version, setVersion] = useState(0);
   const dispute = useMemo(() => {
@@ -124,29 +133,33 @@ export default function BusinessDisputeDetailPage() {
 
   if (!partner) {
     return (
-      <PageShell badge="Business Portal" title="Business dispute" subtitle="">
+      <PartnerWorkstationFrame embedded={embedded} kind="business-dispute-detail-workstation" badge="Business Portal" title="Business dispute" subtitle="">
         <div className={FINELY_OS_NOTICE}>Sign in to view disputes.</div>
-      </PageShell>
+      </PartnerWorkstationFrame>
     );
   }
 
   if (!disputeId || !dispute) {
     return (
-      <PageShell badge="Business Portal" title="Dispute not found" subtitle="">
+      <PartnerWorkstationFrame embedded={embedded} kind="business-dispute-detail-workstation" badge="Business Portal" title="Dispute not found" subtitle="">
         <div className={FINELY_OS_PAGE}>
           <div className={FINELY_OS_NOTICE}>This dispute does not exist or you don't have access to it.</div>
-          <button type="button" onClick={() => navigate('/business/disputes')} className={FINELY_OS_PRIMARY_BTN}>
+          <button
+            type="button"
+            onClick={() => navigate(businessDisputeHubHref(pathname, search))}
+            className={FINELY_OS_PRIMARY_BTN}
+          >
             Back to disputes <ArrowRight size={14} />
           </button>
         </div>
-      </PageShell>
+      </PartnerWorkstationFrame>
     );
   }
 
   const attached = (dispute.evidenceIds ?? []).map((id) => evidence.find((e) => e.id === id)).filter(Boolean) as any[];
 
   return (
-    <PageShell badge="Business Portal" title={dispute.title} subtitle={`${bureauLabel(dispute.bureau)} • ${dispute.status}`}>
+    <PartnerWorkstationFrame embedded={embedded} kind="business-dispute-detail-workstation" badge="Business Portal" title={dispute.title} subtitle={`${bureauLabel(dispute.bureau)} • ${dispute.status}`}>
       <EvidencePickerModal
         open={pickerOpen}
         title="Attach evidence"
@@ -181,7 +194,7 @@ export default function BusinessDisputeDetailPage() {
           eyebrow="Business disputes"
           title={dispute.title}
           subtitle={`${bureauLabel(dispute.bureau)} • ${dispute.status}`}
-          accent="amber"
+          accent="rose"
           tabs={[
             { id: 'workspace', label: 'Workspace' },
             { id: 'items', label: 'Items', badge: String((dispute.negativeItems ?? []).length) || undefined },
@@ -197,7 +210,7 @@ export default function BusinessDisputeDetailPage() {
 
         {detailTab === 'workspace' && (
         <div className="space-y-6">
-            <div className={`${finelyOsCatalogCard('amber')} !p-6 space-y-4`} data-fc-accent="amber">
+            <div className={`${finelyOsCatalogCard('rose')} space-y-4`} data-fc-accent="rose">
               <div className={FINELY_OS_ENTITY_TITLE}>Dispute workspace</div>
               <div className="grid md:grid-cols-2 gap-4">
                 <label className="block">
@@ -300,7 +313,7 @@ export default function BusinessDisputeDetailPage() {
         )}
 
         {detailTab === 'items' && (
-            <div className={`${finelyOsCatalogCard('sky')} !p-6 space-y-4`} data-fc-accent="sky">
+            <div className={`${finelyOsCatalogCard('sky')} space-y-4`} data-fc-accent="sky">
               <div className={FINELY_OS_ENTITY_VALUE}>Negative items</div>
               <form
                 className={`${finelyOsInlineListItem()} grid md:grid-cols-2 gap-3`}
@@ -386,7 +399,7 @@ export default function BusinessDisputeDetailPage() {
         )}
 
         {detailTab === 'evidence' && (
-            <div className={`${finelyOsCatalogCard('amber')} !p-6 space-y-4`} data-fc-accent="amber">
+            <div className={`${finelyOsCatalogCard('rose')} space-y-4`} data-fc-accent="rose">
               <div className="flex items-center justify-between gap-3">
                 <div className={FINELY_OS_ENTITY_TITLE}>Evidence</div>
                 <button type="button" onClick={() => setPickerOpen(true)} className={FINELY_OS_SECONDARY_BTN}>
@@ -428,8 +441,12 @@ export default function BusinessDisputeDetailPage() {
 
         </FinelyUnifiedHubLayout>
 
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
       </div>
-    </PageShell>
+    </PartnerWorkstationFrame>
   );
+}
+
+export default function BusinessDisputeDetailPage(props: PartnerEmbeddablePageProps = {}) {
+  return <BusinessDisputeDetailWorkspace embedded={props.embedded} />;
 }

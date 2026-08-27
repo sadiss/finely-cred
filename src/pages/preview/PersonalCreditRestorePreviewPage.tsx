@@ -11,6 +11,7 @@ import { formatPrice, getPackageById, personalCreditPackages, type PricingPackag
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { DedicatedSheetLinkStrip } from '../../components/resources/DedicatedSheetLinkStrip';
 import { ServicePackageDetailModal } from '../../components/pricing/ServicePackageDetailModal';
+import { FinelyLaunchHelpStrip, type FinelyLaunchPrompt } from '../../components/tours/FinelyLaunchHelpStrip';
 import { usePreviewReveal } from '../../features/personalCredit/preview/usePreviewReveal';
 import '../../features/personalCredit/preview/personalCreditRestorePreview.css';
 import '../../features/personalCredit/preview/personalCreditRestorePreview.anim.css';
@@ -71,7 +72,7 @@ const FAQ = [
   },
   {
     q: 'What are the done-for-you restore tiers?',
-    a: 'Starter ($750), Pro ($1,500), Elite ($3,000), Supreme ($5,000), Premier ($7,000), Dynasty ($10,000), and Custom for complex files scoped after intake.',
+    a: 'Starter ($750), Pro ($1,500), Elite ($3,000), Supreme ($5,000), Premier ($7,000), and Dynasty ($10,000). Files that require work beyond Dynasty move to a written Custom scope after intake instead of an artificial public price ceiling.',
   },
   {
     q: 'How fast will I see results?',
@@ -150,9 +151,9 @@ const DFY_ACCENT: Record<string, TierAccent> = {
   personal_restore: 'emerald',
   personal_platinum: 'violet',
   personal_restore_5000: 'rose',
-  personal_restore_7000: 'fuchsia',
-  personal_restore_10000: 'navy',
-  personal_restore_custom: 'emerald',
+  personal_restore_7000: 'emerald',
+  personal_restore_10000: 'violet',
+  personal_restore_custom: 'navy',
 };
 
 const DIY_ACCENT: Record<string, TierAccent> = {
@@ -181,6 +182,23 @@ function tierShortName(pkg: PricingPackage): string {
   return pkg.name;
 }
 
+const TIER_FIT: Record<string, string> = {
+  personal_restore_starter: 'Lighter files that need a documented first restore sequence.',
+  personal_restore: 'Multi-account files that need recurring rounds and active tracking.',
+  personal_platinum: 'Complex files that need deeper strategy and a longer support window.',
+  personal_restore_5000: 'Higher-complexity files that need stronger QA and escalation preparation.',
+  personal_restore_7000: 'Broad files that need enterprise-level cadence, monitoring, and documentation.',
+  personal_restore_10000: 'The highest fixed tier for maximum support, sequencing, and priority handling.',
+  personal_restore_custom: 'Work beyond the fixed ladder, scoped around file depth and approved deliverables.',
+};
+
+const CUSTOM_SCOPE = [
+  { title: 'File architecture', body: 'Tradelines, collections, bureau variance, and evidence load mapped first.' },
+  { title: 'Execution depth', body: 'Rounds, QA cadence, documentation, and escalation readiness written into scope.' },
+  { title: 'Support window', body: 'Timeline and specialist touchpoints sized to the actual file—not a generic tier.' },
+  { title: 'Approved terms', body: 'Pricing and payment timing confirmed only after deliverables are documented.' },
+] as const;
+
 function PreviewTierCard({
   pkg,
   featured,
@@ -198,6 +216,7 @@ function PreviewTierCard({
   const badge = featured ? 'Most picked' : pkg.badge;
   const isMain = variant === 'main';
   const highlightLimit = isMain ? pkg.highlights?.length ?? 0 : 3;
+  const fit = TIER_FIT[pkg.id];
 
   return (
     <article
@@ -209,6 +228,12 @@ function PreviewTierCard({
       <div className="pc-prev-tier-card__price">{priceLabel(pkg)}</div>
       <h3 className="pc-prev-tier-card__name">{isMain ? pkg.name : tierShortName(pkg)}</h3>
       <p className="pc-prev-tier-card__tagline">{pkg.tagline}</p>
+      {isMain && fit ? (
+        <div className="pc-prev-tier-card__fit">
+          <span>Best fit</span>
+          <p>{fit}</p>
+        </div>
+      ) : null}
       {highlightLimit > 0 ? (
         <ul className="pc-prev-tier-card__services">
           {(pkg.highlights ?? []).slice(0, highlightLimit).map((item) => (
@@ -218,7 +243,7 @@ function PreviewTierCard({
       ) : null}
       <div className="pc-prev-tier-card__actions">
         <button type="button" className="pc-prev-tier-card__cta" onClick={onSelect}>
-          Get started <ArrowRight size={isMain ? 16 : 14} aria-hidden />
+          Choose this tier <ArrowRight size={isMain ? 16 : 14} aria-hidden />
         </button>
         {isMain && onIncludes ? (
           <button type="button" className="pc-prev-tier-card__cta-secondary" onClick={onIncludes}>
@@ -277,14 +302,28 @@ function CustomQuoteRow({
         <span className="pc-prev-custom-row__badge">Custom quote</span>
         <div className="pc-prev-custom-row__copy">
           <h3 className="pc-prev-custom-row__title">{pkg.name}</h3>
-          <p className="pc-prev-custom-row__tagline">{pkg.tagline}</p>
+          <p className="pc-prev-custom-row__tagline">
+            Beyond Dynasty, there is no artificial public ceiling. We review the file, document the deliverables,
+            then scope the engagement around the work actually required.
+          </p>
         </div>
-        <div className="pc-prev-custom-row__price">Scoped after intake</div>
+        <div className="pc-prev-custom-row__price">Custom engagement · scoped after intake</div>
+        <div className="pc-prev-custom-scope">
+          {CUSTOM_SCOPE.map((item) => (
+            <div key={item.title} className="pc-prev-custom-scope__item">
+              <strong>{item.title}</strong>
+              <span>{item.body}</span>
+            </div>
+          ))}
+        </div>
+        <p className="pc-prev-custom-row__terms">
+          Written scope required · service timing and payment terms depend on approved deliverables
+        </p>
       </div>
       <div className="pc-prev-custom-row__choices">
         <button type="button" className="pc-prev-custom-choice pc-prev-custom-choice--primary" onClick={onStart}>
-          Get started <ArrowRight size={15} aria-hidden />
-          <span>Start signup & intake</span>
+          Start custom intake <ArrowRight size={15} aria-hidden />
+          <span>Map the file before pricing</span>
         </button>
         <button type="button" className="pc-prev-custom-choice pc-prev-custom-choice--ghost" onClick={onIncludes}>
           <Info size={15} aria-hidden />
@@ -315,6 +354,40 @@ export default function PersonalCreditRestorePreviewPage() {
     }
     return pathPackages.slice(0, 3);
   }, [path, pathPackages]);
+  const restoreGuidancePrompts = useMemo<readonly FinelyLaunchPrompt[]>(
+    () => [
+      {
+        label: 'What should I do first?',
+        prompt: 'On this personal credit restore page, what should I do first with a new file?',
+        hint:
+          'Pull current reports from all three bureaus. Then gather your ID, proof of address, and statements before choosing any dispute target.',
+      },
+      {
+        label: path === 'dfy' ? 'Is done-for-you right?' : 'Can I do this myself?',
+        prompt:
+          path === 'dfy'
+            ? 'How do I know whether done-for-you personal credit restore is right for my file?'
+            : 'How do I know whether the do-it-yourself personal credit tools are right for my file?',
+        hint:
+          path === 'dfy'
+            ? 'Done-for-you fits when you want the team to organize evidence, run letters, track replies, and manage follow-up rounds.'
+            : 'DIY fits when you can gather evidence, review every letter, meet mailing deadlines, and log each bureau response yourself.',
+      },
+      {
+        label: 'Evidence checklist',
+        prompt: 'What evidence should I gather before starting a personal credit dispute?',
+        hint:
+          'Match every factual issue to a bureau screenshot or statement. Keep identity documents in Documents and dispute exhibits in Evidence Vault.',
+      },
+      {
+        label: 'What happens after a reply?',
+        prompt: 'What should I do after a credit bureau or furnisher replies to a dispute?',
+        hint:
+          'Log the actual outcome, preserve the response, and let the evidence determine whether to close the item, correct your record, or prepare a documented follow-up.',
+      },
+    ],
+    [path],
+  );
 
   usePublicSeoMeta({
     title: isPreviewMode ? 'Preview · Personal credit restore' : 'Personal credit restore',
@@ -338,7 +411,7 @@ export default function PersonalCreditRestorePreviewPage() {
     navigate(resolvePackageSelectPath({ packageId: pkgId, rail, isAuthed: Boolean(auth.user) }));
   };
 
-  const startFree = () => finelyCtaNavigate(navigate, 'personal_free_trial', { isAuthed: Boolean(auth.user) });
+  const startFree = () => finelyCtaNavigate(navigate, 'personal_free_guide', { isAuthed: Boolean(auth.user) });
   const bookSession = () => finelyCtaNavigate(navigate, 'consultation', { consultationLane: 'Personal Credit' });
 
   const displayPackages = path === 'dfy' ? dfyTiers : pathPackages;
@@ -380,7 +453,7 @@ export default function PersonalCreditRestorePreviewPage() {
                   </h1>
                   <p className="pc-prev-hero__lede">
                     Done-for-you disputes, three-bureau coverage, and every round tracked in the Finely Cred OS — from
-                    Starter through Dynasty, plus Custom for heavier files.
+                    Starter through Dynasty, plus written Custom scopes for work beyond the fixed ladder.
                   </p>
                   <div className="pc-prev-hero__actions">
                     <button type="button" className="pc-prev-btn-primary" onClick={startFree}>
@@ -425,6 +498,19 @@ export default function PersonalCreditRestorePreviewPage() {
               ))}
             </div>
           </div>
+
+          <section className="pc-prev-section pc-prev-section--tight">
+            <div className="pc-prev-inner">
+              <Reveal>
+                <FinelyLaunchHelpStrip
+                  tone="ivory"
+                  className="pc-prev-guidance"
+                  prompts={restoreGuidancePrompts}
+                  description="Hover a question for an immediate next-step hint, or click it to ask Finely for guidance on this page."
+                />
+              </Reveal>
+            </div>
+          </section>
 
           <section className="pc-prev-section">
             <div className="pc-prev-inner pc-prev-split">
@@ -491,7 +577,7 @@ export default function PersonalCreditRestorePreviewPage() {
                 <h2 className="pc-prev-h2">Every tier. One page.</h2>
                 <p className="pc-prev-lede">
                   {path === 'dfy'
-                    ? 'Full restore ladder — Starter ($750) through Dynasty ($10,000), plus Custom quote.'
+                    ? 'Full restore ladder — Starter ($750) through Dynasty ($10,000), plus written Custom scopes beyond the fixed tiers.'
                     : 'Free tier, Credit Starter, and every specialty letter pack.'}
                 </p>
               </Reveal>
@@ -619,7 +705,7 @@ export default function PersonalCreditRestorePreviewPage() {
               <Reveal>
                 <div className="pc-prev-final">
                   <h2>Ready to restore your file?</h2>
-                  <p>Start with the free guide, compare all four DFY tiers, or book a session for a specialist read.</p>
+                  <p>Start with the free guide, compare all seven DFY tiers plus Custom, or book a session for a specialist read.</p>
                   <div className="pc-prev-final__actions">
                     <button type="button" className="pc-prev-btn-primary" onClick={startFree}>
                       Start free guide <ArrowRight size={15} aria-hidden />

@@ -88,13 +88,13 @@ export function PartnerSpecialistAssignmentPanel({
   };
 
   return (
-    <div className={`${fcAdminCard('p-5', 'navy', 'solid')} space-y-5`}>
+    <div className={`${fcAdminCard('p-6 lg:p-8', 'navy', 'solid')} space-y-5`}>
       <div className="flex items-center gap-2">
         <HandHeart size={16} className="text-fuchsia-300" />
         <div className={FINELY_OS_ENTITY_VALUE}>Care team assignment</div>
       </div>
       <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
-        Assign the humans who help this customer. Only people with the matching role access appear in each list
+        Assign the humans who help this partner. Only people with the matching role access appear in each list
         (Credit Specialist, Coach capability, or Business partner / affiliate).
       </p>
 
@@ -106,7 +106,7 @@ export function PartnerSpecialistAssignmentPanel({
         const busy = busyRole === role;
 
         return (
-          <div key={role} className="rounded-xl border border-white/10 bg-black/25 p-4 space-y-3">
+          <div key={role} className="rounded-xl border border-white/10 bg-black/25 p-6 space-y-3">
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div>
                 <div className={FINELY_OS_ENTITY_SUBLABEL}>{CARE_TEAM_ROLE_LABEL[role]}</div>
@@ -119,7 +119,7 @@ export function PartnerSpecialistAssignmentPanel({
                 )}
               </div>
               {helpers.length === 0 ? (
-                <div className="text-[11px] text-amber-200/80">No eligible people — grant role access first.</div>
+                <div className="text-sm text-rose-200/90">No eligible people — grant role access first.</div>
               ) : null}
             </div>
 

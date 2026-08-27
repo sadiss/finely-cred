@@ -26,8 +26,8 @@ const READINESS_PILLARS = [
   { id: 'utilization', label: 'Utilization', target: '<30% per card', status: 'Focus first', accent: 'emerald' as const },
   { id: 'inquiries', label: 'Inquiries', target: 'Age 6+ months', status: 'Plan pulls', accent: 'sky' as const },
   { id: 'entity', label: 'Entity hygiene', target: 'EIN + address match', status: 'Business lane', accent: 'violet' as const },
-  { id: 'vendor', label: 'Vendor stack', target: '3–5 reporting vendors', status: 'Sequence', accent: 'amber' as const },
-  { id: 'docs', label: 'Underwriting docs', target: 'Bank statements + P&L ready', status: 'Capital stage', accent: 'fuchsia' as const },
+  { id: 'vendor', label: 'Vendor stack', target: '3–5 reporting vendors', status: 'Sequence', accent: 'rose' as const },
+  { id: 'docs', label: 'Underwriting docs', target: 'Bank statements + P&L ready', status: 'Capital stage', accent: 'emerald' as const },
 ];
 
 export default function FundabilityReadinessPage() {
@@ -86,16 +86,16 @@ export default function FundabilityReadinessPage() {
             <div className="space-y-6">
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 <FinelyOsOverviewStatTile icon={CreditCard} label="Personal restore" value="Dispute + util" accent="violet" iconAccent="violet" />
-                <FinelyOsOverviewStatTile icon={Building2} label="Business build" value="EIN + vendors" accent="fuchsia" iconAccent="fuchsia" />
+                <FinelyOsOverviewStatTile icon={Building2} label="Business build" value="EIN + vendors" accent="sky" iconAccent="sky" />
                 <FinelyOsOverviewStatTile icon={Target} label="Funding prep" value="Lender logic" accent="emerald" iconAccent="emerald" />
-                <FinelyOsOverviewStatTile icon={TrendingUp} label="Funding path" value="Capital prep" accent="amber" iconAccent="amber" />
+                <FinelyOsOverviewStatTile icon={TrendingUp} label="Funding path" value="Capital prep" accent="rose" iconAccent="rose" />
               </div>
               <FinelyUnifiedSection title="Readiness pillars" subtitle="What lenders and bureaus weigh — in plain language.">
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {READINESS_PILLARS.map((p) => (
-                    <div key={p.id} className={`${finelyOsCatalogCard(p.accent)} !p-4`} data-fc-accent={p.accent}>
-                      <div className="font-semibold">{p.label}</div>
-                      <div className={`text-xs mt-1 ${FINELY_OS_ENTITY_BODY}`}>{p.target}</div>
+                    <div key={p.id} className={finelyOsCatalogCard(p.accent)} data-fc-accent={p.accent}>
+                      <div className="text-xl font-extrabold">{p.label}</div>
+                      <div className={`text-base mt-2 ${FINELY_OS_ENTITY_BODY}`}>{p.target}</div>
                       <div className="text-[10px] text-emerald-700 mt-2 uppercase tracking-wider">{p.status}</div>
                     </div>
                   ))}
@@ -134,9 +134,9 @@ export default function FundabilityReadinessPage() {
                   { w: 'Weeks 5–8', t: 'Business profile · vendor stack · D-U-N-S if applicable' },
                   { w: 'Weeks 9–12', t: 'Lender logic · doc package · Nora handoff' },
                 ].map((row, i) => (
-                  <div key={row.w} className={`${finelyOsCatalogCard(i % 2 === 0 ? 'emerald' : 'sky')} !p-4 flex flex-col sm:flex-row sm:items-center gap-2`} data-fc-accent={i % 2 === 0 ? 'emerald' : 'sky'}>
-                    <span className="text-xs font-bold uppercase tracking-wider shrink-0">{row.w}</span>
-                    <span className={`${FINELY_OS_ENTITY_BODY} text-sm`}>{row.t}</span>
+                  <div key={row.w} className={`${finelyOsCatalogCard((['emerald', 'violet', 'sky', 'rose'] as const)[i % 4])} flex flex-col sm:flex-row sm:items-center gap-4`} data-fc-accent={(['emerald', 'violet', 'sky', 'rose'] as const)[i % 4]}>
+                    <span className="text-sm font-extrabold uppercase tracking-wider shrink-0">{row.w}</span>
+                    <span className={`${FINELY_OS_ENTITY_BODY} text-base`}>{row.t}</span>
                   </div>
                 ))}
               </div>

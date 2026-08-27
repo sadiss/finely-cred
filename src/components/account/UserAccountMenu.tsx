@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ChevronDown, LayoutDashboard, LogOut, Settings, Shield } from 'lucide-react';
+import { ChevronDown, Eye, LayoutDashboard, LogOut, Settings, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthProvider';
 import { isAdminEmail } from '../../auth/admin';
@@ -8,6 +8,7 @@ import { UserAvatar } from './UserAvatar';
 import { markSignedOutAndGoHome } from '../navigation/BackToSiteButton';
 import { clearOnboardingProgress } from '../../lib/onboardingProgressStorage';
 import { resolvePostAuthHomePath } from '../../lib/postAuthRouting';
+import { canUseAdminRolePreview } from '../../lib/adminRolePreviewAccess';
 
 type UserAccountMenuProps = {
   variant?: 'default' | 'compact';
@@ -25,6 +26,7 @@ export function UserAccountMenu({ variant = 'default', className = '' }: UserAcc
   const displayName = getUserDisplayName(user);
   const roleLabel = getUserRoleLabel(user);
   const isAdmin = email ? isAdminEmail(email) : false;
+  const canRolePreview = canUseAdminRolePreview({ userId: user?.id, email });
   const homePath = resolvePostAuthHomePath(user);
 
   useEffect(() => {
@@ -141,6 +143,17 @@ export function UserAccountMenu({ variant = 'default', className = '' }: UserAcc
               >
                 <LayoutDashboard size={15} className="text-emerald-300" />
                 Partner portal
+              </button>
+            ) : null}
+            {canRolePreview ? (
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => go('/admin/role-preview')}
+                className="w-full text-left inline-flex items-center gap-3 px-3 py-2.5 rounded-xl text-[11px] font-bold uppercase tracking-widest text-white/75 hover:bg-white/[0.05] hover:text-white transition-all"
+              >
+                <Eye size={15} className="text-violet-300" />
+                Role studio
               </button>
             ) : null}
           </div>

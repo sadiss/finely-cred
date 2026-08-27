@@ -83,7 +83,7 @@ export default function AuOrdersPage() {
           subtitle="Track intake status, documents, and fulfillment — or review your buyer workflow progress."
           accent="emerald"
           kpis={[
-            { label: 'Active orders', value: String(orders.length), accent: 'amber' },
+            { label: 'Active orders', value: String(orders.length), accent: 'violet' },
             { label: 'Workflow', value: `${auWorkflowProgress.size}/6`, accent: 'emerald' },
           ]}
           tabs={[
@@ -100,8 +100,8 @@ export default function AuOrdersPage() {
           {tab === 'orders' && (
             <>
         {orders.length === 0 ? (
-          <div className={`${FINELY_OS_LUXURY_EMPTY} ${finelyOsCatalogCard('fuchsia')} !p-6 space-y-4 text-left`} data-fc-accent="fuchsia">
-            <div className="inline-flex items-center gap-2 text-fuchsia-700">
+          <div className={`${FINELY_OS_LUXURY_EMPTY} ${finelyOsCatalogCard('rose')} space-y-4 text-left`} data-fc-accent="rose">
+            <div className="inline-flex items-center gap-2 text-rose-700">
               <ShieldCheck size={18} />
               <span className={FINELY_OS_ENTITY_SUBLABEL}>No orders yet</span>
             </div>
@@ -121,9 +121,9 @@ export default function AuOrdersPage() {
               const elig = o.eligibility.checked;
               const terms = Boolean(o.terms.acceptedAt);
               const ready = elig && terms && docs > 0;
-              const accent = (['emerald', 'sky', 'violet', 'fuchsia'] as const)[idx % 4];
+              const accent = (['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4];
               return (
-                <div key={o.id} className={`space-y-4 ${finelyOsCatalogCard(accent)} !p-6`} data-fc-accent={accent}>
+                <div key={o.id} className={`space-y-4 ${finelyOsCatalogCard(accent)}`} data-fc-accent={accent}>
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0">
                       <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>
@@ -137,21 +137,21 @@ export default function AuOrdersPage() {
                   </div>
 
                   <div className="grid sm:grid-cols-3 gap-3">
-                    <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-1`}>
+                    <div className={`${finelyOsCatalogCard('emerald')} fc-surface-harmony space-y-1`} data-fc-accent="emerald">
                       <div className={FINELY_OS_ENTITY_SUBLABEL}>Eligibility</div>
                       <div className={FINELY_OS_ENTITY_BODY}>{elig ? 'Complete' : 'Pending'}</div>
                     </div>
-                    <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-1`}>
+                    <div className={`${finelyOsCatalogCard('violet')} fc-surface-harmony space-y-1`} data-fc-accent="violet">
                       <div className={FINELY_OS_ENTITY_SUBLABEL}>Terms</div>
                       <div className={FINELY_OS_ENTITY_BODY}>{terms ? 'Accepted' : 'Pending'}</div>
                     </div>
-                    <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-1`}>
+                    <div className={`${finelyOsCatalogCard('rose')} fc-surface-harmony space-y-1`} data-fc-accent="rose">
                       <div className={FINELY_OS_ENTITY_SUBLABEL}>Docs</div>
                       <div className={FINELY_OS_ENTITY_BODY}>{docs} uploaded</div>
                     </div>
                   </div>
 
-                  <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+                  <div className={`${finelyOsCatalogCard('sky')} fc-surface-harmony`} data-fc-accent="sky">
                     <div className={`flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
                       <Clock size={16} /> Latest
                     </div>
@@ -163,7 +163,7 @@ export default function AuOrdersPage() {
 
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className={`${FINELY_OS_ENTITY_BODY} text-xs inline-flex items-center gap-2`}>
-                      {ready ? <BadgeCheck size={14} className="text-emerald-600" /> : <FileUp size={14} className="text-amber-600" />}
+                      {ready ? <BadgeCheck size={14} className="text-emerald-600" /> : <FileUp size={14} className="text-rose-400" />}
                       {ready ? 'Ready to submit (or already submitted).' : 'Continue intake to submit.'}
                     </div>
                     <button type="button" onClick={() => navigate(`/au/request?orderId=${encodeURIComponent(o.id)}`)} className={FINELY_OS_SUCCESS_BTN}>

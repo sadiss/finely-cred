@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useMappedAdminNavigate } from '../../workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { ArrowLeft, FolderKanban, Sparkles } from 'lucide-react';
 import { PageShell } from '../../../components/layout/PageShell';
 import { listServicePlaybookBundles } from '../../../data/taskPlaybooksRepo';
@@ -16,7 +16,7 @@ import {FINELY_OS_ACTIVE_CHIP, FINELY_OS_BACK_LINK, FINELY_OS_BANNER, FINELY_OS_
   finelyOsCatalogCard,} from '../../os/finelyOsLightUi';
 
 export function ProjectTemplateGallery({ embedded }: { embedded?: boolean }) {
-  const navigate = useNavigate();
+  const navigate = useMappedAdminNavigate();
   const auth = useAuth();
   const [category, setCategory] = useState<PricingCategory | 'all'>('all');
   const [partnerId, setPartnerId] = useState('');
@@ -133,7 +133,7 @@ export function ProjectTemplateGallery({ embedded }: { embedded?: boolean }) {
       </div>
 
       {selectedBundle ? (
-        <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-3`}>
+        <div className={`${finelyOsCatalogCard('violet')} fc-surface-harmony space-y-3`}>
           <div>
             <div className={FINELY_OS_ENTITY_SUBLABEL}>Service bundle preview</div>
             <div className={FINELY_OS_ENTITY_VALUE}>{selectedBundle.bundle.name}</div>
@@ -178,6 +178,6 @@ export function ProjectTemplateGallery({ embedded }: { embedded?: boolean }) {
   );
 }
 
-export default function AdminProjectTemplatesPage() {
-  return <ProjectTemplateGallery />;
+export default function AdminProjectTemplatesPage({ embedded = false }: { embedded?: boolean } = {}) {
+  return <ProjectTemplateGallery embedded={embedded} />;
 }

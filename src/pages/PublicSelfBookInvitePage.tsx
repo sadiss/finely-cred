@@ -153,7 +153,7 @@ export default function PublicSelfBookInvitePage() {
     <PageShell
       badge="Book session"
       title={invite.label || 'Pick your time'}
-      subtitle="Self-schedule your strategy call — one free session per email on enlightenment topics."
+      subtitle="Self-schedule your strategy call — one free call per email for eligible topics."
     >
       <div className={FINELY_OS_PAGE}>
         <button type="button" onClick={() => navigate('/')} className={FINELY_OS_BACK_LINK}>
@@ -211,7 +211,7 @@ export default function PublicSelfBookInvitePage() {
                         type="button"
                         onClick={() => void aiDraftAgenda()}
                         disabled={aiDrafting}
-                        className="inline-flex items-center gap-1 rounded-lg border border-amber-400/40 bg-amber-500/10 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-amber-200 hover:bg-amber-500/15 disabled:opacity-50"
+                        className="inline-flex items-center gap-1 rounded-lg border border-violet-400/40 bg-violet-500/10 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-violet-200 hover:bg-violet-500/15 disabled:opacity-50"
                       >
                         <Sparkles size={11} /> {aiDrafting ? 'Drafting…' : 'AI-draft'}
                       </button>

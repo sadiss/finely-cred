@@ -13,7 +13,7 @@ import { DoctrineArticleShell } from '../../components/resources/DoctrineArticle
 import { DoctrineSectionHeading, DoctrineAccordionCard, DoctrineFieldList, DoctrineProseBlock } from '../../components/resources/DoctrineArticleParts';
 import { FINELY_OS_ENTITY_CHIP } from '../../features/os/finelyOsLightUi';
 
-const ACCENTS = ['sky', 'rose', 'amber', 'violet'] as const;
+const ACCENTS = ['sky', 'rose', 'emerald', 'violet'] as const;
 
 export default function InternationalCreditSystemsGuidePage() {
   const systems = getAllInternationalCreditSystems();
@@ -23,7 +23,7 @@ export default function InternationalCreditSystemsGuidePage() {
       seo={{
         title: 'How Credit Reporting Works Abroad — Canada, UK, Germany & the EU Compared to the U.S.',
         description:
-          'Score scales, major bureaus, data-protection regimes, and dispute rights in Canada, the UK, Germany, and the EU generally — compared point-by-point to the U.S. FCRA/FICO system, for partners with international credit history or clients relocating internationally.',
+          'Score scales, major bureaus, data-protection regimes, and dispute rights in Canada, the UK, Germany, and the EU generally — compared point-by-point to the U.S. FCRA/FICO system, for partners with international credit history or partners relocating internationally.',
         path: '/resources/international-credit-systems-guide',
       }}
       badge="Business credit"

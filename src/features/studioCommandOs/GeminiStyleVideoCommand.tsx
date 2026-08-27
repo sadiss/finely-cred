@@ -61,11 +61,11 @@ function StoryboardBoard({
                 type="button"
                 onClick={() => setSelectedId(s.id)}
                 className={`rounded-2xl border p-3 text-left transition ${
-                  active ? 'border-amber-400/45 bg-amber-500/12' : 'border-white/10 bg-black/30 hover:bg-white/[0.04]'
+                  active ? 'border-violet-400/45 bg-violet-500/12' : 'border-white/10 bg-black/30 hover:bg-white/[0.04]'
                 }`}
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-amber-200 text-xs font-black uppercase tracking-widest">Shot {n}</span>
+                  <span className="text-violet-200 text-xs font-black uppercase tracking-widest">Shot {n}</span>
                   <span className="text-white/40 text-xs font-mono">{s.durationSec}s</span>
                 </div>
                 <div className="mt-1 text-white font-semibold truncate">{s.beat}</div>
@@ -96,7 +96,7 @@ function StoryboardBoard({
             <div className="text-white font-semibold">{selected.beat}</div>
             <div className="text-sm text-white/60 leading-relaxed line-clamp-6">{selected.visualPrompt}</div>
             {selected.caption ? (
-              <div className="rounded-xl border border-amber-400/15 bg-amber-500/10 p-2.5 text-amber-100 text-xs">Caption: {selected.caption}</div>
+              <div className="rounded-xl border border-violet-400/15 bg-violet-500/10 p-2.5 text-violet-100 text-xs">Caption: {selected.caption}</div>
             ) : null}
             {selected.voiceover ? (
               <div className="rounded-xl border border-sky-400/15 bg-sky-500/10 p-2.5 text-sky-100 text-xs inline-flex gap-2">
@@ -353,9 +353,9 @@ export function GeminiStyleVideoCommand({ initialRequest }: { initialRequest?: P
         </div>
       </div>
 
-      <div className="rounded-[2rem] border border-amber-400/25 bg-gradient-to-br from-amber-500/14 via-violet-500/8 to-black/40 p-5 md:p-7 space-y-5">
+      <div className="rounded-[2rem] border border-violet-400/25 bg-gradient-to-br from-violet-500/14 via-sky-500/8 to-black/40 p-5 md:p-7 space-y-5">
         <div>
-          <div className="text-[10px] uppercase tracking-[0.28em] text-amber-200 font-black">Super video generator</div>
+          <div className="text-[10px] uppercase tracking-[0.28em] text-violet-200 font-black">Super video generator</div>
           <h2 className="mt-2 text-2xl md:text-3xl font-black text-white tracking-tight">Type once — storyboard, scenes, visuals, voice, captions, export</h2>
           <p className="mt-2 text-sm text-white/60 max-w-3xl">Gemini-style planning, image scene generation, ElevenLabs voice upload path, and WebM export. Pick a tier or customize duration up to 3 minutes.</p>
         </div>
@@ -376,7 +376,7 @@ export function GeminiStyleVideoCommand({ initialRequest }: { initialRequest?: P
               }
               className={`rounded-2xl border p-4 text-left transition ${
                 request.durationSec === tier.durationSec && request.aspect === tier.aspect
-                  ? 'border-amber-400/50 bg-amber-500/12'
+                  ? 'border-violet-400/50 bg-violet-500/12'
                   : 'border-white/10 bg-white/[0.04] hover:bg-white/[0.07]'
               }`}
             >
@@ -388,7 +388,7 @@ export function GeminiStyleVideoCommand({ initialRequest }: { initialRequest?: P
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {CONTENT_STUDIO_CAPABILITIES.map((cap) => (
             <div key={cap.label} className="rounded-2xl border border-white/10 bg-black/25 px-4 py-3">
-              <div className="text-xs font-black uppercase tracking-widest text-amber-200">{cap.label}</div>
+              <div className="text-xs font-black uppercase tracking-widest text-violet-200">{cap.label}</div>
               <div className="mt-1 text-xs text-white/50">{cap.hint}</div>
             </div>
           ))}
@@ -410,11 +410,11 @@ export function GeminiStyleVideoCommand({ initialRequest }: { initialRequest?: P
             setNotice('Copilot brief applied — generate a video plan when ready.');
           }}
         />
-        <div className="rounded-[2rem] border border-amber-400/20 bg-gradient-to-br from-amber-500/12 via-white/[0.04] to-black/30 p-5 md:p-7 space-y-5 mt-4">
+        <div className="rounded-[2rem] border border-sky-400/20 bg-gradient-to-br from-sky-500/12 via-white/[0.04] to-black/30 p-5 md:p-7 space-y-5 mt-4">
           <textarea
             value={request.prompt}
             onChange={(e) => setRequest((r) => ({ ...r, prompt: e.target.value }))}
-            className="w-full min-h-[160px] md:min-h-[220px] rounded-[1.75rem] border border-white/10 bg-black/45 px-5 py-4 text-white/90 placeholder:text-white/25 text-base md:text-lg leading-relaxed focus:outline-none focus:border-amber-400/60"
+            className="w-full min-h-[160px] md:min-h-[220px] rounded-[1.75rem] border border-white/10 bg-black/45 px-5 py-4 text-white/90 placeholder:text-white/25 text-base md:text-lg leading-relaxed focus:outline-none focus:border-sky-400/60"
             placeholder="Example: Create a 28-second business credit guide video for Houston business owners. Make it premium, urgent but compliant, with a strong CTA to download the e-guide."
           />
           <div className="grid md:grid-cols-3 xl:grid-cols-6 gap-3">
@@ -463,7 +463,7 @@ export function GeminiStyleVideoCommand({ initialRequest }: { initialRequest?: P
 
       <StudioSection eyebrow="project rendering" title="Media projects without the cramped side rail" right={activeProject ? <button type="button" className="fc-button-brand" onClick={() => void generateSceneVisuals(activeProject)} disabled={busy}><ImageIcon size={14} /> Generate missing visuals</button> : null}>
         <div className="grid md:grid-cols-3 gap-4">
-          {projects.slice(0, 9).map((p) => <button key={p.id} type="button" onClick={() => setActiveProjectId(p.id)} className={`rounded-3xl border p-5 text-left ${activeProject?.id === p.id ? 'border-amber-400/40 bg-amber-500/10' : 'border-white/10 bg-white/[0.035]'}`}><div className="text-white font-bold truncate">{p.title}</div><div className="mt-2 text-[10px] uppercase tracking-widest text-white/40">{p.aspect} • {p.scenes.length} scene(s)</div></button>)}
+          {projects.slice(0, 9).map((p) => <button key={p.id} type="button" onClick={() => setActiveProjectId(p.id)} className={`rounded-3xl border p-5 text-left ${activeProject?.id === p.id ? 'border-violet-400/40 bg-violet-500/10' : 'border-white/10 bg-white/[0.035]'}`}><div className="text-white font-bold truncate">{p.title}</div><div className="mt-2 text-[10px] uppercase tracking-widest text-white/40">{p.aspect} • {p.scenes.length} scene(s)</div></button>)}
           {!projects.length ? <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-5 text-white/55">No projects yet. Build one from a video plan.</div> : null}
         </div>
         {activeProject ? <div className="rounded-[2rem] border border-white/10 bg-black/30 p-5 space-y-4">

@@ -126,11 +126,11 @@ export default function FinelyCredServicesPage() {
         </section>
 
         <section className="max-w-4xl mx-auto px-4 py-8">
-          <div className={`${finelyOsCatalogCard('amber')} p-6 flex flex-col md:flex-row gap-4 items-start`}>
-            <Shield className="text-amber-400 shrink-0" size={28} />
+          <div className={`${finelyOsCatalogCard('rose')} flex flex-col md:flex-row gap-6 items-start`} data-fc-accent="rose">
+            <Shield className="text-rose-400 shrink-0" size={28} />
             <div>
-              <h2 className={`font-bold ${FINELY_OS_ENTITY_VALUE}`}>Consent & export gate</h2>
-              <p className={`mt-2 text-sm ${FINELY_OS_ENTITY_BODY}`}>
+              <h2 className={`text-2xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>Consent & export gate</h2>
+              <p className={`mt-2 text-base ${FINELY_OS_ENTITY_BODY}`}>
                 Bridge packet export requires fund-ready phase. Non-admins see a clear blocker until the credit program phase clears.
                 LEG-201 consent is verified before origination export. Admins can override via ops dashboard when appropriate.
               </p>

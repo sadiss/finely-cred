@@ -48,6 +48,7 @@ import {
   FINELY_OS_PRIMARY_BTN,
   finelyOsMessageBubble,
 } from '../../features/os/finelyOsLightUi';
+import { resolveWorkspaceProductPath } from '../../features/workspaceLightPreview/product/workspaceProductNav';
 
 const VAULT_ATTACH_LIMIT = CHAT_VAULT_ATTACH_LIMIT;
 
@@ -140,9 +141,19 @@ type Props = {
   initialThreadId?: string;
   lane?: string;
   adminMode?: boolean;
+  navigationMode?: 'preview' | 'live';
 };
 
-export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initialTopic, initialThreadId, lane, adminMode }: Props) {
+export function HubTeamChatPanel({
+  partnerId,
+  partnerDisplayName,
+  compact,
+  initialTopic,
+  initialThreadId,
+  lane,
+  adminMode,
+  navigationMode = 'live',
+}: Props) {
   const navigate = useNavigate();
   const [version, setVersion] = useState(0);
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(initialThreadId ?? null);
@@ -252,7 +263,7 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
     if (!partnerId || !selectedThread) return;
     const handoff = buildComposeHandoffFromThread({ thread: selectedThread, channel, partnerId });
     saveComposeHandoffDraft(handoff);
-    navigate(commsStudioUrlFromHandoff(handoff));
+    navigate(resolveWorkspaceProductPath('admin', commsStudioUrlFromHandoff(handoff), navigationMode));
   };
 
   const evidence = useMemo(
@@ -483,7 +494,7 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
     return (
       <div className="p-6 text-sm text-white/60 space-y-3">
         <p>
-          💬 Team threads are tied to a customer file. {adminMode ? 'To talk to agents live, use the AI Coach tab and tap Choose agent.' : 'Open a partner profile to message on their behalf.'}
+          💬 Team threads are tied to a partner file. {adminMode ? 'To talk to specialists live, use the AI Coach tab and tap Choose specialist.' : 'Open a partner profile to message on their behalf.'}
         </p>
         <div className="flex flex-wrap gap-2">
           {adminMode ? (
@@ -495,7 +506,19 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
               Switch to AI Coach
             </button>
           ) : null}
-          <button type="button" onClick={() => navigate(adminMode ? '/admin/messages' : '/admin/support')} className="text-fuchsia-300 underline">
+          <button
+            type="button"
+            onClick={() =>
+              navigate(
+                resolveWorkspaceProductPath(
+                  adminMode ? 'admin' : 'partner',
+                  adminMode ? '/admin/comms' : '/portal/messages',
+                  navigationMode,
+                ),
+              )
+            }
+            className="text-fuchsia-300 underline"
+          >
             {adminMode ? 'Admin Communication Hub' : 'Support Inbox'}
           </button>
         </div>

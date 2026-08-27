@@ -7,7 +7,7 @@ export function CmoForecastPanel() {
   return (
     <section className="fc-panel p-5 space-y-4">
       <div>
-        <p className="text-xs uppercase tracking-[0.28em] text-amber-200/70">Lead math</p>
+        <p className="text-xs uppercase tracking-[0.28em] text-rose-200/70">Lead math</p>
         <h2 className="text-2xl font-semibold text-white">Forecast History</h2>
         <p className="mt-1 text-sm text-slate-300">Marketing should not guess. It should show the math and tell you where the bottleneck lives.</p>
       </div>
@@ -19,7 +19,7 @@ export function CmoForecastPanel() {
               <span className="text-xs text-slate-400">{forecast.generatedAt}</span>
             </div>
             {forecast.bottlenecks.length ? (
-              <p className="mt-2 text-sm text-amber-100">{forecast.bottlenecks[0]}</p>
+              <p className="mt-2 text-sm text-rose-100">{forecast.bottlenecks[0]}</p>
             ) : <p className="mt-2 text-sm text-emerald-200">Plan is on or above target. Now execute without getting cute.</p>}
           </article>
         ))}

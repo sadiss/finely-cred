@@ -33,13 +33,13 @@ import { OPEN_PUBLIC_CHAT_EVENT, type PublicChatGoal } from '../../lib/publicCha
 import { emitPlatformEvent } from '../../domain/platformEvents';
 import { resolveToolPath, toolsForPersona } from '../../lib/agentPersonaTools';
 import type { AiGatewayMessage } from '../../lib/aiClient';
+import { getPublicChatPersonaPresentation } from './publicChatPersonaUi';
 import {
-  getPublicChatPersonaPresentation,
-  getPublicChatAiReceptionistPresentation,
-  getPublicChatOnDutyPresentation,
-  PUBLIC_CHAT_AI_PERSONA_ID,
-  AIA_GUIDE_STAFF_ID,
-} from './publicChatPersonaUi';
+  buildAiAssistSystemPrompt,
+  refreshChatStaffPresentation,
+  resolveChatStaffPresentation,
+} from '../../lib/chatStaffPresentation';
+import { buildWarmUnclassifiedReply, isUnclassifiableChatMessage } from '../../lib/chatMessageFallback';
 import { forceStaffShiftPolicyResync, getStaffMemberById, isStaffOnShift, staffShiftSummary } from '../../data/staffRoster';
 import { PublicChatStaffAvatar } from './PublicChatStaffAvatar';
 import { useAuth } from '../../auth/AuthProvider';
@@ -77,9 +77,7 @@ type ChatMsg = {
   source?: 'gateway' | 'knowledge_local';
   personaId?: AgentPersonaId;
   kbRefs?: string[];
-  /** RAG chunk ids surfaced for this reply (J4 feedback signal) — not shown, used for thumbs up/down. */
   kbChunkIds?: string[];
-  /** Visitor query that produced this reply — stored alongside the chunk ids for feedback similarity matching. */
   kbQuery?: string;
   feedbackGiven?: 'up' | 'down';
   attachments?: PublicChatDocAnalysis[];
@@ -87,14 +85,8 @@ type ChatMsg = {
 
 type Goal = 'personal' | 'business' | 'tradelines' | 'debt' | 'not_sure';
 
-const GENERIC_WELCOME =
-  "Hi — I'm Aia, Finely Cred's AI guide. Pick a lane below or tell me what you're working on — I'll connect you with the right live specialist when you're ready.";
-
 const LIVE_AGENT_PATTERN =
   /\b(live\s+(agent|person|human|rep|specialist)|real\s+(person|human|agent)|speak\s+(with|to)\s+(a\s+)?(human|person|agent|someone|live)|talk\s+to\s+(a\s+)?(human|real|live)|connect\s+me\s+(to|with)\s+(a\s+)?(human|person|live))/i;
-
-const AI_RECEPTIONIST_PROMPT =
-  'You are Aia, Finely Cred\'s AI receptionist on the public website. Be warm, concise, and educational — never legal advice. Use friendly emojis sparingly (1–2 per message max) to keep the chat approachable. Orient guests, answer basics, and when they need deeper help or a live person, explain that you will connect them with an on-duty specialist after they pick a lane or share their goal. Do not pretend to be human; you are the AI guide that routes to real team members.';
 
 const LANE_OPTIONS = [
   {
@@ -110,8 +102,8 @@ const LANE_OPTIONS = [
     emoji: '🚀',
     label: 'Business credit',
     roleHint: 'Funding Strategist',
-    card: 'border-amber-400/50 bg-amber-600/30 hover:bg-amber-500/40',
-    sub: 'text-amber-100/90',
+    card: 'border-sky-400/50 bg-sky-600/30 hover:bg-sky-500/40',
+    sub: 'text-sky-100/90',
   },
   {
     id: 'tradelines' as const,
@@ -126,8 +118,8 @@ const LANE_OPTIONS = [
     emoji: '🛡️',
     label: 'Debt help',
     roleHint: 'Debt Resolution',
-    card: 'border-orange-400/50 bg-orange-600/30 hover:bg-orange-500/40',
-    sub: 'text-orange-100/90',
+    card: 'border-rose-400/50 bg-rose-600/30 hover:bg-rose-500/40',
+    sub: 'text-rose-100/90',
   },
 ] as const;
 
@@ -212,7 +204,6 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
   };
 
   useEffect(() => {
-    // Boot: re-apply max-8h seed shifts so stale Supabase/local long windows cannot pin Cameron.
     refreshDutyFace({ forcePolicy: true });
     const onFocus = () => {
       if (document.visibilityState === 'hidden') return;
@@ -233,30 +224,28 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
 
   useEffect(() => {
     if (!open) return;
-    // Chat open: force policy re-sync so the visible face matches the current shift.
     refreshDutyFace({ forcePolicy: true });
   }, [open]);
 
   const persona = useMemo(() => resolvePersona(goal, personaOverrideId), [goal, personaOverrideId]);
-  const presentation = useMemo(() => {
+  const audience = user ? 'partner' : 'guest';
+  const chatStaff = useMemo(() => {
     void dutyTick;
-    return getPublicChatPersonaPresentation(persona);
-  }, [persona, dutyTick]);
-  const aiPresentation = useMemo(() => getPublicChatAiReceptionistPresentation(), []);
-  /** Collapsed launcher + open header face — on-duty human, not Aia. */
-  const launcherPresentation = useMemo(() => {
-    void dutyTick;
-    return getPublicChatOnDutyPresentation();
-  }, [dutyTick]);
+    return resolveChatStaffPresentation({
+      personaId: goal ? persona.id : undefined,
+      audience,
+    });
+  }, [persona.id, goal, dutyTick, audience]);
+  const presentation = chatStaff.presentation;
+  const aiAssistBadgeLabel = chatStaff.aiAssistBadgeLabel;
   const launcherShiftMeta = useMemo(() => {
     void dutyTick;
-    const id = launcherPresentation.staffMemberId;
+    const id = presentation.staffMemberId;
     if (!id) return null;
     const staff = getStaffMemberById(id);
     if (!staff) return null;
     return { onShift: isStaffOnShift(staff), summary: staffShiftSummary(staff) };
-  }, [launcherPresentation.staffMemberId, dutyTick]);
-  const showSpecialistIdentity = handoffPhase === 'connecting' || handoffComplete;
+  }, [presentation.staffMemberId, dutyTick]);
 
   const goalLabel = useMemo(() => {
     if (!goal) return undefined;
@@ -272,23 +261,21 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
   const scrollerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    for (const pres of [launcherPresentation, aiPresentation, presentation]) {
-      const url = pres.avatarUrl?.trim();
-      if (url) {
-        const img = new Image();
-        img.src = url;
-      }
+    const url = presentation.avatarUrl?.trim();
+    if (url) {
+      const img = new Image();
+      img.src = url;
     }
-  }, [launcherPresentation, aiPresentation, presentation]);
+  }, [presentation.avatarUrl]);
 
   const seedWelcome = (p: AgentPersona, name?: string) => {
-    const pres = getPublicChatPersonaPresentation(p);
+    const staffBundle = resolveChatStaffPresentation({ personaId: p.id, audience });
     setMessages([
       {
         id: newId(),
         role: 'bot',
-        text: personalizeAgentWelcome(pres.welcome, name ?? fullName),
-        personaId: p.id,
+        text: personalizeAgentWelcome(staffBundle.welcomeWithAiDisclosure, name ?? fullName),
+        personaId: staffBundle.personaId,
       },
     ]);
   };
@@ -306,16 +293,16 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
   };
 
   useEffect(() => {
-    const pres = getPublicChatOnDutyPresentation();
+    const staffBundle = refreshChatStaffPresentation({ audience });
     setMessages([
       {
         id: 'm0',
         role: 'bot',
-        text: personalizeAgentWelcome(pres.welcome, fullName),
-        personaId: personaOnDutyAt().id,
+        text: personalizeAgentWelcome(staffBundle.welcomeWithAiDisclosure, fullName),
+        personaId: staffBundle.personaId,
       },
     ]);
-  }, [locale, dutyTick]);
+  }, [locale, dutyTick, audience, fullName]);
 
   useEffect(() => {
     return () => {
@@ -346,12 +333,12 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
         const p = resolvePersona(detail.goal, detail.personaId);
         pushBot(
           `Got it — let me check who's on duty for ${p.displayTitle.toLowerCase()}. One moment while I connect you…`,
-          PUBLIC_CHAT_AI_PERSONA_ID,
+          chatStaff.personaId,
         );
         window.setTimeout(() => beginHandoff(p), 700);
       } else if (detail.personaId) {
         const p = getAgentPersona(detail.personaId) ?? personaOnDutyAt();
-        pushBot(`I'll connect you with our ${p.displayTitle.toLowerCase()} team — checking availability now…`, PUBLIC_CHAT_AI_PERSONA_ID);
+        pushBot(`I'll connect you with our ${p.displayTitle.toLowerCase()} team — checking availability now…`, chatStaff.personaId);
         window.setTimeout(() => beginHandoff(p), 700);
       }
       if (detail.leadId) {
@@ -369,7 +356,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
 
   const pushBot = (
     text: string,
-    personaId: AgentPersonaId,
+    personaId: AgentPersonaId = chatStaff.personaId,
     source?: ChatMsg['source'],
     kbRefs?: string[],
     kbChunkIds?: string[],
@@ -412,7 +399,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
     if (!files?.length || attachmentBusy) return;
     const slots = MAX_CHAT_ATTACHMENTS - pendingAttachments.length;
     if (slots <= 0) {
-      pushBot('You can attach up to 2 documents per message. Send these first, then upload more. 📎', PUBLIC_CHAT_AI_PERSONA_ID);
+      pushBot('You can attach up to 2 documents per message. Send these first, then upload more. 📎', chatStaff.personaId);
       return;
     }
     setAttachmentBusy(true);
@@ -432,7 +419,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
       pushBot(
         analyzed.map((a, i) => formatPublicChatDocReply(a, i, analyzed.length)).join('\n\n') +
           (partner ? '' : '\n\n💡 Log in or sign up free to save uploads to your profile automatically.'),
-        PUBLIC_CHAT_AI_PERSONA_ID,
+        chatStaff.personaId,
       );
     } finally {
       setAttachmentBusy(false);
@@ -444,13 +431,13 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
     if (!user) {
       pushBot(
         'Direct messages with our live team require a free partner account. Create one or log in — then we can connect you with a specialist in the Communication Hub.',
-        PUBLIC_CHAT_AI_PERSONA_ID,
+        chatStaff.personaId,
       );
       return;
     }
     if (!handoffComplete) {
       if (!goal) {
-        pushBot('Pick your lane above first — then I can connect you with a live specialist.', PUBLIC_CHAT_AI_PERSONA_ID);
+        pushBot('Pick your lane above first — then I can connect you with a live specialist.', chatStaff.personaId);
         return;
       }
       beginHandoff(resolvePersona(goal, personaOverrideId));
@@ -482,7 +469,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
     const staffHint = extractStaffNameHint(aiText);
 
     if (chatIntent === 'specific_staff' && !user) {
-      pushBot(t(activeLocale, 'needPartnerForStaff'), PUBLIC_CHAT_AI_PERSONA_ID);
+      pushBot(t(activeLocale, 'needPartnerForStaff'), chatStaff.personaId);
       setAppointmentDraft((prev) => ({ notes: `${prev?.notes ?? ''} ${trimmed}`.trim(), ...parseAppointmentDraft(trimmed) }));
       if (!handoffComplete) {
         window.setTimeout(() => beginHandoff(getEffectiveAgentPersona('appointment_setter')), 500);
@@ -491,6 +478,24 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
 
     if (LIVE_AGENT_PATTERN.test(trimmed) || (chatIntent === 'specific_staff' && user)) {
       requestLiveAgent();
+      return;
+    }
+
+    if (isUnclassifiableChatMessage(trimmed)) {
+      setBusy(true);
+      setTypingLabel(`${presentation.firstName} ${t(activeLocale, 'typing')}`);
+      const delayMs = humanReplyDelayMs({ userMessage: trimmed });
+      await new Promise((r) => window.setTimeout(r, delayMs));
+      const staffBundle = resolveChatStaffPresentation({ personaId: persona.id, audience });
+      const fallback = buildWarmUnclassifiedReply({
+        presentation: staffBundle.presentation,
+        audience,
+        sentContent: trimmed,
+      });
+      pushBot(fallback.reply, staffBundle.personaId, 'knowledge_local');
+      setFollowUps(fallback.followUps);
+      setTypingLabel(null);
+      setBusy(false);
       return;
     }
 
@@ -511,7 +516,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
         const kbChunkIds = result.citations.map((c) => c.id);
         pushBot(
           enrichPublicChatReply(result.reply, goal),
-          result.personaId,
+          chatStaff.personaId,
           'knowledge_local',
           kbRefs.length ? kbRefs : undefined,
           kbChunkIds.length ? kbChunkIds : undefined,
@@ -530,8 +535,9 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
     }
 
     const classified = classifyMessageIntent(trimmed);
-    let activePersona = personaOverride ?? (handoffComplete ? persona : getEffectiveAgentPersona(PUBLIC_CHAT_AI_PERSONA_ID));
-    const activePersonaId = handoffComplete ? activePersona.id : PUBLIC_CHAT_AI_PERSONA_ID;
+    let activePersona = personaOverride ?? persona;
+    const staffBundle = resolveChatStaffPresentation({ personaId: activePersona.id, audience });
+    const activePersonaId = staffBundle.personaId;
 
     if (shouldUseAppointmentSetter(chatIntent) && handoffComplete) {
       activePersona = getEffectiveAgentPersona('appointment_setter');
@@ -564,7 +570,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
       if (routed) {
         pushBot(
           `Sounds like ${routed.displayTitle.toLowerCase()} is the right lane — connecting you now…`,
-          PUBLIC_CHAT_AI_PERSONA_ID,
+          chatStaff.personaId,
         );
         setGoal((prev) => prev ?? 'not_sure');
         window.setTimeout(() => beginHandoff(routed), 600);
@@ -584,22 +590,32 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
     await new Promise((r) => window.setTimeout(r, delayMs));
 
     try {
+      const replyStaffBundle = resolveChatStaffPresentation({ personaId: activePersona.id, audience });
       const addendum = buildConversationalSystemAddendum({
         locale: activeLocale,
         tone,
         priorBotSnippets: priorBot,
-        staffName: presentation.firstName,
-        onShiftRole: activePersona.displayTitle,
+        staffName: replyStaffBundle.presentation.firstName,
+        onShiftRole: replyStaffBundle.presentation.title,
         isPartner: Boolean(user),
         origin: typeof window !== 'undefined' ? window.location.origin : '',
         userMessage: `${aiText}${attachmentBlock}`,
         easyReadMode,
       });
 
+      const systemPromptBase = buildAiAssistSystemPrompt({
+        presentation: replyStaffBundle.presentation,
+        persona: activePersona,
+        staff: replyStaffBundle.staff,
+        personalityHint: replyStaffBundle.personalityHint,
+        audience,
+        extra: `${activePersona.systemPrompt}\n\n${addendum}`,
+      });
+
       const result = await converseWithFinelyAi({
         messages: aiHistory,
         userMessage: `${aiText}${attachmentBlock}`,
-        systemPromptBase: handoffComplete ? activePersona.systemPrompt : AI_RECEPTIONIST_PROMPT,
+        systemPromptBase,
         taskType: 'public_chat',
         context: {
           surface: 'public_widget',
@@ -685,7 +701,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
     const kbChunkIds = result.citations.map((c) => c.id);
     pushBot(
       enrichPublicChatReply(result.reply, goal),
-      result.personaId,
+      chatStaff.personaId,
       'knowledge_local',
       undefined,
       kbChunkIds.length ? kbChunkIds : undefined,
@@ -698,7 +714,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
     setGoal(g);
     const p = resolvePersona(g);
     setPersonaOverrideId(undefined);
-    pushBot(`Perfect — I'll connect you with our ${p.displayTitle.toLowerCase()} team. Checking who's available…`, PUBLIC_CHAT_AI_PERSONA_ID);
+    pushBot(`Perfect — I'll connect you with our ${p.displayTitle.toLowerCase()} team. Checking who's available…`, chatStaff.personaId);
     window.setTimeout(() => beginHandoff(p), 600);
   };
 
@@ -761,8 +777,13 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
           ? '/free-tradeline-guide'
           : '/free-guide';
 
+  const resolveMsgPresentation = (personaId?: AgentPersonaId) => {
+    if (!personaId) return presentation;
+    return resolveChatStaffPresentation({ personaId, audience }).presentation;
+  };
+
   return (
-    <div className="finely-public-chat-widget" data-fc-public-chat-widget="1">
+    <div className="finely-public-chat-widget" data-fc-public-chat-widget="1" data-fc-obsidian-chat="1">
       {!open && (
         <button
           type="button"
@@ -771,83 +792,68 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
             setOpen(true);
           }}
           className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))] z-[120] inline-flex items-center gap-3 rounded-2xl border border-emerald-400/40 bg-gradient-to-br from-emerald-600/90 via-teal-700/85 to-cyan-900/80 backdrop-blur-xl pl-2 pr-4 py-2 shadow-[0_12px_40px_-8px_rgba(16,185,129,0.55),0_0_0_1px_rgba(139,92,246,0.25)] hover:shadow-[0_20px_50px_-12px_rgba(16,185,129,0.55),0_0_24px_-4px_rgba(45,212,191,0.35)] transition-all max-w-[calc(100vw-2rem)] ring-1 ring-violet-400/20"
-          title={`${launcherPresentation.firstName} on duty · not legal advice`}
+          title={`${presentation.firstName} on duty · not legal advice`}
         >
           <PublicChatStaffAvatar
-            key={launcherPresentation.staffMemberId ?? launcherPresentation.firstName}
-            presentation={launcherPresentation}
+            key={presentation.staffMemberId ?? presentation.firstName}
+            presentation={presentation}
             size="sm"
             showOnline
           />
           <div className="text-left min-w-0">
-            <div className="text-[10px] font-black uppercase tracking-[0.28em] text-emerald-300/90">
-              Chat with {launcherPresentation.firstName}
+            <div className="text-xs font-black uppercase tracking-[0.28em] text-emerald-300/90">
+              Chat with {presentation.firstName}
             </div>
-            <div className="text-xs text-white/80 truncate">On duty · AI helps in chat</div>
+            <div className="text-xs text-white/80 truncate">On duty · {aiAssistBadgeLabel}</div>
           </div>
         </button>
       )}
 
       {open && (
         <div className="fixed inset-0 sm:inset-auto sm:bottom-5 sm:right-5 z-[120] sm:w-[min(440px,calc(100vw-2rem))] sm:max-h-[calc(100vh-2rem)] flex flex-col">
-          <div className="relative flex flex-col h-full sm:h-[min(640px,calc(100vh-2rem))] sm:rounded-3xl border border-emerald-500/25 bg-[#070d0b] shadow-[0_24px_80px_-20px_rgba(0,0,0,0.85)] overflow-hidden ring-1 ring-white/5">
+          <div className="relative flex flex-col h-full sm:h-[min(640px,calc(100vh-2rem))] sm:rounded-3xl border border-white/[0.08] fc-comms-solid-shell fc-public-chat-panel shadow-[0_24px_80px_-20px_rgba(0,0,0,0.85)] overflow-hidden ring-1 ring-white/5">
             <div
               aria-hidden
               className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_20%_-10%,rgba(16,185,129,0.12),transparent_55%),radial-gradient(ellipse_60%_40%_at_90%_20%,rgba(45,212,191,0.08),transparent_50%),radial-gradient(ellipse_50%_35%_at_70%_100%,rgba(139,92,246,0.07),transparent_45%)]"
             />
-            {/* Header */}
-            <div
-              className={`relative z-10 shrink-0 px-4 pt-4 pb-3 border-b border-white/[0.08] ${
-                handoffComplete
-                  ? `bg-gradient-to-br ${presentation.headerGradient}`
-                  : `bg-gradient-to-br ${launcherPresentation.headerGradient}`
-              }`}
-            >
+            <div className={`relative z-10 shrink-0 px-4 pt-4 pb-3 border-b border-white/[0.08] bg-gradient-to-br ${presentation.headerGradient}`}>
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-start gap-3 min-w-0">
-                  {showSpecialistIdentity ? (
-                    <PublicChatStaffAvatar
-                      key={presentation.staffMemberId ?? presentation.firstName}
-                      presentation={presentation}
-                      size="lg"
-                      showOnline={handoffComplete}
-                    />
-                  ) : (
-                    <PublicChatStaffAvatar
-                      key={launcherPresentation.staffMemberId ?? launcherPresentation.firstName}
-                      presentation={launcherPresentation}
-                      size="lg"
-                      showOnline
-                    />
-                  )}
+                  <PublicChatStaffAvatar
+                    key={presentation.staffMemberId ?? presentation.firstName}
+                    presentation={presentation}
+                    size="lg"
+                    showOnline={launcherShiftMeta?.onShift ?? true}
+                  />
                   <div className="min-w-0">
                     {handoffComplete ? (
                       <>
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="font-bold text-white text-base truncate">{presentation.firstName}</span>
-                          <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-400/30 text-emerald-50 border border-emerald-300/40 uppercase tracking-wider font-bold animate-pulse">
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-400/30 text-emerald-50 border border-emerald-300/40 uppercase tracking-wider font-bold animate-pulse">
                             Active now
+                          </span>
+                          <span className="text-xs px-2 py-0.5 rounded-full text-violet-100 border border-violet-400/35 bg-violet-500/15 uppercase tracking-wider font-bold">
+                            {aiAssistBadgeLabel}
                           </span>
                         </div>
                         <div className={`text-xs font-medium ${presentation.accentText} truncate`}>{presentation.title}</div>
-                        <p className="text-[11px] text-white/55 mt-1 leading-snug">{presentation.tagline}</p>
+                        <p className="text-xs text-white/55 mt-1 leading-snug">{presentation.tagline}</p>
                       </>
-                    ) : showSpecialistIdentity ? (
+                    ) : handoffPhase === 'connecting' ? (
                       <>
                         <span className="font-bold text-white text-base">{presentation.firstName}</span>
                         <div className="text-xs font-medium text-emerald-200/80 mt-0.5">
-                          {handoffPhase === 'connecting'
-                            ? `Connecting you with ${presentation.title}…`
-                            : `${presentation.title} · ready when you are`}
+                          Connecting you with {presentation.title}…
                         </div>
-                        <p className="text-[11px] text-white/55 mt-1 leading-snug">{presentation.tagline}</p>
+                        <p className="text-xs text-white/55 mt-1 leading-snug">{presentation.tagline}</p>
                       </>
                     ) : (
                       <>
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="font-bold text-white text-base">{launcherPresentation.firstName}</span>
+                          <span className="font-bold text-white text-base">{presentation.firstName}</span>
                           <span
-                            className={`text-[9px] px-2 py-0.5 rounded-full uppercase tracking-wider font-bold border ${
+                            className={`text-xs px-2 py-0.5 rounded-full uppercase tracking-wider font-bold border ${
                               launcherShiftMeta?.onShift
                                 ? 'bg-emerald-400/25 text-emerald-50 border-emerald-300/35'
                                 : 'bg-white/10 text-white/70 border-white/20'
@@ -855,14 +861,17 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                           >
                             {launcherShiftMeta?.onShift ? 'On shift' : 'After hours'}
                           </span>
+                          <span className="text-xs px-2 py-0.5 rounded-full text-violet-100 border border-violet-400/35 bg-violet-500/15 uppercase tracking-wider font-bold">
+                            {aiAssistBadgeLabel}
+                          </span>
                         </div>
-                        <div className={`text-xs font-medium ${launcherPresentation.accentText} truncate mt-0.5`}>
-                          {launcherPresentation.title} · AI helps in this chat
+                        <div className={`text-xs font-medium ${presentation.accentText} truncate mt-0.5`}>
+                          {presentation.title}
                           {launcherShiftMeta?.summary ? (
                             <span className="text-white/45"> · {launcherShiftMeta.summary}</span>
                           ) : null}
                         </div>
-                        <p className="text-[11px] text-white/45 mt-1 leading-snug">{launcherPresentation.tagline}</p>
+                        <p className="text-xs text-white/45 mt-1 leading-snug">{presentation.tagline}</p>
                       </>
                     )}
                   </div>
@@ -880,7 +889,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
 
             <div
               ref={scrollerRef}
-              className="relative flex-1 min-h-0 overflow-y-auto overscroll-contain px-3 sm:px-4 py-4 space-y-4 bg-[#0a100e]/90 border-y border-white/[0.06]"
+              className="relative flex-1 min-h-0 overflow-y-auto overscroll-contain px-3 sm:px-4 py-4 space-y-4 fc-public-chat-messages border-y border-white/[0.06]"
             >
               {handoffPhase === 'connecting' ? (
                 <div className="rounded-2xl border border-sky-400/30 bg-sky-500/10 px-4 py-3 flex items-center gap-3 animate-pulse">
@@ -889,7 +898,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                     <p className="text-xs font-bold text-sky-50">
                       {presentation.firstName} is coming online…
                     </p>
-                    <p className="text-[10px] text-sky-100/70 mt-0.5">
+                    <p className="text-xs text-sky-100/70 mt-0.5">
                       Connecting you with {presentation.title}
                     </p>
                   </div>
@@ -909,11 +918,11 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                   return (
                     <div key={m.id} className="flex justify-end pl-8">
                       <div className="max-w-[88%]">
-                        <div className="text-[9px] text-sky-200/70 text-right mb-1 font-bold uppercase tracking-wider">{t(locale, 'you')}</div>
+                        <div className="text-xs text-sky-200/70 text-right mb-1 font-bold uppercase tracking-wider">{t(locale, 'you')}</div>
                         <div className="rounded-2xl rounded-br-md px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap text-white bg-gradient-to-br from-sky-600 to-blue-700 shadow-[0_4px_16px_-4px_rgba(56,189,248,0.35)] border border-sky-400/40 font-medium">
                           {m.text}
                           {m.attachments?.length ? (
-                            <div className="mt-2 pt-2 border-t border-white/20 space-y-1 text-[11px] text-sky-50/90">
+                            <div className="mt-2 pt-2 border-t border-white/20 space-y-1 text-xs text-sky-50/90">
                               {m.attachments.map((a) => (
                                 <div key={a.id}>{a.emoji} {a.label} · {a.fileName}</div>
                               ))}
@@ -925,34 +934,16 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                   );
                 }
 
-                const msgPersona =
-                  m.role === 'bot' && !handoffComplete && m.personaId === PUBLIC_CHAT_AI_PERSONA_ID
-                    ? aiPresentation
-                    : m.personaId
-                      ? getPublicChatPersonaPresentation(getAgentPersona(m.personaId)!)
-                      : showSpecialistIdentity
-                        ? presentation
-                        : handoffComplete
-                          ? presentation
-                          : launcherPresentation;
-                const isAiGuideMsg =
-                  m.personaId === PUBLIC_CHAT_AI_PERSONA_ID ||
-                  msgPersona.staffMemberId === AIA_GUIDE_STAFF_ID;
+                const msgPersona = resolveMsgPresentation(m.personaId);
                 return (
                   <div key={m.id} className="flex justify-start gap-2.5 pr-6">
                     <PublicChatStaffAvatar presentation={msgPersona} size="sm" />
                     <div className="min-w-0 max-w-[88%] space-y-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-[10px] font-bold text-white/85">{msgPersona.firstName}</span>
-                        <span className="text-[9px] text-white/45">· {msgPersona.title}</span>
-                        <span
-                          className={`text-[8px] uppercase tracking-wider rounded px-1 py-0.5 border ${
-                            isAiGuideMsg
-                              ? 'text-cyan-200/90 border-cyan-400/30 bg-cyan-500/10'
-                              : 'text-emerald-300/70 border-emerald-400/25 bg-emerald-500/10'
-                          }`}
-                        >
-                          {isAiGuideMsg ? 'AI Guide' : 'Staff'}
+                        <span className="text-xs font-bold text-white/85">{msgPersona.firstName}</span>
+                        <span className="text-xs text-white/45">· {msgPersona.title}</span>
+                        <span className="text-xs uppercase tracking-wider rounded px-1.5 py-0.5 border text-violet-100 border-violet-400/35 bg-violet-500/15">
+                          {aiAssistBadgeLabel}
                         </span>
                       </div>
                       <div className="rounded-2xl rounded-bl-md px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap text-slate-900 bg-white border border-slate-200/90 shadow-sm">
@@ -960,12 +951,12 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                       </div>
                       <div className="flex flex-wrap items-center gap-2 px-0.5">
                         {m.source ? (
-                          <span className="text-[9px] text-white/40">
+                          <span className="text-xs text-white/40">
                             {m.source === 'gateway' ? 'Live reply' : 'Knowledge base'}
                           </span>
                         ) : null}
                         {m.kbRefs?.map((ref) => (
-                          <span key={ref} className="text-[8px] px-1.5 py-0.5 rounded-full bg-violet-500/15 text-violet-100 border border-violet-300/20">
+                          <span key={ref} className="text-xs px-1.5 py-0.5 rounded-full bg-violet-500/15 text-violet-100 border border-violet-300/20">
                             KB · {ref}
                           </span>
                         ))}
@@ -973,29 +964,29 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                       {m.kbChunkIds?.length ? (
                         <div className="flex items-center gap-1.5 px-0.5">
                           {m.feedbackGiven ? (
-                            <span className="text-[9px] text-white/35">
+                            <span className="text-xs text-white/35">
                               {m.feedbackGiven === 'up' ? 'Thanks — glad that helped!' : 'Thanks — we\'ll improve this.'}
                             </span>
                           ) : (
                             <>
-                              <span className="text-[9px] text-white/35">Helpful?</span>
+                              <span className="text-xs text-white/35">Helpful?</span>
                               <button
                                 type="button"
                                 onClick={() => submitKnowledgeFeedback(m, true)}
-                                className="inline-flex items-center justify-center w-5 h-5 rounded-full border border-emerald-400/25 bg-emerald-500/10 text-emerald-200/80 hover:bg-emerald-500/20 hover:text-emerald-100"
+                                className="inline-flex items-center justify-center w-6 h-6 rounded-full border border-emerald-400/25 bg-emerald-500/10 text-emerald-200/80 hover:bg-emerald-500/20 hover:text-emerald-100"
                                 aria-label="Mark this answer helpful"
                                 title="Helpful"
                               >
-                                <ThumbsUp size={10} />
+                                <ThumbsUp size={12} />
                               </button>
                               <button
                                 type="button"
                                 onClick={() => submitKnowledgeFeedback(m, false)}
-                                className="inline-flex items-center justify-center w-5 h-5 rounded-full border border-rose-400/25 bg-rose-500/10 text-rose-200/80 hover:bg-rose-500/20 hover:text-rose-100"
+                                className="inline-flex items-center justify-center w-6 h-6 rounded-full border border-rose-400/25 bg-rose-500/10 text-rose-200/80 hover:bg-rose-500/20 hover:text-rose-100"
                                 aria-label="Mark this answer not helpful"
                                 title="Not helpful"
                               >
-                                <ThumbsDown size={10} />
+                                <ThumbsDown size={12} />
                               </button>
                             </>
                           )}
@@ -1008,17 +999,14 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
 
               {busy ? (
                 <div className="flex justify-start gap-2.5 pr-6">
-                  <PublicChatStaffAvatar
-                    presentation={showSpecialistIdentity ? presentation : aiPresentation}
-                    size="sm"
-                  />
+                  <PublicChatStaffAvatar presentation={presentation} size="sm" />
                   <div className={`${finelyOsInlineListItem()} px-4 py-3 inline-flex gap-2 items-center`}>
                     <span className="flex gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce [animation-delay:0ms]" />
                       <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-bounce [animation-delay:120ms]" />
                       <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-bounce [animation-delay:240ms]" />
                     </span>
-                    <span className="text-xs text-white/55">{handoffComplete ? `${presentation.firstName} is typing…` : `${aiPresentation.firstName} is typing…`}</span>
+                    <span className="text-xs text-white/55">{presentation.firstName} is typing…</span>
                   </div>
                 </div>
               ) : null}
@@ -1028,7 +1016,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
               {pendingAttachments.length ? (
                 <div className="flex flex-wrap gap-1.5">
                   {pendingAttachments.map((a) => (
-                    <span key={a.id} className="inline-flex items-center gap-1 rounded-full border border-amber-400/40 bg-amber-500/15 px-2 py-1 text-[10px] text-amber-100">
+                    <span key={a.id} className="inline-flex items-center gap-1 rounded-full border border-sky-400/40 bg-sky-500/15 px-2 py-1 text-xs text-sky-100">
                       {a.emoji} {a.label}
                       <button type="button" className="opacity-70 hover:opacity-100" onClick={() => setPendingAttachments((prev) => prev.filter((x) => x.id !== a.id))} aria-label="Remove attachment">×</button>
                     </span>
@@ -1040,7 +1028,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                 ref={textareaRef}
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
-                placeholder={handoffComplete ? `Message ${presentation.firstName}…` : `Message ${launcherPresentation.firstName}…`}
+                placeholder={`Message ${presentation.firstName}…`}
                 dir={isRtlLocale(locale) ? 'rtl' : 'ltr'}
                 rows={3}
                 className="w-full bg-white/[0.08] border border-emerald-400/25 rounded-xl px-4 py-3 text-[15px] text-white placeholder:text-white/45 focus:border-emerald-400/55 focus:outline-none focus:ring-1 focus:ring-emerald-500/35 resize-none leading-relaxed shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
@@ -1060,10 +1048,10 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                     setEmojiOpen(false);
                     setOptionsOpen((v) => !v);
                   }}
-                  className={`inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-xl border text-[10px] font-black uppercase tracking-wider shadow-[0_0_14px_-4px_rgba(251,191,36,0.45)] ${
+                  className={`inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-xl border text-xs font-black uppercase tracking-wider ${
                     optionsOpen
-                      ? 'border-amber-300 bg-gradient-to-br from-amber-400 to-orange-500 text-black'
-                      : 'border-amber-400/80 bg-gradient-to-br from-amber-500/25 to-orange-600/30 text-amber-50 hover:from-amber-400/40 hover:to-orange-500/40'
+                      ? 'border-violet-300 bg-gradient-to-br from-violet-500 to-fuchsia-600 text-white'
+                      : 'border-violet-400/80 bg-violet-500/25 text-violet-50 hover:bg-violet-500/35'
                   }`}
                   aria-expanded={optionsOpen}
                   aria-label={optionsOpen ? t(locale, 'closeOptions') : t(locale, 'openOptions')}
@@ -1076,7 +1064,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                   type="button"
                   disabled={attachmentBusy || pendingAttachments.length >= MAX_CHAT_ATTACHMENTS}
                   onClick={() => fileInputRef.current?.click()}
-                  className="inline-flex items-center justify-center gap-1 px-2 py-2 rounded-xl border border-sky-400/40 bg-sky-500/15 text-[10px] font-bold uppercase tracking-wide text-sky-100 hover:bg-sky-500/25 disabled:opacity-40"
+                  className="inline-flex items-center justify-center gap-1 px-2 py-2 rounded-xl border border-sky-400/40 bg-sky-500/15 text-xs font-bold uppercase tracking-wide text-sky-100 hover:bg-sky-500/25 disabled:opacity-40"
                   title={`Attach up to ${MAX_CHAT_ATTACHMENTS} documents (PDF, image, HTML)`}
                 >
                   {attachmentBusy ? <Loader2 size={14} className="animate-spin" /> : <Paperclip size={14} />}
@@ -1088,7 +1076,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                     setOptionsOpen(false);
                     setEmojiOpen((open) => !open);
                   }}
-                  className={`inline-flex items-center justify-center gap-1 px-2 py-2 rounded-xl border text-[10px] font-bold uppercase tracking-wide transition-all ${
+                  className={`inline-flex items-center justify-center gap-1 px-2 py-2 rounded-xl border text-xs font-bold uppercase tracking-wide transition-all ${
                     emojiOpen
                       ? 'border-fuchsia-400/50 bg-fuchsia-500/20 text-fuchsia-100 shadow-[0_0_0_1px_rgba(217,70,239,0.25)]'
                       : 'border-white/15 bg-white/[0.06] text-white/80 hover:border-fuchsia-400/35 hover:bg-fuchsia-500/10'
@@ -1103,7 +1091,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                   type="button"
                   onClick={() => void sendMessage(draft)}
                   disabled={busy || (!sanitize(draft) && !pendingAttachments.length)}
-                  className="inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 text-black disabled:opacity-40 shadow-lg shadow-emerald-500/20 text-[10px] font-black uppercase tracking-wider"
+                  className="inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 text-black disabled:opacity-40 shadow-lg shadow-emerald-500/20 text-xs font-black uppercase tracking-wider"
                   title="Send"
                 >
                   <Send size={16} />
@@ -1130,7 +1118,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                         key={f}
                         type="button"
                         onClick={() => void sendMessage(f)}
-                        className="w-full px-2.5 py-2 rounded-xl border border-teal-400/35 bg-teal-500/15 text-[10px] text-teal-50 hover:bg-teal-500/25 text-left leading-snug"
+                        className="w-full px-2.5 py-2 rounded-xl border border-teal-400/35 bg-teal-500/15 text-xs text-teal-50 hover:bg-teal-500/25 text-left leading-snug"
                       >
                         {f}
                       </button>
@@ -1149,7 +1137,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                         data-testid={`public-chat-lane-chip-${x.id}`}
                         type="button"
                         onClick={() => pickGoal(x.id)}
-                        className={`w-full px-2.5 py-2 rounded-xl border text-[10px] font-semibold text-left transition-all ${x.card}`}
+                        className={`w-full px-2.5 py-2 rounded-xl border text-xs font-semibold text-left transition-all ${x.card}`}
                       >
                         {x.emoji} {x.label}
                       </button>
@@ -1166,7 +1154,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                       key={loc}
                       type="button"
                       onClick={() => setLocale(loc)}
-                      className={`w-full py-1.5 rounded-lg text-[10px] font-semibold border transition-colors text-center ${
+                      className={`w-full py-1.5 rounded-lg text-xs font-semibold border transition-colors text-center ${
                         locale === loc
                           ? 'border-emerald-400/50 bg-emerald-500/20 text-emerald-100'
                           : 'border-white/12 bg-white/[0.04] text-white/55 hover:border-white/25 hover:text-white/80'
@@ -1179,7 +1167,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                 </div>
               </div>
             </div>
-            <p className="shrink-0 text-[9px] text-center text-white/30 pb-2 px-3">Educational guidance · not legal advice</p>
+            <p className="shrink-0 text-xs text-center text-white/30 pb-2 px-3">Educational guidance · not legal advice</p>
 
             {optionsOpen ? (
               <>
@@ -1191,7 +1179,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                 />
                 <div className="absolute inset-x-0 bottom-0 z-30 max-h-[min(78vh,520px)] overflow-y-auto overscroll-contain rounded-t-3xl border-t border-white/15 bg-[#141a21] shadow-[0_-20px_60px_-12px_rgba(0,0,0,0.75)]">
                   <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-white/10 bg-[#141a21]/95 px-4 py-3 backdrop-blur-sm">
-                    <span className="text-[10px] font-black uppercase tracking-[0.28em] text-white/55">{t(locale, 'yourOptions')}</span>
+                    <span className="text-xs font-black uppercase tracking-[0.28em] text-white/55">{t(locale, 'yourOptions')}</span>
                     <button
                       type="button"
                       onClick={() => setOptionsOpen(false)}
@@ -1214,15 +1202,15 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                               onClick={() => pickGoal(x.id)}
                               className={`px-2.5 py-2.5 rounded-xl border text-left transition-all ${x.card}`}
                             >
-                              <div className="text-[9px] font-black uppercase tracking-widest text-white/90">{x.emoji} {x.label}</div>
-                              <div className={`text-[9px] mt-0.5 ${x.sub}`}>{x.roleHint}</div>
+                              <div className="text-xs font-black uppercase tracking-widest text-white/90">{x.emoji} {x.label}</div>
+                              <div className={`text-xs mt-0.5 ${x.sub}`}>{x.roleHint}</div>
                             </button>
                           ))}
                         </div>
                         <button
                           type="button"
                           onClick={() => pickGoal('not_sure')}
-                          className="mt-2 w-full px-3 py-2 rounded-xl border border-dashed border-rose-400/35 bg-rose-500/15 text-[9px] font-black uppercase tracking-widest text-rose-100 hover:bg-rose-500/25"
+                          className="mt-2 w-full px-3 py-2 rounded-xl border border-dashed border-rose-400/35 bg-rose-500/15 text-xs font-black uppercase tracking-widest text-rose-100 hover:bg-rose-500/25"
                         >
                           Not sure — Welcome Concierge
                         </button>
@@ -1241,7 +1229,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                                 setOptionsOpen(false);
                                 void sendMessage(f);
                               }}
-                              className="px-2.5 py-1.5 rounded-full border border-teal-400/35 bg-teal-500/15 text-[10px] text-teal-50 hover:bg-teal-500/25 text-left"
+                              className="px-2.5 py-1.5 rounded-full border border-teal-400/35 bg-teal-500/15 text-xs text-teal-50 hover:bg-teal-500/25 text-left"
                             >
                               {f}
                             </button>
@@ -1250,20 +1238,20 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                       </div>
                     ) : null}
 
-                    <div className="rounded-2xl border border-amber-400/25 bg-amber-950/30 p-3 space-y-3">
+                    <div className="rounded-2xl border border-violet-400/25 bg-violet-950/30 p-3 space-y-3">
                       <label className="flex items-center gap-2 text-xs text-white/80 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={easyReadMode}
                           onChange={(e) => setEasyReadMode(e.target.checked)}
-                          className="accent-amber-400"
+                          className="accent-violet-400"
                         />
                         {t(locale, 'easyReadMode')}
                       </label>
                       <button
                         type="button"
                         onClick={sendPageHelp}
-                        className="w-full py-2.5 rounded-xl border border-amber-400/35 bg-amber-500/15 text-[10px] font-black uppercase tracking-widest text-amber-100 hover:bg-amber-500/25"
+                        className="w-full py-2.5 rounded-xl border border-violet-400/35 bg-violet-500/15 text-xs font-black uppercase tracking-widest text-violet-100 hover:bg-violet-500/25"
                       >
                         {t(locale, 'pageHelp')}
                       </button>
@@ -1280,7 +1268,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                               setOptionsOpen(false);
                               void sendMessage(topic.prompt);
                             }}
-                            className="px-2.5 py-1.5 rounded-lg border border-white/12 bg-white/[0.04] text-[9px] font-semibold text-white/75 hover:border-emerald-400/35 hover:text-emerald-100"
+                            className="px-2.5 py-1.5 rounded-lg border border-white/12 bg-white/[0.04] text-xs font-semibold text-white/75 hover:border-emerald-400/35 hover:text-emerald-100"
                           >
                             {topic.emoji} {topic.label}
                           </button>
@@ -1293,10 +1281,10 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                         <summary className="cursor-pointer list-none p-3 flex flex-wrap items-center justify-between gap-2 [&::-webkit-details-marker]:hidden">
                           <div className="text-xs text-white/70 inline-flex items-center gap-2">
                             <ShieldCheck size={14} className="text-emerald-300 shrink-0" />
-                            Free Enlightenment session{handoffComplete ? ` with ${presentation.firstName}'s team` : ' with our specialists'}
+                            Free strategy call{handoffComplete ? ` with ${presentation.firstName}'s team` : ' with our specialists'}
                           </div>
-                          <span className="text-[10px] font-black uppercase tracking-widest text-emerald-300 group-open:hidden">Reserve →</span>
-                          <span className="text-[10px] font-black uppercase tracking-widest text-white/40 hidden group-open:inline">Collapse</span>
+                          <span className="text-xs font-black uppercase tracking-widest text-emerald-300 group-open:hidden">Reserve →</span>
+                          <span className="text-xs font-black uppercase tracking-widest text-white/40 hidden group-open:inline">Collapse</span>
                         </summary>
                         <div className="px-3 pb-3 space-y-2 border-t border-emerald-400/15 pt-3">
                           <div className="text-xs text-white/80 font-semibold">Join the team — reserve your session</div>
@@ -1307,7 +1295,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                             <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-1" />
                             I consent to be contacted by Finely Cred.
                           </label>
-                          <button type="button" disabled={!canSubmit || busy} onClick={() => void handleSubmitLead()} className="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-500 text-black font-black uppercase tracking-widest text-[10px] disabled:opacity-50">
+                          <button type="button" disabled={!canSubmit || busy} onClick={() => void handleSubmitLead()} className="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-500 text-black font-black uppercase tracking-widest text-xs disabled:opacity-50">
                             Submit
                           </button>
                         </div>
@@ -1321,7 +1309,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                           setOptionsOpen(false);
                           requestLiveAgent();
                         }}
-                        className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-sky-400/25 bg-sky-500/10 text-[10px] font-black uppercase tracking-widest text-sky-100 hover:bg-sky-500/15"
+                        className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-sky-400/25 bg-sky-500/10 text-xs font-black uppercase tracking-widest text-sky-100 hover:bg-sky-500/15"
                       >
                         Speak with a live agent
                       </button>
@@ -1334,7 +1322,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                               setOptionsOpen(false);
                               navigate('/login');
                             }}
-                            className="flex-1 min-w-[120px] py-2 rounded-xl border border-white/15 bg-white/5 text-[10px] font-black uppercase tracking-widest text-white/80 hover:bg-white/10"
+                            className="flex-1 min-w-[120px] py-2 rounded-xl border border-white/15 bg-white/5 text-xs font-black uppercase tracking-widest text-white/80 hover:bg-white/10"
                           >
                             Log in
                           </button>
@@ -1344,7 +1332,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                               setOptionsOpen(false);
                               navigate('/signup');
                             }}
-                            className="flex-1 min-w-[120px] py-2 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-500 text-[10px] font-black uppercase tracking-widest text-black hover:brightness-105"
+                            className="flex-1 min-w-[120px] py-2 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-500 text-xs font-black uppercase tracking-widest text-black hover:brightness-105"
                           >
                             Sign up free
                           </button>
@@ -1357,7 +1345,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                           setOptionsOpen(false);
                           navigate(funnelCta);
                         }}
-                        className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-violet-400/25 bg-violet-500/10 text-[10px] font-black uppercase tracking-widest text-violet-200 hover:bg-violet-500/15"
+                        className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-violet-400/25 bg-violet-500/10 text-xs font-black uppercase tracking-widest text-violet-200 hover:bg-violet-500/15"
                       >
                         <Sparkles size={12} /> Get free guide stack
                       </button>
@@ -1372,7 +1360,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                             setOptionsOpen(false);
                             navigate(resolveToolPath(tool, { goal: goalLabel, funnelPath: funnelCta }));
                           }}
-                          className={`px-2 py-1 rounded-lg ${FINELY_OS_ENTITY_CHIP} text-[9px] hover:text-emerald-200 hover:border-emerald-400/30`}
+                          className={`px-2 py-1 rounded-lg ${FINELY_OS_ENTITY_CHIP} text-xs hover:text-emerald-200 hover:border-emerald-400/30`}
                         >
                           {tool.label}
                         </button>

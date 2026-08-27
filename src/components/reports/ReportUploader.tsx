@@ -1,6 +1,10 @@
 import React, { useMemo, useState } from 'react';
 import { FileUp, ShieldCheck } from 'lucide-react';
-import type { UploadActor, CreditReportFileType, CreditReportRecord } from '../../domain/creditReports';
+import type {
+  UploadActor,
+  CreditReportFileType,
+  CreditReportRecord,
+} from '../../domain/creditReports';
 import { parseHtmlReportWithCache, parsePdfReportWithCache, parseWarningForReport } from '../../lib/reportParsePipeline';
 import { computeReportIdentityCheck } from '../../creditReports/identityCheck';
 import { getBlobStore } from '../../storage/getBlobStore';
@@ -10,6 +14,7 @@ import { createTask, listTasksByPartner } from '../../data/tasksRepo';
 import { upsertReport, listReportsByPartner, findReportSlotForUpload } from '../../data/reportsRepo';
 import { isLegacyPendingReportBlob } from '../../lib/legacyPendingReport';
 import { handleReportUploadTimeline } from '../../lib/reportTimeline';
+import { stampReportSourceHash } from '../../lib/reportSourceProvenance';
 import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_INPUT,
@@ -20,7 +25,7 @@ import {
   FINELY_OS_NOTICE,
   FINELY_OS_NOTICE_ERROR,
   FINELY_OS_NOTICE_WARN,
-  FINELY_OS_PRIMARY_BTN,
+  FINELY_OS_SUCCESS_BTN,
 } from '../../features/os/finelyOsLightUi';
 
 const blobStore = getBlobStore();
@@ -131,7 +136,7 @@ export function ReportUploader({
       sizeBytes: file.size,
       sha256,
       rawBlobRef: ref,
-      parsed,
+      parsed: stampReportSourceHash(parsed, sha256),
       pdfText,
       pdfMeta,
       identityCheck,
@@ -200,7 +205,7 @@ export function ReportUploader({
         </div>
         <div className="md:col-span-1 min-w-0">
           <label className={FINELY_OS_ENTITY_SUBLABEL}>File</label>
-          <label className={`mt-2 w-full cursor-pointer ${FINELY_OS_PRIMARY_BTN} !w-full justify-center`}>
+          <label className={`mt-2 w-full cursor-pointer fc-wlp-report-upload-cta ${FINELY_OS_SUCCESS_BTN} !w-full justify-center`}>
             <FileUp size={14} />
             {busy ? 'Uploading…' : 'Choose file'}
             <input

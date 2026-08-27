@@ -28,13 +28,13 @@ export function FinelyOsOverviewStatTile({
   const badgeAccent = iconAccent ?? (accent as FinelyOsIconAccent);
 
   return (
-    <div className={finelyOsOverviewStatTile(accent)}>
-      <div className="flex items-start gap-3">
-        <FinelyOsIconBadge icon={icon} accent={badgeAccent} size={20} className="p-3 shrink-0" />
+    <div className={finelyOsOverviewStatTile(accent)} data-fc-accent={accent === 'amber' ? 'violet' : accent}>
+      <div className="flex items-start gap-4">
+        <FinelyOsIconBadge icon={icon} accent={badgeAccent === 'amber' ? 'violet' : badgeAccent} size={22} className="p-3.5 shrink-0" />
         <div className="min-w-0 flex-1">
           <div className={FINELY_OS_ENTITY_SUBLABEL}>{label}</div>
-          <div className={`mt-2 text-2xl lg:text-3xl font-bold ${FINELY_OS_ENTITY_VALUE}`}>{value}</div>
-          {hint ? <div className={`mt-2 text-xs ${FINELY_OS_ENTITY_SUBLABEL}`}>{hint}</div> : null}
+          <div className={`mt-2 text-3xl lg:text-4xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{value}</div>
+          {hint ? <div className={`mt-2 text-sm font-bold ${FINELY_OS_ENTITY_SUBLABEL}`}>{hint}</div> : null}
         </div>
       </div>
     </div>

@@ -80,14 +80,14 @@ export type GrowthAgentCapability = {
   tier: 'live' | 'preview' | 'soon';
 };
 
-const CONTENT_STUDIO_PROMOTE_BASE = '/admin/marketing?tab=content&view=advanced&room=video&step=promote';
+const CONTENT_STUDIO_PROMOTE_BASE = '/admin/content-studio&view=advanced&room=video&step=promote';
 
 /** Deep link — Miriam/Jordan promote step; optional Hannah attribution video id. */
 export function buildGrowthContentStudioPromoteUrl(videoId?: string): string {
   const id = videoId?.trim();
   if (!id) return CONTENT_STUDIO_PROMOTE_BASE;
   const params = new URLSearchParams({ view: 'advanced', room: 'video', step: 'promote', videoId: id });
-  return `/admin/marketing?tab=content&${params.toString()}`;
+  return `/admin/content-studio&${params.toString()}`;
 }
 
 /** Phase 8 — open easy-mode video wizard (Jordan pillar / Miriam reel). */
@@ -100,7 +100,7 @@ export function buildGrowthContentStudioWizardUrl(opts?: {
   if (opts?.preset) params.set('preset', opts.preset);
   if (opts?.videoId) params.set('videoId', opts.videoId);
   if (opts?.fromPillar) params.set('from', 'pillar');
-  return `/admin/marketing?tab=content&${params.toString()}`;
+  return `/admin/content-studio&${params.toString()}`;
 }
 
 /**
@@ -175,11 +175,11 @@ export const GROWTH_AGENTS: GrowthAgentDef[] = [
     reportsTo: 'marketing-director',
     position: 'individual_contributor',
     capabilities: [
-      { id: 'find', label: 'Find new people', description: 'Live search across rotating US metros and restore lane.', tier: 'live', href: '/admin/marketing?tab=desk&helper=find' },
+      { id: 'find', label: 'Find new people', description: 'Live search across rotating US metros and restore lane.', tier: 'live', href: '/admin/marketing-desk?helper=find' },
       { id: 'test', label: 'Test search', description: 'One-row proof that search is connected.', tier: 'live', runKey: 'test_search' },
-      { id: 'review', label: 'Review people', description: 'Approve or skip mid-score matches.', tier: 'live', href: '/admin/marketing?tab=desk&helper=find#exceptions' },
+      { id: 'review', label: 'Review people', description: 'Approve or skip mid-score matches.', tier: 'live', href: '/admin/marketing-desk?helper=find#exceptions' },
       { id: 'today10', label: "Today's 10 to contact", description: 'Best prospects to email or message today.', tier: 'live', runKey: 'today_ten' },
-      { id: 'desk', label: 'Open my workroom', description: 'Marketing Desk — board, mail, and tasks.', tier: 'live', href: '/admin/marketing?tab=desk' },
+      { id: 'desk', label: 'Open my workroom', description: 'Marketing Desk — board, mail, and tasks.', tier: 'live', href: '/admin/marketing-desk' },
     ],
   },
   {
@@ -263,7 +263,7 @@ export const GROWTH_AGENTS: GrowthAgentDef[] = [
         label: 'Content Studio',
         description: 'Full video room — upload, publish, repurpose.',
         tier: 'live',
-        href: '/admin/marketing?tab=content&room=video',
+        href: '/admin/content-studio?room=video',
       },
       {
         id: 'content_priority',
@@ -306,7 +306,7 @@ export const GROWTH_AGENTS: GrowthAgentDef[] = [
         label: 'Content Studio',
         description: 'Produce clips, shot lists, and publish paths.',
         tier: 'live',
-        href: '/admin/marketing?tab=content&room=video',
+        href: '/admin/content-studio?room=video',
       },
       {
         id: 'pipeline_review',

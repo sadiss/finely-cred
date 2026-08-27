@@ -13,7 +13,11 @@ import {
   listPartnerSuccessRecords,
   upsertPartnerSuccessRecord,
 } from '../../data/partnerSuccessExperienceRepo';
-import { FINELY_OS_ENTITY_BODY, FINELY_OS_SECONDARY_BTN } from '../../features/os/finelyOsLightUi';
+import {
+  FINELY_OS_ENTITY_BODY,
+  FINELY_OS_SECONDARY_BTN,
+  finelyOsCatalogCard,
+} from '../../features/os/finelyOsLightUi';
 
 const TYPE_ICON: Record<PartnerSuccessModuleType, React.ComponentType<{ size?: number; className?: string }>> = {
   quiz: GraduationCap,
@@ -31,13 +35,25 @@ type Props = {
   compact?: boolean;
 };
 
+const PILL_ACCENTS = ['emerald', 'violet', 'sky', 'rose'] as const;
+
+/** Solid accent chip — the reference cards read as designed because the icon is a filled chip, not tinted glyph. */
+const PILL_CHIP: Record<(typeof PILL_ACCENTS)[number], string> = {
+  emerald: 'bg-emerald-600 ring-emerald-300/40',
+  violet: 'bg-violet-600 ring-violet-300/40',
+  sky: 'bg-sky-600 ring-sky-300/40',
+  rose: 'bg-rose-600 ring-rose-300/40',
+};
+
 function PillModule({
   mod,
   partnerId,
+  accent,
   onChange,
 }: {
   mod: PartnerSuccessModule;
   partnerId: string;
+  accent: (typeof PILL_ACCENTS)[number];
   onChange: () => void;
 }) {
   const navigate = useNavigate();
@@ -47,18 +63,22 @@ function PillModule({
   const [expanded, setExpanded] = useState(false);
   const [quizPick, setQuizPick] = useState<number | null>(null);
   const [rating, setRating] = useState(record?.reviewRating ?? 0);
+  const family = done ? 'emerald' : accent;
 
   return (
     <div
-      className={`rounded-xl border ${
-        done ? 'border-emerald-500/25 bg-emerald-500/[0.04]' : 'border-black/10 bg-transparent'
-      } p-3 min-w-[200px] max-w-sm shrink-0`}
+      className={`${finelyOsCatalogCard(family)} !p-6 min-w-[240px] max-w-sm shrink-0`}
+      data-accent={family}
     >
-      <div className="flex items-start gap-2">
-        <Icon size={16} className={done ? 'text-emerald-700' : 'text-violet-700'} />
+      <div className="flex items-start gap-3">
+        <span
+          className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-white ring-1 ${PILL_CHIP[family]}`}
+        >
+          <Icon size={18} />
+        </span>
         <div className="min-w-0 flex-1">
-          <div className="text-sm font-bold text-slate-900 leading-snug">{mod.title}</div>
-          <p className={`text-[11px] mt-1 line-clamp-2 ${FINELY_OS_ENTITY_BODY}`}>{mod.description}</p>
+          <div className="text-base font-extrabold text-slate-900 leading-snug">{mod.title}</div>
+          <p className={`text-sm mt-1 line-clamp-2 ${FINELY_OS_ENTITY_BODY}`}>{mod.description}</p>
         </div>
       </div>
       <div className="flex flex-wrap gap-1.5 mt-3">
@@ -82,7 +102,7 @@ function PillModule({
         {!done ? (
           <button
             type="button"
-            className="text-[9px] text-slate-400 hover:text-slate-600"
+            className="text-sm font-bold text-slate-500 hover:text-slate-800"
             onClick={() => {
               dismissPartnerSuccessModule(partnerId, mod.id);
               onChange();
@@ -158,12 +178,18 @@ export function PartnerSuccessExperiencePanel({ partnerId, lane, compact }: Prop
   return (
     <div className="space-y-2">
       <div>
-        <p className="text-[10px] font-bold uppercase tracking-widest text-violet-700/80">Partner success</p>
-        <h3 className="text-sm font-black text-slate-900">{compact ? 'Quick wins' : 'Quizzes & check-ins'}</h3>
+        <p className="text-xs font-bold uppercase tracking-widest text-violet-700">Partner success</p>
+        <h3 className="text-xl font-black text-slate-900">{compact ? 'Quick wins' : 'Quizzes & check-ins'}</h3>
       </div>
       <div className={`flex gap-3 overflow-x-auto pb-2 ${compact ? '' : 'flex-wrap'}`}>
-        {(shown.length ? shown : modules.slice(0, 2)).map((mod) => (
-          <PillModule key={mod.id} mod={mod} partnerId={partnerId} onChange={() => setVersion((v) => v + 1)} />
+        {(shown.length ? shown : modules.slice(0, 2)).map((mod, i) => (
+          <PillModule
+            key={mod.id}
+            mod={mod}
+            partnerId={partnerId}
+            accent={PILL_ACCENTS[i % PILL_ACCENTS.length]!}
+            onChange={() => setVersion((v) => v + 1)}
+          />
         ))}
       </div>
     </div>

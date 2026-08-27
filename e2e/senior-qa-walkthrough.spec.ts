@@ -61,10 +61,13 @@ test.describe('Senior QA walkthrough (public)', () => {
     expect(body).not.toMatch(/enlightenment session/);
   });
 
-  test('personal credit page has strategy call CTA', async ({ page }) => {
+  test('personal credit page has strategy call and contextual Ask Finely guidance', async ({ page }) => {
     await page.goto('/personal-credit');
     await expect(page.locator('body')).toContainText(/strategy call/i, { timeout: 15_000 });
-    await expect(page.getByText(/now do this/i).first()).toBeVisible();
+    const evidencePrompt = page.getByRole('button', { name: 'Evidence checklist' });
+    await expect(evidencePrompt).toBeVisible();
+    await evidencePrompt.hover();
+    await expect(page.locator('[data-fc-ask-finely-hover-hint="1"]')).toContainText(/bureau screenshot|source exhibit/i);
   });
 
   test('pricing page uses strategy call (not enlightenment session)', async ({ page }) => {
@@ -99,11 +102,13 @@ test.describe('Senior QA walkthrough (public)', () => {
     });
   });
 
-  test('Watch how opens tour player on personal-credit', async ({ page }) => {
+  test('Ask Finely returns page-specific guidance on personal-credit', async ({ page }) => {
     await page.goto('/personal-credit');
-    await page.getByRole('button', { name: /watch how/i }).click();
-    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByRole('dialog')).toContainText(/credit|personal/i);
+    const firstStepPrompt = page.getByRole('button', { name: 'What should I do first?' });
+    await firstStepPrompt.focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByText("Finely's reply")).toBeVisible({ timeout: 15_000 });
+    await expect(page.locator('[data-fc-launch-help-strip="1"]')).toContainText(/report|bureau|credit/i);
   });
 
   test('path 6 (gate): /affiliate/hub requires sign-in (redirects to onboarding)', async ({ page }) => {

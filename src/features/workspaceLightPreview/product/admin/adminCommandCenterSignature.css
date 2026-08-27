@@ -1,0 +1,172 @@
+.fc-wlp-command-title-accent {
+  color: #ad93f2;
+  text-shadow: 0 0 32px rgba(143, 92, 246, 0.28);
+}
+
+.fc-wlp-command-pulse {
+  display: flex;
+  width: fit-content;
+  max-width: 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+}
+.fc-wlp-command-pulse span,
+.fc-wlp-command-pulse em {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 5px 10px;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 760;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.fc-wlp-command-pulse i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #8f5cf6;
+  box-shadow: 0 0 10px rgba(143, 92, 246, 0.8);
+}
+.fc-wlp-command-pulse i[data-accent='emerald'] {
+  background: #31d8a3;
+  box-shadow: 0 0 10px rgba(49, 216, 163, 0.8);
+}
+.fc-wlp-command-pulse i[data-accent='rose'] {
+  background: #ec4879;
+  box-shadow: 0 0 10px rgba(236, 72, 121, 0.8);
+}
+.fc-wlp-command-pulse i[data-accent='sky'] {
+  background: #2aa7dc;
+  box-shadow: 0 0 10px rgba(42, 167, 220, 0.8);
+}
+.fc-wlp-command-pulse em {
+  border-color: rgba(196, 181, 253, 0.35);
+  color: #ddd6fe;
+}
+
+.fc-wlp-admin-stage-page[data-page-signature='sovereign-command-deck'] > .fc-wlp-section {
+  border: 1px solid rgba(26, 38, 56, 0.1);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 18px;
+  box-shadow:
+    0 24px 48px -42px rgba(8, 20, 37, 0.52),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.fc-wlp-admin-stage-page[data-page-signature='sovereign-command-deck'] .fc-wlp-action-with-insight {
+  overflow: hidden;
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 100% 0, rgba(236, 72, 121, 0.1), transparent 31%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(143, 92, 246, 0.045));
+}
+
+.fc-wlp-admin-stage-page[data-page-signature='sovereign-command-deck'] .fc-wlp-workspace-dock {
+  counter-reset: command-dock;
+}
+.fc-wlp-admin-stage-page[data-page-signature='sovereign-command-deck'] .fc-wlp-workspace-dock > * {
+  position: relative;
+  overflow: hidden;
+  counter-increment: command-dock;
+}
+.fc-wlp-admin-stage-page[data-page-signature='sovereign-command-deck'] .fc-wlp-workspace-dock > *::after {
+  content: '0' counter(command-dock);
+  position: absolute;
+  right: 12px;
+  bottom: 8px;
+  color: rgba(24, 37, 55, 0.12);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 24px;
+  font-weight: 900;
+}
+
+/* Dashboard contrast — dark hero intelligence chips */
+.fc-wlp-admin-stage-page[data-page-signature='sovereign-command-deck'] .fc-wlp-intelligence[data-dark='true'] .fc-wlp-intelligence-copy > span {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.fc-wlp-admin-stage-page[data-page-signature='sovereign-command-deck'] .fc-wlp-intelligence[data-dark='true'] .fc-wlp-intelligence-confidence {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+/* Rose action feature — order number on deep fill */
+.fc-wlp-admin-stage-page[data-page-signature='sovereign-command-deck'] .fc-wlp-action-feature[data-tone='rose'] .fc-wlp-action-order {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+/* Queue labels on rose-tinted mosaic bed */
+.fc-wlp-admin-stage-page[data-page-signature='sovereign-command-deck'] .fc-wlp-action-queue-label {
+  color: #435063;
+}
+
+/* Featured pipeline tile — white subline on emerald fill */
+.fc-wlp-admin-stage-page[data-page-signature='sovereign-command-deck'] .fc-wlp-pipeline-bento-tile[data-featured='true'] .fc-wlp-pipeline-bento-copy > span {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+/* Activity deck status pills need opaque beds on accent-tinted cards */
+.fc-wlp-admin-stage-page[data-page-signature='sovereign-command-deck'] .fc-wlp-activity-deck-card .fc-wlp-status {
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.fc-wlp-admin-stage-page[data-page-signature='sovereign-command-deck'] .fc-wlp-activity-deck-card .fc-wlp-status[data-tone='emerald'] {
+  color: #047857;
+}
+
+.fc-wlp-admin-stage-page[data-page-signature='sovereign-command-deck'] .fc-wlp-activity-deck-card .fc-wlp-status[data-tone='sky'] {
+  color: #0369a1;
+}
+
+/* Health lattice status pills on accent-tinted tiles */
+.fc-wlp-admin-stage-page[data-page-signature='sovereign-command-deck'] .fc-wlp-health-lattice-tile .fc-wlp-status {
+  background: rgba(255, 255, 255, 0.92);
+  color: #064e3b;
+}
+
+/* Site theme — dark admin shell lifts ivory section beds to navy glass with --wlp-ink */
+html[data-fc-theme='dark'] .fc-wlp-admin-stage-page[data-page-signature='sovereign-command-deck'] > .fc-wlp-section {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(16, 23, 34, 0.92);
+  box-shadow: 0 24px 48px -42px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+html[data-fc-theme='dark'] .fc-wlp-admin-stage-page[data-page-signature='sovereign-command-deck'] .fc-wlp-action-with-insight {
+  background:
+    radial-gradient(circle at 100% 0, rgba(236, 72, 121, 0.14), transparent 31%),
+    linear-gradient(145deg, rgba(16, 23, 34, 0.96), rgba(76, 29, 149, 0.12));
+}
+
+html[data-fc-theme='dark'] .fc-wlp-admin-stage-page[data-page-signature='sovereign-command-deck'] .fc-wlp-workspace-dock > *::after {
+  color: rgba(255, 255, 255, 0.08);
+}
+
+html[data-fc-theme='dark'] .fc-wlp-admin-stage-page[data-page-signature='sovereign-command-deck'] .fc-wlp-action-queue-label {
+  color: var(--wlp-muted, #cbd5e1);
+}
+
+html[data-fc-theme='light'] .fc-wlp-admin-stage-page[data-page-signature='sovereign-command-deck'] .fc-wlp-action-queue-label {
+  color: var(--wlp-muted, #435063);
+}
+
+html[data-fc-theme='dark'] .fc-wlp-admin-stage-page[data-page-signature='sovereign-command-deck'] .fc-wlp-activity-deck-card .fc-wlp-status,
+html[data-fc-theme='dark'] .fc-wlp-admin-stage-page[data-page-signature='sovereign-command-deck'] .fc-wlp-health-lattice-tile .fc-wlp-status {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+html[data-fc-theme='dark'] .fc-wlp-admin-stage-page[data-page-signature='sovereign-command-deck'] .fc-wlp-activity-deck-card .fc-wlp-status[data-tone='emerald'] {
+  color: #6ee7b7;
+}
+
+html[data-fc-theme='dark'] .fc-wlp-admin-stage-page[data-page-signature='sovereign-command-deck'] .fc-wlp-activity-deck-card .fc-wlp-status[data-tone='sky'],
+html[data-fc-theme='dark'] .fc-wlp-admin-stage-page[data-page-signature='sovereign-command-deck'] .fc-wlp-health-lattice-tile .fc-wlp-status {
+  color: #7dd3fc;
+}

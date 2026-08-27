@@ -11,7 +11,7 @@ import {
   Wand2,
   X,
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { createCourse, deleteCourse, listAllCourses, upsertCourse } from '../../data/coursesRepo';
 import { createCourseFromTemplate, listCourseTemplates } from '../../data/courseTemplatesRepo';
@@ -33,22 +33,20 @@ import {
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_KPI_ACCENTS,
-  FINELY_OS_NOTICE,
   FINELY_OS_NOTICE_ERROR,
   FINELY_OS_NOTICE_SUCCESS,
   FINELY_OS_PAGE,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
-  FINELY_OS_TOOLBAR,
   finelyOsCatalogCard,
   finelyOsInlineListItem,
 } from '../../features/os/finelyOsLightUi';
 import type { CourseLevel } from '../../domain/educationStudio';
 
-export default function AdminCoursesPage() {
+export function AdminCoursesWorkspace({ embedded = false }: { embedded?: boolean }) {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const [version, setVersion] = useState(0);
-  const [q, setQ] = useState('');
   const [tplOpen, setTplOpen] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -62,12 +60,7 @@ export default function AdminCoursesPage() {
     return () => window.removeEventListener('finely:store', onStore as EventListener);
   }, []);
 
-  const courses = useMemo(() => {
-    const all = listAllCourses();
-    const query = q.trim().toLowerCase();
-    if (!query) return all;
-    return all.filter((c) => `${c.title} ${c.desc} ${(c.tags ?? []).join(' ')} ${c.id}`.toLowerCase().includes(query));
-  }, [q, version]);
+  const courses = useMemo(() => listAllCourses(), [version]);
 
   const templates = useMemo(() => listCourseTemplates(), [version, tplOpen]);
 
@@ -103,6 +96,17 @@ export default function AdminCoursesPage() {
     })),
   [templates]);
 
+  const openCourse = (courseId: string) => {
+    const productPath = pathname.startsWith('/preview/workspace-light')
+      ? '/preview/workspace-light/admin/courses'
+      : '/admin/courses';
+    navigate(
+      embedded
+        ? `${productPath}?courseId=${encodeURIComponent(courseId)}`
+        : `/admin/courses/${courseId}`,
+    );
+  };
+
   const generateFromIdea = async () => {
     const prompt = ideaPrompt.trim();
     if (!prompt) return;
@@ -119,7 +123,7 @@ export default function AdminCoursesPage() {
       window.dispatchEvent(new Event('finely:store'));
       setNotice(`Generated “${created.title}” with ${created.modules.length} modules.`);
       setIdeaPrompt('');
-      navigate(`/admin/courses/${created.id}`);
+      openCourse(created.id);
     } catch (e: any) {
       setErr(e?.message || 'Generation failed.');
     } finally {
@@ -127,17 +131,19 @@ export default function AdminCoursesPage() {
     }
   };
 
-  return (
-    <PageShell
-      badge="Admin"
-      title="AI Education Studio"
-      subtitle="Enterprise educational production — curriculum, authoring, cinematic video, multimedia, and LMS in one pipeline."
-    >
+  const content = (
       <div className={FINELY_OS_PAGE}>
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <button type="button" onClick={() => navigate('/admin')} className={FINELY_OS_BACK_LINK}>
-            <ArrowLeft size={16} /> Admin Dashboard
-          </button>
+          {embedded ? (
+            <div>
+              <div className={FINELY_OS_ENTITY_SUBLABEL}>Education production</div>
+              <div className={FINELY_OS_ENTITY_VALUE}>AI Education Studio</div>
+            </div>
+          ) : (
+            <button type="button" onClick={() => navigate('/admin')} className={FINELY_OS_BACK_LINK}>
+              <ArrowLeft size={16} /> Admin Dashboard
+            </button>
+          )}
           <div className="flex flex-wrap gap-2">
             <button type="button" onClick={() => setTplOpen(true)} className={FINELY_OS_SECONDARY_BTN}>
               <Layers size={14} /> From template
@@ -147,7 +153,7 @@ export default function AdminCoursesPage() {
               onClick={() => {
                 const c = createCourse({ title: 'New course' });
                 window.dispatchEvent(new Event('finely:store'));
-                navigate(`/admin/courses/${c.id}`);
+                openCourse(c.id);
               }}
               className={FINELY_OS_PRIMARY_BTN}
             >
@@ -196,16 +202,17 @@ export default function AdminCoursesPage() {
             <div className="lg:col-span-9">
               <div className={FINELY_OS_ENTITY_SUBLABEL}>Topic prompt</div>
               <textarea
+                aria-label="Course topic prompt"
                 value={ideaPrompt}
                 onChange={(e) => setIdeaPrompt(e.target.value)}
-                rows={3}
+                rows={2}
                 placeholder='Example: "Create a complete course teaching Forex liquidity concepts for beginners."'
-                className={`${FINELY_OS_ENTITY_INPUT} min-h-[96px] resize-y`}
+                className={`${FINELY_OS_ENTITY_INPUT} resize-y`}
               />
             </div>
             <div className="lg:col-span-3">
               <div className={FINELY_OS_ENTITY_SUBLABEL}>Level</div>
-              <select value={ideaLevel} onChange={(e) => setIdeaLevel(e.target.value as CourseLevel)} className={FINELY_OS_ENTITY_SELECT}>
+              <select aria-label="Course level" value={ideaLevel} onChange={(e) => setIdeaLevel(e.target.value as CourseLevel)} className={FINELY_OS_ENTITY_SELECT}>
                 <option value="beginner">Beginner</option>
                 <option value="intermediate">Intermediate</option>
                 <option value="advanced">Advanced</option>
@@ -222,7 +229,7 @@ export default function AdminCoursesPage() {
               icon={engine.id === 'video' ? Clapperboard : BookOpen}
               title={engine.title}
               subtitle={engine.description}
-              accent={(['violet', 'emerald', 'fuchsia', 'sky', 'amber'] as const)[i % 5]}
+              accent={(['violet', 'emerald', 'fuchsia', 'sky', 'rose'] as const)[i % 5]}
               variant="inner"
             >
               <ul className={`space-y-1 ${FINELY_OS_ENTITY_BODY} text-xs`}>
@@ -234,10 +241,10 @@ export default function AdminCoursesPage() {
           ))}
         </div>
 
-        <FinelyOsGlassPanel icon={Sparkles} title="Specialized AI agents" subtitle="Ten agents collaborate across the production pipeline." accent="amber" variant="catalog">
+        <FinelyOsGlassPanel icon={Sparkles} title="Specialized AI agents" subtitle="Ten agents collaborate across the production pipeline." accent="rose" variant="catalog">
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {EDUCATION_AGENTS.map((a) => (
-              <div key={a.id} className={`${finelyOsInlineListItem()} !p-4`}>
+              <div key={a.id} className={finelyOsInlineListItem()}>
                 <div className={FINELY_OS_ENTITY_VALUE}>{a.label}</div>
                 <div className={`mt-1 ${FINELY_OS_ENTITY_BODY} text-xs`}>{a.role}</div>
               </div>
@@ -246,22 +253,13 @@ export default function AdminCoursesPage() {
         </FinelyOsGlassPanel>
 
         <FinelyOsGlassPanel icon={BookOpen} title="Course library" subtitle="Search, edit, publish, and open the full studio for any course." accent="emerald">
-          <div className={`${FINELY_OS_TOOLBAR} !p-4 mb-4`}>
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Search courses…"
-              className={`${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')} flex-1 min-w-[200px]`}
-            />
-            <span className={FINELY_OS_ENTITY_SUBLABEL}>{courses.length} courses</span>
-          </div>
           <FinelyOsCatalogBrowser
             items={courseCatalogItems}
             pageSize={9}
             searchPlaceholder="Filter library…"
             emptyMessage="No courses yet — generate from an idea or start blank."
             initialView="grid"
-            onItemClick={(id) => navigate(`/admin/courses/${id}`)}
+            onItemClick={openCourse}
             renderTrailing={(item) => {
               const c = courses.find((x) => x.id === item.id);
               if (!c) return null;
@@ -302,14 +300,20 @@ export default function AdminCoursesPage() {
         {tplOpen ? (
           <div className="fixed inset-0 z-[80]">
             <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setTplOpen(false)} />
-            <div className={`absolute inset-x-0 top-[8vh] mx-auto w-[min(1100px,calc(100vw-24px))] ${finelyOsCatalogCard('violet')} !p-6 lg:!p-8`} data-fc-accent="violet">
+            <div
+              className={`absolute inset-x-0 top-[8vh] mx-auto w-[min(1100px,calc(100vw-24px))] ${finelyOsCatalogCard('violet')}`}
+              data-fc-accent="violet"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Course template catalog"
+            >
               <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
                 <div>
                   <div className={FINELY_OS_ENTITY_SUBLABEL}>Course templates</div>
                   <div className={FINELY_OS_ENTITY_VALUE}>Create from preset (30+)</div>
                   <p className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>Instant draft courses you refine in the full studio.</p>
                 </div>
-                <button type="button" onClick={() => setTplOpen(false)} className={FINELY_OS_SECONDARY_BTN}>
+                <button type="button" aria-label="Close course templates" onClick={() => setTplOpen(false)} className={FINELY_OS_SECONDARY_BTN}>
                   <X size={16} />
                 </button>
               </div>
@@ -323,7 +327,7 @@ export default function AdminCoursesPage() {
                   const c = createCourseFromTemplate({ templateId: id });
                   window.dispatchEvent(new Event('finely:store'));
                   setTplOpen(false);
-                  navigate(`/admin/courses/${c.id}`);
+                  openCourse(c.id);
                 }}
                 renderTrailing={() => <span className="text-[10px] font-bold uppercase text-violet-700">Use →</span>}
               />
@@ -331,6 +335,21 @@ export default function AdminCoursesPage() {
           </div>
         ) : null}
       </div>
+  );
+
+  if (embedded) return content;
+
+  return (
+    <PageShell
+      badge="Admin"
+      title="AI Education Studio"
+      subtitle="Enterprise educational production — curriculum, authoring, cinematic video, multimedia, and LMS in one pipeline."
+    >
+      {content}
     </PageShell>
   );
+}
+
+export default function AdminCoursesPage() {
+  return <AdminCoursesWorkspace />;
 }

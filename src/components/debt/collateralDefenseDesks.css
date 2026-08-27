@@ -1,0 +1,319 @@
+/**
+ * Foreclosure mosaic + repossession runway — unique full-width desks.
+ */
+
+.fc-collateral-desk {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-width: 0;
+  border-radius: 24px;
+  overflow: hidden;
+}
+
+.fc-collateral-desk-head {
+  position: relative;
+  padding: 28px 32px;
+  border-radius: 24px;
+}
+
+.fc-collateral-desk--mosaic .fc-collateral-desk-head {
+  border: 2px solid rgba(14, 165, 233, 0.42);
+  background:
+    radial-gradient(ellipse 120% 90% at 0% 0%, rgba(14, 165, 233, 0.2), transparent 52%),
+    radial-gradient(ellipse 80% 70% at 100% 0%, rgba(139, 92, 246, 0.12), transparent 48%),
+    linear-gradient(145deg, #0b1c2e, #0f172a 64%);
+}
+
+.fc-collateral-desk--mosaic .fc-collateral-desk-head::before {
+  content: 'RESPA';
+  position: absolute;
+  top: 18px;
+  right: 28px;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: rgba(56, 189, 248, 0.16);
+  pointer-events: none;
+}
+
+.fc-collateral-desk--runway .fc-collateral-desk-head {
+  border: 2px solid rgba(244, 63, 94, 0.42);
+  background:
+    radial-gradient(ellipse 110% 80% at 100% 0%, rgba(244, 63, 94, 0.2), transparent 52%),
+    radial-gradient(ellipse 70% 60% at 0% 100%, rgba(139, 92, 246, 0.1), transparent 48%),
+    linear-gradient(145deg, #2a1020, #0f172a 64%);
+}
+
+.fc-collateral-desk--runway .fc-collateral-desk-head::before {
+  content: 'UCC 9';
+  position: absolute;
+  top: 18px;
+  right: 28px;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: rgba(251, 113, 133, 0.16);
+  pointer-events: none;
+}
+
+.fc-collateral-desk-kicker {
+  display: inline-flex;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #e2e8f0;
+}
+
+.fc-collateral-desk-head h2 {
+  margin: 10px 0 0;
+  font-size: clamp(1.75rem, 3vw, 2.35rem);
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+.fc-collateral-desk-head p {
+  margin: 10px 0 0;
+  max-width: 62ch;
+  font-size: 16px;
+  font-weight: 700;
+  color: rgba(248, 250, 252, 0.78);
+}
+
+.fc-collateral-desk-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.fc-collateral-desk-stat {
+  min-width: 7rem;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.fc-collateral-desk-stat small {
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(248, 250, 252, 0.62);
+}
+
+.fc-collateral-desk-stat strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 18px;
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+.fc-collateral-mosaic {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 1100px) {
+  .fc-collateral-mosaic {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .fc-collateral-mosaic {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fc-collateral-mosaic-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-height: 148px;
+  width: 100%;
+  padding: 20px 22px;
+  border-radius: 20px;
+  text-align: left;
+  border: 1.5px solid rgba(14, 165, 233, 0.28);
+  background:
+    radial-gradient(ellipse 90% 80% at 0% 0%, rgba(14, 165, 233, 0.16), transparent 55%),
+    linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(8, 20, 32, 0.94));
+  color: #f8fafc;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+}
+
+.fc-collateral-mosaic-tile:nth-child(2),
+.fc-collateral-mosaic-tile:nth-child(5) {
+  border-color: rgba(139, 92, 246, 0.32);
+  background:
+    radial-gradient(ellipse 90% 80% at 0% 0%, rgba(139, 92, 246, 0.16), transparent 55%),
+    linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(18, 12, 32, 0.94));
+}
+
+.fc-collateral-mosaic-tile:nth-child(3),
+.fc-collateral-mosaic-tile:nth-child(6) {
+  border-color: rgba(244, 63, 94, 0.28);
+  background:
+    radial-gradient(ellipse 90% 80% at 0% 0%, rgba(244, 63, 94, 0.14), transparent 55%),
+    linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(28, 12, 20, 0.94));
+}
+
+.fc-collateral-mosaic-tile:hover {
+  transform: translateY(-2px);
+}
+
+.fc-collateral-mosaic-tile[data-active='true'] {
+  box-shadow: 0 0 0 3px #fff, 0 0 0 8px #0ea5e9;
+}
+
+.fc-collateral-mosaic-n {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(186, 230, 253, 0.86);
+}
+
+.fc-collateral-mosaic-tile strong {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.fc-collateral-mosaic-tile span {
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(248, 250, 252, 0.74);
+}
+
+.fc-collateral-mosaic-tile em {
+  font-size: 12px;
+  font-weight: 800;
+  font-style: normal;
+  color: #7dd3fc;
+}
+
+.fc-collateral-runway {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  position: relative;
+}
+
+.fc-collateral-runway::before {
+  content: '';
+  position: absolute;
+  left: 27px;
+  top: 18px;
+  bottom: 18px;
+  width: 3px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #fb7185, #8b5cf6);
+}
+
+.fc-collateral-runway-step {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 16px;
+  width: 100%;
+  min-height: 96px;
+  padding: 18px 22px 18px 16px;
+  border-radius: 18px;
+  text-align: left;
+  border: 1.5px solid rgba(244, 63, 94, 0.28);
+  background: linear-gradient(135deg, rgba(244, 63, 94, 0.12), rgba(15, 23, 42, 0.94));
+  color: #f8fafc;
+  position: relative;
+  z-index: 1;
+}
+
+.fc-collateral-runway-step[data-active='true'] {
+  box-shadow: 0 0 0 3px #fff, 0 0 0 8px #f43f5e;
+}
+
+.fc-collateral-runway-n {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 800;
+  background: #f43f5e;
+  color: #fff;
+}
+
+.fc-collateral-runway-copy strong {
+  display: block;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.fc-collateral-runway-copy span,
+.fc-collateral-runway-copy em {
+  display: block;
+  margin-top: 4px;
+  font-size: 14px;
+  font-weight: 700;
+  font-style: normal;
+  color: rgba(248, 250, 252, 0.74);
+}
+
+.fc-collateral-desk-body {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-width: 0;
+}
+
+html[data-fc-theme='light'] .fc-collateral-desk--mosaic .fc-collateral-desk-head,
+[data-fc-workspace-light-preview='1'] .fc-collateral-desk--mosaic .fc-collateral-desk-head {
+  background:
+    radial-gradient(ellipse 120% 90% at 0% 0%, rgba(14, 165, 233, 0.16), transparent 52%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(240, 249, 255, 0.94));
+}
+
+html[data-fc-theme='light'] .fc-collateral-desk--runway .fc-collateral-desk-head,
+[data-fc-workspace-light-preview='1'] .fc-collateral-desk--runway .fc-collateral-desk-head {
+  background:
+    radial-gradient(ellipse 110% 80% at 100% 0%, rgba(244, 63, 94, 0.14), transparent 52%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(255, 241, 242, 0.94));
+}
+
+html[data-fc-theme='light'] .fc-collateral-desk-head h2,
+[data-fc-workspace-light-preview='1'] .fc-collateral-desk-head h2 {
+  color: #0a1628;
+}
+
+html[data-fc-theme='light'] .fc-collateral-desk-head p,
+html[data-fc-theme='light'] .fc-collateral-desk-kicker,
+[data-fc-workspace-light-preview='1'] .fc-collateral-desk-head p,
+[data-fc-workspace-light-preview='1'] .fc-collateral-desk-kicker {
+  color: rgba(10, 22, 40, 0.72);
+}
+
+html[data-fc-theme='light'] .fc-collateral-mosaic-tile,
+html[data-fc-theme='light'] .fc-collateral-runway-step,
+[data-fc-workspace-light-preview='1'] .fc-collateral-mosaic-tile,
+[data-fc-workspace-light-preview='1'] .fc-collateral-runway-step {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.94));
+  color: #0a1628;
+}
+
+html[data-fc-theme='light'] .fc-collateral-mosaic-tile span,
+html[data-fc-theme='light'] .fc-collateral-runway-copy span,
+[data-fc-workspace-light-preview='1'] .fc-collateral-mosaic-tile span,
+[data-fc-workspace-light-preview='1'] .fc-collateral-runway-copy span {
+  color: rgba(10, 22, 40, 0.64);
+}

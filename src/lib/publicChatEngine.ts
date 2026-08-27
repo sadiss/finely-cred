@@ -20,7 +20,7 @@ export const TRUSTED_RESOURCES: TrustedResource[] = [
   { id: 'tradeline_guide', topics: ['tradeline', 'authorized user', 'au'], label: 'Tradeline insider guide', href: '/free-tradeline-guide' },
   { id: 'pricing', topics: ['price', 'cost', 'package', 'plan'], label: 'Pricing & services', href: '/pricing' },
   { id: 'tradelines', topics: ['tradeline', 'marketplace', 'buy'], label: 'Tradelines marketplace', href: '/tradelines' },
-  { id: 'session', topics: ['call', 'appointment', 'session', 'consult', 'book'], label: 'Book enlightenment session', href: '/enlightenment-session' },
+  { id: 'session', topics: ['call', 'appointment', 'session', 'consult', 'book'], label: 'Book a strategy call', href: '/enlightenment-session' },
   { id: 'signup', topics: ['sign up', 'register', 'account', 'portal'], label: 'Create partner account', href: '/signup' },
   { id: 'help', topics: ['help', 'start', 'how'], label: 'Start here / help center', href: '/start-here' },
   { id: 'affiliate', topics: ['affiliate', 'referral', 'partner program'], label: 'Affiliate hub', href: '/affiliate' },

@@ -29,6 +29,7 @@ import {
   StateLawScrutinyBanner,
 } from '../../components/resources/DoctrineArticleParts';
 import { DebtLitigationPlaybookCard } from '../../components/resources/DebtLitigationPlaybookCard';
+import { finelyOsCatalogCard } from '../../features/os/finelyOsLightUi';
 
 const STANDARD_DISCLAIMER =
   'Results vary. Individual outcomes depend on your unique credit profile, income, documentation, and cooperation with the process. This is not legal advice.';
@@ -105,7 +106,7 @@ export default function DebtDefenseTexasPage() {
         </div>
       </section>
 
-      <section className="rounded-[1.25rem] border border-amber-400/25 bg-amber-500/[0.04] p-5">
+      <section className={finelyOsCatalogCard('rose')} data-fc-accent="rose">
         <DoctrineSectionHeading Icon={FileWarning} title="What varies by state and is NOT covered here" eyebrow="Verify locally" />
         <DoctrineFieldList
           tone="warn"

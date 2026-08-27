@@ -1,4 +1,5 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
+import { syncDisputeDeadlinePassedTasks } from '../../lib/disputeDeadlineEngine';
 import { AlertTriangle, ArrowRight, FileWarning } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { listDisputeOpsAttentionRows } from '../../lib/disputeOpsSummary';
@@ -14,6 +15,9 @@ import {
 
 export function AdminDisputeOpsPanel() {
   const navigate = useNavigate();
+  useEffect(() => {
+    syncDisputeDeadlinePassedTasks();
+  }, []);
   const rows = useMemo(() => listDisputeOpsAttentionRows(), []);
 
   if (!rows.length) {

@@ -1,4 +1,4 @@
-/** Landing — hero OS refresh band with fundability KPIs (Part AV). */
+/** Landing — hero band with fundability next steps. */
 import React from 'react';
 import { ArrowRight, Bot, Layers, Sparkles, Target } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -7,9 +7,9 @@ import { Button, Reveal, FlashyIcon } from '../ui';
 import { finelyOsCatalogCard, finelyOsLightMeshSection } from '../../features/os/finelyOsLightUi';
 
 const OS_KPIS = [
-  { value: '6 lanes', label: 'Role OS coverage', accent: 'violet' as const },
-  { value: '40+', label: 'Human automations', accent: 'emerald' as const },
-  { value: 'Tab-first', label: 'Unified hubs', accent: 'amber' as const },
+  { value: '6 lanes', label: 'Partner paths', accent: 'violet' as const },
+  { value: '40+', label: 'Guided follow-ups', accent: 'emerald' as const },
+  { value: 'One step', label: 'Always clear next', accent: 'sky' as const },
 ];
 
 export function LandingHeroOsRefreshSection() {
@@ -18,26 +18,25 @@ export function LandingHeroOsRefreshSection() {
     <section className={`py-10 ${finelyOsLightMeshSection('fc-band-violet')} border-b border-white/5`}>
       <div className="container mx-auto px-4 sm:px-6 max-w-6xl">
         <Reveal>
-          <div className={`${finelyOsCatalogCard('fuchsia')} !p-6 md:!p-8`} data-fc-accent="fuchsia">
+          <div className={`${finelyOsCatalogCard('violet')} !p-6 md:!p-8`} data-fc-accent="violet">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
               <div className="max-w-2xl space-y-4">
-                <div className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.28em] text-fuchsia-600">
+                <div className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.28em] text-violet-300">
                   <Sparkles size={14} />
-                  Finely OS 400% — unified experience
+                  From signup to fundability
                 </div>
-                <h2 className="text-2xl md:text-3xl font-light leading-snug">
-                  One operating system from <span className="text-fuchsia-700 font-medium">signup → fundability → portal</span>
+                <h2 className="text-2xl md:text-3xl font-extrabold leading-snug">
+                  One workspace from <span className="text-violet-200">signup to fundability</span>
                 </h2>
-                <p className="text-sm leading-relaxed opacity-80">
-                  Tab-first hubs replace wall-of-scroll pages. Human automations, Reasons OS, and Work OS share the same lane logic — so
-                  customers always know the next step.
+                <p className="text-base leading-relaxed opacity-80">
+                  Personal restore, business credit, and debt help share the same next step — so you always know what to do now.
                 </p>
                 <div className="flex flex-wrap gap-3 pt-1">
                   <Button variant="gold" size="md" onClick={() => navigate('/fundability-readiness')}>
                     Fundability hub <ArrowRight size={16} />
                   </Button>
-                  <Button variant="platinum" size="md" onClick={() => finelyCtaNavigate(navigate, 'personal_intake')}>
-                    Get started
+                  <Button variant="platinum" size="md" onClick={() => finelyCtaNavigate(navigate, 'personal_free_guide')}>
+                    Start free guide
                   </Button>
                 </div>
               </div>
@@ -54,9 +53,9 @@ export function LandingHeroOsRefreshSection() {
             </div>
             <div className="mt-6 grid sm:grid-cols-3 gap-3 border-t border-black/10 pt-6">
               {[
-                { icon: Layers, title: 'Progressive hubs', desc: 'Personal credit, business, pricing, resources — one tab at a time.', accent: 'violet' as const },
-                { icon: Bot, title: 'Human cadence', desc: 'Persona-driven automations with delays, not blast bots.', accent: 'emerald' as const },
-                { icon: Target, title: 'Fundability lens', desc: 'Reasons OS ranks findings before letters go out.', accent: 'sky' as const },
+                { icon: Layers, title: 'Clear rooms', desc: 'Personal credit, business, and pricing — one path at a time.', accent: 'violet' as const },
+                { icon: Bot, title: 'Human follow-up', desc: 'Timed check-ins from the team, not blast messages.', accent: 'emerald' as const },
+                { icon: Target, title: 'Fundability lens', desc: 'Findings are ranked before letters go out.', accent: 'sky' as const },
               ].map((item, i) => (
                 <Reveal key={item.title} delay={120 + i * 60}>
                   <div className="flex items-start gap-3">

@@ -30,12 +30,26 @@ type FundingTab = 'engine' | 'guide';
 export default function BusinessFundingPage() {
   const navigate = useNavigate();
   const { partner } = usePartnerSession();
+  const routeKey = partner?.primaryRoute || 'personal_restore';
+  const intake = partner?.routes?.[routeKey];
+  const personal = intake?.personal ?? {};
+
+  const defaultScore = (() => {
+    const intakeScore = intake?.score;
+    if (typeof intakeScore === 'number' && intakeScore >= 300) return intakeScore;
+    return 640;
+  })();
+
+  const defaultRevenue = partner?.financial?.annualIncome
+    ? Math.round(partner.financial.annualIncome / 12)
+    : 8000;
+
   const [tab, setTab] = useState<FundingTab>('engine');
-  const [score, setScore] = useState(680);
+  const [score, setScore] = useState(defaultScore);
   const [utilization, setUtilization] = useState(9);
-  const [revenue, setRevenue] = useState(12000);
+  const [revenue, setRevenue] = useState(defaultRevenue);
   const [timeMonths, setTimeMonths] = useState(12);
-  const [zip, setZip] = useState('');
+  const [zip, setZip] = useState(personal.postalCode || '');
   const [hasRelationship, setHasRelationship] = useState(false);
   const [willingToOpenDeposits, setWillingToOpenDeposits] = useState(true);
   const [noDocPreference, setNoDocPreference] = useState(true);
@@ -64,10 +78,10 @@ export default function BusinessFundingPage() {
           eyebrow="Business credit OS"
           title="Lender Logic Engine"
           subtitle="Model lender fit, readiness signals, and next-best actions before you apply."
-          accent="amber"
+          accent="emerald"
           kpis={[
-            { label: 'Score model', value: String(score), accent: 'violet' },
-            { label: 'Utilization', value: `${utilization}%`, accent: 'amber' },
+            { label: 'Score model', value: String(score), accent: 'emerald' },
+            { label: 'Utilization', value: `${utilization}%`, accent: 'violet' },
           ]}
           tabs={[
             { id: 'engine', label: 'Engine' },
@@ -79,8 +93,8 @@ export default function BusinessFundingPage() {
           secondaryAction={{ label: 'Book session', onClick: () => navigate('/consultation?lane=' + encodeURIComponent('Business Credit')) }}
         >
           {tab === 'guide' && (
-            <div className={`${finelyOsCatalogCard('amber')} !p-6 space-y-4`} data-fc-accent="amber">
-              <div className="inline-flex items-center gap-2 text-amber-700">
+            <div className={`${finelyOsCatalogCard('rose')} space-y-4`} data-fc-accent="rose">
+              <div className="inline-flex items-center gap-2 text-rose-700">
                 <Sparkles size={18} />
                 <span className={FINELY_OS_ENTITY_SUBLABEL}>Underwriting optics</span>
               </div>
@@ -98,7 +112,7 @@ export default function BusinessFundingPage() {
             </div>
           )}
 
-          <div className={`${finelyOsCatalogCard('sky')} !p-4 flex flex-wrap items-center justify-between gap-3`} data-fc-accent="sky">
+          <div className={`${finelyOsCatalogCard('sky')} flex flex-wrap items-center justify-between gap-3`} data-fc-accent="sky">
             <div className="flex items-start gap-3 min-w-0">
               <Globe size={18} className="mt-0.5 text-sky-300 shrink-0" />
               <div className="min-w-0">
@@ -121,12 +135,12 @@ export default function BusinessFundingPage() {
 
           {tab === 'engine' && (
         <div className="grid lg:grid-cols-12 gap-6">
-          <div className={`lg:col-span-4 min-w-0 ${finelyOsCatalogCard('violet')} !p-6 space-y-4`} data-fc-accent="violet">
+          <div className={`lg:col-span-4 min-w-0 ${finelyOsCatalogCard('violet')} space-y-4`} data-fc-accent="violet">
             <div className={FINELY_OS_ENTITY_SUBLABEL}>Inputs</div>
             <div className={`space-y-3 text-sm ${FINELY_OS_ENTITY_BODY}`}>
               <label className="block">
                 <div className={FINELY_OS_ENTITY_LABEL}>Credit score</div>
-                <input type="number" value={score} min={300} max={850} onChange={(e) => setScore(parseInt(e.target.value || '680', 10))} className={FINELY_OS_ENTITY_INPUT} />
+                <input type="number" value={score} min={300} max={850} onChange={(e) => setScore(parseInt(e.target.value || String(defaultScore), 10))} className={FINELY_OS_ENTITY_INPUT} />
               </label>
               <label className="block">
                 <div className={FINELY_OS_ENTITY_LABEL}>Utilization %</div>
@@ -168,6 +182,10 @@ export default function BusinessFundingPage() {
               revenueMonthly={inputs.revenueMonthly}
               timeInBusinessMonths={inputs.timeInBusinessMonths}
               zip={zip}
+              state={personal.state}
+              city={personal.city}
+              address={personal.address1}
+              address2={personal.address2}
               radiusMiles={50}
               hasRelationship={hasRelationship}
               willingToOpenDeposits={willingToOpenDeposits}

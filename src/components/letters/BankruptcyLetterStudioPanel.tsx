@@ -37,6 +37,7 @@ import {
   finelyOsMicroStat,
 } from '../../features/os/finelyOsLightUi';
 import { adminEmbeddedNavHref } from '../../lib/adminPartnerRoutes';
+import '../../features/workspaceLightPreview/product/partner/partnerDebtBankruptcyDesk.css';
 
 type Track = 'filing' | 'credit';
 
@@ -47,6 +48,7 @@ export function BankruptcyLetterStudioPanel({
   showPathSwitcher,
   onSwitchToValidation,
   onSwitchToCourt,
+  deskLayout = false,
 }: {
   partner: Partner;
   /** When set, `/portal/*` navigations resolve to admin partner workspace routes. */
@@ -55,6 +57,7 @@ export function BankruptcyLetterStudioPanel({
   showPathSwitcher?: boolean;
   onSwitchToValidation?: () => void;
   onSwitchToCourt?: () => void;
+  deskLayout?: boolean;
 }) {
   const navigate = useNavigate();
   const nav = (href: string) => adminEmbeddedNavHref(adminPartnerId, href);
@@ -151,13 +154,21 @@ export function BankruptcyLetterStudioPanel({
   };
 
   return (
-    <div className={FINELY_OS_COMPACT_PAGE}>
-      <LetterStepPath
-        title="Bankruptcy letter path"
-        steps={bkPathSteps}
-        onStep={(id) => runBkStep(id as DebtLetterStepId)}
-        onContinue={runBkContinue}
-      />
+    <div className={`${FINELY_OS_COMPACT_PAGE} ${deskLayout ? 'fc-wlp-bk-debt-desk' : ''}`} data-surface-layout={deskLayout ? 'command-deck' : undefined}>
+      {deskLayout ? (
+        <header className="fc-wlp-bk-debt-hero">
+          <span className={finelyOsMicroStat('emerald')}>Filing workstation</span>
+          <h2>Prepare the bankruptcy file</h2>
+          <p>Chapter, stay notices, creditor matrix, and discharge disputes — this is not the credit-letter studio.</p>
+        </header>
+      ) : (
+        <LetterStepPath
+          title="Bankruptcy letter path"
+          steps={bkPathSteps}
+          onStep={(id) => runBkStep(id as DebtLetterStepId)}
+          onContinue={runBkContinue}
+        />
+      )}
       <PartnerDebtSnapshotStrip partnerId={partner.id} compact accent="sky" />
       <div className={finelyOsCatalogCardCompact('sky')}>
         <div className="flex flex-wrap items-center justify-between gap-2 mb-2">

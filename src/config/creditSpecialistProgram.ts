@@ -37,17 +37,17 @@ export const CREDIT_SPECIALIST_OFFERINGS: CreditSpecialistOffering[] = [
   },
   {
     title: 'Denefit in-house contracts',
-    description: 'Enroll customers in Denefit financing that reports to Equifax as they pay — recurring commission over the full contract term.',
+    description: 'Enroll partners in Denefit financing that reports to Equifax as they pay — recurring commission over the full contract term.',
     included: ['Equifax build-as-they-pay positioning', 'Term-based Denefit commission calculator', 'Combines with service-fee revenue share'],
   },
   {
     title: 'Finely platform (every level)',
     description: 'CRM, portal, disputes, vault — the tools you work in. This is not a payout tier; apprentices and certified partners all use the same engine.',
-    included: ['Customer dashboard & case routing', 'Letters studio + dispute center', 'Documents vault & task sequencing'],
+    included: ['Partner dashboard & case routing', 'Letters studio + dispute center', 'Documents vault & task sequencing'],
   },
   {
     title: 'Comms & growth tools',
-    description: 'Reach customers and prospects with templates, sequences, and marketing assets under your brand.',
+    description: 'Reach partners and prospects with templates, sequences, and marketing assets under your brand.',
     included: ['Portal messaging with Finely ops', 'Comms templates & lead magnets', 'Education library + free & paid ebooks'],
   },
   {
@@ -58,7 +58,7 @@ export const CREDIT_SPECIALIST_OFFERINGS: CreditSpecialistOffering[] = [
   {
     title: 'White-label workspace',
     description: 'From Finely-branded training to co-branded and full white-label with custom domain.',
-    included: ['Logo, colors, and portal theming', 'Custom domain + Comms from-address', 'Team seats & customer routing rules'],
+    included: ['Logo, colors, and portal theming', 'Custom domain + Comms from-address', 'Team seats & partner routing rules'],
   },
   {
     title: 'Lead growth & prospecting',
@@ -80,14 +80,14 @@ export const CREDIT_SPECIALIST_COMMS_CHANNELS = [
     path: CS.messagesDeepLink,
   },
   {
-    title: 'Customer threads (Communication Hub)',
-    description: 'Live support with your customers — separate from your Finely partnership line. Admin template sends appear here too.',
-    action: 'Customer threads',
+    title: 'Partner threads (Communication Hub)',
+    description: 'Live support with your partners — separate from your Finely partnership line. Admin template sends appear here too.',
+    action: 'Partner threads',
     path: '/portal/messages?hub=team',
   },
   {
     title: 'Calendar & video sessions',
-    description: 'Book strategy calls and join confirmed video rooms with Finely or customers.',
+    description: 'Book strategy calls and join confirmed video rooms with Finely or partners.',
     action: 'Open calendar',
     path: '/portal/calendar',
   },

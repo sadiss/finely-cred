@@ -37,7 +37,7 @@ const FINELY_OS_ENTITY_SUBLABEL = fcAdminOnSolidSublabel('sky');
 const FINELY_OS_ENTITY_VALUE = fcAdminOnSolidValue('sky');
 const FINELY_OS_NOTICE_SUCCESS =
   'rounded-xl border border-emerald-300/40 bg-emerald-400/15 p-4 text-sm text-emerald-50 flex items-start gap-3';
-const FINELY_OS_NOTICE_WARN = 'rounded-xl border border-amber-300/40 bg-amber-400/15 p-4 text-sm text-amber-50';
+const FINELY_OS_NOTICE_WARN = 'rounded-xl border border-rose-300/40 bg-rose-400/15 p-6 text-sm text-rose-50';
 
 type Props = {
   partner: Partner;
@@ -46,7 +46,7 @@ type Props = {
 function threadStatusStyle(status: SupportThreadStatus): { label: string; className: string } {
   switch (status) {
     case 'new':
-      return { label: 'New', className: 'border-amber-400/40 bg-amber-500/15 text-amber-100' };
+      return { label: 'New', className: 'border-violet-400/40 bg-violet-500/15 text-violet-100' };
     case 'triaged':
       return { label: 'Triaged', className: 'border-sky-400/40 bg-sky-500/15 text-sky-100' };
     case 'waiting_on_team':
@@ -230,7 +230,7 @@ export function AdminPartnerMessagePanel({ partner }: Props) {
   };
 
   return (
-    <div className={`${fcAdminCard('p-5', 'sky', 'solid')} space-y-5`} id="admin-partner-message">
+    <div className={`${fcAdminCard('p-6 lg:p-8', 'sky', 'solid')} space-y-5`} id="admin-partner-message">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="max-w-2xl">
           <div className="flex items-center gap-2">
@@ -254,7 +254,7 @@ export function AdminPartnerMessagePanel({ partner }: Props) {
         </div>
       ) : null}
 
-      <div className="rounded-2xl border border-white/20 bg-black/15 p-4 space-y-3">
+      <div className="rounded-2xl border border-white/20 bg-black/15 p-6 space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <span className={FINELY_OS_ENTITY_LABEL}>Suggested messages</span>
           <button
@@ -335,7 +335,7 @@ export function AdminPartnerMessagePanel({ partner }: Props) {
       />
 
       <div className="grid gap-3 md:grid-cols-2">
-        <div className="rounded-2xl border border-white/20 bg-black/15 p-4 space-y-2">
+        <div className="rounded-2xl border border-white/20 bg-black/15 p-6 space-y-2">
           <div className="flex items-center gap-2">
             <Tag size={14} className="text-white" />
             <span className={FINELY_OS_ENTITY_LABEL}>Message topic</span>
@@ -354,7 +354,7 @@ export function AdminPartnerMessagePanel({ partner }: Props) {
           <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>Used when starting a new thread.</p>
         </div>
 
-        <div className="rounded-2xl border border-white/30 bg-white/10 p-4 space-y-2">
+        <div className="rounded-2xl border border-white/30 bg-white/10 p-6 space-y-2">
           <div className="flex items-center gap-2">
             <Mail size={14} className="text-white" />
             <span className={FINELY_OS_ENTITY_LABEL}>Portal inbox email</span>
@@ -375,12 +375,12 @@ export function AdminPartnerMessagePanel({ partner }: Props) {
 
       <div className="flex flex-wrap gap-2">
         <button type="button" onClick={() => navigate(`/admin/support?partner=${partner.id}`)} className={FINELY_OS_SECONDARY_BTN}>
-          <Inbox size={14} /> Open support inbox
+          <Inbox size={14} /> Partner conversations
         </button>
       </div>
 
       {recentThreads.length ? (
-        <div className="rounded-2xl border border-white/20 bg-black/15 p-4 space-y-4">
+        <div className="rounded-2xl border border-white/20 bg-black/15 p-6 space-y-4">
           <div className="flex items-center justify-between gap-3">
             <div>
               <div className="flex items-center gap-2">
@@ -389,7 +389,7 @@ export function AdminPartnerMessagePanel({ partner }: Props) {
               </div>
               <p className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>Tap a card to reopen the conversation in chat.</p>
             </div>
-            <span className="rounded-full border border-white/30 bg-white/15 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-white">
+            <span className="rounded-full border border-white/30 bg-white/15 px-3 py-1 text-xs font-black uppercase tracking-widest text-white">
               {recentThreads.length} active
             </span>
           </div>
@@ -417,13 +417,13 @@ export function AdminPartnerMessagePanel({ partner }: Props) {
                       partnerDisplayName: partnerName,
                     })
                   }
-                  className={`text-left rounded-2xl border bg-black/15 p-4 transition-all ${accents[index % accents.length]}`}
+                  className={`text-left rounded-2xl border bg-black/15 p-6 transition-all ${accents[index % accents.length]}`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="w-11 h-11 rounded-2xl border border-white/10 bg-black/30 flex items-center justify-center text-xl shrink-0">
                       {topicMeta?.emoji ?? '💬'}
                     </div>
-                    <span className={`inline-flex items-center px-2 py-1 rounded-lg border text-[9px] font-black uppercase tracking-widest ${status.className}`}>
+                    <span className={`inline-flex items-center px-2 py-1 rounded-lg border text-xs font-black uppercase tracking-widest ${status.className}`}>
                       {status.label}
                     </span>
                   </div>

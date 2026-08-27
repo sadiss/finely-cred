@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { useParams, useSearchParams } from 'react-router-dom';
+import { AdminWorkstationFrame, type AdminEmbeddablePageProps } from '../../features/workspaceLightPreview/product/admin/AdminWorkstationFrame';
+import { useMappedAdminNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { getCrmRecord, convertCrmRecordToPartner, getRecommendedPackageForRecord, patchCrmRecordDealValue } from '../../data/crmRecordsRepo';
 import { CrmAICopilotPanel } from '../../features/crm/components/CrmAICopilotPanel';
 import { CrmCallTimeOptimizerPanel } from '../../features/crm/components/CrmCallTimeOptimizerPanel';
@@ -24,9 +25,13 @@ import {
 } from '../../features/os/finelyOsLightUi';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 
-export default function AdminCrmRecordPage() {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+type AdminCrmRecordPageProps = AdminEmbeddablePageProps & { recordId?: string };
+
+export default function AdminCrmRecordPage({ embedded = false, recordId: recordIdProp }: AdminCrmRecordPageProps = {}) {
+  const { id: routeId } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
+  const id = recordIdProp || routeId || searchParams.get('recordId') || undefined;
+  const navigate = useMappedAdminNavigate();
   const [version, setVersion] = useState(0);
   const [dealDraft, setDealDraft] = useState('');
   const record = useMemo(() => (id ? getCrmRecord(decodeURIComponent(id)) : null), [id, version]);
@@ -37,7 +42,7 @@ export default function AdminCrmRecordPage() {
   }, [record?.id, record?.dealValueCents]);
 
   if (!id || !record) {
-    return <PageShell badge="Admin" title="Record not found" subtitle="" />;
+    return <AdminWorkstationFrame embedded={embedded} kind="crm-record-workstation" badge="Admin" title="Record not found" subtitle="" />;
   }
 
   const packages = getRecommendedPackageForRecord(record);
@@ -54,13 +59,13 @@ export default function AdminCrmRecordPage() {
   [record.timeline]);
 
   return (
-    <PageShell badge="Admin" title={crmRecordDisplayName(record)} subtitle={`${record.kind} • ${record.stage}`}>
+    <AdminWorkstationFrame embedded={embedded} kind="crm-record-workstation" badge="Admin" title={crmRecordDisplayName(record)} subtitle={`${record.kind} • ${record.stage}`}>
       <div className="max-w-3xl space-y-4">
         <button type="button" onClick={() => navigate('/admin/crm')} className={FINELY_OS_BACK_LINK}>
           ← Back to CRM
         </button>
 
-        <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`} data-fc-accent="violet">
+        <div className={`${finelyOsCatalogCard('violet')} space-y-4`} data-fc-accent="violet">
           <div className="grid sm:grid-cols-2 gap-3 text-sm">
             <div><span className={FINELY_OS_ENTITY_SUBLABEL}>Email</span><div className={FINELY_OS_ENTITY_VALUE}>{record.contact.email || '—'}</div></div>
             <div><span className={FINELY_OS_ENTITY_SUBLABEL}>Phone</span><div className={FINELY_OS_ENTITY_VALUE}>{record.contact.phone || '—'}</div></div>
@@ -69,7 +74,7 @@ export default function AdminCrmRecordPage() {
             <div><span className={FINELY_OS_ENTITY_SUBLABEL}>Deal value</span><div className={FINELY_OS_ENTITY_VALUE}>{record.dealValueCents ? formatForecastCents(record.dealValueCents) : '—'}</div></div>
           </div>
 
-          <div className={`${finelyOsCatalogCard('emerald')} !p-4 fc-surface-harmony border-emerald-500/25 space-y-2`} data-fc-accent="emerald">
+          <div className={`${finelyOsCatalogCard('emerald')} fc-surface-harmony border-emerald-500/25 space-y-2`} data-fc-accent="emerald">
             <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-emerald-300`}>Deal value (forecast)</div>
             <div className="flex flex-wrap items-center gap-2">
               <span className={`${FINELY_OS_ENTITY_SUBLABEL} text-xs`}>$</span>
@@ -96,7 +101,7 @@ export default function AdminCrmRecordPage() {
           </div>
 
           {record.workSignals ? (
-            <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony text-sm`} data-fc-accent="sky">
+            <div className={`${finelyOsCatalogCard('sky')} fc-surface-harmony text-sm`} data-fc-accent="sky">
               <div className={FINELY_OS_ENTITY_SUBLABEL}>Work OS signals</div>
               <p className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>
                 Idle {Math.round(record.workSignals.idleDays)} days • {record.workSignals.slaBreachCount} SLA breach(es) • risk{' '}
@@ -147,7 +152,7 @@ export default function AdminCrmRecordPage() {
 
         <CrmAICopilotPanel record={record} />
 
-        <div className={`${finelyOsCatalogCard('amber')} !p-5`} data-fc-accent="amber">
+        <div className={`${finelyOsCatalogCard('rose')}`} data-fc-accent="rose">
           <div className={`${FINELY_OS_ENTITY_SUBLABEL} mb-3`}>Timeline</div>
           <FinelyOsCatalogBrowser
             items={timelineItems}
@@ -158,8 +163,8 @@ export default function AdminCrmRecordPage() {
             showViewToggle={false}
           />
         </div>
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
 </div>
-    </PageShell>
+    </AdminWorkstationFrame>
   );
 }

@@ -6,7 +6,7 @@ import {
   type PartnerCreditWorkloadSnapshot,
 } from '../../lib/partnerCreditWorkloadSnapshot';
 import { NEGATIVE_PLAYBOOKS, type NegativeType } from '../../creditReports/negativePlaybooks';
-import { finelyOsGlowKpi } from '../../features/os/finelyOsLightUi';
+import { finelyOsCatalogCard, finelyOsGlowKpi } from '../../features/os/finelyOsLightUi';
 
 const DISPLAY_ORDER: NegativeType[] = [
   'collection',
@@ -78,29 +78,29 @@ export function CreditWorkloadChips({
   if (!snap.reportsCount && !snap.totalNegatives && workChips.length === 0) return null;
 
   return (
-    <div className="rounded-xl border border-white/10 bg-black/25 !p-3 space-y-2">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2 text-xs font-semibold text-white/80">
-          <BarChart3 size={14} className="text-sky-300" />
+    <div className={`${finelyOsCatalogCard('sky')} space-y-4`}>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3 text-base font-extrabold text-white">
+          <BarChart3 size={18} className="text-sky-300" />
           Credit workload
         </div>
-        <div className="text-[10px] text-white/45">{formatCreditWorkloadSummary(snap)}</div>
+        <div className="text-sm font-bold text-white/70">{formatCreditWorkloadSummary(snap)}</div>
       </div>
-      <div className="flex flex-wrap gap-2">
-        {negativeChips.map((k) => (
-          <div key={k} className={`${finelyOsGlowKpi('sky')} !px-3 !py-2`}>
-            <div className="text-[10px] uppercase tracking-widest text-white/50">{negativeLabel(k)}</div>
-            <div className="text-sm font-bold text-white">
+      <div className="flex flex-wrap gap-3">
+        {negativeChips.map((k, i) => (
+          <div key={k} className={`${finelyOsGlowKpi((['sky', 'violet', 'emerald', 'rose'] as const)[i % 4])} px-4 py-3`}>
+            <div className="text-xs font-extrabold uppercase tracking-widest text-white/70">{negativeLabel(k)}</div>
+            <div className="mt-1 text-2xl font-extrabold text-white">
               {k === 'collection'
                 ? (snap.negativeCounts.collection ?? 0) + (snap.negativeCounts.charge_off ?? 0)
                 : snap.negativeCounts[k]}
             </div>
           </div>
         ))}
-        {workChips.map((c) => (
-          <div key={c.label} className={`${finelyOsGlowKpi('amber')} !px-3 !py-2`}>
-            <div className="text-[10px] uppercase tracking-widest text-white/50">{c.label}</div>
-            <div className="text-sm font-bold text-white">{c.value}</div>
+        {workChips.map((c, i) => (
+          <div key={c.label} className={`${finelyOsGlowKpi((['violet', 'emerald', 'sky', 'rose'] as const)[i % 4])} px-4 py-3`}>
+            <div className="text-xs font-extrabold uppercase tracking-widest text-white/70">{c.label}</div>
+            <div className="mt-1 text-2xl font-extrabold text-white">{c.value}</div>
           </div>
         ))}
       </div>

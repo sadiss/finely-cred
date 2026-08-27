@@ -23,7 +23,7 @@ export const HETA_SOCIETY_PILLARS = [
     id: 'restore',
     title: 'Personal restoration',
     desc: 'Evidence-first disputes, round-one letters, and bureau timelines — up to five active items.',
-    accent: 'amber',
+    accent: 'rose',
   },
   {
     id: 'business',

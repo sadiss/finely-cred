@@ -1,0 +1,125 @@
+/* Credit build — vertical milestone runway (not command deck tabs) */
+
+.fc-wlp-build-runway {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.fc-wlp-build-runway-rail {
+  position: sticky;
+  top: 12px;
+  max-height: min(82vh, 960px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.fc-wlp-build-runway-milestone {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: 14px;
+  align-items: stretch;
+}
+
+.fc-wlp-build-runway-marker-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 18px;
+}
+
+.fc-wlp-build-runway-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border: 3px solid rgb(var(--fcm-accent-rgb, 139 92 246));
+  background: #fff;
+  box-shadow: 0 0 0 5px color-mix(in srgb, rgb(var(--fcm-accent-rgb, 139 92 246)) 18%, transparent);
+}
+
+.fc-wlp-build-runway-line {
+  flex: 1;
+  width: 2px;
+  margin-top: 6px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, rgb(var(--fcm-accent-rgb, 139 92 246)) 55%, #e2e8f0) 0%,
+    rgba(226, 232, 240, 0.35) 100%
+  );
+}
+
+.fc-wlp-build-runway-milestone:last-child .fc-wlp-build-runway-line {
+  display: none;
+}
+
+.fc-wlp-build-runway-stop {
+  width: 100%;
+  margin-bottom: 14px;
+  padding: 18px 20px;
+  border-radius: 16px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  background: rgba(255, 255, 255, 0.9);
+  text-align: left;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.fc-wlp-build-runway-stop[data-active='true'] {
+  border-color: color-mix(in srgb, rgb(var(--fcm-accent-rgb, 16 185 129)) 42%, transparent);
+  transform: translateX(2px);
+  box-shadow: 0 12px 28px rgba(16, 185, 129, 0.1);
+}
+
+.fc-wlp-build-runway-stop[data-complete='true'] .fc-wlp-build-runway-dot {
+  border-color: #10b981;
+  background: #10b981;
+}
+
+.fc-wlp-build-runway-stop strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.fc-wlp-build-runway-stop p {
+  margin-top: 6px;
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.4;
+  color: #475569;
+}
+
+.fc-wlp-build-runway-stop em {
+  display: block;
+  margin-top: 8px;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.fc-wlp-build-runway-stage {
+  min-height: 480px;
+}
+
+html[data-fc-theme='dark'] .fc-wlp-build-runway-stop {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: #e2e8f0;
+}
+
+html[data-fc-theme='dark'] .fc-wlp-build-runway-stop strong {
+  color: #f8fafc;
+}
+
+@media (max-width: 1100px) {
+  .fc-wlp-build-runway {
+    grid-template-columns: 1fr;
+  }
+
+  .fc-wlp-build-runway-rail {
+    position: static;
+    max-height: none;
+  }
+}

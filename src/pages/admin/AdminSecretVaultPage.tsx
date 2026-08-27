@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Download, ExternalLink, FileText, Link as LinkIcon, Lock, Plus, Search, Shield, Trash2, Upload } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { AdminWorkstationFrame, type AdminEmbeddablePageProps } from '../../features/workspaceLightPreview/product/admin/AdminWorkstationFrame';
+import { useMappedAdminNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { useAuth } from '../../auth/AuthProvider';
 import { isAdminEmail } from '../../auth/admin';
 import { getActiveTenantId } from '../../tenancy/activeTenant';
@@ -62,8 +62,8 @@ function fmtBytes(n?: number) {
   return `${v} B`;
 }
 
-export default function AdminSecretVaultPage() {
-  const navigate = useNavigate();
+export default function AdminSecretVaultPage({ embedded = false }: AdminEmbeddablePageProps = {}) {
+  const navigate = useMappedAdminNavigate();
   const auth = useAuth();
   const [version, setVersion] = useState(0);
   const [q, setQ] = useState('');
@@ -218,15 +218,15 @@ export default function AdminSecretVaultPage() {
 
   if (!auth.user) {
     return (
-      <PageShell badge="Admin" title="Secret Vault" subtitle="Sign in to continue.">
-        <div className={`${finelyOsCatalogCard('violet')} !p-5 ${FINELY_OS_ENTITY_BODY}`}>Not signed in.</div>
-      </PageShell>
+      <AdminWorkstationFrame embedded={embedded} kind="vault-workstation" badge="Admin" title="Secret Vault" subtitle="Sign in to continue.">
+        <div className={`${finelyOsCatalogCard('violet')} ${FINELY_OS_ENTITY_BODY}`}>Not signed in.</div>
+      </AdminWorkstationFrame>
     );
   }
 
   if (!allowed) {
     return (
-      <PageShell badge="Admin" title="Secret Vault" subtitle="Restricted.">
+      <AdminWorkstationFrame embedded={embedded} kind="vault-workstation" badge="Admin" title="Secret Vault" subtitle="Restricted.">
         <div className="space-y-4">
           <div className={FINELY_OS_NOTICE_WARN}>
             <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
@@ -241,12 +241,12 @@ export default function AdminSecretVaultPage() {
             <ArrowLeft size={16} /> Back to Admin
           </button>
         </div>
-      </PageShell>
+      </AdminWorkstationFrame>
     );
   }
 
   return (
-    <PageShell badge="Admin" title="Secret Vault" subtitle="Top‑secret operations archive. Access is monitored and easy to revoke.">
+    <AdminWorkstationFrame embedded={embedded} kind="vault-workstation" badge="Admin" title="Secret Vault" subtitle="Top‑secret operations archive. Access is monitored and easy to revoke.">
       <div className={FINELY_OS_PAGE}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <button type="button" onClick={() => navigate('/admin')} className={FINELY_OS_BACK_LINK}>
@@ -288,7 +288,7 @@ export default function AdminSecretVaultPage() {
         />
 
         <div className="grid lg:grid-cols-12 gap-6 mt-6">
-          <div className={`lg:col-span-4 ${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+          <div className={`lg:col-span-4 ${finelyOsCatalogCard('violet')} space-y-4`}>
             <div className="flex items-center justify-between gap-3">
               <div className={FINELY_OS_ENTITY_SUBLABEL}>Vault items</div>
               <div className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono normal-case tracking-normal`}>{items.length}</div>
@@ -335,7 +335,7 @@ export default function AdminSecretVaultPage() {
           </div>
 
           <div className="lg:col-span-8 space-y-6">
-            <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+            <div className={`${finelyOsCatalogCard('violet')} space-y-4`}>
               <div className={FINELY_OS_ENTITY_SUBLABEL}>Quick URL (legacy panel)</div>
               <div className="grid md:grid-cols-3 gap-3">
                 <input value={urlTitle} onChange={(e) => setUrlTitle(e.target.value)} className={`md:col-span-1 ${FINELY_OS_ENTITY_INPUT}`} placeholder="Title (optional)" />
@@ -346,7 +346,7 @@ export default function AdminSecretVaultPage() {
               </button>
             </div>
 
-            <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+            <div className={`${finelyOsCatalogCard('violet')} space-y-4`}>
               <div className="flex items-center justify-between gap-3">
                 <div className={FINELY_OS_ENTITY_VALUE}>Selected</div>
                 {selected ? <div className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono normal-case tracking-normal`}>{selected.id}</div> : null}
@@ -357,12 +357,12 @@ export default function AdminSecretVaultPage() {
               ) : (
                 <>
                   <div className="grid md:grid-cols-2 gap-4">
-                    <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`} data-fc-accent="sky">
+                    <div className={`${finelyOsCatalogCard('emerald')} fc-surface-harmony`} data-fc-accent="emerald">
                       <div className={FINELY_OS_ENTITY_SUBLABEL}>Type</div>
                       <div className={`mt-1 ${FINELY_OS_ENTITY_VALUE}`}>{selected.type}</div>
                       <div className={`mt-1 ${FINELY_OS_ENTITY_BODY} text-xs`}>Created: {fmtWhen(selected.createdAt)}</div>
                     </div>
-                    <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`} data-fc-accent="sky">
+                    <div className={`${finelyOsCatalogCard('violet')} fc-surface-harmony`} data-fc-accent="violet">
                       <div className={FINELY_OS_ENTITY_SUBLABEL}>Size</div>
                       <div className={`mt-1 ${FINELY_OS_ENTITY_VALUE}`}>{fmtBytes(selected.sizeBytes)}</div>
                       <div className={`mt-1 ${FINELY_OS_ENTITY_BODY} text-xs font-mono truncate`}>{selected.mimeType ?? '—'}</div>
@@ -391,7 +391,7 @@ export default function AdminSecretVaultPage() {
               )}
             </div>
 
-            <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-3`}>
+            <div className={`${finelyOsCatalogCard('violet')} space-y-3`}>
               <div className="flex items-center justify-between gap-3">
                 <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
                   <Lock size={18} />
@@ -407,11 +407,12 @@ export default function AdminSecretVaultPage() {
                   items={accessMembers}
                   pageSize={10}
                   emptyMessage="No team members."
-                  renderItem={(m) => {
+                  renderItem={(m, idx) => {
                     const isCore = m.role === 'platform_admin' || m.role === 'tenant_owner';
                     const has = canAccessVault(m);
+                    const rowAccent = (['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4];
                     return (
-                      <div key={m.id} className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony flex items-center justify-between gap-3`}>
+                      <div key={m.id} className={`${finelyOsCatalogCard(rowAccent)} fc-surface-harmony flex items-center justify-between gap-3`} data-fc-accent={rowAccent}>
                         <div className="min-w-0">
                           <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{m.email}</div>
                           <div className={`mt-1 ${FINELY_OS_ENTITY_SUBLABEL} font-mono truncate normal-case tracking-normal`}>
@@ -442,9 +443,9 @@ export default function AdminSecretVaultPage() {
             </div>
           </div>
         </div>
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
 </div>
-    </PageShell>
+    </AdminWorkstationFrame>
   );
 }
 

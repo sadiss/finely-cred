@@ -10,6 +10,7 @@ export type LegalResourceLink = {
 
 export const REGULATORY_PORTALS: LegalResourceLink[] = [
   { id: 'cfpb', label: 'CFPB complaint', href: 'https://www.consumerfinance.gov/complaint/', hint: 'Debt collection & credit reporting', external: true },
+  { id: 'occ-helpwithmybank', label: 'OCC HelpWithMyBank.gov', href: 'https://www.helpwithmybank.gov/', hint: 'Bank levy, offset & EFTA questions', external: true },
   { id: 'ftc', label: 'FTC Report Fraud', href: 'https://reportfraud.ftc.gov/', hint: 'Imposter / fraud collectors', external: true },
   { id: 'naag', label: 'Find your AG', href: 'https://www.naag.org/find-my-ag/', hint: 'State Attorney General', external: true },
   { id: 'bbb', label: 'BBB complaint', href: 'https://www.bbb.org/file-a-complaint', hint: 'Business complaints', external: true },
@@ -21,6 +22,11 @@ export const LAW_REFERENCES: LegalResourceLink[] = [
   { id: 'fcra-611', label: 'FCRA § 611', href: 'https://www.law.cornell.edu/uscode/text/15/1681i', hint: 'Bureau reinvestigation', external: true },
   { id: 'fcra-623', label: 'FCRA § 623', href: 'https://www.law.cornell.edu/uscode/text/15/1681s-2', hint: 'Furnisher duties', external: true },
   { id: 'ucc-3-308', label: 'UCC § 3-308', href: 'https://www.law.cornell.edu/ucc/3/3-308', hint: 'Burden of proof on signature', external: true },
+  { id: 'reg-e-1005', label: 'Reg E (12 C.F.R. Part 1005)', href: 'https://www.law.cornell.edu/cfr/text/12/part-1005', hint: 'Electronic fund transfers', external: true },
+  { id: 'cfr-212', label: '31 C.F.R. Part 212', href: 'https://www.law.cornell.edu/cfr/text/31/part-212', hint: 'Protected benefit garnishment', external: true },
+  { id: 'lawhelp', label: 'LawHelp.org', href: 'https://www.lawhelp.org/', hint: 'Free legal help finder by state or ZIP', external: true },
+  { id: 'lsc-legal-help', label: 'LSC — I need legal help', href: 'https://www.lsc.gov/i-need-legal-help', hint: 'Legal Services Corporation aid finder', external: true },
+  { id: 'ecfr', label: 'eCFR', href: 'https://www.ecfr.gov/', hint: 'Official Code of Federal Regulations', external: true },
   { id: 'sec-edgar', label: 'SEC EDGAR', href: 'https://www.sec.gov/edgar/search/', hint: 'ABS / securitization filings', external: true },
 ];
 

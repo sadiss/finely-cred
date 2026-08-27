@@ -1,24 +1,53 @@
 import React, { useMemo, useState } from 'react';
-import { ArrowRight, CheckCircle2, GitBranch, Grid3X3, Pause, PlayCircle, Plus, ShieldCheck, Sparkles, Trash2, Unlock } from 'lucide-react';
+import {
+  ArrowRight,
+  CheckCircle2,
+  GitBranch,
+  Grid3X3,
+  PlayCircle,
+  Plus,
+  Sparkles,
+  Unlock,
+} from 'lucide-react';
 import type { AutomationBlueprint, AutomationBlueprintCategory, AutomationGridNode } from './types';
 import { AUTOMATION_BLUEPRINTS, blueprintToPlainEnglish, listBlueprintsByCategory } from './automationBlueprints';
 import { StudioActionDeck, StudioKpiCards, StudioSection } from './StudioKpiCards';
 import { createAutomationRule, deleteAutomationRule, listAutomationRules, setAutomationRuleEnabled } from '../../data/automationStudioRepo';
 import type { AutomationRule } from '../../domain/automationStudio';
 import { getSelectedAutomationBlueprintId, setSelectedAutomationBlueprint } from './studioCommandRepo';
+import {
+  FINELY_OS_ENTITY_BODY,
+  FINELY_OS_ENTITY_SUBLABEL,
+  FINELY_OS_ENTITY_TITLE,
+  FINELY_OS_ENTITY_VALUE,
+  FINELY_OS_PRIMARY_BTN,
+  FINELY_OS_SECONDARY_BTN,
+  finelyOsCatalogCard,
+  finelyOsSolidIconChip,
+  type FinelyOsPublicAccent,
+} from '../os/finelyOsLightUi';
+import { accentAt } from '../workspaceLightPreview/product/workspaceAccentArrangement';
 
 const CATEGORY_LABEL: Record<AutomationBlueprintCategory, string> = {
-  lead_capture: 'Lead Capture', nurture: 'Nurture', appointment: 'Appointment', sales: 'Sales', recruiting: 'Recruiting', reactivation: 'Reactivation', partner: 'Partner', content: 'Content', compliance: 'Compliance',
+  lead_capture: 'Lead Capture',
+  nurture: 'Nurture',
+  appointment: 'Appointment',
+  sales: 'Sales',
+  recruiting: 'Recruiting',
+  reactivation: 'Reactivation',
+  partner: 'Partner',
+  content: 'Content',
+  compliance: 'Compliance',
 };
 
-const NODE_TONE: Record<AutomationGridNode['type'], string> = {
-  trigger: 'border-emerald-400/30 bg-emerald-500/10 text-emerald-100',
-  condition: 'border-sky-400/30 bg-sky-500/10 text-sky-100',
-  action: 'border-amber-400/30 bg-amber-500/10 text-amber-100',
-  delay: 'border-violet-400/30 bg-violet-500/10 text-violet-100',
-  split: 'border-fuchsia-400/30 bg-fuchsia-500/10 text-fuchsia-100',
-  approval: 'border-rose-400/30 bg-rose-500/10 text-rose-100',
-  exit: 'border-white/15 bg-white/[0.04] text-white/80',
+const NODE_ACCENT: Record<AutomationGridNode['type'], FinelyOsPublicAccent> = {
+  trigger: 'emerald',
+  condition: 'sky',
+  action: 'violet',
+  delay: 'violet',
+  split: 'rose',
+  approval: 'rose',
+  exit: 'sky',
 };
 
 function blueprintToRule(b: AutomationBlueprint): Omit<AutomationRule, 'id' | 'createdAt' | 'updatedAt'> {
@@ -45,16 +74,39 @@ function blueprintToRule(b: AutomationBlueprint): Omit<AutomationRule, 'id' | 'c
 }
 
 function NodeCard({ node, index }: { node: AutomationGridNode; index: number }) {
+  const accent = NODE_ACCENT[node.type];
+
   return (
-    <div className={`relative rounded-3xl border ${NODE_TONE[node.type]} p-5 min-h-[170px] shadow-2xl shadow-black/20`}>
+    <div
+      className={`relative ${finelyOsCatalogCard(accent)} fc-surface-harmony min-h-[170px]`}
+      data-fc-accent={accent}
+    >
       <div className="flex items-start justify-between gap-3">
-        <div className="text-[10px] uppercase tracking-widest font-black opacity-70">{node.type} • {index + 1}</div>
+        <span className={finelyOsSolidIconChip(accent, 'md')}>
+          <GitBranch size={16} strokeWidth={2.2} aria-hidden />
+        </span>
+        <div className={`${FINELY_OS_ENTITY_SUBLABEL} opacity-80`}>
+          {node.type} · {index + 1}
+        </div>
       </div>
-      <div className="mt-4 text-white font-black leading-tight">{node.title}</div>
-      <div className="mt-2 text-sm text-white/70 leading-relaxed">{node.subtitle}</div>
-      <div className="mt-3 text-xs text-white/55 leading-relaxed">{node.detail}</div>
-      <div className="absolute -right-3 top-1/2 hidden lg:block text-white/15"><ArrowRight size={24} /></div>
+      <div className={`mt-4 ${FINELY_OS_ENTITY_TITLE} text-lg leading-tight`}>{node.title}</div>
+      <div className={`mt-2 text-base font-semibold text-white/75 leading-relaxed`}>{node.subtitle}</div>
+      <div className={`mt-3 text-sm font-semibold text-white/60 leading-relaxed`}>{node.detail}</div>
+      <div className="absolute -right-3 top-1/2 hidden lg:block text-white/15">
+        <ArrowRight size={24} />
+      </div>
     </div>
+  );
+}
+
+function categoryMetaChip(label: string, accent: FinelyOsPublicAccent) {
+  return (
+    <span
+      className={`rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest ${finelyOsCatalogCard(accent)} !p-2 !inline-flex`}
+      data-fc-accent={accent}
+    >
+      {label}
+    </span>
   );
 }
 
@@ -65,16 +117,16 @@ export function AutomationCommandGrid() {
   const [notice, setNotice] = useState<string | null>(null);
   const selectedSeed = getSelectedAutomationBlueprintId();
   const [selectedId, setSelectedId] = useState<string | null>(selectedSeed ?? AUTOMATION_BLUEPRINTS[0]?.id ?? null);
-  const blueprints = useMemo(() => category === 'all' ? AUTOMATION_BLUEPRINTS : listBlueprintsByCategory(category), [category]);
+  const blueprints = useMemo(() => (category === 'all' ? AUTOMATION_BLUEPRINTS : listBlueprintsByCategory(category)), [category]);
   const selected = useMemo(() => AUTOMATION_BLUEPRINTS.find((b) => b.id === selectedId) ?? blueprints[0] ?? null, [selectedId, blueprints]);
   const rules = useMemo(() => listAutomationRules(), [version]);
   const installed = selected ? rules.find((r) => r.meta?.blueprintId === selected.id) : null;
 
   const kpis = [
-    { label: 'Blueprints', value: AUTOMATION_BLUEPRINTS.length, hint: 'Choose scenario instead of scrolling templates', tone: 'amber' as const },
-    { label: 'Installed rules', value: rules.filter((r) => r.meta?.blueprintId).length, hint: 'Draft blueprint installs', tone: 'emerald' as const },
-    { label: 'Grid mode', value: editMode ? 'Canvas edit' : 'Storyboard view', hint: 'Open Flow builder tab to edit nodes & branches', tone: editMode ? 'rose' as const : 'sky' as const },
-    { label: 'Actions', value: selected?.nodes.length ?? 0, hint: 'Beginning-to-end flow nodes', tone: 'violet' as const },
+    { label: 'Blueprints', value: AUTOMATION_BLUEPRINTS.length, hint: 'Scenario storyboards', tone: 'emerald' as const },
+    { label: 'Installed rules', value: rules.filter((r) => r.meta?.blueprintId).length, hint: 'Draft blueprint installs', tone: 'violet' as const },
+    { label: 'Grid mode', value: editMode ? 'Canvas edit' : 'Storyboard', hint: 'Flow builder for branches', tone: editMode ? ('rose' as const) : ('sky' as const) },
+    { label: 'Actions', value: selected?.nodes.length ?? 0, hint: 'Flow nodes in selection', tone: 'emerald' as const },
   ];
 
   function installBlueprint(b: AutomationBlueprint) {
@@ -86,46 +138,143 @@ export function AutomationCommandGrid() {
     createAutomationRule(blueprintToRule(b));
     setSelectedAutomationBlueprint(b.id);
     setVersion((v) => v + 1);
-    setNotice(`${b.title} installed as disabled draft automation. Review before enabling.`);
+    setNotice(`${b.title} installed as disabled draft automation.`);
   }
 
   return (
     <div className="space-y-6">
       <StudioKpiCards items={kpis} />
-      {notice ? <div className="rounded-3xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-emerald-100 text-sm inline-flex gap-3"><CheckCircle2 size={18} /> {notice}</div> : null}
+      {notice ? (
+        <div className={`${finelyOsCatalogCard('emerald')} inline-flex items-center gap-3 text-emerald-100 text-base font-semibold`}>
+          <CheckCircle2 size={18} /> {notice}
+        </div>
+      ) : null}
       <StudioSection
         eyebrow="Scenario gallery"
-        title="Choose a scenario — then install or customize in Flow builder"
+        title="Blueprint scenarios"
+        accentIndex={0}
         right={
-          <button type="button" className={editMode ? 'fc-button-brand' : 'fc-button-soft'} onClick={() => setEditMode((v) => !v)}>
+          <button type="button" className={editMode ? FINELY_OS_PRIMARY_BTN : FINELY_OS_SECONDARY_BTN} onClick={() => setEditMode((v) => !v)}>
             {editMode ? <Unlock size={14} /> : <Grid3X3 size={14} />} {editMode ? 'Rearrange cards' : 'Storyboard view'}
           </button>
         }
       >
-        <p className="text-sm text-white/55 mb-4 max-w-3xl">
-          Cards below are a read-only storyboard of each blueprint. For hundreds of triggers, branches, and conditions, open the <strong className="text-amber-200">Flow builder</strong> or <strong className="text-amber-200">Trigger catalog</strong> tabs above.
-        </p>
         <div className="flex gap-2 overflow-x-auto pb-2">
-          {(['all', ...Object.keys(CATEGORY_LABEL)] as Array<AutomationBlueprintCategory | 'all'>).map((c) => <button key={c} type="button" className={category === c ? 'fc-button-brand shrink-0' : 'fc-button-soft shrink-0'} onClick={() => setCategory(c)}>{c === 'all' ? 'All' : CATEGORY_LABEL[c]}</button>)}
+          {(['all', ...Object.keys(CATEGORY_LABEL)] as Array<AutomationBlueprintCategory | 'all'>).map((c) => (
+            <button
+              key={c}
+              type="button"
+              className={category === c ? FINELY_OS_PRIMARY_BTN : FINELY_OS_SECONDARY_BTN}
+              onClick={() => setCategory(c)}
+            >
+              {c === 'all' ? 'All' : CATEGORY_LABEL[c]}
+            </button>
+          ))}
         </div>
-        <StudioActionDeck items={blueprints.map((b) => ({ ...b, summary: b.summary }))} activeId={selected?.id} onSelect={(b) => { setSelectedId(b.id); setSelectedAutomationBlueprint(b.id); }} renderMeta={(b) => <div className="flex flex-wrap gap-2"><span className="rounded-full border border-white/10 bg-black/30 px-2 py-1 text-[10px] uppercase tracking-widest text-white/50">{CATEGORY_LABEL[b.category]}</span><span className="rounded-full border border-white/10 bg-black/30 px-2 py-1 text-[10px] uppercase tracking-widest text-white/50">{b.nodes.length} nodes</span></div>} />
+        <StudioActionDeck
+          items={blueprints.map((b) => ({ ...b, summary: b.summary }))}
+          activeId={selected?.id}
+          onSelect={(b) => {
+            setSelectedId(b.id);
+            setSelectedAutomationBlueprint(b.id);
+          }}
+          icon={Sparkles}
+          renderMeta={(b) => {
+            const metaAccents = [accentAt(0), accentAt(1)] as FinelyOsPublicAccent[];
+            return (
+              <div className="flex flex-wrap gap-2">
+                {categoryMetaChip(CATEGORY_LABEL[b.category], metaAccents[0])}
+                {categoryMetaChip(`${b.nodes.length} nodes`, metaAccents[1])}
+              </div>
+            );
+          }}
+        />
       </StudioSection>
-      {selected ? <StudioSection eyebrow="automation grid" title={selected.title} right={<div className="flex flex-wrap gap-2"><button className="fc-button-brand" type="button" onClick={() => installBlueprint(selected)}><Plus size={14} /> Install draft</button>{installed ? <button className="fc-button-soft" type="button" onClick={() => { setAutomationRuleEnabled(installed.id, !installed.enabled); setVersion((v) => v + 1); }}><PlayCircle size={14} /> {installed.enabled ? 'Disable' : 'Enable'}</button> : null}</div>}>
-        <div className="grid lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2 rounded-[2rem] border border-white/10 bg-black/30 p-5 overflow-x-auto">
-            <div className="grid xl:grid-cols-3 gap-5 min-w-[900px]">
-              {selected.nodes.map((n, idx) => <NodeCard key={n.id} node={n} index={idx} />)}
+      {selected ? (
+        <StudioSection
+          eyebrow="Automation grid"
+          title={selected.title}
+          accentIndex={1}
+          right={
+            <div className="flex flex-wrap gap-2">
+              <button className={FINELY_OS_PRIMARY_BTN} type="button" onClick={() => installBlueprint(selected)}>
+                <Plus size={14} /> Install draft
+              </button>
+              {installed ? (
+                <button
+                  className={FINELY_OS_SECONDARY_BTN}
+                  type="button"
+                  onClick={() => {
+                    setAutomationRuleEnabled(installed.id, !installed.enabled);
+                    setVersion((v) => v + 1);
+                  }}
+                >
+                  <PlayCircle size={14} /> {installed.enabled ? 'Disable' : 'Enable'}
+                </button>
+              ) : null}
+            </div>
+          }
+        >
+          <div className="grid lg:grid-cols-3 gap-4 lg:gap-6">
+            <div className={`lg:col-span-2 ${finelyOsCatalogCard('sky')} fc-surface-harmony overflow-x-auto`} data-fc-accent="sky">
+              <div className="grid xl:grid-cols-3 gap-5 min-w-[900px]">
+                {selected.nodes.map((n, idx) => (
+                  <NodeCard key={n.id} node={n} index={idx} />
+                ))}
+              </div>
+            </div>
+            <div className="space-y-4">
+              {[
+                { label: 'Owner', value: selected.owner },
+                { label: 'Expected outcome', value: selected.expectedOutcome, body: true },
+              ].map((panel, index) => {
+                const accent = accentAt(index + 2) as FinelyOsPublicAccent;
+                return (
+                  <div key={panel.label} className={`${finelyOsCatalogCard(accent)} fc-surface-harmony`} data-fc-accent={accent}>
+                    <div className={FINELY_OS_ENTITY_SUBLABEL}>{panel.label}</div>
+                    <div className={`mt-2 ${panel.body ? `${FINELY_OS_ENTITY_BODY} text-white/75` : FINELY_OS_ENTITY_VALUE}`}>
+                      {panel.value}
+                    </div>
+                  </div>
+                );
+              })}
+              <div className={`${finelyOsCatalogCard('rose')} fc-surface-harmony space-y-3`} data-fc-accent="rose">
+                <div className={FINELY_OS_ENTITY_SUBLABEL}>Caps</div>
+                {selected.recommendedCaps.map((x, index) => {
+                  const accent = accentAt(index + 4) as FinelyOsPublicAccent;
+                  return (
+                    <div
+                      key={x}
+                      className={`text-sm font-semibold rounded-2xl ${finelyOsCatalogCard(accent)} !p-4`}
+                      data-fc-accent={accent}
+                    >
+                      {x}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
-          <div className="space-y-4">
-            <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-5"><div className="text-[10px] uppercase tracking-widest text-white/40">Owner</div><div className="mt-2 text-white font-bold">{selected.owner}</div></div>
-            <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-5"><div className="text-[10px] uppercase tracking-widest text-white/40">Expected outcome</div><div className="mt-2 text-white/70 text-sm leading-relaxed">{selected.expectedOutcome}</div></div>
-            <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-5"><div className="text-[10px] uppercase tracking-widest text-white/40">Caps</div><div className="mt-3 space-y-2">{selected.recommendedCaps.map((x) => <div key={x} className="text-xs text-white/60 rounded-2xl border border-white/10 bg-black/30 p-3">{x}</div>)}</div></div>
+          <div className={`${finelyOsCatalogCard('violet')} whitespace-pre-wrap text-base font-semibold text-white/75 leading-relaxed`}>
+            {blueprintToPlainEnglish(selected.id)}
           </div>
-        </div>
-        <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-5 whitespace-pre-wrap text-sm text-white/65 leading-relaxed">{blueprintToPlainEnglish(selected.id)}</div>
-        {installed ? <div className="rounded-3xl border border-amber-400/20 bg-amber-500/10 p-4 text-amber-100 text-sm">Installed rule: {installed.name} • status: {installed.enabled ? 'enabled' : 'disabled draft'} <button className="ml-3 text-rose-200 underline" onClick={() => { deleteAutomationRule(installed.id); setVersion((v) => v + 1); }}>Remove draft</button></div> : null}
-      </StudioSection> : null}
+          {installed ? (
+            <div className={`${finelyOsCatalogCard('violet')} text-violet-100 text-base font-semibold`}>
+              Installed rule: {installed.name} · status: {installed.enabled ? 'enabled' : 'disabled draft'}{' '}
+              <button
+                className="ml-3 text-rose-200 underline font-bold"
+                type="button"
+                onClick={() => {
+                  deleteAutomationRule(installed.id);
+                  setVersion((v) => v + 1);
+                }}
+              >
+                Remove draft
+              </button>
+            </div>
+          ) : null}
+        </StudioSection>
+      ) : null}
     </div>
   );
 }

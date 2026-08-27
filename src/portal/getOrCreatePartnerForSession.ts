@@ -15,6 +15,24 @@ import { retryPendingInviteClaim } from '../lib/retryPendingInviteClaim';
 
 export const ADMIN_PARTNER_OVERRIDE_KEY = 'finely.admin.asPartnerId.v1';
 
+async function loadAdminOverridePartner(): Promise<any | null> {
+  const overrideId = (typeof localStorage !== 'undefined' ? localStorage.getItem(ADMIN_PARTNER_OVERRIDE_KEY) : '')?.trim() || '';
+  if (!overrideId) return null;
+  return (await adminGetPartner(overrideId)) ?? null;
+}
+
+async function sessionUserIsAdmin(email: string): Promise<boolean> {
+  if (isAdminEmail(email)) return true;
+  if (!isSupabaseConfigured || !email) return false;
+  const adminResult = await supabase
+    .from('admin_emails')
+    .select('email')
+    .eq('email', email.trim().toLowerCase())
+    .maybeSingle()
+    .then((r) => r, () => ({ data: null }));
+  return Boolean(adminResult.data);
+}
+
 function readOnboardingDraft(): any {
   try {
     const raw = localStorage.getItem('finely.onboarding.v1');
@@ -87,8 +105,15 @@ async function maybeHydrateExistingPartner(args: { partner: any; user: User | nu
 
 export async function getOrCreatePartnerForSession(args: { user: User | null }): Promise<any> {
   const userId = args.user?.id || '';
-  if (userId && args.user?.email) {
-    await retryPendingInviteClaim({ userId, email: args.user.email }).catch(() => null);
+  const email = args.user?.email || '';
+  if (userId && email) {
+    await retryPendingInviteClaim({ userId, email }).catch(() => null);
+  }
+  const staff = email ? await sessionUserIsAdmin(email) : false;
+  // Staff "view as partner" must win over the admin's own claimed file.
+  if (staff) {
+    const overridePartner = await loadAdminOverridePartner();
+    if (overridePartner) return overridePartner;
   }
   if (userId) {
     const claimed = await findPartnerByClaimedUserId(userId);
@@ -104,34 +129,8 @@ export async function getOrCreatePartnerForSession(args: { user: User | null }):
     }
   }
 
-  const email = args.user?.email || '';
   if (!email) return null;
-  if (isAdminEmail(email)) {
-    const overrideId = (localStorage.getItem(ADMIN_PARTNER_OVERRIDE_KEY) || '').trim();
-    if (overrideId) {
-      const p = await adminGetPartner(overrideId);
-      if (p) return p;
-    }
-    return null;
-  }
-
-  // Also check admin_emails table in Supabase (covers DB-registered admins not in hardcoded list)
-  if (isSupabaseConfigured) {
-    const adminResult = await supabase
-      .from('admin_emails')
-      .select('email')
-      .eq('email', email.trim().toLowerCase())
-      .maybeSingle()
-      .then((r) => r, () => ({ data: null }));
-    if (adminResult.data) {
-      const overrideId = (localStorage.getItem(ADMIN_PARTNER_OVERRIDE_KEY) || '').trim();
-      if (overrideId) {
-        const p = await adminGetPartner(overrideId);
-        if (p) return p;
-      }
-      return null;
-    }
-  }
+  if (staff) return null;
 
   const existing = await findPartnerByEmail(email);
   if (existing) {

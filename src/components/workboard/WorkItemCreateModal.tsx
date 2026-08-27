@@ -162,13 +162,18 @@ export function WorkItemCreateModal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[80]">
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-[2px]" onClick={onClose} />
+    <div
+      className="fixed inset-0 z-[80]"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="work-item-create-modal-title"
+    >
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-[2px]" aria-hidden onClick={onClose} />
       <div className={`absolute inset-x-0 top-[10vh] mx-auto w-[min(920px,calc(100vw-24px))] ${finelyOsCatalogCard('violet')} !p-0 overflow-hidden shadow-2xl backdrop-blur-xl`}>
         <div className={`${FINELY_OS_MODAL_HEADER} sm:px-6 sm:py-5`}>
           <div className="min-w-0">
             <div className={FINELY_OS_ENTITY_SUBLABEL}>Create</div>
-            <div className={`mt-1 ${FINELY_OS_ENTITY_VALUE}`}>
+            <div id="work-item-create-modal-title" className={`mt-1 ${FINELY_OS_ENTITY_VALUE}`}>
               {kind === 'task' ? 'New task' : 'New project'}
             </div>
             <div className={FINELY_OS_ENTITY_BODY}>
@@ -178,7 +183,7 @@ export function WorkItemCreateModal({
           <FinelyOsModalCloseButton onClick={onClose} />
         </div>
 
-        <div className="p-6 space-y-5">
+        <div className="max-h-[72vh] space-y-5 overflow-y-auto p-4">
           {(allowProject && allowTask && onKindChange) ? (
             <div className={`${FINELY_OS_TOOLBAR} !p-1 inline-flex`}>
               <button type="button" onClick={() => onKindChange('task')} className={finelyOsViewTab(kind === 'task', 'emerald')}>
@@ -194,6 +199,7 @@ export function WorkItemCreateModal({
             <div>
               <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-1">Who can see this?</label>
               <select
+                aria-label="Who can see this work item"
                 value={visibility}
                 onChange={(e) => setVisibility(e.target.value as 'partner' | 'admin' | 'hybrid')}
                 className="w-full max-w-md bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm"
@@ -210,6 +216,7 @@ export function WorkItemCreateModal({
             <div>
               <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-1">Partner</label>
               <select
+                aria-label="Partner"
                 value={resolvedPartnerId}
                 onChange={(e) => setPartnerId(e.target.value)}
                 className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm"
@@ -224,6 +231,7 @@ export function WorkItemCreateModal({
             <div>
               <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-1">Scope</label>
               <select
+                aria-label="Credit scope"
                 value={scope}
                 onChange={(e) => setScope(e.target.value as any)}
                 className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm"
@@ -236,6 +244,7 @@ export function WorkItemCreateModal({
               <div>
                 <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-1">Project (required)</label>
                 <select
+                  aria-label="Project"
                   value={projectId}
                   onChange={(e) => setProjectId(e.target.value)}
                   className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm"
@@ -256,6 +265,7 @@ export function WorkItemCreateModal({
               <div>
                 <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-1">Status</label>
                 <select
+                  aria-label="Project status"
                   value={projectStatus}
                   onChange={(e) => setProjectStatus(e.target.value as any)}
                   className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm"
@@ -274,6 +284,7 @@ export function WorkItemCreateModal({
                 {kind === 'task' ? 'Task title' : 'Project title'}
               </label>
               <input
+                aria-label={kind === 'task' ? 'Task title' : 'Project title'}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm placeholder:text-white/30"
@@ -284,6 +295,7 @@ export function WorkItemCreateModal({
               <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-1">Stage</label>
               {kind === 'task' ? (
                 <select
+                  aria-label="Task stage"
                   value={taskStage}
                   onChange={(e) => setTaskStage(e.target.value as any)}
                   className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm"
@@ -296,6 +308,7 @@ export function WorkItemCreateModal({
                 </select>
               ) : (
                 <select
+                  aria-label="Project stage"
                   value={projectStage}
                   onChange={(e) => setProjectStage(e.target.value as any)}
                   className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm"
@@ -315,6 +328,7 @@ export function WorkItemCreateModal({
               <div>
                 <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-1">Kind</label>
                 <select
+                  aria-label="Task kind"
                   value={taskKind}
                   onChange={(e) => setTaskKind(e.target.value as TaskKind)}
                   className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm"
@@ -329,6 +343,7 @@ export function WorkItemCreateModal({
               <div>
                 <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-1">Priority</label>
                 <select
+                  aria-label="Task priority"
                   value={taskPriority}
                   onChange={(e) => setTaskPriority(e.target.value as any)}
                   className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm"
@@ -342,6 +357,7 @@ export function WorkItemCreateModal({
               <div>
                 <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-1">Start (optional)</label>
                 <input
+                  aria-label="Task start date"
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
@@ -351,6 +367,7 @@ export function WorkItemCreateModal({
               <div>
                 <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-1">Due (optional)</label>
                 <input
+                  aria-label="Task due date"
                   type="date"
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
@@ -360,6 +377,7 @@ export function WorkItemCreateModal({
               <div>
                 <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-1">Estimate (min)</label>
                 <input
+                  aria-label="Task estimate in minutes"
                   type="number"
                   min={0}
                   value={estimateMinutes}
@@ -371,6 +389,7 @@ export function WorkItemCreateModal({
               <div className="md:col-span-3">
                 <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-1">Tags (comma)</label>
                 <input
+                  aria-label="Task tags"
                   value={tagsCsv}
                   onChange={(e) => setTagsCsv(e.target.value)}
                   className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm placeholder:text-white/30"
@@ -383,6 +402,7 @@ export function WorkItemCreateModal({
               <div className="md:col-span-2">
                 <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-1">Description (optional)</label>
                 <input
+                  aria-label="Project description"
                   value={projectDescription}
                   onChange={(e) => setProjectDescription(e.target.value)}
                   className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm placeholder:text-white/30"
@@ -392,6 +412,7 @@ export function WorkItemCreateModal({
               <div>
                 <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-1">Priority</label>
                 <select
+                  aria-label="Project priority"
                   value={projectPriority}
                   onChange={(e) => setProjectPriority(e.target.value as ProjectPriority)}
                   className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm"
@@ -405,6 +426,7 @@ export function WorkItemCreateModal({
               <div>
                 <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-1">Health</label>
                 <select
+                  aria-label="Project health"
                   value={projectHealth}
                   onChange={(e) => setProjectHealth(e.target.value as ProjectHealth)}
                   className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm"
@@ -417,6 +439,7 @@ export function WorkItemCreateModal({
               <div>
                 <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-1">Target close</label>
                 <input
+                  aria-label="Project target close date"
                   type="date"
                   value={targetCloseDate}
                   onChange={(e) => setTargetCloseDate(e.target.value)}
@@ -426,6 +449,7 @@ export function WorkItemCreateModal({
               <div className="md:col-span-3">
                 <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-1">Tags (comma)</label>
                 <input
+                  aria-label="Project tags"
                   value={tagsCsv}
                   onChange={(e) => setTagsCsv(e.target.value)}
                   className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm placeholder:text-white/30"
@@ -440,9 +464,10 @@ export function WorkItemCreateModal({
               {kind === 'task' ? 'Notes (optional)' : 'Notes (optional)'}
             </label>
             <textarea
+              aria-label={kind === 'task' ? 'Task notes' : 'Project notes'}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              rows={4}
+              rows={2}
               className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm placeholder:text-white/30 resize-y"
               placeholder="Add details, links, and instructions."
             />

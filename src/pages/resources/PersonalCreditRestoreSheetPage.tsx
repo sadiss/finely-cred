@@ -28,7 +28,7 @@ import {
 
 const SHEET_ACCENTS = [
   { rail: 'bg-rose-500/80', text: 'text-rose-200', border: 'border-rose-400/30', glow: 'from-rose-500/12' },
-  { rail: 'bg-amber-500/80', text: 'text-amber-200', border: 'border-amber-400/30', glow: 'from-amber-500/12' },
+  { rail: 'bg-violet-500/80', text: 'text-violet-200', border: 'border-violet-400/30', glow: 'from-violet-500/12' },
   { rail: 'bg-emerald-500/80', text: 'text-emerald-200', border: 'border-emerald-400/30', glow: 'from-emerald-500/12' },
 ] as const;
 
@@ -203,13 +203,13 @@ export default function PersonalCreditRestoreSheetPage() {
         <section className="rounded-[1.25rem] border border-white/10 bg-black/25 p-5">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 className="flex items-center gap-2 text-lg font-bold tracking-tight text-white">
-              <Gavel size={16} className="text-amber-300" /> The laws this kit puts to work
+              <Gavel size={16} className="text-violet-300" /> The laws this kit puts to work
             </h2>
             <span className={FINELY_OS_ENTITY_SUBLABEL}>Cite the duty — never a threat</span>
           </div>
 
           <div className="mt-4 overflow-hidden rounded-xl border border-white/10">
-            <div className="hidden bg-white/[0.04] px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-amber-200/80 md:grid md:grid-cols-[130px_180px_1fr] md:gap-4">
+            <div className="hidden bg-white/[0.04] px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-violet-200/80 md:grid md:grid-cols-[130px_180px_1fr] md:gap-4">
               <span>Statute</span>
               <span>What it gives you</span>
               <span>How you actually use it</span>
@@ -221,7 +221,7 @@ export default function PersonalCreditRestoreSheetPage() {
                   i % 2 === 1 ? 'bg-white/[0.02]' : ''
                 }`}
               >
-                <span className="text-sm font-bold text-amber-200">{row.cite}</span>
+                <span className="text-sm font-bold text-violet-200">{row.cite}</span>
                 <span className="text-sm font-semibold text-white/85">{row.right}</span>
                 <span className="text-sm leading-relaxed text-white/65">{row.use}</span>
               </div>
@@ -265,7 +265,7 @@ export default function PersonalCreditRestoreSheetPage() {
         </section>
 
         {/* ── Download band + onward paths ─────────────────────────── */}
-        <section className="rounded-[1.25rem] border border-amber-400/25 bg-gradient-to-r from-amber-500/[0.08] to-transparent p-5">
+        <section className="rounded-[1.25rem] border border-violet-400/25 bg-gradient-to-r from-violet-500/[0.08] to-transparent p-6 lg:p-8">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="min-w-0">
               <h2 className="text-lg font-bold tracking-tight text-white">Stop guessing. Start documenting.</h2>

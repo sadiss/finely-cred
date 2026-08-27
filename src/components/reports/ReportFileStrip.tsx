@@ -1,6 +1,7 @@
 import React from 'react';
 import { FileText } from 'lucide-react';
 import type { CreditReportRecord } from '../../domain/creditReports';
+import { computeReportIdentityCheck } from '../../creditReports/identityCheck';
 import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
@@ -24,12 +25,14 @@ export function ReportFileStrip({
   onSelect,
   label = 'Reports',
   accent = 'violet',
+  partnerId,
 }: {
   reports: CreditReportRecord[];
   selectedId: string | null;
   onSelect: (id: string) => void;
   label?: string;
   accent?: 'violet' | 'amber' | 'emerald';
+  partnerId?: string;
 }) {
   const activeId = selectedId ?? reports[0]?.id ?? null;
 
@@ -78,7 +81,9 @@ export function ReportFileStrip({
                 ) : (
                   <span className={finelyOsStatusChip('warn')}>Not parsed</span>
                 )}
-                {Array.isArray((r as any).identityCheck?.faults) && (r as any).identityCheck.faults.length ? (
+                {(partnerId && r.parsed
+                  ? computeReportIdentityCheck({ partnerId, parsed: r.parsed, extraText: r.pdfText }).faults.length
+                  : Array.isArray(r.identityCheck?.faults) && r.identityCheck.faults.length) ? (
                   <span className={finelyOsStatusChip('warn')}>Identity</span>
                 ) : null}
               </div>

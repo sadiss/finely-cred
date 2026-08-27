@@ -28,7 +28,7 @@ const PROOF: Array<{
     icon: ShieldCheck,
     title: 'Factual dispute discipline',
     desc: 'Reasons OS ranks library findings for fundability impact before letters go out.',
-    accent: 'amber',
+    accent: 'sky',
   },
 ];
 

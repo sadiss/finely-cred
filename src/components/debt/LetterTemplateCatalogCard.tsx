@@ -2,6 +2,7 @@ import React from 'react';
 import { Loader2 } from 'lucide-react';
 import {
   FINELY_OS_ENTITY_BODY,
+  FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_TITLE,
   FINELY_OS_PRIMARY_BTN,
 } from '../../features/os/finelyOsLightUi';
@@ -48,18 +49,18 @@ export function LetterTemplateCatalogCard({
       {metaRow}
       <h4 className={`${FINELY_OS_ENTITY_TITLE} text-xs leading-snug line-clamp-2`}>{title}</h4>
       {keyPrinciple?.trim() ? (
-        <p className={`text-[11px] font-semibold leading-snug line-clamp-2 flex-1 ${FINELY_OS_ENTITY_BODY} text-white/85`}>
+        <p className={`text-[11px] font-semibold leading-snug line-clamp-2 flex-1 ${FINELY_OS_ENTITY_BODY}`}>
           {keyPrinciple}
         </p>
       ) : null}
       {whenSnippet && !keyPrinciple?.trim() ? (
-        <p className={`text-[10px] line-clamp-2 flex-1 ${FINELY_OS_ENTITY_BODY} text-white/60`}>When: {whenSnippet}</p>
+        <p className={`text-[10px] line-clamp-2 flex-1 ${FINELY_OS_ENTITY_SUBLABEL} normal-case tracking-normal font-semibold`}>When: {whenSnippet}</p>
       ) : whenSnippet ? (
-        <p className={`text-[10px] line-clamp-2 ${FINELY_OS_ENTITY_BODY} text-white/60`}>When: {whenSnippet}</p>
+        <p className={`text-[10px] line-clamp-2 ${FINELY_OS_ENTITY_SUBLABEL} normal-case tracking-normal font-semibold`}>When: {whenSnippet}</p>
       ) : !keyPrinciple?.trim() && description?.trim() ? (
-        <p className={`text-sm line-clamp-2 flex-1 ${FINELY_OS_ENTITY_BODY} text-white/75`}>{description}</p>
+        <p className={`text-sm line-clamp-2 flex-1 ${FINELY_OS_ENTITY_BODY}`}>{description}</p>
       ) : null}
-      {lawsLine ? <div className="text-[9px] text-white/45 line-clamp-1">{lawsLine}</div> : null}
+      {lawsLine ? <div className={`text-[9px] line-clamp-1 ${FINELY_OS_ENTITY_SUBLABEL} normal-case tracking-normal font-semibold`}>{lawsLine}</div> : null}
       <button
         type="button"
         id={generateButtonId}

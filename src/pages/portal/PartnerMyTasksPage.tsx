@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, FolderKanban } from 'lucide-react';
-import { PageShell } from '../../components/layout/PageShell';
+import { PartnerWorkstationFrame, type PartnerEmbeddablePageProps } from '../../features/workspaceLightPreview/product/partner/PartnerWorkstationFrame';
+import { useMappedPartnerNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { listProjectsByPartner } from '../../data/projectsRepo';
 import { listTasksByPartner, createTask } from '../../data/tasksRepo';
@@ -14,6 +14,7 @@ import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubL
 import { FinelyNowDoThisStrip } from '../../components/tours/FinelyNowDoThisStrip';
 import { FinelyNoticedStrip } from '../../components/tours/FinelyNoticedStrip';
 import { buildPortalWorkNoticedItems } from '../../lib/finelyProactiveSignals';
+import { pickMostOverdueTask, partnerTaskDeepLink } from '../../lib/partnerWorkNavigation';
 import {
   FINELY_OS_BACK_LINK,
   FINELY_OS_ENTITY_BODY,
@@ -22,13 +23,12 @@ import {
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_PAGE,
   FINELY_OS_PRIMARY_BTN,
-  finelyOsInlineListItem,
 } from '../../features/os/finelyOsLightUi';
 
 type TasksTab = 'queue' | 'overdue' | 'projects';
 
-export default function PartnerMyTasksPage() {
-  const navigate = useNavigate();
+export default function PartnerMyTasksPage({ embedded = false }: PartnerEmbeddablePageProps = {}) {
+  const navigate = useMappedPartnerNavigate();
   const { partner } = usePartnerSession();
   const [version, setVersion] = useState(0);
   const [tab, setTab] = useState<TasksTab>('queue');
@@ -75,8 +75,16 @@ export default function PartnerMyTasksPage() {
     setVersion((v) => v + 1);
   };
 
+  const mostOverdue = useMemo(() => pickMostOverdueTask(overdueTasks), [overdueTasks]);
+
   return (
-    <PageShell badge="Partner Portal" title="My tasks" subtitle="Everything you need to do across your projects.">
+    <PartnerWorkstationFrame
+      embedded={embedded}
+      kind="my-tasks-workstation"
+      badge="Partner Portal"
+      title="My tasks"
+      subtitle="Everything on your plate, with the most overdue first."
+    >
       <div className={FINELY_OS_PAGE}>
         <button type="button" onClick={() => navigate('/portal/projects')} className={FINELY_OS_BACK_LINK}>
           <ArrowLeft size={16} /> Projects
@@ -92,15 +100,15 @@ export default function PartnerMyTasksPage() {
         <FinelyNowDoThisStrip currentIndex={tab === 'overdue' ? 1 : tab === 'projects' ? 2 : 0} />
 
         <FinelyUnifiedHubLayout
-          eyebrow="Work OS"
+          eyebrow="Your tasks"
           title="Your task queue"
           subtitle="Open work across all projects — sorted by urgency and due date."
           accent="violet"
           kpis={[
-            { label: 'Open', value: String(openTasks.length), hint: 'Active tasks', accent: 'violet' },
+            { label: 'Open', value: String(openTasks.length), hint: 'Active tasks', accent: 'emerald' },
             { label: 'Overdue', value: String(overdueTasks.length), hint: 'Needs action', accent: 'rose' },
-            { label: 'Projects', value: String(projects.length), hint: 'Workspaces', accent: 'emerald' },
-            { label: 'Stage', value: partner?.journeyStage ?? 'intake', hint: 'Journey', accent: 'sky' },
+            { label: 'Projects', value: String(projects.length), hint: 'Workspaces', accent: 'sky' },
+            { label: 'Stage', value: partner?.journeyStage ?? 'intake', hint: 'Journey', accent: 'violet' },
           ]}
           tabs={[
             { id: 'queue', label: 'Queue', badge: openTasks.length || undefined },
@@ -109,13 +117,20 @@ export default function PartnerMyTasksPage() {
           ]}
           activeTab={tab}
           onTabChange={(id) => setTab(id as TasksTab)}
-          primaryAction={{ label: 'Projects hub', onClick: () => navigate('/portal/projects') }}
+          primaryAction={
+            mostOverdue
+              ? {
+                  label: mostOverdue.title,
+                  onClick: () => navigate(partnerTaskDeepLink(mostOverdue)),
+                }
+              : { label: 'Projects hub', onClick: () => navigate('/portal/projects') }
+          }
           secondaryAction={{ label: 'Fundability', onClick: () => navigate('/fundability-readiness') }}
         >
           {tab === 'queue' && (
             <div className="space-y-4">
               {activeProjectId ? (
-                <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony flex flex-wrap items-center justify-between gap-3`}>
+                <div className={`${finelyOsCatalogCard('emerald')} fc-surface-harmony flex flex-wrap items-center justify-between gap-3`} data-fc-accent="emerald">
                   <div>
                     <div className={FINELY_OS_ENTITY_VALUE}>Voice-to-task</div>
                     <div className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>Speak a task — it lands on your active project.</div>
@@ -153,12 +168,13 @@ export default function PartnerMyTasksPage() {
                   items={projects}
                   pageSize={4}
                   itemSpacingClassName="space-y-4"
-                  renderItem={(p) => (
+                  renderItem={(p, idx) => (
                     <button
                       key={p.id}
                       type="button"
                       onClick={() => navigate(`/portal/projects/${p.id}`)}
-                      className={`text-left ${finelyOsInlineListItem()} p-5 transition-all hover:shadow-md`}
+                      className={`text-left ${finelyOsCatalogCard((['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4])} transition-all hover:brightness-[1.02]`}
+                      data-fc-accent={(['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4]}
                     >
                       <div className="flex items-center gap-2 text-violet-300">
                         <FolderKanban size={16} />
@@ -179,8 +195,8 @@ export default function PartnerMyTasksPage() {
           )}
         </FinelyUnifiedHubLayout>
 
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
       </div>
-    </PageShell>
+    </PartnerWorkstationFrame>
   );
 }

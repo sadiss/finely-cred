@@ -89,7 +89,7 @@ export const PUBLIC_LANE_KITS: Record<PublicLaneId, PublicLaneKit> = {
   financing: {
     id: 'financing',
     label: 'Financing',
-    accent: 'amber',
+    accent: 'sky',
     titlePosition: 'left',
     titleSize: 'lg',
     cardMotif: 'rail',
@@ -99,7 +99,7 @@ export const PUBLIC_LANE_KITS: Record<PublicLaneId, PublicLaneKit> = {
   careers: {
     id: 'careers',
     label: 'Careers',
-    accent: 'amber',
+    accent: 'rose',
     titlePosition: 'stack',
     titleSize: 'display',
     cardMotif: 'soft',
@@ -117,7 +117,7 @@ export const PUBLIC_LANE_KITS: Record<PublicLaneId, PublicLaneKit> = {
   start: {
     id: 'start',
     label: 'Start here',
-    accent: 'amber',
+    accent: 'violet',
     titlePosition: 'center',
     titleSize: 'display',
     cardMotif: 'panel',
@@ -126,7 +126,7 @@ export const PUBLIC_LANE_KITS: Record<PublicLaneId, PublicLaneKit> = {
   home: {
     id: 'home',
     label: 'Home',
-    accent: 'amber',
+    accent: 'fuchsia',
     titlePosition: 'center',
     titleSize: 'display',
     cardMotif: 'panel',

@@ -1,0 +1,167 @@
+/* Bankruptcy — case queue + inspector (not tab strip) */
+
+.fc-wlp-bk-case-desk {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.fc-wlp-bk-case-spine {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: static;
+  max-height: none;
+  padding: 14px 10px;
+  border-radius: 20px;
+  border: 1px solid rgba(244, 63, 94, 0.22);
+  background: linear-gradient(180deg, rgba(244, 63, 94, 0.1), rgba(255, 255, 255, 0.94));
+}
+
+.fc-wlp-bk-case-spine-head {
+  padding: 8px 10px 12px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.fc-wlp-bk-case-spine-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  background: transparent;
+  text-align: left;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+
+.fc-wlp-bk-case-spine-item[data-active='true'] {
+  border-color: color-mix(in srgb, rgb(var(--fcm-accent-rgb, 244 63 94)) 42%, transparent);
+  background: rgba(255, 255, 255, 0.92);
+  transform: translateX(2px);
+}
+
+.fc-wlp-bk-case-spine-item strong {
+  font-size: 15px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.fc-wlp-bk-case-spine-item span {
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.fc-wlp-bk-track-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 8px 6px 12px;
+  padding: 10px 8px;
+  border-radius: 14px;
+  border: 1px solid rgba(139, 92, 246, 0.18);
+  background: rgba(139, 92, 246, 0.06);
+}
+
+.fc-wlp-bk-track-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: transparent;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 800;
+  color: #334155;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.fc-wlp-bk-track-btn[data-active='true'] {
+  border-color: color-mix(in srgb, rgb(var(--fcm-accent-rgb, 139 92 246)) 40%, transparent);
+  background: rgba(255, 255, 255, 0.9);
+  color: #0f172a;
+}
+
+.fc-wlp-bk-inspector {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+.fc-wlp-bk-inspector-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  padding: 24px 28px;
+  border-radius: 20px;
+  border: 1px solid rgba(56, 189, 248, 0.24);
+  background:
+    radial-gradient(circle at 100% 0, rgba(56, 189, 248, 0.18), transparent 38%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(56, 189, 248, 0.08));
+  box-shadow: 0 22px 38px -32px rgba(10, 22, 39, 0.55);
+}
+
+.fc-wlp-bk-inspector-hero h2 {
+  font-size: clamp(1.4rem, 2.2vw, 1.9rem);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  color: #0f172a;
+  line-height: 1.15;
+}
+
+.fc-wlp-bk-inspector-hero p {
+  margin-top: 8px;
+  font-size: 16px;
+  font-weight: 650;
+  line-height: 1.45;
+  color: #475569;
+}
+
+.fc-wlp-bk-compose-drawer {
+  border-radius: 20px;
+  border: 1px solid rgba(16, 185, 129, 0.28);
+  padding: 24px 28px;
+  background: linear-gradient(180deg, rgba(16, 185, 129, 0.08), rgba(255, 255, 255, 0.94));
+}
+
+html[data-fc-theme='dark'] .fc-wlp-bk-case-spine,
+html[data-fc-theme='dark'] .fc-wlp-bk-inspector-hero,
+html[data-fc-theme='dark'] .fc-wlp-bk-compose-drawer {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: #e2e8f0;
+}
+
+html[data-fc-theme='dark'] .fc-wlp-bk-case-spine-item strong,
+html[data-fc-theme='dark'] .fc-wlp-bk-inspector-hero h2 {
+  color: #f8fafc;
+}
+
+html[data-fc-theme='dark'] .fc-wlp-bk-case-spine-item[data-active='true'],
+html[data-fc-theme='dark'] .fc-wlp-bk-track-btn[data-active='true'] {
+  background: rgba(255, 255, 255, 0.1);
+  color: #f8fafc;
+}
+
+@media (max-width: 1100px) {
+  .fc-wlp-bk-case-desk {
+    grid-template-columns: 1fr;
+  }
+
+  .fc-wlp-bk-case-spine {
+    position: static;
+    max-height: none;
+  }
+}

@@ -1,13 +1,13 @@
 import type { LetterRecord, DisputeLetterMeta } from '../domain/letters';
 import type { DisputeRoundLabel } from '../domain/disputeWorkflow';
-import { addDaysIso, nowIso } from '../domain/cases';
+import { nowIso } from '../domain/cases';
 import { listCasesByPartner, markCaseRoundMailed } from '../data/casesRepo';
 import { createTask, listTasksByPartner } from '../data/tasksRepo';
 import { emitPlatformEvent } from '../domain/platformEvents';
 import { INTER_ROUND_GUIDANCE } from '../domain/disputeWorkflow';
+import { addDeadlineDaysSync } from './businessDays';
+import { syncDisputeDeadlinePassedTasks } from './disputeDeadlineEngine';
 import { onPartnerLetterMailed } from './partnerSuccessMilestones';
-
-const BUREAU_RESPONSE_DAYS = 35;
 
 function roundFromLetter(meta?: DisputeLetterMeta): DisputeRoundLabel {
   const r = String(meta?.round ?? 'Round 1');
@@ -70,16 +70,18 @@ export function onDisputeLetterMailed(args: {
       kind: 'follow_up',
       status: 'pending',
       stage: 'disputes',
-      dueAt: addDaysIso(mailedAt, BUREAU_RESPONSE_DAYS),
+      dueAt: `${addDeadlineDaysSync(mailedAt, windowDays, 'calendar')}T12:00:00.000Z`,
       relatedLetterId: letter.id,
-      notes: `Letter mailed ${new Date(mailedAt).toLocaleDateString()}. Typical bureau window ~${windowDays} days (track through day ${BUREAU_RESPONSE_DAYS}). Upload bureau reply to Documents Vault when received.`,
+      notes: `Letter mailed ${new Date(mailedAt).toLocaleDateString()}. Typical bureau window ~${windowDays} calendar days (weekend last day rolls forward). Upload the bureau reply to Documents Vault when received.`,
       assignedTo: 'partner',
       tags: ['bureau_timer', round.toLowerCase().replace(/\s+/g, '_')],
     });
     onPartnerLetterMailed(letter.partnerId);
+    syncDisputeDeadlinePassedTasks(letter.partnerId);
     return { taskCreated: true, caseUpdated };
   }
 
   onPartnerLetterMailed(letter.partnerId);
+  syncDisputeDeadlinePassedTasks(letter.partnerId);
   return { taskCreated: false, caseUpdated };
 }

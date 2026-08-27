@@ -301,7 +301,7 @@ export const OWNERS_GUIDE_SECTIONS: OwnersGuideSection[] = [
       'Funding Ladder + Tradeline Marketplace in partner portal (/portal/wealth-paths, /portal/tradelines).',
     ],
     paths: [
-      { label: 'Support inbox', path: '/admin/support' },
+      { label: 'Partner conversations', path: '/admin/support' },
       { label: 'Tradeline marketplace', path: '/portal/tradelines' },
       { label: 'Wealth paths + funding ladder', path: '/portal/wealth-paths' },
     ],

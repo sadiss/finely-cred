@@ -54,8 +54,8 @@ function profile(
 export const LEAD_MAGNET_PREMIUM_PROFILES: Record<string, LeadMagnetPremiumProfile> = {
   debt: profile({
     accent: 'sky',
-    heroProof: ['Fight-back validation OS — not passive hope', 'Summons-first checklist if court papers arrived', 'Live debt lane portal — no card'],
-    problemTitle: 'Collectors move fast. Your fight-back paperwork should move faster.',
+    heroProof: ['Validation letters — not hope', 'Summons-first checklist if court papers arrived', 'Live debt lane portal — no card'],
+    problemTitle: 'Collectors move fast. Your validation paperwork should move faster.',
     problemBody:
       'Most people freeze when collections hit — not because they lack willpower, but because they lack a sequence. This kit gives you the order of operations: validate in writing, document every contact, respond with proof, escalate when they stall.',
     painPoints: [

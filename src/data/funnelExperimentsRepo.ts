@@ -106,11 +106,11 @@ function buildDefaultExperiments(): FunnelExperiment[] {
       name: 'Credit funnel headline test',
       enabled: true,
       headlines: {
-        control: 'Free dispute letter guide + DIY trial',
-        variant_a: 'Download the insider dispute playbook (free)',
-        variant_b: 'Start your credit restoration trial today',
+        control: 'Free dispute letter guide',
+        variant_a: 'Download the dispute playbook (free)',
+        variant_b: 'Start your free dispute letter guide',
       },
-      ctaLabels: { control: 'Get the guide', variant_a: 'Send my guide', variant_b: 'Start free trial' },
+      ctaLabels: { control: 'Get the guide', variant_a: 'Send my guide', variant_b: 'Get the free guide' },
       stats: {},
       updatedAt: new Date().toISOString(),
     },
@@ -137,7 +137,7 @@ function buildDefaultExperiments(): FunnelExperiment[] {
       headlines: {
         control: 'Annihilate Your Debt. Take Back Control.',
         variant_a: 'Stop the Collection Calls — Starting Today',
-        variant_b: 'Your Fight-Back Validation Playbook Is Ready',
+        variant_b: 'Your validation playbook is ready',
       },
       ctaLabels: {
         control: 'Get the free guide',
@@ -168,11 +168,38 @@ function buildDefaultExperiments(): FunnelExperiment[] {
   ];
 }
 
+function sanitizePublicExperimentCopy(exp: FunnelExperiment): FunnelExperiment {
+  if (exp.funnelId === 'credit_dispute') {
+    const headlines = { ...(exp.headlines ?? {}) };
+    const ctaLabels = { ...(exp.ctaLabels ?? {}) };
+    if ((headlines.control || '').includes('DIY trial')) headlines.control = 'Free dispute letter guide';
+    if ((headlines.variant_b || '').toLowerCase().includes('trial')) {
+      headlines.variant_b = 'Start your free dispute letter guide';
+    }
+    if ((ctaLabels.variant_b || '').toLowerCase().includes('trial')) {
+      ctaLabels.variant_b = 'Get the free guide';
+    }
+    return { ...exp, headlines, ctaLabels };
+  }
+  if (exp.funnelId === 'debt_freedom') {
+    const headlines = { ...(exp.headlines ?? {}) };
+    if ((headlines.variant_b || '').toLowerCase().includes('fight-back')) {
+      headlines.variant_b = 'Your validation playbook is ready';
+    }
+    return { ...exp, headlines };
+  }
+  return exp;
+}
+
 export function ensureDefaultExperiments() {
   const store = loadStore();
   const existingFunnelIds = new Set(store.experiments.map((e) => e.funnelId));
   const missing = buildDefaultExperiments().filter((exp) => !existingFunnelIds.has(exp.funnelId));
-  if (!missing.length) return;
-  store.experiments = [...store.experiments, ...missing];
+  const sanitized = store.experiments.map(sanitizePublicExperimentCopy);
+  const changed =
+    missing.length > 0 ||
+    sanitized.some((exp, i) => JSON.stringify(exp) !== JSON.stringify(store.experiments[i]));
+  if (!changed) return;
+  store.experiments = [...sanitized, ...missing];
   saveStore(store);
 }

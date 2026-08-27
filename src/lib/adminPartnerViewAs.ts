@@ -1,4 +1,6 @@
+import type { NavigateFunction } from 'react-router-dom';
 import { ADMIN_PARTNER_OVERRIDE_KEY } from '../portal/getOrCreatePartnerForSession';
+import { clearActiveRolePreview } from './adminRolePreview';
 
 export const ADMIN_PARTNER_PORTAL_DEFAULT_PATH = '/portal/dashboard';
 
@@ -53,9 +55,51 @@ export function clearAdminPartnerOverrideId(): void {
   }
 }
 
-/** Sets local override and opens the partner portal in a new tab (admin stays signed in). */
+export function adminPartnerFilePath(partnerId?: string): string {
+  const id = (partnerId || '').trim();
+  return id ? `/admin/partners/${encodeURIComponent(id)}` : '/admin/partners';
+}
+
+/** Leave partner-portal view-as and return to the admin partner file (or the partners list). */
+export function exitAdminPartnerView(navigate?: NavigateFunction, partnerId?: string): void {
+  const id = (partnerId || readAdminPartnerOverrideId()).trim();
+  clearAdminPartnerOverrideId();
+  const path = adminPartnerFilePath(id);
+  if (navigate) {
+    navigate(path, { replace: true });
+    return;
+  }
+  window.location.assign(path);
+}
+
+/** Sets local override and opens the partner portal (default: same tab for in-app walkthrough). */
+export function enterPartnerView(
+  partnerId: string,
+  opts?: {
+    path?: string;
+    newTab?: boolean;
+    navigate?: NavigateFunction;
+  },
+): void {
+  const id = (partnerId || '').trim();
+  if (!id) return;
+  setAdminPartnerOverrideId(id);
+  clearActiveRolePreview();
+  const url = (opts?.path || ADMIN_PARTNER_PORTAL_DEFAULT_PATH).startsWith('/')
+    ? opts?.path || ADMIN_PARTNER_PORTAL_DEFAULT_PATH
+    : `/${opts?.path || ADMIN_PARTNER_PORTAL_DEFAULT_PATH}`;
+  if (opts?.newTab) {
+    window.open(url, '_blank', 'noopener,noreferrer');
+    return;
+  }
+  if (opts?.navigate) {
+    opts.navigate(url);
+    return;
+  }
+  window.location.assign(url);
+}
+
+/** @deprecated prefer enterPartnerView */
 export function openPortalAsPartner(partnerId: string, path = ADMIN_PARTNER_PORTAL_DEFAULT_PATH): void {
-  setAdminPartnerOverrideId(partnerId);
-  const url = path.startsWith('/') ? path : `/${path}`;
-  window.open(url, '_blank', 'noopener,noreferrer');
+  enterPartnerView(partnerId, { path, newTab: true });
 }

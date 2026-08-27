@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Plus, Save, Trash2, Search, RefreshCw, Store } from 'lucide-react';
-import { PageShell } from '../../components/layout/PageShell';
+import { AdminWorkstationFrame, type AdminEmbeddablePageProps } from '../../features/workspaceLightPreview/product/admin/AdminWorkstationFrame';
 import { useAuth } from '../../auth/AuthProvider';
 import { isAdminEmail } from '../../auth/admin';
 import { getActiveTenantId } from '../../tenancy/activeTenant';
@@ -40,7 +40,7 @@ const CATEGORIES: VendorCategory[] = [
   'Other',
 ];
 
-export default function AdminVendorsPage() {
+export default function AdminVendorsPage({ embedded = false }: AdminEmbeddablePageProps = {}) {
   const auth = useAuth();
   const [version, setVersion] = useState(0);
   const [query, setQuery] = useState('');
@@ -85,14 +85,16 @@ export default function AdminVendorsPage() {
 
   if (!canAccess) {
     return (
-      <PageShell badge="Admin" title="Vendor Catalog" subtitle="Admin-only.">
+      <AdminWorkstationFrame embedded={embedded} kind="vendors-workstation" badge="Admin" title="Vendor Catalog" subtitle="Admin-only.">
         <div className={FINELY_OS_LUXURY_EMPTY}>Access denied.</div>
-      </PageShell>
+      </AdminWorkstationFrame>
     );
   }
 
   return (
-    <PageShell
+    <AdminWorkstationFrame
+      embedded={embedded}
+      kind="vendors-workstation"
       badge="Admin"
       title="Vendor Catalog"
       subtitle="Manage the tiered vendor recommendations used in the Business portal."
@@ -129,12 +131,12 @@ export default function AdminVendorsPage() {
         {notice ? <div className={FINELY_OS_NOTICE_WARN}>{notice}</div> : null}
 
         <div className="grid sm:grid-cols-2 gap-4">
-          <FinelyOsOverviewStatTile icon={Store} label="Vendors" value={vendors.length} accent="amber" iconAccent="amber" />
+          <FinelyOsOverviewStatTile icon={Store} label="Vendors" value={vendors.length} accent="emerald" iconAccent="emerald" />
           <FinelyOsOverviewStatTile icon={Search} label="Filtered" value={filtered.length} accent="violet" iconAccent="violet" />
         </div>
 
         <div className="grid lg:grid-cols-12 gap-6">
-          <div className={`lg:col-span-5 space-y-3 ${finelyOsCatalogCard('amber')} !p-5`} data-fc-accent="amber">
+          <div className={`lg:col-span-5 space-y-4 ${finelyOsCatalogCard('emerald')} `} data-fc-accent="emerald">
             <div className={`flex items-center gap-2 ${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')}`}>
               <Search size={14} className="text-emerald-700 shrink-0" />
               <input
@@ -149,7 +151,7 @@ export default function AdminVendorsPage() {
               pageSize={12}
               emptyMessage="No vendors match."
               renderItem={(v) => (
-                <button key={v.id} type="button" onClick={() => setSelectedId(v.id)} className={finelyOsListItem(selectedId === v.id, 'amber')}>
+                <button key={v.id} type="button" onClick={() => setSelectedId(v.id)} className={finelyOsListItem(selectedId === v.id, 'emerald')}>
                   <div className={`${FINELY_OS_ENTITY_VALUE} font-semibold`}>{v.name}</div>
                   <div className={`mt-1 ${FINELY_OS_ENTITY_SUBLABEL} font-mono`}>
                     Tier {v.tier} • {v.category}
@@ -159,7 +161,7 @@ export default function AdminVendorsPage() {
             />
           </div>
 
-          <div className={`lg:col-span-7 space-y-4 ${finelyOsCatalogCard('violet')} !p-5`} data-fc-accent="violet">
+          <div className={`lg:col-span-7 space-y-4 ${finelyOsCatalogCard('sky')} `} data-fc-accent="sky">
             {!draft ? (
               <div className={FINELY_OS_LUXURY_EMPTY}>Select a vendor to edit.</div>
             ) : (
@@ -260,9 +262,9 @@ export default function AdminVendorsPage() {
             )}
           </div>
         </div>
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
       </div>
-    </PageShell>
+    </AdminWorkstationFrame>
   );
 }
 

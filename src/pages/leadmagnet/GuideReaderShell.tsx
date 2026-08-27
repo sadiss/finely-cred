@@ -274,7 +274,7 @@ export default function GuideReaderShell({
           <div
             className={cn(
               'mb-2 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em]',
-              chromeTone === 'light' ? 'text-amber-900/80' : 'text-[#d4a447]',
+              chromeTone === 'light' ? 'text-violet-800/80' : 'text-violet-300',
             )}
           >
             <BookOpen size={14} aria-hidden /> {tocLabel}
@@ -376,7 +376,7 @@ export default function GuideReaderShell({
                 type="button"
                 disabled={chapterIndex >= total - 1}
                 onClick={() => flipRef.current?.flipNext() ?? goChapter(chapterIndex + 1)}
-                className="inline-flex h-11 items-center gap-2 rounded-lg border border-[#d4a447]/40 bg-[#d4a447]/12 px-4 text-[10px] font-black uppercase tracking-[0.12em] text-[#f0cc75] transition hover:border-[#d4a447]/70 disabled:cursor-not-allowed disabled:opacity-35"
+                className="inline-flex h-11 items-center gap-2 rounded-lg border border-emerald-300/40 bg-emerald-400/15 px-4 text-[10px] font-black uppercase tracking-[0.12em] text-emerald-100 transition hover:border-emerald-300/70 disabled:cursor-not-allowed disabled:opacity-35"
               >
                 Next <ChevronRight size={16} />
               </button>

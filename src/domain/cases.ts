@@ -1,4 +1,5 @@
 import type { Bureau, DisputeCandidate } from './creditReports';
+import { filterFactualDisputeReasons, withBureauScreenshotLead } from '../creditReports/disputeFactualReasons';
 import { newId } from '../utils/ids';
 
 export type CaseStatus = 'open' | 'closed';
@@ -80,7 +81,9 @@ export function candidateToCaseItem(candidate: DisputeCandidate, args?: { eviden
     reportId: candidate.reportId,
     candidateId: candidate.id,
     evidenceId: args?.evidenceId,
-    reasons: (args?.reasons ?? []).map((x) => x.trim()).filter(Boolean),
+    reasons: filterFactualDisputeReasons(args?.reasons ?? []).map((reason) =>
+      withBureauScreenshotLead(candidate.bureau, reason),
+    ),
   };
 }
 

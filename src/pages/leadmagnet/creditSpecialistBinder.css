@@ -1,24 +1,28 @@
 /*
- * Credit Specialist Playbook — reader-only "coaching binder" skin.
- * Warm ivory chapter pages in a ring binder on a walnut desk, with embossed
- * badge stamps per chapter. Scoped to .csg-binder so the landing page keeps
- * its own navy/gold treatment.
+ * Credit Specialist Playbook — reader-only coaching binder skin.
+ * Colored chapter sheets in a ring binder on a navy desk — emerald / violet /
+ * sky / rose accent rotation. Scoped to .csg-binder so the landing page keeps
+ * its own treatment.
  */
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Karla:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
 
 .csg-binder {
-  --bnd-walnut: #221a13;
-  --bnd-walnut-deep: #15100b;
-  --bnd-ivory: #f7f2e7;
-  --bnd-ivory-edge: #e3dac6;
-  --bnd-ink: #2a2318;
-  --bnd-body: #4a4234;
-  --bnd-muted: #857a66;
-  --bnd-brass: #a8792a;
-  --bnd-brass-soft: #c99b48;
-  --bnd-sage: #4f7355;
-  --bnd-clay: #a5502f;
-  --bnd-slate: #45607a;
+  --bnd-navy: #0a1428;
+  --bnd-navy-deep: #050a14;
+  --bnd-sheet: #f0f7ff;
+  --bnd-sheet-fold: #e3edfa;
+  --bnd-sheet-edge: #c7ddf5;
+  --bnd-ink: #0f172a;
+  --bnd-body: #334155;
+  --bnd-muted: #64748b;
+  --bnd-violet: #7c3aed;
+  --bnd-violet-soft: #a78bfa;
+  --bnd-emerald: #059669;
+  --bnd-emerald-soft: #34d399;
+  --bnd-sky: #0284c7;
+  --bnd-sky-soft: #38bdf8;
+  --bnd-rose: #e11d48;
+  --bnd-rose-soft: #fb7185;
   font-family: 'Karla', system-ui, -apple-system, sans-serif;
 }
 
@@ -29,47 +33,48 @@
 /* ── Desk ─────────────────────────────────────────────────── */
 .csg-binder .csg-atmosphere {
   background:
-    radial-gradient(ellipse 60% 44% at 20% 0%, rgba(168, 121, 42, 0.16), transparent 58%),
-    radial-gradient(ellipse 52% 38% at 88% 16%, rgba(79, 115, 85, 0.1), transparent 56%),
-    linear-gradient(180deg, #221a13 0%, #191309 48%, #100c07 100%);
+    radial-gradient(ellipse 60% 44% at 20% 0%, rgba(139, 92, 246, 0.18), transparent 58%),
+    radial-gradient(ellipse 52% 38% at 88% 16%, rgba(16, 185, 129, 0.12), transparent 56%),
+    radial-gradient(ellipse 48% 36% at 50% 100%, rgba(56, 189, 248, 0.08), transparent 55%),
+    linear-gradient(180deg, var(--bnd-navy) 0%, var(--bnd-navy-deep) 48%, #030712 100%);
 }
 
 /* ── Binder spine bar ─────────────────────────────────────── */
 .csg-binder .csg-reader-nav {
-  border-bottom: 1px solid rgba(168, 121, 42, 0.26);
-  background: linear-gradient(180deg, rgba(34, 26, 19, 0.96), rgba(21, 16, 11, 0.9));
+  border-bottom: 1px solid rgba(139, 92, 246, 0.28);
+  background: linear-gradient(180deg, rgba(10, 20, 40, 0.96), rgba(5, 10, 20, 0.9));
 }
 
 .csg-binder .csg-progress > span {
-  background: linear-gradient(90deg, var(--bnd-brass), var(--bnd-sage));
+  background: linear-gradient(90deg, var(--bnd-violet), var(--bnd-emerald), var(--bnd-sky));
 }
 
 /* ── Tab-divider table of contents ────────────────────────── */
 .csg-binder .csg-toc {
-  border: 1px solid rgba(168, 121, 42, 0.22);
+  border: 1px solid rgba(139, 92, 246, 0.24);
   border-radius: 12px;
-  background: linear-gradient(180deg, rgba(247, 242, 231, 0.06), rgba(247, 242, 231, 0.02));
+  background: linear-gradient(180deg, rgba(240, 247, 255, 0.06), rgba(56, 189, 248, 0.03));
 }
 
 .csg-binder .csg-toc-item {
   position: relative;
   border-radius: 0 10px 10px 0;
   border: 1px solid transparent;
-  border-left: 3px solid rgba(168, 121, 42, 0.28);
-  background: rgba(247, 242, 231, 0.03);
+  border-left: 3px solid rgba(139, 92, 246, 0.32);
+  background: rgba(240, 247, 255, 0.04);
   margin-left: 0.35rem;
   transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
 }
 
 .csg-binder .csg-toc-item:hover {
   transform: translateX(3px);
-  background: rgba(201, 155, 72, 0.1);
-  border-left-color: var(--bnd-brass-soft);
+  background: rgba(56, 189, 248, 0.1);
+  border-left-color: var(--bnd-sky-soft);
 }
 
 .csg-binder .csg-toc-item.is-active {
-  background: rgba(247, 242, 231, 0.94);
-  border-left-color: var(--bnd-brass);
+  background: rgba(240, 247, 255, 0.94);
+  border-left-color: var(--bnd-violet);
   transform: translateX(6px);
 }
 
@@ -77,23 +82,32 @@
   color: var(--bnd-ink) !important;
 }
 
-.csg-binder .csg-toc-item.is-active .csg-accent-gold,
-.csg-binder .csg-toc-item.is-active .csg-accent-lime,
-.csg-binder .csg-toc-item.is-active .csg-accent-sky,
-.csg-binder .csg-toc-item.is-active .csg-accent-rose {
-  color: var(--bnd-brass) !important;
+.csg-binder .csg-toc-item.is-active .csg-accent-gold {
+  color: var(--bnd-violet) !important;
 }
 
-/* ── Ivory chapter page ───────────────────────────────────── */
+.csg-binder .csg-toc-item.is-active .csg-accent-lime {
+  color: var(--bnd-emerald) !important;
+}
+
+.csg-binder .csg-toc-item.is-active .csg-accent-sky {
+  color: var(--bnd-sky) !important;
+}
+
+.csg-binder .csg-toc-item.is-active .csg-accent-rose {
+  color: var(--bnd-rose) !important;
+}
+
+/* ── Sky-tinted chapter page ─────────────────────────────── */
 .csg-binder .csg-article {
   position: relative;
-  border: 1px solid var(--bnd-ivory-edge);
+  border: 1px solid var(--bnd-sheet-edge);
   border-radius: 4px 12px 12px 4px;
-  background: linear-gradient(105deg, #efe8d8 0 34px, var(--bnd-ivory) 34px);
+  background: linear-gradient(105deg, var(--bnd-sheet-fold) 0 34px, var(--bnd-sheet) 34px);
   color: var(--bnd-body);
   box-shadow:
-    inset 34px 0 26px -30px rgba(90, 70, 40, 0.5),
-    0 26px 70px rgba(0, 0, 0, 0.5);
+    inset 34px 0 26px -30px rgba(124, 58, 237, 0.14),
+    0 26px 70px rgba(5, 10, 20, 0.45);
 }
 
 /* Ring-binding punches */
@@ -106,8 +120,8 @@
   width: 10px;
   background-image: radial-gradient(
     circle at 50% 50%,
-    rgba(90, 70, 40, 0.34) 0 4.6px,
-    rgba(255, 255, 255, 0.5) 4.6px 5.4px,
+    rgba(100, 116, 139, 0.32) 0 4.6px,
+    rgba(255, 255, 255, 0.65) 4.6px 5.4px,
     transparent 5.6px
   );
   background-size: 10px 108px;
@@ -117,7 +131,7 @@
 
 @media (max-width: 767px) {
   .csg-binder .csg-article {
-    background: var(--bnd-ivory);
+    background: var(--bnd-sheet);
     border-radius: 10px;
   }
   .csg-binder .csg-article::before {
@@ -139,13 +153,35 @@
 }
 
 .csg-binder .csg-section-block {
-  border-top: 1px solid var(--bnd-ivory-edge);
+  border-top: 1px solid var(--bnd-sheet-edge);
 }
 
 .csg-binder .lm-lux-rule--short {
-  background: linear-gradient(90deg, var(--bnd-brass), transparent);
+  background: linear-gradient(90deg, var(--bnd-violet), var(--bnd-sky), transparent);
   height: 2px;
   width: 64px;
+}
+
+/* ── Chapter footer nav on sheet ─────────────────────────── */
+.csg-binder .csg-article-nav {
+  border-top: 1px solid var(--bnd-sheet-edge);
+}
+
+.csg-binder .csg-prev-btn {
+  border: 1px solid var(--bnd-sheet-edge);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--bnd-body);
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.csg-binder .csg-prev-btn:hover:not(:disabled) {
+  border-color: rgba(56, 189, 248, 0.55);
+  background: rgba(240, 247, 255, 0.95);
+}
+
+.csg-binder .csg-prev-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
 }
 
 /* ── Badge stamp (chapter seal) ───────────────────────────── */
@@ -158,9 +194,16 @@
   width: 74px;
   height: 74px;
   border-radius: 50%;
-  border: 2px solid var(--bnd-brass);
-  background: radial-gradient(circle at 32% 26%, rgba(255, 255, 255, 0.75), rgba(201, 155, 72, 0.16) 62%, rgba(168, 121, 42, 0.22));
-  box-shadow: inset 0 0 0 3px rgba(247, 242, 231, 0.86), 0 5px 16px rgba(90, 70, 40, 0.22);
+  border: 2px solid var(--bnd-violet);
+  background: radial-gradient(
+    circle at 32% 26%,
+    rgba(255, 255, 255, 0.82),
+    rgba(167, 139, 250, 0.18) 58%,
+    rgba(16, 185, 129, 0.14) 100%
+  );
+  box-shadow:
+    inset 0 0 0 3px rgba(240, 247, 255, 0.9),
+    0 5px 16px rgba(124, 58, 237, 0.2);
   transform: rotate(-4deg);
   flex-shrink: 0;
 }
@@ -170,7 +213,7 @@
   font-weight: 700;
   font-size: 1.5rem;
   line-height: 1;
-  color: var(--bnd-brass);
+  color: var(--bnd-violet);
 }
 
 .csg-binder-stamp-label {
@@ -179,7 +222,6 @@
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--bnd-muted);
-  margin-top: 2px;
 }
 
 .csg-binder-lane {
@@ -187,14 +229,14 @@
   align-items: center;
   gap: 0.35rem;
   border-radius: 3px;
-  border: 1px solid rgba(168, 121, 42, 0.4);
-  background: rgba(201, 155, 72, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  background: rgba(56, 189, 248, 0.12);
   padding: 0.24rem 0.55rem;
   font-size: 9.5px;
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--bnd-brass);
+  color: var(--bnd-sky);
 }
 
 .csg-binder-meta {
@@ -208,10 +250,10 @@
 /* ── Coaching note (callout) ──────────────────────────────── */
 .csg-binder .csg-callout {
   position: relative;
-  border-left: 3px solid var(--bnd-sage);
+  border-left: 3px solid var(--bnd-emerald);
   border-radius: 0 8px 8px 0;
-  background: rgba(79, 115, 85, 0.09);
-  color: #3b4c3f !important;
+  background: rgba(16, 185, 129, 0.1);
+  color: #065f46 !important;
   padding-left: 2.5rem;
 }
 
@@ -224,23 +266,23 @@
   font-size: 7.5px;
   font-weight: 700;
   letter-spacing: 0.22em;
-  color: var(--bnd-sage);
+  color: var(--bnd-emerald);
 }
 
 /* ── Role-play script card ────────────────────────────────── */
 .csg-binder .csg-script {
   position: relative;
   margin-top: 1.35rem;
-  border: 1px solid var(--bnd-ivory-edge);
+  border: 1px solid var(--bnd-sheet-edge);
   border-radius: 10px;
   background:
     repeating-linear-gradient(
       180deg,
       transparent 0 27px,
-      rgba(69, 96, 122, 0.09) 27px 28px
+      rgba(56, 189, 248, 0.1) 27px 28px
     ),
-    #fbf8f0;
-  box-shadow: 0 8px 22px rgba(90, 70, 40, 0.1);
+    #f5faff;
+  box-shadow: 0 8px 22px rgba(2, 132, 199, 0.1);
   padding: 1rem 1.1rem 1.1rem;
 }
 
@@ -253,7 +295,7 @@
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--bnd-slate);
+  color: var(--bnd-sky);
 }
 
 .csg-binder .csg-script-line {
@@ -273,7 +315,7 @@
 }
 
 .csg-binder .csg-script-line--you .csg-script-who {
-  color: var(--bnd-brass);
+  color: var(--bnd-violet);
 }
 
 .csg-binder .csg-script-text {
@@ -290,9 +332,9 @@
 /* ── Tear-out checklist ───────────────────────────────────── */
 .csg-binder .csg-checklist {
   margin-top: 1.35rem;
-  border: 1px dashed rgba(168, 121, 42, 0.5);
+  border: 1px dashed rgba(225, 29, 72, 0.45);
   border-radius: 10px;
-  background: rgba(201, 155, 72, 0.06);
+  background: rgba(251, 113, 133, 0.08);
   padding: 1rem 1.15rem 1.1rem;
 }
 
@@ -301,7 +343,7 @@
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--bnd-brass);
+  color: var(--bnd-rose);
 }
 
 .csg-binder .csg-checklist-item {
@@ -310,7 +352,7 @@
   gap: 0.7rem;
   align-items: start;
   padding: 0.42rem 0;
-  border-bottom: 1px solid rgba(168, 121, 42, 0.14);
+  border-bottom: 1px solid rgba(225, 29, 72, 0.14);
 }
 
 .csg-binder .csg-checklist-item:last-child {
@@ -321,9 +363,9 @@
   margin-top: 0.22rem;
   width: 14px;
   height: 14px;
-  border: 1.5px solid var(--bnd-brass);
+  border: 1.5px solid var(--bnd-violet);
   border-radius: 3px;
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.82);
 }
 
 /* ── Resource strip ───────────────────────────────────────── */
@@ -341,17 +383,17 @@
 
 .csg-binder .csg-resource {
   display: block;
-  border: 1px solid var(--bnd-ivory-edge);
-  border-left: 3px solid var(--bnd-slate);
+  border: 1px solid var(--bnd-sheet-edge);
+  border-left: 3px solid var(--bnd-sky);
   border-radius: 0 8px 8px 0;
-  background: rgba(69, 96, 122, 0.06);
+  background: rgba(56, 189, 248, 0.08);
   padding: 0.65rem 0.8rem;
   transition: background 0.2s ease, border-left-color 0.2s ease, transform 0.2s ease;
 }
 
 .csg-binder .csg-resource:hover {
-  background: rgba(69, 96, 122, 0.12);
-  border-left-color: var(--bnd-brass);
+  background: rgba(56, 189, 248, 0.14);
+  border-left-color: var(--bnd-violet);
   transform: translateX(2px);
 }
 
@@ -377,51 +419,59 @@
   }
 }
 
-/* Accent bullets read against ivory */
+/* Accent bullets on colored sheet */
 .csg-binder .csg-article .csg-accent-gold {
-  color: var(--bnd-brass) !important;
-}
-.csg-binder .csg-article .csg-accent-lime {
-  color: var(--bnd-sage) !important;
-}
-.csg-binder .csg-article .csg-accent-sky {
-  color: var(--bnd-slate) !important;
-}
-.csg-binder .csg-article .csg-accent-rose {
-  color: var(--bnd-clay) !important;
+  color: var(--bnd-violet) !important;
 }
 
-/* ── Footer nav on ivory ──────────────────────────────────── */
+.csg-binder .csg-article .csg-accent-lime {
+  color: var(--bnd-emerald) !important;
+}
+
+.csg-binder .csg-article .csg-accent-sky {
+  color: var(--bnd-sky) !important;
+}
+
+.csg-binder .csg-article .csg-accent-rose {
+  color: var(--bnd-rose) !important;
+}
+
+/* ── Footer nav + CTAs ────────────────────────────────────── */
 .csg-binder .csg-article .csg-gold-btn {
-  border-color: rgba(168, 121, 42, 0.65);
-  background: linear-gradient(135deg, #8a6320 0%, #c99b48 48%, #8a6320 100%);
-  color: #1b1408;
-  box-shadow: 0 10px 26px rgba(168, 121, 42, 0.28);
+  border-color: rgba(16, 185, 129, 0.55);
+  background: linear-gradient(135deg, #047857 0%, #10b981 48%, #059669 100%);
+  color: #ffffff;
+  box-shadow: 0 10px 26px rgba(16, 185, 129, 0.28);
 }
 
 .csg-binder .csg-cta-panel {
-  border: 1px solid rgba(168, 121, 42, 0.34);
+  border: 1px solid rgba(139, 92, 246, 0.34);
   background:
-    radial-gradient(ellipse 70% 55% at 12% 0%, rgba(79, 115, 85, 0.12), transparent 52%),
-    radial-gradient(ellipse 65% 50% at 92% 100%, rgba(168, 121, 42, 0.16), transparent 55%),
-    linear-gradient(165deg, rgba(34, 26, 19, 0.95), rgba(16, 12, 7, 0.98));
+    radial-gradient(ellipse 70% 55% at 12% 0%, rgba(16, 185, 129, 0.14), transparent 52%),
+    radial-gradient(ellipse 65% 50% at 92% 100%, rgba(139, 92, 246, 0.18), transparent 55%),
+    linear-gradient(165deg, rgba(10, 20, 40, 0.95), rgba(5, 10, 20, 0.98));
 }
 
 .csg-binder .csg-ghost-btn {
-  border-color: rgba(201, 155, 72, 0.42);
-  background: rgba(201, 155, 72, 0.08);
-  color: var(--bnd-brass-soft);
+  border-color: rgba(167, 139, 250, 0.42);
+  background: rgba(139, 92, 246, 0.1);
+  color: var(--bnd-violet-soft);
 }
 
 .csg-binder .csg-ghost-btn:hover {
-  border-color: rgba(201, 155, 72, 0.75);
-  background: rgba(201, 155, 72, 0.15);
+  border-color: rgba(167, 139, 250, 0.75);
+  background: rgba(139, 92, 246, 0.18);
 }
 
 .csg-binder .csg-nav-cta {
-  border-color: rgba(201, 155, 72, 0.55);
-  background: linear-gradient(180deg, rgba(201, 155, 72, 0.16), rgba(79, 115, 85, 0.07));
-  color: var(--bnd-brass-soft);
+  border-color: rgba(56, 189, 248, 0.45);
+  background: linear-gradient(180deg, rgba(56, 189, 248, 0.14), rgba(16, 185, 129, 0.08));
+  color: var(--bnd-sky-soft);
+}
+
+.csg-binder .csg-nav-cta:hover {
+  border-color: rgba(16, 185, 129, 0.5);
+  background: rgba(16, 185, 129, 0.12);
 }
 
 /* ── Motion (three intentional moves) ─────────────────────── */

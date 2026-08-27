@@ -9,6 +9,7 @@ import {
   NEGATIVE_PLAYBOOKS,
   type NegativeType,
 } from '../creditReports/negativePlaybooks';
+import { filterFactualDisputeReasons } from '../creditReports/disputeFactualReasons';
 import { consumerDisputeOpeningForTone } from './consumerDisputeVoice';
 
 const LANE_BY_NEGATIVE: Partial<Record<NegativeType, string>> = {
@@ -99,7 +100,7 @@ export function seedPlaybookReasonsForCandidate(args: {
       seen.add(clause.toLowerCase());
     }
   }
-  return out;
+  return filterFactualDisputeReasons(out);
 }
 
 export function dominantNegativeTypeFromCandidates(candidates: DisputeCandidate[]): NegativeType {

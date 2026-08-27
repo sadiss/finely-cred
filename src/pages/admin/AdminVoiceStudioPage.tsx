@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ArrowLeft, Headphones, Mic, Save, Sparkles, Wand2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { AdminWorkstationFrame, type AdminEmbeddablePageProps } from '../../features/workspaceLightPreview/product/admin/AdminWorkstationFrame';
+import { useMappedAdminNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { getPublicVoiceProfile, getVoiceStudioStatus, renderVoiceAsset, voiceProfileLabel } from '../../lib/voiceStudioClient';
 import { getGuideNarration } from '../../resources/guideNarration';
@@ -23,8 +23,8 @@ import {
   FINELY_OS_SUCCESS_BTN,
 } from '../../features/os/finelyOsLightUi';
 
-export default function AdminVoiceStudioPage() {
-  const navigate = useNavigate();
+export default function AdminVoiceStudioPage({ embedded = false }: AdminEmbeddablePageProps = {}) {
+  const navigate = useMappedAdminNavigate();
   const status = getVoiceStudioStatus();
   const guides = listFreeGuidesEffective().slice(0, 6);
   const [busy, setBusy] = useState(false);
@@ -68,13 +68,13 @@ export default function AdminVoiceStudioPage() {
   };
 
   return (
-    <PageShell badge="Admin" title="Voice Studio" subtitle="Neural narration — brand clone, presets, Nora shared API.">
+    <AdminWorkstationFrame embedded={embedded} kind="voice-studio-workstation" badge="Admin" title="Voice Studio" subtitle="Neural narration — brand clone, presets, Nora shared API.">
       <div className={FINELY_OS_PAGE}>
         <button type="button" onClick={() => navigate('/admin')} className={FINELY_OS_BACK_LINK}>
           <ArrowLeft size={16} /> Admin
         </button>
 
-        <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+        <div className={`${finelyOsCatalogCard('emerald')} space-y-4`} data-fc-accent="emerald">
           <div className="flex items-center gap-2 text-emerald-300">
             <Headphones size={18} />
             <span className={FINELY_OS_ENTITY_SUBLABEL}>Finely Voice Studio</span>
@@ -127,7 +127,7 @@ export default function AdminVoiceStudioPage() {
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">
-            <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-2`}>
+            <div className={`${finelyOsCatalogCard('violet')} fc-surface-harmony space-y-2`} data-fc-accent="violet">
               <div className="flex items-center gap-2 text-violet-300">
                 <Mic size={16} />
                 <span className={FINELY_OS_ENTITY_VALUE}>Brand clone</span>
@@ -137,7 +137,7 @@ export default function AdminVoiceStudioPage() {
                 &quot;Brand voice&quot; on guides and can be shared with Nora.
               </p>
             </div>
-            <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-2`}>
+            <div className={`${finelyOsCatalogCard('sky')} fc-surface-harmony space-y-2`} data-fc-accent="sky">
               <div className="flex items-center gap-2 text-sky-300">
                 <Sparkles size={16} />
                 <span className={FINELY_OS_ENTITY_VALUE}>Nora Capital (5173)</span>
@@ -170,8 +170,8 @@ export default function AdminVoiceStudioPage() {
           {err ? <div className={FINELY_OS_NOTICE_ERROR}>{err}</div> : null}
         </div>
 
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
       </div>
-    </PageShell>
+    </AdminWorkstationFrame>
   );
 }

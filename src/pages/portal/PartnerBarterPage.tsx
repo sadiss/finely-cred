@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { ArrowRight, BadgeCheck, Handshake, Plus, Search, ShieldAlert, Stamp, Store, XCircle } from 'lucide-react';
-import { PageShell } from '../../components/layout/PageShell';
+import { PartnerWorkstationFrame, type PartnerEmbeddablePageProps } from '../../features/workspaceLightPreview/product/partner/PartnerWorkstationFrame';
+import { useMappedPartnerNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { getActiveTenantId } from '../../tenancy/activeTenant';
 import { EntitlementGate } from '../../components/billing/EntitlementGate';
@@ -54,8 +54,8 @@ function clone<T>(x: T): T {
   return JSON.parse(JSON.stringify(x)) as T;
 }
 
-export default function PartnerBarterPage() {
-  const navigate = useNavigate();
+export default function PartnerBarterPage({ embedded = false }: PartnerEmbeddablePageProps = {}) {
+  const navigate = useMappedPartnerNavigate();
   const { partner } = usePartnerSession();
   const [version, setVersion] = useState(0);
   const tenantId = useMemo(() => getActiveTenantId(), [version]);
@@ -99,9 +99,15 @@ export default function PartnerBarterPage() {
 
   if (!partner) {
     return (
-      <PageShell badge="Partner Portal" title="Barter Exchange" subtitle="Sign in required.">
+      <PartnerWorkstationFrame
+        embedded={embedded}
+        kind="barter-workstation"
+        badge="Partner Portal"
+        title="Barter Exchange"
+        subtitle="Sign in required."
+      >
         <div className={`${FINELY_OS_LUXURY_EMPTY} text-left text-sm`}>No partner profile found for this session.</div>
-      </PageShell>
+      </PartnerWorkstationFrame>
     );
   }
 
@@ -210,10 +216,12 @@ export default function PartnerBarterPage() {
   };
 
   return (
-    <PageShell
+    <PartnerWorkstationFrame
+      embedded={embedded}
+      kind="barter-workstation"
       badge="Partner Portal"
       title="Barter Exchange"
-      subtitle="Create listings, send offers, and generate simple agreements with an audit trail. (No loopholes / no bureau-reporting claims.)"
+      subtitle="Trade services to offset the cost of your program."
     >
       <EntitlementGate partnerId={partner.id} requiredKeys={[ENTITLEMENT_KEYS.barter]}>
         <div className={FINELY_OS_PAGE}>
@@ -221,7 +229,7 @@ export default function PartnerBarterPage() {
 
         <div className={`${FINELY_OS_NOTICE_WARN} space-y-4`}>
           <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="inline-flex items-center gap-2 text-fuchsia-300">
+            <div className="inline-flex items-center gap-2 text-rose-300">
               <ShieldAlert size={18} />
               <span className={FINELY_OS_ENTITY_SUBLABEL}>Compliance note</span>
             </div>
@@ -235,7 +243,7 @@ export default function PartnerBarterPage() {
         </div>
 
         {createOpen && (
-          <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+          <div className={`${finelyOsCatalogCard('violet')} space-y-4`} data-fc-accent="violet">
             <div className="flex items-center justify-between gap-3">
               <div className={FINELY_OS_ENTITY_VALUE}>Create listing</div>
               <button type="button" onClick={() => setCreateOpen(false)} className={FINELY_OS_SECONDARY_BTN}>
@@ -312,8 +320,8 @@ export default function PartnerBarterPage() {
           kpis={[
             { label: 'Market', value: String(filteredMarket.length), hint: 'Active listings', accent: 'emerald' },
             { label: 'Mine', value: String(myListings.length), hint: 'Your listings', accent: 'violet' },
-            { label: 'Offers', value: String(myOffers.length), hint: 'Sent', accent: 'amber' },
-            { label: 'Agreements', value: String(agreements.length), hint: 'Signed', accent: 'sky' },
+            { label: 'Offers', value: String(myOffers.length), hint: 'Sent', accent: 'sky' },
+            { label: 'Agreements', value: String(agreements.length), hint: 'Signed', accent: 'rose' },
           ]}
           tabs={[
             { id: 'market', label: 'Marketplace', badge: filteredMarket.length || undefined },
@@ -336,8 +344,8 @@ export default function PartnerBarterPage() {
               pageSize={6}
               emptyMessage="No listings found."
               itemSpacingClassName="grid lg:grid-cols-2 gap-6"
-              renderItem={(l) => (
-                <div key={l.id} className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-4`}>
+              renderItem={(l, idx) => (
+                <div key={l.id} className={`${finelyOsCatalogCard((['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4])} fc-surface-harmony space-y-4`} data-fc-accent={(['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4]}>
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0">
                       <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{l.title}</div>
@@ -350,7 +358,7 @@ export default function PartnerBarterPage() {
                   <div className={`${FINELY_OS_ENTITY_BODY} whitespace-pre-wrap`}>{l.description}</div>
 
                   {l.createdByPartnerId === partner.id ? (
-                    <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony ${FINELY_OS_ENTITY_BODY}`}>
+                    <div className={`${finelyOsCatalogCard('rose')} fc-surface-harmony ${FINELY_OS_ENTITY_BODY}`} data-fc-accent="rose">
                       This is your listing. Switch to <span className={FINELY_OS_ENTITY_VALUE}>My listings</span> to manage offers.
                     </div>
                   ) : (
@@ -389,10 +397,10 @@ export default function PartnerBarterPage() {
               pageSize={6}
               emptyMessage="No listings yet."
               itemSpacingClassName="grid lg:grid-cols-2 gap-6"
-              renderItem={(l) => {
+              renderItem={(l, idx) => {
                 const offers = listBarterOffersByListing(l.id);
                 return (
-                  <div key={l.id} className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-4`}>
+                  <div key={l.id} className={`${finelyOsCatalogCard((['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4])} fc-surface-harmony space-y-4`} data-fc-accent={(['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4]}>
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0">
                         <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{l.title}</div>
@@ -419,8 +427,8 @@ export default function PartnerBarterPage() {
                         pageSize={4}
                         emptyMessage="No offers yet."
                         itemSpacingClassName="space-y-3"
-                        renderItem={(o) => (
-                          <div key={o.id} className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-2`}>
+                        renderItem={(o, oIdx) => (
+                          <div key={o.id} className={`${finelyOsCatalogCard((['emerald', 'violet', 'sky', 'rose'] as const)[oIdx % 4])} fc-surface-harmony space-y-2`} data-fc-accent={(['emerald', 'violet', 'sky', 'rose'] as const)[oIdx % 4]}>
                             <div className="flex flex-wrap items-start justify-between gap-3">
                               <div className={`${FINELY_OS_ENTITY_VALUE} text-sm`}>{o.fromName ?? o.fromPartnerId}</div>
                               <div className={FINELY_OS_ENTITY_SUBLABEL}>{o.status}</div>
@@ -464,10 +472,10 @@ export default function PartnerBarterPage() {
               pageSize={6}
               emptyMessage="No offers sent yet."
               itemSpacingClassName="grid lg:grid-cols-2 gap-6"
-              renderItem={(o) => {
+              renderItem={(o, idx) => {
                 const listing = getBarterListing(o.listingId);
                 return (
-                  <div key={o.id} className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-3`}>
+                  <div key={o.id} className={`${finelyOsCatalogCard((['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4])} fc-surface-harmony space-y-3`} data-fc-accent={(['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4]}>
                     <div className={FINELY_OS_ENTITY_VALUE}>{listing?.title ?? 'Listing'}</div>
                     <div className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono`}>{o.status} • {fmtUsd(o.proposedValueCents)}</div>
                     <div className={`${FINELY_OS_ENTITY_BODY} whitespace-pre-wrap`}>{o.message}</div>
@@ -501,12 +509,12 @@ export default function PartnerBarterPage() {
               pageSize={6}
               emptyMessage="No agreements yet."
               itemSpacingClassName="grid lg:grid-cols-2 gap-6"
-              renderItem={(a) => {
+              renderItem={(a, idx) => {
                 const canSign =
                   (partner.id === a.parties.listingOwnerPartnerId && !a.signatures.listingOwner?.signedAt) ||
                   (partner.id === a.parties.counterpartyPartnerId && !a.signatures.counterparty?.signedAt);
                 return (
-                  <div key={a.id} className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-3`}>
+                  <div key={a.id} className={`${finelyOsCatalogCard((['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4])} fc-surface-harmony space-y-3`} data-fc-accent={(['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4]}>
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{a.summaryTitle}</div>
@@ -516,7 +524,7 @@ export default function PartnerBarterPage() {
                       </div>
                       <div className={`text-xs ${FINELY_OS_ENTITY_SUBLABEL}`}>{new Date(a.updatedAt).toLocaleString()}</div>
                     </div>
-                    <details className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+                    <details className={`${finelyOsCatalogCard('violet')} fc-surface-harmony`} data-fc-accent="violet">
                       <summary className="cursor-pointer select-none">
                         <div className="flex items-center justify-between gap-3">
                           <div className={FINELY_OS_ENTITY_SUBLABEL}>Terms</div>
@@ -526,12 +534,12 @@ export default function PartnerBarterPage() {
                       <div className={`mt-3 ${FINELY_OS_ENTITY_BODY} whitespace-pre-wrap leading-relaxed`}>{a.termsText}</div>
                     </details>
                     <div className="grid sm:grid-cols-2 gap-3">
-                      <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+                      <div className={`${finelyOsCatalogCard('emerald')} fc-surface-harmony`} data-fc-accent="emerald">
                         <div className={FINELY_OS_ENTITY_SUBLABEL}>Listing owner</div>
                         <div className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>{a.signatures.listingOwner?.name ?? a.parties.listingOwnerName ?? '—'}</div>
                         <div className={`mt-1 text-xs ${FINELY_OS_ENTITY_SUBLABEL}`}>{a.signatures.listingOwner?.signedAt ? `signed ${new Date(a.signatures.listingOwner.signedAt).toLocaleString()}` : 'not signed'}</div>
                       </div>
-                      <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+                      <div className={`${finelyOsCatalogCard('rose')} fc-surface-harmony`} data-fc-accent="rose">
                         <div className={FINELY_OS_ENTITY_SUBLABEL}>Counterparty</div>
                         <div className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>{a.signatures.counterparty?.name ?? a.parties.counterpartyName ?? '—'}</div>
                         <div className={`mt-1 text-xs ${FINELY_OS_ENTITY_SUBLABEL}`}>{a.signatures.counterparty?.signedAt ? `signed ${new Date(a.signatures.counterparty.signedAt).toLocaleString()}` : 'not signed'}</div>
@@ -569,10 +577,10 @@ export default function PartnerBarterPage() {
         )}
         </FinelyUnifiedHubLayout>
 
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
         </div>
       </EntitlementGate>
-    </PageShell>
+    </PartnerWorkstationFrame>
   );
 }
 

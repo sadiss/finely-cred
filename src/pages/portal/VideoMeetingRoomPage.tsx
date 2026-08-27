@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo } from 'react';
 import { ArrowLeft, Video } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { useParams } from 'react-router-dom';
+import { PartnerWorkstationFrame, type PartnerEmbeddablePageProps } from '../../features/workspaceLightPreview/product/partner/PartnerWorkstationFrame';
+import { useMappedPartnerNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { useAuth } from '../../auth/AuthProvider';
 import { listCalendarEvents } from '../../data/calendarRepo';
@@ -17,9 +18,9 @@ import {
   FINELY_OS_SUCCESS_BTN,
 } from '../../features/os/finelyOsLightUi';
 
-export default function VideoMeetingRoomPage() {
+export default function VideoMeetingRoomPage({ embedded = false }: PartnerEmbeddablePageProps = {}) {
   const { eventId } = useParams<{ eventId: string }>();
-  const navigate = useNavigate();
+  const navigate = useMappedPartnerNavigate();
   const auth = useAuth();
   const { partner } = usePartnerSession();
   const isAdmin = isAdminEmail(auth.user?.email);
@@ -47,13 +48,13 @@ export default function VideoMeetingRoomPage() {
 
   if (!eventId) {
     return (
-      <PageShell badge="Meeting" title="Invalid meeting" subtitle="No meeting id provided.">
+      <PartnerWorkstationFrame embedded={embedded} kind="meeting-workstation" badge="Meeting" title="Invalid meeting" subtitle="No meeting id provided.">
         <div className={FINELY_OS_PAGE}>
           <button type="button" onClick={() => navigate(-1)} className={FINELY_OS_BACK_LINK}>
             <ArrowLeft size={14} /> Go back
           </button>
         </div>
-      </PageShell>
+      </PartnerWorkstationFrame>
     );
   }
 
@@ -61,14 +62,14 @@ export default function VideoMeetingRoomPage() {
 
   if (event && !canAccess) {
     return (
-      <PageShell badge="Meeting" title="Not authorized" subtitle="This meeting is not linked to your profile.">
+      <PartnerWorkstationFrame embedded={embedded} kind="meeting-workstation" badge="Meeting" title="Not authorized" subtitle="This meeting is not linked to your profile.">
         <div className={FINELY_OS_PAGE}>
           <div className={FINELY_OS_LUXURY_EMPTY}>This meeting is not linked to your profile.</div>
           <button type="button" onClick={() => navigate('/portal/calendar')} className={FINELY_OS_SUCCESS_BTN}>
             Open calendar
           </button>
         </div>
-      </PageShell>
+      </PartnerWorkstationFrame>
     );
   }
 
@@ -107,7 +108,7 @@ export default function VideoMeetingRoomPage() {
         />
       </div>
       <div className="shrink-0 px-4 py-2 text-[10px] text-white/40 text-center">
-        Secure browser-based video · Admin, specialist, and client rooms · Room: {room}
+        Secure browser-based video · Admin, specialist, and partner rooms · Room: {room}
       </div>
     </div>
   );

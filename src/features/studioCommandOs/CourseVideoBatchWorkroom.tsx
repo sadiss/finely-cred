@@ -276,7 +276,7 @@ export function CourseVideoBatchWorkroom({ courseId, lessonId }: Props) {
           </div>
 
           <div className={`${finelyOsCatalogCardCompact('amber')} space-y-3`}>
-            <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-amber-200`}>
+            <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-violet-200`}>
               <Film size={14} />
               <span>Focus</span>
             </div>

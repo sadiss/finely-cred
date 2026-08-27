@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, Camera, ExternalLink, Paperclip, Trash2 } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { AlertTriangle, ExternalLink, FileCheck2, Paperclip, Trash2 } from 'lucide-react';
 import type { Bureau, ParsedTradeline } from '../../domain/creditReports';
 import type { EvidenceItem } from '../../domain/evidence';
 import { openBlobRefInNewTab } from '../../lib/openBlobRef';
@@ -55,6 +55,31 @@ const CATEGORY_OPTIONS: { key: CategoryKey; label: string }[] = [
   { key: 'contracts', label: 'Contracts' },
   { key: 'other', label: 'Other' },
 ];
+
+type EvidenceTab = 'all' | 'source' | 'uploaded' | 'parsed';
+
+function isParsedExhibit(item: EvidenceItem) {
+  return (
+    item.source === 'parsed_finely_exhibit' ||
+    item.source === 'tradeline_screenshot' ||
+    item.source === 'section_screenshot' ||
+    item.provenance?.kind === 'parsed_finely_exhibit'
+  );
+}
+
+function isSourceCrop(item: EvidenceItem) {
+  return item.source === 'source_report_crop' || item.provenance?.kind === 'source_faithful_report_crop';
+}
+
+function isUploadedProof(item: EvidenceItem) {
+  return (
+    item.type === 'upload' ||
+    item.source === 'upload' ||
+    item.source === 'manual_bureau_screenshot' ||
+    item.provenance?.kind === 'raw_upload' ||
+    item.provenance?.kind === 'manually_cropped_upload'
+  );
+}
 
 export function EvidencePickerModal({
   open,
@@ -113,12 +138,16 @@ export function EvidencePickerModal({
   onSelectAccount?: (accountId: string) => void;
 }) {
   const [query, setQuery] = useState('');
+  const [evidenceTab, setEvidenceTab] = useState<EvidenceTab>('all');
   const [busyId, setBusyId] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [showNonMatching, setShowNonMatching] = useState(true);
   const [capturing, setCapturing] = useState(false);
   const [captureErr, setCaptureErr] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<EvidenceItem | null>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+  const titleId = 'evidence-picker-modal-title';
 
   const activeAccount = useMemo(() => {
     if (!accounts?.length) return null;
@@ -132,11 +161,36 @@ export function EvidencePickerModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accounts, selectedAccountId]);
 
+  useEffect(() => {
+    if (!open) return;
+    previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', onKeyDown);
+    const timer = window.setTimeout(() => {
+      const first = dialogRef.current?.querySelector<HTMLElement>(
+        'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [href], [tabindex]:not([tabindex="-1"])',
+      );
+      first?.focus();
+    }, 0);
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener('keydown', onKeyDown);
+      previousFocusRef.current?.focus();
+      previousFocusRef.current = null;
+    };
+  }, [onClose, open]);
+
   const baseItems = useMemo(() => {
-    if (filter === 'screenshots') return items.filter((x) => x.type === 'screenshot');
-    if (filter === 'identity') return filterIdentityPacketEvidence(items);
-    return items;
-  }, [items, filter]);
+    let list = items;
+    if (filter === 'screenshots') list = list.filter((x) => x.type === 'screenshot');
+    if (filter === 'identity') list = filterIdentityPacketEvidence(list);
+    if (evidenceTab === 'source') return list.filter(isSourceCrop);
+    if (evidenceTab === 'uploaded') return list.filter(isUploadedProof);
+    if (evidenceTab === 'parsed') return list.filter(isParsedExhibit);
+    return list;
+  }, [evidenceTab, filter, items]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -156,6 +210,18 @@ export function EvidencePickerModal({
   const tryPick = (evidenceId: string) => {
     if (!onPick && !onPickMany) return;
     const item = items.find((x) => x.id === evidenceId);
+    if (item?.provenance?.demoOnly || item?.source === 'demo_synthetic') {
+      setErr('Demo evidence cannot be attached to a real letter or mailing.');
+      return;
+    }
+    if (
+      item &&
+      (isParsedExhibit(item) || isSourceCrop(item)) &&
+      (item.provenance?.mailEligible !== true || item.provenance?.humanVerified !== true)
+    ) {
+      setErr('Open this evidence, review it, then approve it before attaching it to a letter.');
+      return;
+    }
     if (matchAccount && item && strictAccountMatch) {
       const score = scoreEvidenceForAccount({
         accountName: matchAccount,
@@ -180,7 +246,7 @@ export function EvidencePickerModal({
 
   const handleCapture = async () => {
     if (!activeAccount?.tradeline) {
-      setCaptureErr('No parsed tradeline found for this account yet — use "Go capture in Credit Intel" or upload a screenshot instead.');
+      setCaptureErr('No parsed tradeline is available yet. Open Credit Intel for the source report, or upload bureau proof.');
       return;
     }
     setCaptureErr(null);
@@ -195,7 +261,7 @@ export function EvidencePickerModal({
       onUpsert(item);
       if (onPick || onPickMany) tryPick(item.id);
     } catch (e: any) {
-      setCaptureErr(e?.message || 'Screenshot capture failed.');
+      setCaptureErr(e?.message || 'Parsed exhibit creation failed.');
     } finally {
       setCapturing(false);
     }
@@ -225,15 +291,19 @@ export function EvidencePickerModal({
     <div className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-4 md:p-6">
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
       <div
+        ref={dialogRef}
         className="relative w-full max-w-5xl rounded-3xl border border-white/[0.08] bg-fc-shell shadow-2xl overflow-hidden"
         role="dialog"
         aria-modal="true"
+        aria-labelledby={titleId}
         onClick={(e) => e.stopPropagation()}
       >
         <div className={`${FINELY_OS_MODAL_HEADER} sm:px-6 sm:py-5`}>
           <div className="min-w-0">
             <div className="text-[10px] uppercase tracking-widest text-white/40">Evidence picker</div>
-            <div className="mt-2 text-2xl font-light text-white truncate">{title}</div>
+            <div id={titleId} className="mt-2 text-2xl font-light text-white truncate">
+              {title}
+            </div>
             {subtitle ? <div className="mt-1 text-white/60 text-sm">{subtitle}</div> : null}
           </div>
           <div className="flex items-center gap-2">
@@ -242,9 +312,9 @@ export function EvidencePickerModal({
                 type="button"
                 onClick={onGoCapture}
                 className="hidden sm:inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
-                title="Fallback: open Credit Intel to capture manually"
+                title="Open Credit Intel to review the source report"
               >
-                Go capture <ExternalLink size={14} />
+                Open source <ExternalLink size={14} />
               </button>
             ) : null}
             {onOpenFullVault ? (
@@ -261,10 +331,35 @@ export function EvidencePickerModal({
           </div>
         </div>
 
-        <div className="p-6 space-y-6 max-h-[78vh] overflow-y-auto">
+        <div className="p-4 space-y-4 max-h-[72vh] overflow-y-auto">
+          <div className="flex flex-wrap gap-2" role="tablist" aria-label="Evidence type">
+            {([
+              ['all', 'All evidence', items.length],
+              ['source', 'Source crops', items.filter(isSourceCrop).length],
+              ['uploaded', 'Uploaded proof', items.filter(isUploadedProof).length],
+              ['parsed', 'Parsed exhibits', items.filter(isParsedExhibit).length],
+            ] as const).map(([key, label, count]) => (
+              <button
+                key={key}
+                type="button"
+                role="tab"
+                aria-selected={evidenceTab === key}
+                onClick={() => setEvidenceTab(key)}
+                className={`inline-flex min-h-10 items-center gap-2 rounded-xl border px-3 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${
+                  evidenceTab === key
+                    ? 'border-violet-400/50 bg-violet-500/20 text-violet-50'
+                    : 'border-white/10 bg-black/25 text-white/55 hover:border-violet-400/30 hover:text-white'
+                }`}
+              >
+                {label}
+                <span className="rounded-full bg-white/10 px-2 py-0.5 text-[9px]">{count}</span>
+              </button>
+            ))}
+          </div>
+
           {bannerName ? (
-            <div className="rounded-2xl border-2 border-amber-400/80 bg-amber-500/20 p-4 shadow-[0_0_28px_-6px_rgba(251,191,36,0.5)]">
-              <div className="text-[10px] font-black uppercase tracking-widest text-amber-100/90">This screenshot is for</div>
+            <div className="rounded-2xl border-2 border-violet-400/55 bg-violet-500/15 p-4 shadow-[0_0_28px_-8px_rgba(139,92,246,0.5)]">
+              <div className="text-[10px] font-black uppercase tracking-widest text-violet-100/90">Evidence target</div>
               <div className="mt-1 text-2xl font-bold text-white truncate">{bannerName}</div>
               {bannerType || bannerBureau || bannerLast4 ? (
                 <div className="mt-2 flex flex-wrap gap-2">
@@ -279,15 +374,15 @@ export function EvidencePickerModal({
           {accounts && accounts.length > 0 ? (
             <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/[0.08] p-5 space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="text-[10px] uppercase tracking-widest text-emerald-200/80 font-black">Capture screenshot here</div>
+                <div className="text-[10px] uppercase tracking-widest text-emerald-200/80 font-black">Create a Finely Parsed Exhibit</div>
                 {onGoCapture ? (
                   <button
                     type="button"
                     onClick={onGoCapture}
                     className="text-[10px] font-bold uppercase tracking-widest text-white/50 hover:text-white/80 underline underline-offset-4 transition-colors"
-                    title="Fallback: open Credit Intel to capture manually"
+                    title="Open Credit Intel to capture a source-faithful report region"
                   >
-                    Go capture in Credit Intel instead
+                    Open source report instead
                   </button>
                 ) : null}
               </div>
@@ -315,18 +410,18 @@ export function EvidencePickerModal({
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-500 text-black font-black uppercase tracking-widest text-[11px] hover:brightness-110 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                   title={
                     !activeAccount?.tradeline
-                      ? 'No parsed tradeline found for this account — use Go capture in Credit Intel instead.'
-                      : 'Capture a screenshot for this account'
+                      ? 'No parsed tradeline found for this account — open the source report instead.'
+                      : 'Create a clearly labeled parsed exhibit for this account'
                   }
                 >
-                  <Camera size={16} />
-                  {capturing ? 'Capturing…' : 'Take screenshot'}
+                  <FileCheck2 size={16} />
+                  {capturing ? 'Creating…' : 'Create parsed exhibit'}
                 </button>
               </div>
 
               {!activeAccount?.tradeline ? (
-                <div className="text-xs text-amber-200/80">
-                  No parsed tradeline found for this account yet. Use "Go capture in Credit Intel instead" above, or upload a screenshot below.
+                <div className="text-xs text-rose-200/80">
+                  No parsed tradeline is available yet. Open the source report above, or upload bureau proof below.
                 </div>
               ) : null}
 
@@ -344,20 +439,20 @@ export function EvidencePickerModal({
           />
 
           {matchAccount && strictAccountMatch ? (
-            <div className="rounded-2xl border border-amber-500/40 bg-amber-500/15 p-4 text-amber-50 text-sm space-y-3">
+            <div className="rounded-2xl border border-rose-500/40 bg-rose-500/15 p-4 text-rose-50 text-sm space-y-3">
               <div className="flex items-start gap-3">
-                <AlertTriangle size={18} className="shrink-0 mt-0.5 text-amber-300" />
+                <AlertTriangle size={18} className="shrink-0 mt-0.5 text-rose-300" />
                 <div>
-                  <p className="font-semibold text-amber-100">Account match required</p>
+                  <p className="font-semibold text-rose-100">Account match required</p>
                   <p className="mt-1 leading-relaxed opacity-95">
-                    Only attach a screenshot that clearly shows <span className="font-semibold">{matchAccount}</span> on the bureau report.
+                    Only attach evidence that clearly shows <span className="font-semibold">{matchAccount}</span> on the bureau report.
                     Mismatched exhibits weaken the dispute and can cause bureau rejection.
                   </p>
                 </div>
               </div>
               <label className="inline-flex items-center gap-2 text-xs uppercase tracking-wider cursor-pointer opacity-90">
                 <input type="checkbox" checked={!showNonMatching} onChange={(e) => setShowNonMatching(!e.target.checked)} />
-                Hide non-matching screenshots
+                Hide non-matching evidence
               </label>
             </div>
           ) : null}
@@ -373,7 +468,8 @@ export function EvidencePickerModal({
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search filename/caption/category…"
-                className="w-full sm:w-80 bg-fc-input border border-white/[0.08] rounded-xl px-4 py-2 text-white/80 placeholder:text-white/30 focus:outline-none focus:border-amber-500 transition-colors text-sm"
+                aria-label="Search evidence"
+                className="w-full sm:w-80 bg-fc-input border border-white/[0.08] rounded-xl px-4 py-2 text-white/80 placeholder:text-white/30 focus:outline-none focus:border-violet-400/50 transition-colors text-sm"
               />
             </div>
 
@@ -384,9 +480,9 @@ export function EvidencePickerModal({
                   <button
                     type="button"
                     onClick={onGoCapture}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all"
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all"
                   >
-                    Go capture
+                    Open Credit Intel
                   </button>
                 ) : null}
               </div>
@@ -398,13 +494,21 @@ export function EvidencePickerModal({
                   const matchScore = matchAccount
                     ? scoreEvidenceForAccount({ accountName: matchAccount, candidateType: matchCandidateType, evidence: e })
                     : 1;
-                  const canAttach = !matchAccount || !strictAccountMatch || matchScore >= EVIDENCE_MATCH_ATTACH_MIN;
+                  const parsedExhibit = isParsedExhibit(e);
+                  const demoOnly = Boolean(e.provenance?.demoOnly || e.source === 'demo_synthetic');
+                  const sourceCrop = isSourceCrop(e);
+                  const eligibilitySatisfied =
+                    !demoOnly &&
+                    (!(parsedExhibit || sourceCrop) ||
+                      (e.provenance?.mailEligible === true && e.provenance?.humanVerified === true));
+                  const accountMatchSatisfied = !matchAccount || !strictAccountMatch || matchScore >= EVIDENCE_MATCH_ATTACH_MIN;
+                  const canAttach = accountMatchSatisfied && eligibilitySatisfied;
                   return (
                     <div
                       key={e.id}
                       className={`rounded-2xl border p-4 flex flex-wrap items-center justify-between gap-3 ${
                         selected
-                          ? 'border-amber-500/40 bg-amber-500/10'
+                          ? 'border-violet-500/40 bg-violet-500/10'
                           : canAttach
                             ? 'border-white/[0.08] bg-white/[0.02]'
                             : 'border-red-500/25 bg-red-500/5 opacity-80'
@@ -415,6 +519,28 @@ export function EvidencePickerModal({
                         <div className="mt-1 text-[10px] uppercase tracking-widest text-white/40 font-mono">
                           {new Date(e.createdAt).toLocaleString()} • {e.mimeType}
                           {e.creditorName ? ` • ${e.creditorName}` : ''}
+                        </div>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {isSourceCrop(e) ? (
+                            <span className="rounded-full border border-sky-400/30 bg-sky-500/10 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-sky-100">
+                              Source-faithful crop
+                            </span>
+                          ) : null}
+                          {isUploadedProof(e) ? (
+                            <span className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-emerald-100">
+                              Uploaded proof
+                            </span>
+                          ) : null}
+                          {parsedExhibit ? (
+                            <span className="rounded-full border border-violet-400/30 bg-violet-500/10 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-violet-100">
+                              Finely Parsed Exhibit · not bureau UI
+                            </span>
+                          ) : null}
+                          {demoOnly ? (
+                            <span className="rounded-full border border-rose-400/30 bg-rose-500/10 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-rose-100">
+                              Demo only · blocked from mailing
+                            </span>
+                          ) : null}
                         </div>
                         {e.caption ? <div className="mt-1 text-white/60 text-sm">{e.caption}</div> : null}
                         {matchAccount && !canAttach ? (
@@ -429,7 +555,8 @@ export function EvidencePickerModal({
                             const next = ev.target.value as CategoryKey;
                             onUpsert({ ...e, sectionKey: next || undefined });
                           }}
-                          className="bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2 text-white/80 text-sm focus:outline-none focus:border-amber-500 transition-colors"
+                          aria-label={`Category for ${e.filename}`}
+                          className="bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2 text-white/80 text-sm focus:outline-none focus:border-violet-400/50 transition-colors"
                           title="Category"
                         >
                           {CATEGORY_OPTIONS.map((c) => (
@@ -450,13 +577,52 @@ export function EvidencePickerModal({
                           {busy ? 'Loading…' : 'Open'}
                         </button>
 
+                        {(parsedExhibit || sourceCrop) &&
+                        (e.provenance?.mailEligible !== true || e.provenance?.humanVerified !== true) ? (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              onUpsert({
+                                ...e,
+                                provenance: {
+                                  kind: sourceCrop ? 'source_faithful_report_crop' : 'parsed_finely_exhibit',
+                                  sourceReportId: e.reportId,
+                                  ...e.provenance,
+                                  redaction: e.provenance?.redaction
+                                    ? {
+                                        ...e.provenance.redaction,
+                                        reviewedByUser: true,
+                                      }
+                                    : undefined,
+                                  generatedAt: e.provenance?.generatedAt ?? e.createdAt,
+                                  mailEligible: true,
+                                  humanVerified: true,
+                                },
+                              })
+                            }
+                            className="inline-flex items-center gap-2 rounded-xl border border-violet-400/35 bg-violet-500/15 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-violet-50 transition-all hover:bg-violet-500/25"
+                            title="Confirm that you opened, reviewed, and approved this evidence for this letter"
+                          >
+                            <FileCheck2 size={14} />
+                            {sourceCrop ? 'Approve source crop' : 'Allow parsed exhibit'}
+                          </button>
+                        ) : null}
+
                         {onPick ? (
                           <button
                             type="button"
                             onClick={() => tryPick(e.id)}
                             disabled={!canAttach}
-                            className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                            title={canAttach ? 'Attach this evidence' : 'Screenshot does not match this account'}
+                            className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                            title={
+                              canAttach
+                                ? 'Attach this evidence'
+                                : demoOnly
+                                  ? 'Demo evidence cannot be mailed'
+                                  : parsedExhibit || sourceCrop
+                                    ? 'Open and approve this evidence first'
+                                    : 'Evidence does not match this account'
+                            }
                           >
                             <Paperclip size={14} />
                             {onPickMany && selected ? 'Remove' : pickLabel}

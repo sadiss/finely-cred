@@ -31,14 +31,14 @@ function ChapterBody({ chapter }: { chapter: AffiliateToolkitChapter }) {
             <ul className="mt-4 space-y-2.5">
               {sec.bullets.map((b) => (
                 <li key={b} className="flex gap-3 text-[15px] leading-relaxed text-white/70">
-                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-300/80" />
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-300/80" />
                   <span>{b}</span>
                 </li>
               ))}
             </ul>
           ) : null}
           {sec.callout ? (
-            <aside className="mt-5 rounded-r-xl border-l-2 border-amber-300/50 bg-amber-400/10 px-4 py-3 text-sm leading-relaxed text-amber-50/90">
+            <aside className="mt-5 rounded-r-xl border-l-2 border-violet-300/50 bg-violet-400/10 px-4 py-3 text-sm leading-relaxed text-violet-50/90">
               {sec.callout}
             </aside>
           ) : null}
@@ -105,7 +105,7 @@ export default function AffiliateToolkitGuideReaderPage() {
       showFlipControls={false}
       atmosphere={
         <>
-          <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(ellipse_at_20%_0%,rgba(212,164,71,0.16),transparent_55%)]" aria-hidden />
+          <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(ellipse_at_20%_0%,rgba(167,139,250,0.16),transparent_55%)]" aria-hidden />
           <div className="lm-lux-grain lm-lux-grain--fixed pointer-events-none" aria-hidden />
         </>
       }
@@ -113,7 +113,7 @@ export default function AffiliateToolkitGuideReaderPage() {
         <button
           type="button"
           onClick={() => navigate(AFFILIATE_TOOLKIT_PATH)}
-          className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-white/55 hover:text-amber-200"
+          className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-white/55 hover:text-violet-200"
         >
           <ArrowLeft size={14} /> Toolkit home
         </button>
@@ -121,7 +121,7 @@ export default function AffiliateToolkitGuideReaderPage() {
       headerRight={
         <Link
           to="/affiliate"
-          className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-amber-300/40 bg-amber-400/15 px-3 text-[10px] font-black uppercase tracking-[0.14em] text-amber-100"
+          className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-emerald-300/40 bg-emerald-400/15 px-3 text-[10px] font-black uppercase tracking-[0.14em] text-emerald-100"
         >
           <Sparkles size={13} /> Join path
         </Link>
@@ -131,14 +131,14 @@ export default function AffiliateToolkitGuideReaderPage() {
         return (
           <article className="rounded-[1.35rem] border border-white/10 bg-white/[0.03] p-5 md:p-8 lg:p-10">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-200/75">{ch.kicker}</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.22em] text-violet-200/75">{ch.kicker}</span>
               <span className="text-[11px] text-white/40">
                 {ch.number} / {String(AFFILIATE_TOOLKIT_CHAPTERS.length).padStart(2, '0')}
               </span>
             </div>
             <h1 className="mt-3 font-serif text-3xl font-semibold leading-tight text-white md:text-4xl">{ch.title}</h1>
             <p className="mt-3 max-w-2xl text-base leading-relaxed text-white/60">{ch.subtitle}</p>
-            <div className="mt-6 h-px bg-gradient-to-r from-amber-300/40 via-white/10 to-transparent" aria-hidden />
+            <div className="mt-6 h-px bg-gradient-to-r from-violet-300/40 via-white/10 to-transparent" aria-hidden />
             <div className="mt-6">
               <ChapterBody chapter={ch} />
             </div>
@@ -155,14 +155,14 @@ export default function AffiliateToolkitGuideReaderPage() {
                 <button
                   type="button"
                   onClick={() => goChapter(i + 1)}
-                  className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-amber-300/40 bg-amber-400/15 px-4 text-[11px] font-black uppercase tracking-[0.14em] text-amber-100"
+                  className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-emerald-300/40 bg-emerald-400/15 px-4 text-[11px] font-black uppercase tracking-[0.14em] text-emerald-100"
                 >
                   Next <ChevronRight size={14} />
                 </button>
               ) : (
                 <Link
                   to="/affiliate"
-                  className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-amber-300/40 bg-amber-400/15 px-4 text-[11px] font-black uppercase tracking-[0.14em] text-amber-100"
+                  className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-emerald-300/40 bg-emerald-400/15 px-4 text-[11px] font-black uppercase tracking-[0.14em] text-emerald-100"
                 >
                   Open affiliate path <ArrowRight size={14} />
                 </Link>

@@ -55,7 +55,7 @@ export function CMOSiteWatchPanel({ route, autoWatch = true, onSignal }: CMOSite
     <section className="fc-panel rounded-3xl border border-white/10 bg-slate-950/85 p-5 shadow-xl shadow-black/25">
       <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-emerald-300/20 bg-emerald-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-100">
+          <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-violet-300/20 bg-violet-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-violet-100">
             <Eye className="h-3.5 w-3.5" /> Site Watch
           </div>
           <h3 className="text-xl font-black text-white">CMO eyes on this page</h3>
@@ -67,10 +67,10 @@ export function CMOSiteWatchPanel({ route, autoWatch = true, onSignal }: CMOSite
       </div>
 
       <div className="grid gap-3 md:grid-cols-4">
-        <MetricCard icon={<LayoutDashboard className="h-4 w-4" />} label="Layout score" value={`${score}/100`} hint={scoreLabel} />
-        <MetricCard icon={<Activity className="h-4 w-4" />} label="CTA candidates" value={String(signal?.ctas.length ?? 0)} hint="Book/apply/watch/join" />
-        <MetricCard icon={<ShieldCheck className="h-4 w-4" />} label="Tracked links" value={String(signal?.links.length ?? 0)} hint="Affiliate, Shorts, booking" />
-        <MetricCard icon={<AlertTriangle className="h-4 w-4" />} label="Changes" value={String(changes.length)} hint="Since last snapshot" />
+        <MetricCard accent="emerald" icon={<LayoutDashboard className="h-4 w-4" />} label="Layout score" value={`${score}/100`} hint={scoreLabel} />
+        <MetricCard accent="violet" icon={<Activity className="h-4 w-4" />} label="CTA candidates" value={String(signal?.ctas.length ?? 0)} hint="Book/apply/watch/join" />
+        <MetricCard accent="sky" icon={<ShieldCheck className="h-4 w-4" />} label="Tracked links" value={String(signal?.links.length ?? 0)} hint="Affiliate, Shorts, booking" />
+        <MetricCard accent="rose" icon={<AlertTriangle className="h-4 w-4" />} label="Changes" value={String(changes.length)} hint="Since last snapshot" />
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
@@ -81,9 +81,9 @@ export function CMOSiteWatchPanel({ route, autoWatch = true, onSignal }: CMOSite
               <p className="text-sm text-slate-400">No meaningful change detected yet. Quiet page, for once behaving itself.</p>
             ) : (
               changes.slice(0, 5).map((change) => (
-                <div key={change.id} className="rounded-2xl border border-amber-300/15 bg-amber-300/[0.05] p-3 text-sm text-slate-200">
+                <div key={change.id} className="rounded-2xl border border-rose-300/15 bg-rose-300/[0.05] p-3 text-sm text-slate-200">
                   <div className="flex items-center justify-between gap-3">
-                    <span className="font-bold text-amber-100">{change.changeType.replaceAll('_', ' ')}</span>
+                    <span className="font-bold text-rose-100">{change.changeType.replaceAll('_', ' ')}</span>
                     <span className="rounded-full border border-white/10 px-2 py-0.5 text-xs uppercase text-slate-300">{change.severity}</span>
                   </div>
                   <p className="mt-1 text-xs leading-5 text-slate-300">{change.recommendedAction}</p>
@@ -108,11 +108,12 @@ export function CMOSiteWatchPanel({ route, autoWatch = true, onSignal }: CMOSite
   );
 }
 
-function MetricCard({ icon, label, value, hint }: { icon: ReactNode; label: string; value: string; hint: string }) {
+function MetricCard({ accent, icon, label, value, hint }: { accent: 'emerald' | 'violet' | 'sky' | 'rose'; icon: ReactNode; label: string; value: string; hint: string }) {
+  const iconTone = accent === 'emerald' ? 'text-emerald-200' : accent === 'violet' ? 'text-violet-200' : accent === 'sky' ? 'text-sky-200' : 'text-rose-200';
   return (
     <div className="rounded-3xl border border-white/10 bg-black/25 p-4">
       <div className="mb-2 flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-slate-400">
-        <span className="text-amber-200">{icon}</span> {label}
+        <span className={iconTone}>{icon}</span> {label}
       </div>
       <div className="text-2xl font-black text-white">{value}</div>
       <div className="mt-1 text-xs text-slate-500">{hint}</div>

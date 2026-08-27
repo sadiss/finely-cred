@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ArrowRight, Database, FileJson, FileArchive, Link, Upload } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import JSZip from 'jszip';
-import { PageShell } from '../../components/layout/PageShell';
+import { AdminWorkstationFrame, type AdminEmbeddablePageProps } from '../../features/workspaceLightPreview/product/admin/AdminWorkstationFrame';
+import { useMappedAdminNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import type { LegacyPartnerExportV1 } from '../../domain/imports';
 import { importLegacyPartners, importLegacyArtifactsForExistingPartners, listImportBatches, repairLegacyPartnerClassification } from '../../data/importsRepo';
 import { pushLegacyExportToServer } from '../../lib/legacyImportServerClient';
@@ -67,8 +67,8 @@ function asExportV1(obj: any): LegacyPartnerExportV1 | null {
   return obj as LegacyPartnerExportV1;
 }
 
-export default function AdminPartnerImportPage() {
-  const navigate = useNavigate();
+export default function AdminPartnerImportPage({ embedded = false }: AdminEmbeddablePageProps = {}) {
+  const navigate = useMappedAdminNavigate();
   const [raw, setRaw] = useState<string>('');
   const [filename, setFilename] = useState<string>('');
   const [err, setErr] = useState<string | null>(null);
@@ -343,7 +343,7 @@ export default function AdminPartnerImportPage() {
   const importEnabled = isFeatureEnabled('partnerImport');
 
   return (
-    <PageShell
+    <AdminWorkstationFrame embedded={embedded} kind="partners-import-workstation"
       badge="Admin"
       title="Import Partners (Legacy Resume)"
       subtitle="Upload a JSON export from your legacy system and import partners + tasks without restarting their journey. Then generate claim links so each partner can connect their profile after signup."
@@ -406,8 +406,8 @@ export default function AdminPartnerImportPage() {
         {err ? <div className={FINELY_OS_NOTICE_ERROR}>{err}</div> : null}
         {notice ? <div className={FINELY_OS_NOTICE_SUCCESS}>{notice}</div> : null}
 
-        <div id="ensure-roosevelt-court" className={`${finelyOsCatalogCard('amber')} !p-4 space-y-2`}>
-          <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-amber-300`}>One-click court partner (same path as Sanz/Yolie admin create)</div>
+        <div id="ensure-roosevelt-court" className={`${finelyOsCatalogCard('violet')} space-y-3`} data-fc-accent="violet">
+          <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-violet-300`}>One-click court partner (same path as Sanz/Yolie admin create)</div>
           <div className={FINELY_OS_ENTITY_VALUE}>{ROOSEVELT_DISPLAY_NAME}</div>
           <p className={`${FINELY_OS_ENTITY_BODY} text-sm`}>
             Upserts into the Supabase directory Admin Partners reads. Jul 27 Midland/Citi attaches to Roosevelt only — not Yolie.
@@ -450,13 +450,13 @@ export default function AdminPartnerImportPage() {
 
         {importEnabled ? (
         <div className="grid lg:grid-cols-12 gap-6">
-          <div className={`lg:col-span-7 ${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+          <div className={`lg:col-span-7 ${finelyOsCatalogCard('violet')} space-y-4`}>
             <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-fuchsia-300`}>
               <FileJson size={18} />
               <span>Legacy JSON upload</span>
             </div>
 
-            <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony ${FINELY_OS_ENTITY_BODY} space-y-2`} data-fc-accent="sky">
+            <div className={`${finelyOsCatalogCard('sky')} fc-surface-harmony ${FINELY_OS_ENTITY_BODY} space-y-2`} data-fc-accent="sky">
               <div className={FINELY_OS_ENTITY_VALUE}>Expected schema (v1)</div>
               <div className={`text-[11px] font-mono whitespace-pre-wrap ${FINELY_OS_ENTITY_BODY}`}>
                 {`{\n  "version": 1,\n  "source": "laravel",\n  "exportedAt": "ISO",\n  "partners": [\n    {\n      "externalId": "string",\n      "fullName": "string",\n      "email": "string? (optional)",\n      "phone": "string? (optional)",\n      "lane": "funding_readiness|business_credit|... (optional)",\n      "journeyStage": "intake|report_upload|... (optional)",\n      "tasks": [ { "title": "...", "kind": "...", "status": "...", "stage": "...", "dueAt": "ISO?" } ]\n    }\n  ]\n}`}
@@ -474,7 +474,7 @@ export default function AdminPartnerImportPage() {
                 />
                 <div className={`mt-2 text-[11px] ${FINELY_OS_ENTITY_BODY}`}>Invite links will be generated as `{claimBaseUrl}?token=...`</div>
               </label>
-              <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`} data-fc-accent="sky">
+              <div className={`${finelyOsCatalogCard('sky')} fc-surface-harmony`} data-fc-accent="sky">
                 <div className={FINELY_OS_ENTITY_SUBLABEL}>Upload file</div>
                 <label className={`mt-2 ${FINELY_OS_PRIMARY_BTN} cursor-pointer`}>
                   <Upload size={14} /> Choose JSON or SQL
@@ -722,7 +722,7 @@ export default function AdminPartnerImportPage() {
           </div>
 
           <div className="lg:col-span-5 space-y-6">
-            <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-3`}>
+            <div className={`${finelyOsCatalogCard('violet')} space-y-3`}>
               <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-fuchsia-300`}>
                 <Link size={18} />
                 <span>Preview & duplicates</span>
@@ -800,7 +800,7 @@ export default function AdminPartnerImportPage() {
               )}
             </div>
 
-            <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-3`}>
+            <div className={`${finelyOsCatalogCard('violet')} space-y-3`}>
               <div className={FINELY_OS_ENTITY_SUBLABEL}>Legacy referral attributions (Tier 377)</div>
               <div className={FINELY_OS_ENTITY_BODY}>
                 Seeds affiliate lead events from SQL audit referral rows. Requires an affiliate workspace ID.
@@ -865,7 +865,7 @@ export default function AdminPartnerImportPage() {
               </button>
             </div>
 
-            <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-3`}>
+            <div className={`${finelyOsCatalogCard('violet')} space-y-3`}>
               <div className={FINELY_OS_ENTITY_SUBLABEL}>Migration sign-off (Tier 380)</div>
               <div className={`text-sm ${signOff.ready ? 'text-emerald-300' : 'text-amber-200'}`}>
                 {signOff.ready ? 'Phase 1 export looks ready for live import.' : 'Complete audit + import before production cutover.'}
@@ -880,7 +880,7 @@ export default function AdminPartnerImportPage() {
               </div>
             </div>
 
-            <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-3`}>
+            <div className={`${finelyOsCatalogCard('violet')} space-y-3`}>
               <div className={FINELY_OS_ENTITY_SUBLABEL}>Recent import batches</div>
               {batches.length === 0 ? (
                 <div className={FINELY_OS_ENTITY_BODY}>No imports yet.</div>
@@ -902,7 +902,7 @@ export default function AdminPartnerImportPage() {
             </div>
 
             {lastInvites.length ? (
-              <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-3`}>
+              <div className={`${finelyOsCatalogCard('violet')} space-y-3`}>
                 <div className={FINELY_OS_ENTITY_SUBLABEL}>Generated claim links</div>
                 <div className={FINELY_OS_ENTITY_BODY}>
                   Partners claim their imported profile via these links. Sending is gated by the <span className="font-mono">Invite Delivery</span> feature flag.
@@ -1014,8 +1014,8 @@ export default function AdminPartnerImportPage() {
         ) : null}
 
         {/* ── ZIP Bucket Restore ── */}
-        <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
-          <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-amber-300`}>
+        <div className={`${finelyOsCatalogCard('violet')} space-y-4`}>
+          <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-violet-300`}>
             <FileArchive size={18} />
             <span>Restore report files from Supabase bucket ZIP</span>
           </div>
@@ -1058,7 +1058,7 @@ export default function AdminPartnerImportPage() {
         </div>
 
         {/* ── Bulk re-parse stored reports ── */}
-        <div className={`${finelyOsCatalogCard('emerald')} !p-5 space-y-4`}>
+        <div className={`${finelyOsCatalogCard('emerald')} space-y-4`}>
           <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-emerald-300`}>
             <Database size={18} />
             <span>Re-parse legacy credit reports</span>
@@ -1094,8 +1094,8 @@ export default function AdminPartnerImportPage() {
         </div>
 
         {/* ── Legacy classification repair ── */}
-        <div className={`${finelyOsCatalogCard('amber')} !p-5 space-y-4`}>
-          <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-amber-300`}>
+        <div className={`${finelyOsCatalogCard('rose')} space-y-4`} data-fc-accent="rose">
+          <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-rose-300`}>
             <Database size={18} />
             <span>Repair legacy classification &amp; stage</span>
           </div>
@@ -1202,9 +1202,9 @@ export default function AdminPartnerImportPage() {
           ) : null}
         </div>
 
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
 </div>
-    </PageShell>
+    </AdminWorkstationFrame>
   );
 }
 

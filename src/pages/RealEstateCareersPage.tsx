@@ -271,7 +271,7 @@ export default function RealEstateCareersPage() {
           />
           <div className="relative grid gap-10 xl:grid-cols-[1fr_1.15fr] xl:items-center">
             <div className="space-y-5 re-motion-fade">
-              <div className="inline-flex items-center gap-2 text-amber-300">
+              <div className="inline-flex items-center gap-2 text-violet-300">
                 <Building2 size={18} />
                 <p className="text-[11px] font-black uppercase tracking-[0.28em]">Real estate affiliation</p>
               </div>
@@ -280,7 +280,7 @@ export default function RealEstateCareersPage() {
                 text="You refer. We run the credit work."
                 className={`${FINELY_OS_LANDING_PLATINUM_TITLE} font-light !text-4xl sm:!text-5xl lg:!text-[3.35rem]`}
                 highlight="We run the credit work."
-                highlightClassName="text-amber-400 font-semibold"
+                highlightClassName="text-violet-300 font-semibold"
                 speedMs={36}
               />
               <p className="fc-light-contrast-body text-base sm:text-lg leading-relaxed max-w-xl">
@@ -340,7 +340,7 @@ export default function RealEstateCareersPage() {
               />
             </div>
             <div className="space-y-4 re-motion-fade" style={{ animationDelay: '0.1s' }}>
-              <p className="text-[11px] font-black uppercase tracking-[0.28em] text-amber-300">Book-first · free to read</p>
+              <p className="text-[11px] font-black uppercase tracking-[0.28em] text-violet-300">Book-first · free to read</p>
               <LandingTypewriterTitle
                 as="h2"
                 text="Real Estate Operator Guide"
@@ -355,7 +355,7 @@ export default function RealEstateCareersPage() {
               <ul className="space-y-2.5">
                 {guideCta.inside.map((line) => (
                   <li key={line} className="flex gap-3 text-[15px] leading-relaxed text-white/75">
-                    <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-amber-300" />
+                    <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-emerald-300" />
                     <span>{line}</span>
                   </li>
                 ))}
@@ -408,10 +408,10 @@ export default function RealEstateCareersPage() {
                 return (
                   <div
                     key={col.title}
-                    className={`${finelyOsLandingIvoryCard()} !p-6 space-y-4 ${col.tone === 'gold' ? 'ring-1 ring-amber-700/25' : ''}`}
+                    className={`${finelyOsLandingIvoryCard()} p-6 lg:p-8 space-y-4`}
                   >
                     <div className="flex items-center gap-2 text-[#0a1628]">
-                      <Icon size={18} className="text-amber-800/80" />
+                      <Icon size={18} className="text-emerald-800/80" />
                       <p className="text-[12px] font-black uppercase tracking-[0.22em]">{col.title}</p>
                     </div>
                     <ul className="space-y-3">
@@ -428,7 +428,7 @@ export default function RealEstateCareersPage() {
             </div>
 
             {/* Question script chips */}
-            <div className={`${finelyOsLandingIvoryCard()} !p-6 space-y-4`}>
+            <div className={`${finelyOsLandingIvoryCard()} p-6 lg:p-8 space-y-4`}>
               <p className="text-[12px] font-black uppercase tracking-[0.22em] text-[#0a1628]/55">Question script chips</p>
               <div className="flex flex-wrap gap-2">
                 {REAL_ESTATE_QUESTION_SCRIPTS.map((s) => (
@@ -438,8 +438,8 @@ export default function RealEstateCareersPage() {
                     onClick={() => setActiveScript(s.id)}
                     className={`rounded-full border px-3.5 py-2 text-[12px] font-bold transition ${
                       activeScript === s.id
-                        ? 'border-amber-800/40 bg-amber-900/10 text-[#0a1628]'
-                        : 'border-amber-900/15 bg-white/40 text-[#0a1628]/65 hover:border-amber-800/30'
+                        ? 'border-emerald-800/40 bg-emerald-900/10 text-[#0a1628]'
+                        : 'border-emerald-900/15 bg-white/40 text-[#0a1628]/65 hover:border-emerald-800/30'
                     }`}
                   >
                     {s.label}
@@ -491,13 +491,13 @@ export default function RealEstateCareersPage() {
         >
           <div className="max-w-6xl mx-auto space-y-9">
             <div className="max-w-2xl space-y-3">
-              <p className="text-[11px] font-black uppercase tracking-[0.28em] text-amber-300">What you get</p>
+              <p className="text-[11px] font-black uppercase tracking-[0.28em] text-violet-300">What you get</p>
               <LandingTypewriterTitle
                 as="h2"
                 text="Benefits, inside access, and what only you can do."
                 className={`${FINELY_OS_LANDING_PLATINUM_TITLE} !text-3xl sm:!text-4xl`}
                 highlight="only you can do."
-                highlightClassName="text-amber-300"
+                highlightClassName="text-violet-300"
                 delayMs={100}
                 speedMs={32}
               />
@@ -514,7 +514,7 @@ export default function RealEstateCareersPage() {
                   className="re-motion-fade rounded-2xl border border-white/12 bg-black/30 p-6 space-y-5"
                   style={{ animationDelay: `${0.08 * colIdx}s` }}
                 >
-                  <p className="text-[11px] font-black uppercase tracking-[0.3em] text-amber-200/80">{col.title}</p>
+                  <p className="text-[11px] font-black uppercase tracking-[0.3em] text-violet-200/80">{col.title}</p>
                   <ul className="space-y-5">
                     {col.rows.map((r) => (
                       <li key={r.label} className="flex gap-3">
@@ -530,12 +530,12 @@ export default function RealEstateCareersPage() {
               ))}
             </div>
 
-            <div className="rounded-2xl border border-amber-300/25 bg-black/25 p-6">
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-200/80">Your shareboard profile</p>
+            <div className={`${finelyOsCatalogCard('violet')} space-y-4`} data-fc-accent="violet">
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-violet-200/80">Your shareboard profile</p>
               <div className="mt-4 grid gap-5 sm:grid-cols-3">
                 {ROLE_PROFILE_FEATURES[ROLE].map((f) => (
                   <div key={f.label} className="flex gap-3">
-                    <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-amber-300/90" />
+                    <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-violet-300/90" />
                     <div>
                       <p className="text-base font-semibold text-white/90">{f.label}</p>
                       <p className="mt-1 text-sm leading-relaxed text-white/55">{f.detail}</p>
@@ -569,7 +569,7 @@ export default function RealEstateCareersPage() {
 
             <ol className="relative space-y-0">
               <div
-                className="pointer-events-none absolute left-[1.65rem] top-4 bottom-4 w-px bg-gradient-to-b from-amber-700/40 via-amber-800/20 to-transparent hidden sm:block"
+                className="pointer-events-none absolute left-[1.65rem] top-4 bottom-4 w-px bg-gradient-to-b from-violet-400/40 via-violet-500/20 to-transparent hidden sm:block"
                 aria-hidden
               />
               {onboardingSteps.map((s, i) => (
@@ -578,10 +578,10 @@ export default function RealEstateCareersPage() {
                   className={`re-motion-rail relative flex flex-col gap-4 sm:flex-row sm:items-stretch sm:gap-6 py-3`}
                   style={{ animationDelay: `${0.07 * i}s` }}
                 >
-                  <div className="relative z-[1] flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-amber-800/25 bg-[#0a1628] text-amber-100 shadow-[0_12px_28px_-18px_rgba(10,22,40,0.55)]">
+                  <div className="relative z-[1] flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-violet-400/25 bg-[#0a1628] text-violet-100 shadow-[0_12px_28px_-18px_rgba(10,22,40,0.55)]">
                     <span className="text-lg font-black tabular-nums">{String(s.order).padStart(2, '0')}</span>
                   </div>
-                  <div className={`${finelyOsLandingIvoryCard()} flex-1 !p-5 sm:!p-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-5`}>
+                  <div className={`${finelyOsLandingIvoryCard()} flex-1 p-6 lg:p-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-5`}>
                     <div className="min-w-0 flex-1">
                       <h3 className="text-lg sm:text-xl font-bold text-[#0a1628]">{s.title}</h3>
                       <p className="mt-1.5 text-[15px] leading-relaxed text-[#0a1628]/68">{s.body}</p>
@@ -607,7 +607,7 @@ export default function RealEstateCareersPage() {
         >
           <div className="max-w-6xl mx-auto space-y-8">
             <div className="max-w-2xl space-y-3">
-              <p className="text-[11px] font-black uppercase tracking-[0.28em] text-amber-300">Command toolkit · 7 levers</p>
+              <p className="text-[11px] font-black uppercase tracking-[0.28em] text-violet-300">Command toolkit · 7 levers</p>
               <h2 className={`${FINELY_OS_LANDING_PLATINUM_TITLE} !text-3xl sm:!text-4xl`}>
                 What you explain. Where Finely runs it.
               </h2>
@@ -623,11 +623,11 @@ export default function RealEstateCareersPage() {
                 return (
                   <div
                     key={t.id}
-                    className={`${finelyOsCatalogCard(t.accent)} !p-5 space-y-3`}
+                    className={`${finelyOsCatalogCard(t.accent === 'amber' || t.accent === 'fuchsia' ? 'rose' : t.accent)} space-y-3`}
                     data-fc-accent={t.accent}
                   >
                     <div className="flex items-start gap-3">
-                      <div className="mt-0.5 rounded-xl border border-white/15 bg-black/25 p-2 text-amber-300">
+                      <div className="mt-0.5 rounded-xl border border-white/15 bg-black/25 p-2 text-violet-300">
                         <Icon size={18} />
                       </div>
                       <div className="min-w-0 space-y-1">
@@ -638,12 +638,12 @@ export default function RealEstateCareersPage() {
                     <ul className="space-y-1.5 pl-1">
                       {t.bullets.map((b) => (
                         <li key={b} className="flex gap-2 text-xs sm:text-sm text-white/55 leading-relaxed">
-                          <CheckCircle2 size={14} className="shrink-0 mt-0.5 text-amber-300/80" />
+                          <CheckCircle2 size={14} className="shrink-0 mt-0.5 text-violet-300/80" />
                           <span>{b}</span>
                         </li>
                       ))}
                     </ul>
-                    <p className="text-xs text-amber-200/70 leading-relaxed">{t.underwriterCaveat}</p>
+                    <p className="text-base text-violet-200/70 leading-relaxed">{t.underwriterCaveat}</p>
                     <div className="flex flex-wrap gap-2 pt-1">
                       <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => navigate(t.finelyCtaPath)}>
                         {t.finelyCtaLabel} <ArrowRight size={14} />
@@ -674,7 +674,7 @@ export default function RealEstateCareersPage() {
         >
           <div className="max-w-6xl mx-auto space-y-8">
             <div className="max-w-2xl space-y-3">
-              <p className="text-[11px] font-black uppercase tracking-[0.28em] text-amber-300">Resource rail</p>
+              <p className="text-[11px] font-black uppercase tracking-[0.28em] text-violet-300">Resource rail</p>
               <h2 className={`${FINELY_OS_LANDING_PLATINUM_TITLE} !text-3xl`}>Monitoring partners · law links · research chips</h2>
               <p className="fc-light-contrast-body text-sm sm:text-base">
                 Hand buyers real monitoring options. Cite FCRA/FDCPA when education comes up. Keep Fannie and AG links
@@ -689,7 +689,7 @@ export default function RealEstateCareersPage() {
                   href={chip.href}
                   target={chip.external !== false && chip.href.startsWith('http') ? '_blank' : undefined}
                   rel={chip.href.startsWith('http') ? 'noopener noreferrer' : undefined}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/30 bg-amber-400/10 px-3.5 py-2 text-[11px] font-bold uppercase tracking-[0.14em] text-amber-100 hover:bg-amber-400/18"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-violet-300/30 bg-violet-400/10 px-3.5 py-2 text-xs font-bold uppercase tracking-[0.14em] text-violet-100 hover:bg-violet-400/18"
                 >
                   {chip.label}
                   {chip.href.startsWith('http') ? <ExternalLink size={12} /> : null}
@@ -712,7 +712,7 @@ export default function RealEstateCareersPage() {
         {/* Research caveats */}
         <section className={`mt-6 rounded-3xl px-5 sm:px-10 py-10 ${finelyOsLandingWealthyIvorySection()}`}>
           <div className="max-w-4xl mx-auto space-y-5">
-            <div className="flex items-center gap-2 text-amber-900/80">
+            <div className="flex items-center gap-2 text-emerald-900/80">
               <ShieldAlert size={18} />
               <p className={FINELY_OS_LANDING_IVORY_KICKER}>Compliance · research caveats</p>
             </div>
@@ -752,7 +752,7 @@ export default function RealEstateCareersPage() {
         >
           <div className="max-w-4xl mx-auto grid gap-6 md:grid-cols-[1.2fr_0.8fr] md:items-center">
             <div className="space-y-3">
-              <p className="text-[11px] font-black uppercase tracking-[0.28em] text-amber-300">Payout framing</p>
+              <p className="text-[11px] font-black uppercase tracking-[0.28em] text-violet-300">Payout framing</p>
               <h2 className={`${FINELY_OS_LANDING_PLATINUM_TITLE} !text-3xl`}>Refer partners. Earn when they engage.</h2>
               <p className="fc-light-contrast-body text-sm sm:text-base leading-relaxed">
                 Real estate affiliates share tracked links into restore, AU education, and specialist programs. Payout
@@ -904,7 +904,7 @@ export default function RealEstateCareersPage() {
               ) : null}
             </CareerChoiceApply>
 
-            <div className="border-t border-amber-900/15 pt-3 space-y-2">
+            <div className="border-t border-emerald-900/15 pt-3 space-y-2">
               <RoleGuideCta role={ROLE} ink="dark" compact />
               <button
                 type="button"

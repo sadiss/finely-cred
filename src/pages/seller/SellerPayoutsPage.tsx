@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, Building2, Check, DollarSign, Smartphone, Wallet } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { PartnerWorkstationFrame, type PartnerEmbeddablePageProps } from '../../features/workspaceLightPreview/product/partner/PartnerWorkstationFrame';
+import { useMappedPartnerNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { useAuth } from '../../auth/AuthProvider';
 import { SellerNav } from '../../components/seller/SellerNav';
 import { getOrCreateSellerForSession } from '../../seller/getOrCreateSellerForSession';
@@ -37,8 +37,8 @@ const PAYOUT_METHODS: {
   { id: 'cash_app', label: 'Cash App', desc: '$Cashtag or linked debit', icon: DollarSign },
 ];
 
-export default function SellerPayoutsPage() {
-  const navigate = useNavigate();
+export default function SellerPayoutsPage({ embedded = false }: PartnerEmbeddablePageProps = {}) {
+  const navigate = useMappedPartnerNavigate();
   const auth = useAuth();
   const seller = useMemo(() => getOrCreateSellerForSession({ user: auth.user }), [auth.user]);
 
@@ -76,18 +76,18 @@ export default function SellerPayoutsPage() {
 
   if (!seller) {
     return (
-      <PageShell badge="AU Seller" title="Payouts" subtitle="Configure payout preferences for seller disbursements.">
+      <PartnerWorkstationFrame embedded={embedded} kind="au-seller-payouts-workstation" badge="AU Seller" title="Payouts" subtitle="Configure payout preferences for seller disbursements.">
         <div className={FINELY_OS_PAGE}>
           <SellerNav />
           <div className={FINELY_OS_ENTITY_EMPTY}>No seller profile found.</div>
-          <FinelyOsPageFooter />
+          {!embedded ? <FinelyOsPageFooter /> : null}
         </div>
-      </PageShell>
+      </PartnerWorkstationFrame>
     );
   }
 
   return (
-    <PageShell badge="AU Seller" title="Payouts & earnings" subtitle="Configure how you get paid, preview listing revenue, and track disbursement history.">
+    <PartnerWorkstationFrame embedded={embedded} kind="au-seller-payouts-workstation" badge="AU Seller" title="Payouts & earnings" subtitle="Configure how you get paid, preview listing revenue, and track disbursement history.">
       <div className={`${FINELY_OS_PAGE} max-w-5xl`}>
         <SellerNav />
         <PayoutCenterPanel
@@ -98,19 +98,19 @@ export default function SellerPayoutsPage() {
         />
 
         {projection ? (
-          <div className={`space-y-4 ${finelyOsCatalogCard('violet')} !p-5`}>
+          <div className={`space-y-4 ${finelyOsCatalogCard('violet')}`}>
             <div className={FINELY_OS_ENTITY_SUBLABEL}>Earnings calculator</div>
             <h3 className={`text-lg font-semibold ${FINELY_OS_ENTITY_VALUE}`}>If all active slots sell at list price</h3>
             <div className="grid sm:grid-cols-3 gap-4">
-              <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+              <div className={`${finelyOsCatalogCard('emerald')} fc-surface-harmony`} data-fc-accent="emerald">
                 <p className={`text-xs ${FINELY_OS_ENTITY_SUBLABEL} uppercase`}>Gross</p>
                 <p className={`text-2xl font-bold ${FINELY_OS_ENTITY_VALUE}`}>{formatUsdFromCents(projection.grossCents)}</p>
               </div>
-              <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony border-emerald-500/25 bg-emerald-500/10`}>
+              <div className={`${finelyOsCatalogCard('violet')} fc-surface-harmony`} data-fc-accent="violet">
                 <p className="text-xs text-emerald-300 uppercase">You ({AU_SELLER.defaultCommissionPct}%)</p>
                 <p className="text-2xl font-bold text-emerald-200">{formatUsdFromCents(projection.sellerShareCents)}</p>
               </div>
-              <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+              <div className={`${finelyOsCatalogCard('rose')} fc-surface-harmony`} data-fc-accent="rose">
                 <p className={`text-xs ${FINELY_OS_ENTITY_SUBLABEL} uppercase`}>Listings / slots</p>
                 <p className={`text-2xl font-bold ${FINELY_OS_ENTITY_VALUE}`}>{projection.listingCount} / {projection.slotCount}</p>
               </div>
@@ -118,9 +118,9 @@ export default function SellerPayoutsPage() {
           </div>
         ) : null}
 
-        <section className={`space-y-6 ${finelyOsCatalogCard('violet')} !p-5`}>
+        <section className={`space-y-6 ${finelyOsCatalogCard('sky')}`} data-fc-accent="sky">
           <div>
-            <div className="inline-flex items-center gap-2 text-fuchsia-300 border border-fuchsia-500/25 bg-fuchsia-500/10 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
+            <div className="inline-flex items-center gap-2 text-sky-300 border border-sky-500/25 bg-sky-500/10 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
               <Wallet size={14} /> Payout method
             </div>
             <h3 className={`mt-2 text-xl font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Where should we send your money?</h3>
@@ -177,8 +177,8 @@ export default function SellerPayoutsPage() {
           </div>
         </section>
 
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
       </div>
-    </PageShell>
+    </PartnerWorkstationFrame>
   );
 }

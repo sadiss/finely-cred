@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { PageShell } from '../../components/layout/PageShell';
+import { AdminWorkstationFrame, type AdminEmbeddablePageProps } from '../../features/workspaceLightPreview/product/admin/AdminWorkstationFrame';
+import { useMappedAdminNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { PARTNER_SUCCESS_MODULES } from '../../domain/partnerSuccessExperience';
 import {
   getPartnerSuccessModuleOverride,
@@ -8,7 +9,7 @@ import {
 } from '../../data/partnerSuccessModuleOverridesRepo';
 import { FINELY_OS_ENTITY_BODY, FINELY_OS_PRIMARY_BTN, FINELY_OS_SECONDARY_BTN } from '../../features/os/finelyOsLightUi';
 
-export default function AdminPartnerSuccessEditorPage() {
+export default function AdminPartnerSuccessEditorPage({ embedded = false }: AdminEmbeddablePageProps = {}) {
   const [selectedId, setSelectedId] = useState(PARTNER_SUCCESS_MODULES[0]?.id ?? '');
   const [version, setVersion] = useState(0);
   const modules = useMemo(() => {
@@ -44,9 +45,9 @@ export default function AdminPartnerSuccessEditorPage() {
   };
 
   return (
-    <PageShell
+    <AdminWorkstationFrame embedded={embedded} kind="partner-success-workstation"
       badge="Admin"
-      title="Partner Success Editor"
+      title="Success content editor"
       subtitle="Edit success module copy and Training Academy links — full module set preserved."
       back={{ to: -1 }}
     >
@@ -109,6 +110,6 @@ export default function AdminPartnerSuccessEditorPage() {
           ) : null}
         </div>
       </div>
-    </PageShell>
+    </AdminWorkstationFrame>
   );
 }

@@ -1,0 +1,89 @@
+/* Admin bookstore — storefront mosaic + compose studio */
+
+.fc-admin-bookstore-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .fc-admin-bookstore-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fc-admin-bookstore-hero {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 24px;
+  align-items: center;
+  padding: 28px 32px;
+  border-radius: 22px;
+  min-height: 180px;
+}
+
+.fc-admin-bookstore-shelf {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  gap: 16px;
+}
+
+.fc-admin-bookstore-spine {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 10px 16px;
+  border-radius: 16px;
+  text-align: center;
+  min-height: 200px;
+  transition: transform 0.14s ease, box-shadow 0.14s ease;
+}
+
+.fc-admin-bookstore-spine:hover {
+  transform: translateY(-4px);
+}
+
+.fc-admin-bookstore-spine[data-selected='true'] {
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.45);
+}
+
+.fc-admin-bookstore-cover {
+  width: 64px;
+  height: 96px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.fc-admin-bookstore-studio {
+  position: sticky;
+  top: 16px;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+}
+
+/* Light site — ink on ivory storefront beds */
+html[data-fc-theme='light'] .fc-admin-bookstore-hero,
+html[data-fc-theme='light'] .fc-admin-bookstore-spine,
+html[data-fc-theme='light'] .fc-admin-bookstore-studio {
+  color: var(--wlp-ink, #0a1628);
+}
+
+html[data-fc-theme='light'] .fc-admin-bookstore-spine:not([data-selected='true']) {
+  color: var(--wlp-ink, #0a1628);
+}
+
+/* Dark site — navy glass on ivory beds */
+html[data-fc-theme='dark'] .fc-admin-bookstore-hero,
+html[data-fc-theme='dark'] .fc-admin-bookstore-spine,
+html[data-fc-theme='dark'] .fc-admin-bookstore-studio {
+  color: var(--wlp-ink, #f1f5f9);
+}
+
+html[data-fc-theme='dark'] .fc-admin-bookstore-spine:not([data-selected='true']) {
+  color: #e2e8f0;
+}

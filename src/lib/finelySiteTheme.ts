@@ -2,21 +2,22 @@ export type FinelySiteThemePreference = 'dark' | 'light' | 'system';
 
 export type FinelySiteThemeResolved = 'dark' | 'light';
 
-export const FINELY_SITE_THEME_STORAGE_KEY = 'finely.siteTheme.v1';
+export const FINELY_SITE_THEME_STORAGE_KEY = 'finely.siteTheme.v3';
 
 export function resolveSystemTheme(): FinelySiteThemeResolved {
-  if (typeof window === 'undefined') return 'dark';
+  if (typeof window === 'undefined') return 'light';
   return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
 }
 
 export function readStoredThemePreference(): FinelySiteThemePreference {
   try {
-    const raw = localStorage.getItem(FINELY_SITE_THEME_STORAGE_KEY);
-    if (raw === 'light' || raw === 'dark' || raw === 'system') return raw;
+    const stored = localStorage.getItem(FINELY_SITE_THEME_STORAGE_KEY);
+    if (stored === 'light' || stored === 'dark') return stored;
+    // `system` and older keys (v1/v2) followed OS dark and hid the white product look.
   } catch {
     // ignore
   }
-  return 'system';
+  return 'light';
 }
 
 export function resolveEffectiveTheme(preference: FinelySiteThemePreference): FinelySiteThemeResolved {

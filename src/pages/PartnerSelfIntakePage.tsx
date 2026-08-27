@@ -209,7 +209,7 @@ export default function PartnerSelfIntakePage() {
           </div>
         ) : invite && partner ? (
           <div className="space-y-6">
-            <div className={`${finelyOsCatalogCard('emerald')} !p-5 space-y-2`}>
+            <div className={`${finelyOsCatalogCard('emerald')} space-y-2`} data-fc-accent="emerald">
               <div className="inline-flex items-center gap-2 text-emerald-300">
                 <UserRound size={18} />
                 <span className={FINELY_OS_ENTITY_SUBLABEL}>Your file</span>
@@ -220,7 +220,7 @@ export default function PartnerSelfIntakePage() {
               </p>
             </div>
 
-            <div className={`${finelyOsCatalogCard('violet')} !p-5 grid sm:grid-cols-2 gap-4`}>
+            <div className={`${finelyOsCatalogCard('violet')} grid sm:grid-cols-2 gap-4`} data-fc-accent="violet">
               <div className="sm:col-span-2">
                 <label className={FINELY_OS_ENTITY_LABEL}>Full legal name</label>
                 <input
@@ -297,7 +297,7 @@ export default function PartnerSelfIntakePage() {
               </div>
             </div>
 
-            <div className={`${finelyOsCatalogCard('sky')} !p-5 space-y-3`}>
+            <div className={`${finelyOsCatalogCard('sky')} space-y-3`} data-fc-accent="sky">
               <div className="inline-flex items-center gap-2 text-sky-300">
                 <FileUp size={18} />
                 <span className={FINELY_OS_ENTITY_SUBLABEL}>Credit report (optional)</span>

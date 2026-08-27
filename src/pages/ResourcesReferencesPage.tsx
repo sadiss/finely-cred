@@ -37,7 +37,7 @@ const QUICK_REFS = [
     desc: 'FICO vs VantageScore, and why lenders differ by product.',
     icon: TrendingUp,
     badge: 'Scores',
-    iconTone: 'text-amber-300 bg-amber-500/15 border-amber-500/30',
+    iconTone: 'text-rose-300 bg-rose-500/15 border-rose-500/30',
   },
   {
     title: 'Funding readiness sequencing',
@@ -79,7 +79,7 @@ export default function ResourcesReferencesPage() {
           primaryAction={{ label: 'Free guides', onClick: () => navigate('/resources/guides') }}
           secondaryAction={{ label: 'Resource hub', onClick: () => navigate('/resources') }}
         >
-          <div className={`space-y-3 ${finelyOsCatalogCard('violet')} !p-5`} data-fc-accent="violet">
+          <div className={`space-y-3 ${finelyOsCatalogCard('violet')}`} data-fc-accent="violet">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-violet-500/30 bg-violet-500/15">
                 <GitBranch size={18} className="text-violet-700" />
@@ -95,9 +95,9 @@ export default function ResourcesReferencesPage() {
               itemSpacingClassName="grid md:grid-cols-2 gap-3"
               renderItem={(x, idx) => {
                 const Icon = x.icon;
-                const accent = (['emerald', 'amber', 'sky', 'violet'] as const)[idx % 4];
+                const accent = (['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4];
                 return (
-                  <div key={x.title} className={`${finelyOsCatalogCard(accent)} !p-4`} data-fc-accent={accent}>
+                  <div key={x.title} className={`${finelyOsCatalogCard(accent)}`} data-fc-accent={accent}>
                     <div className="flex items-start justify-between gap-3">
                       <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${x.iconTone}`}>
                         <Icon size={18} />

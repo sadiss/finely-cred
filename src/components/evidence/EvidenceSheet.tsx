@@ -41,11 +41,15 @@ function SheetChrome({
 }) {
   return (
     <div style={sheetBaseStyle()} className="w-[1100px] p-4">
+      <div className="mb-3 flex items-center justify-between gap-4 border border-black/15 bg-black/[0.035] px-3 py-2">
+        <div className="text-[10px] uppercase tracking-[0.18em] text-black/70 font-black">Finely Parsed Exhibit</div>
+        <div className="text-[10px] text-black/60">Generated from parsed report data — not bureau UI</div>
+      </div>
       {showHeader ? (
         <>
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
-              <div className="text-[10px] uppercase tracking-[0.18em] text-black/60 font-semibold">Evidence</div>
+              <div className="text-[10px] uppercase tracking-[0.18em] text-black/60 font-semibold">Parsed report evidence</div>
               <div className="mt-1 text-[16px] font-semibold text-black leading-tight break-words">{title}</div>
               {subtitle ? <div className="mt-1 text-[11px] text-black/70">{subtitle}</div> : null}
             </div>

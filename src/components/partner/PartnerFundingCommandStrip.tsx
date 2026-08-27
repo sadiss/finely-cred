@@ -46,7 +46,7 @@ export function PartnerFundingCommandStrip({ partner, reportCount, letterCount, 
         { id: 'score', label: 'Readiness', value: `${readiness.score}%`, accent: 'emerald' },
         { id: 'stage', label: 'Credit journey', value: partner.journeyStage ?? 'intake', accent: 'violet' },
         { id: 'reports', label: 'Reports', value: String(reportCount ?? readiness.summary.reportCount ?? 0), accent: 'sky' },
-        { id: 'letters', label: 'Letters', value: String(letterCount ?? readiness.summary.letterCount ?? 0), accent: 'amber' },
+        { id: 'letters', label: 'Letters', value: String(letterCount ?? readiness.summary.letterCount ?? 0), accent: 'rose' },
       ]}
       primaryAction={
         readiness.ready && noraOn && (stage === 'ready' || stage === 'not_ready')

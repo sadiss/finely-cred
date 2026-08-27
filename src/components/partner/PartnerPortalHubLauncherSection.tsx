@@ -4,6 +4,7 @@ import {
   Briefcase,
   Calendar,
   FileText,
+  Files,
   FolderKanban,
   FolderOpen,
   Gavel,
@@ -34,7 +35,6 @@ import { DenefitsEnrollmentPanel } from '../denefits/DenefitsEnrollmentPanel';
 import { Button, CollapsibleSection } from '../ui';
 import { computePartnerOverallScore } from '../../utils/partnerOverallScore';
 import { LineChartCard, DonutChartCard } from '../charts';
-import { ProfileGoalsReadinessPanel } from '../profile/ProfileGoalsReadinessPanel';
 import { ProofDocumentsHub } from '../evidence/ProofDocumentsHub';
 import { PartnerFundingCommandStrip } from './PartnerFundingCommandStrip';
 import { FinelyBridgeConnectorPanel } from '../bridge/FinelyBridgeConnectorPanel';
@@ -58,6 +58,7 @@ import {
   PARTNER_HUB_LAUNCHER_ACCENTS,
 } from './partnerHubLauncherUi';
 import { buildPortalNoticedItems } from '../../lib/finelyProactiveSignals';
+import { evidenceDestination } from '../../lib/evidenceVaultGrouping';
 import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_LABEL,
@@ -138,6 +139,8 @@ export function PartnerPortalHubLauncherSection({ partner, refresh }: Props) {
 
   const openCases = cases.filter((c) => c.status === 'open');
   const openDebt = debtCases.filter((d) => d.status === 'open' || d.status === 'in_review');
+  const evidenceVaultCount = evidence.filter((item) => evidenceDestination(item) === 'evidence').length;
+  const documentsCount = evidence.filter((item) => evidenceDestination(item) === 'documents').length;
 
   const courtPlanAlert = useMemo(
     () => computeCourtPlanDashboardAlert(partner.id),
@@ -169,12 +172,20 @@ export function PartnerPortalHubLauncherSection({ partner, refresh }: Props) {
         stat: `${reports.length} report${reports.length === 1 ? '' : 's'}`,
       },
       {
+        key: 'evidence',
+        onClick: () => navigate('/portal/evidence'),
+        icon: <FolderOpen size={18} />,
+        title: 'Evidence vault',
+        desc: 'Report crops, bureau replies, collector paper, and source proof.',
+        stat: `${evidenceVaultCount} exhibit${evidenceVaultCount === 1 ? '' : 's'}`,
+      },
+      {
         key: 'documents',
         onClick: () => navigate('/portal/documents'),
-        icon: <FolderOpen size={18} />,
+        icon: <Files size={18} />,
         title: 'Documents vault',
-        desc: 'Upload letters, responses, IDs, and supporting proof.',
-        stat: `${evidence.length} file${evidence.length === 1 ? '' : 's'}`,
+        desc: 'Upload ID, proof of address, statements, and your paperwork.',
+        stat: `${documentsCount} file${documentsCount === 1 ? '' : 's'}`,
       },
       {
         key: 'disputes',
@@ -241,7 +252,7 @@ export function PartnerPortalHubLauncherSection({ partner, refresh }: Props) {
         stat: 'Support',
       },
     ],
-    [navigate, reports.length, evidence.length, openCases.length, openTasks.length, openDebt.length, debtCases.length],
+    [navigate, reports.length, evidenceVaultCount, documentsCount, openCases.length, openTasks.length, openDebt.length, debtCases.length],
   );
 
   const overallScore = useMemo(
@@ -280,7 +291,7 @@ export function PartnerPortalHubLauncherSection({ partner, refresh }: Props) {
   );
 
   const documentModuleCards = useMemo(
-    () => dashboardModuleCards.filter((c) => ['documents', 'reports'].includes(c.key)),
+    () => dashboardModuleCards.filter((c) => ['reports', 'evidence', 'documents'].includes(c.key)),
     [dashboardModuleCards],
   );
 
@@ -336,7 +347,7 @@ export function PartnerPortalHubLauncherSection({ partner, refresh }: Props) {
         description: 'Collection accounts, court outcomes, validation, and credit building.',
         stat: `${openDebt.length} open · ${debtCases.length} total`,
         icon: Scale,
-        accent: 'fuchsia' as const,
+        accent: 'rose' as const,
       },
       {
         id: 'business' as const,
@@ -344,7 +355,7 @@ export function PartnerPortalHubLauncherSection({ partner, refresh }: Props) {
         description: 'EIN profile, vendor sequencing, and business portal shortcuts.',
         stat: partner.lane === 'business_credit' ? 'EIN lane active' : 'Explore business build',
         icon: Briefcase,
-        accent: 'amber' as const,
+        accent: 'sky' as const,
       },
       {
         id: 'documents' as const,
@@ -352,7 +363,7 @@ export function PartnerPortalHubLauncherSection({ partner, refresh }: Props) {
         description: 'Vault uploads, credit reports, and proof for disputes.',
         stat: `${evidence.length} vault file${evidence.length === 1 ? '' : 's'}`,
         icon: FolderOpen,
-        accent: 'sky' as const,
+        accent: 'emerald' as const,
       },
       {
         id: 'activity' as const,
@@ -360,7 +371,7 @@ export function PartnerPortalHubLauncherSection({ partner, refresh }: Props) {
         description: 'Timeline, charts, next steps, and workflow checklist.',
         stat: `${openTasks.length} open task${openTasks.length === 1 ? '' : 's'}`,
         icon: ListChecks,
-        accent: 'emerald' as const,
+        accent: 'violet' as const,
         badge: portalActivityItems.length ? `${portalActivityItems.length} recent` : undefined,
       },
     ],
@@ -398,7 +409,16 @@ export function PartnerPortalHubLauncherSection({ partner, refresh }: Props) {
             overallScore: overallScore?.overall ?? null,
           })}
         />
-        <ProfileGoalsReadinessPanel partner={partner} overallScore={overallScore} onSaved={() => refresh()} />
+        <p className={`${FINELY_OS_ENTITY_BODY} rounded-xl border border-violet-200/70 bg-violet-50/80 px-4 py-3`}>
+          Funding readiness and lender alignment live on your dashboard overview. Open it there to avoid duplicate panels.
+          <button
+            type="button"
+            onClick={() => navigate('/portal/wealth-paths')}
+            className={`${FINELY_OS_SECONDARY_BTN} mt-3`}
+          >
+            Open funding readiness <ArrowRight size={14} />
+          </button>
+        </p>
         <PartnerOnboardingRelationshipCard partner={partner} />
         <PartnerOnboardingProgress partner={partner} />
         <PartnerSuccessExperiencePanel partnerId={partner.id} lane="all" compact />
@@ -412,7 +432,7 @@ export function PartnerPortalHubLauncherSection({ partner, refresh }: Props) {
                 label="Overall score"
                 value={overallScore.overall}
                 hint="Profile + execution readiness"
-                tone={overallScore.overall >= 80 ? 'emerald' : overallScore.overall >= 60 ? 'amber' : 'violet'}
+                tone={overallScore.overall >= 80 ? 'emerald' : overallScore.overall >= 60 ? 'sky' : 'violet'}
                 onClick={() => navigate('/portal/checklist')}
               />
             </div>
@@ -441,11 +461,11 @@ export function PartnerPortalHubLauncherSection({ partner, refresh }: Props) {
                         key={a.key}
                         type="button"
                         onClick={() => navigate(a.path || '/portal/checklist')}
-                        className={`${PARTNER_HUB_ACTION_TINT[tint]} w-full text-left !p-4`}
+                        className={`${PARTNER_HUB_ACTION_TINT[tint]} w-full text-left p-6`}
                         data-fc-accent={tint}
                         title={a.title}
                       >
-                        <div className="text-[10px] uppercase tracking-widest text-violet-700">
+                        <div className="text-xs uppercase tracking-widest text-violet-700">
                           {a.severity === 'warn' ? 'Priority' : 'Improvement'}
                         </div>
                         <div className={`mt-2 ${FINELY_OS_ENTITY_VALUE}`}>{a.title}</div>
@@ -480,11 +500,12 @@ export function PartnerPortalHubLauncherSection({ partner, refresh }: Props) {
                 projects={projects}
               />
             </div>
-            <div className="space-y-3 min-w-0">
+            <div className="space-y-4 min-w-0">
               {(['Now', 'Next', 'Later'] as const).map((k) => {
                 const items = journeyActions.filter((a) => a.k === k);
+                const journeyAccent = k === 'Now' ? 'emerald' : k === 'Next' ? 'violet' : 'rose';
                 return (
-                  <details key={k} open={k === 'Now'} className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+                  <details key={k} open={k === 'Now'} className={`${finelyOsCatalogCard(journeyAccent)} fc-surface-harmony`} data-fc-accent={journeyAccent}>
                     <summary className="cursor-pointer select-none flex items-center justify-between gap-3">
                       <div className={FINELY_OS_ENTITY_VALUE}>
                         {k}{' '}
@@ -492,7 +513,7 @@ export function PartnerPortalHubLauncherSection({ partner, refresh }: Props) {
                           {items.length} item{items.length === 1 ? '' : 's'}
                         </span>
                       </div>
-                      <div className="text-[10px] font-black uppercase tracking-widest text-violet-700">Open</div>
+                      <div className="text-xs font-black uppercase tracking-widest text-violet-700">Open</div>
                     </summary>
                     <div className="mt-4 space-y-3">
                       {items.map((a) => (
@@ -502,7 +523,7 @@ export function PartnerPortalHubLauncherSection({ partner, refresh }: Props) {
                           onClick={() => navigate(a.path)}
                           className={`${finelyOsInlineListItem()} w-full text-left p-5`}
                         >
-                          <div className="text-[10px] uppercase tracking-widest text-violet-700">{a.k}</div>
+                          <div className="text-xs uppercase tracking-widest text-violet-700">{a.k}</div>
                           <div className={`mt-2 ${FINELY_OS_ENTITY_VALUE}`}>{a.title}</div>
                           <div className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>{a.desc}</div>
                           <div className={`mt-4 inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
@@ -580,12 +601,12 @@ export function PartnerPortalHubLauncherSection({ partner, refresh }: Props) {
               key={c.key}
               type="button"
               onClick={c.onClick}
-              className={`${finelyOsCatalogCard(PARTNER_HUB_LAUNCHER_ACCENTS[idx % PARTNER_HUB_LAUNCHER_ACCENTS.length])} w-full text-left !p-4`}
+              className={`${finelyOsCatalogCard(PARTNER_HUB_LAUNCHER_ACCENTS[idx % PARTNER_HUB_LAUNCHER_ACCENTS.length])} w-full text-left`}
               data-fc-accent={PARTNER_HUB_LAUNCHER_ACCENTS[idx % PARTNER_HUB_LAUNCHER_ACCENTS.length]}
             >
               <div className="flex items-center gap-3 text-violet-700">
                 {c.icon}
-                <span className="text-[10px] font-black uppercase tracking-widest">{c.title}</span>
+                <span className="text-xs font-black uppercase tracking-widest">{c.title}</span>
               </div>
               <p className={`mt-3 ${FINELY_OS_ENTITY_BODY}`}>{c.desc}</p>
               <div className={`mt-4 ${FINELY_OS_ENTITY_SUBLABEL}`}>{c.stat}</div>
@@ -599,7 +620,7 @@ export function PartnerPortalHubLauncherSection({ partner, refresh }: Props) {
         onClose={hubLauncher.close}
         title="Debt & summons"
         subtitle="Collection accounts, court outcomes, and credit building."
-        accent="fuchsia"
+        accent="rose"
       >
         {courtPlanAlert.show ? (
           <FinelyOsAlertBanner tone={courtPlanAlert.tone} message={courtPlanAlert.message} />
@@ -614,12 +635,12 @@ export function PartnerPortalHubLauncherSection({ partner, refresh }: Props) {
               key={c.key}
               type="button"
               onClick={c.onClick}
-              className={`${finelyOsCatalogCard(PARTNER_HUB_LAUNCHER_ACCENTS[idx % PARTNER_HUB_LAUNCHER_ACCENTS.length])} w-full text-left !p-4`}
+              className={`${finelyOsCatalogCard(PARTNER_HUB_LAUNCHER_ACCENTS[idx % PARTNER_HUB_LAUNCHER_ACCENTS.length])} w-full text-left`}
               data-fc-accent={PARTNER_HUB_LAUNCHER_ACCENTS[idx % PARTNER_HUB_LAUNCHER_ACCENTS.length]}
             >
               <div className="flex items-center gap-3 text-violet-700">
                 {c.icon}
-                <span className="text-[10px] font-black uppercase tracking-widest">{c.title}</span>
+                <span className="text-xs font-black uppercase tracking-widest">{c.title}</span>
               </div>
               <p className={`mt-3 ${FINELY_OS_ENTITY_BODY}`}>{c.desc}</p>
               <div className={`mt-4 ${FINELY_OS_ENTITY_SUBLABEL}`}>{c.stat}</div>
@@ -633,17 +654,17 @@ export function PartnerPortalHubLauncherSection({ partner, refresh }: Props) {
         onClose={hubLauncher.close}
         title="Business credit"
         subtitle="EIN profile and business portal shortcuts."
-        accent="amber"
+        accent="sky"
       >
         {partner.lane === 'business_credit' ? (
           <CollapsibleSection
             variant="light"
-            title={<span className="text-fuchsia-800">Business persona</span>}
+            title={<span className="text-sky-800">Business persona</span>}
             subtitle="Your EIN profile (separate from personal)."
             defaultOpen
             storageKey="portal.dashboard.businessPersona"
-            className="!border-fuchsia-500/40 shadow-[0_0_0_1px_rgba(217,70,239,0.14),0_14px_44px_-16px_rgba(217,70,239,0.42)]"
-            headerClassName="border-fuchsia-500/15"
+            className="!border-sky-500/40 shadow-[0_0_0_1px_rgba(14,165,233,0.14),0_14px_44px_-16px_rgba(14,165,233,0.42)]"
+            headerClassName="border-sky-500/15"
             actions={
               <Button variant="primary" size="sm" onClick={() => navigate('/business/profile')}>
                 Complete business profile <ArrowRight size={14} />
@@ -666,7 +687,7 @@ export function PartnerPortalHubLauncherSection({ partner, refresh }: Props) {
                 </span>
               ) : null}
             </div>
-            <div className={`mt-3 flex flex-wrap gap-2 text-[10px] uppercase tracking-widest ${FINELY_OS_ENTITY_SUBLABEL} font-mono`}>
+            <div className={`mt-3 flex flex-wrap gap-2 text-xs uppercase tracking-widest ${FINELY_OS_ENTITY_SUBLABEL} font-mono`}>
               <span>
                 EIN last4:{' '}
                 {String(
@@ -719,12 +740,12 @@ export function PartnerPortalHubLauncherSection({ partner, refresh }: Props) {
               key={c.key}
               type="button"
               onClick={c.onClick}
-              className={`${finelyOsCatalogCard(PARTNER_HUB_LAUNCHER_ACCENTS[idx % PARTNER_HUB_LAUNCHER_ACCENTS.length])} w-full text-left !p-4`}
+              className={`${finelyOsCatalogCard(PARTNER_HUB_LAUNCHER_ACCENTS[idx % PARTNER_HUB_LAUNCHER_ACCENTS.length])} w-full text-left`}
               data-fc-accent={PARTNER_HUB_LAUNCHER_ACCENTS[idx % PARTNER_HUB_LAUNCHER_ACCENTS.length]}
             >
               <div className="flex items-center gap-3 text-violet-700">
                 {c.icon}
-                <span className="text-[10px] font-black uppercase tracking-widest">{c.title}</span>
+                <span className="text-xs font-black uppercase tracking-widest">{c.title}</span>
               </div>
               <p className={`mt-3 ${FINELY_OS_ENTITY_BODY}`}>{c.desc}</p>
               <div className={`mt-4 ${FINELY_OS_ENTITY_SUBLABEL}`}>{c.stat}</div>
@@ -785,7 +806,7 @@ export function PartnerPortalHubLauncherSection({ partner, refresh }: Props) {
                   itemSpacingClassName="grid md:grid-cols-2 gap-3"
                   emptyMessage="No open tasks."
                   renderItem={(t) => (
-                    <div key={t.id} className="rounded-xl border border-black/10 bg-transparent p-3">
+                    <div key={t.id} className={`${finelyOsCatalogCard('sky')} min-w-0`}>
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{t.title}</div>
@@ -805,28 +826,28 @@ export function PartnerPortalHubLauncherSection({ partner, refresh }: Props) {
             </div>
             <div className="lg:col-span-5 min-w-0 space-y-3">
               <p className={FINELY_OS_ENTITY_LABEL}>Status snapshot</p>
-              <div className="grid grid-cols-2 rounded-xl border border-black/10 bg-transparent divide-x divide-y divide-black/10 overflow-hidden">
-                <div className="p-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div className={finelyOsCatalogCard('emerald')}>
                   <div className={FINELY_OS_ENTITY_SUBLABEL}>Partner status</div>
-                  <div className={`mt-2 ${FINELY_OS_ENTITY_VALUE}`}>{partner.status}</div>
+                  <div className={`mt-2 text-xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{partner.status}</div>
                 </div>
-                <div className="p-3">
+                <div className={finelyOsCatalogCard('violet')}>
                   <div className={FINELY_OS_ENTITY_SUBLABEL}>Primary route</div>
-                  <div className={`mt-2 ${FINELY_OS_ENTITY_VALUE}`}>{partner.primaryRoute ?? '—'}</div>
+                  <div className={`mt-2 text-xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{partner.primaryRoute ?? '—'}</div>
                 </div>
-                <div className="p-3">
+                <div className={finelyOsCatalogCard('sky')}>
                   <div className={FINELY_OS_ENTITY_SUBLABEL}>Lane</div>
-                  <div className={`mt-2 ${FINELY_OS_ENTITY_VALUE}`}>{partner.lane ?? '—'}</div>
+                  <div className={`mt-2 text-xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{partner.lane ?? '—'}</div>
                 </div>
-                <div className="p-3">
+                <div className={finelyOsCatalogCard('rose')}>
                   <div className={FINELY_OS_ENTITY_SUBLABEL}>Stage</div>
-                  <div className={`mt-2 ${FINELY_OS_ENTITY_VALUE}`}>{partner.journeyStage ?? 'intake'}</div>
+                  <div className={`mt-2 text-xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{partner.journeyStage ?? 'intake'}</div>
                 </div>
               </div>
               <div className={`${FINELY_OS_NOTICE_WARN} flex items-start gap-3`}>
-                <ShieldAlert size={16} className="text-fuchsia-600 mt-0.5 shrink-0" />
+                <ShieldAlert size={16} className="text-sky-600 mt-0.5 shrink-0" />
                 <div>
-                  <p className="font-semibold text-fuchsia-900">Pro tip</p>
+                  <p className="font-semibold text-sky-900">Pro tip</p>
                   <p className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>
                     If you receive bureau mail responses, upload them to your Documents Vault immediately — it keeps your rounds and follow-ups on schedule.
                   </p>

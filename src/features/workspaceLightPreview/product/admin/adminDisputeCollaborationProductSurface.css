@@ -1,0 +1,112 @@
+/* Admin dispute collaboration — queue + selected detail + alert rail */
+
+.fc-admin-dispute-collab {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.fc-admin-dispute-collab-alerts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 900px) {
+  .fc-admin-dispute-collab-alerts {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fc-admin-dispute-collab-alert-chip {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  min-height: 88px;
+}
+
+.fc-admin-dispute-collab-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .fc-admin-dispute-collab-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fc-admin-dispute-collab-queue {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: calc(100vh - 280px);
+}
+
+.fc-admin-dispute-collab-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.fc-admin-dispute-collab-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.fc-admin-dispute-collab-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 14px;
+  text-align: left;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.fc-admin-dispute-collab-row:hover {
+  transform: translateY(-1px);
+}
+
+.fc-admin-dispute-collab-row[data-selected='true'] {
+  box-shadow: 0 0 0 2px rgba(244, 63, 94, 0.35);
+}
+
+.fc-admin-dispute-collab-inspector {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+.fc-admin-dispute-collab-inspector-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.fc-admin-dispute-collab-status-rail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+html[data-fc-theme='dark'] .fc-admin-dispute-collab-row:not([data-selected='true']) {
+  color: var(--wlp-ink, #f1f5f9);
+}
+
+html[data-fc-theme='light'] .fc-admin-dispute-collab-row:not([data-selected='true']) {
+  color: var(--wlp-ink, #0a1628);
+}

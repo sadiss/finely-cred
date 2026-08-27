@@ -64,7 +64,7 @@ export function PersonalCreditHeroShell({ onStartFreeTrial, onBookSession }: Pro
               Start free trial <ArrowRight size={14} />
             </button>
             <button type="button" className={PC_RESTORE_BTN.sky} onClick={onBookSession}>
-              Book an Enlightenment session <ArrowRight size={14} />
+              Book a strategy call <ArrowRight size={14} />
             </button>
           </div>
           <p className="pc-restore-hero-compliance">

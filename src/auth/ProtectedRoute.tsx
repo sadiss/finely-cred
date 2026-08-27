@@ -5,6 +5,7 @@ import { isAdminEmail } from './admin';
 import { usePartnerSession } from './PartnerSessionContext';
 import { PartnerAccessGate } from '../components/portal/PartnerAccessGate';
 import { MfaGate } from './MfaGate';
+import { adminPartnerFilePath, readAdminPartnerOverrideId } from '../lib/adminPartnerViewAs';
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isLoading, user } = useAuth();
@@ -22,27 +23,15 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   if (!user) {
     const returnTo = `${location.pathname}${location.search || ''}`;
     const nextQs = returnTo.startsWith('/') ? `&next=${encodeURIComponent(returnTo)}` : '';
-    if (location.pathname.startsWith('/portal')) {
-      return <Navigate to={`/signup?auth=signup${nextQs}`} replace state={{ from: returnTo }} />;
-    }
-    // Preserve deep-links (agency / case-help / RE hubs + agency signup) through auth bounce.
-    if (
-      location.pathname.startsWith('/agency/') ||
-      location.pathname.startsWith('/case-help/') ||
-      location.pathname.startsWith('/real-estate/')
-    ) {
-      return <Navigate to={`/signup?auth=signup${nextQs}`} replace state={{ from: returnTo }} />;
-    }
-    return <Navigate to="/onboarding" replace state={{ from: location.pathname }} />;
+    return <Navigate to={`/signup?auth=signup${nextQs}`} replace state={{ from: returnTo }} />;
   }
 
   const email = (user as any)?.email || (user as any)?.user_metadata?.email || '';
   const isAdmin = email ? isAdminEmail(String(email)) : false;
 
-  const isPortalRoute =
-    location.pathname.startsWith('/portal') && !location.pathname.startsWith('/portal/select-partner');
+  const isPortalRoute = location.pathname.startsWith('/portal');
 
-  // Partner-portal guard for platform admins (dev/demo): require selecting a partner to view.
+  // Staff already pick a partner on Partners. Never dump them onto a second picker.
   if (isPortalRoute && isAdmin) {
     if (partnerLoading) {
       return (
@@ -52,8 +41,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
       );
     }
     if (!partner) {
-      const next = encodeURIComponent(`${location.pathname}${location.search || ''}`);
-      return <Navigate to={`/portal/select-partner?next=${next}`} replace />;
+      return <Navigate to={adminPartnerFilePath(readAdminPartnerOverrideId())} replace />;
     }
   }
 

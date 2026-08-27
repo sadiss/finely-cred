@@ -13,8 +13,9 @@ import {
   PlayCircle,
   Shield,
 } from 'lucide-react';
-import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { useSearchParams, useLocation } from 'react-router-dom';
+import { PartnerWorkstationFrame, type PartnerEmbeddablePageProps } from '../../features/workspaceLightPreview/product/partner/PartnerWorkstationFrame';
+import { useMappedPartnerNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { useAuth } from '../../auth/AuthProvider';
 import { isAdminEmail } from '../../auth/admin';
@@ -93,7 +94,7 @@ function LessonRow(props: {
   onOpenTour: (tourId: string) => void;
   showTourVideos?: boolean;
 }) {
-  const navigate = useNavigate();
+  const navigate = useMappedPartnerNavigate();
   const { lesson, module, done, partnerId, lane, isAdmin, recipientName, onRefresh, onOpenTour, showTourVideos = false } = props;
   const [quizPick, setQuizPick] = useState<number | null>(null);
   const [quizMsg, setQuizMsg] = useState<string | null>(null);
@@ -131,7 +132,7 @@ function LessonRow(props: {
 
   return (
     <div
-      className={`${finelyOsCatalogCard('sky')} !p-4 space-y-3 ${done ? 'border-emerald-500/25' : ''}`}
+      className={`${finelyOsCatalogCard('sky')} space-y-3 ${done ? 'border-emerald-500/25' : ''}`}
       data-fc-lesson={lesson.id}
     >
       <div className="flex items-start justify-between gap-3">
@@ -205,7 +206,7 @@ function LessonRow(props: {
       </div>
 
       {hasQuiz && !done ? (
-        <div className={`${finelyOsCatalogCard('violet')} !p-3 space-y-2`}>
+        <div className={`${finelyOsCatalogCard('violet')} space-y-3`} data-fc-accent="violet">
           <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-xs`}>Quick check</div>
           <div className={FINELY_OS_ENTITY_BODY}>{lesson.quiz![0]!.question}</div>
           <div className="space-y-1">
@@ -251,7 +252,7 @@ function TrackSection(props: {
   const isCore = track.id === CORE_TRACK_ID;
 
   return (
-    <div className={`${finelyOsCatalogCard(track.accent)} !p-5 space-y-4`}>
+    <div className={`${finelyOsCatalogCard(track.accent)} space-y-4`}>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <div className="inline-flex items-center gap-2 text-white/70">
@@ -303,8 +304,8 @@ function TrackSection(props: {
   );
 }
 
-export default function PartnerTrainingAcademyPage() {
-  const navigate = useNavigate();
+export default function PartnerTrainingAcademyPage({ embedded = false }: PartnerEmbeddablePageProps = {}) {
+  const navigate = useMappedPartnerNavigate();
   const { pathname } = useLocation();
   const showTourVideos = canShowPublicDemoVideos(pathname);
   const [searchParams] = useSearchParams();
@@ -359,10 +360,12 @@ export default function PartnerTrainingAcademyPage() {
   const roleTracks = progress?.plan.tracks.filter((t) => t.role !== 'core') ?? [];
 
   return (
-    <PageShell
+    <PartnerWorkstationFrame
+      embedded={embedded}
+      kind="training-workstation"
       badge="Finely Training Academy"
       title="Training Academy"
-      subtitle="One signup, one academy — core foundation for everyone, then role tracks unlock from your onboarding lane."
+      subtitle="Deeper training tracks for partners who want the full method."
     >
       {!partner ? (
         <div className={FINELY_OS_LUXURY_EMPTY}>
@@ -382,7 +385,7 @@ export default function PartnerTrainingAcademyPage() {
 
           <CommsWorkspaceActions />
 
-          <div className={`${finelyOsCatalogCard('emerald')} !p-5 space-y-3`}>
+          <div className={`${finelyOsCatalogCard('emerald')} space-y-3`}>
             <div className="inline-flex items-center gap-2 text-emerald-300">
               <GraduationCap size={18} />
               <span className={FINELY_OS_ENTITY_SUBLABEL}>Unified architecture</span>
@@ -390,7 +393,7 @@ export default function PartnerTrainingAcademyPage() {
             <p className={`${FINELY_OS_ENTITY_BODY} max-w-3xl`}>
               Everyone completes <strong className="text-white">Core Foundation</strong> (compliance, validation-first
               doctrine, platform safety). Your onboarding lane unlocks a <strong className="text-white">role track</strong>{' '}
-              — customer restore, affiliate, credit specialist, AU seller, business credit, debt validation, admin, or agency.
+              — partner restore, affiliate, credit specialist, AU seller, business credit, debt validation, admin, or agency.
               Courses, tours, SOPs, and field guides link from each lesson — no duplicate curricula.
             </p>
             {progress ? (
@@ -420,7 +423,7 @@ export default function PartnerTrainingAcademyPage() {
               { label: 'Core', value: `${progress?.corePct ?? 0}%`, hint: 'Required', accent: 'emerald' },
               { label: 'Role', value: `${progress?.rolePct ?? 0}%`, hint: 'Your lane', accent: 'sky' },
               { label: 'Certs', value: String(certs.length), hint: 'Earned', accent: 'violet' },
-              { label: 'Launch courses', value: String(progress?.plan.launchCourses.length ?? 0), hint: 'Linked', accent: 'amber' },
+              { label: 'Launch courses', value: String(progress?.plan.launchCourses.length ?? 0), hint: 'Linked', accent: 'rose' },
             ]}
             tabs={[
               { id: 'path', label: 'Learning path' },
@@ -473,8 +476,8 @@ export default function PartnerTrainingAcademyPage() {
             {tab === 'certifications' && (
               <div className="grid md:grid-cols-2 gap-4">
                 {certs.length ? (
-                  certs.map((c) => (
-                    <div key={c.id} className={`${finelyOsCatalogCard('violet')} !p-4 space-y-2`}>
+                  certs.map((c, idx) => (
+                    <div key={c.id} className={`${finelyOsCatalogCard((['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4])} space-y-3`} data-fc-accent={(['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4]}>
                       <div className="inline-flex items-center gap-2 text-violet-300">
                         <Award size={16} />
                         <span className={FINELY_OS_ENTITY_SUBLABEL}>Certificate</span>
@@ -486,7 +489,7 @@ export default function PartnerTrainingAcademyPage() {
                     </div>
                   ))
                 ) : (
-                  <div className={`${finelyOsCatalogCard('violet')} !p-5 ${FINELY_OS_ENTITY_BODY}`}>
+                  <div className={`${finelyOsCatalogCard('violet')} ${FINELY_OS_ENTITY_BODY}`}>
                     Complete module lessons to earn certifications. Core compliance and role operator badges appear here
                     automatically.
                   </div>
@@ -501,7 +504,7 @@ export default function PartnerTrainingAcademyPage() {
                 </p>
                 <div className="grid md:grid-cols-2 gap-4">
                   {progress?.plan.launchCourses.map((course) => (
-                    <div key={course.id} className={`${finelyOsCatalogCard(course.accent)} !p-4 space-y-3`}>
+                    <div key={course.id} className={`${finelyOsCatalogCard(course.accent)} space-y-3`}>
                       <div className="inline-flex items-center gap-2">
                         <Clapperboard size={16} />
                         <span className={FINELY_OS_ENTITY_SUBLABEL}>{course.role}</span>
@@ -518,13 +521,13 @@ export default function PartnerTrainingAcademyPage() {
             )}
           </FinelyUnifiedHubLayout>
 
-          <FinelyOsPageFooter />
+          {!embedded ? <FinelyOsPageFooter /> : null}
         </div>
       )}
 
       {showTourVideos ? (
         <FinelyTourPlayer tour={previewTour} open={Boolean(previewTour)} onClose={() => setTourId(null)} />
       ) : null}
-    </PageShell>
+    </PartnerWorkstationFrame>
   );
 }

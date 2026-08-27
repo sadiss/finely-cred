@@ -52,7 +52,7 @@ type Props = {
   /** Marketing hub — frosted strip + per-tab accent rotation */
   tabStripVariant?: 'default' | 'marketing';
   /** Light ivory marketing shell (personal credit lane) */
-  variant?: 'default' | 'ivoryMarketing' | 'darkDeskLightSheets';
+  variant?: 'default' | 'ivoryMarketing' | 'darkDeskLightSheets' | 'workspaceLight';
   primaryActionClassName?: string;
   secondaryActionClassName?: string;
   /** Big glow launcher tiles — hides tab nav when set (Phase 4 partner hub pattern). */
@@ -60,25 +60,8 @@ type Props = {
 };
 
 function hubCatalogAccent(accent: Props['accent'] = 'emerald'): FinelyOsPublicAccent {
-  if (accent === 'rose') return 'fuchsia';
+  if (accent === 'amber') return 'violet';
   return accent;
-}
-
-/** Dark-safe accent border/bg for hub KPI tiles — the `.fc-hub-kpi` ivory overrides only
- * apply under the light theme, so these Tailwind classes carry the seeability on the
- * default dark shell (no more invisible/borderless tiles). */
-const HUB_KPI_TILE_ACCENT: Record<NonNullable<UnifiedHubKpi['accent']>, string> = {
-  emerald: 'border-emerald-400/35 bg-emerald-500/10',
-  violet: 'border-violet-400/35 bg-violet-500/10',
-  amber: 'border-amber-400/35 bg-amber-500/10',
-  sky: 'border-sky-400/35 bg-sky-500/10',
-  fuchsia: 'border-fuchsia-400/35 bg-fuchsia-500/10',
-  rose: 'border-rose-400/35 bg-rose-500/10',
-};
-
-function hubKpiTileClass(accent: UnifiedHubKpi['accent'], fallback: Props['accent'] = 'emerald') {
-  const key = (accent ?? fallback ?? 'emerald') as NonNullable<UnifiedHubKpi['accent']>;
-  return HUB_KPI_TILE_ACCENT[key] ?? HUB_KPI_TILE_ACCENT.emerald;
 }
 
 export function FinelyUnifiedHubLayout({
@@ -107,40 +90,48 @@ export function FinelyUnifiedHubLayout({
   const tabId = activeTab ?? tabs?.[0]?.id;
   const ivory = variant === 'ivoryMarketing';
   const darkDesk = variant === 'darkDeskLightSheets';
+  const workspaceLight = variant === 'workspaceLight';
+  const effectiveContentVariant = workspaceLight && contentVariant === 'card' ? 'flush' : contentVariant;
 
-  const shellClass = ivory
-    ? 'pc-restore-hub-shell fc-light-readable min-w-0 overflow-hidden'
-    : darkDesk
-      ? 'pc-restore-hub-shell pc-restore-hub-shell--desk fc-light-black-scope min-w-0 overflow-hidden !p-4 sm:!p-6'
-      : `fc-unified-hub-shell fc-light-hero-panel fc-pop-surface fc-light-readable min-w-0 ${finelyOsCatalogCard(hubCatalogAccent(accent))} !p-4 sm:!p-6 overflow-hidden`;
+  const shellClass = workspaceLight
+    ? 'fc-wl-hub-shell fc-light-readable min-w-0 overflow-hidden'
+    : ivory
+      ? 'pc-restore-hub-shell fc-light-readable min-w-0 overflow-hidden'
+      : darkDesk
+        ? 'pc-restore-hub-shell pc-restore-hub-shell--desk fc-light-black-scope min-w-0 overflow-hidden p-6 lg:p-8'
+        : `fc-unified-hub-shell fc-light-hero-panel fc-pop-surface fc-light-readable min-w-0 ${finelyOsCatalogCard(hubCatalogAccent(accent))} overflow-hidden`;
 
   const primaryBtn = primaryActionClassName ?? FINELY_OS_PRIMARY_BTN;
   const secondaryBtn = secondaryActionClassName ?? FINELY_OS_PLATINUM_BTN;
 
   return (
-    <div className="space-y-4 min-w-0 overflow-x-clip">
-      <div className={shellClass} data-fc-accent={accent}>
+    <div className="space-y-4 min-w-0 overflow-x-clip" data-fc-wl-hub-accent={workspaceLight ? accent : undefined}>
+      <div className={shellClass} data-fc-accent={accent} data-bed={ivory ? 'light' : 'dark'}>
         <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
           <div className="min-w-0 space-y-2">
             {eyebrow ? (
               <p
                 className={
-                  ivory || darkDesk
-                    ? 'pc-restore-hub-eyebrow'
-                    : 'inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.22em] text-amber-300/85'
+                  workspaceLight
+                    ? 'fc-wl-hub-eyebrow'
+                    : ivory || darkDesk
+                      ? 'pc-restore-hub-eyebrow'
+                      : 'inline-flex items-center gap-2 text-sm font-extrabold uppercase tracking-[0.16em] text-violet-200'
                 }
               >
-                {!ivory && !darkDesk ? <span className="h-1 w-1 rounded-full bg-amber-300/85" /> : null}
+                {!ivory && !darkDesk && !workspaceLight ? <span className="h-1 w-1 rounded-full bg-violet-300/85" /> : null}
                 {eyebrow}
               </p>
             ) : null}
             <h2
               className={
-                ivory
-                  ? 'pc-restore-hub-title'
-                  : darkDesk
-                    ? 'text-2xl md:text-3xl font-bold text-white tracking-tight'
-                    : `text-2xl md:text-3xl font-bold ${FINELY_OS_ENTITY_VALUE}`
+                workspaceLight
+                  ? 'fc-wl-hub-title text-2xl md:text-3xl'
+                  : ivory
+                    ? 'pc-restore-hub-title'
+                    : darkDesk
+                      ? 'text-2xl md:text-3xl font-bold text-white tracking-tight'
+                      : `text-2xl md:text-3xl font-bold ${FINELY_OS_ENTITY_VALUE}`
               }
             >
               {title}
@@ -148,11 +139,13 @@ export function FinelyUnifiedHubLayout({
             {subtitle ? (
               <p
                 className={
-                  ivory
-                    ? 'pc-restore-hub-sub max-w-3xl'
-                    : darkDesk
-                      ? 'pc-restore-hub-sub-dark max-w-3xl text-base'
-                      : `${FINELY_OS_ENTITY_BODY} max-w-3xl text-base`
+                  workspaceLight
+                    ? 'fc-wl-hub-sub max-w-3xl'
+                    : ivory
+                      ? 'pc-restore-hub-sub max-w-3xl'
+                      : darkDesk
+                        ? 'pc-restore-hub-sub-dark max-w-3xl text-base'
+                        : `${FINELY_OS_ENTITY_BODY} max-w-3xl text-base`
                 }
               >
                 {subtitle}
@@ -175,26 +168,43 @@ export function FinelyUnifiedHubLayout({
           )}
         </div>
         {kpis?.length ? (
-          <div className={`mt-4 grid grid-cols-2 md:grid-cols-4 gap-2 ${ivory || darkDesk ? '' : 'gap-3 mt-6'}`}>
+          <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
             {kpis.map((k) => (
               <div
                 key={k.label}
                 className={
-                  ivory || darkDesk
-                    ? 'pc-restore-kpi'
-                    : `fc-hub-kpi fc-light-pop-card fc-pop-surface rounded-xl border px-4 py-3 ${hubKpiTileClass(k.accent, accent)}`
+                  workspaceLight
+                    ? `fc-wl-kpi ${finelyOsCatalogCard(hubCatalogAccent(k.accent ?? accent))}`
+                    : ivory || darkDesk
+                      ? `pc-restore-kpi ${finelyOsCatalogCard(hubCatalogAccent(k.accent ?? accent))}`
+                      : `fc-hub-kpi ${finelyOsCatalogCard(hubCatalogAccent(k.accent ?? accent))}`
                 }
-                data-fc-accent={k.accent ?? accent}
+                data-fc-accent={hubCatalogAccent(k.accent ?? accent)}
+                data-bed={ivory ? 'light' : 'dark'}
               >
-                <div className={ivory || darkDesk ? 'pc-restore-kpi-label' : FINELY_OS_ENTITY_SUBLABEL}>{k.label}</div>
                 <div
                   className={
-                    ivory || darkDesk ? 'pc-restore-kpi-value mt-0.5' : `mt-1 text-lg font-semibold ${FINELY_OS_ENTITY_VALUE}`
+                    workspaceLight
+                      ? 'fc-wl-kpi-label'
+                      : ivory || darkDesk
+                        ? 'pc-restore-kpi-label'
+                        : FINELY_OS_ENTITY_SUBLABEL
+                  }
+                >
+                  {k.label}
+                </div>
+                <div
+                  className={
+                    workspaceLight
+                      ? 'fc-wl-kpi-value mt-2 text-3xl font-extrabold'
+                      : ivory || darkDesk
+                        ? 'pc-restore-kpi-value mt-2 text-3xl font-extrabold'
+                        : `mt-2 text-3xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`
                   }
                 >
                   {k.value}
                 </div>
-                {k.hint ? <div className={`mt-0.5 text-[10px] ${FINELY_OS_ENTITY_BODY}`}>{k.hint}</div> : null}
+                {k.hint ? <div className={`mt-2 text-sm font-bold ${FINELY_OS_ENTITY_BODY}`}>{k.hint}</div> : null}
               </div>
             ))}
           </div>
@@ -214,7 +224,7 @@ export function FinelyUnifiedHubLayout({
             role="tablist"
           >
             {tabs.map((t, i) => {
-              const tabAccents = ['emerald', 'sky', 'violet', 'fuchsia', 'amber', 'emerald', 'sky', 'rose'] as const;
+              const tabAccents = ['emerald', 'sky', 'violet', 'fuchsia', 'rose', 'emerald', 'sky', 'violet'] as const;
               const tabAccent = tabAccents[i % tabAccents.length];
               const mappedAccent = tabAccent === 'rose' ? 'fuchsia' : tabAccent;
               const activeMarketing =
@@ -244,19 +254,21 @@ export function FinelyUnifiedHubLayout({
         </div>
       ) : null}
 
-      {!launcherSlot && (contentVariant === 'flush' ? (
+      {!launcherSlot && (effectiveContentVariant === 'flush' ? (
         <div
           className={
-            tabStripVariant === 'marketing'
-              ? 'fc-unified-hub-content fc-light-readable min-w-0 overflow-x-clip rounded-2xl border border-white/18 bg-white/[0.07] backdrop-blur-md p-4 sm:p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]'
-              : 'fc-unified-hub-content fc-light-readable min-w-0 overflow-x-clip'
+            workspaceLight
+              ? 'fc-wl-hub-content fc-light-readable min-w-0 overflow-x-clip'
+              : tabStripVariant === 'marketing'
+                ? 'fc-unified-hub-content fc-light-readable min-w-0 overflow-x-clip rounded-2xl border border-white/18 bg-white/[0.07] backdrop-blur-md p-4 sm:p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]'
+                : 'fc-unified-hub-content fc-light-readable min-w-0 overflow-x-clip'
           }
           data-fc-accent={accent}
         >
           {children}
         </div>
       ) : (
-        <div className={`fc-unified-hub-content fc-light-readable fc-light-pop-card fc-pop-surface min-w-0 overflow-x-clip ${finelyOsCatalogCard(hubCatalogAccent(accent))} !p-4 sm:!p-5`} data-fc-accent={accent}>{children}</div>
+        <div className={`fc-unified-hub-content fc-light-readable fc-light-pop-card fc-pop-surface min-w-0 overflow-x-clip ${finelyOsCatalogCard(hubCatalogAccent(accent))}`} data-fc-accent={hubCatalogAccent(accent)} data-bed={ivory ? 'light' : 'dark'}>{children}</div>
       ))}
 
       {detailSlot ? (
@@ -278,17 +290,20 @@ export function FinelyUnifiedSection({
   subtitle,
   children,
   compact,
+  vaultTypography,
 }: {
   title: string;
   subtitle?: string;
   children: React.ReactNode;
   compact?: boolean;
+  /** Use partner-vault scoped typography (light-shell safe). */
+  vaultTypography?: boolean;
 }) {
   return (
     <section className={compact ? 'space-y-3' : 'space-y-4'}>
       <div>
-        <h2 className={FINELY_OS_ENTITY_TITLE}>{title}</h2>
-        {subtitle ? <p className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>{subtitle}</p> : null}
+        <h2 className={vaultTypography ? 'fc-vault-section-title' : FINELY_OS_ENTITY_TITLE}>{title}</h2>
+        {subtitle ? <p className={`mt-1 ${vaultTypography ? 'fc-vault-body' : FINELY_OS_ENTITY_BODY}`}>{subtitle}</p> : null}
       </div>
       {children}
     </section>

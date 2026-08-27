@@ -20,7 +20,7 @@ const VIVID_ACCENT: Record<
   { shell: string; glow: string }
 > = {
   emerald: {
-    shell: 'border-emerald-300/70 bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-600',
+    shell: 'border-emerald-300/70 bg-gradient-to-br from-emerald-700 via-emerald-600 to-emerald-500',
     glow: 'fc-mkt-glow-on',
   },
   sky: {
@@ -36,8 +36,8 @@ const VIVID_ACCENT: Record<
     glow: 'fc-mkt-glow-on',
   },
   amber: {
-    shell: 'border-amber-300/70 bg-gradient-to-br from-amber-500 via-orange-500 to-yellow-600 text-black',
-    glow: 'fc-mkt-glow-warn',
+    shell: 'border-violet-300/70 bg-gradient-to-br from-violet-600 via-fuchsia-500 to-sky-600',
+    glow: 'fc-mkt-glow-on',
   },
   rose: {
     shell: 'border-rose-300/70 bg-gradient-to-br from-rose-700 via-rose-600 to-red-600',
@@ -88,7 +88,7 @@ export function MarketingOnOffTile({
   onClick?: () => void;
 }) {
   const shell = on
-    ? 'border-2 border-emerald-200/90 bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-700 fc-mkt-glow-on'
+    ? 'border-2 border-emerald-200/90 bg-gradient-to-br from-emerald-600 via-emerald-700 to-emerald-800 fc-mkt-glow-on'
     : 'border-2 border-rose-300/90 bg-gradient-to-br from-rose-600 via-rose-700 to-red-800 fc-mkt-glow-off';
 
   const inner = (
@@ -155,7 +155,7 @@ export function MarketingChecklistTile({ done, label }: { done: boolean; label: 
     <div
       className={`rounded-xl border-2 px-3 py-2.5 flex items-start gap-2 fc-mkt-hover-lift ${
         done
-          ? 'border-emerald-300/80 bg-gradient-to-br from-emerald-600 to-teal-700 text-white fc-mkt-glow-on'
+          ? 'border-emerald-300/80 bg-gradient-to-br from-emerald-600 to-emerald-800 text-white fc-mkt-glow-on'
           : 'border-amber-300/80 bg-gradient-to-br from-amber-500 to-orange-600 text-black fc-mkt-glow-warn'
       }`}
     >
@@ -237,11 +237,11 @@ export function MarketingVividActionTile({
 type MiniTab = { id: string; label: string; accent: FinelyOsDeckAccent };
 
 const MINI_TAB_ACTIVE: Record<FinelyOsDeckAccent, string> = {
-  emerald: 'border-emerald-200 bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-600 fc-mkt-tab-active fc-mkt-glow-on',
+  emerald: 'border-emerald-200 bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-700 fc-mkt-tab-active fc-mkt-glow-on',
   sky: 'border-sky-200 bg-gradient-to-r from-sky-500 via-sky-600 to-cyan-600 fc-mkt-tab-active fc-mkt-glow-on',
   violet: 'border-violet-200 bg-gradient-to-r from-violet-500 via-violet-600 to-fuchsia-600 fc-mkt-tab-active fc-mkt-glow-on',
   fuchsia: 'border-fuchsia-200 bg-gradient-to-r from-fuchsia-500 via-fuchsia-600 to-violet-600 fc-mkt-tab-active fc-mkt-glow-on',
-  amber: 'border-amber-200 bg-gradient-to-r from-amber-400 via-orange-500 to-yellow-500 text-black fc-mkt-tab-active fc-mkt-glow-warn',
+  amber: 'border-violet-200 bg-gradient-to-r from-violet-600 via-fuchsia-500 to-sky-600 fc-mkt-tab-active fc-mkt-glow-on',
   rose: 'border-rose-200 bg-gradient-to-r from-rose-500 via-rose-600 to-red-600 fc-mkt-tab-active fc-mkt-glow-off',
 };
 

@@ -156,7 +156,7 @@ export default function AdminStaffCommandCenterPage() {
         <FinelyUnifiedHubLayout
           eyebrow="Staff-first operating system"
           title="AI + human staff in one place"
-          subtitle="Violet = AI operators. Amber = human team. Partner tab = client-facing humans in chat & portal."
+          subtitle="Violet = AI operators. Rose = human team. Partner tab = specialists partners see in chat and portal."
           accent="violet"
           kpis={kpis}
           tabs={[
@@ -218,7 +218,7 @@ export default function AdminStaffCommandCenterPage() {
                 <h3 className="text-white font-black text-lg">How this page is organized</h3>
                 <ul className="mt-3 space-y-2 text-sm text-white/65 list-disc pl-5">
                   <li><strong className="text-violet-200">Company roster</strong> — AI operators (violet badge) vs human team (amber badge).</li>
-                  <li><strong className="text-amber-200">Partner team</strong> — human specialists clients see in chat & portal.</li>
+                  <li><strong className="text-rose-200">Partner team</strong> — human specialists partners see in chat and portal.</li>
                   <li><strong className="text-violet-200">Talk / Inbox</strong> — conversations and handoffs with selected staff.</li>
                   <li><strong className="text-violet-200">Lead Intel</strong> — discovery uses the same company roster (not a duplicate list).</li>
                 </ul>

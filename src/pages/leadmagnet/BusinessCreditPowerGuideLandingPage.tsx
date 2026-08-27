@@ -86,13 +86,13 @@ function ToolKpiCard({
   onAction: () => void;
 }) {
   return (
-    <button type="button" onClick={onAction} className="bcpg-kpi-card group rounded-2xl !p-4 text-left md:!p-5">
-      <div className="mb-3.5 flex h-11 w-11 items-center justify-center rounded-xl border border-[#95e000]/40 bg-[#95e000]/10 text-[#95e000] shadow-[0_0_24px_rgba(149,224,0,0.16)] transition group-hover:border-[#95e000]/60">
+    <button type="button" onClick={onAction} className="bcpg-kpi-card group rounded-2xl p-6 lg:p-8 text-left">
+      <div className="mb-3.5 flex h-11 w-11 items-center justify-center rounded-xl border border-[#34d399]/40 bg-[#34d399]/10 text-[#34d399] shadow-[0_0_24px_rgba(149,224,0,0.16)] transition group-hover:border-[#34d399]/60">
         <Icon size={22} strokeWidth={1.5} />
       </div>
       <h3 className="bcpg-serif text-lg leading-snug text-white md:text-xl">{title}</h3>
       <p className="mt-2 text-sm leading-relaxed text-white/55">{desc}</p>
-      <span className="mt-3.5 inline-flex text-[10px] font-black uppercase tracking-[0.18em] text-[#d4a447] group-hover:text-[#95e000]">
+      <span className="mt-3.5 inline-flex text-sm font-extrabold uppercase tracking-[0.18em] text-[#34d399] group-hover:text-white">
         {cta} →
       </span>
     </button>
@@ -109,8 +109,8 @@ function WhyKpiCard({
   desc: string;
 }) {
   return (
-    <div className="bcpg-kpi-card rounded-2xl !p-4 md:!p-5">
-      <Icon size={24} strokeWidth={1.5} className="text-[#95e000]" />
+    <div className="bcpg-kpi-card rounded-2xl p-6 lg:p-8">
+      <Icon size={24} strokeWidth={1.5} className="text-[#34d399]" />
       <p className="bcpg-serif mt-3 text-lg text-white md:text-xl">{title}</p>
       <p className="mt-1.5 text-sm leading-relaxed text-white/52">{desc}</p>
     </div>
@@ -133,11 +133,11 @@ function BusinessCaptureForm({
     <div>
       {!compact ? (
         <div className="mb-4 text-center">
-          <div className="mx-auto mb-3.5 flex h-12 w-12 items-center justify-center rounded-full border border-[#95e000]/40 bg-[#95e000]/10 text-[#95e000] shadow-[0_0_30px_rgba(149,224,0,0.18)]">
+          <div className="mx-auto mb-3.5 flex h-12 w-12 items-center justify-center rounded-full border border-[#34d399]/40 bg-[#34d399]/10 text-[#34d399] shadow-[0_0_30px_rgba(149,224,0,0.18)]">
             <Download size={22} />
           </div>
           <h2 className="bcpg-serif text-[1.85rem] leading-tight text-white md:text-[2.2rem]">
-            Get Your <span className="text-[#95e000]">FREE</span> E-Guide Now
+            Get Your <span className="text-[#34d399]">FREE</span> E-Guide Now
           </h2>
           <p className="mt-2 text-sm text-white/50">Instant access · Actionable strategies · No card required</p>
         </div>
@@ -147,7 +147,7 @@ function BusinessCaptureForm({
         showBusinessName={!compact}
         submitLabel={ctaOverride ?? (compact ? 'Yes — Send Me The Free Guide' : 'Download My Free Guide')}
         buttonClass={BCPG_BUTTON}
-        accentClass="focus:border-[#d4a447]/55 focus:ring-[#95e000]/15"
+        accentClass="focus:border-[#a78bfa]/55 focus:ring-[#34d399]/15"
         onCaptured={onConverted}
       />
       <p className="bcpg-compliance mt-3 text-center">
@@ -185,7 +185,7 @@ function InsideItem({
 }) {
   return (
     <div className="group flex gap-5 py-7 md:gap-7 md:py-8">
-      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-[#d4a447]/40 bg-[#d4a447]/10 text-[#e8c96a] shadow-[0_0_28px_rgba(212,164,71,0.14)] transition group-hover:border-[#95e000]/45">
+      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-[#a78bfa]/40 bg-[#a78bfa]/10 text-[#c4b5fd] shadow-[0_0_28px_rgba(212,164,71,0.14)] transition group-hover:border-[#34d399]/45">
         <Icon size={24} strokeWidth={1.5} />
       </div>
       <div className="min-w-0 pt-0.5">
@@ -276,7 +276,7 @@ export default function BusinessCreditPowerGuideLandingPage() {
   ];
 
   return (
-    <main className="bcpg-page lm-lux-theme--lime min-h-screen overflow-x-hidden bg-[#030504] text-white selection:bg-[#95e000]/25">
+    <main className="bcpg-page lm-lux-theme--lime min-h-screen overflow-x-hidden bg-[#030504] text-white selection:bg-[#34d399]/25">
       {/* Dark base + luminous green bottom glow + gold accents */}
       <div className="pointer-events-none fixed inset-0 z-0">
         <div className="absolute inset-0 bg-[#030504]" />
@@ -308,7 +308,7 @@ export default function BusinessCreditPowerGuideLandingPage() {
         <div className="relative z-[2] mx-auto max-w-[88rem] px-5 pb-16 pt-10 md:px-10">
           <div className="bcpg-hero-split">
             <div className="bcpg-hero-copy">
-              <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-[#95e000]">Free E-Guide</p>
+              <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-[#34d399]">Free E-Guide</p>
               <h1 className="bcpg-serif bcpg-hero-title lm-lux-display mt-4 text-white">
                 {headlineOverride ? (
                   <LandingTypewriterTitle
@@ -357,28 +357,28 @@ export default function BusinessCreditPowerGuideLandingPage() {
                 </button>
                 <Link
                   to={BC_GUIDE_READ_PATH}
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-lg border border-[#d4a447]/45 bg-[#d4a447]/10 px-5 text-[11px] font-black uppercase tracking-[0.14em] text-[#e8c96a] transition hover:border-[#d4a447]/75 hover:bg-[#d4a447]/16"
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-lg border border-[#a78bfa]/45 bg-[#a78bfa]/10 px-5 text-[11px] font-black uppercase tracking-[0.14em] text-[#c4b5fd] transition hover:border-[#a78bfa]/75 hover:bg-[#a78bfa]/16"
                 >
                   <BookOpenText size={15} /> Read free — no signup
                 </Link>
-                <a href="#bcpg-preview" className="text-[11px] font-bold uppercase tracking-[0.14em] text-white/50 hover:text-[#95e000]">
+                <a href="#bcpg-preview" className="text-[11px] font-bold uppercase tracking-[0.14em] text-white/50 hover:text-[#34d399]">
                   Preview ↓
                 </a>
                 <Link
                   to={BUSINESS_FUNNEL.bookingPath ?? '/enlightenment-session'}
-                  className="text-[11px] font-bold uppercase tracking-[0.14em] text-white/50 hover:text-[#d4a447]"
+                  className="text-[11px] font-bold uppercase tracking-[0.14em] text-white/50 hover:text-[#a78bfa]"
                 >
                   Book a session →
                 </Link>
                 <a
                   href={SUPPORT_TEL_HREF}
-                  className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-white/50 hover:text-[#95e000]"
+                  className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-white/50 hover:text-[#34d399]"
                 >
                   <Phone size={13} /> Call {SUPPORT_PHONE_DISPLAY}
                 </a>
-                <div className="inline-flex items-center gap-2 rounded-xl border border-[#d4a447]/28 bg-black/35 px-3 py-2 backdrop-blur-sm">
-                  <Lock size={14} className="text-[#d4a447]" />
-                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#d4a447]">Free · no card</p>
+                <div className="inline-flex items-center gap-2 rounded-xl border border-[#a78bfa]/28 bg-black/35 px-3 py-2 backdrop-blur-sm">
+                  <Lock size={14} className="text-[#a78bfa]" />
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#a78bfa]">Free · no card</p>
                 </div>
               </div>
             </div>
@@ -409,21 +409,21 @@ export default function BusinessCreditPowerGuideLandingPage() {
       <section className="bcpg-trust relative z-10">
         <div className="mx-auto flex max-w-[88rem] flex-col divide-y divide-white/[0.06] md:flex-row md:divide-x md:divide-y-0">
           <div className="bcpg-trust-item bcpg-trust-item--primary md:flex-[1.35]">
-            <Users size={36} strokeWidth={1.25} className="relative text-[#95e000]" />
+            <Users size={36} strokeWidth={1.25} className="relative text-[#34d399]" />
             <div className="relative">
               <p className="bcpg-trust-value">10,000+</p>
               <p className="bcpg-trust-label">Guides downloaded by partners</p>
             </div>
           </div>
           <div className="bcpg-trust-item bcpg-trust-item--secondary">
-            <ShieldCheck size={26} strokeWidth={1.25} className="text-[#d4a447]" />
+            <ShieldCheck size={26} strokeWidth={1.25} className="text-[#a78bfa]" />
             <div>
               <p className="bcpg-trust-value">Trusted nationwide</p>
               <p className="bcpg-trust-label">Partners building fundability</p>
             </div>
           </div>
           <div className="bcpg-trust-item bcpg-trust-item--secondary">
-            <Target size={26} strokeWidth={1.25} className="text-[#d4a447]" />
+            <Target size={26} strokeWidth={1.25} className="text-[#a78bfa]" />
             <div>
               <p className="bcpg-trust-value">Proven sequencing</p>
               <p className="bcpg-trust-label">Real funding education</p>
@@ -436,11 +436,11 @@ export default function BusinessCreditPowerGuideLandingPage() {
       </section>
 
       {/* Page index — the full guide is readable in-app before any signup */}
-      <section id="read-online" className="relative z-10 border-t border-[#d4a447]/18 py-9 md:py-12">
+      <section id="read-online" className="relative z-10 border-t border-[#a78bfa]/18 py-9 md:py-12">
         <div className="mx-auto max-w-[88rem] px-5 md:px-10">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div className="max-w-2xl">
-              <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-[#95e000]">
+              <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-[#34d399]">
                 Read it now · no signup
               </p>
               <h2 className="bcpg-serif mt-3 text-3xl text-white md:text-4xl">{BC_GUIDE_META.title}</h2>
@@ -462,13 +462,13 @@ export default function BusinessCreditPowerGuideLandingPage() {
               <Link
                 key={ch.id}
                 to={`${BC_GUIDE_READ_PATH}?chapter=${ch.id}`}
-                className="bcpg-kpi-card group flex items-start gap-3.5 rounded-2xl !p-4 text-left transition hover:-translate-y-1"
+                className="bcpg-kpi-card group flex items-start gap-3.5 rounded-2xl p-6 lg:p-8 text-left transition hover:-translate-y-1"
               >
-                <span className="mt-0.5 shrink-0 font-mono text-sm font-bold text-[#95e000]">{ch.number}</span>
+                <span className="mt-0.5 shrink-0 font-mono text-sm font-bold text-[#34d399]">{ch.number}</span>
                 <span className="min-w-0">
                   <span className="bcpg-serif block text-lg leading-snug text-white">{ch.title}</span>
                   <span className="mt-1 block text-[12.5px] leading-relaxed text-white/55">{ch.teaser}</span>
-                  <span className="mt-1.5 block text-[10px] font-black uppercase tracking-[0.16em] text-[#d4a447]">
+                  <span className="mt-1.5 block text-[10px] font-black uppercase tracking-[0.16em] text-[#a78bfa]">
                     {ch.readMinutes} min · {ch.kicker}
                   </span>
                 </span>
@@ -480,7 +480,7 @@ export default function BusinessCreditPowerGuideLandingPage() {
       </section>
 
       {/* SEO depth — collapsed so ATF stays short hero → preview → capture */}
-      <section className="relative z-10 border-t border-[#d4a447]/18 py-8 md:py-10">
+      <section className="relative z-10 border-t border-[#a78bfa]/18 py-8 md:py-10">
         <div className="mx-auto max-w-[88rem] space-y-3 px-5 md:px-10">
           <details id="guide" className="lm-seo-depth">
             <summary>
@@ -568,14 +568,14 @@ export default function BusinessCreditPowerGuideLandingPage() {
                   ['David L.', 'Real Estate Investor', 'Finally, a guide that breaks everything down in simple terms.'],
                 ].map(([name, role, quote]) => (
                   <article key={name} className="bcpg-quote-card flex-1 rounded-2xl p-5 md:p-6">
-                    <div className="flex gap-0.5 text-[#d4a447]">
+                    <div className="flex gap-0.5 text-[#a78bfa]">
                       {Array.from({ length: 5 }).map((_, i) => (
                         <Star key={i} size={13} fill="currentColor" />
                       ))}
                     </div>
                     <p className="bcpg-serif mt-4 text-base leading-relaxed text-white/78 md:text-lg">“{quote}”</p>
                     <div className="mt-5 flex items-center gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#d4a447]/45 to-[#95e000]/25 text-[10px] font-bold text-white">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#a78bfa]/45 to-[#34d399]/25 text-[10px] font-bold text-white">
                         {name.split(' ').map((n) => n[0]).join('')}
                       </div>
                       <div>
@@ -595,22 +595,22 @@ export default function BusinessCreditPowerGuideLandingPage() {
       </section>
 
       {/* Final CTA */}
-      <section className="relative z-10 overflow-hidden border-t border-[#d4a447]/24 py-14 md:py-16">
+      <section className="relative z-10 overflow-hidden border-t border-[#a78bfa]/24 py-14 md:py-16">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_0%_50%,rgba(149,224,0,0.16),transparent)]" />
         <div className="absolute inset-x-0 bottom-0 h-40 bg-[radial-gradient(ellipse_90%_90%_at_50%_100%,rgba(149,224,0,0.18),transparent)]" />
         <div className="relative mx-auto flex max-w-[88rem] flex-col items-center gap-8 px-5 md:px-10 lg:flex-row lg:justify-between">
           <div className="max-w-xl text-center lg:text-left">
-            <ShieldCheck size={36} className="mx-auto text-[#d4a447] lg:mx-0" strokeWidth={1.25} />
+            <ShieldCheck size={36} className="mx-auto text-[#a78bfa] lg:mx-0" strokeWidth={1.25} />
             <LandingTypewriterTitle
               as="h2"
               text="Your business deserves better funding options."
               className="bcpg-serif mt-3 text-3xl leading-tight text-white md:text-4xl lg:text-5xl"
               highlight="better funding options."
-              highlightClassName="text-[#95e000]"
+              highlightClassName="text-[#34d399]"
               speedMs={34}
               delayMs={160}
             />
-            <p className="mt-2 text-2xl font-semibold text-[#95e000] md:text-3xl">Start with this free guide.</p>
+            <p className="mt-2 text-2xl font-semibold text-[#34d399] md:text-3xl">Start with this free guide.</p>
             <p className="bcpg-compliance mt-3">
               Results vary · not legal advice · funding subject to underwriting
             </p>
@@ -624,9 +624,9 @@ export default function BusinessCreditPowerGuideLandingPage() {
       <footer className="bcpg-footer relative z-10 py-9">
         <div className="mx-auto flex max-w-[88rem] flex-col items-center gap-7 px-5 md:flex-row md:items-center md:justify-between md:px-10">
           <div className="flex flex-wrap items-center justify-center gap-6 text-xs text-white/45 md:justify-start">
-            <a href="/privacy" className="transition hover:text-[#95e000]">Privacy Policy</a>
-            <a href="/terms" className="transition hover:text-[#95e000]">Terms of Use</a>
-            <a href="/contact" className="transition hover:text-[#95e000]">Contact Us</a>
+            <a href="/privacy" className="transition hover:text-[#34d399]">Privacy Policy</a>
+            <a href="/terms" className="transition hover:text-[#34d399]">Terms of Use</a>
+            <a href="/contact" className="transition hover:text-[#34d399]">Contact Us</a>
           </div>
           <p className="text-xs text-white/35">© {new Date().getFullYear()} Finely Cred · NCG. All rights reserved.</p>
           <div className="relative flex shrink-0 items-center justify-center">
@@ -641,7 +641,7 @@ export default function BusinessCreditPowerGuideLandingPage() {
       {/* Mobile-only click-to-call bar (B7) — high-intent partners often prefer calling from a phone */}
       <a
         href={SUPPORT_TEL_HREF}
-        className="fixed inset-x-3 bottom-3 z-40 flex sm:hidden items-center justify-center gap-2 rounded-xl border border-[#95e000]/45 bg-[linear-gradient(135deg,#0f3d0a_0%,#2f7a1e_45%,#95e000_100%)] px-4 py-3 text-[11px] font-black uppercase tracking-[0.14em] text-black shadow-[0_16px_40px_rgba(149,224,0,0.35)]"
+        className="fixed inset-x-3 bottom-3 z-40 flex sm:hidden items-center justify-center gap-2 rounded-xl border border-[#34d399]/45 bg-[linear-gradient(135deg,#0f3d0a_0%,#2f7a1e_45%,#34d399_100%)] px-4 py-3 text-[11px] font-black uppercase tracking-[0.14em] text-black shadow-[0_16px_40px_rgba(149,224,0,0.35)]"
       >
         <Phone size={16} /> Call now — {SUPPORT_PHONE_DISPLAY}
       </a>

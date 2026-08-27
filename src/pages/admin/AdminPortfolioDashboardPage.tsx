@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { AlertTriangle, ArrowLeft, ArrowRight, FolderKanban } from 'lucide-react';
-import { PageShell } from '../../components/layout/PageShell';
+import { AdminWorkstationFrame, type AdminEmbeddablePageProps } from '../../features/workspaceLightPreview/product/admin/AdminWorkstationFrame';
+import { useMappedAdminNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { listProjects } from '../../data/projectsRepo';
 import { listTasks } from '../../data/tasksRepo';
 import { getActiveTenantId } from '../../tenancy/activeTenant';
@@ -35,8 +35,8 @@ function projectProgress(projectId: string, tasks: ReturnType<typeof listTasks>)
 
 type PortfolioHubTab = 'portfolio' | 'digest';
 
-export default function AdminPortfolioDashboardPage() {
-  const navigate = useNavigate();
+export default function AdminPortfolioDashboardPage({ embedded = false }: AdminEmbeddablePageProps = {}) {
+  const navigate = useMappedAdminNavigate();
   const auth = useAuth();
   const [hubTab, setHubTab] = useState<PortfolioHubTab>('portfolio');
   const [version, setVersion] = useState(0);
@@ -100,7 +100,7 @@ export default function AdminPortfolioDashboardPage() {
   );
 
   return (
-    <PageShell badge="Admin" title="Portfolio dashboard" subtitle="All delivery projects — filter by SLA risk, service lane, and completion.">
+    <AdminWorkstationFrame embedded={embedded} kind="projects-portfolio-workstation" badge="Admin" title="Portfolio dashboard" subtitle="All delivery projects — filter by SLA risk, service lane, and completion.">
       <div className="space-y-4">
         <div className="flex flex-wrap items-center gap-3">
           <button type="button" onClick={() => navigate('/admin/projects')} className={FINELY_OS_BACK_LINK}>
@@ -183,8 +183,8 @@ export default function AdminPortfolioDashboardPage() {
           </div>
         ) : null}
 
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
       </div>
-    </PageShell>
+    </AdminWorkstationFrame>
   );
 }

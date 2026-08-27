@@ -1,5 +1,5 @@
 /**
- * Agent Architect (Professor Apex) — Ruth's chief-of-staff brief (Phase 3).
+ * Agent Architect (Team Coordinator) — Ruth's chief-of-staff brief (Phase 3).
  *
  * Watches the handoff ledger + audit trail across every growth agent and
  * produces the one decision Ruth should look at today, instead of Ruth having

@@ -311,11 +311,11 @@ export default function PartnerCheckoutPage() {
             </div>
           </div>
 
-          <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+          <div className={`${finelyOsCatalogCard('violet')} space-y-4`}>
             <div className={FINELY_OS_ENTITY_VALUE}>{assignedContract?.label || selectedPackage?.name || 'In-house financing'}</div>
             <div className="text-amber-300 text-lg font-semibold">{selectedPackage ? formatPrice(selectedPackage.priceAmount) : 'Custom contract'}</div>
 
-            <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony text-center space-y-4`}>
+            <div className={`${finelyOsCatalogCard('sky')} fc-surface-harmony text-center space-y-4`}>
               <p className={FINELY_OS_ENTITY_BODY}>Click below to open the in-house financing application.</p>
               <a href={contractUrl} target="_blank" rel="noopener noreferrer" className={FINELY_OS_SUCCESS_BTN}>
                 Open financing application <ExternalLink size={14} />
@@ -355,7 +355,7 @@ export default function PartnerCheckoutPage() {
             </div>
           )}
 
-          <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+          <div className={`${finelyOsCatalogCard('violet')} space-y-4`}>
             <div className={FINELY_OS_ENTITY_VALUE}>{selectedPackage?.name}</div>
             <div className={FINELY_OS_ENTITY_BODY}>{selectedPackage?.description}</div>
             <div className="text-amber-300 text-lg font-semibold">{selectedPackage ? formatPrice(selectedPackage.priceAmount) : '—'}</div>
@@ -508,7 +508,7 @@ export default function PartnerCheckoutPage() {
               ))}
             </ul>
             {((selectedRail && selectedPackage.scopeBulletsByRail?.[selectedRail]?.length) || selectedPackage.scopeBullets?.length) ? (
-              <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+              <div className={`${finelyOsCatalogCard('sky')} fc-surface-harmony`}>
                 <div className={FINELY_OS_ENTITY_SUBLABEL}>Scope</div>
                 <ul className={`mt-2 space-y-1 ${FINELY_OS_ENTITY_BODY}`}>
                   {((selectedRail && selectedPackage.scopeBulletsByRail?.[selectedRail]) || selectedPackage.scopeBullets || [])
@@ -523,7 +523,7 @@ export default function PartnerCheckoutPage() {
               </div>
             ) : null}
             {selectedPackage.priceAmount > 0 && (
-              <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony ${FINELY_OS_ENTITY_BODY}`}>
+              <div className={`${finelyOsCatalogCard('rose')} fc-surface-harmony ${FINELY_OS_ENTITY_BODY}`} data-fc-accent="rose">
                 {!stripeReady && (selectedPackage.rail === 'stripe' || selectedPackage.rail === 'both') ? (
                   <div className={FINELY_OS_NOTICE_WARN}>
                     Stripe checkout is unavailable — card payments require Stripe keys at build time and the stripeEnabled feature flag.

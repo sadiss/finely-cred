@@ -1,0 +1,28 @@
+.fc-wlp-video-product-surface {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(165deg, #071018 0%, #0a1210 42%, #0c1520 100%);
+}
+
+.fc-wlp-video-product-header {
+  flex-shrink: 0;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(8, 16, 24, 0.92);
+  backdrop-filter: blur(12px);
+}
+
+.fc-wlp-video-product-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.fc-wlp-video-product-body .fc-wlp-video-room-root {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}

@@ -37,9 +37,9 @@ export default function BusinessDocumentsPage() {
           eyebrow="Business credit OS"
           title="Document readiness vault"
           subtitle="Entity, banking, and compliance artifacts lenders expect — organized before you apply."
-          accent="amber"
+          accent="sky"
           kpis={[
-            { label: 'Entity docs', value: '4 types', accent: 'amber' },
+            { label: 'Entity docs', value: '4 types', accent: 'violet' },
             { label: 'Vault', value: 'Portal', accent: 'emerald' },
           ]}
           tabs={[
@@ -52,7 +52,7 @@ export default function BusinessDocumentsPage() {
           secondaryAction={{ label: 'Business profile', onClick: () => navigate('/business/profile') }}
         >
           {tab === 'checklist' && (
-            <div className={`${finelyOsCatalogCard('amber')} !p-6 space-y-4`} data-fc-accent="amber">
+            <div className={`${finelyOsCatalogCard('sky')} space-y-4`} data-fc-accent="sky">
               <p className={FINELY_OS_ENTITY_SUBLABEL}>Document checklist</p>
               <div className="grid md:grid-cols-2 gap-4">
                 {[
@@ -61,7 +61,7 @@ export default function BusinessDocumentsPage() {
                   { title: 'Banking', desc: 'Statements, balances, proof of revenue cadence.' },
                   { title: 'Compliance', desc: 'Licenses, domain/email proofs, 411, insurance where needed.' },
                 ].map((x, idx) => (
-                  <div key={x.title} className={`${finelyOsCatalogCard((['emerald', 'sky', 'violet', 'fuchsia'] as const)[idx % 4])} !p-6`} data-fc-accent={(['emerald', 'sky', 'violet', 'fuchsia'] as const)[idx % 4]}>
+                  <div key={x.title} className={finelyOsCatalogCard((['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4])} data-fc-accent={(['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4]}>
                     <div className={FINELY_OS_ENTITY_VALUE}>{x.title}</div>
                     <div className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>{x.desc}</div>
                   </div>
@@ -71,7 +71,7 @@ export default function BusinessDocumentsPage() {
           )}
 
           {tab === 'vault' && (
-            <div className={`${finelyOsCatalogCard('emerald')} !p-6 space-y-4`} data-fc-accent="emerald">
+            <div className={`${finelyOsCatalogCard('emerald')} space-y-4`} data-fc-accent="emerald">
               <p className={FINELY_OS_ENTITY_BODY}>
                 Upload and organize files in the partner Documents Vault. Support can review from the same thread if you need help.
               </p>

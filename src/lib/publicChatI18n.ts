@@ -49,7 +49,7 @@ const STRINGS: Record<ChatLocale, Strings> = {
     typing: 'is typing…',
     sendPlaceholder: 'Type your message…',
     language: 'Language',
-    bookSession: 'Book an Enlightenment session',
+    bookSession: 'Book a session',
     appointmentSet: 'Your session request is in — we will confirm by email.',
     needPartnerForStaff:
       'To message a specific team member directly, create a free partner account. Otherwise I can book you a call with them.',
@@ -76,7 +76,7 @@ const STRINGS: Record<ChatLocale, Strings> = {
     typing: 'está escribiendo…',
     sendPlaceholder: 'Escribe tu mensaje…',
     language: 'Idioma',
-    bookSession: 'Reservar una sesión Enlightenment',
+    bookSession: 'Reservar una llamada estratégica',
     appointmentSet: 'Tu solicitud de sesión está registrada — confirmaremos por correo.',
     needPartnerForStaff:
       'Para escribir directamente a un miembro del equipo, crea una cuenta de socio gratis. Si no, puedo reservarte una llamada.',

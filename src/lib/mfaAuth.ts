@@ -119,6 +119,7 @@ const SENSITIVE_PORTAL_PREFIXES = [
   '/portal/letters',
   '/portal/documents',
   '/portal/reports',
+  '/portal/evidence',
   '/portal/analysis',
   '/portal/debt',
   '/portal/identity-theft',

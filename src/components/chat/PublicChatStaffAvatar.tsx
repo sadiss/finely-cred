@@ -6,7 +6,6 @@ import {
   resolveStaffPortraitUrl,
   STAFF_PORTRAIT_PHOTO_CLASS,
 } from '../../lib/staffPortrait';
-import { AIA_GUIDE_STAFF_ID } from './publicChatPersonaUi';
 import type { PublicChatPersonaPresentation } from './publicChatPersonaUi';
 
 type Props = {
@@ -31,7 +30,7 @@ function resolvePresentationPortrait(presentation: PublicChatPersonaPresentation
       id: staffId,
       firstName: presentation.firstName,
       lastName: '',
-      portraitGender: staffId === AIA_GUIDE_STAFF_ID ? 'feminine' : 'neutral',
+      portraitGender: 'neutral',
       avatarPath: '',
     });
   }
@@ -46,20 +45,29 @@ function resolvePresentationPortrait(presentation: PublicChatPersonaPresentation
 }
 
 export function PublicChatStaffAvatar({ presentation, size = 'md', showOnline = false }: Props) {
-  const initialSrc = useMemo(() => resolvePresentationPortrait(presentation), [presentation]);
+  // Key portrait resolution on primitives — `presentation` is rebuilt every render upstream
+  // (fresh Date inside resolveChatStaffPresentation), so depending on the object identity
+  // caused an infinite useLayoutEffect → setState loop and blanked the public site.
+  const portraitKey = `${presentation.staffMemberId ?? ''}|${presentation.avatarUrl ?? ''}|${presentation.firstName}|${presentation.initials}`;
+  const initialSrc = useMemo(
+    () => resolvePresentationPortrait(presentation),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- portraitKey captures identity fields
+    [portraitKey],
+  );
   const [imgSrc, setImgSrc] = useState(initialSrc);
   const [imgFailed, setImgFailed] = useState(false);
   const s = SIZE[size];
 
   useLayoutEffect(() => {
     const next = resolvePresentationPortrait(presentation);
-    setImgSrc(next);
+    setImgSrc((prev) => (prev === next ? prev : next));
     setImgFailed(false);
     if (next) {
       const img = new Image();
       img.src = next;
     }
-  }, [presentation]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- portraitKey is the stable identity
+  }, [portraitKey]);
 
   const handleError = () => {
     const staffId = presentation.staffMemberId;
@@ -70,7 +78,7 @@ export function PublicChatStaffAvatar({ presentation, size = 'md', showOnline = 
           id: staffId,
           firstName: presentation.firstName,
           lastName: '',
-          portraitGender: staffId === AIA_GUIDE_STAFF_ID ? 'feminine' : 'neutral',
+          portraitGender: 'neutral',
           avatarPath: '',
         } as const);
       const fallback = resolveStaffPortraitFallbackUrl(staff);

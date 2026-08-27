@@ -1,8 +1,10 @@
 import React from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { FINELY_OS_ENTITY_BODY, FINELY_OS_ENTITY_SUBLABEL, FINELY_OS_ENTITY_VALUE } from '../../features/os/finelyOsLightUi';
+import './collateralDefenseDesks.css';
 
 export type CollateralDefenseTheme = 'foreclosure' | 'repossession';
+export type CollateralDefenseLayout = 'shell' | 'mosaic' | 'runway';
 
 const THEME: Record<
   CollateralDefenseTheme,
@@ -17,13 +19,13 @@ const THEME: Record<
   }
 > = {
   foreclosure: {
-    mesh: 'bg-[radial-gradient(ellipse_120%_80%_at_0%_0%,rgba(245,158,11,0.22)_0%,transparent_55%),radial-gradient(ellipse_80%_60%_at_100%_100%,rgba(234,88,12,0.12)_0%,transparent_50%)]',
-    badge: 'text-amber-200 bg-amber-500/15 border-amber-400/35',
-    step: 'border-amber-500/20 bg-black/30 text-white/55',
-    stepActive: 'border-amber-400/50 bg-amber-500/12 text-amber-100 ring-1 ring-amber-400/20',
-    glow: 'shadow-[0_0_40px_-12px_rgba(245,158,11,0.35)]',
-    iconRing: 'ring-amber-400/40 bg-amber-500/15 text-amber-200',
-    playbookRail: 'border-amber-500/20 bg-amber-950/25',
+    mesh: 'bg-[radial-gradient(ellipse_120%_80%_at_0%_0%,rgba(14,165,233,0.22)_0%,transparent_55%),radial-gradient(ellipse_80%_60%_at_100%_100%,rgba(139,92,246,0.12)_0%,transparent_50%)]',
+    badge: 'text-sky-200 bg-sky-500/15 border-sky-400/35',
+    step: 'border-sky-500/20 bg-black/30 text-white/55',
+    stepActive: 'border-sky-400/50 bg-sky-500/12 text-sky-100 ring-1 ring-sky-400/20',
+    glow: 'shadow-[0_0_40px_-12px_rgba(14,165,233,0.35)]',
+    iconRing: 'ring-sky-400/40 bg-sky-500/15 text-sky-200',
+    playbookRail: 'border-sky-500/20 bg-sky-950/25',
   },
   repossession: {
     mesh: 'bg-[radial-gradient(ellipse_110%_70%_at_100%_0%,rgba(244,63,94,0.2)_0%,transparent_52%),repeating-linear-gradient(-12deg,rgba(244,63,94,0.04)_0px,rgba(244,63,94,0.04)_1px,transparent_1px,transparent_14px)]',
@@ -54,6 +56,7 @@ export function CollateralDefenseShell({
   onStepClick,
   stats,
   headerActions,
+  layout = 'shell',
   children,
 }: {
   theme: CollateralDefenseTheme;
@@ -66,9 +69,91 @@ export function CollateralDefenseShell({
   onStepClick?: (id: string) => void;
   stats?: Array<{ label: string; value: string }>;
   headerActions?: React.ReactNode;
+  layout?: CollateralDefenseLayout;
   children: React.ReactNode;
 }) {
   const t = THEME[theme];
+
+  if (layout === 'mosaic' || layout === 'runway') {
+    return (
+      <div className={`fc-collateral-desk fc-collateral-desk--${layout}`} data-surface-layout={layout === 'mosaic' ? 'catalog-mosaic' : 'timeline'}>
+        <header className="fc-collateral-desk-head">
+          <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4 relative z-[1]">
+            <div className="flex gap-4 min-w-0">
+              <div className={`shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center ring-1 ${t.iconRing}`}>
+                <Icon size={22} />
+              </div>
+              <div className="min-w-0">
+                <span className="fc-collateral-desk-kicker">{eyebrow}</span>
+                <h2>{title}</h2>
+                <p>{subtitle}</p>
+              </div>
+            </div>
+            {headerActions ? <div className="flex flex-wrap gap-2 shrink-0">{headerActions}</div> : null}
+          </div>
+          {stats?.length ? (
+            <div className="fc-collateral-desk-stats">
+              {stats.map((s) => (
+                <div key={s.label} className="fc-collateral-desk-stat">
+                  <small>{s.label}</small>
+                  <strong>{s.value}</strong>
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </header>
+
+        {layout === 'mosaic' ? (
+          <div className="fc-collateral-mosaic" role="list">
+            {steps.map((step, idx) => {
+              const active = activeStepId === step.id;
+              return (
+                <button
+                  key={step.id}
+                  type="button"
+                  role="listitem"
+                  data-active={active ? 'true' : undefined}
+                  className="fc-collateral-mosaic-tile"
+                  onClick={() => onStepClick?.(step.id)}
+                >
+                  <span className="fc-collateral-mosaic-n">Step {idx + 1}</span>
+                  <strong>{step.label}</strong>
+                  <span>{step.detail}</span>
+                  {step.law ? <em>{step.law}</em> : null}
+                  {active ? <em>You are here</em> : null}
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <ol className="fc-collateral-runway">
+            {steps.map((step, idx) => {
+              const active = activeStepId === step.id;
+              return (
+                <li key={step.id}>
+                  <button
+                    type="button"
+                    data-active={active ? 'true' : undefined}
+                    className="fc-collateral-runway-step"
+                    onClick={() => onStepClick?.(step.id)}
+                  >
+                    <span className="fc-collateral-runway-n">{idx + 1}</span>
+                    <span className="fc-collateral-runway-copy">
+                      <strong>{step.label}</strong>
+                      <span>{step.detail}</span>
+                      {step.law ? <em>{step.law}</em> : null}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ol>
+        )}
+
+        <div className="fc-collateral-desk-body">{children}</div>
+      </div>
+    );
+  }
 
   return (
     <div className={`rounded-[1.75rem] border border-white/10 overflow-hidden ${t.glow}`}>

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
+import { useMappedAdminNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { X } from 'lucide-react';
 import { PageShell } from '../../components/layout/PageShell';
 import {
@@ -67,7 +68,7 @@ function PlaybookDetailDrawer({
   playbook: TaskPlaybook;
   onClose: () => void;
 }) {
-  const navigate = useNavigate();
+  const navigate = useMappedAdminNavigate();
 
   return (
     <div className={FINELY_OS_FIXED_OVERLAY} role="dialog" aria-modal="true">
@@ -116,7 +117,7 @@ function PlaybookDetailDrawer({
 type PlaybooksHubTab = 'playbooks' | 'bundles';
 
 export default function AdminPlaybooksPage({ embedded = false }: { embedded?: boolean }) {
-  const navigate = useNavigate();
+  const navigate = useMappedAdminNavigate();
   const [searchParams] = useSearchParams();
   const [hubTab, setHubTab] = useState<PlaybooksHubTab>('playbooks');
   const [category, setCategory] = useState<PricingCategory | 'all'>('all');

@@ -282,8 +282,8 @@ export default function AdminSocialHubPage() {
               { label: 'Inbox unread', value: stats.inboxUnread, icon: Inbox },
               { label: 'Leads this week', value: stats.leadsThisWeek, icon: TrendingUp },
               { label: 'Connected pages', value: stats.connectedPages, icon: Share2 },
-            ].map((s) => (
-              <FinelyOsGlassPanel key={s.label} icon={s.icon} title={s.label} accent="emerald">
+            ].map((s, i) => (
+              <FinelyOsGlassPanel key={s.label} icon={s.icon} title={s.label} accent={(['emerald', 'violet', 'sky', 'rose'] as const)[i]}>
                 <div className={`${FINELY_OS_ENTITY_VALUE} text-3xl font-black mt-1`}>{s.value}</div>
               </FinelyOsGlassPanel>
             ))}
@@ -353,20 +353,20 @@ export default function AdminSocialHubPage() {
         {tab === 'autopilot' && (
           <div className="space-y-4">
           <SocialWorkflowWeekStrip />
-          <FinelyOsGlassPanel icon={Zap} title="Social autopilot" accent="amber">
+          <FinelyOsGlassPanel icon={Zap} title="Social autopilot" accent="violet">
             <p className={`${FINELY_OS_ENTITY_BODY} mt-2`}>
               Jamie & Ethan (Brand) + affiliate/nurture roles draft SOP-based captions on platform cron. Enable live publish after Meta connect.
             </p>
             <div className="mt-4 grid md:grid-cols-3 gap-3 text-sm">
-              <div className={`${finelyOsCatalogCard('emerald')} !p-3 fc-surface-harmony`} data-fc-accent="emerald">
+              <div className={finelyOsCatalogCard('emerald')} data-fc-accent="emerald">
                 <div className={FINELY_OS_ENTITY_SUBLABEL}>Status</div>
                 <div className={FINELY_OS_ENTITY_VALUE}>{autopilotCfg.enabled ? 'Enabled' : 'Paused'}</div>
               </div>
-              <div className={`${finelyOsCatalogCard('emerald')} !p-3 fc-surface-harmony`} data-fc-accent="emerald">
+              <div className={finelyOsCatalogCard('violet')} data-fc-accent="violet">
                 <div className={FINELY_OS_ENTITY_SUBLABEL}>Mode</div>
                 <div className={FINELY_OS_ENTITY_VALUE}>{autopilotCfg.dryRun ? 'Dry run' : 'Live queue'}</div>
               </div>
-              <div className={`${finelyOsCatalogCard('emerald')} !p-3 fc-surface-harmony`} data-fc-accent="emerald">
+              <div className={finelyOsCatalogCard('sky')} data-fc-accent="sky">
                 <div className={FINELY_OS_ENTITY_SUBLABEL}>This week</div>
                 <div className={FINELY_OS_ENTITY_VALUE}>{autopilotCfg.postsGeneratedThisWeek} posts</div>
               </div>
@@ -566,9 +566,9 @@ export default function AdminSocialHubPage() {
                         </div>
                       </div>
                     ) : null}
-                    <pre className={`mt-4 whitespace-pre-wrap text-sm ${FINELY_OS_ENTITY_BODY} ${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony max-h-64 overflow-y-auto`}>{draft}</pre>
+                    <pre className={`mt-4 whitespace-pre-wrap text-sm ${FINELY_OS_ENTITY_BODY} ${finelyOsCatalogCard('sky')} fc-surface-harmony max-h-64 overflow-y-auto`}>{draft}</pre>
                     {!review.ok ? (
-                      <ul className="mt-3 text-xs text-amber-200/90 space-y-1">
+                      <ul className="mt-3 text-xs text-rose-200/90 space-y-1">
                         {review.issues.map((issue) => (
                           <li key={issue}>⚠ {issue}</li>
                         ))}
@@ -595,12 +595,12 @@ export default function AdminSocialHubPage() {
         )}
 
         {tab === 'inbox' && (
-          <FinelyOsGlassPanel icon={Inbox} title="Unified inbox" accent="amber">
+          <FinelyOsGlassPanel icon={Inbox} title="Unified inbox" accent="rose">
             <p className={`${FINELY_OS_ENTITY_BODY} mt-2`}>
               Meta DMs and lead forms — production messages land via meta-webhook into meta_inbox_messages + lead_captures.
             </p>
             <button type="button" onClick={() => navigate('/admin/support?source=meta')} className={`${FINELY_OS_SECONDARY_BTN} mt-3`}>
-              Open omnichannel Support Inbox →
+              Open partner conversations →
             </button>
             {inbox.length === 0 ? (
               <p className="mt-4 text-sm text-white/45">No messages yet. Use Settings → Simulate lead (dev) or connect Meta webhooks.</p>

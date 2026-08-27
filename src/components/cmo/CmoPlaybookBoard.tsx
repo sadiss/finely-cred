@@ -17,7 +17,7 @@ export function CmoPlaybookBoard() {
     <section className="fc-panel p-5 space-y-4">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.24em] text-amber-300/80">Campaign Playbooks</p>
+          <p className="text-xs uppercase tracking-[0.24em] text-emerald-300/80">Campaign Playbooks</p>
           <h2 className="text-2xl font-semibold text-white">Campaigns that already know where the money is supposed to go</h2>
         </div>
         <button type="button" className="fc-button-soft inline-flex items-center gap-2" onClick={loadDefaults}><BookOpen className="h-4 w-4" /> Load default playbooks</button>
@@ -30,7 +30,7 @@ export function CmoPlaybookBoard() {
                 <h3 className="text-lg font-semibold text-white">{playbook.name}</h3>
                 <p className="mt-1 text-sm text-slate-300">{playbook.objective}</p>
               </div>
-              <span className="rounded-full border border-amber-300/30 bg-amber-300/10 px-2 py-1 text-xs text-amber-100">{playbook.priorityScore}</span>
+              <span className="rounded-full border border-emerald-300/30 bg-emerald-300/10 px-2 py-1 text-xs text-emerald-100">{playbook.priorityScore}</span>
             </div>
             <div className="flex flex-wrap gap-2">
               {playbook.channels.map((channel) => <span key={channel} className="rounded-full bg-white/5 px-2 py-1 text-xs text-slate-300">{channel}</span>)}

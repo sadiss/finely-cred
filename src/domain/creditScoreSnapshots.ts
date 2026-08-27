@@ -8,7 +8,10 @@ export type CreditScoreSnapshot = {
   reportDate?: string;
   provider?: string;
   scores: ParsedScore[];
-  /** Best single score for trend charts (highest FICO-like). */
+  /** Middle bureau score (median of three, lower of two, or single). */
   headlineScore?: number;
   headlineBureau?: Bureau;
+  middleLabel?: string;
+  middleConfidence?: 'high' | 'low';
+  middleMethod?: 'median3' | 'lower_of_2' | 'single' | 'none';
 };

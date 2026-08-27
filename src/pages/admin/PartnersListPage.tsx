@@ -287,7 +287,7 @@ export default function PartnersListPage() {
     <PageShell
       badge="Admin"
       title="Partner Management"
-      subtitle="Partners are your customers. Every report, evidence item, dispute, and letter is anchored to a Partner profile for auditability."
+      subtitle="Every report, evidence item, dispute, and letter is anchored to a partner profile for auditability."
     >
       <div className={FINELY_OS_PAGE}>
         <div className="flex items-center justify-between gap-4">
@@ -376,7 +376,7 @@ export default function PartnersListPage() {
         <FinelyNowDoThisStrip currentIndex={0} />
 
         <FinelyUnifiedHubLayout
-          eyebrow="Customer management"
+          eyebrow="Partner files"
           title="Partner directory"
           subtitle="Browse partners, create records, and jump into profiles — paginated, not a wall of cards."
           accent="emerald"
@@ -389,7 +389,7 @@ export default function PartnersListPage() {
           secondaryAction={{ label: 'Import partners', onClick: () => navigate('/admin/partners/import') }}
         >
           {hubTab === 'create' ? (
-            <div id="create-partner" className={`${finelyOsCatalogCard('violet')} !p-5 space-y-5`}>
+            <div id="create-partner" className={`${finelyOsCatalogCard('violet')} space-y-5`}>
           <div className="flex items-center gap-3 text-violet-300">
             <UserPlus size={16} />
             <span className={FINELY_OS_ENTITY_SUBLABEL}>Create Partner</span>
@@ -406,7 +406,7 @@ export default function PartnersListPage() {
           ) : null}
 
           {hubTab === 'directory' ? (
-        <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+        <div className={`${finelyOsCatalogCard('violet')} space-y-4`}>
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex flex-wrap items-center gap-3">
               <div className={`flex items-center gap-3 px-4 py-2 rounded-xl ${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')}`}>

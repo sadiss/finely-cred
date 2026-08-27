@@ -54,7 +54,7 @@ export const FC_ADMIN_PAGE = 'space-y-4';
  * rose    = risk, danger, blockers
  */
 
-export type FcAdminTone = 'neutral' | 'emerald' | 'gold' | 'sky' | 'navy' | 'teal' | 'rose' | 'violet';
+export type FcAdminTone = 'neutral' | 'emerald' | 'gold' | 'sky' | 'navy' | 'teal' | 'rose' | 'violet' | 'fuchsia';
 
 const FC_ADMIN_TONE_VARS: Record<Exclude<FcAdminTone, 'neutral'>, { solid: string; ink: string }> = {
   emerald: { solid: '--fc-admin-tone-emerald', ink: '--fc-admin-tone-emerald-ink' },
@@ -64,7 +64,14 @@ const FC_ADMIN_TONE_VARS: Record<Exclude<FcAdminTone, 'neutral'>, { solid: strin
   teal: { solid: '--fc-admin-tone-teal', ink: '--fc-admin-tone-teal-ink' },
   rose: { solid: '--fc-admin-tone-rose', ink: '--fc-admin-tone-rose-ink' },
   violet: { solid: '--fc-admin-tone-violet', ink: '--fc-admin-tone-violet-ink' },
+  fuchsia: { solid: '--fc-admin-tone-violet', ink: '--fc-admin-tone-violet-ink' },
 };
+
+/** Solid fill class slug — fuchsia aliases to violet (no separate metallic gloss token). */
+export function fcAdminSolidClassSlug(tone: FcAdminTone): string {
+  if (tone === 'fuchsia') return 'violet';
+  return tone;
+}
 
 /**
  * Text color for content sitting on a `solid` (saturated) fill or the `ink`
@@ -106,7 +113,7 @@ export function fcAdminOnSolidMuted(tone: FcAdminTone) {
 
 /** Sublabel (uppercase, tracked) sized for a `solid`/`ink` panel — pairs with `fcAdminOnSolidMuted`. */
 export function fcAdminOnSolidSublabel(tone: FcAdminTone) {
-  return `text-[11px] font-semibold uppercase tracking-wide ${fcAdminOnSolidMuted(tone)}`;
+  return `text-xs font-semibold uppercase tracking-wide ${fcAdminOnSolidMuted(tone)}`;
 }
 
 /** Body copy sized for a `solid`/`ink` panel — pairs with `fcAdminOnSolidMuted`. */
@@ -116,7 +123,7 @@ export function fcAdminOnSolidBody(tone: FcAdminTone) {
 
 /** Value/headline text sized for a `solid`/`ink` panel — pairs with `fcAdminOnSolidText`. */
 export function fcAdminOnSolidValue(tone: FcAdminTone) {
-  return `font-semibold tracking-tight ${fcAdminOnSolidText(tone)}`;
+  return `text-xl font-bold tracking-tight tabular-nums ${fcAdminOnSolidText(tone)}`;
 }
 
 /** Secondary/utility button (Refresh, Revert, Cancel) for use INSIDE a `solid`/`ink` panel — a graphite button would vanish there, so this is a frosted white-on-dark pill instead. */
@@ -154,7 +161,7 @@ export function fcAdminCard(padding = 'p-5', tone: FcAdminTone = 'neutral', vari
     return `rounded-2xl border border-[var(--fc-admin-border-strong)] bg-[var(--fc-admin-surface)] shadow-[0_1px_3px_rgba(16,24,40,0.06)] text-[var(--fc-admin-ink)] ${padding}`;
   }
   if (variant === 'solid') {
-    return `fc-admin-solid-${tone} rounded-2xl border ${fcAdminToneText(tone, 'solid')} ${padding}`;
+    return `fc-admin-solid-${fcAdminSolidClassSlug(tone)} rounded-2xl border ${fcAdminToneText(tone, 'solid')} ${padding}`;
   }
   return `fc-admin-soft-${tone} rounded-2xl border ${fcAdminToneText(tone, 'soft')} ${padding}`;
 }
@@ -197,11 +204,11 @@ export const fcAdminKpiTile = fcAdminKpi;
 
 /* ─── Typography ─── */
 
-export const FC_ADMIN_TITLE = 'text-xl font-semibold tracking-tight text-[var(--fc-admin-ink)]';
-export const FC_ADMIN_SUBLABEL = 'text-[11px] font-semibold uppercase tracking-wide text-[var(--fc-admin-ink-faint)]';
-export const FC_ADMIN_LABEL = 'text-[11px] font-semibold uppercase tracking-wide text-[var(--fc-admin-ink-faint)]';
+export const FC_ADMIN_TITLE = 'text-2xl font-semibold tracking-tight text-[var(--fc-admin-ink)]';
+export const FC_ADMIN_SUBLABEL = 'text-xs font-semibold uppercase tracking-wide text-[var(--fc-admin-ink-faint)]';
+export const FC_ADMIN_LABEL = 'text-xs font-semibold uppercase tracking-wide text-[var(--fc-admin-ink-faint)]';
 export const FC_ADMIN_BODY = 'text-sm leading-relaxed text-[var(--fc-admin-ink-muted)]';
-export const FC_ADMIN_VALUE = 'font-semibold tracking-tight text-[var(--fc-admin-ink)]';
+export const FC_ADMIN_VALUE = 'text-xl font-bold tracking-tight text-[var(--fc-admin-ink)] tabular-nums';
 export const FC_ADMIN_EMPTY =
   'rounded-xl border border-dashed border-[var(--fc-admin-border)] bg-[var(--fc-admin-surface-sunken)] p-4 text-sm text-[var(--fc-admin-ink-muted)]';
 export const FC_ADMIN_ACCENT_LINK =
@@ -209,10 +216,10 @@ export const FC_ADMIN_ACCENT_LINK =
 
 /* ─── Ink-panel typography — hero/identity panel only (`fcAdminCard(..., 'ink')`). ─── */
 
-export const FC_ADMIN_INK_TITLE = 'text-xl font-semibold tracking-tight text-white';
-export const FC_ADMIN_INK_SUBLABEL = 'text-[11px] font-semibold uppercase tracking-wide text-white/60';
+export const FC_ADMIN_INK_TITLE = 'text-2xl font-semibold tracking-tight text-white';
+export const FC_ADMIN_INK_SUBLABEL = 'text-xs font-semibold uppercase tracking-wide text-white/60';
 export const FC_ADMIN_INK_BODY = 'text-sm leading-relaxed text-white/70';
-export const FC_ADMIN_INK_VALUE = 'font-semibold tracking-tight text-white';
+export const FC_ADMIN_INK_VALUE = 'text-xl font-bold tracking-tight text-white tabular-nums';
 export const FC_ADMIN_INK_DIVIDER = 'fc-admin-ink-divider border-t';
 
 /* ─── Inputs ─── */
@@ -228,7 +235,7 @@ export function fcAdminStatusChip(tone: 'ok' | 'warn' | 'blocked') {
     warn: 'border-[var(--fc-admin-tone-gold)] bg-[var(--fc-admin-tone-gold)] text-[var(--fc-ink-on-gold)]',
     blocked: 'border-[var(--fc-admin-tone-rose)] bg-[var(--fc-admin-tone-rose)] text-white',
   } as any;
-  return `inline-flex items-center px-2.5 py-1 rounded-lg border text-[10px] font-bold uppercase tracking-widest shadow-sm ${styles[tone]}`;
+  return `inline-flex items-center px-2.5 py-1 rounded-lg border text-xs font-bold uppercase tracking-widest shadow-sm ${styles[tone]}`;
 }
 
 /** Single-family accent chip — one solid tone, no mixed ok/warn palette inside a status panel. */
@@ -239,8 +246,9 @@ export function fcAdminAccentStatusChip(tone: Exclude<FcAdminTone, 'neutral' | '
     sky: 'fc-admin-solid-sky text-white',
     violet: 'fc-admin-solid-violet text-white',
     rose: 'fc-admin-solid-rose text-white',
+    fuchsia: 'fc-admin-solid-violet text-white',
   };
-  return `inline-flex items-center gap-2 rounded-xl border px-3 py-1.5 text-[11px] font-bold uppercase tracking-wide shadow-sm ${styles[tone]}`;
+  return `inline-flex items-center gap-2 rounded-xl border px-3 py-1.5 text-xs font-bold uppercase tracking-wide shadow-sm ${styles[tone]}`;
 }
 
 /** Signup activity panel fill — stage maps to one accent family for the whole box. */
@@ -307,5 +315,5 @@ export function fcAdminTab(active: boolean, family: FcAdminTabFamily = 'neutral'
 
 export function fcAdminScoreCell(tone: FcAdminTone = 'sky') {
   if (tone === 'neutral') return fcAdminInnerTile('px-3 py-3 text-center', tone);
-  return `fc-admin-solid-${tone} rounded-xl border px-3 py-3 text-center ${fcAdminToneText(tone, 'solid')}`;
+  return `fc-admin-solid-${fcAdminSolidClassSlug(tone)} rounded-xl border px-3 py-3 text-center ${fcAdminToneText(tone, 'solid')}`;
 }

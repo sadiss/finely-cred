@@ -248,7 +248,7 @@ export function GrowthAgentRebeccaWorkspace() {
         <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/credit-specialist-apply')}>
           Public apply page
         </button>
-        <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/marketing?tab=desk&helper=board')}>
+        <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/marketing-desk?helper=board')}>
           Desk · Board
         </button>
       </div>

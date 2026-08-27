@@ -229,34 +229,38 @@ export default function OutcomeWizardPage() {
 
         {/* ── Step: situation (category picker) ───────────────────── */}
         {step === 'situation' && (
-          <section className={`${finelyOsCatalogCard('violet')} !p-5`}>
-            <h2 className="text-lg font-bold tracking-tight text-white">What best describes your situation?</h2>
-            <p className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>Pick one — we'll ask one or two follow-ups based on this.</p>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              {WIZARD_CATEGORIES.map((c) => (
+          <section className={finelyOsCatalogCard('violet')} data-fc-accent="violet">
+            <h2 className="text-2xl font-extrabold tracking-tight text-white">What best describes your situation?</h2>
+            <p className={`mt-2 text-base ${FINELY_OS_ENTITY_BODY}`}>Pick one — we'll ask one or two follow-ups based on this.</p>
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              {WIZARD_CATEGORIES.map((c, idx) => {
+                const accent = (['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4];
+                return (
                 <button
                   key={c.id}
                   type="button"
                   onClick={() => chooseCategory(c.id)}
-                  className="flex items-start gap-3 rounded-2xl border border-white/10 bg-black/25 p-4 text-left transition-all hover:border-violet-400/40 hover:bg-violet-500/[0.06]"
+                  className={`${finelyOsCatalogCard(accent)} flex items-start gap-4 text-left transition-all hover:brightness-110`}
+                  data-fc-accent={accent}
                 >
-                  <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-violet-400/30 bg-violet-500/10 text-violet-200">
+                  <span className="mt-0.5 flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-white/15 bg-black/25 text-white">
                     {CATEGORY_ICON[c.id]}
                   </span>
                   <span className="min-w-0">
-                    <span className="block text-sm font-bold text-white">{c.label}</span>
-                    <span className="mt-0.5 block text-xs leading-relaxed text-white/60">{c.blurb}</span>
+                    <span className="block text-lg font-extrabold text-white">{c.label}</span>
+                    <span className={`mt-1 block text-base leading-relaxed ${FINELY_OS_ENTITY_BODY}`}>{c.blurb}</span>
                   </span>
                 </button>
-              ))}
+                );
+              })}
             </div>
           </section>
         )}
 
         {/* ── Step: debt balance + situation escalation (debt_legal only) ── */}
         {step === 'debt_details' && category === 'debt_legal' && (
-          <section className={`${finelyOsCatalogCard('fuchsia')} !p-5`}>
-            <h2 className="text-lg font-bold tracking-tight text-white">Roughly, what's your total debt balance?</h2>
+          <section className={finelyOsCatalogCard('rose')} data-fc-accent="rose">
+            <h2 className="text-2xl font-extrabold tracking-tight text-white">Roughly, what's your total debt balance?</h2>
             <p className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>
               Illustrative only — your exact package and pricing are confirmed after intake.
             </p>
@@ -266,7 +270,7 @@ export default function OutcomeWizardPage() {
                   key={band.label}
                   type="button"
                   onClick={() => setDebtBalanceCents(band.amountCents)}
-                  className={finelyOsViewTab(debtBalanceCents === band.amountCents, 'fuchsia')}
+                  className={finelyOsViewTab(debtBalanceCents === band.amountCents, 'rose')}
                 >
                   {band.label}
                 </button>
@@ -305,8 +309,8 @@ export default function OutcomeWizardPage() {
 
         {/* ── Step: starting credit score band ────────────────────── */}
         {step === 'starting_score' && category && (
-          <section className={`${finelyOsCatalogCard('emerald')} !p-5`}>
-            <h2 className="text-lg font-bold tracking-tight text-white">Roughly, what's your starting credit score?</h2>
+          <section className={finelyOsCatalogCard('emerald')} data-fc-accent="emerald">
+            <h2 className="text-2xl font-extrabold tracking-tight text-white">Roughly, what's your starting credit score?</h2>
             <p className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>
               We'll show a real outcome range from documented case studies in a similar starting band — with the sample
               size, honestly.
@@ -382,16 +386,16 @@ export default function OutcomeWizardPage() {
 
             {/* Recommended package (debt_legal only) */}
             {category === 'debt_legal' && result.recommendedPackage ? (
-              <div className={`${finelyOsCatalogCard('fuchsia')} !p-5`}>
+              <div className={finelyOsCatalogCard('rose')} data-fc-accent="rose">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <h2 className="text-lg font-bold tracking-tight text-white">Recommended tier</h2>
+                  <h2 className="text-2xl font-extrabold tracking-tight text-white">Recommended tier</h2>
                   <span className={finelyOsStatusChip('warn')}>Illustrative guidance</span>
                 </div>
-                <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-fuchsia-500/25 bg-fuchsia-500/[0.08] p-4">
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-rose-500/25 bg-rose-500/[0.08] p-6">
                   <div>
                     <div className={`text-base font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{result.recommendedPackage.name}</div>
                     <div className="mt-0.5 text-sm text-white/60">{result.recommendedPackage.tagline}</div>
-                    <div className="mt-1 text-sm font-bold text-fuchsia-200">
+                    <div className="mt-1 text-base font-extrabold text-rose-200">
                       {result.recommendedPackage.isCustomQuote ? 'Custom quote' : formatPrice(result.recommendedPackage.priceAmount)}
                     </div>
                   </div>
@@ -404,9 +408,9 @@ export default function OutcomeWizardPage() {
             ) : null}
 
             {/* Outcome range */}
-            <div className={`${finelyOsCatalogCard('emerald')} !p-5`}>
+            <div className={finelyOsCatalogCard('emerald')} data-fc-accent="emerald">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <h2 className="text-lg font-bold tracking-tight text-white">Real outcome range</h2>
+                <h2 className="text-2xl font-extrabold tracking-tight text-white">Real outcome range</h2>
                 <span className={FINELY_OS_ENTITY_SUBLABEL}>From documented case studies</span>
               </div>
               {result.outcomeRange.hasData ? (
@@ -442,10 +446,10 @@ export default function OutcomeWizardPage() {
             </div>
 
             {/* CTA band */}
-            <div className="rounded-[1.25rem] border border-amber-400/25 bg-gradient-to-r from-amber-500/[0.08] to-transparent p-5">
+            <div className={finelyOsCatalogCard('violet')} data-fc-accent="violet">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="min-w-0">
-                  <h2 className="text-lg font-bold tracking-tight text-white">Ready for the next step?</h2>
+                  <h2 className="text-2xl font-extrabold tracking-tight text-white">Ready for the next step?</h2>
                   <p className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>
                     Talk to a strategist or see full pricing for {WIZARD_CATEGORIES.find((c) => c.id === category)?.label.toLowerCase()}.
                   </p>

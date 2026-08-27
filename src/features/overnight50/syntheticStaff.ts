@@ -1,7 +1,7 @@
 import type { SyntheticStaffAgent } from './types';
 
 export const SYNTHETIC_STAFF_AGENTS: SyntheticStaffAgent[] = [
-  { id: 'night_owl_intel', name: 'Night Owl Intel', role: 'Lead Intel Swarm Operator', shift: '10pm-6am', status: 'working', kpi: 'hot prospects found', currentTask: 'Rotating geo-intent discovery jobs.', voice: 'sharp, energetic', taskType: 'overnight50.intel', complianceBoundary: 'Public/official sources only.' },
+  { id: 'night_owl_intel', name: 'Night Owl Intel', role: 'Lead Intel Discovery Operator', shift: '10pm-6am', status: 'working', kpi: 'hot prospects found', currentTask: 'Rotating geo-intent discovery jobs.', voice: 'sharp, energetic', taskType: 'overnight50.intel', complianceBoundary: 'Public/official sources only.' },
   { id: 'revival_specialist', name: 'Revival Specialist', role: 'Cold Lead Reactivation', shift: '11pm-5am prep, sends only lawful windows', status: 'idle', kpi: 'revived consented leads', currentTask: 'Preparing consent-checked revival drafts.', voice: 'warm, direct', taskType: 'overnight50.revival', complianceBoundary: 'No SMS without consent.' },
   { id: 'seo_sentinel', name: 'SEO Sentinel', role: 'Geo SEO Publisher', shift: '12am-8am', status: 'working', kpi: 'city pages published', currentTask: 'Checking approved local pages.', voice: 'methodical', taskType: 'overnight50.seo', complianceBoundary: 'No duplicate/spam doorway pages.' },
   { id: 'community_ghost', name: 'Community Ghost', role: 'Community Opportunity Drafter', shift: '8pm-12am', status: 'needs_admin', kpi: 'helpful replies approved', currentTask: 'Drafting non-spam replies for admin approval.', voice: 'human, helpful', taskType: 'overnight50.community', complianceBoundary: 'No auto-posting into communities.' },

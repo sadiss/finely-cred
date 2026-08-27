@@ -1270,6 +1270,9 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
     const sessionEmail = auth.user.email.trim().toLowerCase();
     const inviteEmail = invite.email.trim().toLowerCase();
     if (sessionEmail && inviteEmail && sessionEmail !== inviteEmail) {
+      setAuthNotice(
+        `This invite is for ${invite.email}. Sign out and sign in with that email to claim the file.`,
+      );
       void auth.signOut();
     }
   }, [auth, isOpen, location.search]);
@@ -1547,10 +1550,14 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
             userId: signedInUser.id,
             email,
           });
-          if (userData.supportModel || userData.helperName || userData.priorCompany) {
+          {
             const { upsertPartner } = await import('../../data/partnersRepo');
             await upsertPartner({
               ...claimed,
+              consents: {
+                ...(claimed.consents ?? {}),
+                ...legalConsents,
+              },
               journeySignals: {
                 ...(claimed.journeySignals ?? {}),
                 ...(userData.supportModel ? { supportModel: userData.supportModel } : {}),
@@ -1787,7 +1794,10 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
     const sessionEmail = (auth.user?.email || '').trim();
     const hasActiveSession = Boolean(sessionEmail);
 
-    const continueWithSession = () => {
+    const continueWithSession = async () => {
+      if (auth.user?.id && auth.user.email) {
+        await retryPendingInviteClaim({ userId: auth.user.id, email: auth.user.email }).catch(() => null);
+      }
       const nextPath = userData.recommendedNextPath || resolvePostAuthHomePath(auth.user);
       clearOnboardingProgress();
       onComplete(nextPath);
@@ -2106,6 +2116,7 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
             isConfigured={auth.isConfigured}
             inviteMode={partnerInviteFlow}
             emailLocked={partnerInviteFlow && Boolean(userData.email)}
+            lockedEmail={partnerInviteFlow && Boolean(userData.email)}
           />
         )}
         </div>

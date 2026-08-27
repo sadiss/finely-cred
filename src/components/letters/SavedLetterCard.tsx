@@ -102,9 +102,9 @@ function typeMeta(type: LetterType): {
   if (type === 'validation') {
     return {
       label: 'Validation',
-      accent: 'amber',
-      chip: 'border-amber-400/30 bg-amber-500/15 text-amber-100',
-      seal: 'bg-amber-500/20 text-amber-200 border-amber-400/35',
+      accent: 'sky',
+      chip: 'border-sky-400/30 bg-sky-500/15 text-sky-100',
+      seal: 'bg-sky-500/20 text-sky-200 border-sky-400/35',
     };
   }
   return {
@@ -202,6 +202,10 @@ export function SavedLetterCard({
     letter.meta && typeof letter.meta === 'object' && 'round' in letter.meta
       ? String((letter.meta as { round?: string }).round || '')
       : '';
+  const priorRoundTransfer =
+    letter.meta && typeof letter.meta === 'object' && 'priorRoundTransferNote' in letter.meta
+      ? String((letter.meta as DisputeLetterMeta).priorRoundTransferNote || '').trim()
+      : '';
   const tone =
     letter.meta && typeof letter.meta === 'object' && 'tone' in letter.meta
       ? String((letter.meta as { tone?: string }).tone || '')
@@ -210,9 +214,12 @@ export function SavedLetterCard({
   const debtFacts = debtLetterCardFactsFromLetter(letter);
   const steps = workflowSteps(letter.status, hasPdf);
   const delivery = fmtDate(letter.mailing?.expectedDeliveryDate);
+  const trackingNum = (letter.mailing?.trackingNumber || '').trim();
+  const delivered = fmtDate(letter.mailing?.deliveredAt);
   const vaultStatus = letterVaultPrimaryStatus(letter);
   const alreadyMailed = isLetterPhysicallyMailed(letter);
   const mailRef = (letter.mailing?.providerId || '').trim();
+  const showsMailing = Boolean(letter.mailing?.to || alreadyMailed || delivery || trackingNum || delivered);
 
   const openViewPdf = () => {
     if (hasPdf && onOpenPdf) {
@@ -313,9 +320,31 @@ export function SavedLetterCard({
             {vaultStatus.detail ? (
               <p className={`text-[10px] leading-snug ${FINELY_OS_ENTITY_BODY} text-white/75`}>{vaultStatus.detail}</p>
             ) : null}
+            {showsMailing && (trackingNum || delivered) ? (
+              <p className={`text-[9px] leading-snug ${FINELY_OS_ENTITY_BODY} text-white/60`}>
+                {trackingNum ? (
+                  <span className="inline-flex items-center gap-1 text-sky-100/80">
+                    <Truck size={9} className="shrink-0 text-sky-300/70" />
+                    {trackingNum}
+                  </span>
+                ) : null}
+                {trackingNum && delivered ? <span className="text-white/35"> · </span> : null}
+                {delivered ? (
+                  <span className="inline-flex items-center gap-1 text-emerald-100/80">
+                    <CheckCircle2 size={9} className="shrink-0 text-emerald-300/70" />
+                    Delivered {delivered}
+                  </span>
+                ) : null}
+              </p>
+            ) : null}
           </div>
 
           <p className={`text-[10px] leading-snug line-clamp-2 ${FINELY_OS_ENTITY_BODY} text-white/80`}>{statLine}</p>
+          {priorRoundTransfer ? (
+            <p className={`text-[10px] leading-snug line-clamp-2 ${FINELY_OS_ENTITY_BODY} text-sky-100/85`}>
+              Carried-forward findings from prior round
+            </p>
+          ) : null}
 
           <div className="fc-letter-vault-card__actions">
             <button
@@ -346,7 +375,7 @@ export function SavedLetterCard({
                   onMail();
                 }}
                 disabled={mailDisabled}
-                className="inline-flex items-center gap-1 rounded-md border border-amber-400/45 bg-amber-400/90 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-black hover:brightness-110 disabled:opacity-50"
+                className="inline-flex items-center gap-1 rounded-md border border-violet-400/45 bg-violet-600 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-white hover:bg-violet-500 disabled:opacity-50"
               >
                 <Send size={11} /> Mail
               </button>
@@ -463,9 +492,24 @@ export function SavedLetterCard({
                 </button>
               ) : null}
 
-              {delivery ? (
-                <div className="inline-flex items-center gap-2 rounded-xl border border-sky-400/20 bg-sky-500/10 px-3 py-2 text-xs text-sky-100">
-                  <Truck size={13} /> ETA {delivery}
+              {delivery || trackingNum || delivered ? (
+                <div className="flex flex-wrap gap-2">
+                  {delivery ? (
+                    <div className="inline-flex items-center gap-2 rounded-xl border border-sky-400/20 bg-sky-500/10 px-3 py-1.5 text-[11px] text-sky-100">
+                      <Truck size={12} /> ETA {delivery}
+                    </div>
+                  ) : null}
+                  {trackingNum ? (
+                    <div className="inline-flex items-center gap-2 rounded-xl border border-sky-400/20 bg-sky-500/10 px-3 py-1.5 text-[11px] text-sky-100">
+                      <Truck size={12} />
+                      <span className="font-mono tracking-tight">{trackingNum}</span>
+                    </div>
+                  ) : null}
+                  {delivered ? (
+                    <div className="inline-flex items-center gap-2 rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-3 py-1.5 text-[11px] text-emerald-100">
+                      <CheckCircle2 size={12} /> Delivered {delivered}
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
 
@@ -508,7 +552,7 @@ export function SavedLetterCard({
                       setTextOpen(false);
                       onRefreshTemplate();
                     }}
-                    className={`${FINELY_OS_PRIMARY_BTN} !py-2.5 !px-4 !text-sm !bg-amber-400 !text-black hover:!brightness-110`}
+                    className={`${FINELY_OS_PRIMARY_BTN} !py-2.5 !px-4 !text-sm !bg-violet-600 !text-white hover:!bg-violet-500`}
                     title="Pull the latest template wording and case fields into this saved letter"
                   >
                     <RefreshCw size={16} /> {refreshLabelForLetter(letter)}
@@ -536,13 +580,17 @@ export function SavedLetterCard({
                       onMail();
                     }}
                     disabled={mailDisabled || !hasPdf}
-                    className={`${FINELY_OS_PRIMARY_BTN} !py-2.5 !px-4 !text-sm !bg-amber-500/90 disabled:opacity-45`}
+                    className={`${FINELY_OS_PRIMARY_BTN} !py-2.5 !px-4 !text-sm !bg-violet-600 !text-white hover:!bg-violet-500 disabled:opacity-45`}
                   >
                     <Send size={16} /> Mail letter
                   </button>
                 ) : alreadyMailed ? (
                   <span className="inline-flex items-center gap-2 rounded-xl border border-sky-400/25 bg-sky-500/10 px-3 py-2 text-xs text-sky-100">
-                    <Truck size={14} /> Mailed{mailRef ? ` · ref ${mailRef}` : ''} — remail blocked
+                    <Truck size={14} />
+                    Mailed
+                    {trackingNum ? ` · ${trackingNum}` : mailRef ? ` · ref ${mailRef}` : ''}
+                    {delivered ? ` · delivered ${delivered}` : ''}
+                    {' '}— remail blocked
                   </span>
                 ) : null}
                 {onResumeStudio && !hasPdf ? (
@@ -575,12 +623,26 @@ export function SavedLetterCard({
               ) : null}
 
               {letter.mailing?.to ? (
-                <div className="flex flex-wrap items-center gap-2 text-[11px] text-white/50">
-                  <Calendar size={12} className="text-white/35" />
-                  <span>
-                    Mailed to {letter.mailing.to.city}, {letter.mailing.to.state}
-                    {letter.mailing.createdAt ? ` · ${fmtWhen(letter.mailing.createdAt)}` : ''}
-                  </span>
+                <div className="space-y-1 text-[11px] text-white/50">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Calendar size={12} className="text-white/35" />
+                    <span>
+                      Mailed to {letter.mailing.to.city}, {letter.mailing.to.state}
+                      {letter.mailing.createdAt ? ` · ${fmtWhen(letter.mailing.createdAt)}` : ''}
+                    </span>
+                  </div>
+                  {trackingNum ? (
+                    <div className="flex flex-wrap items-center gap-2 pl-5 text-sky-100/75">
+                      <Truck size={11} className="text-sky-300/60" />
+                      <span className="font-mono tracking-tight">{trackingNum}</span>
+                    </div>
+                  ) : null}
+                  {delivered ? (
+                    <div className="flex flex-wrap items-center gap-2 pl-5 text-emerald-100/80">
+                      <CheckCircle2 size={11} className="text-emerald-300/60" />
+                      <span>Delivered {delivered}</span>
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
             </div>

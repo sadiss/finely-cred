@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { ArrowLeft, Phone, PhoneCall, MessageSquare, Voicemail, Users, Settings, Inbox } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { AdminWorkstationFrame, type AdminEmbeddablePageProps } from '../../features/workspaceLightPreview/product/admin/AdminWorkstationFrame';
+import { useMappedAdminNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { PHONE_AGENT_ROUTES, PHONE_HUB_FEATURES, resolvePhoneRoute } from '../../domain/phoneSystem';
 import { isFeatureEnabled } from '../../data/settingsRepo';
 import { getCommsSettings } from '../../data/settingsRepo';
@@ -31,14 +31,19 @@ import {
   FINELY_OS_NOTICE_ERROR,
   FINELY_OS_NOTICE_SUCCESS,
   finelyOsCatalogCard,
+  finelyOsGlowField,
+  finelyOsGlowTextarea,
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
+  FINELY_OS_ENTITY_VALUE,
 } from '../../features/os/finelyOsLightUi';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
+import { FinelyOsGlassPanel } from '../../features/os/FinelyOsGlassPanel';
+import { FinelyOsOverviewStatTile } from '../../features/os/FinelyOsOverviewStatTile';
 import { CO_OWNER_IDENTITY } from '../../domain/coOwnerPersona';
 
-export default function AdminPhoneHubPage() {
-  const navigate = useNavigate();
+export default function AdminPhoneHubPage({ embedded = false }: AdminEmbeddablePageProps = {}) {
+  const navigate = useMappedAdminNavigate();
   const [dial, setDial] = useState('');
   const [smsBody, setSmsBody] = useState('');
   const [interest, setInterest] = useState('general');
@@ -165,7 +170,9 @@ export default function AdminPhoneHubPage() {
   };
 
   return (
-    <PageShell
+    <AdminWorkstationFrame
+      embedded={embedded}
+      kind="phone-hub-workstation"
       badge="Admin"
       title="Finely Phone Hub"
       subtitle="Desktop softphone — inbound/outbound calls, SMS threads, agent routing, voicemail, and co-owner escalation."
@@ -183,33 +190,33 @@ export default function AdminPhoneHubPage() {
           </button>
         </div>
 
-        <div className={`${finelyOsCatalogCard('sky')} !p-5 grid lg:grid-cols-12 gap-6`}>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <FinelyOsOverviewStatTile icon={Inbox} label="Threads" value={phoneSnap.threadCount} hint={`${phoneSnap.unreadThreads} unread`} accent="sky" iconAccent="sky" />
+          <FinelyOsOverviewStatTile icon={PhoneCall} label="Recent calls" value={recentCalls.length} hint="Last six" accent="violet" iconAccent="violet" />
+          <FinelyOsOverviewStatTile icon={Voicemail} label="Missed" value={phoneSnap.missedCalls} hint="Voicemail + missed" accent="rose" iconAccent="rose" />
+          <FinelyOsOverviewStatTile icon={Users} label="Routes" value={PHONE_AGENT_ROUTES.length} hint="Persona lanes" accent="emerald" iconAccent="emerald" />
+        </div>
+
+        <FinelyOsGlassPanel icon={Phone} title="Desktop dialer" subtitle="Outbound calls and SMS route through Twilio. Configure the from-number and enable Comms Delivery for live send." accent="sky">
+        <div className="grid lg:grid-cols-12 gap-6">
           <div className="lg:col-span-5 space-y-4">
-            <div className="flex items-center gap-2 text-sky-700 dark:text-sky-300">
-              <Phone size={20} />
-              <span className="font-semibold">Desktop dialer</span>
-            </div>
-            <p className={`${FINELY_OS_ENTITY_BODY} text-sm`}>
-              Outbound calls and SMS route through Twilio edge functions. Configure <code>twilioFromPhone</code> and enable
-              Comms Delivery for live send. Inbound webhooks queue to agent personas below.
-            </p>
             <input
               value={dial}
               onChange={(e) => setDial(e.target.value)}
               placeholder="+1 (555) 000-0000"
-              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-lg font-mono dark:border-slate-700 dark:bg-slate-900"
+              className={`${finelyOsGlowField('sky')} font-mono text-lg`}
             />
             <textarea
               value={smsBody}
               onChange={(e) => setSmsBody(e.target.value)}
               placeholder="SMS message (for text send)…"
-              rows={3}
-              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm dark:border-slate-700 dark:bg-slate-900"
+              rows={4}
+              className={finelyOsGlowTextarea('violet')}
             />
             <select
               value={interest}
               onChange={(e) => setInterest(e.target.value)}
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+              className={finelyOsGlowField('emerald')}
             >
               <option value="general">General intake</option>
               <option value="debt">Debt / validation</option>
@@ -235,59 +242,55 @@ export default function AdminPhoneHubPage() {
               </button>
             </div>
             {!commsOn ? (
-              <p className="text-xs text-amber-700">Enable Comms Delivery in Admin Settings for live SMS.</p>
+              <p className={`${FINELY_OS_ENTITY_BODY} text-violet-200`}>Enable Comms Delivery in Admin Settings for live SMS.</p>
             ) : null}
             {notice ? <div className={FINELY_OS_NOTICE_SUCCESS}>{notice}</div> : null}
             {error ? <div className={FINELY_OS_NOTICE_ERROR}>{error}</div> : null}
             <div className={FINELY_OS_ENTITY_SUBLABEL}>From number: {twilioFrom}</div>
           </div>
 
-          <div className="lg:col-span-7 space-y-3">
-            <div className="font-semibold flex items-center gap-2">
-              <Users size={18} /> Agent routing
+          <div className="lg:col-span-7 space-y-4">
+            <div className={`${FINELY_OS_ENTITY_VALUE} flex items-center gap-2 text-xl`}>
+              <Users size={20} /> Agent routing
             </div>
-            {PHONE_AGENT_ROUTES.sort((a, b) => a.priority - b.priority).map((r) => (
-              <div key={r.id} className={`${finelyOsCatalogCard('violet')} !p-3 flex justify-between gap-3`}>
+            {PHONE_AGENT_ROUTES.sort((a, b) => a.priority - b.priority).map((r, i) => (
+              <div key={r.id} className={`${finelyOsCatalogCard((['violet', 'emerald', 'sky', 'rose'] as const)[i % 4])} flex justify-between gap-3`}>
                 <div>
-                  <div className="font-medium text-sm">{r.label}</div>
-                  <div className="text-xs text-slate-500">Persona: {r.personaId}</div>
+                  <div className={`${FINELY_OS_ENTITY_VALUE} text-lg`}>{r.label}</div>
+                  <div className={`${FINELY_OS_ENTITY_BODY} mt-1`}>Persona: {r.personaId}</div>
                 </div>
-                <div className="text-[10px] uppercase text-violet-600">{r.channels.join(' · ')}</div>
+                <div className={`${FINELY_OS_ENTITY_SUBLABEL} shrink-0`}>{r.channels.join(' · ')}</div>
               </div>
             ))}
           </div>
         </div>
+        </FinelyOsGlassPanel>
 
         <PhoneProductionSetupPanel />
 
-        <div className={`${finelyOsCatalogCard('emerald')} !p-5 mt-6 grid lg:grid-cols-12 gap-6`}>
-          <div className="lg:col-span-4 space-y-3">
-            <div className="font-semibold flex items-center gap-2">
-              <Inbox size={18} /> SMS / voice threads
-            </div>
-            <p className={`${FINELY_OS_ENTITY_BODY} text-xs`}>
-              {phoneSnap.threadCount} thread(s) · {phoneSnap.unreadThreads} unread · {phoneSnap.missedCalls} missed
-            </p>
+        <FinelyOsGlassPanel icon={Inbox} title="SMS / voice threads" subtitle={`${phoneSnap.threadCount} thread(s) · ${phoneSnap.unreadThreads} unread · ${phoneSnap.missedCalls} missed`} accent="emerald">
+        <div className="grid lg:grid-cols-12 gap-6">
+          <div className="lg:col-span-4 space-y-4">
             {threads.length ? (
-              threads.map((t) => (
-                <div key={t.id} className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-sm">
-                  <div className="font-medium">{t.displayName ?? t.phoneE164}</div>
-                  <div className="text-xs opacity-70">{t.channel} · {t.unreadCount ? `${t.unreadCount} unread` : 'read'}</div>
+              threads.map((t, i) => (
+                <div key={t.id} className={finelyOsCatalogCard((['emerald', 'violet', 'sky'] as const)[i % 3])}>
+                  <div className={`${FINELY_OS_ENTITY_VALUE} text-lg`}>{t.displayName ?? t.phoneE164}</div>
+                  <div className={`${FINELY_OS_ENTITY_BODY} mt-1`}>{t.channel} · {t.unreadCount ? `${t.unreadCount} unread` : 'read'}</div>
                 </div>
               ))
             ) : (
-              <p className={`${FINELY_OS_ENTITY_BODY} text-xs`}>No threads yet — send an SMS or log a call.</p>
+              <p className={FINELY_OS_ENTITY_BODY}>No threads yet — send an SMS or log a call.</p>
             )}
             {missed.length ? (
-              <div className="pt-2">
-                <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-amber-700`}>Missed / voicemail</div>
+              <div className={`${finelyOsCatalogCard('rose')} space-y-3`}>
+                <div className={FINELY_OS_ENTITY_SUBLABEL}>Missed / voicemail</div>
                 {missed.map((c) => (
-                  <div key={c.id} className="text-xs mt-1 text-amber-800">
+                  <div key={c.id} className={FINELY_OS_ENTITY_BODY}>
                     {c.from} · {c.status}
                     {c.transcription ? ` — "${c.transcription.slice(0, 80)}…"` : ''}
                   </div>
                 ))}
-                <div className="flex flex-wrap gap-2 mt-2">
+                <div className="flex flex-wrap gap-2">
                   <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={summarizeForCoOwner}>
                     Summarize for {CO_OWNER_IDENTITY.name}
                   </button>
@@ -297,18 +300,18 @@ export default function AdminPhoneHubPage() {
                 </div>
               </div>
             ) : null}
-            <div className={`${finelyOsCatalogCard('sky')} !p-3 mt-3 space-y-2`}>
-              <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-xs`}>Simulate inbound (dev)</div>
+            <div className={`${finelyOsCatalogCard('sky')} space-y-3`}>
+              <div className={FINELY_OS_ENTITY_SUBLABEL}>Simulate inbound (dev)</div>
               <input
                 value={simulateFrom}
                 onChange={(e) => setSimulateFrom(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs dark:border-slate-700 dark:bg-slate-900"
+                className={finelyOsGlowField('sky')}
                 placeholder="+1..."
               />
               <input
                 value={simulateBody}
                 onChange={(e) => setSimulateBody(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs dark:border-slate-700 dark:bg-slate-900"
+                className={finelyOsGlowField('violet')}
                 placeholder="SMS body"
               />
               <div className="flex flex-wrap gap-2">
@@ -337,40 +340,40 @@ export default function AdminPhoneHubPage() {
               </div>
             </div>
           </div>
-          <div className="lg:col-span-8 space-y-2">
-            <div className="font-semibold text-sm">Recent call log</div>
+          <div className="lg:col-span-8 space-y-3">
+            <div className={`${FINELY_OS_ENTITY_VALUE} text-xl`}>Recent call log</div>
             {recentCalls.length ? (
-              recentCalls.map((c) => (
-                <div key={c.id} className="flex justify-between gap-3 text-xs border-b border-white/10 py-2">
-                  <span>{c.direction === 'inbound' ? '↓' : '↑'} {c.from} → {c.to}</span>
-                  <span className="opacity-70">{c.status} · {c.personaId ?? 'unassigned'}</span>
+              recentCalls.map((c, i) => (
+                <div key={c.id} className={`${finelyOsCatalogCard((['sky', 'violet', 'emerald', 'rose'] as const)[i % 4])} flex justify-between gap-3`}>
+                  <span className={FINELY_OS_ENTITY_VALUE}>{c.direction === 'inbound' ? '↓' : '↑'} {c.from} → {c.to}</span>
+                  <span className={FINELY_OS_ENTITY_BODY}>{c.status} · {c.personaId ?? 'unassigned'}</span>
                 </div>
               ))
             ) : (
-              <p className={`${FINELY_OS_ENTITY_BODY} text-xs`}>Call log empty.</p>
+              <p className={FINELY_OS_ENTITY_BODY}>Call log empty.</p>
             )}
           </div>
         </div>
+        </FinelyOsGlassPanel>
 
-        <div className="grid md:grid-cols-3 gap-4 mt-6">
-          {Object.entries(PHONE_HUB_FEATURES).map(([key, on]) => (
-            <div key={key} className={`${finelyOsCatalogCard(on ? 'emerald' : 'violet')} !p-4`}>
-              <div className="font-medium text-sm capitalize">{key.replace(/([A-Z])/g, ' $1')}</div>
-              <div className={`text-xs mt-1 ${on ? 'text-emerald-700' : 'text-slate-500'}`}>{on ? 'Enabled' : 'Planned'}</div>
+        <div className="grid md:grid-cols-3 gap-4">
+          {Object.entries(PHONE_HUB_FEATURES).map(([key, on], i) => (
+            <div key={key} className={finelyOsCatalogCard(on ? (['emerald', 'sky', 'violet'] as const)[i % 3] : (['violet', 'rose', 'sky'] as const)[i % 3])}>
+              <div className={`${FINELY_OS_ENTITY_VALUE} capitalize`}>{key.replace(/([A-Z])/g, ' $1')}</div>
+              <div className={`${FINELY_OS_ENTITY_BODY} mt-2`}>{on ? 'Enabled' : 'Planned'}</div>
             </div>
           ))}
         </div>
 
-        <div className={`${finelyOsCatalogCard('amber')} !p-4 mt-6 flex gap-3`}>
-          <Voicemail size={20} className="shrink-0 text-amber-700" />
-          <p className={`${FINELY_OS_ENTITY_BODY} text-sm`}>
+        <FinelyOsGlassPanel icon={Voicemail} title="Escalation path" accent="rose">
+          <p className={FINELY_OS_ENTITY_BODY}>
             Missed calls and voicemails escalate to <strong>{CO_OWNER_IDENTITY.name}</strong> (co-owner) for summary + callback tasks.
             Transcription hooks integrate with Voice Studio neural TTS/STT pipeline.
           </p>
-        </div>
+        </FinelyOsGlassPanel>
 
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
       </div>
-    </PageShell>
+    </AdminWorkstationFrame>
   );
 }

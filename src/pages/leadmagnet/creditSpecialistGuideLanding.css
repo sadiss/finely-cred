@@ -2,10 +2,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
 
 .csg-page {
-  --csg-gold: #d4a447;
-  --csg-gold-soft: #f0cc75;
-  --csg-lime: #95e000;
-  --csg-lime-soft: #b8ff2f;
+  --csg-gold: #a78bfa;
+  --csg-gold-soft: #c4b5fd;
+  --csg-lime: #34d399;
+  --csg-lime-soft: #6ee7b7;
   --csg-navy: #050a14;
   --csg-ink: #0a1428;
   --csg-sky: #7dd3fc;
@@ -26,29 +26,29 @@
 
 /* ── Nav ── */
 .csg-nav {
-  border-bottom: 1px solid rgba(212, 164, 71, 0.14);
+  border-bottom: 1px solid rgba(167, 139, 250, 0.14);
   background: linear-gradient(180deg, rgba(5, 10, 20, 0.94) 0%, rgba(5, 10, 20, 0.78) 100%);
   backdrop-filter: blur(18px);
 }
 
 .csg-nav-cta {
-  border: 1px solid rgba(212, 164, 71, 0.55);
-  background: linear-gradient(180deg, rgba(212, 164, 71, 0.14) 0%, rgba(149, 224, 0, 0.08) 100%);
-  box-shadow: 0 0 24px rgba(149, 224, 0, 0.08);
+  border: 1px solid rgba(167, 139, 250, 0.55);
+  background: linear-gradient(180deg, rgba(167, 139, 250, 0.14) 0%, rgba(52, 211, 153, 0.08) 100%);
+  box-shadow: 0 0 24px rgba(52, 211, 153, 0.08);
   transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
 }
 
 .csg-nav-cta:hover {
-  border-color: rgba(149, 224, 0, 0.55);
-  background: rgba(149, 224, 0, 0.12);
+  border-color: rgba(52, 211, 153, 0.55);
+  background: rgba(52, 211, 153, 0.12);
   transform: translateY(-1px);
 }
 
 /* ── Atmosphere ── */
 .csg-atmosphere {
   background:
-    radial-gradient(ellipse 70% 45% at 78% 8%, rgba(212, 164, 71, 0.16), transparent 55%),
-    radial-gradient(ellipse 50% 40% at 12% 30%, rgba(149, 224, 0, 0.08), transparent 50%),
+    radial-gradient(ellipse 70% 45% at 78% 8%, rgba(167, 139, 250, 0.16), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 12% 30%, rgba(52, 211, 153, 0.08), transparent 50%),
     radial-gradient(ellipse 60% 50% at 50% 100%, rgba(40, 70, 120, 0.28), transparent 55%),
     linear-gradient(180deg, #050a14 0%, #0a1428 42%, #050a14 100%);
 }
@@ -67,7 +67,7 @@
 }
 
 .csg-hero-title-gold {
-  background: linear-gradient(135deg, #f0cc75 0%, #d4a447 45%, #95e000 100%);
+  background: linear-gradient(135deg, #c4b5fd 0%, #a78bfa 45%, #34d399 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -82,10 +82,10 @@
 .csg-gold-btn {
   position: relative;
   overflow: hidden;
-  border: 1px solid rgba(245, 223, 160, 0.55);
-  background: linear-gradient(135deg, #7a5a14 0%, #d4a447 42%, #f0cc75 68%, #a67c1a 100%);
-  color: #06101f;
-  box-shadow: 0 18px 55px rgba(212, 164, 71, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  border: 1px solid rgba(110, 231, 183, 0.55);
+  background: linear-gradient(135deg, #047857 0%, #10b981 42%, #34d399 68%, #059669 100%);
+  color: #ffffff;
+  box-shadow: 0 18px 55px rgba(167, 139, 250, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.45);
   transition: transform 0.25s ease, filter 0.25s ease;
 }
 
@@ -108,15 +108,15 @@
 }
 
 .csg-ghost-btn {
-  border: 1px solid rgba(149, 224, 0, 0.35);
-  background: rgba(149, 224, 0, 0.06);
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  background: rgba(52, 211, 153, 0.06);
   color: var(--csg-lime-soft);
   transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
 }
 
 .csg-ghost-btn:hover {
-  border-color: rgba(149, 224, 0, 0.65);
-  background: rgba(149, 224, 0, 0.12);
+  border-color: rgba(52, 211, 153, 0.65);
+  background: rgba(52, 211, 153, 0.12);
   transform: translateY(-1px);
 }
 
@@ -131,8 +131,8 @@
   align-items: center;
   gap: 0.5rem;
   border-radius: 999px;
-  border: 1px solid rgba(212, 164, 71, 0.4);
-  background: rgba(212, 164, 71, 0.1);
+  border: 1px solid rgba(167, 139, 250, 0.4);
+  background: rgba(167, 139, 250, 0.1);
   padding: 0.4rem 1rem;
   font-size: 10px;
   font-weight: 800;
@@ -150,8 +150,8 @@
 
 .csg-chapter-card:hover {
   transform: translateY(-3px);
-  border-color: rgba(212, 164, 71, 0.45);
-  background: linear-gradient(165deg, rgba(212, 164, 71, 0.1), rgba(255, 255, 255, 0.03));
+  border-color: rgba(167, 139, 250, 0.45);
+  background: linear-gradient(165deg, rgba(167, 139, 250, 0.1), rgba(255, 255, 255, 0.03));
 }
 
 .csg-pillar-card {
@@ -161,15 +161,15 @@
 }
 
 .csg-stat-tile {
-  border: 1px solid rgba(212, 164, 71, 0.22);
-  background: linear-gradient(160deg, rgba(212, 164, 71, 0.08), rgba(0, 0, 0, 0.2));
+  border: 1px solid rgba(167, 139, 250, 0.22);
+  background: linear-gradient(160deg, rgba(167, 139, 250, 0.08), rgba(0, 0, 0, 0.2));
 }
 
 .csg-cta-panel {
-  border: 1px solid rgba(212, 164, 71, 0.35);
+  border: 1px solid rgba(167, 139, 250, 0.35);
   background:
-    radial-gradient(ellipse 80% 60% at 10% 0%, rgba(149, 224, 0, 0.12), transparent 50%),
-    radial-gradient(ellipse 70% 50% at 90% 100%, rgba(212, 164, 71, 0.16), transparent 55%),
+    radial-gradient(ellipse 80% 60% at 10% 0%, rgba(52, 211, 153, 0.12), transparent 50%),
+    radial-gradient(ellipse 70% 50% at 90% 100%, rgba(167, 139, 250, 0.16), transparent 55%),
     linear-gradient(165deg, rgba(10, 20, 40, 0.95), rgba(5, 10, 20, 0.98));
   box-shadow: 0 30px 90px rgba(0, 0, 0, 0.45);
 }
@@ -180,7 +180,7 @@
 }
 
 .csg-reader-nav {
-  border-bottom: 1px solid rgba(212, 164, 71, 0.16);
+  border-bottom: 1px solid rgba(167, 139, 250, 0.16);
   background: rgba(5, 10, 20, 0.92);
   backdrop-filter: blur(18px);
 }
@@ -196,19 +196,19 @@
 }
 
 .csg-toc-item:hover {
-  border-color: rgba(212, 164, 71, 0.3);
-  background: rgba(212, 164, 71, 0.06);
+  border-color: rgba(167, 139, 250, 0.3);
+  background: rgba(167, 139, 250, 0.06);
 }
 
 .csg-toc-item.is-active {
-  border-color: rgba(149, 224, 0, 0.45);
-  background: rgba(149, 224, 0, 0.08);
+  border-color: rgba(52, 211, 153, 0.45);
+  background: rgba(52, 211, 153, 0.08);
 }
 
 .csg-article {
   border: 1px solid rgba(255, 255, 255, 0.1);
   background:
-    radial-gradient(ellipse 90% 40% at 50% 0%, rgba(212, 164, 71, 0.1), transparent 50%),
+    radial-gradient(ellipse 90% 40% at 50% 0%, rgba(167, 139, 250, 0.1), transparent 50%),
     linear-gradient(180deg, rgba(12, 20, 36, 0.95), rgba(5, 10, 20, 0.98));
   box-shadow: 0 28px 80px rgba(0, 0, 0, 0.4);
 }
@@ -232,7 +232,7 @@
 
 .csg-callout {
   border-left: 3px solid var(--csg-gold);
-  background: rgba(212, 164, 71, 0.08);
+  background: rgba(167, 139, 250, 0.08);
   color: rgba(255, 255, 255, 0.78);
 }
 
@@ -245,6 +245,100 @@
 .csg-accent-sky {
   color: var(--csg-sky);
 }
+
 .csg-accent-rose {
   color: var(--csg-rose);
+}
+
+.csg-chapter-card:nth-child(2) {
+  border-color: rgba(52, 211, 153, 0.28);
+}
+
+.csg-chapter-card:nth-child(2):hover {
+  border-color: rgba(52, 211, 153, 0.45);
+  background: linear-gradient(165deg, rgba(52, 211, 153, 0.1), rgba(255, 255, 255, 0.03));
+}
+
+.csg-chapter-card:nth-child(3) {
+  border-color: rgba(56, 189, 248, 0.28);
+}
+
+.csg-chapter-card:nth-child(3):hover {
+  border-color: rgba(56, 189, 248, 0.45);
+  background: linear-gradient(165deg, rgba(56, 189, 248, 0.1), rgba(255, 255, 255, 0.03));
+}
+
+.csg-chapter-card:nth-child(4) {
+  border-color: rgba(251, 113, 133, 0.28);
+}
+
+.csg-chapter-card:nth-child(4):hover {
+  border-color: rgba(251, 113, 133, 0.45);
+  background: linear-gradient(165deg, rgba(251, 113, 133, 0.1), rgba(255, 255, 255, 0.03));
+}
+
+.csg-pillar-card:nth-child(2) {
+  border-color: rgba(52, 211, 153, 0.28);
+  background: linear-gradient(165deg, rgba(52, 211, 153, 0.08), rgba(255, 255, 255, 0.02));
+}
+
+.csg-pillar-card:nth-child(3) {
+  border-color: rgba(56, 189, 248, 0.28);
+  background: linear-gradient(165deg, rgba(56, 189, 248, 0.08), rgba(255, 255, 255, 0.02));
+}
+
+.csg-pillar-card:nth-child(4) {
+  border-color: rgba(251, 113, 133, 0.28);
+  background: linear-gradient(165deg, rgba(251, 113, 133, 0.08), rgba(255, 255, 255, 0.02));
+}
+
+.csg-stat-tile:nth-child(2) {
+  border-color: rgba(52, 211, 153, 0.28);
+  background: linear-gradient(160deg, rgba(52, 211, 153, 0.08), rgba(0, 0, 0, 0.2));
+}
+
+.csg-stat-tile:nth-child(3) {
+  border-color: rgba(56, 189, 248, 0.28);
+  background: linear-gradient(160deg, rgba(56, 189, 248, 0.08), rgba(0, 0, 0, 0.2));
+}
+
+.csg-stat-tile:nth-child(4) {
+  border-color: rgba(251, 113, 133, 0.28);
+  background: linear-gradient(160deg, rgba(251, 113, 133, 0.08), rgba(0, 0, 0, 0.2));
+}
+
+.csg-pillar-card:nth-child(2) > div:first-child {
+  border-color: rgba(52, 211, 153, 0.35);
+  background: rgba(52, 211, 153, 0.1);
+  color: #34d399;
+}
+
+.csg-pillar-card:nth-child(3) > div:first-child {
+  border-color: rgba(56, 189, 248, 0.35);
+  background: rgba(56, 189, 248, 0.1);
+  color: #38bdf8;
+}
+
+.csg-pillar-card:nth-child(4) > div:first-child {
+  border-color: rgba(251, 113, 133, 0.35);
+  background: rgba(251, 113, 133, 0.1);
+  color: #fb7185;
+}
+
+.csg-stat-tile:nth-child(2) > div:first-child {
+  border-color: rgba(52, 211, 153, 0.35);
+  background: rgba(52, 211, 153, 0.1);
+  color: #34d399;
+}
+
+.csg-stat-tile:nth-child(3) > div:first-child {
+  border-color: rgba(56, 189, 248, 0.35);
+  background: rgba(56, 189, 248, 0.1);
+  color: #38bdf8;
+}
+
+.csg-stat-tile:nth-child(4) > div:first-child {
+  border-color: rgba(251, 113, 133, 0.35);
+  background: rgba(251, 113, 133, 0.1);
+  color: #fb7185;
 }

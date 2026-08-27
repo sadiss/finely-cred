@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { ArrowRight, Copy, Film, Play, RefreshCw, Scan, Terminal } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { AdminWorkstationFrame, type AdminEmbeddablePageProps } from '../../features/workspaceLightPreview/product/admin/AdminWorkstationFrame';
+import { useMappedAdminNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { TOUR_MANIFEST } from '../../config/tourManifest';
 import { SITE_SCAN_TARGETS } from '../../config/tourSiteScanner';
 import { getPlatformSop } from '../../domain/platformSops';
@@ -21,8 +21,8 @@ import {
   finelyOsCatalogCard,
 } from '../../features/os/finelyOsLightUi';
 
-export default function AdminTourStudioPage() {
-  const navigate = useNavigate();
+export default function AdminTourStudioPage({ embedded = false }: AdminEmbeddablePageProps = {}) {
+  const navigate = useMappedAdminNavigate();
   const [previewId, setPreviewId] = useState<string | null>(null);
   const [copiedCmd, setCopiedCmd] = useState<string | null>(null);
   const previewTour = useMemo(() => TOUR_MANIFEST.find((t) => t.id === previewId) ?? null, [previewId]);
@@ -59,14 +59,14 @@ export default function AdminTourStudioPage() {
   };
 
   return (
-    <PageShell
+    <AdminWorkstationFrame embedded={embedded} kind="tour-studio-workstation"
       badge="Admin"
       title="Tour Studio"
       subtitle="Manifest tours, step previews, and factory pipeline status — Part C Launch OS."
     >
       <div className={`${FINELY_OS_PAGE} space-y-6`}>
-        <div className={`${finelyOsCatalogCard('amber')} !p-5 border-amber-500/30`} data-fc-accent="amber">
-          <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-amber-300`}>Public site — videos hidden</div>
+        <div className={`${finelyOsCatalogCard('rose')} border-rose-500/30`} data-fc-accent="rose">
+          <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-rose-300`}>Public site — videos hidden</div>
           <p className={`mt-2 ${FINELY_OS_ENTITY_BODY} text-sm max-w-3xl`}>
             Demo and walkthrough videos are <strong>admin-only</strong> until polished. Visitors see static previews instead. Flip{' '}
             <code className="opacity-80">PUBLIC_DEMO_VIDEOS_ENABLED</code> in{' '}
@@ -74,7 +74,7 @@ export default function AdminTourStudioPage() {
           </p>
         </div>
 
-        <div className={`${finelyOsCatalogCard('violet')} !p-6 flex flex-wrap items-center justify-between gap-4`} data-fc-accent="violet">
+        <div className={`${finelyOsCatalogCard('violet')} flex flex-wrap items-center justify-between gap-4`} data-fc-accent="violet">
           <div className="max-w-2xl space-y-2">
             <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-violet-300`}>
               <Terminal size={16} />
@@ -94,7 +94,7 @@ export default function AdminTourStudioPage() {
 
         <TourVideoFactoryPanel />
 
-        <div className={`${finelyOsCatalogCard('sky')} !p-5 space-y-4`} data-fc-accent="sky">
+        <div className={`${finelyOsCatalogCard('sky')} space-y-4`} data-fc-accent="sky">
           <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-sky-300`}>
             <Scan size={16} />
             <span>Site scanner — video-recorder mode</span>
@@ -129,7 +129,7 @@ export default function AdminTourStudioPage() {
           </div>
         </div>
 
-        <div className={`${finelyOsCatalogCard('emerald')} !p-5 space-y-4`} data-fc-accent="emerald">
+        <div className={`${finelyOsCatalogCard('emerald')} space-y-4`} data-fc-accent="emerald">
           <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-emerald-300`}>
             <RefreshCw size={16} />
             <span>Regenerate pipeline</span>
@@ -155,10 +155,11 @@ export default function AdminTourStudioPage() {
           items={TOUR_MANIFEST}
           pageSize={8}
           itemSpacingClassName="grid md:grid-cols-2 gap-4"
-          renderItem={(tour) => {
+          renderItem={(tour, idx) => {
             const sop = tour.relatedSopId ? getPlatformSop(tour.relatedSopId) : null;
+            const tourAccent = (['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4];
             return (
-              <div key={tour.id} className={`${finelyOsCatalogCard('sky')} !p-5 space-y-3`} data-fc-accent="sky">
+              <div key={tour.id} className={`${finelyOsCatalogCard(tourAccent)} space-y-3`} data-fc-accent={tourAccent}>
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <div className={`${FINELY_OS_ENTITY_VALUE} font-semibold`}>{tour.title}</div>
@@ -183,8 +184,8 @@ export default function AdminTourStudioPage() {
           }}
         />
 
-        <div className={`${finelyOsCatalogCard('emerald')} !p-6 space-y-4`} data-fc-accent="emerald">
-          <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-emerald-300`}>Draft — free guide hero video</div>
+        <div className={`${finelyOsCatalogCard('rose')} space-y-4`} data-fc-accent="rose">
+          <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-rose-300`}>Draft — free guide hero video</div>
           <p className={`${FINELY_OS_ENTITY_BODY} text-sm max-w-2xl`}>
             This autoplay funnel video is hidden from <code className="opacity-80">/free-guide</code> until demos go public. Preview and refine here.
           </p>
@@ -193,10 +194,10 @@ export default function AdminTourStudioPage() {
           </div>
         </div>
 
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
       </div>
 
       <FinelyTourPlayer tour={previewTour} open={Boolean(previewTour)} onClose={() => setPreviewId(null)} allowVoice />
-    </PageShell>
+    </AdminWorkstationFrame>
   );
 }

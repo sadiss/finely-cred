@@ -171,7 +171,7 @@ export default function CreditSpecialistGuideReaderPage() {
 
   return (
     <GuideReaderShell
-      className="csg-page csg-reader-shell csg-binder relative overflow-x-hidden selection:bg-[#c99b48]/30"
+      className="csg-page csg-reader-shell csg-binder relative overflow-x-hidden selection:bg-violet-500/25"
       chapters={shellChapters}
       chapterIndex={chapterIdx}
       onChapterChange={goChapter}
@@ -196,7 +196,7 @@ export default function CreditSpecialistGuideReaderPage() {
         <button
           type="button"
           onClick={() => navigate(CS_GUIDE_PATH)}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-[11px] font-bold uppercase tracking-[0.12em] text-white/70 transition hover:border-[#d4a447]/40 hover:text-[#f0cc75]"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-[11px] font-bold uppercase tracking-[0.12em] text-white/70 transition hover:border-[#a78bfa]/40 hover:text-[#c4b5fd]"
         >
           <ArrowLeft size={14} /> Landing
         </button>
@@ -207,7 +207,7 @@ export default function CreditSpecialistGuideReaderPage() {
             type="button"
             onClick={() => void onDownloadTwoSheet()}
             disabled={downloading}
-            className="csg-nav-cta hidden items-center gap-1.5 rounded-lg px-3 py-2 text-[10px] font-bold uppercase tracking-[0.12em] text-[#e8c96a] sm:inline-flex"
+            className="csg-nav-cta hidden items-center gap-1.5 rounded-lg px-3 py-2 text-[10px] font-bold uppercase tracking-[0.12em] text-[#c4b5fd] sm:inline-flex"
           >
             <Download size={14} /> {downloading ? '…' : '2-sheet PDF'}
           </button>
@@ -224,12 +224,12 @@ export default function CreditSpecialistGuideReaderPage() {
         <div className="csg-cta-panel mt-5 rounded-2xl p-5 md:p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <div className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#95e000]">
+              <div className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#34d399]">
                 <Sparkles size={14} /> Keep reading freely
               </div>
               <p className="mt-2 text-sm text-white/60">
                 This e-guide is separate from signup. Take the 2-sheet playbook anytime — join only when you want the
-                program at <span className="text-[#f0cc75]">{CS_JOIN_PATH}</span>
+                program at <span className="text-[#c4b5fd]">{CS_JOIN_PATH}</span>
               </p>
               <p className="csg-compliance mt-2">{CS_GUIDE_META.compliance}</p>
             </div>
@@ -250,7 +250,7 @@ export default function CreditSpecialistGuideReaderPage() {
               </Link>
               <Link
                 to={CS_JOIN_PATH}
-                className="inline-flex h-10 items-center justify-center rounded-lg px-3 text-[10px] font-bold uppercase tracking-[0.12em] text-white/45 transition hover:text-[#f0cc75]"
+                className="inline-flex h-10 items-center justify-center rounded-lg px-3 text-[10px] font-bold uppercase tracking-[0.12em] text-white/45 transition hover:text-[#c4b5fd]"
               >
                 Join →
               </Link>
@@ -286,12 +286,12 @@ export default function CreditSpecialistGuideReaderPage() {
               <ChapterBody chapter={ch} />
             </div>
 
-            <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-[#e3dac6] pt-6">
+            <div className="csg-article-nav mt-8 flex flex-wrap items-center justify-between gap-3 pt-6">
               <button
                 type="button"
                 disabled={i <= 0}
                 onClick={() => goChapter(i - 1)}
-                className="inline-flex h-11 items-center gap-2 rounded-lg border border-[#e3dac6] bg-white/60 px-4 text-[11px] font-black uppercase tracking-[0.12em] text-[#4a4234] transition hover:border-[#a8792a]/60 disabled:cursor-not-allowed disabled:opacity-35"
+                className="csg-prev-btn inline-flex h-11 items-center gap-2 rounded-lg px-4 text-[11px] font-black uppercase tracking-[0.12em]"
               >
                 <ChevronLeft size={16} /> Previous
               </button>

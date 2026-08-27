@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ArrowRight, Shield, Users, Globe, Settings, CheckCircle2, AlertCircle, Lock, RefreshCcw, Rocket } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { AdminWorkstationFrame, type AdminEmbeddablePageProps } from '../../features/workspaceLightPreview/product/admin/AdminWorkstationFrame';
+import { useMappedAdminNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { useAuth } from '../../auth/AuthProvider';
 import { ActionLink, Button, CollapsibleSection } from '../../components/ui';
 import { ADMIN_EMAIL_ALLOWLIST, isAdminEmail } from '../../auth/admin';
@@ -17,6 +17,8 @@ import {
 } from '../../data/tenantsRepo';
 import { getAccessiblePartnerIdsForAdmin } from '../../tenancy/adminPartnerScope';
 import { loadSettings, updateSecuritySettings } from '../../data/settingsRepo';
+import { allRolePreviewEntries } from '../../config/rolePreviewCatalog';
+import { canUseAdminRolePreview } from '../../lib/adminRolePreviewAccess';
 import {
   getSensitiveActionCodes,
   hasSensitiveActionCode,
@@ -55,8 +57,8 @@ function yesNoChip(yes: boolean) {
   return finelyOsStatusChip(yes ? 'ok' : 'warn');
 }
 
-export default function AdminAccessCenterPage() {
-  const navigate = useNavigate();
+export default function AdminAccessCenterPage({ embedded = false }: AdminEmbeddablePageProps = {}) {
+  const navigate = useMappedAdminNavigate();
   const auth = useAuth();
   const user = auth.user;
 
@@ -130,6 +132,12 @@ export default function AdminAccessCenterPage() {
   }, [user?.id, email, activeTenantId, storeVersion]);
 
   const security = useMemo(() => loadSettings().security ?? { adminEmails: [] }, [storeVersion]);
+  const teamRolePreviewEnabled = (security as { teamRolePreviewEnabled?: boolean }).teamRolePreviewEnabled !== false;
+  const rolePreviewAllowed = useMemo(
+    () => canUseAdminRolePreview({ userId: user?.id, email }),
+    [user?.id, email],
+  );
+  const previewableRoles = useMemo(() => allRolePreviewEntries(), []);
   const runtimeAdminEmails = useMemo((): string[] => {
     const extra = Array.isArray((security as any)?.adminEmails) ? ((security as any).adminEmails as string[]) : [];
     return extra.map(normalizeEmail).filter(Boolean).sort();
@@ -172,7 +180,7 @@ export default function AdminAccessCenterPage() {
   };
 
   return (
-    <PageShell
+    <AdminWorkstationFrame embedded={embedded} kind="access-workstation"
       badge="Admin"
       title="Admin Control Center"
       subtitle="One place to control admin access, team roles, and system settings — without hunting across the platform."
@@ -204,17 +212,17 @@ export default function AdminAccessCenterPage() {
         <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
           {[
             { path: '/admin/launch-os#go-live', icon: Rocket, label: 'Go-live center', desc: 'Production pillars, Twilio, theme, and terminal commands.', accent: 'emerald' as const },
-            { path: '/admin/settings?tab=appearance', icon: Settings, label: 'Light theme preview', desc: 'Admin-only light theme polish before public go-live.', accent: 'fuchsia' as const },
-            { path: '/admin/settings', icon: Settings, label: 'System Settings', desc: 'Security, feature flags, pricing, integrations.', accent: 'violet' as const },
-            { path: '/admin/team', icon: Users, label: 'Team & Roles', desc: 'Invite, roles, permission visibility.', accent: 'emerald' as const },
-            { path: '/admin/billing', icon: Lock, label: 'Billing & Entitlements', desc: 'Plans, entitlements, access grants.', accent: 'amber' as const },
-            { path: '/admin/templates', icon: Shield, label: 'Templates', desc: 'Template vault + generator library.', accent: 'sky' as const },
+            { path: '/admin/settings?tab=appearance', icon: Settings, label: 'Light theme preview', desc: 'Admin-only light theme polish before public go-live.', accent: 'violet' as const },
+            { path: '/admin/settings', icon: Settings, label: 'System Settings', desc: 'Security, feature flags, pricing, integrations.', accent: 'sky' as const },
+            { path: '/admin/team', icon: Users, label: 'Team & Roles', desc: 'Invite, roles, permission visibility.', accent: 'rose' as const },
+            { path: '/admin/billing', icon: Lock, label: 'Billing & Entitlements', desc: 'Plans, entitlements, access grants.', accent: 'emerald' as const },
+            { path: '/admin/templates', icon: Shield, label: 'Templates', desc: 'Template vault + generator library.', accent: 'violet' as const },
           ].map((item) => (
             <button
               key={item.path}
               type="button"
               onClick={() => navigate(item.path)}
-              className={`${finelyOsCatalogCard(item.accent)} !p-5 w-full text-left transition-all hover:brightness-[1.02]`}
+              className={`${finelyOsCatalogCard(item.accent)} w-full text-left transition-all hover:brightness-[1.02]`}
               data-fc-accent={item.accent}
             >
               <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_VALUE} text-sm`}>
@@ -225,16 +233,16 @@ export default function AdminAccessCenterPage() {
           ))}
         </div>
 
-        <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-3`}>
+        <div className={`${finelyOsCatalogCard('sky')} space-y-3`} data-fc-accent="sky">
           <div className={FINELY_OS_ENTITY_SUBLABEL}>Funnel snapshot (last 7 days)</div>
           <div className="grid md:grid-cols-2 xl:grid-cols-6 gap-3">
             {[
-              { k: 'Reports', v: funnel.reportsUploaded, accent: 'violet' as const },
-              { k: 'Evidence', v: funnel.evidenceCaptured, accent: 'sky' as const },
-              { k: 'Disputes picked', v: funnel.disputesSelected, accent: 'amber' as const },
-              { k: 'Letters generated', v: funnel.letterGenerated, accent: 'fuchsia' as const },
+              { k: 'Reports', v: funnel.reportsUploaded, accent: 'emerald' as const },
+              { k: 'Evidence', v: funnel.evidenceCaptured, accent: 'violet' as const },
+              { k: 'Disputes picked', v: funnel.disputesSelected, accent: 'sky' as const },
+              { k: 'Letters generated', v: funnel.letterGenerated, accent: 'rose' as const },
               { k: 'Letters saved', v: funnel.letterSaved, accent: 'emerald' as const },
-              { k: 'Events', v: funnel.events7d, accent: 'rose' as const },
+              { k: 'Events', v: funnel.events7d, accent: 'violet' as const },
             ].map((x) => (
               <FinelyOsOverviewStatTile key={x.k} icon={Shield} label={x.k} value={x.v} accent={x.accent} iconAccent={x.accent} />
             ))}
@@ -245,7 +253,7 @@ export default function AdminAccessCenterPage() {
         </div>
 
         <div className="grid lg:grid-cols-12 gap-6">
-          <div className={`lg:col-span-7 ${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+          <div className={`lg:col-span-7 ${finelyOsCatalogCard('emerald')} space-y-4`} data-fc-accent="emerald">
             <div className={FINELY_OS_ENTITY_SUBLABEL}>Effective access</div>
 
             <div className="flex flex-wrap items-center gap-2">
@@ -261,7 +269,7 @@ export default function AdminAccessCenterPage() {
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">
-              <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-1`}>
+              <div className={`${finelyOsCatalogCard('emerald')} fc-surface-harmony space-y-2`} data-fc-accent="emerald">
                 <div className={FINELY_OS_ENTITY_SUBLABEL}>Signed in</div>
                 <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{email || '—'}</div>
                 <div className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono normal-case tracking-normal`}>
@@ -269,7 +277,7 @@ export default function AdminAccessCenterPage() {
                 </div>
               </div>
 
-              <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-1`}>
+              <div className={`${finelyOsCatalogCard('violet')} fc-surface-harmony space-y-2`} data-fc-accent="violet">
                 <div className={FINELY_OS_ENTITY_SUBLABEL}>Active tenant</div>
                 <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{activeTenant?.name ?? 'Finely Cred'}</div>
                 <div className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono truncate normal-case tracking-normal`}>
@@ -278,12 +286,12 @@ export default function AdminAccessCenterPage() {
               </div>
             </div>
 
-            <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-2`}>
+            <div className={`${finelyOsCatalogCard('sky')} fc-surface-harmony space-y-3`} data-fc-accent="sky">
               <div className={FINELY_OS_ENTITY_SUBLABEL}>Capabilities (what you can see)</div>
               <div className="flex flex-wrap gap-2">
                 <span className={yesNoChip(caps.canManageTeam)}>team={String(caps.canManageTeam)}</span>
                 <span className={yesNoChip(caps.canManageTenants)}>tenants={String(caps.canManageTenants)}</span>
-                <span className={yesNoChip(caps.canViewAllClients)}>allClients={String(caps.canViewAllClients)}</span>
+                <span className={yesNoChip(caps.canViewAllClients)}>allPartners={String(caps.canViewAllClients)}</span>
                 <span className={yesNoChip(caps.canUseFinanceTools)}>finance={String(caps.canUseFinanceTools)}</span>
                 <span className={finelyOsStatusChip('warn')}>partnerScope={accessiblePartnerCount}</span>
               </div>
@@ -292,8 +300,52 @@ export default function AdminAccessCenterPage() {
               </div>
             </div>
 
+            <div className={`${finelyOsCatalogCard('violet')} fc-surface-harmony space-y-4`} data-fc-accent="violet">
+              <div className={FINELY_OS_ENTITY_SUBLABEL}>Role preview · view all product lanes</div>
+              <p className={FINELY_OS_ENTITY_BODY}>
+                Grant team members the floating role switcher and Role access studio so they can preview every lane —
+                partner, specialist, affiliate, agency, case desk, AU, business, HOS, and admin — before provisioning access.
+              </p>
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="mt-1"
+                  checked={teamRolePreviewEnabled}
+                  onChange={(e) => {
+                    updateSecuritySettings({ teamRolePreviewEnabled: e.target.checked });
+                    setNotice(e.target.checked ? 'Team role preview enabled.' : 'Team role preview restricted to owners.');
+                    window.setTimeout(() => setNotice(null), 2200);
+                  }}
+                />
+                <span className={FINELY_OS_ENTITY_BODY}>
+                  <strong>Allow team role preview</strong> — requires{' '}
+                  <span className="font-mono text-xs">canPreviewAllRoles</span> on Team &amp; Roles (owners always have access).
+                </span>
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {previewableRoles.map((r) => (
+                  <span key={r.role} className={FINELY_OS_ENTITY_CHIP}>
+                    {r.shortLabel}
+                  </span>
+                ))}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => navigate('/admin/role-preview')}
+                  className={FINELY_OS_PRIMARY_BTN}
+                  disabled={!rolePreviewAllowed}
+                >
+                  Open role access studio <ArrowRight size={14} />
+                </button>
+                <button type="button" onClick={() => navigate('/admin/team')} className={FINELY_OS_SECONDARY_BTN}>
+                  Team &amp; Roles permissions
+                </button>
+              </div>
+            </div>
+
             <div className="grid md:grid-cols-2 gap-4">
-              <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-2`}>
+              <div className={`${finelyOsCatalogCard('rose')} fc-surface-harmony space-y-2`} data-fc-accent="rose">
                 <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
                   <Users size={16} />
                   Membership (active tenant)
@@ -307,7 +359,7 @@ export default function AdminAccessCenterPage() {
                   <div className={FINELY_OS_ENTITY_BODY}>No membership record for this tenant.</div>
                 )}
               </div>
-              <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-2`}>
+              <div className={`${finelyOsCatalogCard('emerald')} fc-surface-harmony space-y-2`} data-fc-accent="emerald">
                 <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
                   <Lock size={16} />
                   Membership (platform)
@@ -325,7 +377,7 @@ export default function AdminAccessCenterPage() {
           </div>
 
           <div className="lg:col-span-5 space-y-6">
-            <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+            <div className={`${finelyOsCatalogCard('sky')} space-y-4`} data-fc-accent="sky">
               <div className={FINELY_OS_ENTITY_SUBLABEL}>Tenant selector</div>
               <div className={FINELY_OS_ENTITY_BODY}>
                 Many admin views (partners, tasks, cases) are filtered by the <strong>active tenant</strong>.
@@ -439,7 +491,7 @@ export default function AdminAccessCenterPage() {
 
               <div className="h-4" />
 
-              <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony flex items-start gap-3`}>
+              <div className={`${finelyOsCatalogCard('rose')} fc-surface-harmony flex items-start gap-3`} data-fc-accent="rose">
                 {effectiveAdmin ? (
                   <CheckCircle2 size={18} className="text-emerald-600 mt-0.5" />
                 ) : (
@@ -461,9 +513,9 @@ export default function AdminAccessCenterPage() {
                 {(['partner_delete', 'partner_access_grant', 'hos_access_grant', 'bulk_report_purge'] as SensitiveActionKey[]).map((key) => {
                   const configured = hasSensitiveActionCode(key);
                   return (
-                    <div key={key} className={`${finelyOsCatalogCard('rose')} !p-4 space-y-2`}>
+                    <div key={key} className={`${finelyOsCatalogCard('rose')} space-y-2`}>
                       <div className={FINELY_OS_ENTITY_SUBLABEL}>{sensitiveActionLabel(key)}</div>
-                      <div className={`text-xs ${configured ? 'text-emerald-700' : 'text-amber-700'}`}>
+                      <div className={`text-xs ${configured ? 'text-emerald-700' : 'text-rose-700'}`}>
                         {configured ? 'Code configured' : 'Not set — action blocked until configured'}
                       </div>
                       <div className="flex flex-wrap gap-2">
@@ -492,7 +544,7 @@ export default function AdminAccessCenterPage() {
                     </div>
                   );
                 })}
-                <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+                <div className={`${finelyOsCatalogCard('sky')} fc-surface-harmony`}>
                   <div className={FINELY_OS_ENTITY_BODY}>
                     Head of Society invite keys are managed separately in{' '}
                     <button type="button" className="font-semibold underline" onClick={() => navigate('/admin/settings?tab=heta')}>
@@ -505,9 +557,9 @@ export default function AdminAccessCenterPage() {
             </CollapsibleSection>
           </div>
         </div>
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
 </div>
-    </PageShell>
+    </AdminWorkstationFrame>
   );
 }
 

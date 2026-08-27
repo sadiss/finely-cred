@@ -23,6 +23,8 @@ export function EntityDetailShell(args: {
   useTabLanes?: boolean;
   /** When "admin", Overview/Profile content uses the scoped dark-glass workspace. */
   surface?: 'default' | 'admin';
+  /** Host page already supplies the app chrome (product workspace shell), so skip `PageShell`. */
+  embedded?: boolean;
   children: React.ReactNode;
 }) {
   const tabs = (args.tabs ?? []).filter((t) => !t.hidden);
@@ -35,13 +37,8 @@ export function EntityDetailShell(args: {
   const stickyBarClass =
     'sticky top-0 z-20 -mx-1 px-1 py-2 rounded-xl border border-violet-500/20 bg-fc-chrome/95 backdrop-blur-md shadow-lg shadow-black/10 fc-entity-sticky-bar';
 
-  return (
-    <PageShell
-      badge={args.badge}
-      title={args.title}
-      subtitle={args.subtitle}
-    >
-      <div className={pageClass}>
+  const body = (
+    <div className={pageClass}>
         {(args.headerLeft || args.headerRight) ? (
           <div data-fc-entity-detail-header="1" className="flex flex-wrap items-center justify-between gap-4">
             <div>{args.headerLeft}</div>
@@ -93,6 +90,19 @@ export function EntityDetailShell(args: {
           </>
         )}
       </div>
+  );
+
+  if (args.embedded) {
+    return (
+      <section data-fc-entity-detail-embedded="1" className="fc-light-black-scope">
+        {body}
+      </section>
+    );
+  }
+
+  return (
+    <PageShell badge={args.badge} title={args.title} subtitle={args.subtitle}>
+      {body}
     </PageShell>
   );
 }

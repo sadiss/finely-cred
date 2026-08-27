@@ -69,8 +69,8 @@ function ShiftDayPicker({ days, onChange }: { days: number[]; onChange: (days: n
               const next = on ? days.filter((x) => x !== d) : [...days, d].sort((a, b) => a - b);
               onChange(next);
             }}
-            className={`px-2 py-1 rounded-md text-[10px] font-bold border transition ${
-              on ? 'bg-amber-500/25 border-amber-400/40 text-amber-100' : FINELY_OS_ENTITY_CHIP
+            className={`px-2 py-1 rounded-md text-xs font-bold border transition ${
+              on ? 'bg-emerald-500/25 border-emerald-400/40 text-emerald-100' : FINELY_OS_ENTITY_CHIP
             }`}
           >
             {label}
@@ -111,7 +111,7 @@ export function PartnerStaffRosterPanel() {
   );
 
   const tabBtn = (id: Tab, label: string) => (
-    <button type="button" onClick={() => setTab(id)} className={finelyOsViewTab(tab === id, 'amber')}>
+    <button type="button" onClick={() => setTab(id)} className={finelyOsViewTab(tab === id, 'rose')}>
       {label}
     </button>
   );
@@ -119,12 +119,12 @@ export function PartnerStaffRosterPanel() {
   return (
     <div className={`${STAFF_CMD_PANEL} space-y-5`}>
       <div>
-        <div className={`inline-flex items-center gap-2 ${STAFF_CMD_EYEBROW} text-amber-300`}>
+        <div className={`inline-flex items-center gap-2 ${STAFF_CMD_EYEBROW} text-rose-300`}>
           <UserRound size={16} /> Human · partner-facing
         </div>
         <h2 className={`mt-2 ${STAFF_CMD_TITLE}`}>Portal & chat specialists</h2>
         <p className={`mt-2 max-w-3xl text-sm ${STAFF_CMD_BODY}`}>
-          Real named humans clients see in chat and the partner portal — shifts, roles, and routing. Separate from AI growth operators on the company roster.
+          Real named humans partners see in chat and the partner portal — shifts, roles, and routing. Separate from AI growth operators on the company roster.
         </p>
       </div>
 
@@ -142,18 +142,18 @@ export function PartnerStaffRosterPanel() {
       {tab === 'on_duty' ? (
         <div className="space-y-5">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <FinelyOsOverviewStatTile icon={Clock} label="On shift" value={onDutyNow.length} accent="amber" hint="Human roster in shift" />
+            <FinelyOsOverviewStatTile icon={Clock} label="On shift" value={onDutyNow.length} accent="emerald" hint="Human roster in shift" />
             <FinelyOsOverviewStatTile icon={Users} label="Roles" value={COVERAGE_ROLE_IDS.length} accent="violet" hint="Coverage monitored" />
             <FinelyOsOverviewStatTile icon={Bot} label="Gaps" value={coverageGaps.length} accent="rose" hint="Off shift or empty" />
             <FinelyOsOverviewStatTile icon={UserCircle2} label="Roster" value={roster.filter((s) => s.active).length} accent="sky" hint="Active humans" />
           </div>
-          <FinelyOsGlassPanel icon={Clock} title="Primary on duty" accent="amber">
+          <FinelyOsGlassPanel icon={Clock} title="Primary on duty" accent="emerald">
             <div className="flex flex-wrap items-center gap-4">
               {onDutyStaff ? (
-                <StaffPortraitImg staff={onDutyStaff} className="w-16 h-16 rounded-2xl border-2 border-amber-400/40" />
+                <StaffPortraitImg staff={onDutyStaff} className="w-16 h-16 rounded-2xl border-2 border-emerald-400/40" />
               ) : (
-                <div className="w-16 h-16 rounded-2xl bg-amber-500/20 border border-amber-400/30 grid place-items-center">
-                  <UserCircle2 className="text-amber-300" size={28} />
+                <div className="w-16 h-16 rounded-2xl bg-emerald-500/20 border border-emerald-400/30 grid place-items-center">
+                  <UserCircle2 className="text-emerald-300" size={28} />
                 </div>
               )}
               <div>
@@ -174,8 +174,8 @@ export function PartnerStaffRosterPanel() {
                   const role = personas.find((p) => p.id === s.primaryRoleId);
                   const shift = formatPartnerStaffShiftSummary(s);
                   return (
-                    <div key={s.id} className={`${finelyOsInlineListItem()} flex items-center gap-4 p-4`}>
-                      <StaffPortraitImg staff={s} className="w-12 h-12 rounded-2xl border border-amber-400/25" />
+                    <div key={s.id} className={`${finelyOsInlineListItem()} flex items-center gap-4 p-6`}>
+                      <StaffPortraitImg staff={s} className="w-12 h-12 rounded-2xl border border-violet-400/25" />
                       <div className="min-w-0">
                         <div className="font-semibold text-white">{staffMemberFullName(s)}</div>
                         <div className={`${FINELY_OS_ENTITY_BODY} text-xs`}>{role?.displayTitle ?? s.primaryRoleId}</div>
@@ -190,8 +190,8 @@ export function PartnerStaffRosterPanel() {
             </div>
           </FinelyOsGlassPanel>
           {coverageGaps.length ? (
-            <FinelyOsGlassPanel icon={Bot} title="Coverage gaps" accent="amber">
-              <ul className="space-y-2 text-sm text-amber-200/90">
+            <FinelyOsGlassPanel icon={Bot} title="Coverage gaps" accent="rose">
+              <ul className="space-y-2 text-sm text-rose-200/90">
                 {coverageGaps.map((g) => {
                   const roleId = g.split(':')[0] as AgentPersonaId;
                   const label = getAgentPersona(roleId)?.displayTitle ?? roleId;
@@ -204,7 +204,7 @@ export function PartnerStaffRosterPanel() {
       ) : null}
 
       {tab === 'roster' ? (
-        <FinelyOsGlassPanel icon={Users} title="Human team roster" accent="amber">
+        <FinelyOsGlassPanel icon={Users} title="Human team roster" accent="sky">
           <div className="mb-4">
             <label className={FINELY_OS_ENTITY_SUBLABEL}>Filter by role</label>
             <select
@@ -233,10 +233,10 @@ export function PartnerStaffRosterPanel() {
                     setSelectedStaffId(s.id);
                     setEditShifts(s.shiftBlocks.map((b) => ({ ...b, days: [...b.days] })));
                   }}
-                  className={`w-full text-left ${finelyOsListItem(isOnDuty || selectedStaffId === s.id, isOnDuty ? 'emerald' : 'amber')} p-4`}
+                  className={`w-full text-left ${finelyOsListItem(isOnDuty || selectedStaffId === s.id, isOnDuty ? 'emerald' : 'violet')} p-6`}
                 >
                   <div className="flex items-start gap-4">
-                    <StaffPortraitImg staff={s} className="w-14 h-14 rounded-2xl border border-amber-400/25" />
+                    <StaffPortraitImg staff={s} className="w-14 h-14 rounded-2xl border border-sky-400/25" />
                     <div className="min-w-0 flex-1">
                       <div className={`${FINELY_OS_ENTITY_VALUE}`}>{staffMemberFullName(s)}</div>
                       <div className={`${FINELY_OS_ENTITY_SUBLABEL} mt-0.5`}>{persona?.displayTitle ?? persona?.name ?? s.primaryRoleId}</div>
@@ -251,7 +251,7 @@ export function PartnerStaffRosterPanel() {
             })}
           </div>
           {selectedStaff ? (
-            <div className="mt-6 rounded-xl border border-amber-500/25 bg-amber-500/5 p-4 space-y-3">
+            <div className="mt-6 rounded-xl border border-violet-500/25 bg-violet-500/5 p-6 space-y-3">
               <div className="font-semibold text-white">{staffMemberFullName(selectedStaff)} — shift editor</div>
               {editShifts.map((block, i) => (
                 <div key={i} className={`${finelyOsInlineListItem()} p-3 space-y-2`}>
@@ -307,7 +307,7 @@ export function PartnerStaffRosterPanel() {
             <p className={`${FINELY_OS_ENTITY_BODY} text-sm mb-4`}>Roles define tone and tools. Human roster members map to these for chat presentation.</p>
             <div className="space-y-3">
               {personas.map((p) => (
-                <div key={p.id} className={`${finelyOsInlineListItem()} p-4`}>
+                <div key={p.id} className={`${finelyOsInlineListItem()} p-6`}>
                   <div className={FINELY_OS_ENTITY_VALUE}>{p.displayTitle ?? p.name}</div>
                   <div className={`${FINELY_OS_ENTITY_BODY} text-xs mt-2`}>{listStaffByRole(p.id).length} human roster member(s)</div>
                 </div>

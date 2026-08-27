@@ -32,21 +32,21 @@ function adminToneForPackage(pkg: PricingPackage): FcAdminTone {
     // Alternate gold / teal so letter packs stay visually distinct.
     let h = 0;
     for (let i = 0; i < id.length; i++) h = (h + id.charCodeAt(i) * (i + 1)) % 997;
-    return h % 2 === 0 ? 'gold' : 'teal';
+    return h % 2 === 0 ? 'violet' : 'teal';
   }
   // Restore DFY ladder — each tier keeps its own tone in the adminSolid family.
   if (id === 'personal_restore_starter') return 'sky';
   if (id === 'personal_restore') return 'navy';
   if (id === 'personal_platinum' || id.includes('platinum')) return 'rose';
-  if (id === 'personal_restore_5000') return 'gold';
+  if (id === 'personal_restore_5000') return 'violet';
   if (id === 'personal_restore_7000') return 'emerald';
   if (id === 'personal_restore_10000') return 'sky';
-  if (id === 'personal_restore_custom' || id === 'debt_kill_custom') return 'gold';
+  if (id === 'personal_restore_custom' || id === 'debt_kill_custom') return 'rose';
   if (id.includes('restore')) return 'navy';
   return ADMIN_FALLBACK_TONES[Math.abs(id.length) % ADMIN_FALLBACK_TONES.length];
 }
 
-const ADMIN_FALLBACK_TONES: FcAdminTone[] = ['emerald', 'sky', 'gold', 'navy', 'teal', 'rose'];
+const ADMIN_FALLBACK_TONES: FcAdminTone[] = ['emerald', 'sky', 'violet', 'navy', 'teal', 'rose'];
 
 /** Soft glow for non-solid catalogs; solid restore uses champagne gold standalone. */
 const WHATS_INCLUDED_BTN_DEFAULT = `${FINELY_OS_GLOW_INCLUDES_BTN} !px-3 !py-2 text-[11px] sm:text-xs`;
@@ -88,7 +88,7 @@ export function pricingPackageGroupKey(pkg: PricingPackage): string {
 function badgeClass(label: string) {
   const u = label.toUpperCase();
   if (u.includes('FREE')) return 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300';
-  if (u.includes('POPULAR')) return 'border-amber-500/30 bg-amber-500/10 text-amber-300';
+  if (u.includes('POPULAR')) return 'border-violet-500/30 bg-violet-500/10 text-violet-300';
   if (u.includes('LETTER')) return 'border-fuchsia-500/30 bg-fuchsia-500/10 text-fuchsia-300';
   if (u.includes('CORE')) return 'border-violet-500/30 bg-violet-500/10 text-violet-300';
   return 'border-white/[0.08] bg-white/[0.07] text-white/60';

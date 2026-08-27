@@ -20,7 +20,7 @@ export default function AdminSignupOpsPage() {
   return (
     <PageShell title="Signup & access ops" subtitle="How passwords, welcome emails, and role routing work">
       <div className="space-y-6 max-w-5xl">
-        <div className={`${finelyOsCatalogCard('emerald')} !p-5 space-y-4`}>
+        <div className={`${finelyOsCatalogCard('emerald')} space-y-4`}>
           <FinelyOsSectionTitle icon={UserPlus} label="Onboard someone in 3 steps" accent="emerald" />
           <ol className={`space-y-3 ${FINELY_OS_ENTITY_BODY} list-decimal pl-5`}>
             <li>
@@ -37,13 +37,13 @@ export default function AdminSignupOpsPage() {
             <a href="/admin/partners" className={FINELY_OS_PRIMARY_BTN}>
               Open Partners list
             </a>
-            <a href="/admin/partner-import" className={FINELY_OS_SECONDARY_BTN}>
+            <a href="/admin/partners/import" className={FINELY_OS_SECONDARY_BTN}>
               Bulk import
             </a>
           </div>
         </div>
 
-        <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-3`}>
+        <div className={`${finelyOsCatalogCard('violet')} space-y-3`}>
           <FinelyOsSectionTitle icon={Shield} label="Quick answers" accent="violet" />
           <ul className={`space-y-2 ${FINELY_OS_ENTITY_BODY} list-disc pl-5`}>
             <li>
@@ -62,14 +62,14 @@ export default function AdminSignupOpsPage() {
         </div>
 
         <div className="grid sm:grid-cols-2 gap-3">
-          <div className={`${finelyOsCatalogCard('emerald')} !p-4 flex items-center gap-3`}>
+          <div className={`${finelyOsCatalogCard('emerald')} flex items-center gap-3`}>
             <Mail size={18} className="text-emerald-300 shrink-0" />
             <div>
               <div className={FINELY_OS_ENTITY_VALUE}>Comms delivery</div>
               <div className={FINELY_OS_ENTITY_BODY}>{commsOn ? 'ON — welcome emails can send' : 'OFF — enable in Settings → Feature flags'}</div>
             </div>
           </div>
-          <div className={`${finelyOsCatalogCard('sky')} !p-4 flex items-center gap-3`}>
+          <div className={`${finelyOsCatalogCard('sky')} flex items-center gap-3`}>
             <UserPlus size={18} className="text-sky-300 shrink-0" />
             <div>
               <div className={FINELY_OS_ENTITY_VALUE}>Invite delivery</div>
@@ -85,9 +85,9 @@ export default function AdminSignupOpsPage() {
         ) : null}
 
         <div className="space-y-4">
-          <FinelyOsSectionTitle icon={KeyRound} label="By role" accent="fuchsia" />
-          {SIGNUP_ROLE_GUIDES.map((g) => (
-            <div key={g.id} className={`${finelyOsCatalogCard('fuchsia')} !p-5 space-y-2`}>
+          <FinelyOsSectionTitle icon={KeyRound} label="By role" accent="rose" />
+          {SIGNUP_ROLE_GUIDES.map((g, idx) => (
+            <div key={g.id} className={`${finelyOsCatalogCard((['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4])} space-y-2`} data-fc-accent={(['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4]}>
               <div className={`text-lg font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{g.label}</div>
               <div className={`text-xs font-mono opacity-80 ${FINELY_OS_ENTITY_BODY}`}>Signup: {g.signupPath}</div>
               <div className={`text-xs font-mono opacity-80 ${FINELY_OS_ENTITY_BODY}`}>Landing: {g.postAuthHome}</div>

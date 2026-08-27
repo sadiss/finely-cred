@@ -3,7 +3,7 @@ import {
   Activity,
   BarChart3,
   BookOpen,
-  Camera,
+  FileCheck2,
   ChevronDown,
   ChevronRight,
   Copy,
@@ -13,11 +13,12 @@ import {
   IdCard,
   Layers,
   Scale,
+  ScanSearch,
   ShieldAlert,
   Search,
   TrendingUp,
 } from 'lucide-react';
-import type { Bureau, DisputeCandidate, ParsedCreditReport, ParsedSection, ParsedSectionItem, ParsedTradeline, TradelineRow } from '../../domain/creditReports';
+import type { Bureau, CreditReportRecord, DisputeCandidate, ParsedCreditReport, ParsedSection, ParsedSectionItem, ParsedTradeline, TradelineRow } from '../../domain/creditReports';
 import { deriveDisputeCandidates } from '../../creditReports/disputeCandidates';
 import { refreshCreditorContactsOnParsed, extractContactsFromSections } from '../../creditReports/creditorContactExtract';
 import { persistRefreshedCreditorContactsOnReport } from '../../lib/debtCreditorIntel';
@@ -27,6 +28,7 @@ import { bureauShortCode } from '../../utils/bureaus';
 import { computeCreditIntelReadiness, rankDisputeCandidates } from '../../creditReports/creditIntelInsights';
 import { ParsedReportViewer, responsibilityKind } from '../reports/ParsedReportViewer';
 import { SectionItemEvidenceSheet } from '../evidence/EvidenceSheet';
+import { ReportSourceEvidenceModal } from '../evidence/ReportSourceEvidenceModal';
 import type { EvidenceItem } from '../../domain/evidence';
 import { getBlobStore } from '../../storage/getBlobStore';
 import { upsertEvidence } from '../../data/evidenceRepo';
@@ -91,24 +93,20 @@ function IntelHeroBanner({
   eyebrow: string;
   title: string;
   subtitle: string;
-  accent?: 'violet' | 'amber' | 'sky' | 'emerald';
+  accent?: 'violet' | 'sky' | 'emerald';
 }) {
   const ring =
-    accent === 'amber'
-      ? 'from-amber-500/25 via-orange-400/10 to-transparent border-amber-400/30'
-      : accent === 'sky'
-        ? 'from-sky-500/25 via-cyan-400/10 to-transparent border-sky-400/30'
-        : accent === 'emerald'
-          ? 'from-emerald-500/25 via-teal-400/10 to-transparent border-emerald-400/30'
-          : 'from-fuchsia-500/25 via-violet-400/10 to-transparent border-fuchsia-400/30';
+    accent === 'sky'
+      ? 'from-sky-500/25 via-cyan-400/10 to-transparent border-sky-400/30'
+      : accent === 'emerald'
+        ? 'from-emerald-500/25 via-teal-400/10 to-transparent border-emerald-400/30'
+        : 'from-violet-500/25 via-fuchsia-400/10 to-transparent border-violet-400/30';
   const eye =
-    accent === 'amber'
-      ? 'text-amber-300'
-      : accent === 'sky'
-        ? 'text-sky-300'
-        : accent === 'emerald'
-          ? 'text-emerald-300'
-          : 'text-fuchsia-300';
+    accent === 'sky'
+      ? 'text-sky-300'
+      : accent === 'emerald'
+        ? 'text-emerald-300'
+        : 'text-violet-300';
   return (
     <div className={`relative overflow-hidden rounded-2xl border bg-gradient-to-br ${ring} p-6 md:p-8`}>
       <div className="pointer-events-none absolute -right-8 -top-10 h-40 w-40 rounded-full bg-white/5 blur-2xl" />
@@ -316,9 +314,9 @@ function bureauTableRows(rows: { field: string; exp?: string; eqf?: string; tuc?
           {rows.map((r, i) => (
             <tr key={i} className="border-t border-slate-100">
               <td className="py-3 pr-4 text-white/70">{r.field}</td>
-              <td className="py-3 pr-4 text-white/85 font-mono whitespace-pre-wrap break-all">{safe(r.exp)}</td>
-              <td className="py-3 pr-4 text-white/85 font-mono whitespace-pre-wrap break-all">{safe(r.eqf)}</td>
-              <td className="py-3 text-white/85 font-mono whitespace-pre-wrap break-all">{safe(r.tuc)}</td>
+              <td className="py-3 pr-4 text-[color:var(--fc-os-entity-body)] font-mono whitespace-pre-wrap break-all">{safe(r.exp)}</td>
+              <td className="py-3 pr-4 text-[color:var(--fc-os-entity-body)] font-mono whitespace-pre-wrap break-all">{safe(r.eqf)}</td>
+              <td className="py-3 text-[color:var(--fc-os-entity-body)] font-mono whitespace-pre-wrap break-all">{safe(r.tuc)}</td>
             </tr>
           ))}
         </tbody>
@@ -346,7 +344,7 @@ function genericTable(args: { columns: string[]; rows: string[][] }) {
           {rows.map((r, ri) => (
             <tr key={ri} className="border-t border-slate-100 align-top">
               {cols.map((_, ci) => (
-                <td key={ci} className="py-3 pr-4 text-white/85 font-mono whitespace-pre-wrap break-words align-top">
+                <td key={ci} className="py-3 pr-4 text-[color:var(--fc-os-entity-body)] font-mono whitespace-pre-wrap break-words align-top">
                   {safe(r[ci] ?? '')}
                 </td>
               ))}
@@ -378,7 +376,7 @@ function sectionTableAsCards(args: { columns: string[]; rows: string[][] }) {
             return (
               <div key={ci} className="flex gap-2">
                 <span className="text-[10px] uppercase tracking-widest text-white/45 shrink-0">{col}:</span>
-                <span className="text-white/85 text-sm font-mono break-words">{val}</span>
+                <span className="text-[color:var(--fc-os-entity-body)] text-sm font-mono break-words">{val}</span>
               </div>
             );
           })}
@@ -403,7 +401,7 @@ function sectionItemsAsCards(items: ParsedSectionItem[]) {
             return (
               <div key={key} className="flex gap-2">
                 <span className="text-[10px] uppercase tracking-widest text-white/45 shrink-0">{key}:</span>
-                <span className="text-white/85 text-sm font-mono break-words">{val}</span>
+                <span className="text-[color:var(--fc-os-entity-body)] text-sm font-mono break-words">{val}</span>
               </div>
             );
           })}
@@ -414,12 +412,15 @@ function sectionItemsAsCards(items: ParsedSectionItem[]) {
 }
 
 function tabBtn(active: boolean) {
-  return `${finelyOsViewTab(active, 'violet')} px-4 py-2 text-[10px] font-black uppercase tracking-widest`;
+  // 10px uppercase is below the readable floor for a primary navigator — these are the tabs
+  // that carry the whole report, not meta chips.
+  return `${finelyOsViewTab(active, 'violet')} px-4 py-2.5 text-sm font-black tracking-wide`;
 }
 
 export function CreditIntelTabs({
   parsed,
   reportId,
+  reportRecord,
   partnerId,
   evidence,
   availableReports,
@@ -434,6 +435,7 @@ export function CreditIntelTabs({
 }: {
   parsed: ParsedCreditReport;
   reportId?: string;
+  reportRecord?: CreditReportRecord;
   partnerId?: string;
   /** Evidence vault items (used for restore-mode “evidence coverage” signals). */
   evidence?: EvidenceItem[];
@@ -480,6 +482,7 @@ export function CreditIntelTabs({
   const [manualLimitOverride, setManualLimitOverride] = useState<string>('');
   const [notice, setNotice] = useState<string | null>(null);
   const [savingKey, setSavingKey] = useState<string | null>(null);
+  const [sourceEvidenceTradeline, setSourceEvidenceTradeline] = useState<ParsedTradeline | null>(null);
   const [expandedStrategyCandidateId, setExpandedStrategyCandidateId] = useState<string | null>(null);
   const [showDiagnostics, setShowDiagnostics] = useState(false);
   const [scrollToAccount, setScrollToAccount] = useState<string | null>(initialScrollToAccount ?? null);
@@ -531,6 +534,19 @@ export function CreditIntelTabs({
     const needle = (accountName || '').trim().toLowerCase();
     if (!needle) return false;
     for (const ev of screenshotEvidence) {
+      const requiresReview =
+        ev.source === 'source_report_crop' ||
+        ev.source === 'parsed_finely_exhibit' ||
+        ev.source === 'tradeline_screenshot' ||
+        ev.source === 'section_screenshot';
+      if (
+        ev.source === 'demo_synthetic' ||
+        ev.provenance?.demoOnly ||
+        (requiresReview &&
+          (ev.provenance?.mailEligible !== true || ev.provenance?.humanVerified !== true))
+      ) {
+        continue;
+      }
       const cn = (ev.creditorName || '').trim().toLowerCase();
       if (cn && (cn === needle || cn.includes(needle) || needle.includes(cn))) return true;
       const fn = (ev.filename || '').toLowerCase();
@@ -1234,20 +1250,29 @@ export function CreditIntelTabs({
       });
 
       const safeKey = args.key.replace(/[^a-z0-9]+/gi, '_').replace(/^_+|_+$/g, '');
-      const filename = `Screenshot_${safeKey || 'Section'}_${new Date().toISOString().slice(0, 10)}.png`;
+      const now = new Date().toISOString();
+      const filename = `Finely_Parsed_Exhibit_${safeKey || 'Section'}_${now.slice(0, 10)}.png`;
       const item: EvidenceItem = {
         id: newId('evidence'),
         partnerId,
         reportId,
         type: 'screenshot',
-        source: 'section_screenshot',
+        source: 'parsed_finely_exhibit',
         sectionKey: args.key,
-        caption: `Section screenshot: ${args.title}`,
+        caption: `Finely Parsed Exhibit: ${args.title} · generated from parsed data, not bureau UI`,
         filename,
         mimeType: 'image/png',
         sizeBytes: blob.size,
         blobRef: put.ref,
-        createdAt: new Date().toISOString(),
+        provenance: {
+          kind: 'parsed_finely_exhibit',
+          sourceReportId: reportId,
+          contentSha256: put.sha256,
+          generatedAt: now,
+          mailEligible: false,
+          humanVerified: false,
+        },
+        createdAt: now,
       };
       upsertEvidence(item);
       addAuditEvent({
@@ -1258,9 +1283,9 @@ export function CreditIntelTabs({
         entityId: item.id,
         meta: { filename, source: item.source, reportId: reportId ?? null, sectionKey: args.key },
       });
-      setNotice(`Saved section evidence screenshot: ${filename} — available in Team chat → Attach from vault.`);
+      setNotice(`Saved Finely Parsed Exhibit: ${filename}. Review it in the evidence vault before attaching.`);
     } catch (e: any) {
-      setNotice(`Section screenshot failed: ${e?.message || 'unknown error'}`);
+      setNotice(`Parsed exhibit failed: ${e?.message || 'unknown error'}`);
     } finally {
       setSavingKey(null);
     }
@@ -1284,21 +1309,30 @@ export function CreditIntelTabs({
         sectionTitle: args.title,
       });
       const safeLabel = (args.itemLabel || `Item ${args.itemIndex + 1}`).replace(/[^a-z0-9]+/gi, '_').slice(0, 40);
-      const filename = `Screenshot_${args.key}_${safeLabel}_${new Date().toISOString().slice(0, 10)}.png`;
+      const now = new Date().toISOString();
+      const filename = `Finely_Parsed_Exhibit_${args.key}_${safeLabel}_${now.slice(0, 10)}.png`;
       const item: EvidenceItem = {
         id: newId('evidence'),
         partnerId,
         reportId,
         type: 'screenshot',
-        source: 'section_screenshot',
+        source: 'parsed_finely_exhibit',
         sectionKey: args.key,
         creditorName: args.itemLabel || undefined,
-        caption: `${args.title}: ${args.itemLabel || `Item ${args.itemIndex + 1}`}`,
+        caption: `Finely Parsed Exhibit: ${args.title} · ${args.itemLabel || `Item ${args.itemIndex + 1}`} · not bureau UI`,
         filename,
         mimeType: 'image/png',
         sizeBytes: blob.size,
         blobRef: put.ref,
-        createdAt: new Date().toISOString(),
+        provenance: {
+          kind: 'parsed_finely_exhibit',
+          sourceReportId: reportId,
+          contentSha256: put.sha256,
+          generatedAt: now,
+          mailEligible: false,
+          humanVerified: false,
+        },
+        createdAt: now,
       };
       upsertEvidence(item);
       addAuditEvent({
@@ -1315,9 +1349,9 @@ export function CreditIntelTabs({
           creditorName: item.creditorName ?? null,
         },
       });
-      setNotice(`Saved screenshot for evidence vault — also available in Team chat → Attach from vault.`);
+      setNotice('Saved Finely Parsed Exhibit. Review it in the evidence vault before attaching.');
     } catch (e: any) {
-      setNotice(`Screenshot failed: ${e?.message || 'unknown error'}`);
+      setNotice(`Parsed exhibit failed: ${e?.message || 'unknown error'}`);
     } finally {
       setSavingKey(null);
     }
@@ -1440,7 +1474,7 @@ export function CreditIntelTabs({
         <div className="space-y-4">
           <p className="text-[10px] uppercase tracking-widest text-white/45">{s.title}</p>
           <p className="text-white/60 text-sm">
-            Each card can be screenshotted and attached to the matching dispute item when generating your letter.
+            Each card can become a clearly labeled parsed exhibit. Prefer a source crop when the original report is available.
           </p>
           {hasStructuredItems ? (
             <FinelyOsPaginatedStack
@@ -1476,15 +1510,15 @@ export function CreditIntelTabs({
                           disabled={Boolean(savingKey)}
                           title="Save this card to Evidence Vault — attach to the matching dispute item"
                         >
-                          <Camera size={12} className="text-fuchsia-400" />
-                          {savingKey === `${key}_${i}` ? 'Saving…' : 'Screenshot'}
+                          <FileCheck2 size={12} className="text-fuchsia-400" />
+                          {savingKey === `${key}_${i}` ? 'Creating…' : 'Parsed exhibit'}
                         </button>
                       </div>
                       {Object.entries(item.fields).map(([k, val]) =>
                         (val ?? '').trim() ? (
                           <div key={k} className="flex gap-2">
                             <span className="text-[10px] uppercase tracking-widest text-white/45 shrink-0">{k}:</span>
-                            <span className="text-white/85 text-sm font-mono whitespace-pre-wrap break-all">{val}</span>
+                            <span className="text-[color:var(--fc-os-entity-body)] text-sm font-mono whitespace-pre-wrap break-all">{val}</span>
                           </div>
                         ) : null,
                       )}
@@ -1527,8 +1561,8 @@ export function CreditIntelTabs({
                           disabled={Boolean(savingKey)}
                           title="Save this card to Evidence Vault — attach to the matching dispute item"
                         >
-                          <Camera size={12} className="text-fuchsia-400" />
-                          {savingKey === `${key}_${i}` ? 'Saving…' : 'Screenshot'}
+                          <FileCheck2 size={12} className="text-fuchsia-400" />
+                          {savingKey === `${key}_${i}` ? 'Creating…' : 'Parsed exhibit'}
                         </button>
                       </div>
                       {columns.map((col, ci) => {
@@ -1537,7 +1571,7 @@ export function CreditIntelTabs({
                         return (
                           <div key={ci} className="flex gap-2">
                             <span className="text-[10px] uppercase tracking-widest text-white/45 shrink-0">{col}:</span>
-                            <span className="text-white/85 text-sm font-mono whitespace-pre-wrap break-all">{val}</span>
+                            <span className="text-[color:var(--fc-os-entity-body)] text-sm font-mono whitespace-pre-wrap break-all">{val}</span>
                           </div>
                         );
                       })}
@@ -1567,10 +1601,10 @@ export function CreditIntelTabs({
               data-no-capture="true"
               className="inline-flex items-center gap-2 px-3 py-2 fc-light-chrome-btn text-[10px] font-black uppercase tracking-widest text-white/70 disabled:opacity-60 disabled:cursor-not-allowed"
               disabled={Boolean(savingKey)}
-              title="Save screenshot to Evidence Vault — included when you download the dispute letter PDF"
+              title="Create a labeled Finely Parsed Exhibit for the evidence vault"
             >
-              <Camera size={14} className="text-fuchsia-400" />
-              {savingKey === key ? 'Saving…' : 'Screenshot'}
+              <FileCheck2 size={14} className="text-fuchsia-400" />
+              {savingKey === key ? 'Creating…' : 'Parsed exhibit'}
             </button>
           )}
         </div>
@@ -1713,11 +1747,11 @@ export function CreditIntelTabs({
   }, [paydownAmount, totals, manualBalanceOverride, manualLimitOverride]);
 
   return (
-    <div className="space-y-6 w-full max-w-full overflow-visible" data-fc-credit-intel="1">
+    <div className="space-y-6 w-full max-w-full overflow-visible" data-fc-partner-portal="1" data-fc-credit-intel="1">
       {notice && (
         <div className={FINELY_OS_NOTICE}>{notice}</div>
       )}
-      <div className={`${finelyOsCatalogCard('violet')} !p-6 w-full max-w-full overflow-visible`}>
+      <div className={`${finelyOsCatalogCard('violet')} !p-6 w-full max-w-full overflow-visible`} data-accent="violet">
         <div className="flex flex-col gap-4">
           <div className="space-y-1">
             <div className="inline-flex items-center gap-2 text-fuchsia-300/90">
@@ -1781,7 +1815,7 @@ export function CreditIntelTabs({
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="min-w-0">
               <div className="text-[10px] uppercase tracking-widest text-white/45">Restore mode</div>
-              <div className="mt-2 text-white/85 text-sm">
+              <div className="mt-2 text-[color:var(--fc-os-entity-body)] text-sm">
                 Results-first workflow: focus on top negatives, capture clean evidence, then generate your letter.
               </div>
             </div>
@@ -1802,8 +1836,8 @@ export function CreditIntelTabs({
               <div className="text-[10px] uppercase tracking-widest text-white/45">Top issues</div>
               <div className="text-white/90 font-semibold">{candidatePriority.length} negative item{candidatePriority.length === 1 ? '' : 's'}</div>
               <div className="text-white/60 text-sm">
-                Collections/charge-offs: <span className="text-white/85">{collectionKindCounts.all}</span> • Late payments:{' '}
-                <span className="text-white/85">{negativeBuckets.latePayments.length}</span>
+                Collections/charge-offs: <span className="text-[color:var(--fc-os-entity-body)]">{collectionKindCounts.all}</span> • Late payments:{' '}
+                <span className="text-[color:var(--fc-os-entity-body)]">{negativeBuckets.latePayments.length}</span>
               </div>
               <div className="pt-2 flex flex-wrap gap-2">
                 <button
@@ -1826,9 +1860,9 @@ export function CreditIntelTabs({
             <div className="fc-soft-surface-lg p-5 space-y-2">
               <div className="text-[10px] uppercase tracking-widest text-white/45">Evidence coverage</div>
               <div className="text-white/90 font-semibold">
-                {evidenceCoverage.covered}/{evidenceCoverage.total} negatives screenshot-ready
+                {evidenceCoverage.covered}/{evidenceCoverage.total} negatives evidence-ready
               </div>
-              <div className="text-white/60 text-sm">Screenshots make letters faster and stronger.</div>
+              <div className="text-white/60 text-sm">Reviewed source crops and exhibits keep letters traceable.</div>
               <div className="pt-2 flex flex-wrap gap-2">
                 <button
                   type="button"
@@ -1839,7 +1873,7 @@ export function CreditIntelTabs({
                       ? 'border-fuchsia-500/40 bg-fuchsia-500/15 text-fuchsia-100'
                       : 'border-white/[0.08] fc-light-chrome-btn text-white/70')
                   }
-                  title="Filter dispute candidates to only items missing screenshots"
+                  title="Filter dispute candidates to items missing reviewed evidence"
                 >
                   Fix missing evidence
                 </button>
@@ -1859,7 +1893,7 @@ export function CreditIntelTabs({
               <div className="text-[10px] uppercase tracking-widest text-white/45">Next best action</div>
               {nextMissingEvidenceCandidate ? (
                 <>
-                  <div className="text-white/90 font-semibold truncate">Capture screenshot: {nextMissingEvidenceCandidate.account}</div>
+                  <div className="text-white/90 font-semibold truncate">Create evidence: {nextMissingEvidenceCandidate.account}</div>
                   <div className="text-white/60 text-sm">
                     We’ll jump you to the right section and auto-scroll to the company name.
                   </div>
@@ -1877,7 +1911,7 @@ export function CreditIntelTabs({
                           `Jumped you to ${isCol ? 'Collections' : isLate ? 'Late payments' : 'Creditors'} — look for "${nextMissingEvidenceCandidate.account}".`,
                         );
                       }}
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 text-black text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all"
                     >
                       Capture evidence <ChevronRight size={14} />
                     </button>
@@ -1885,7 +1919,7 @@ export function CreditIntelTabs({
                       <button
                         type="button"
                         onClick={onOpenLetterGenerator}
-                        className="inline-flex items-center gap-2 px-4 py-2 fc-light-chrome-btn text-[10px] font-black uppercase tracking-widest text-white/85 transition-all"
+                        className="inline-flex items-center gap-2 px-4 py-2 fc-light-chrome-btn text-[10px] font-black uppercase tracking-widest text-[color:var(--fc-os-entity-body)] transition-all"
                       >
                         Open Letters <ChevronRight size={14} />
                       </button>
@@ -1900,7 +1934,7 @@ export function CreditIntelTabs({
                     <button
                       type="button"
                       onClick={onOpenLetterGenerator}
-                      className="mt-2 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 text-black text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all"
+                      className="mt-2 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all"
                     >
                       Open Letters <ChevronRight size={14} />
                     </button>
@@ -1927,7 +1961,7 @@ export function CreditIntelTabs({
           {/* Report summary at a glance — enterprise-style one-line context */}
           <div className="fc-soft-surface-lg backdrop-blur-xl px-6 py-4 flex flex-wrap items-center gap-x-6 gap-y-2">
             <span className="text-[10px] uppercase tracking-widest text-white/45">Report summary</span>
-            <span className="text-white/85 font-mono text-sm">
+            <span className="text-[color:var(--fc-os-entity-body)] font-mono text-sm">
               {safeParsed.provider} {safeParsed.reportDate ? ` • ${safeParsed.reportDate}` : ''}
             </span>
             <span className="text-white/70 text-sm">
@@ -2086,7 +2120,7 @@ export function CreditIntelTabs({
                 >
                   <div className="text-left min-w-0">
                     <p className="text-[10px] uppercase tracking-widest text-white/45">Personal information</p>
-                    <p className="mt-2 text-white/85 text-sm font-semibold truncate">
+                    <p className="mt-2 text-[color:var(--fc-os-entity-body)] text-sm font-semibold truncate">
                       {hasAny ? summary || 'Identification details detected' : 'No personal info detected in this export'}
                     </p>
                     <p className="mt-1 text-white/45 text-xs">
@@ -2101,7 +2135,7 @@ export function CreditIntelTabs({
                     {summaryBits.length ? (
                       <div className="fc-light-glass-panel fc-light-chrome-panel p-4">
                         <div className="text-[10px] uppercase tracking-widest text-white/45">Summary</div>
-                        <div className="mt-2 text-white/85 text-sm font-mono whitespace-pre-wrap break-words">{summary}</div>
+                        <div className="mt-2 text-[color:var(--fc-os-entity-body)] text-sm font-mono whitespace-pre-wrap break-words">{summary}</div>
                       </div>
                     ) : null}
 
@@ -2130,7 +2164,7 @@ export function CreditIntelTabs({
                         {(pi.addresses ?? []).map((a, i) => (
                           <div key={i} className="fc-soft-surface p-4 sm:col-span-2">
                             <div className="text-[10px] uppercase tracking-widest text-white/45">Address {i + 1}</div>
-                            <div className="mt-2 text-white/85 text-sm whitespace-pre-wrap">
+                            <div className="mt-2 text-[color:var(--fc-os-entity-body)] text-sm whitespace-pre-wrap">
                               {typeof a === 'string'
                                 ? a
                                 : [a.line1, a.city, a.state, a.zip].filter(Boolean).join(', ') || a.raw || '—'}
@@ -2198,7 +2232,7 @@ export function CreditIntelTabs({
           </div>
 
           {creditorAddrStats.all > 0 && creditorAddrStats.all < 20 && onReparseRequest ? (
-            <div className={`${finelyOsCatalogCard('amber')} !p-4 space-y-2`}>
+            <div className={`${finelyOsCatalogCard('violet')} !p-4 space-y-2`}>
               <div className={FINELY_OS_ENTITY_VALUE}>Creditor Contacts table looks incomplete</div>
               <p className={FINELY_OS_ENTITY_BODY}>
                 IdentityIQ reports usually list 30+ creditors at the bottom. This parse only has {creditorAddrStats.all}.
@@ -2211,7 +2245,7 @@ export function CreditIntelTabs({
           ) : null}
 
           {creditorDirectoryRows.length === 0 ? (
-            <div className={`${finelyOsCatalogCard('amber')} !p-4 space-y-2`}>
+            <div className={`${finelyOsCatalogCard('violet')} !p-4 space-y-2`}>
               <div className={FINELY_OS_ENTITY_VALUE}>
                 {creditorQuery.trim() || creditorAddrFilter
                   ? 'No contacts match these filters'
@@ -2338,6 +2372,7 @@ export function CreditIntelTabs({
               parsed={{ ...safeParsed, tradelines: collectionsFilteredForView }}
               partnerId={partnerId}
               reportId={reportId}
+              reportRecord={reportRecord}
               showSequence
               hideFilters
               hideSummary
@@ -2398,7 +2433,7 @@ export function CreditIntelTabs({
               <button
                 type="button"
                 onClick={() => (onOpenLetterGenerator ? onOpenLetterGenerator() : setTab('disputes'))}
-                className="px-4 py-2 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all"
+                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all"
               >
                 Open disputes
               </button>
@@ -2455,6 +2490,7 @@ export function CreditIntelTabs({
               parsed={{ ...safeParsed, tradelines: lateFilteredForView }}
               partnerId={partnerId}
               reportId={reportId}
+              reportRecord={reportRecord}
               showSequence
               hideFilters
               hideSummary
@@ -2492,7 +2528,7 @@ export function CreditIntelTabs({
               <button
                 type="button"
                 onClick={() => (onOpenLetterGenerator ? onOpenLetterGenerator() : setTab('disputes'))}
-                className="px-4 py-2 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all"
+                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all"
               >
                 Open disputes
               </button>
@@ -2518,7 +2554,7 @@ export function CreditIntelTabs({
               })()}
             </div>
             <div className="mt-4 text-white/60 text-sm">
-              This count is driven by the same engine used to generate dispute candidates. If something is missing, click <strong className="text-white/85">Re-parse</strong> on the report to refresh extraction.
+              This count is driven by the same engine used to generate dispute candidates. If something is missing, click <strong className="text-[color:var(--fc-os-entity-ink)]">Re-parse</strong> on the report to refresh extraction.
             </div>
           </div>
 
@@ -2589,7 +2625,7 @@ export function CreditIntelTabs({
               <button
                 type="button"
                 onClick={() => setTab('collections')}
-                className="mt-3 px-4 py-2 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all"
+                className="mt-3 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all"
               >
                 Open
               </button>
@@ -2620,6 +2656,7 @@ export function CreditIntelTabs({
                 parsed={{ ...safeParsed, tradelines: latePaymentTradelines }}
                 partnerId={partnerId}
                 reportId={reportId}
+                reportRecord={reportRecord}
                 showSequence
               />
             ) : (
@@ -2657,12 +2694,12 @@ export function CreditIntelTabs({
             eyebrow="Strategy"
             title="Your restoration game plan"
             subtitle="Readiness, blockers, and the next moves that actually move score — not a wall of equal-looking boxes."
-            accent="amber"
+            accent="violet"
           />
 
           <div className="grid lg:grid-cols-3 gap-4">
-            <div className="relative overflow-hidden rounded-2xl border border-amber-400/35 bg-gradient-to-b from-amber-500/15 to-transparent p-6">
-              <div className="text-[11px] font-black uppercase tracking-[0.2em] text-amber-300">Readiness</div>
+            <div className="relative overflow-hidden rounded-2xl border border-sky-400/35 bg-gradient-to-b from-sky-500/15 to-transparent p-6">
+              <div className="text-[11px] font-black uppercase tracking-[0.2em] text-sky-300">Readiness</div>
               <div className="mt-3 flex items-baseline gap-2">
                 <div className="text-5xl font-light text-white">{intelReadiness.score}</div>
                 <div className="text-white/45 text-sm">/ 100</div>
@@ -2674,14 +2711,14 @@ export function CreditIntelTabs({
                 <button
                   type="button"
                   onClick={() => setTab('disputes')}
-                  className="px-4 py-2.5 rounded-xl bg-amber-400 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 shadow-[0_0_24px_rgba(251,191,36,0.35)]"
+                  className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-widest text-[10px] shadow-[0_0_24px_rgba(16,185,129,0.35)]"
                 >
                   Open disputes
                 </button>
                 <button
                   type="button"
                   onClick={() => setTab('simulation')}
-                  className="px-4 py-2.5 rounded-xl border border-white/20 bg-white/5 text-[10px] font-black uppercase tracking-widest text-white/85 hover:bg-white/10"
+                  className="px-4 py-2.5 rounded-xl border border-white/20 bg-white/5 text-[10px] font-black uppercase tracking-widest text-[color:var(--fc-os-entity-body)] hover:bg-white/10"
                 >
                   Try simulation
                 </button>
@@ -2731,7 +2768,7 @@ export function CreditIntelTabs({
             <div className="rounded-2xl border border-emerald-500/25 bg-emerald-500/[0.07] p-5 space-y-2">
               <div className="text-emerald-300 font-semibold text-sm">What&apos;s helping</div>
               {scoreFactors.helping.length ? (
-                <ul className="space-y-1 text-white/85 text-sm list-disc pl-4">
+                <ul className="space-y-1 text-[color:var(--fc-os-entity-body)] text-sm list-disc pl-4">
                   {scoreFactors.helping.map((x, i) => (
                     <li key={i}>{x}</li>
                   ))}
@@ -2743,7 +2780,7 @@ export function CreditIntelTabs({
             <div className="rounded-2xl border border-fuchsia-500/15 bg-fuchsia-500/[0.06] p-5 space-y-2">
               <div className="text-fuchsia-300 font-semibold text-sm">What&apos;s hurting</div>
               {scoreFactors.hurting.length ? (
-                <ul className="space-y-1 text-white/85 text-sm list-disc pl-4">
+                <ul className="space-y-1 text-[color:var(--fc-os-entity-body)] text-sm list-disc pl-4">
                   {scoreFactors.hurting.map((x, i) => (
                     <li key={i}>{x}</li>
                   ))}
@@ -2770,7 +2807,7 @@ export function CreditIntelTabs({
                 <button
                   type="button"
                   onClick={() => (onOpenLetterGenerator ? onOpenLetterGenerator() : setTab('disputes'))}
-                  className="px-4 py-2 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all"
+                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all"
                 >
                   {onOpenLetterGenerator ? 'Open letter generator' : 'Open disputes'}
                 </button>
@@ -2845,8 +2882,8 @@ export function CreditIntelTabs({
                 },
                 {
                   id: 'tl_evidence',
-                  title: 'Capture evidence screenshots (clean)',
-                  why: 'Screenshots make disputes faster and strengthen exhibits.',
+                  title: 'Create reviewed account evidence',
+                  why: 'Source crops keep disputes traceable; parsed exhibits stay clearly labeled.',
                   done: evidenceOk,
                   cta: {
                     label: 'Evidence View',
@@ -2945,7 +2982,7 @@ export function CreditIntelTabs({
                         <div className="mt-2 text-white/90 text-lg font-semibold">
                           {evidencePct == null ? '—' : `${evidencePct}%`}
                         </div>
-                        <div className="mt-1 text-[11px] text-white/90/55">Screenshot coverage</div>
+                        <div className="mt-1 text-[11px] text-white/90/55">Reviewed evidence coverage</div>
                       </div>
                       <div className="fc-light-glass-panel fc-light-chrome-panel p-4">
                         <div className="text-[10px] uppercase tracking-widest text-white/45">Contradictions</div>
@@ -2962,7 +2999,7 @@ export function CreditIntelTabs({
                       <button
                         type="button"
                         onClick={() => setTab('disputes')}
-                        className="px-4 py-2 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all"
+                        className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all"
                       >
                         Open disputes
                       </button>
@@ -3020,7 +3057,7 @@ export function CreditIntelTabs({
                           ))}
                           <button
                             type="button"
-                            className={`${FINELY_OS_SOFT_BTN} !px-3 !py-1.5 !rounded-lg !text-[10px] !font-bold !tracking-wider text-white/85`}
+                            className={`${FINELY_OS_SOFT_BTN} !px-3 !py-1.5 !rounded-lg !text-[10px] !font-bold !tracking-wider text-[color:var(--fc-os-entity-body)]`}
                             onClick={async (e) => {
                               e.stopPropagation();
                               const text = reasons.map((r) => r.text).join('\n\n');
@@ -3072,7 +3109,7 @@ export function CreditIntelTabs({
                     <button
                       type="button"
                       onClick={onOpenLetterGenerator}
-                      className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 text-black text-[10px] font-bold uppercase tracking-wider hover:brightness-110"
+                      className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-wider hover:brightness-110"
                     >
                       <Gavel size={12} /> Open letter generator
                     </button>
@@ -3114,7 +3151,7 @@ export function CreditIntelTabs({
                             <div className="mt-2 text-2xl font-light text-white/90">
                               {evidenceCoverage.covered}/{evidenceCoverage.total}
                             </div>
-                            <div className="mt-2 text-[11px] text-white/90/55">{missing ? `${missing} missing screenshots.` : 'All screenshot-ready.'}</div>
+                            <div className="mt-2 text-[11px] text-white/90/55">{missing ? `${missing} missing reviewed evidence.` : 'All evidence-ready.'}</div>
                           </div>
                           <div className="fc-soft-surface-lg p-4">
                             <div className="text-[10px] uppercase tracking-widest text-white/45">Action</div>
@@ -3124,11 +3161,11 @@ export function CreditIntelTabs({
                                 setShowEvidenceTables(true);
                                 if (missing > 0) setFixMissingEvidenceMode(true);
                               }}
-                              className="mt-2 inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500 text-black text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all"
+                              className="mt-2 inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all"
                             >
-                              <Camera size={12} /> Capture evidence
+                              <FileCheck2 size={12} /> Create evidence
                             </button>
-                            <div className="mt-2 text-[11px] text-white/90/55">Use Evidence View tables for clean screenshots.</div>
+                            <div className="mt-2 text-[11px] text-white/90/55">Use Evidence View for source crops or clearly labeled parsed exhibits.</div>
                           </div>
                         </div>
 
@@ -3144,7 +3181,7 @@ export function CreditIntelTabs({
                                   <div className="min-w-0">
                                     <div className="text-white/90 font-semibold truncate">{title}</div>
                                     <div className="mt-1 text-[10px] uppercase tracking-widest text-white/45 font-mono">
-                                      max severity {maxSeverity} • {list.filter((c) => hasScreenshotForAccount(c.account)).length}/{list.length} screenshot-ready
+                                      max severity {maxSeverity} • {list.filter((c) => hasScreenshotForAccount(c.account)).length}/{list.length} evidence-ready
                                     </div>
                                   </div>
                                   <ChevronRight size={16} className="text-white/45 transition-transform group-open:rotate-90" />
@@ -3154,6 +3191,13 @@ export function CreditIntelTabs({
                                   {list.map((c) => {
                                     const reasons = disputeReasonsByCandidateId.get(c.id) ?? [];
                                     const hasShot = hasScreenshotForAccount(c.account);
+                                    const candidateAccount = c.account.trim().toLowerCase();
+                                    const sourceTradeline = safeParsed.tradelines.find((tradeline) => {
+                                      const creditor = tradeline.creditorName.trim().toLowerCase();
+                                      return creditor === candidateAccount ||
+                                        creditor.includes(candidateAccount) ||
+                                        candidateAccount.includes(creditor);
+                                    });
                                     return (
                                       <div
                                         key={c.id}
@@ -3183,18 +3227,28 @@ export function CreditIntelTabs({
                                                 ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-100/90'
                                                 : 'border-red-500/30 bg-red-500/10 text-red-100/90')
                                             }
-                                            title={hasShot ? 'Screenshot exists for this company' : 'No screenshot found yet for this company'}
+                                            title={hasShot ? 'Reviewed evidence exists for this company' : 'No reviewed evidence found for this company'}
                                           >
                                             {hasShot ? 'evidence ok' : 'needs evidence'}
                                           </span>
                                           <button
                                             type="button"
                                             onClick={() => setInsightsOpenId(c.id)}
-                                            className={`${FINELY_OS_SOFT_BTN} !px-3 !py-1.5 !rounded-lg text-white/85`}
+                                            className={`${FINELY_OS_SOFT_BTN} !px-3 !py-1.5 !rounded-lg text-[color:var(--fc-os-entity-body)]`}
                                             title="Open insights"
                                           >
                                             Insights <ChevronRight size={12} />
                                           </button>
+                                          {!hasShot && reportRecord && sourceTradeline?.sourceAnchor ? (
+                                            <button
+                                              type="button"
+                                              onClick={() => setSourceEvidenceTradeline(sourceTradeline)}
+                                              className="inline-flex items-center gap-2 rounded-lg border border-sky-400/30 bg-sky-500/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-sky-100 transition-all hover:bg-sky-500/20"
+                                              title="Render this account from the partner’s protected report"
+                                            >
+                                              <ScanSearch size={12} /> Source crop
+                                            </button>
+                                          ) : null}
                                           {!hasShot ? (
                                             <button
                                               type="button"
@@ -3205,19 +3259,19 @@ export function CreditIntelTabs({
                                                 setTab(isCol ? 'collections' : isLate ? 'late_payments' : 'creditors');
                                                 setScrollToAccount(c.account);
                                                 setNotice(
-                                                  `Jumped you to ${isCol ? 'Collections' : isLate ? 'Late payments' : 'Creditors'} — look for "${c.account}" and capture a screenshot.`,
+                                                  `Jumped you to ${isCol ? 'Collections' : isLate ? 'Late payments' : 'Creditors'} — look for "${c.account}" and create evidence.`,
                                                 );
                                               }}
                                               className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg fc-soft-surface text-[10px] font-black uppercase tracking-widest text-white/70 hover:bg-white/[0.05]"
                                               title="Jump to the best section for capturing evidence"
                                             >
-                                              <Camera size={12} /> Capture
+                                              <FileCheck2 size={12} /> Evidence
                                             </button>
                                           ) : null}
                                           <button
                                             type="button"
                                             onClick={() => onStartDispute(c, reasons.map((r) => r.text))}
-                                            className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500 text-black text-[10px] font-bold uppercase tracking-wider hover:brightness-110"
+                                            className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-wider hover:brightness-110"
                                           >
                                             <Gavel size={12} /> Start dispute
                                           </button>
@@ -3244,9 +3298,9 @@ export function CreditIntelTabs({
                     onClick={() => setShowEvidenceTables((v) => !v)}
                   >
                     <div className="min-w-0">
-                      <div className="text-white/90 font-semibold">Evidence View tables (screenshot-safe)</div>
+                      <div className="text-white/90 font-semibold">Evidence View tables (parsed exhibits)</div>
                       <div className="mt-1 text-white/60 text-sm">
-                        Full, compartmentalized tables per category. Copy as TSV/CSV or save a clean screenshot into the Evidence Vault.
+                        Full, compartmentalized parsed data per category. Copy as TSV/CSV or save a clearly labeled Finely Parsed Exhibit.
                       </div>
                     </div>
                     <ChevronRight size={16} className={showEvidenceTables ? 'rotate-90 text-white/70' : 'text-white/45'} />
@@ -3312,7 +3366,7 @@ export function CreditIntelTabs({
                                 <div className="min-w-0">
                                   <div className="text-white/90 font-semibold truncate">{title}</div>
                                   <div className="mt-1 text-[10px] uppercase tracking-widest text-white/45 font-mono">
-                                    {list.length} row{list.length !== 1 ? 's' : ''} • stable columns • screenshot-safe
+                                    {list.length} row{list.length !== 1 ? 's' : ''} • stable columns • parsed-data exhibit
                                   </div>
                                 </div>
                                 <ChevronRight size={16} className="text-white/45 transition-transform group-open:rotate-90" />
@@ -3382,9 +3436,9 @@ export function CreditIntelTabs({
                                       type="button"
                                       onClick={() => void captureSectionScreenshot({ key: tableKey, title })}
                                       disabled={Boolean(savingKey)}
-                                      className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all disabled:opacity-60"
+                                      className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all disabled:opacity-60"
                                     >
-                                      <Camera size={12} /> {savingKey === tableKey ? 'Saving…' : 'Screenshot'}
+                                      <FileCheck2 size={12} /> {savingKey === tableKey ? 'Creating…' : 'Parsed exhibit'}
                                     </button>
                                   </div>
                                 </div>
@@ -3424,7 +3478,7 @@ export function CreditIntelTabs({
                         });
                       })()}
                       <div className="text-[11px] text-white/45">
-                        Tip: These tables are designed for evidence capture. Save screenshots here, then attach them to dispute items inside the letter generator.
+                        Tip: Prefer source report crops. If only parsed data is available, create an exhibit here, open it, and approve it before attaching.
                       </div>
                     </div>
                   )}
@@ -3522,8 +3576,8 @@ export function CreditIntelTabs({
                   <div className="fc-soft-surface-lg p-5 space-y-3">
                     <div className="text-white/90 font-semibold">Tradelines changed</div>
                     <div className="text-white/70 text-sm">
-                      Added: <span className="text-white/85 font-mono">{compareSummary.added}</span> • Removed:{' '}
-                      <span className="text-white/85 font-mono">{compareSummary.removed}</span>
+                      Added: <span className="text-[color:var(--fc-os-entity-body)] font-mono">{compareSummary.added}</span> • Removed:{' '}
+                      <span className="text-[color:var(--fc-os-entity-body)] font-mono">{compareSummary.removed}</span>
                     </div>
                   </div>
                   <div className="fc-soft-surface-lg p-5 space-y-3">
@@ -3685,7 +3739,7 @@ export function CreditIntelTabs({
                       {rows.map((r) => (
                         <div key={r.k} className="fc-soft-surface bg-white/[0.06] p-3">
                           <div className="text-[9px] uppercase tracking-widest text-white/45">{r.k}</div>
-                          <div className="mt-1 text-white/85 font-mono text-sm break-words">{r.v}</div>
+                          <div className="mt-1 text-[color:var(--fc-os-entity-body)] font-mono text-sm break-words">{r.v}</div>
                         </div>
                       ))}
                     </div>
@@ -3714,7 +3768,7 @@ export function CreditIntelTabs({
                   <button
                     type="button"
                     onClick={openEvidence}
-                    className="px-4 py-2 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all"
+                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all"
                   >
                     Upload evidence now
                   </button>
@@ -3744,7 +3798,7 @@ export function CreditIntelTabs({
                     if (onOpenLetterGenerator) onOpenLetterGenerator();
                     else setTab('disputes');
                   }}
-                  className="px-4 py-2 fc-light-chrome-btn text-[10px] font-black uppercase tracking-widest text-white/85 transition-all"
+                  className="px-4 py-2 fc-light-chrome-btn text-[10px] font-black uppercase tracking-widest text-[color:var(--fc-os-entity-body)] transition-all"
                 >
                   Open disputes
                 </button>
@@ -3753,6 +3807,16 @@ export function CreditIntelTabs({
           </div>
         </div>
       )}
+      <ReportSourceEvidenceModal
+        open={Boolean(sourceEvidenceTradeline && reportRecord && partnerId)}
+        record={reportRecord ?? null}
+        tradeline={sourceEvidenceTradeline}
+        partnerId={partnerId ?? ''}
+        onCreated={(item) =>
+          setNotice(`Saved source-faithful crop: ${item.filename}. Open the evidence vault to review and approve it.`)
+        }
+        onClose={() => setSourceEvidenceTradeline(null)}
+      />
     </div>
   );
 }

@@ -47,13 +47,8 @@ import {
   FINELY_OS_VIEW_TABS,
   FINELY_OS_COMPLIANCE_FOOTNOTE,
   FINELY_OS_PRIMARY_BTN,
-  FINELY_OS_LANDING_IVORY_BODY,
-  FINELY_OS_LANDING_IVORY_KICKER,
-  FINELY_OS_LANDING_IVORY_TITLE,
   finelyOsCatalogCard,
   finelyOsLandingContrastSection,
-  finelyOsLandingIvoryCard,
-  finelyOsLandingWealthyIvorySection,
   finelyOsLeadMagnetPanel,
   finelyOsListItem,
   finelyOsViewTab,
@@ -68,24 +63,24 @@ const TAB_ACCENT: Record<TabKey, FinelyOsPublicAccent> = {
   personal_credit: 'emerald',
   banking_reports: 'sky',
   business_credit: 'violet',
-  debt_legal: 'fuchsia',
-  wealth_builder: 'amber',
+  debt_legal: 'rose',
+  wealth_builder: 'emerald',
   privacy_id: 'sky',
   bundle: 'violet',
-  tradeline_promo: 'amber',
-  agency: 'amber',
+  tradeline_promo: 'emerald',
+  agency: 'rose',
 };
 
 const TABS: { key: TabKey; label: string; icon: React.ReactNode; accent: FinelyOsPublicAccent }[] = [
   { key: 'personal_credit', label: 'Personal', icon: <Sparkles size={16} />, accent: 'emerald' },
   { key: 'banking_reports', label: 'Banking Reports', icon: <Shield size={16} />, accent: 'sky' },
   { key: 'business_credit', label: 'Business', icon: <Building2 size={16} />, accent: 'violet' },
-  { key: 'debt_legal', label: 'Debt & Legal', icon: <Scale size={16} />, accent: 'fuchsia' },
-  { key: 'wealth_builder', label: 'Wealth', icon: <Crown size={16} />, accent: 'amber' },
+  { key: 'debt_legal', label: 'Debt & Legal', icon: <Scale size={16} />, accent: 'rose' },
+  { key: 'wealth_builder', label: 'Wealth', icon: <Crown size={16} />, accent: 'emerald' },
   { key: 'privacy_id', label: 'Privacy', icon: <Lock size={16} />, accent: 'sky' },
   { key: 'bundle', label: 'Bundles', icon: <Gift size={16} />, accent: 'violet' },
-  { key: 'tradeline_promo', label: 'Tradelines', icon: <Sparkles size={16} />, accent: 'amber' },
-  { key: 'agency', label: CS.pricingTabLabel, icon: <Users size={16} />, accent: 'amber' },
+  { key: 'tradeline_promo', label: 'Tradelines', icon: <Sparkles size={16} />, accent: 'emerald' },
+  { key: 'agency', label: CS.pricingTabLabel, icon: <Users size={16} />, accent: 'rose' },
 ];
 
 /** Representative cents per debt-balance band — feeds getDebtPackageGuidanceForBalance() for the "which tier fits" picker. */
@@ -265,36 +260,40 @@ export default function PricingPage() {
           </p>
         </div>
 
-        {/* Champagne free-plan sell — sole Free entry on this page */}
-        <section className={`-mx-4 sm:-mx-6 lg:-mx-8 2xl:-mx-10 px-4 sm:px-6 lg:px-8 2xl:px-10 py-12 sm:py-14 ${finelyOsLandingWealthyIvorySection()}`}>
-          <div className="max-w-6xl mx-auto">
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-              <div className="min-w-0 space-y-3">
+        {/* Free workspace — dark glass band (sole Free entry on this page) */}
+        <section
+          className={`fc-sell relative overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8 2xl:-mx-10 px-4 sm:px-6 lg:px-8 2xl:px-10 py-12 sm:py-14 ${finelyOsLandingContrastSection('fc-band-emerald')}`}
+          data-fc-contrast-band="1"
+        >
+          <LandingSellAtmosphere tone="platinum" />
+          <div className="relative max-w-6xl mx-auto">
+            <div className={`${finelyOsCatalogCard('emerald')} grid gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:items-center`} data-fc-accent="emerald">
+              <div className="min-w-0 space-y-4">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className={`inline-flex items-center gap-2 rounded-full border border-amber-800/20 bg-amber-500/15 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#0a1628]`}>
+                  <span className={`inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/15 px-3 py-1 text-[11px] font-bold uppercase tracking-wider ${FINELY_OS_ENTITY_VALUE}`}>
                     <Gift size={14} /> Start free
                   </span>
-                  <span className="rounded-full border border-emerald-800/20 bg-emerald-500/12 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#0a1628]/80">DIY plan</span>
-                  <span className="rounded-full border border-emerald-800/20 bg-emerald-500/12 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#0a1628]/80">No credit card</span>
+                  <span className={`rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider ${FINELY_OS_ENTITY_SUBLABEL}`}>DIY plan</span>
+                  <span className={`rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider ${FINELY_OS_ENTITY_SUBLABEL}`}>No credit card</span>
                 </div>
-                <p className={FINELY_OS_LANDING_IVORY_KICKER}>Free workspace</p>
+                <p className={FINELY_OS_ENTITY_SUBLABEL}>Free workspace</p>
                 <LandingTypewriterTitle
                   as="h2"
                   text="Start free. Unlock your workspace."
-                  className={FINELY_OS_LANDING_IVORY_TITLE}
+                  className="text-3xl sm:text-4xl font-extrabold leading-tight text-white"
                   highlight="Start free."
-                  highlightClassName="fc-landing-ivory-accent"
+                  highlightClassName="text-emerald-300"
                   delayMs={280}
                   speedMs={40}
                 />
-                <p className={`${FINELY_OS_LANDING_IVORY_BODY} max-w-3xl`}>
+                <p className={`${FINELY_OS_ENTITY_BODY} max-w-3xl text-base`}>
                   Upload and analyze reports, organize documents, and get guided tasks — then upgrade anytime for Letters, templates,
                   and higher-touch execution.
                 </p>
-                <details className={`${finelyOsLandingIvoryCard()} !p-4 group`}>
-                  <summary className="cursor-pointer list-none text-sm font-semibold text-[#0a1628] [&::-webkit-details-marker]:hidden flex items-center justify-between gap-2">
+                <details className={`${finelyOsCatalogCard('sky')} fc-surface-harmony group !p-4`} data-fc-accent="sky">
+                  <summary className={`cursor-pointer list-none text-sm font-bold ${FINELY_OS_ENTITY_VALUE} [&::-webkit-details-marker]:hidden flex items-center justify-between gap-2`}>
                     <span>Free DIY includes</span>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-[#b8860b] group-open:hidden">Expand</span>
+                    <span className={`${FINELY_OS_ENTITY_SUBLABEL} group-open:hidden`}>Expand</span>
                   </summary>
                   <div className="mt-3 grid sm:grid-cols-2 lg:grid-cols-4 gap-2">
                     {[
@@ -302,18 +301,21 @@ export default function PricingPage() {
                       'Documents vault',
                       'Tasks & notifications',
                       'Education + courses',
-                    ].map((x) => (
-                      <div key={x} className={`flex items-center gap-2 ${finelyOsLandingIvoryCard()} !p-3 text-xs`}>
-                        <CheckCircle2 size={14} className="text-emerald-700 shrink-0" />
-                        <span className="truncate text-[#0a1628]/75">{x}</span>
+                    ].map((x, idx) => (
+                      <div key={x} className={`flex items-center gap-2 ${finelyOsCatalogCard((['violet', 'rose', 'emerald', 'sky'] as const)[idx % 4])} !p-3 text-xs`} data-fc-accent={(['violet', 'rose', 'emerald', 'sky'] as const)[idx % 4]}>
+                        <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
+                        <span className={`truncate ${FINELY_OS_ENTITY_BODY}`}>{x}</span>
                       </div>
                     ))}
                   </div>
                 </details>
+                <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
+                  Free access is <span className={`font-bold ${FINELY_OS_ENTITY_VALUE}`}>DIY</span> and does not include Letters. Upgrade to unlock Letter Studio + templates.
+                </p>
               </div>
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
-                <button type="button" onClick={() => handleSelect('personal_free')} className={FINELY_OS_SUCCESS_BTN}>
-                  Start free <ArrowRight size={16} />
+              <div className="flex flex-col items-stretch gap-3 w-full lg:max-w-sm lg:ml-auto">
+                <button type="button" onClick={() => navigate('/free-guide')} className={`${FINELY_OS_PRIMARY_BTN} w-full justify-center !py-3.5 !text-base`}>
+                  Start free guide <ArrowRight size={16} />
                 </button>
                 <button
                   type="button"
@@ -322,15 +324,15 @@ export default function PricingPage() {
                     setDeliveryMode('DIY');
                     setPersonalLane('restore');
                   }}
-                  className={FINELY_OS_SECONDARY_BTN}
+                  className={`${FINELY_OS_SECONDARY_BTN} w-full justify-center !py-3`}
                 >
                   Explore DIY <ArrowRight size={16} />
                 </button>
+                <p className={FINELY_OS_COMPLIANCE_FOOTNOTE}>
+                  Results vary · not legal advice · funding subject to underwriting
+                </p>
               </div>
             </div>
-            <p className={`mt-4 text-[11px] text-[#0a1628]/55`}>
-              Free access is <span className="font-semibold text-[#0a1628]">DIY</span> and does not include Letters. Upgrade to unlock Letter Studio + templates.
-            </p>
           </div>
         </section>
 
@@ -366,17 +368,17 @@ export default function PricingPage() {
         </div>
 
         <div className={`${FINELY_OS_NOTICE_WARN} flex items-start gap-3`}>
-          <Scale size={18} className="mt-0.5 text-fuchsia-400 shrink-0" />
+          <Scale size={18} className="mt-0.5 text-rose-400 shrink-0" />
           <div>
             <div className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>What your payment covers</div>
             <p className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>
               Finely Cred is an educational-first platform. Payments cover your access to the software, resource library, templates,
               and guided workflows — plus coaching and strategy calls where included.
             </p>
-            <details className={`mt-3 ${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony group`}>
+            <details className={`mt-3 ${finelyOsCatalogCard('sky')} fc-surface-harmony group`} data-fc-accent="sky">
               <summary className="cursor-pointer list-none text-sm font-semibold text-white/85 [&::-webkit-details-marker]:hidden flex items-center justify-between gap-2">
                 <span>Compare what payments cover</span>
-                <span className="text-[10px] font-black uppercase tracking-widest text-fuchsia-300 group-open:hidden">Expand</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-sky-300 group-open:hidden">Expand</span>
               </summary>
               <div className="mt-3 grid sm:grid-cols-2 lg:grid-cols-4 gap-2">
                 {[
@@ -384,8 +386,8 @@ export default function PricingPage() {
                   'Resource library + knowledge base',
                   'Templates + letters studio (when entitled)',
                   'Strategy calls (when included)',
-                ].map((x) => (
-                  <div key={x} className={`flex items-center gap-2 ${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony px-3 py-2 text-xs`}>
+                ].map((x, idx) => (
+                  <div key={x} className={`flex items-center gap-2 ${finelyOsCatalogCard((['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4])} fc-surface-harmony text-xs`} data-fc-accent={(['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4]}>
                     <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
                     <span className={`truncate ${FINELY_OS_ENTITY_BODY}`}>{x}</span>
                   </div>
@@ -399,13 +401,13 @@ export default function PricingPage() {
         </div>
 
         <div className="grid md:grid-cols-2 gap-4">
-          <button type="button" onClick={() => setDeliveryMode('DIY')} className={finelyOsListItem(deliveryMode === 'DIY', 'amber')}>
+          <button type="button" onClick={() => setDeliveryMode('DIY')} className={finelyOsListItem(deliveryMode === 'DIY', 'emerald')}>
             <div className={FINELY_OS_ENTITY_VALUE}>DIY (Do‑It‑Yourself)</div>
             <div className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>
               You use the app + resources + templates. Best for people who want to move fast on their own.
             </div>
           </button>
-          <button type="button" onClick={() => setDeliveryMode('DFY')} className={finelyOsListItem(deliveryMode === 'DFY', 'emerald')}>
+          <button type="button" onClick={() => setDeliveryMode('DFY')} className={finelyOsListItem(deliveryMode === 'DFY', 'violet')}>
             <div className={FINELY_OS_ENTITY_VALUE}>DFY (Done‑For‑You)</div>
             <div className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>
               We build your workflow, packets, and strategy with you. Best for complex files and high‑impact outcomes.
@@ -433,7 +435,7 @@ export default function PricingPage() {
         {tabDescription ? <div className={FINELY_OS_ENTITY_BODY}>{tabDescription}</div> : null}
 
         {activeTab === 'personal_credit' && (
-          <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony flex flex-wrap items-center justify-between gap-3`}>
+          <div className={`${finelyOsCatalogCard('sky')} fc-surface-harmony flex flex-wrap items-center justify-between gap-3`} data-fc-accent="sky">
             <div className={FINELY_OS_ENTITY_BODY}>
               Choose your lane:{' '}
               <span className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Restore</span> (cleanup) or{' '}
@@ -452,7 +454,7 @@ export default function PricingPage() {
 
         {activeTab === 'debt_legal' && (
             <div className={`${FINELY_OS_NOTICE_WARN} flex items-start gap-3`}>
-            <AlertCircle size={18} className="mt-0.5 text-fuchsia-400 shrink-0" />
+            <AlertCircle size={18} className="mt-0.5 text-rose-400 shrink-0" />
             <div>
               <div className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Important legal note</div>
               <p className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>
@@ -465,7 +467,7 @@ export default function PricingPage() {
                 because swapping one debt for another is usually not ideal. If you want a credit-building path, book a free strategy call
                 and we'll map the safest strategy.
               </p>
-              <div className={`mt-4 rounded-xl border border-fuchsia-500/20 bg-black/25 !p-3`}>
+              <div className={`mt-4 rounded-xl border border-rose-500/20 bg-black/25 p-4`}>
                 <div className={`text-xs font-semibold uppercase tracking-wider ${FINELY_OS_ENTITY_SUBLABEL}`}>
                   Which tier fits your balance?
                 </div>
@@ -478,14 +480,14 @@ export default function PricingPage() {
                       key={band.label}
                       type="button"
                       onClick={() => setDebtBalanceBandCents(band.amountCents)}
-                      className={finelyOsViewTab(debtBalanceBandCents === band.amountCents, 'fuchsia')}
+                      className={finelyOsViewTab(debtBalanceBandCents === band.amountCents, 'rose')}
                     >
                       {band.label}
                     </button>
                   ))}
                 </div>
                 {debtBalanceRecommendation ? (
-                  <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-fuchsia-500/25 bg-fuchsia-500/[0.08] px-3 py-2.5">
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-rose-500/25 bg-rose-500/[0.08] px-3 py-2.5">
                     <div className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
                       Recommended: <span className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{debtBalanceRecommendation.name}</span>{' '}
                       · {formatPrice(debtBalanceRecommendation.priceAmount)}
@@ -529,12 +531,12 @@ export default function PricingPage() {
 
         {activeTab === 'agency' ? (
           <>
-            <div className={`${finelyOsCatalogCard('violet')} !p-6 space-y-4`} data-fc-accent="violet">
+            <div className={`${finelyOsCatalogCard('violet')} space-y-4`} data-fc-accent="violet">
               <div>
                 <p className={FINELY_OS_ENTITY_SUBLABEL}>{CS.programName}</p>
                 <p className={`mt-2 text-xl font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Revenue-share partnership — not flat SaaS</p>
                 <p className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>
-                  Run customer credit files on Finely&apos;s operating stack with training, white-label portal, dispute studio, and a dedicated partnership line.
+                  Run partner credit files on Finely&apos;s operating stack with training, white-label portal, dispute studio, and a dedicated partnership line.
                 </p>
               </div>
               <div className="flex flex-wrap gap-3">
@@ -558,14 +560,32 @@ export default function PricingPage() {
             </div>
           </>
         ) : visiblePackages.length ? (
-          <PricingPackageCatalog
-            packages={visiblePackages}
-            pageSize={6}
-            includePersonalCompare={activeTab === 'personal_credit' || activeTab === 'banking_reports'}
-            searchPlaceholder="Search packages in this category…"
-            selectLabel="Select"
-            onSelect={(pkgId) => handleSelectPackage(pkgId, visiblePackages)}
-          />
+          <section
+            className={`relative overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8 2xl:-mx-10 px-4 sm:px-6 lg:px-8 2xl:px-10 py-8 sm:py-10 ${finelyOsLandingContrastSection('fc-band-violet')}`}
+            data-fc-contrast-band="1"
+          >
+            <LandingSellAtmosphere tone="platinum" />
+            <div className="relative space-y-4">
+              <div className={`${finelyOsCatalogCard('sky')} !p-4 sm:!p-5`} data-fc-accent="sky">
+                <p className={`text-sm font-bold ${FINELY_OS_ENTITY_VALUE}`}>Compare packages</p>
+                <p className={`mt-1 text-base ${FINELY_OS_ENTITY_BODY}`}>
+                  Transparent glass tiers — pick DIY or done-for-you, then select the package that matches your lane.
+                </p>
+              </div>
+              <PricingPackageCatalog
+                packages={visiblePackages}
+                pageSize={6}
+                includePersonalCompare={activeTab === 'personal_credit' || activeTab === 'banking_reports'}
+                searchPlaceholder="Search packages in this category…"
+                selectLabel="Select"
+                onSelect={(pkgId) => handleSelectPackage(pkgId, visiblePackages)}
+                titleClassName="text-xl sm:text-2xl font-extrabold text-white"
+              />
+              <p className={FINELY_OS_COMPLIANCE_FOOTNOTE}>
+                Results vary · not legal advice · funding subject to underwriting
+              </p>
+            </div>
+          </section>
         ) : (
           <div className={FINELY_OS_LUXURY_EMPTY}>
             No {deliveryMode} packages in this category yet. Switch to {deliveryMode === 'DIY' ? 'DFY' : 'DIY'} to see
@@ -575,7 +595,7 @@ export default function PricingPage() {
 
         {activeTab === 'tradeline_promo' && (
           <div className={`${FINELY_OS_NOTICE_WARN} flex items-start gap-3`}>
-            <Shield size={18} className="mt-0.5 text-fuchsia-400 shrink-0" />
+            <Shield size={18} className="mt-0.5 text-rose-400 shrink-0" />
             <div>
               <div className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>How Tradeline Packages Work</div>
               <ul className={`mt-2 ${FINELY_OS_ENTITY_BODY} space-y-1 list-disc pl-4`}>
@@ -640,7 +660,7 @@ export default function PricingPage() {
       {/* Mobile-only click-to-call bar (B7) — high-intent partners often prefer calling from a phone */}
       <a
         href={supportTelHref}
-        className="fixed inset-x-3 bottom-3 z-40 flex sm:hidden items-center justify-center gap-2 rounded-xl border border-amber-400/50 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 px-4 py-3 text-[11px] font-black uppercase tracking-[0.14em] text-[#1a1408] shadow-[0_16px_40px_rgba(217,168,66,0.4)]"
+        className="fixed inset-x-3 bottom-3 z-40 flex sm:hidden items-center justify-center gap-2 rounded-xl border border-emerald-400/50 bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-400 px-4 py-3 text-[11px] font-black uppercase tracking-[0.14em] text-[#052e16] shadow-[0_16px_40px_rgba(16,185,129,0.4)]"
       >
         <Phone size={16} /> Call now — {supportPhone}
       </a>

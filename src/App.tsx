@@ -45,7 +45,7 @@ import { captureDigitalInviteCardFromUrl } from './lib/digitalInviteCardAttribut
 import { resolvePostAuthHomePath } from './lib/postAuthRouting';
 import { isAuthEntryPath, signupUrlForCareerPath } from './lib/onboardingRoleRouting';
 import { resolveAuthedOnboardingBouncePath } from './lib/packageCheckoutRouting';
-import { resolveFinelyCtaPath } from './lib/finelyCtaIntent';
+import { finelyCtaNavigate, resolveFinelyCtaPath } from './lib/finelyCtaIntent';
 import { ensureDefaultExperiments, assignFunnelVariant, getAssignedCtaDestination } from './data/funnelExperimentsRepo';
 import { persistCtaBridgeVariant } from './lib/funnelCtaBridge';
 import { clearOnboardingProgress, peekOnboardingRecommendedNextPath } from './lib/onboardingProgressStorage';
@@ -84,10 +84,12 @@ import { SiteViewportPreview } from './components/layout/SiteViewportPreview';
 import { Overnight50SiteBootstrap } from './components/overnight50/Overnight50SiteBootstrap';
 import { inPreviewFrame } from './lib/inPreviewFrame';
 import { lazyWithRetry } from './lib/lazyWithRetry';
+import FreeGuideFunnelPage from './pages/leadmagnet/FreeGuideFunnelPage';
 
 // Route-level code splitting (keeps main bundle lean)
 const PartnerReportsPage = lazyWithRetry(() => import('./pages/portal/PartnerReportsPage'));
 const PartnerAnalysisVaultPage = lazyWithRetry(() => import('./pages/portal/PartnerAnalysisVaultPage'));
+const PartnerEvidenceVaultPage = lazyWithRetry(() => import('./pages/portal/PartnerEvidenceVaultPage'));
 const PartnerDisputesPage = lazyWithRetry(() => import('./pages/portal/PartnerDisputesPage'));
 const PartnerTasksPage = lazyWithRetry(() => import('./pages/portal/PartnerTasksPage'));
 const PartnerDashboardPage = lazyWithRetry(() => import('./pages/portal/PartnerDashboardPage'));
@@ -120,7 +122,7 @@ const PartnerTradelineMarketplacePage = lazyWithRetry(() => import('./pages/port
 const PartnerCoursesPage = lazyWithRetry(() => import('./pages/portal/PartnerCoursesPage'));
 const PartnerCoursePage = lazyWithRetry(() => import('./pages/portal/PartnerCoursePage'));
 const PartnerBarterPage = lazyWithRetry(() => import('./pages/portal/PartnerBarterPage'));
-const PortalPartnerSelectPage = lazyWithRetry(() => import('./pages/portal/PortalPartnerSelectPage'));
+const ProductRoutedPage = lazyWithRetry(() => import('./pages/ProductRoutedPage'));
 
 const DeveloperQaHubPage = lazyWithRetry(() => import('./pages/developer/DeveloperQaHubPage'));
 
@@ -143,6 +145,7 @@ const AdminWorkflowQueuePage = lazyWithRetry(() => import('./pages/admin/AdminWo
 const AdminAutomationsPage = lazyWithRetry(() => import('./pages/admin/AdminAutomationsPage'));
 const AdminCommsStudioPage = lazyWithRetry(() => import('./pages/admin/AdminCommsStudioPage'));
 const AdminGrowthCommandPage = lazyWithRetry(() => import('./pages/admin/AdminGrowthCommandPage'));
+const AdminLeadsOsPage = lazyWithRetry(() => import('./pages/admin/AdminLeadsOsPage'));
 const AdminTemplatesPage = lazyWithRetry(() => import('./pages/admin/AdminTemplatesPage'));
 const AdminVendorsPage = lazyWithRetry(() => import('./pages/admin/AdminVendorsPage'));
 const AdminResourcesPage = lazyWithRetry(() => import('./pages/admin/AdminResourcesPage'));
@@ -230,8 +233,8 @@ const BusinessCreditOneSheetsPage = lazyWithRetry(() => import('./pages/Business
 const PersonalCreditRestoreSheetPage = lazyWithRetry(() => import('./pages/resources/PersonalCreditRestoreSheetPage'));
 const PersonalCreditBuildSheetPage = lazyWithRetry(() => import('./pages/resources/PersonalCreditBuildSheetPage'));
 const AuTeenCreditSheetPage = lazyWithRetry(() => import('./pages/resources/AuTeenCreditSheetPage'));
-// C1 — public doctrine articles (debt-litigation, business-credit, non-citizen/international).
-// Each route has a `needs_review` ComplianceReviewRecord — see /admin/compliance-review (C0 gate).
+// C1 â€” public doctrine articles (debt-litigation, business-credit, non-citizen/international).
+// Each route has a `needs_review` ComplianceReviewRecord â€” see /admin/compliance-review (C0 gate).
 const DebtDefenseValidationLettersPage = lazyWithRetry(() => import('./pages/resources/DebtDefenseValidationLettersPage'));
 const DebtDefenseSummonsAnswerPage = lazyWithRetry(() => import('./pages/resources/DebtDefenseSummonsAnswerPage'));
 const DebtDefenseDiscoveryDemandsPage = lazyWithRetry(() => import('./pages/resources/DebtDefenseDiscoveryDemandsPage'));
@@ -243,12 +246,12 @@ const BusinessCreditBuildingMistakesPage = lazyWithRetry(() => import('./pages/r
 const NonCitizenBusinessCreditPage = lazyWithRetry(() => import('./pages/resources/NonCitizenBusinessCreditPage'));
 const InternationalCreditSystemsGuidePage = lazyWithRetry(() => import('./pages/resources/InternationalCreditSystemsGuidePage'));
 const OutcomeWizardPage = lazyWithRetry(() => import('./pages/resources/OutcomeWizardPage'));
-// C3 — DIY vs. DFY vs. traditional credit-repair comparison page. Route has a `needs_review`
-// ComplianceReviewRecord — see /admin/compliance-review (C0 gate).
+// C3 â€” DIY vs. DFY vs. traditional credit-repair comparison page. Route has a `needs_review`
+// ComplianceReviewRecord â€” see /admin/compliance-review (C0 gate).
 const CreditRepairComparisonPage = lazyWithRetry(() => import('./pages/resources/CreditRepairComparisonPage'));
-// C4 — state-specific debt-defense landing pages (highest compliance scrutiny — see C0.3).
+// C4 â€” state-specific debt-defense landing pages (highest compliance scrutiny â€” see C0.3).
 // Each route has a `needs_review`, `highestScrutiny: true` ComplianceReviewRecord with a 3-month
-// re-verification cadence — see /admin/compliance-review.
+// re-verification cadence â€” see /admin/compliance-review.
 const DebtDefenseTexasPage = lazyWithRetry(() => import('./pages/resources/DebtDefenseTexasPage'));
 const DebtDefenseNewYorkPage = lazyWithRetry(() => import('./pages/resources/DebtDefenseNewYorkPage'));
 const DebtDefensePennsylvaniaPage = lazyWithRetry(() => import('./pages/resources/DebtDefensePennsylvaniaPage'));
@@ -259,10 +262,14 @@ const BookstoreProductPage = lazyWithRetry(() => import('./pages/BookstoreProduc
 const PricingPage = lazyWithRetry(() => import('./pages/PricingPage'));
 const PricingServicePage = lazyWithRetry(() => import('./pages/PricingServicePage'));
 const PersonalCreditRestorePreviewPage = lazyWithRetry(() => import('./pages/preview/PersonalCreditRestorePreviewPage'));
+const WorkspaceLightPreviewHubPage = lazyWithRetry(() => import('./pages/preview/WorkspaceLightPreviewHubPage'));
+const AdminDashboardLightPreviewPage = lazyWithRetry(() => import('./pages/preview/AdminDashboardLightPreviewPage'));
+const PartnerDashboardLightPreviewPage = lazyWithRetry(() => import('./pages/preview/PartnerDashboardLightPreviewPage'));
+const WorkspaceProductModulePage = lazyWithRetry(() => import('./pages/preview/WorkspaceProductModulePage'));
 const FundabilityReadinessPage = lazyWithRetry(() => import('./pages/FundabilityReadinessPage'));
 const TestimonialsPage = lazyWithRetry(() => import('./pages/TestimonialsPage'));
 const ResultsPage = lazyWithRetry(() => import('./pages/ResultsPage'));
-// C2 — public before/after proof gallery, the visual "at a glance" companion to /results (B1).
+// C2 â€” public before/after proof gallery, the visual "at a glance" companion to /results (B1).
 const BeforeAfterGalleryPage = lazyWithRetry(() => import('./pages/BeforeAfterGalleryPage'));
 const EventsPage = lazyWithRetry(() => import('./pages/EventsPage'));
 const CheckoutPage = lazyWithRetry(() => import('./pages/CheckoutPage'));
@@ -276,7 +283,6 @@ const AuSellerHubPage = lazyWithRetry(() => import('./pages/seller/AuSellerHubPa
 const EnlightenmentSessionPage = lazyWithRetry(() => import('./pages/EnlightenmentSessionPage'));
 const PublicSelfBookInvitePage = lazyWithRetry(() => import('./pages/PublicSelfBookInvitePage'));
 const GuestMeetingJoinPage = lazyWithRetry(() => import('./pages/GuestMeetingJoinPage'));
-const FreeGuideFunnelPage = lazyWithRetry(() => import('./pages/leadmagnet/FreeGuideFunnelPage'));
 const DisputeGuideReaderPage = lazyWithRetry(() => import('./pages/leadmagnet/DisputeGuideReaderPage'));
 const ScoreBoostGuideReaderPage = lazyWithRetry(() => import('./pages/leadmagnet/ScoreBoostGuideReaderPage'));
 const DebtGuideFunnelPage = lazyWithRetry(() => import('./pages/leadmagnet/DebtGuideFunnelPage'));
@@ -349,6 +355,9 @@ type NavView =
   | 'services_tradelines'
   | 'resources'
   | 'pricing'
+  | 'pricing_personal'
+  | 'pricing_business'
+  | 'pricing_debt'
   | 'testimonials'
   | 'bookstore'
   | 'affiliate'
@@ -377,6 +386,9 @@ function routeFromView(view: NavView): string {
     case 'services_tradelines': return '/services/tradelines';
     case 'resources': return '/resources';
     case 'pricing': return '/pricing';
+    case 'pricing_personal': return '/pricing/personal-credit-restore';
+    case 'pricing_business': return '/pricing/business-credit';
+    case 'pricing_debt': return '/pricing/debt-legal';
     case 'testimonials': return '/testimonials';
     case 'bookstore': return '/bookstore';
     case 'affiliate': return '/affiliate';
@@ -426,13 +438,13 @@ function viewFromPath(pathname: string): NavView {
   return 'landing';
 }
 
-/** Legacy `/consultation` bookmarks → canonical enlightenment session (preserves query string). */
+/** Legacy `/consultation` bookmarks â†’ canonical enlightenment session (preserves query string). */
 function ConsultationCanonicalRedirect() {
   const { search } = useLocation();
   return <Navigate to={`/enlightenment-session${search}`} replace />;
 }
 
-/** Legacy `/blog/:slug` bookmarks → Guides index while preserving the slug for support/analytics. */
+/** Legacy `/blog/:slug` bookmarks â†’ Guides index while preserving the slug for support/analytics. */
 function BlogCanonicalRedirect() {
   const { slug } = useParams();
   const { search } = useLocation();
@@ -443,7 +455,7 @@ function BlogCanonicalRedirect() {
   return <Navigate to={`/resources/guides${qs ? `?${qs}` : ''}`} replace />;
 }
 
-/** Legacy business funding URL → canonical Lender Logic workspace. */
+/** Legacy business funding URL â†’ canonical Lender Logic workspace. */
 function BusinessFundingCanonicalRedirect() {
   const { search } = useLocation();
   return <Navigate to={`/business/lender-logic${search}`} replace />;
@@ -462,16 +474,16 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
   const auth = useAuth();
   const personalFreeTrialPath = resolveFinelyCtaPath('personal_free_trial', { isAuthed: Boolean(auth.user) });
   usePublicSeoMeta({
-    title: 'Finely Cred — credit restore & funding OS',
+    title: 'Finely Cred — credit restore & funding',
     description:
-      'Personal credit restore, business credit, debt strategy, tradelines, and funding readiness — with AI staff, Work OS, and neural narration.',
+      'Personal credit restore, business credit, debt strategy, tradelines, and funding readiness — with guided workflows and partner education.',
     path: '/',
   });
   useEffect(() => {
     setShowSignedOutBar(consumeSignedOutFlag());
   }, []);
 
-  // D3 — homepage hero CTA-destination A/B test: seed the experiment (idempotent,
+  // D3 â€” homepage hero CTA-destination A/B test: seed the experiment (idempotent,
   // additive) and record the impression as soon as the hero is actually viewed
   // (not just on click), so view-through rate is measurable per variant.
   useEffect(() => {
@@ -497,7 +509,7 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
 
       <FinelyOsPublicCommandStrip />
 
-      {/* 1b. Condensed proof/trust strip — directly beneath the hero (was buried at section #10) */}
+      {/* 1b. Condensed proof/trust strip â€” directly beneath the hero (was buried at section #10) */}
       <HomeHeroProofStrip />
 
       {/* 2. Path chooser */}
@@ -506,7 +518,7 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
       {/* 3. Cinematic product video stage */}
       <LandingCinematicVideoStage />
 
-      {/* 4. DFY / Solutions — platinum champagne */}
+      {/* 4. DFY / Solutions â€” platinum champagne */}
       <LandingSolutionsSnapshotSection onViewPricing={onViewPricing} />
 
       {/* 5. Debt eradication */}
@@ -518,7 +530,7 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
       {/* 7. In-house financing (compact) */}
       <LandingFinancingPreapprovalSection variant="compact" />
 
-      {/* 8. Mastery OS — device cluster + live approvals */}
+      {/* 8. Mastery OS â€” device cluster + live approvals */}
       <MasteryOSSection />
 
       {/* 9. Free guide teaser */}
@@ -541,10 +553,10 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                     <button
                       type="button"
-                      onClick={() => navigate(personalFreeTrialPath)}
-                      className="inline-flex items-center justify-center gap-2 px-7 py-4 rounded-xl font-black uppercase tracking-wider text-sm w-full sm:w-auto bg-gradient-to-r from-amber-500 to-amber-600 text-black shadow-lg shadow-amber-500/25 hover:brightness-110 transition-all"
+                      onClick={() => finelyCtaNavigate(navigate, 'personal_free_guide', { isAuthed: Boolean(auth.user) })}
+                      className="inline-flex items-center justify-center gap-2 px-7 py-4 rounded-xl font-black uppercase tracking-wider text-sm w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-emerald-600 text-black shadow-lg shadow-emerald-500/25 hover:brightness-110 transition-all"
                     >
-                      Start free trial <ArrowRight className="w-5 h-5" />
+                      Start free guide <ArrowRight className="w-5 h-5" />
                     </button>
                     <span className="text-xs opacity-60 inline-flex items-center gap-1.5">
                       <Download className="w-3.5 h-3.5 text-emerald-700" /> Instant PDF to your inbox
@@ -569,11 +581,11 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
           <FinelyOsComplianceStrip className="mb-10" />
           <div className="text-center mb-12">
             <Reveal>
-              <p className="text-xs font-bold tracking-[0.3em] text-amber-500 uppercase mb-4">
+              <p className="text-xs font-bold tracking-[0.3em] text-violet-400 uppercase mb-4">
                 <Trophy size={14} className="inline mr-2" /> Reviews
               </p>
               <h2 className="text-3xl lg:text-4xl font-light text-white mb-4">
-                Partner <span className="text-amber-500">success stories</span>
+                Partner <span className="text-violet-400">success stories</span>
               </h2>
             </Reveal>
           </div>
@@ -593,11 +605,11 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
             <Reveal delay={200}>
               <TestimonialDossier
                 id="FC-924"
-                accent="amber"
+                accent="sky"
                 service="Funding"
                 name="Jennifer Boykins"
                 review="I was skeptical at first, but the sequencing and execution were real. I qualified for funding faster than I thought possible."
-                milestone="5‑month turnaround"
+                milestone="5-month turnaround"
                 resultLabel="Funded"
                 resultValue="$58,000"
               />
@@ -608,7 +620,7 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
                 accent="violet"
                 service="Credit Restoration"
                 name="Bruce Cunningham"
-                review="The strategy was detailed and disciplined. They didn’t just ‘send letters’—they built a real case file and kept everything organized."
+                review="The strategy was detailed and disciplined. They didn't just send letters — they built a real case file and kept everything organized."
                 milestone="Accuracy restored"
                 resultLabel="Deleted"
                 resultValue="11 items"
@@ -649,10 +661,10 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
               <div className="flex flex-col sm:flex-row justify-center gap-4 pt-2">
                 <button
                   type="button"
-                  onClick={() => navigate(personalFreeTrialPath)}
+                  onClick={() => finelyCtaNavigate(navigate, 'personal_free_guide', { isAuthed: Boolean(auth.user) })}
                   className="group relative inline-flex items-center justify-center gap-3 px-8 py-4 rounded-xl fc-button-platinum-surface font-bold uppercase tracking-wider text-sm transition-all duration-300 hover:scale-105"
                 >
-                  <span className="relative z-[1]">Start free trial</span>
+                  <span className="relative z-[1]">Start free guide</span>
                   <ArrowRight size={18} className="relative z-[1] group-hover:translate-x-1 transition-transform" />
                 </button>
                 <button
@@ -679,7 +691,7 @@ function TradelinesRoute({ addToCart, onNavigate }: { addToCart: (item: any) => 
   const navigate = useNavigate();
   usePublicSeoMeta({
     title: 'Tradeline marketplace',
-    description: 'Authorized user tradelines and primary tradeline education — profile enhancement with compliance-first guidance.',
+    description: 'Authorized user tradelines and primary tradeline education â€” profile enhancement with compliance-first guidance.',
     path: '/tradelines',
   });
   const focus = new URLSearchParams(location.search).get('focus'); // 'primary' | 'au' | null
@@ -720,14 +732,14 @@ function TradelinesRoute({ addToCart, onNavigate }: { addToCart: (item: any) => 
       priceCents: listing.priceCents,
       kind: listing.live ? 'au_tradeline' : 'au_tradeline_interest',
       label: listing.live
-        ? `${listing.issuer} AU · reserve seat`
-        : `${listing.issuer} AU · check availability (demo)`,
+        ? `${listing.issuer} AU Â· reserve seat`
+        : `${listing.issuer} AU Â· check availability (demo)`,
       source: listing.source,
       sellerId: listing.sellerId,
       listingId: listing.listingId,
       slotsAvailable: listing.slotsAvailable,
     });
-    // Live rows → buyer intake with listing id (auth bounce preserves deep link). Demo → same path, labeled demo.
+    // Live rows â†’ buyer intake with listing id (auth bounce preserves deep link). Demo â†’ same path, labeled demo.
     navigate(`/au/request?${auRequestSearchParams(listing).toString()}`);
   };
 
@@ -741,8 +753,8 @@ function TradelinesRoute({ addToCart, onNavigate }: { addToCart: (item: any) => 
               Choose your <span className="text-amber-500">lane</span>
             </h1>
             <p className="text-white/50 max-w-2xl mx-auto">
-              Authorized Users (AU) for premium profile enhancement, or Primary tradelines via in‑house financing
-              (education‑first; reports to Equifax when eligible).
+              Authorized Users (AU) for premium profile enhancement, or Primary tradelines via inâ€‘house financing
+              (educationâ€‘first; reports to Equifax when eligible).
             </p>
           </div>
 
@@ -769,9 +781,9 @@ function TradelinesRoute({ addToCart, onNavigate }: { addToCart: (item: any) => 
               className="text-left rounded-3xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 to-transparent hover:border-emerald-500/40 transition-all p-8"
             >
               <div className="text-[10px] uppercase tracking-[0.28em] text-emerald-300 font-black">Primary Tradeline</div>
-              <div className="mt-2 text-2xl font-medium text-white">In‑House Financing (Education‑First)</div>
+              <div className="mt-2 text-2xl font-medium text-white">Inâ€‘House Financing (Educationâ€‘First)</div>
               <div className="mt-2 text-white/55 text-sm leading-relaxed">
-                Built for credit‑building programs. We confirm fit in a free Enlightenment session so it supports your long-term plan (not a debt swap).
+                Built for creditâ€‘building programs. We confirm fit in a free strategy call so it supports your long-term plan (not a debt swap).
               </div>
               <div className="mt-6 inline-flex items-center gap-2 text-emerald-400 font-medium">
                 See how it works <ArrowRight size={16} />
@@ -786,7 +798,7 @@ function TradelinesRoute({ addToCart, onNavigate }: { addToCart: (item: any) => 
                 <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-emerald-400`}>Primary tradeline lane</div>
                 <div className={`text-2xl font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Build credit while you pay</div>
                 <p className={`${FINELY_OS_ENTITY_BODY} text-sm leading-relaxed`}>
-                  When eligible, in‑house financing can report to Equifax as a positive installment tradeline. We only recommend this
+                  When eligible, inâ€‘house financing can report to Equifax as a positive installment tradeline. We only recommend this
                   when it aligns with a responsible plan and your profile goals. Financing terms vary and are disclosed in the contract.
                 </p>
                 <p className="text-white/50 text-xs">
@@ -795,7 +807,7 @@ function TradelinesRoute({ addToCart, onNavigate }: { addToCart: (item: any) => 
               </div>
               <div className="flex flex-col sm:flex-row gap-3">
                 <Button onClick={() => onNavigate('consultation')} size="md">
-                  Book an Enlightenment session <ArrowRight size={16} />
+                  Book a strategy call <ArrowRight size={16} />
                 </Button>
                 <Button variant="outline" onClick={() => onNavigate('pricing')} size="md">
                   View pricing options
@@ -804,7 +816,7 @@ function TradelinesRoute({ addToCart, onNavigate }: { addToCart: (item: any) => 
             </div>
           </section>
 
-          {/* AU lane — single inventory row (showcase cards + Check availability → get matched). */}
+          {/* AU lane â€” single inventory row (showcase cards + Check availability â†’ get matched). */}
           <section id="tradelines-au" className="space-y-8">
             <AuListingShowcase
               onNavigateAuTeenSheet={() => navigate('/resources/au-teen-credit-sheet')}
@@ -848,7 +860,7 @@ function TradelinesRoute({ addToCart, onNavigate }: { addToCart: (item: any) => 
           roleId="finely_advisor"
           goal="tradelines"
           roleLabel="tradeline advisor"
-          subline="AU vs primary tradeline — not sure which lane fits? Chat before you add to cart."
+          subline="AU vs primary tradeline â€” not sure which lane fits? Chat before you add to cart."
           buttonTone="secondary"
         />
       </div>
@@ -861,7 +873,7 @@ function AboutRoute({ onNavigate }: { onNavigate: (view: NavView) => void }) {
   const navigate = useNavigate();
   usePublicSeoMeta({
     title: 'About Finely Cred',
-    description: 'Credit systems architecture since 2014 — DIY and done-for-you restore, funding, and partner OS.',
+    description: 'Credit systems architecture since 2014 â€” DIY and done-for-you restore, funding, and partner OS.',
     path: '/about',
   });
   return (
@@ -884,7 +896,7 @@ function AboutRoute({ onNavigate }: { onNavigate: (view: NavView) => void }) {
                 <div className="text-[10px] font-black uppercase tracking-[0.28em] text-emerald-800">What is a Finely partner?</div>
                 <p className="mt-2 text-sm text-slate-700 leading-relaxed">
                   A <strong>partner</strong> is anyone working with Finely Cred on restore, funding, or education — DIY portal access,
-                  done-for-you execution, or both. We use &quot;partner&quot; on this site; your portal, Communication Hub, and Work OS
+                  done-for-you execution, or both. We use &quot;partner&quot; on this site; your portal and Communication Hub
                   unlock after onboarding.
                 </p>
               </div>
@@ -893,7 +905,7 @@ function AboutRoute({ onNavigate }: { onNavigate: (view: NavView) => void }) {
                   onClick={() => onNavigate('consultation')}
                   className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all"
                 >
-                  Book an Enlightenment session <ArrowRight size={14} />
+                  Book a strategy call <ArrowRight size={14} />
                 </button>
                 <button onClick={() => onNavigate('pricing')} className="fc-button-platinum">
                   Explore pricing <ArrowRight size={14} />
@@ -935,13 +947,13 @@ function AboutRoute({ onNavigate }: { onNavigate: (view: NavView) => void }) {
             <div className={`${FINELY_OS_ENTITY_VALUE} text-xl font-semibold`}>What we do</div>
             <p className={`mt-3 ${FINELY_OS_ENTITY_BODY} text-sm leading-relaxed`}>
               We help partners improve profile quality, reduce underwriting friction, and build lending readiness through a structured
-              process: education → evidence discipline → workflow execution → reporting strategy. We don’t sell “magic.” We build systems.
+              process: education â†’ evidence discipline â†’ workflow execution â†’ reporting strategy. We donâ€™t sell â€œmagic.â€ We build systems.
             </p>
             <div className="mt-6 grid md:grid-cols-2 gap-4">
               {[
                 { t: 'Personal + business credit', d: 'Profile cleanup, sequencing, and fundability readiness.' },
                 { t: 'Debt kill workflows', d: 'Validation + dispute workflows and document discipline (not legal advice).' },
-                { t: 'Premium Tradelines', d: 'AU inventory and education‑first primary lanes where appropriate.' },
+                { t: 'Premium Tradelines', d: 'AU inventory and educationâ€‘first primary lanes where appropriate.' },
                 { t: 'Wealth paths', d: 'From credit stability to capital readiness and next-step funding pathways.' },
               ].map((x) => (
                 <div key={x.t} className={`${finelyOsCatalogCard('emerald')} space-y-1`}>
@@ -964,8 +976,8 @@ function AboutRoute({ onNavigate }: { onNavigate: (view: NavView) => void }) {
                 recommending anything.
               </li>
               <li>
-                <span className={`${FINELY_OS_ENTITY_VALUE} font-semibold`}>No guarantees</span>: We don’t promise score changes, approvals, or
-                funding amounts — we promise disciplined process.
+                <span className={`${FINELY_OS_ENTITY_VALUE} font-semibold`}>No guarantees</span>: We donâ€™t promise score changes, approvals, or
+                funding amounts â€” we promise disciplined process.
               </li>
             </ul>
           </div>
@@ -987,12 +999,12 @@ function AboutRoute({ onNavigate }: { onNavigate: (view: NavView) => void }) {
             <div className="relative">
               <div className="flex flex-wrap items-start justify-between gap-6">
                 <div className="max-w-2xl">
-                  <div className="text-[10px] font-black uppercase tracking-[0.35em] text-white/45">Finely Cred • About</div>
+                  <div className="text-[10px] font-black uppercase tracking-[0.35em] text-white/45">Finely Cred â€¢ About</div>
                   <h2 className="mt-3 text-3xl md:text-4xl font-light text-white leading-tight">
-                    Build credit like an operator — with systems, evidence, and execution.
+                    Build credit like an operator â€” with systems, evidence, and execution.
                   </h2>
                   <p className="mt-3 text-white/60 text-sm md:text-base leading-relaxed">
-                    If you’re ready to move from “fixing” to building real lending readiness, start intake or book a free Enlightenment session.
+                    If youâ€™re ready to move from â€œfixingâ€ to building real lending readiness, start intake or book a free strategy call.
                   </p>
                 </div>
 
@@ -1001,7 +1013,7 @@ function AboutRoute({ onNavigate }: { onNavigate: (view: NavView) => void }) {
                     Start intake <ArrowRight size={18} />
                   </Button>
                   <Button variant="platinum" size="lg" onClick={() => onNavigate('consultation')}>
-                    Book an Enlightenment session <ArrowRight size={18} />
+                    Book a strategy call <ArrowRight size={18} />
                   </Button>
                 </div>
               </div>
@@ -1149,7 +1161,9 @@ function AppInner() {
   const navigate = useNavigate();
   const location = useLocation();
   const currentView = viewFromPath(location.pathname);
+  const isWorkspaceLightPreview = location.pathname.startsWith('/preview/workspace-light');
   const showPublicChrome =
+    !isWorkspaceLightPreview &&
     !location.pathname.startsWith('/portal') &&
     !location.pathname.startsWith('/admin') &&
     !location.pathname.startsWith('/business') &&
@@ -1166,15 +1180,20 @@ function AppInner() {
     location.pathname.startsWith('/portal/messages') ||
     location.pathname.startsWith('/portal/calendar') ||
     location.pathname.startsWith('/portal/meeting/') ||
-    location.pathname.startsWith('/portal/video/');
+    location.pathname.startsWith('/portal/video/') ||
+    location.pathname.startsWith('/admin/comms') ||
+    location.pathname.startsWith('/admin/communications') ||
+    location.pathname.startsWith('/admin/calendar') ||
+    location.pathname.startsWith('/admin/meeting/');
 
   const showDashboardChat =
-    location.pathname.startsWith('/dashboard') ||
-    location.pathname.startsWith('/portal') ||
-    location.pathname.startsWith('/admin') ||
-    location.pathname.startsWith('/business') ||
-    location.pathname.startsWith('/au') ||
-    location.pathname.startsWith('/seller');
+    !isWorkspaceLightPreview &&
+    (location.pathname.startsWith('/dashboard') ||
+      location.pathname.startsWith('/portal') ||
+      location.pathname.startsWith('/admin') ||
+      location.pathname.startsWith('/business') ||
+      location.pathname.startsWith('/au') ||
+      location.pathname.startsWith('/seller'));
 
   const { partner: chatPartner } = usePartnerSession();
   const adminFocusPartner = adminPartnerFocusMatchesPath(location.pathname);
@@ -1201,7 +1220,7 @@ function AppInner() {
       const sp = new URLSearchParams(location.search);
       if (sp.get('invite') === '1') return;
 
-      // Prefer explicit next → package checkout → sticky draft. Never linger on sticky wizard.
+      // Prefer explicit next â†’ package checkout â†’ sticky draft. Never linger on sticky wizard.
       let nextPath: string | null = resolveAuthedOnboardingBouncePath(location.search);
       if (!nextPath) {
         nextPath = peekOnboardingRecommendedNextPath();
@@ -1239,7 +1258,7 @@ function AppInner() {
             <ul className="list-disc pl-5 space-y-1">
               <li>Partner/customer files can include sensitive personal information and documents.</li>
               <li>Production storage must support access control, audit logging, and secure file delivery.</li>
-              <li>Local-only browser storage is not considered “vault-grade.”</li>
+              <li>Local-only browser storage is not considered â€œvault-grade.â€</li>
             </ul>
           </div>
         </div>
@@ -1269,8 +1288,13 @@ function AppInner() {
 
   return (
     <div
-      className="min-h-screen text-white font-sans fc-public-shell fc-premium-icons"
-      data-fc-public-shell="1"
+      className={
+        isWorkspaceLightPreview
+          ? 'min-h-screen fc-premium-icons text-[#0a1628] bg-[#eef2f7]'
+          : 'min-h-screen text-white font-sans fc-public-shell fc-premium-icons'
+      }
+      data-fc-public-shell={isWorkspaceLightPreview ? undefined : '1'}
+      data-fc-workspace-light-app={isWorkspaceLightPreview ? '1' : undefined}
       data-fc-floating-hub={Boolean(auth.user && showDashboardChat && !hideFloatingHub) ? '1' : undefined}
     >
       {toast && <Toast message={toast} onClose={() => setToast(null)} />}
@@ -1289,14 +1313,14 @@ function AppInner() {
             showThemeToggle={showPublicThemeToggle}
           />
 
-          {/* Public Navigation — blur on a backdrop layer so the logo stays sharp */}
+          {/* Public Navigation â€” blur on a backdrop layer so the logo stays sharp */}
           <nav className="relative fixed top-0 w-full z-50 overflow-visible py-3 sm:py-4 lg:min-h-[3.75rem]" data-fc-public-nav="1">
             <div
               className="pointer-events-none absolute inset-0 border-b border-white/[0.08] bg-fc-chrome/90 backdrop-blur-xl"
               aria-hidden
             />
             <div className="relative z-10 pr-4 sm:pr-6 lg:pr-8">
-            {/* Desktop logo — ~1.5–2" left of the centered content column (viewport-relative) */}
+            {/* Desktop logo â€” ~1.5â€“2" left of the centered content column (viewport-relative) */}
             <button
               type="button"
               onClick={() => handleNavigate('landing')}
@@ -1348,7 +1372,7 @@ function AppInner() {
                 </div>
               </div>
 
-              {/* Desktop header — nav + actions (logo is viewport-anchored above) */}
+              {/* Desktop header â€” nav + actions (logo is viewport-anchored above) */}
               <div className="hidden lg:flex items-center justify-between w-full overflow-visible gap-4">
                 <div className="fc-nav-rail min-w-0">
                     {PUBLIC_CORE_NAV.filter((item) => item.id === 'home').map((item) => {
@@ -1424,7 +1448,7 @@ function AppInner() {
             </div>
           </nav>
 
-      {/* Public AI concierge (homepage + public routes) — hidden during auth portal so mobile taps reach signup controls */}
+      {/* Public AI concierge (homepage + public routes) â€” hidden during auth portal so mobile taps reach signup controls */}
       {isFeatureEnabled('publicChat') &&
       !['/onboarding', '/login', '/signup', '/forgot-password', '/reset-password'].includes(location.pathname) ? (
         <PublicChatWidget />
@@ -1432,7 +1456,7 @@ function AppInner() {
         </>
       )}
 
-      {/* Communication Hub — floating across dashboard workspaces (hidden on full-page hub) */}
+      {/* Communication Hub â€” floating across dashboard workspaces (hidden on full-page hub) */}
       {Boolean(auth.user) && showDashboardChat && !hideFloatingHub ? (
         <PortalChatWidget
           partnerId={hubPartnerId}
@@ -1453,9 +1477,9 @@ function AppInner() {
       <Suspense
         fallback={
           inPreviewFrame() ? (
-            <div className="min-h-[40vh] flex items-center justify-center text-white/50 text-sm">Loading…</div>
+            <div className="min-h-[40vh] flex items-center justify-center text-white/50 text-sm">Loading...</div>
           ) : (
-            <FullPageLoader label="Loading the next module…" />
+            <FullPageLoader label="Loading the next page..." />
           )
         }
       >
@@ -1563,11 +1587,11 @@ function AppInner() {
         <Route path="/resources/videos" element={<ResourcesVideosPage />} />
         <Route path="/resources/references" element={<ResourcesReferencesPage />} />
         <Route path="/resources/business-credit-one-sheets" element={<BusinessCreditOneSheetsPage />} />
-        {/* Dedicated sheet pages — each PDF gets its own home, not a shared hub */}
+        {/* Dedicated sheet pages â€” each PDF gets its own home, not a shared hub */}
         <Route path="/resources/personal-credit-restore-sheet" element={<PersonalCreditRestoreSheetPage />} />
         <Route path="/resources/personal-credit-build-sheet" element={<PersonalCreditBuildSheetPage />} />
         <Route path="/resources/au-teen-credit-sheet" element={<AuTeenCreditSheetPage />} />
-        {/* C1 doctrine articles — debt-litigation, business-credit, non-citizen/international */}
+        {/* C1 doctrine articles â€” debt-litigation, business-credit, non-citizen/international */}
         <Route path="/resources/debt-defense-validation-letters" element={<DebtDefenseValidationLettersPage />} />
         <Route path="/resources/debt-defense-summons-answer" element={<DebtDefenseSummonsAnswerPage />} />
         <Route path="/resources/debt-defense-discovery-demands" element={<DebtDefenseDiscoveryDemandsPage />} />
@@ -1579,11 +1603,11 @@ function AppInner() {
         <Route path="/resources/non-citizen-business-credit" element={<NonCitizenBusinessCreditPage />} />
         <Route path="/resources/international-credit-systems-guide" element={<InternationalCreditSystemsGuidePage />} />
         <Route path="/resources/which-program-fits" element={<OutcomeWizardPage />} />
-        {/* C4 state-specific debt-defense landing pages — highest compliance scrutiny (C0.3) */}
+        {/* C4 state-specific debt-defense landing pages â€” highest compliance scrutiny (C0.3) */}
         <Route path="/resources/debt-defense-texas" element={<DebtDefenseTexasPage />} />
         <Route path="/resources/debt-defense-new-york" element={<DebtDefenseNewYorkPage />} />
         <Route path="/resources/debt-defense-pennsylvania" element={<DebtDefensePennsylvaniaPage />} />
-        {/* Aliases — keep bookmarks; do not delete canonical routes */}
+        {/* Aliases â€” keep bookmarks; do not delete canonical routes */}
         <Route path="/guides" element={<Navigate to="/resources/guides" replace />} />
         <Route path="/one-sheets" element={<Navigate to="/resources/one-sheets" replace />} />
         <Route path="/partner-stories" element={<Navigate to="/testimonials" replace />} />
@@ -1600,7 +1624,7 @@ function AppInner() {
           path="/affiliate/hub"
           element={
             <ProtectedRoute>
-              <AffiliateHubPage />
+              <ProductRoutedPage role="partner" pageId="affiliate-hub" legacy={<AffiliateHubPage />} />
             </ProtectedRoute>
           }
         />
@@ -1618,7 +1642,7 @@ function AppInner() {
           path="/credit-specialist/hub"
           element={
             <ProtectedRoute>
-              <AgentHubPage />
+              <ProductRoutedPage role="partner" pageId="specialist-hub" legacy={<AgentHubPage />} />
             </ProtectedRoute>
           }
         />
@@ -1635,7 +1659,7 @@ function AppInner() {
           path="/agency/hub"
           element={
             <ProtectedRoute>
-              <AgencyHubPage />
+              <ProductRoutedPage role="partner" pageId="agency-hub" legacy={<AgencyHubPage />} />
             </ProtectedRoute>
           }
         />
@@ -1643,7 +1667,7 @@ function AppInner() {
           path="/case-help/hub"
           element={
             <ProtectedRoute>
-              <CaseHelpHubPage />
+              <ProductRoutedPage role="partner" pageId="case-help-hub" legacy={<CaseHelpHubPage />} />
             </ProtectedRoute>
           }
         />
@@ -1651,7 +1675,7 @@ function AppInner() {
           path="/real-estate/hub"
           element={
             <ProtectedRoute>
-              <RealEstateHubPage />
+              <ProductRoutedPage role="partner" pageId="real-estate-hub" legacy={<RealEstateHubPage />} />
             </ProtectedRoute>
           }
         />
@@ -1661,7 +1685,7 @@ function AppInner() {
           path="/seller/dashboard"
           element={
             <ProtectedRoute>
-              <SellerDashboardPage />
+              <ProductRoutedPage role="partner" pageId="au-seller" legacy={<SellerDashboardPage />} />
             </ProtectedRoute>
           }
         />
@@ -1669,7 +1693,7 @@ function AppInner() {
           path="/seller/listings"
           element={
             <ProtectedRoute>
-              <SellerListingsPage />
+              <ProductRoutedPage role="partner" pageId="au-seller-cards" legacy={<SellerListingsPage />} />
             </ProtectedRoute>
           }
         />
@@ -1677,7 +1701,7 @@ function AppInner() {
           path="/seller/contracts"
           element={
             <ProtectedRoute>
-              <SellerContractsPage />
+              <ProductRoutedPage role="partner" pageId="au-seller-contracts" legacy={<SellerContractsPage />} />
             </ProtectedRoute>
           }
         />
@@ -1685,7 +1709,7 @@ function AppInner() {
           path="/seller/payouts"
           element={
             <ProtectedRoute>
-              <SellerPayoutsPage />
+              <ProductRoutedPage role="partner" pageId="au-seller-payouts" legacy={<SellerPayoutsPage />} />
             </ProtectedRoute>
           }
         />
@@ -1693,7 +1717,7 @@ function AppInner() {
           path="/seller/hub"
           element={
             <ProtectedRoute>
-              <AuSellerHubPage />
+              <ProductRoutedPage role="partner" pageId="au-seller-hub" legacy={<AuSellerHubPage />} />
             </ProtectedRoute>
           }
         />
@@ -1706,7 +1730,7 @@ function AppInner() {
           path="/account/settings"
           element={
             <ProtectedRoute>
-              <AccountSettingsPage />
+              <ProductRoutedPage role="partner" pageId="account" legacy={<AccountSettingsPage />} />
             </ProtectedRoute>
           }
         />
@@ -1725,19 +1749,12 @@ function AppInner() {
         />
 
         {/* Partner portal */}
-        <Route
-          path="/portal/select-partner"
-          element={
-            <ProtectedRoute>
-              <PortalPartnerSelectPage />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/portal/select-partner" element={<Navigate to="/admin/partners" replace />} />
         <Route
           path="/portal/dashboard"
           element={
             <ProtectedRoute>
-              <PartnerDashboardPage />
+              <ProductRoutedPage role="partner" pageId="dashboard" legacy={<PartnerDashboardPage />} />
             </ProtectedRoute>
           }
         />
@@ -1745,7 +1762,7 @@ function AppInner() {
           path="/portal/checklist"
           element={
             <ProtectedRoute>
-              <PartnerChecklistPage />
+              <ProductRoutedPage role="partner" pageId="checklist" legacy={<PartnerChecklistPage />} />
             </ProtectedRoute>
           }
         />
@@ -1753,7 +1770,7 @@ function AppInner() {
           path="/portal/reports"
           element={
             <ProtectedRoute>
-              <PartnerReportsPage />
+              <ProductRoutedPage role="partner" pageId="reports" legacy={<PartnerReportsPage />} />
             </ProtectedRoute>
           }
         />
@@ -1761,7 +1778,15 @@ function AppInner() {
           path="/portal/analysis"
           element={
             <ProtectedRoute>
-              <PartnerAnalysisVaultPage />
+              <ProductRoutedPage role="partner" pageId="analysis" legacy={<PartnerAnalysisVaultPage />} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/portal/evidence"
+          element={
+            <ProtectedRoute>
+              <ProductRoutedPage role="partner" pageId="evidence" legacy={<PartnerEvidenceVaultPage />} />
             </ProtectedRoute>
           }
         />
@@ -1769,7 +1794,7 @@ function AppInner() {
           path="/portal/disputes"
           element={
             <ProtectedRoute>
-              <PartnerDisputesPage />
+              <ProductRoutedPage role="partner" pageId="disputes" legacy={<PartnerDisputesPage />} />
             </ProtectedRoute>
           }
         />
@@ -1777,7 +1802,8 @@ function AppInner() {
           path="/portal/disputes/:id"
           element={
             <ProtectedRoute>
-              <PartnerDisputeDetailPage />
+              {/* List surface + enhanced inspector overlay (not leftover dispute-detail embed). */}
+              <ProductRoutedPage role="partner" pageId="disputes" legacy={<PartnerDisputeDetailPage />} />
             </ProtectedRoute>
           }
         />
@@ -1786,7 +1812,7 @@ function AppInner() {
           path="/portal/documents"
           element={
             <ProtectedRoute>
-              <PartnerDocumentsPage />
+              <ProductRoutedPage role="partner" pageId="documents" legacy={<PartnerDocumentsPage />} />
             </ProtectedRoute>
           }
         />
@@ -1794,7 +1820,7 @@ function AppInner() {
           path="/portal/education"
           element={
             <ProtectedRoute>
-              <PartnerEducationPage />
+              <ProductRoutedPage role="partner" pageId="education" legacy={<PartnerEducationPage />} />
             </ProtectedRoute>
           }
         />
@@ -1803,7 +1829,7 @@ function AppInner() {
           path="/portal/training/academy"
           element={
             <ProtectedRoute>
-              <PartnerTrainingAcademyPage />
+              <ProductRoutedPage role="partner" pageId="training" legacy={<PartnerTrainingAcademyPage />} />
             </ProtectedRoute>
           }
         />
@@ -1811,7 +1837,7 @@ function AppInner() {
           path="/portal/barter"
           element={
             <ProtectedRoute>
-              <PartnerBarterPage />
+              <ProductRoutedPage role="partner" pageId="barter" legacy={<PartnerBarterPage />} />
             </ProtectedRoute>
           }
         />
@@ -1835,7 +1861,7 @@ function AppInner() {
           path="/portal/library/:slug?"
           element={
             <ProtectedRoute>
-              <PartnerLibraryPage />
+              <ProductRoutedPage role="partner" pageId="library" legacy={<PartnerLibraryPage />} />
             </ProtectedRoute>
           }
         />
@@ -1843,7 +1869,7 @@ function AppInner() {
           path="/portal/courses"
           element={
             <ProtectedRoute>
-              <PartnerCoursesPage />
+              <ProductRoutedPage role="partner" pageId="courses" legacy={<PartnerCoursesPage />} />
             </ProtectedRoute>
           }
         />
@@ -1851,7 +1877,7 @@ function AppInner() {
           path="/portal/courses/:id"
           element={
             <ProtectedRoute>
-              <PartnerCoursePage />
+              <ProductRoutedPage role="partner" pageId="courses" legacy={<PartnerCoursePage />} />
             </ProtectedRoute>
           }
         />
@@ -1859,7 +1885,7 @@ function AppInner() {
           path="/portal/messages"
           element={
             <ProtectedRoute>
-              <PartnerMessagesPage />
+              <ProductRoutedPage role="partner" pageId="messages" legacy={<PartnerMessagesPage />} />
             </ProtectedRoute>
           }
         />
@@ -1867,7 +1893,7 @@ function AppInner() {
           path="/portal/notifications"
           element={
             <ProtectedRoute>
-              <NotificationsCenterPage surface="portal" />
+              <ProductRoutedPage role="partner" pageId="notifications" legacy={<NotificationsCenterPage surface="portal" />} />
             </ProtectedRoute>
           }
         />
@@ -1875,7 +1901,7 @@ function AppInner() {
           path="/portal/calendar"
           element={
             <ProtectedRoute>
-              <PartnerCalendarPage />
+              <ProductRoutedPage role="partner" pageId="calendar" legacy={<PartnerCalendarPage />} />
             </ProtectedRoute>
           }
         />
@@ -1883,7 +1909,7 @@ function AppInner() {
           path="/portal/meeting/:eventId"
           element={
             <ProtectedRoute>
-              <VideoMeetingRoomPage />
+              <ProductRoutedPage role="partner" pageId="video-meeting" legacy={<VideoMeetingRoomPage />} />
             </ProtectedRoute>
           }
         />
@@ -1891,7 +1917,7 @@ function AppInner() {
           path="/portal/video/:callId"
           element={
             <ProtectedRoute>
-              <InstantVideoCallPage />
+              <ProductRoutedPage role="partner" pageId="video-call" legacy={<InstantVideoCallPage />} />
             </ProtectedRoute>
           }
         />
@@ -1899,7 +1925,7 @@ function AppInner() {
           path="/portal/work"
           element={
             <ProtectedRoute>
-              <PartnerWorkPage />
+              <ProductRoutedPage role="partner" pageId="work" legacy={<PartnerWorkPage />} />
             </ProtectedRoute>
           }
         />
@@ -1907,7 +1933,7 @@ function AppInner() {
           path="/portal/projects"
           element={
             <ProtectedRoute>
-              <PartnerProjectsPage />
+              <ProductRoutedPage role="partner" pageId="projects" legacy={<PartnerProjectsPage />} />
             </ProtectedRoute>
           }
         />
@@ -1915,7 +1941,7 @@ function AppInner() {
           path="/portal/projects/:id"
           element={
             <ProtectedRoute>
-              <PartnerProjectWorkspacePage />
+              <ProductRoutedPage role="partner" pageId="projects" legacy={<PartnerProjectWorkspacePage />} />
             </ProtectedRoute>
           }
         />
@@ -1923,7 +1949,7 @@ function AppInner() {
           path="/portal/my-tasks"
           element={
             <ProtectedRoute>
-              <PartnerMyTasksPage />
+              <ProductRoutedPage role="partner" pageId="my-tasks" legacy={<PartnerMyTasksPage />} />
             </ProtectedRoute>
           }
         />
@@ -1931,7 +1957,7 @@ function AppInner() {
           path="/portal/templates"
           element={
             <ProtectedRoute>
-              <PartnerTemplateLibraryPage />
+              <ProductRoutedPage role="partner" pageId="templates" legacy={<PartnerTemplateLibraryPage />} />
             </ProtectedRoute>
           }
         />
@@ -1939,7 +1965,7 @@ function AppInner() {
           path="/portal/letters"
           element={
             <ProtectedRoute>
-              <PartnerLettersPage />
+              <ProductRoutedPage role="partner" pageId="letters" legacy={<PartnerLettersPage />} />
             </ProtectedRoute>
           }
         />
@@ -1947,7 +1973,7 @@ function AppInner() {
           path="/portal/letters/vault"
           element={
             <ProtectedRoute>
-              <PartnerLettersVaultPage />
+              <ProductRoutedPage role="partner" pageId="letters-vault" legacy={<PartnerLettersVaultPage />} />
             </ProtectedRoute>
           }
         />
@@ -1955,7 +1981,7 @@ function AppInner() {
           path="/portal/billing"
           element={
             <ProtectedRoute>
-              <PartnerBillingPage />
+              <ProductRoutedPage role="partner" pageId="billing" legacy={<PartnerBillingPage />} />
             </ProtectedRoute>
           }
         />
@@ -1963,7 +1989,7 @@ function AppInner() {
           path="/portal/debt"
           element={
             <ProtectedRoute>
-              <PartnerDebtPage />
+              <ProductRoutedPage role="partner" pageId="debt" legacy={<PartnerDebtPage />} />
             </ProtectedRoute>
           }
         />
@@ -1971,7 +1997,7 @@ function AppInner() {
           path="/portal/bankruptcy"
           element={
             <ProtectedRoute>
-              <PartnerBankruptcyPage />
+              <ProductRoutedPage role="partner" pageId="bankruptcy" legacy={<PartnerBankruptcyPage />} />
             </ProtectedRoute>
           }
         />
@@ -1979,7 +2005,8 @@ function AppInner() {
           path="/portal/debt/:id"
           element={
             <ProtectedRoute>
-              <PartnerDebtDetailPage />
+              {/* List surface + enhanced inspector overlay (not leftover debt-detail embed). */}
+              <ProductRoutedPage role="partner" pageId="debt" legacy={<PartnerDebtDetailPage />} />
             </ProtectedRoute>
           }
         />
@@ -1987,7 +2014,7 @@ function AppInner() {
           path="/portal/build"
           element={
             <ProtectedRoute>
-              <PartnerBuildPage />
+              <ProductRoutedPage role="partner" pageId="build" legacy={<PartnerBuildPage />} />
             </ProtectedRoute>
           }
         />
@@ -1995,7 +2022,7 @@ function AppInner() {
           path="/portal/identity-theft"
           element={
             <ProtectedRoute>
-              <PartnerIdentityTheftPage />
+              <ProductRoutedPage role="partner" pageId="identity" legacy={<PartnerIdentityTheftPage />} />
             </ProtectedRoute>
           }
         />
@@ -2003,7 +2030,7 @@ function AppInner() {
           path="/portal/escalations"
           element={
             <ProtectedRoute>
-              <PartnerEscalationsPage />
+              <ProductRoutedPage role="partner" pageId="escalations" legacy={<PartnerEscalationsPage />} />
             </ProtectedRoute>
           }
         />
@@ -2019,7 +2046,7 @@ function AppInner() {
           path="/portal/wealth-paths"
           element={
             <ProtectedRoute>
-              <PartnerWealthPathsPage />
+              <ProductRoutedPage role="partner" pageId="readiness" legacy={<PartnerWealthPathsPage />} />
             </ProtectedRoute>
           }
         />
@@ -2027,7 +2054,7 @@ function AppInner() {
           path="/portal/tradelines"
           element={
             <ProtectedRoute>
-              <PartnerTradelineMarketplacePage />
+              <ProductRoutedPage role="partner" pageId="tradelines" legacy={<PartnerTradelineMarketplacePage />} />
             </ProtectedRoute>
           }
         />
@@ -2037,7 +2064,7 @@ function AppInner() {
           path="/business/dashboard"
           element={
             <ProtectedRoute>
-              <BusinessDashboardPage />
+              <ProductRoutedPage role="partner" pageId="business" legacy={<BusinessDashboardPage />} />
             </ProtectedRoute>
           }
         />
@@ -2045,7 +2072,7 @@ function AppInner() {
           path="/business/profile"
           element={
             <ProtectedRoute>
-              <BusinessProfilePage />
+              <ProductRoutedPage role="partner" pageId="business-profile" legacy={<BusinessProfilePage />} />
             </ProtectedRoute>
           }
         />
@@ -2053,7 +2080,7 @@ function AppInner() {
           path="/business/vendors"
           element={
             <ProtectedRoute>
-              <BusinessVendorsPage />
+              <ProductRoutedPage role="partner" pageId="business-vendors" legacy={<BusinessVendorsPage />} />
             </ProtectedRoute>
           }
         />
@@ -2069,7 +2096,7 @@ function AppInner() {
           path="/business/lender-logic"
           element={
             <ProtectedRoute>
-              <BusinessFundingPage />
+              <ProductRoutedPage role="partner" pageId="lender-logic" legacy={<BusinessFundingPage />} />
             </ProtectedRoute>
           }
         />
@@ -2077,7 +2104,7 @@ function AppInner() {
           path="/business/documents"
           element={
             <ProtectedRoute>
-              <BusinessDocumentsPage />
+              <ProductRoutedPage role="partner" pageId="business-documents" legacy={<BusinessDocumentsPage />} />
             </ProtectedRoute>
           }
         />
@@ -2085,7 +2112,7 @@ function AppInner() {
           path="/business/billion-path"
           element={
             <ProtectedRoute>
-              <BusinessBillionPathPage />
+              <ProductRoutedPage role="partner" pageId="billion-path" legacy={<BusinessBillionPathPage />} />
             </ProtectedRoute>
           }
         />
@@ -2093,7 +2120,7 @@ function AppInner() {
           path="/business/bureaus"
           element={
             <ProtectedRoute>
-              <BusinessBureausPage />
+              <ProductRoutedPage role="partner" pageId="business-bureaus" legacy={<BusinessBureausPage />} />
             </ProtectedRoute>
           }
         />
@@ -2101,7 +2128,7 @@ function AppInner() {
           path="/business/disputes"
           element={
             <ProtectedRoute>
-              <BusinessDisputesPage />
+              <ProductRoutedPage role="partner" pageId="business-disputes" legacy={<BusinessDisputesPage />} />
             </ProtectedRoute>
           }
         />
@@ -2109,7 +2136,8 @@ function AppInner() {
           path="/business/disputes/:id"
           element={
             <ProtectedRoute>
-              <BusinessDisputeDetailPage />
+              {/* List surface + enhanced inspector overlay (not leftover business-dispute-detail embed). */}
+              <ProductRoutedPage role="partner" pageId="business-disputes" legacy={<BusinessDisputeDetailPage />} />
             </ProtectedRoute>
           }
         />
@@ -2119,7 +2147,7 @@ function AppInner() {
           path="/au/marketplace"
           element={
             <ProtectedRoute>
-              <AuMarketplacePage />
+              <ProductRoutedPage role="partner" pageId="au-marketplace" legacy={<AuMarketplacePage />} />
             </ProtectedRoute>
           }
         />
@@ -2127,7 +2155,7 @@ function AppInner() {
           path="/au/request"
           element={
             <ProtectedRoute>
-              <AuRequestPage />
+              <ProductRoutedPage role="partner" pageId="au-request" legacy={<AuRequestPage />} />
             </ProtectedRoute>
           }
         />
@@ -2135,17 +2163,18 @@ function AppInner() {
           path="/au/orders"
           element={
             <ProtectedRoute>
-              <AuOrdersPage />
+              <ProductRoutedPage role="partner" pageId="au-orders" legacy={<AuOrdersPage />} />
             </ProtectedRoute>
           }
         />
 
         {/* Developer QA */}
+        <Route path="/developer/qa" element={<Navigate to="/developer" replace />} />
         <Route
           path="/developer"
           element={
             <ProtectedRoute>
-              <DeveloperQaHubPage />
+              <ProductRoutedPage role="partner" pageId="developer-qa" legacy={<DeveloperQaHubPage />} />
             </ProtectedRoute>
           }
         />
@@ -2155,7 +2184,7 @@ function AppInner() {
           path="/admin/partners"
           element={
             <ProtectedAdminRoute>
-              <PartnersListPage />
+              <ProductRoutedPage role="admin" pageId="partners" legacy={<PartnersListPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2163,7 +2192,7 @@ function AppInner() {
           path="/admin/partners/import"
           element={
             <ProtectedAdminRoute>
-              <AdminPartnerImportPage />
+              <ProductRoutedPage role="admin" pageId="partners-import" legacy={<AdminPartnerImportPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2171,7 +2200,7 @@ function AppInner() {
           path="/admin/mail"
           element={
             <ProtectedAdminRoute>
-              <AdminMailLettersPage />
+              <ProductRoutedPage role="admin" pageId="mail" legacy={<AdminMailLettersPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2179,7 +2208,7 @@ function AppInner() {
           path="/admin/partners/:id"
           element={
             <ProtectedAdminRoute>
-              <PartnerDetailPage />
+              <ProductRoutedPage role="admin" pageId="partners" legacy={<PartnerDetailPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2187,7 +2216,7 @@ function AppInner() {
           path="/admin/cases"
           element={
             <ProtectedAdminRoute>
-              <CasesPage />
+              <ProductRoutedPage role="admin" pageId="cases" legacy={<CasesPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2195,7 +2224,8 @@ function AppInner() {
           path="/admin/cases/:id"
           element={
             <ProtectedAdminRoute>
-              <AdminCaseDetailPage />
+              {/* Cases docket + enhanced inspector (not leftover case-detail embed). */}
+              <ProductRoutedPage role="admin" pageId="cases" legacy={<AdminCaseDetailPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2203,7 +2233,7 @@ function AppInner() {
           path="/admin/dispute-collaboration"
           element={
             <ProtectedAdminRoute>
-              <AdminDisputeCollaborationPage />
+              <ProductRoutedPage role="admin" pageId="dispute-collaboration" legacy={<AdminDisputeCollaborationPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2211,10 +2241,13 @@ function AppInner() {
           path="/admin"
           element={
             <ProtectedAdminRoute>
-              <AdminDashboardPage />
+              <ProductRoutedPage role="admin" pageId="dashboard" legacy={<AdminDashboardPage />} />
             </ProtectedAdminRoute>
           }
         />
+        <Route path="/admin/dashboard" element={<Navigate to="/admin" replace />} />
+        <Route path="/admin/communications" element={<Navigate to="/admin/comms" replace />} />
+        <Route path="/admin/phone" element={<Navigate to="/admin/phone-hub" replace />} />
         <Route
           path="/admin/preview/dashboard-ivory"
           element={
@@ -2227,7 +2260,7 @@ function AppInner() {
           path="/admin/access"
           element={
             <ProtectedAdminRoute>
-              <AdminAccessCenterPage />
+              <ProductRoutedPage role="admin" pageId="access" legacy={<AdminAccessCenterPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2235,7 +2268,7 @@ function AppInner() {
           path="/admin/monitoring"
           element={
             <ProtectedAdminRoute>
-              <AdminMonitoringPage />
+                <ProductRoutedPage role="admin" pageId="monitoring" legacy={<AdminMonitoringPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2243,7 +2276,7 @@ function AppInner() {
           path="/admin/notifications"
           element={
             <ProtectedAdminRoute>
-              <NotificationsCenterPage surface="admin" />
+              <ProductRoutedPage role="admin" pageId="notifications" legacy={<NotificationsCenterPage surface="admin" />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2251,7 +2284,7 @@ function AppInner() {
           path="/admin/crm"
           element={
             <ProtectedAdminRoute>
-              <AdminCrmWorkspacePage />
+              <ProductRoutedPage role="admin" pageId="crm" legacy={<AdminCrmWorkspacePage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2260,7 +2293,7 @@ function AppInner() {
           path="/admin/crm/sequences"
           element={
             <ProtectedAdminRoute>
-              <AdminCrmSequencesPage />
+              <ProductRoutedPage role="admin" pageId="crm-sequences" legacy={<AdminCrmSequencesPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2268,7 +2301,7 @@ function AppInner() {
           path="/admin/crm/routing"
           element={
             <ProtectedAdminRoute>
-              <AdminCrmRoutingPage />
+              <ProductRoutedPage role="admin" pageId="crm-routing" legacy={<AdminCrmRoutingPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2276,7 +2309,7 @@ function AppInner() {
           path="/admin/crm/referrals"
           element={
             <ProtectedAdminRoute>
-              <AdminCrmReferralsPage />
+              <ProductRoutedPage role="admin" pageId="crm-referrals" legacy={<AdminCrmReferralsPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2284,7 +2317,8 @@ function AppInner() {
           path="/admin/crm/records/:id"
           element={
             <ProtectedAdminRoute>
-              <AdminCrmRecordPage />
+              {/* CRM pipeline + enhanced record inspector (not leftover crm-record embed). */}
+              <ProductRoutedPage role="admin" pageId="crm" legacy={<AdminCrmRecordPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2292,7 +2326,7 @@ function AppInner() {
           path="/admin/workload"
           element={
             <ProtectedAdminRoute>
-              <AdminWorkloadPage />
+              <ProductRoutedPage role="admin" pageId="workload" legacy={<AdminWorkloadPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2300,61 +2334,69 @@ function AppInner() {
           path="/admin/marketing"
           element={
             <ProtectedAdminRoute>
-              <AdminMarketingDepartmentPage />
+              <ProductRoutedPage role="admin" pageId="marketing" legacy={<AdminMarketingDepartmentPage />} />
             </ProtectedAdminRoute>
           }
         />
         <Route path="/admin/marketing-agent" element={<Navigate to="/admin/marketing?tab=team" replace />} />
-        <Route path="/admin/growth-command" element={<Navigate to="/admin/marketing?tab=plan" replace />} />
-        <Route path="/admin/marketing-desk" element={<Navigate to="/admin/marketing?tab=desk" replace />} />
-        <Route path="/admin/content-studio" element={<Navigate to="/admin/marketing?tab=content" replace />} />
-        <Route path="/admin/playbooks" element={<Navigate to="/admin/marketing?tab=checklists" replace />} />
-        <Route path="/admin/growth-agents" element={<Navigate to="/admin/marketing?tab=team" replace />} />
+        <Route
+          path="/admin/growth-command"
+          element={
+            <ProtectedAdminRoute>
+              <ProductRoutedPage role="admin" pageId="growth-command" legacy={<AdminGrowthCommandPage />} />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/marketing-desk"
+          element={
+            <ProtectedAdminRoute>
+              <ProductRoutedPage role="admin" pageId="marketing-desk" legacy={<AdminMarketingDeskPage />} />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/content-studio"
+          element={
+            <ProtectedAdminRoute>
+              <ProductRoutedPage role="admin" pageId="content-studio" legacy={<AdminMediaStudioPage />} />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/playbooks"
+          element={
+            <ProtectedAdminRoute>
+              <ProductRoutedPage role="admin" pageId="playbooks" legacy={<AdminPlaybooksPage />} />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/growth-agents"
+          element={
+            <ProtectedAdminRoute>
+              <ProductRoutedPage role="admin" pageId="growth-agents" legacy={<AdminGrowthAgentsPage />} />
+            </ProtectedAdminRoute>
+          }
+        />
         <Route
           path="/admin/growth-agents/:agentId"
           element={
             <ProtectedAdminRoute>
-              <AdminGrowthAgentsPage />
+              {/* Growth roster + enhanced agent inspector overlay (not leftover growth-agent-detail embed). */}
+              <ProductRoutedPage role="admin" pageId="growth-agents" legacy={<AdminGrowthAgentsPage />} />
             </ProtectedAdminRoute>
           }
         />
-        <Route
-          path="/admin/marketing-desk/full"
-          element={
-            <ProtectedAdminRoute>
-              <AdminMarketingDeskPage />
-            </ProtectedAdminRoute>
-          }
-        />
-        <Route
-          path="/admin/content-studio/full"
-          element={
-            <ProtectedAdminRoute>
-              <AdminMediaStudioPage />
-            </ProtectedAdminRoute>
-          }
-        />
-        <Route
-          path="/admin/playbooks/full"
-          element={
-            <ProtectedAdminRoute>
-              <AdminPlaybooksPage />
-            </ProtectedAdminRoute>
-          }
-        />
-        <Route
-          path="/admin/growth-command/full"
-          element={
-            <ProtectedAdminRoute>
-              <AdminGrowthCommandPage />
-            </ProtectedAdminRoute>
-          }
-        />
+        <Route path="/admin/marketing-desk/full" element={<Navigate to="/admin/marketing-desk" replace />} />
+        <Route path="/admin/content-studio/full" element={<Navigate to="/admin/content-studio" replace />} />
+        <Route path="/admin/playbooks/full" element={<Navigate to="/admin/playbooks" replace />} />
+        <Route path="/admin/growth-command/full" element={<Navigate to="/admin/growth-command" replace />} />
         <Route
           path="/admin/lead-intel"
           element={
             <ProtectedAdminRoute>
-              <AdminLeadIntelPage />
+              <ProductRoutedPage role="admin" pageId="lead-intel" legacy={<AdminLeadIntelPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2362,7 +2404,7 @@ function AppInner() {
           path="/admin/overnight"
           element={
             <ProtectedAdminRoute>
-              <AdminOvernight50Page />
+              <ProductRoutedPage role="admin" pageId="overnight" legacy={<AdminOvernight50Page />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2370,34 +2412,56 @@ function AppInner() {
           path="/admin/geo-war-room"
           element={
             <ProtectedAdminRoute>
-              <AdminGeoWarRoomPage />
+              <ProductRoutedPage role="admin" pageId="geo-war-room" legacy={<AdminGeoWarRoomPage />} />
             </ProtectedAdminRoute>
           }
         />
-        <Route path="/admin/synthetic-staff" element={<Navigate to="/admin/staff?view=roster" replace />} />
+        <Route
+          path="/admin/synthetic-staff"
+          element={
+            <ProtectedAdminRoute>
+              <ProductRoutedPage role="admin" pageId="synthetic-staff" legacy={<AdminStaffCommandCenterPage />} />
+            </ProtectedAdminRoute>
+          }
+        />
         <Route
           path="/admin/signup-ops"
           element={
             <ProtectedAdminRoute>
-              <AdminSignupOpsPage />
+              <ProductRoutedPage role="admin" pageId="signup-ops" legacy={<AdminSignupOpsPage />} />
             </ProtectedAdminRoute>
           }
         />
-        <Route path="/admin/media-studio" element={<Navigate to="/admin/marketing?tab=content" replace />} />
-        <Route path="/admin/media-studio/*" element={<Navigate to="/admin/marketing?tab=content" replace />} />
+        <Route
+          path="/admin/media-studio"
+          element={
+            <ProtectedAdminRoute>
+              <ProductRoutedPage role="admin" pageId="media-studio" legacy={<AdminMediaStudioPage />} />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/media-studio/*"
+          element={
+            <ProtectedAdminRoute>
+              <ProductRoutedPage role="admin" pageId="media-studio" legacy={<AdminMediaStudioPage />} />
+            </ProtectedAdminRoute>
+          }
+        />
         <Route
           path="/admin/voice-studio"
           element={
             <ProtectedAdminRoute>
-              <AdminVoiceStudioPage />
+              <ProductRoutedPage role="admin" pageId="voice-studio" legacy={<AdminVoiceStudioPage />} />
             </ProtectedAdminRoute>
           }
         />
+        <Route path="/admin/social" element={<Navigate to="/admin/social-hub" replace />} />
         <Route
           path="/admin/social-hub"
           element={
             <ProtectedAdminRoute>
-              <AdminSocialHubPage />
+              <ProductRoutedPage role="admin" pageId="social-hub" legacy={<AdminSocialHubPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2405,7 +2469,7 @@ function AppInner() {
           path="/admin/ops-autopilot"
           element={
             <ProtectedAdminRoute>
-              <AdminHandsFreeOpsPage />
+              <ProductRoutedPage role="admin" pageId="ops-autopilot" legacy={<AdminHandsFreeOpsPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2413,7 +2477,7 @@ function AppInner() {
           path="/admin/agent-staff"
           element={
             <ProtectedAdminRoute>
-              <AdminAgentStaffPage />
+              <ProductRoutedPage role="admin" pageId="agent-staff" legacy={<AdminAgentStaffPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2421,7 +2485,7 @@ function AppInner() {
           path="/admin/lead-acquisition"
           element={
             <ProtectedAdminRoute>
-              <AdminLeadAcquisitionPage />
+              <ProductRoutedPage role="admin" pageId="lead-acquisition" legacy={<AdminLeadAcquisitionPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2429,7 +2493,7 @@ function AppInner() {
           path="/admin/lead-magnets"
           element={
             <ProtectedAdminRoute>
-              <AdminLeadMagnetFunnelsPage />
+              <ProductRoutedPage role="admin" pageId="lead-magnets" legacy={<AdminLeadMagnetFunnelsPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2437,7 +2501,7 @@ function AppInner() {
           path="/admin/finely-bridge-ops"
           element={
             <ProtectedAdminRoute>
-              <FinelyBridgeOpsPage />
+              <ProductRoutedPage role="admin" pageId="bridge-ops" legacy={<FinelyBridgeOpsPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2445,7 +2509,7 @@ function AppInner() {
           path="/admin/nora-capital"
           element={
             <ProtectedAdminRoute>
-              <AdminNoraCapitalPage />
+              <ProductRoutedPage role="admin" pageId="nora-capital" legacy={<AdminNoraCapitalPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2453,7 +2517,7 @@ function AppInner() {
           path="/admin/settings"
           element={
             <ProtectedAdminRoute>
-              <AdminSettingsPage />
+              <ProductRoutedPage role="admin" pageId="settings" legacy={<AdminSettingsPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2461,7 +2525,7 @@ function AppInner() {
           path="/admin/cmo"
           element={
             <ProtectedAdminRoute>
-              <AdminCmoCommandPage />
+              <ProductRoutedPage role="admin" pageId="cmo" legacy={<AdminCmoCommandPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2470,16 +2534,23 @@ function AppInner() {
           path="/admin/leads"
           element={
             <ProtectedAdminRoute>
-              <AdminLeadsRoutePage />
+              <ProductRoutedPage role="admin" pageId="leads" legacy={<AdminLeadsRoutePage />} />
             </ProtectedAdminRoute>
           }
         />
-        <Route path="/admin/leads-os" element={<Navigate to="/admin/marketing?tab=leads" replace />} />
+        <Route
+          path="/admin/leads-os"
+          element={
+            <ProtectedAdminRoute>
+              <ProductRoutedPage role="admin" pageId="leads-os" legacy={<AdminLeadsOsPage />} />
+            </ProtectedAdminRoute>
+          }
+        />
         <Route
           path="/admin/growth-automation"
           element={
             <ProtectedAdminRoute>
-              <AdminGrowthAutomationPage />
+              <ProductRoutedPage role="admin" pageId="growth-automation" legacy={<AdminGrowthAutomationPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2487,19 +2558,26 @@ function AppInner() {
           path="/admin/staff"
           element={
             <ProtectedAdminRoute>
-              <AdminStaffCommandCenterPage />
+              <ProductRoutedPage role="admin" pageId="staff" legacy={<AdminStaffCommandCenterPage />} />
             </ProtectedAdminRoute>
           }
         />
         <Route path="/admin/staff-command" element={<Navigate to="/admin/staff" replace />} />
-        <Route path="/admin/staff-command-center" element={<Navigate to="/admin/staff" replace />} />
+        <Route
+          path="/admin/staff-command-center"
+          element={
+            <ProtectedAdminRoute>
+              <ProductRoutedPage role="admin" pageId="staff-command-center" legacy={<AdminStaffCommandCenterPage />} />
+            </ProtectedAdminRoute>
+          }
+        />
         <Route path="/admin/staff-human-os" element={<Navigate to="/admin/staff" replace />} />
         <Route path="/admin/staff-human-os/*" element={<Navigate to="/admin/staff" replace />} />
         <Route
           path="/admin/parsing-lab"
           element={
             <ProtectedAdminRoute>
-              <ParsingLabPage />
+              <ProductRoutedPage role="admin" pageId="parsing-lab" legacy={<ParsingLabPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2507,7 +2585,7 @@ function AppInner() {
           path="/admin/support"
           element={
             <ProtectedAdminRoute>
-              <AdminSupportInboxPage />
+                <ProductRoutedPage role="admin" pageId="support" legacy={<AdminSupportInboxPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2515,16 +2593,23 @@ function AppInner() {
           path="/admin/messages"
           element={
             <ProtectedAdminRoute>
-              <AdminMessagesPage />
+              <ProductRoutedPage role="admin" pageId="messages" legacy={<AdminMessagesPage />} />
             </ProtectedAdminRoute>
           }
         />
-        <Route path="/admin/inbox" element={<Navigate to="/admin/workflow" replace />} />
+        <Route
+          path="/admin/inbox"
+          element={
+            <ProtectedAdminRoute>
+              <ProductRoutedPage role="admin" pageId="inbox" legacy={<Navigate to="/admin/workflow" replace />} />
+            </ProtectedAdminRoute>
+          }
+        />
         <Route
           path="/admin/workflow"
           element={
             <ProtectedAdminRoute>
-              <AdminWorkflowQueuePage />
+              <ProductRoutedPage role="admin" pageId="workflow" legacy={<AdminWorkflowQueuePage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2532,7 +2617,7 @@ function AppInner() {
           path="/admin/automations"
           element={
             <ProtectedAdminRoute>
-              <AdminAutomationsPage />
+                <ProductRoutedPage role="admin" pageId="automations" legacy={<AdminAutomationsPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2540,7 +2625,7 @@ function AppInner() {
           path="/admin/ops-agent"
           element={
             <ProtectedAdminRoute>
-              <AdminOpsAgentPage />
+              <ProductRoutedPage role="admin" pageId="ops-agent" legacy={<AdminOpsAgentPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2548,7 +2633,7 @@ function AppInner() {
           path="/admin/phone-hub"
           element={
             <ProtectedAdminRoute>
-              <AdminPhoneHubPage />
+                <ProductRoutedPage role="admin" pageId="phone-hub" legacy={<AdminPhoneHubPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2556,7 +2641,7 @@ function AppInner() {
           path="/admin/team"
           element={
             <ProtectedAdminRoute>
-              <AdminTeamRolesPage />
+              <ProductRoutedPage role="admin" pageId="team" legacy={<AdminTeamRolesPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2564,7 +2649,7 @@ function AppInner() {
           path="/admin/role-preview"
           element={
             <ProtectedAdminRoute>
-              <AdminRolePreviewPage />
+              <ProductRoutedPage role="admin" pageId="role-preview" legacy={<AdminRolePreviewPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2612,7 +2697,7 @@ function AppInner() {
           path="/admin/tenants"
           element={
             <ProtectedAdminRoute>
-              <AdminTenantsPage />
+                <ProductRoutedPage role="admin" pageId="tenants" legacy={<AdminTenantsPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2620,7 +2705,7 @@ function AppInner() {
           path="/admin/au-sellers"
           element={
             <ProtectedAdminRoute>
-              <AdminAuSellersPage />
+              <ProductRoutedPage role="admin" pageId="au-sellers" legacy={<AdminAuSellersPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2628,7 +2713,7 @@ function AppInner() {
           path="/admin/comms"
           element={
             <ProtectedAdminRoute>
-              <AdminCommsStudioPage />
+              <ProductRoutedPage role="admin" pageId="communications" legacy={<AdminCommsStudioPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2636,7 +2721,7 @@ function AppInner() {
           path="/admin/billing"
           element={
             <ProtectedAdminRoute>
-              <AdminBillingPage />
+                <ProductRoutedPage role="admin" pageId="billing" legacy={<AdminBillingPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2644,7 +2729,7 @@ function AppInner() {
           path="/admin/calendar"
           element={
             <ProtectedAdminRoute>
-              <AdminCalendarPage />
+                <ProductRoutedPage role="admin" pageId="calendar" legacy={<AdminCalendarPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2652,7 +2737,7 @@ function AppInner() {
           path="/admin/projects"
           element={
             <ProtectedAdminRoute>
-              <AdminProjectsPage />
+              <ProductRoutedPage role="admin" pageId="projects" legacy={<AdminProjectsPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2660,7 +2745,7 @@ function AppInner() {
           path="/admin/tasks"
           element={
             <ProtectedAdminRoute>
-              <AdminTasksPage />
+              <ProductRoutedPage role="admin" pageId="tasks" legacy={<AdminTasksPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2668,7 +2753,7 @@ function AppInner() {
           path="/admin/tasks/new"
           element={
             <ProtectedAdminRoute>
-              <AdminTasksPage />
+              <ProductRoutedPage role="admin" pageId="tasks" legacy={<AdminTasksPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2676,7 +2761,7 @@ function AppInner() {
           path="/admin/my-tasks"
           element={
             <ProtectedAdminRoute>
-              <AdminMyTasksPage />
+              <ProductRoutedPage role="admin" pageId="my-tasks" legacy={<AdminMyTasksPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2684,7 +2769,7 @@ function AppInner() {
           path="/admin/projects/portfolio"
           element={
             <ProtectedAdminRoute>
-              <AdminPortfolioDashboardPage />
+              <ProductRoutedPage role="admin" pageId="projects-portfolio" legacy={<AdminPortfolioDashboardPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2692,7 +2777,7 @@ function AppInner() {
           path="/admin/projects/templates"
           element={
             <ProtectedAdminRoute>
-              <AdminProjectTemplatesPage />
+              <ProductRoutedPage role="admin" pageId="projects-templates" legacy={<AdminProjectTemplatesPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2700,7 +2785,7 @@ function AppInner() {
           path="/admin/projects/:id"
           element={
             <ProtectedAdminRoute>
-              <AdminProjectWorkspacePage />
+              <ProductRoutedPage role="admin" pageId="projects" legacy={<AdminProjectWorkspacePage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2708,7 +2793,7 @@ function AppInner() {
           path="/admin/courses"
           element={
             <ProtectedAdminRoute>
-              <AdminCoursesPage />
+              <ProductRoutedPage role="admin" pageId="courses" legacy={<AdminCoursesPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2716,7 +2801,7 @@ function AppInner() {
           path="/admin/courses/:id"
           element={
             <ProtectedAdminRoute>
-              <AdminCourseEditorPage />
+              <ProductRoutedPage role="admin" pageId="courses" legacy={<AdminCourseEditorPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2724,7 +2809,7 @@ function AppInner() {
           path="/admin/vault"
           element={
             <ProtectedAdminRoute>
-              <AdminSecretVaultPage />
+                <ProductRoutedPage role="admin" pageId="vault" legacy={<AdminSecretVaultPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2732,7 +2817,7 @@ function AppInner() {
           path="/admin/testimonials"
           element={
             <ProtectedAdminRoute>
-              <AdminTestimonialsPage />
+              <ProductRoutedPage role="admin" pageId="testimonials" legacy={<AdminTestimonialsPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2740,7 +2825,7 @@ function AppInner() {
           path="/admin/partner-success"
           element={
             <ProtectedAdminRoute>
-              <AdminPartnerSuccessEditorPage />
+              <ProductRoutedPage role="admin" pageId="partner-success" legacy={<AdminPartnerSuccessEditorPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2748,7 +2833,7 @@ function AppInner() {
           path="/admin/finance"
           element={
             <ProtectedAdminRoute>
-              <AdminFinanceAllocatorPage />
+                <ProductRoutedPage role="admin" pageId="finance" legacy={<AdminFinanceAllocatorPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2756,7 +2841,7 @@ function AppInner() {
           path="/admin/guide"
           element={
             <ProtectedAdminRoute>
-              <AdminGuidePage />
+              <ProductRoutedPage role="admin" pageId="guide" legacy={<AdminGuidePage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2764,7 +2849,7 @@ function AppInner() {
           path="/admin/templates"
           element={
             <ProtectedAdminRoute>
-              <AdminTemplatesPage />
+              <ProductRoutedPage role="admin" pageId="templates" legacy={<AdminTemplatesPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2772,7 +2857,7 @@ function AppInner() {
           path="/admin/products"
           element={
             <ProtectedAdminRoute>
-              <AdminProductsPage />
+              <ProductRoutedPage role="admin" pageId="products" legacy={<AdminProductsPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2780,7 +2865,7 @@ function AppInner() {
           path="/admin/cms"
           element={
             <ProtectedAdminRoute>
-              <AdminCmsPage />
+              <ProductRoutedPage role="admin" pageId="cms" legacy={<AdminCmsPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2788,7 +2873,7 @@ function AppInner() {
           path="/admin/analytics"
           element={
             <ProtectedAdminRoute>
-              <AdminAnalyticsPage />
+              <ProductRoutedPage role="admin" pageId="analytics" legacy={<AdminAnalyticsPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2796,7 +2881,7 @@ function AppInner() {
           path="/admin/funnel-experiments"
           element={
             <ProtectedAdminRoute>
-              <AdminFunnelExperimentsPage />
+              <ProductRoutedPage role="admin" pageId="funnel-experiments" legacy={<AdminFunnelExperimentsPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2804,7 +2889,7 @@ function AppInner() {
           path="/admin/integrations"
           element={
             <ProtectedAdminRoute>
-              <AdminIntegrationHubPage />
+                <ProductRoutedPage role="admin" pageId="integrations" legacy={<AdminIntegrationHubPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2812,7 +2897,7 @@ function AppInner() {
           path="/admin/studio-ux-command"
           element={
             <ProtectedAdminRoute>
-              <AdminStudioUxCommandPage />
+              <ProductRoutedPage role="admin" pageId="studio-ux-command" legacy={<AdminStudioUxCommandPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2820,7 +2905,7 @@ function AppInner() {
           path="/admin/sitewide-ux"
           element={
             <ProtectedAdminRoute>
-              <AdminSitewideUxCommandPage />
+              <ProductRoutedPage role="admin" pageId="sitewide-ux" legacy={<AdminSitewideUxCommandPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2828,7 +2913,7 @@ function AppInner() {
           path="/admin/vendors"
           element={
             <ProtectedAdminRoute>
-              <AdminVendorsPage />
+                <ProductRoutedPage role="admin" pageId="vendors" legacy={<AdminVendorsPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2836,7 +2921,7 @@ function AppInner() {
           path="/admin/launch-os"
           element={
             <ProtectedAdminRoute>
-              <LaunchHelpCenterPage />
+              <ProductRoutedPage role="admin" pageId="launch-os" legacy={<LaunchHelpCenterPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2844,7 +2929,7 @@ function AppInner() {
           path="/admin/tour-studio"
           element={
             <ProtectedAdminRoute>
-              <AdminTourStudioPage />
+              <ProductRoutedPage role="admin" pageId="tour-studio" legacy={<AdminTourStudioPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2852,7 +2937,7 @@ function AppInner() {
           path="/admin/resources"
           element={
             <ProtectedAdminRoute>
-              <AdminResourcesPage />
+              <ProductRoutedPage role="admin" pageId="resources" legacy={<AdminResourcesPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2860,7 +2945,7 @@ function AppInner() {
           path="/admin/compliance-review"
           element={
             <ProtectedAdminRoute>
-              <AdminComplianceReviewPage />
+              <ProductRoutedPage role="admin" pageId="compliance-review" legacy={<AdminComplianceReviewPage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2868,7 +2953,7 @@ function AppInner() {
           path="/admin/bookstore"
           element={
             <ProtectedAdminRoute>
-              <AdminBookstorePage />
+              <ProductRoutedPage role="admin" pageId="bookstore" legacy={<AdminBookstorePage />} />
             </ProtectedAdminRoute>
           }
         />
@@ -2889,20 +2974,52 @@ function AppInner() {
         <Route path="/heta-society" element={<Navigate to="/head-of-society" replace />} />
         <Route path="/hos" element={<Navigate to="/head-of-society" replace />} />
         <Route path="/portal/business" element={<Navigate to="/business/dashboard" replace />} />
+        <Route path="/portal/readiness" element={<Navigate to="/portal/wealth-paths" replace />} />
+        <Route path="/portal/identity" element={<Navigate to="/portal/identity-theft" replace />} />
+        <Route path="/portal/overview" element={<Navigate to="/portal/dashboard" replace />} />
+        <Route path="/portal/partner" element={<Navigate to="/portal/dashboard" replace />} />
+        <Route path="/admin/mail-letters" element={<Navigate to="/admin/mail" replace />} />
         <Route
           path="/portal/hos"
           element={
             <ProtectedRoute>
-              <HetaSocietyPortalPage />
+              <ProductRoutedPage role="partner" pageId="hos-hub" legacy={<HetaSocietyPortalPage />} />
             </ProtectedRoute>
           }
         />
         <Route path="/preview/personal-credit-restore" element={<PersonalCreditRestorePreviewPage />} />
+        <Route path="/preview/workspace-light" element={<WorkspaceLightPreviewHubPage />} />
+        <Route
+          path="/preview/workspace-light/business/dashboard"
+          element={<Navigate to="/preview/workspace-light/portal/business" replace />}
+        />
+        <Route
+          path="/preview/workspace-light/seller/dashboard"
+          element={<Navigate to="/preview/workspace-light/portal/tradelines" replace />}
+        />
+        <Route path="/preview/workspace-light/admin/dashboard" element={<AdminDashboardLightPreviewPage />} />
+        <Route path="/preview/workspace-light/portal/dashboard" element={<PartnerDashboardLightPreviewPage />} />
+        <Route
+          path="/preview/workspace-light/admin/partners/:id"
+          element={<WorkspaceProductModulePage role="admin" pageIdOverride="partners" />}
+        />
+        <Route
+          path="/preview/workspace-light/admin/projects/:id"
+          element={<WorkspaceProductModulePage role="admin" pageIdOverride="projects" />}
+        />
+        <Route
+          path="/preview/workspace-light/admin/:pageId"
+          element={<WorkspaceProductModulePage role="admin" />}
+        />
+        <Route
+          path="/preview/workspace-light/portal/:pageId"
+          element={<WorkspaceProductModulePage role="partner" />}
+        />
         <Route path="/preview/business-credit-power-guide" element={<Navigate to="/free-business-guide" replace />} />
         <Route path="/preview/debt-eradication-guide" element={<Navigate to="/free-debt-guide" replace />} />
         <Route path="/preview/tradeline-advantage-guide" element={<Navigate to="/free-tradeline-guide" replace />} />
         <Route path="/free-debt-guide" element={<DebtGuideFunnelPage />} />
-        {/* Debt / business / tradeline in-app e-guide readers — free to read, no signup */}
+        {/* Debt / business / tradeline in-app e-guide readers â€” free to read, no signup */}
         <Route path="/free-debt-guide/read" element={<DebtEradicationGuideReaderPage />} />
         <Route path="/free-business-guide" element={<BusinessGuideFunnelPage />} />
         <Route path="/free-business-guide/read" element={<BusinessCreditPowerGuideReaderPage />} />
@@ -2913,7 +3030,7 @@ function AppInner() {
         <Route path="/free-agency-guide" element={<AgencyGuideFunnelPage />} />
         <Route path="/free-agency-guide/read" element={<AgencyGuideReaderPage />} />
         <Route path="/credit-specialist-apply" element={<Navigate to="/credit-specialist/join" replace />} />
-        {/* Credit Specialist lead-magnet guide (in-app reader) — see CREDIT_SPECIALIST_GUIDE_ROUTE_SNIPPET.md */}
+        {/* Credit Specialist lead-magnet guide (in-app reader) â€” see CREDIT_SPECIALIST_GUIDE_ROUTE_SNIPPET.md */}
         <Route path="/credit-specialist-guide" element={<CreditSpecialistGuideLandingPage />} />
         <Route path="/credit-specialist-guide/read" element={<CreditSpecialistGuideReaderPage />} />
         <Route path="/real-estate-guide" element={<RealEstateGuideLandingPage />} />

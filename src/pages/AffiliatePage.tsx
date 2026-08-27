@@ -160,8 +160,8 @@ export default function AffiliatePage() {
         </section>
 
         {/* The universal payout rule — same for every path, stated once, unmistakably additive */}
-        <section className="rounded-2xl border-2 border-amber-200 bg-amber-50 px-6 py-4 sm:px-8 sm:py-5">
-          <p className="text-[11px] font-black uppercase tracking-[0.24em] text-amber-700">Not percentage OR profit share — it stacks</p>
+        <section className="rounded-2xl border-2 border-rose-200 bg-rose-50 px-6 py-4 sm:px-8 sm:py-5">
+          <p className="text-[11px] font-black uppercase tracking-[0.24em] text-rose-700">Not percentage OR profit share — it stacks</p>
           <p className="mt-1.5 text-sm sm:text-[15px] leading-relaxed text-slate-700">{AFFILIATE_STACKING_NOTE}</p>
         </section>
 
@@ -191,12 +191,12 @@ export default function AffiliatePage() {
         ) : null}
 
         {/* Quote — its own band, generous margin, not cramped */}
-        <section className="rounded-3xl border-2 border-amber-200 bg-white p-8 sm:p-12">
+        <section className="rounded-3xl border-2 border-violet-200 bg-white p-8 sm:p-12">
           <blockquote className="text-xl sm:text-2xl italic leading-relaxed text-slate-800">
             &ldquo;The day I realized that residual income is far more profitable than chasing the next check, was the
             day my mentality shifted towards wealth.&rdquo;
           </blockquote>
-          <p className="mt-6 text-base font-bold text-amber-700">— Sanz St Louis</p>
+          <p className="mt-6 text-base font-bold text-violet-700">— Sanz St Louis</p>
           <p className="mt-1 text-sm font-semibold uppercase tracking-widest text-slate-400">Income Built Different</p>
         </section>
 
@@ -219,7 +219,7 @@ export default function AffiliatePage() {
               icon: Users,
               title: 'Who can join',
               body: 'Coaches, brokers, and anyone with an audience that benefits from credit education and funding readiness.',
-              tone: 'text-amber-700 bg-amber-50 border-amber-200',
+              tone: 'text-rose-700 bg-rose-50 border-rose-200',
             },
           ].map(({ icon: Icon, title, body, tone }) => (
             <div key={title} className="rounded-2xl border-2 border-slate-200 bg-white p-7 space-y-3">

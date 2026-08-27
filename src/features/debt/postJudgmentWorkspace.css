@@ -1,0 +1,13 @@
+.post-judgment-workspace {
+  --pj-section-gap: 1.5rem;
+}
+
+.post-judgment-workspace article h3 {
+  letter-spacing: -0.01em;
+}
+
+.post-judgment-workspace ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}

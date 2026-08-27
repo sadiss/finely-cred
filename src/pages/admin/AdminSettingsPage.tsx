@@ -31,6 +31,7 @@ import {
   ChevronUp,
   ChevronDown,
   Facebook,
+  Crown,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
@@ -91,6 +92,7 @@ import { FINELY_MAIL_COPY } from '../../lib/mailWhiteLabel';
 import { ADMIN_FEATURE_MATRIX } from '../../data/adminFeatureMatrix';
 import { MetaIntegrationSettingsPanel } from '../../features/meta/MetaIntegrationSettingsPanel';
 import { FinelyAdminAppearancePanel } from '../../features/os/FinelyAdminAppearancePanel';
+import { HosAccessCodesAdminPanel } from '../../components/heta/HosAccessCodesAdminPanel';
 import {
   FINELY_OS_PAGE,
   FINELY_OS_BACK_LINK,
@@ -115,7 +117,7 @@ import {
   FINELY_OS_ENTITY_SELECT,
 } from '../../features/os/finelyOsLightUi';
 
-type SettingsTab =
+export type SettingsTab =
   | 'home'
   | 'site'
   | 'comms'
@@ -129,6 +131,7 @@ type SettingsTab =
   | 'features'
   | 'appearance'
   | 'security'
+  | 'heta'
   | 'customFields';
 
 const TABS: { key: SettingsTab; label: string; icon: React.ReactNode }[] = [
@@ -145,8 +148,33 @@ const TABS: { key: SettingsTab; label: string; icon: React.ReactNode }[] = [
   { key: 'features', label: 'Features', icon: <ToggleRight size={16} /> },
   { key: 'appearance', label: 'Appearance', icon: <Sparkles size={16} /> },
   { key: 'security', label: 'Security', icon: <Shield size={16} /> },
+  { key: 'heta', label: 'Head of Society', icon: <Crown size={16} /> },
   { key: 'customFields', label: 'Custom Fields', icon: <FileText size={16} /> },
 ];
+
+type AdminSettingsPageProps = {
+  embedded?: boolean;
+  initialTab?: SettingsTab;
+};
+
+function AdminSettingsFrame({
+  embedded,
+  children,
+}: {
+  embedded: boolean;
+  children: React.ReactNode;
+}) {
+  if (embedded) return <>{children}</>;
+  return (
+    <PageShell
+      badge="Admin"
+      title="Platform Settings"
+      subtitle="Configure integrations, API keys, webhooks, and feature flags."
+    >
+      {children}
+    </PageShell>
+  );
+}
 
 function StatusBadge({ status }: { status: 'not_configured' | 'test_mode' | 'live' }) {
   const colors = {
@@ -264,11 +292,14 @@ function Toggle({
   );
 }
 
-export default function AdminSettingsPage() {
+export default function AdminSettingsPage({
+  embedded = false,
+  initialTab = 'home',
+}: AdminSettingsPageProps = {}) {
   const auth = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [activeTab, setActiveTab] = useState<SettingsTab>('home');
+  const [activeTab, setActiveTab] = useState<SettingsTab>(initialTab);
   const [settings, setSettings] = useState<PlatformSettings | null>(null);
   const [saved, setSaved] = useState(false);
   const [contractEdit, setContractEdit] = useState<{ packageId: string; url: string } | null>(null);
@@ -326,6 +357,10 @@ export default function AdminSettingsPage() {
   }, []);
 
   useEffect(() => {
+    if (embedded) {
+      setActiveTab(initialTab);
+      return;
+    }
     // Allow deep-linking to a specific tab: /admin/settings?tab=security
     try {
       const sp = new URLSearchParams(location.search || '');
@@ -335,16 +370,17 @@ export default function AdminSettingsPage() {
     } catch {
       // ignore
     }
-  }, [location.search]);
+  }, [embedded, initialTab, location.search]);
 
   const goTab = (t: SettingsTab) => {
     setActiveTab(t);
+    if (embedded) return;
     try {
       const sp = new URLSearchParams(location.search || '');
       if (t === 'home') sp.delete('tab');
       else sp.set('tab', t);
       const qs = sp.toString();
-      navigate(`/admin/settings${qs ? `?${qs}` : ''}`, { replace: true });
+      navigate(`${location.pathname}${qs ? `?${qs}` : ''}`, { replace: true });
     } catch {
       // ignore
     }
@@ -459,11 +495,11 @@ export default function AdminSettingsPage() {
 
   if (!settings) {
     return (
-      <PageShell badge="Admin" title="Loading..." subtitle="">
+      <AdminSettingsFrame embedded={embedded}>
         <div className="flex items-center justify-center py-20">
           <RefreshCw className="animate-spin text-violet-400" size={24} />
         </div>
-      </PageShell>
+      </AdminSettingsFrame>
     );
   }
 
@@ -478,16 +514,19 @@ export default function AdminSettingsPage() {
   });
 
   return (
-    <PageShell
-      badge="Admin"
-      title="Platform Settings"
-      subtitle="Configure integrations, API keys, webhooks, and feature flags."
-    >
+    <AdminSettingsFrame embedded={embedded}>
       <div className={FINELY_OS_PAGE}>
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <button type="button" onClick={() => navigate('/admin')} className={FINELY_OS_BACK_LINK}>
-            <ArrowLeft size={16} /> Admin Dashboard
-          </button>
+          {!embedded ? (
+            <button type="button" onClick={() => navigate('/admin')} className={FINELY_OS_BACK_LINK}>
+              <ArrowLeft size={16} /> Admin Dashboard
+            </button>
+          ) : (
+            <div>
+              <p className={`${FINELY_OS_ENTITY_SUBLABEL} !mb-1`}>Configuration workspace</p>
+              <h3 className={`${FINELY_OS_ENTITY_TITLE} !m-0`}>Platform controls</h3>
+            </div>
+          )}
           <button type="button" onClick={handleSave} disabled={saved} className={saved ? FINELY_OS_SUCCESS_BTN : FINELY_OS_PRIMARY_BTN}>
             {saved ? (
               <>
@@ -528,7 +567,7 @@ export default function AdminSettingsPage() {
         <div className="space-y-6">
           {activeTab === 'home' && (
             <div className="space-y-6">
-              <div className={`${finelyOsCatalogCard('violet')} !p-5`} data-fc-accent="violet">
+              <div className={`${finelyOsCatalogCard('violet')}`} data-fc-accent="violet">
                 <div className={FINELY_OS_ENTITY_SUBLABEL}>Settings overview</div>
                 <div className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>
                   Pick a category below. Everything deep-links via <span className="font-mono font-semibold">?tab=…</span> so you can share direct URLs with your team.
@@ -537,7 +576,7 @@ export default function AdminSettingsPage() {
 
               <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {TABS.filter((t) => t.key !== 'home').map((t, idx) => (
-                  <button key={t.key} type="button" onClick={() => goTab(t.key)} className={`${finelyOsCatalogCard((['violet', 'emerald', 'sky', 'amber', 'fuchsia'] as const)[idx % 5])} !p-5 w-full text-left transition-all hover:brightness-[1.02]`} data-fc-accent={(['violet', 'emerald', 'sky', 'amber', 'fuchsia'] as const)[idx % 5]}>
+                  <button key={t.key} type="button" onClick={() => goTab(t.key)} className={`${finelyOsCatalogCard((['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4])} w-full text-left transition-all hover:brightness-[1.02]`} data-fc-accent={(['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4]}>
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0">
                         <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
@@ -577,7 +616,7 @@ export default function AdminSettingsPage() {
                 ))}
               </div>
 
-              <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-3`}>
+              <div className={`${finelyOsCatalogCard('violet')} space-y-3`}>
                 <div className={FINELY_OS_ENTITY_SUBLABEL}>Admin control</div>
                 <div className={FINELY_OS_ENTITY_BODY}>
                   Shortcuts to the other admin areas that affect permissions and visibility.
@@ -586,14 +625,14 @@ export default function AdminSettingsPage() {
                   {[
                     { path: '/admin/access', icon: Shield, label: 'Access & Permissions', desc: 'Admin emails, tenant scope, effective capabilities.', accent: 'violet' as const },
                     { path: '/admin/team', icon: Users, label: 'Team & Roles', desc: 'Membership, roles, assignments.', accent: 'emerald' as const },
-                    { path: '/admin/billing', icon: CreditCard, label: 'Billing & Entitlements', desc: 'Access grants and plan state.', accent: 'amber' as const },
+                    { path: '/admin/billing', icon: CreditCard, label: 'Billing & Entitlements', desc: 'Access grants and plan state.', accent: 'rose' as const },
                     { path: '/admin/templates', icon: FileText, label: 'Template Library', desc: 'Saved templates and generator outputs.', accent: 'sky' as const },
                   ].map((item) => (
                     <button
                       key={item.path}
                       type="button"
                       onClick={() => navigate(item.path)}
-                      className={`${finelyOsCatalogCard(item.accent)} !p-5 w-full text-left transition-all hover:brightness-[1.02]`}
+                      className={`${finelyOsCatalogCard(item.accent)} w-full text-left transition-all hover:brightness-[1.02]`}
                       data-fc-accent={item.accent}
                     >
                       <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
@@ -612,7 +651,7 @@ export default function AdminSettingsPage() {
           {/* Site Settings */}
           {activeTab === 'site' && (
             <div className="grid lg:grid-cols-2 gap-6">
-              <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+              <div className={`${finelyOsCatalogCard('violet')} space-y-4`}>
                 <div className="flex items-center gap-2 text-violet-400">
                   <Settings size={18} />
                   <span className="text-xs font-semibold uppercase tracking-wider">Branding</span>
@@ -662,7 +701,7 @@ export default function AdminSettingsPage() {
                 </div>
               </div>
 
-              <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+              <div className={`${finelyOsCatalogCard('violet')} space-y-4`}>
                 <div className="flex items-center gap-2 text-violet-400">
                   <FileText size={18} />
                   <span className="text-xs font-semibold uppercase tracking-wider">Contact</span>
@@ -685,7 +724,7 @@ export default function AdminSettingsPage() {
                 </div>
               </div>
 
-              <div className={`lg:col-span-2 ${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+              <div className={`lg:col-span-2 ${finelyOsCatalogCard('violet')} space-y-4`}>
                 <div className="flex items-center gap-2 text-violet-400">
                   <Link size={18} />
                   <span className="text-xs font-semibold uppercase tracking-wider">Social Links</span>
@@ -733,7 +772,7 @@ export default function AdminSettingsPage() {
                 </div>
               </div>
 
-              <div className={`lg:col-span-2 ${finelyOsCatalogCard('violet')} !p-6`}>
+              <div className={`lg:col-span-2 ${finelyOsCatalogCard('violet')}`}>
                 <WelcomeExperienceEditor
                   value={settings.site.postLoginWelcome ?? {}}
                   onChange={(patch) =>
@@ -746,7 +785,7 @@ export default function AdminSettingsPage() {
               </div>
 
               {/* Compliance Links */}
-              <div className={`lg:col-span-2 ${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+              <div className={`lg:col-span-2 ${finelyOsCatalogCard('violet')} space-y-4`}>
                 <div className="flex items-center gap-2 text-violet-400">
                   <FileText size={18} />
                   <span className="text-xs font-semibold uppercase tracking-wider">Legal Pages</span>
@@ -775,7 +814,7 @@ export default function AdminSettingsPage() {
           {/* Comms Settings */}
           {activeTab === 'comms' && (
             <div className="grid lg:grid-cols-2 gap-6">
-              <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+              <div className={`${finelyOsCatalogCard('violet')} space-y-4`}>
                 <div className="flex items-center gap-2 text-violet-400">
                   <Link size={18} />
                   <span className="text-xs font-semibold uppercase tracking-wider">App URL</span>
@@ -791,7 +830,7 @@ export default function AdminSettingsPage() {
                 </div>
               </div>
 
-              <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+              <div className={`${finelyOsCatalogCard('violet')} space-y-4`}>
                 <div className="flex items-center gap-2 text-violet-400">
                   <Mail size={18} />
                   <span className="text-xs font-semibold uppercase tracking-wider">Email delivery</span>
@@ -823,7 +862,7 @@ export default function AdminSettingsPage() {
                 </div>
               </div>
 
-              <div className={`lg:col-span-2 ${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+              <div className={`lg:col-span-2 ${finelyOsCatalogCard('violet')} space-y-4`}>
                 <div className="flex items-center gap-2 text-violet-400">
                   <Phone size={18} />
                   <span className="text-xs font-semibold uppercase tracking-wider">SMS delivery</span>
@@ -860,7 +899,7 @@ export default function AdminSettingsPage() {
           {/* Chat Settings */}
           {activeTab === 'chat' && (
             <div className="grid lg:grid-cols-2 gap-6">
-              <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+              <div className={`${finelyOsCatalogCard('violet')} space-y-4`}>
                 <div className="flex items-center gap-2 text-violet-400">
                   <MessageCircle size={18} />
                   <span className="text-xs font-semibold uppercase tracking-wider">GIF search</span>
@@ -880,7 +919,7 @@ export default function AdminSettingsPage() {
                 />
               </div>
 
-              <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+              <div className={`${finelyOsCatalogCard('violet')} space-y-4`}>
                 <div className={FINELY_OS_ENTITY_SUBLABEL}>Recommendation</div>
                 <div className={`${FINELY_OS_ENTITY_BODY} space-y-2`}>
                   <p>
@@ -903,7 +942,7 @@ export default function AdminSettingsPage() {
           {/* Stripe Settings */}
           {activeTab === 'stripe' && (
             <div className="space-y-6">
-              <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-6`}>
+              <div className={`${finelyOsCatalogCard('violet')} space-y-6`}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-violet-400">
                     <CreditCard size={18} />
@@ -925,7 +964,7 @@ export default function AdminSettingsPage() {
                     placeholder="pk_test_..."
                     helperText="Starts with pk_test_ or pk_live_"
                   />
-                  <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-2`}>
+                  <div className={`${finelyOsCatalogCard('sky')} fc-surface-harmony space-y-2`}>
                     <div className={FINELY_OS_ENTITY_SUBLABEL}>Secret Key</div>
                     <div className={FINELY_OS_ENTITY_BODY}>
                       Stored server-side. Configure <span className={`font-mono font-semibold ${FINELY_OS_ENTITY_VALUE}`}>STRIPE_SECRET_KEY</span> in Supabase secrets.
@@ -934,7 +973,7 @@ export default function AdminSettingsPage() {
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-4">
-                  <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-2`}>
+                  <div className={`${finelyOsCatalogCard('rose')} fc-surface-harmony space-y-2`} data-fc-accent="rose">
                     <div className={FINELY_OS_ENTITY_SUBLABEL}>Webhook Signing Secret</div>
                     <div className={FINELY_OS_ENTITY_BODY}>
                       Stored server-side. Configure <span className={`font-mono font-semibold ${FINELY_OS_ENTITY_VALUE}`}>STRIPE_WEBHOOK_SECRET</span> in Supabase secrets.
@@ -962,7 +1001,7 @@ export default function AdminSettingsPage() {
           {/* Pricing Controls */}
           {activeTab === 'pricing' && (
             <div className="space-y-6">
-              <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-6`}>
+              <div className={`${finelyOsCatalogCard('violet')} space-y-6`}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-violet-400">
                     <CreditCard size={18} />
@@ -1003,13 +1042,13 @@ export default function AdminSettingsPage() {
                   </div>
                 </div>
 
-                <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony text-sm ${FINELY_OS_ENTITY_BODY}`}>
+                <div className={`${finelyOsCatalogCard('sky')} fc-surface-harmony text-sm ${FINELY_OS_ENTITY_BODY}`}>
                   Tip: keep markup for partner margins, use discount for short promos. Discounts apply after markup so you can run
                   controlled campaigns without losing baseline pricing.
                 </div>
               </div>
 
-              <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+              <div className={`${finelyOsCatalogCard('violet')} space-y-4`}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-violet-400">
                     <FileText size={18} />
@@ -1059,7 +1098,7 @@ export default function AdminSettingsPage() {
           {activeTab === 'denefits' && (
             <div className="space-y-6">
               {/* API Settings */}
-              <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-6`}>
+              <div className={`${finelyOsCatalogCard('violet')} space-y-6`}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-violet-400">
                     <Building2 size={18} />
@@ -1080,7 +1119,7 @@ export default function AdminSettingsPage() {
                     onChange={(v) => handleDenefitsChange({ merchantId: v || undefined })}
                     placeholder="Your provider/merchant ID"
                   />
-                  <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-2`}>
+                  <div className={`${finelyOsCatalogCard('sky')} fc-surface-harmony space-y-2`}>
                     <div className={FINELY_OS_ENTITY_SUBLABEL}>API Key</div>
                     <div className={FINELY_OS_ENTITY_BODY}>
                       Stored server-side. Configure <span className={`font-mono font-semibold ${FINELY_OS_ENTITY_VALUE}`}>DENEFITS_API_KEY</span> in Supabase secrets.
@@ -1096,7 +1135,7 @@ export default function AdminSettingsPage() {
                     placeholder="https://your-domain.com/api/webhooks/financing"
                     helperText="Receives payment notifications"
                   />
-                  <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-2`}>
+                  <div className={`${finelyOsCatalogCard('rose')} fc-surface-harmony space-y-2`} data-fc-accent="rose">
                     <div className={FINELY_OS_ENTITY_SUBLABEL}>Webhook Secret</div>
                     <div className={FINELY_OS_ENTITY_BODY}>
                       Stored server-side. Configure <span className={`font-mono font-semibold ${FINELY_OS_ENTITY_VALUE}`}>DENEFITS_WEBHOOK_SECRET</span> in Supabase secrets.
@@ -1111,14 +1150,14 @@ export default function AdminSettingsPage() {
                   description="Use test environment (no real financing)"
                 />
                 {settings.denefits.testMode ? (
-                  <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony border-amber-500/30 bg-amber-500/10 text-xs ${FINELY_OS_ENTITY_BODY}`}>
+                  <div className={`${finelyOsCatalogCard('rose')} fc-surface-harmony ${FINELY_OS_ENTITY_BODY}`} data-fc-accent="rose">
                     Test mode — checkout shows mock Denefit embed labels; disable before production launch.
                   </div>
                 ) : null}
               </div>
 
               {/* Contract URL Mappings */}
-              <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-6`}>
+              <div className={`${finelyOsCatalogCard('violet')} space-y-6`}>
                 <div className="flex items-center gap-2 text-violet-400">
                   <Link size={18} />
                   <span className="text-xs font-semibold uppercase tracking-wider">Contract URLs by Package</span>
@@ -1134,7 +1173,7 @@ export default function AdminSettingsPage() {
                     Showing <span className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{filteredFinancingPackages.length}</span> of{' '}
                     <span className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{financingPackages.length}</span>
                   </div>
-                  <div className={`flex items-center gap-2 ${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony px-3 py-2`}>
+                  <div className={`flex items-center gap-2 ${finelyOsCatalogCard('sky')} fc-surface-harmony px-3 py-2`}>
                     <Search size={16} className="text-violet-400 shrink-0" />
                     <input
                       value={contractQuery}
@@ -1239,7 +1278,7 @@ export default function AdminSettingsPage() {
           {/* Nora Capital Group Settings */}
           {activeTab === 'nora' && (
             <div className="space-y-6">
-              <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-6`}>
+              <div className={`${finelyOsCatalogCard('violet')} space-y-6`}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-violet-400">
                     <BriefcaseBusiness size={18} />
@@ -1248,7 +1287,7 @@ export default function AdminSettingsPage() {
                   <StatusBadge status={settings.noraCapital.status} />
                 </div>
 
-                <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony ${FINELY_OS_ENTITY_BODY} space-y-2`}>
+                <div className={`${finelyOsCatalogCard('sky')} fc-surface-harmony ${FINELY_OS_ENTITY_BODY} space-y-2`}>
                   <div className={FINELY_OS_ENTITY_VALUE}>What this is for</div>
                   <p>
                     This integration connects your Wealth Builder → Wealth Paths journey to Nora Capital Group’s funding
@@ -1278,7 +1317,7 @@ export default function AdminSettingsPage() {
                     placeholder="https://api.noracapitalgroup.com"
                     helperText="Used by server-side calls (Edge Functions)."
                   />
-                  <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-2`}>
+                  <div className={`${finelyOsCatalogCard('sky')} fc-surface-harmony space-y-2`}>
                     <div className={FINELY_OS_ENTITY_SUBLABEL}>API Key</div>
                     <div className={FINELY_OS_ENTITY_BODY}>
                       Stored server-side. Configure <span className={`font-mono font-semibold ${FINELY_OS_ENTITY_VALUE}`}>NORA_CAPITAL_API_KEY</span> in Supabase secrets.
@@ -1294,7 +1333,7 @@ export default function AdminSettingsPage() {
                     placeholder="https://your-domain.com/api/webhooks/nora"
                     helperText="If Nora sends status updates back to Finely Cred"
                   />
-                  <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-2`}>
+                  <div className={`${finelyOsCatalogCard('rose')} fc-surface-harmony space-y-2`} data-fc-accent="rose">
                     <div className={FINELY_OS_ENTITY_SUBLABEL}>Webhook Secret</div>
                     <div className={FINELY_OS_ENTITY_BODY}>
                       Stored server-side. Configure <span className={`font-mono font-semibold ${FINELY_OS_ENTITY_VALUE}`}>NORA_CAPITAL_WEBHOOK_SECRET</span> in Supabase secrets.
@@ -1314,7 +1353,7 @@ export default function AdminSettingsPage() {
 
           {/* Feature Flags */}
           {activeTab === 'features' && (
-            <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-6`}>
+            <div className={`${finelyOsCatalogCard('violet')} space-y-6`}>
               <div className="flex items-center gap-2 text-violet-400">
                 <ToggleRight size={18} />
                 <span className="text-xs font-semibold uppercase tracking-wider">Feature Flags</span>
@@ -1443,10 +1482,10 @@ export default function AdminSettingsPage() {
                     onChange={(v) => handleFeatureChange({ letterMailing: v })}
                     description="Mail letters from the app via provider API (US-only v1)"
                   />
-                  <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony text-xs ${FINELY_OS_ENTITY_BODY}`}>
+                  <div className={`${finelyOsCatalogCard('sky')} fc-surface-harmony text-xs ${FINELY_OS_ENTITY_BODY}`}>
                     Provider status:{' '}
                     {settings.features.letterMailing ? (
-                      <span className="text-amber-300">{FINELY_MAIL_COPY.adminSecretsHint}</span>
+                      <span className="text-rose-300">{FINELY_MAIL_COPY.adminSecretsHint}</span>
                     ) : (
                       <span className="text-white/50">Off — letter studio hides physical mail actions</span>
                     )}
@@ -1483,7 +1522,7 @@ export default function AdminSettingsPage() {
                 </div>
               </div>
 
-              <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-4 overflow-x-auto`}>
+              <div className={`${finelyOsCatalogCard('sky')} fc-surface-harmony space-y-4 overflow-x-auto`}>
                 <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-sky-300`}>
                   <span className="text-xs font-semibold uppercase tracking-wider">Feature matrix</span>
                 </div>
@@ -1532,7 +1571,7 @@ export default function AdminSettingsPage() {
           {/* Security */}
           {activeTab === 'security' && (
             <div className="space-y-6">
-              <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+              <div className={`${finelyOsCatalogCard('violet')} space-y-4`}>
                 <div className="flex items-center gap-2 text-violet-400">
                   <Shield size={18} />
                   <span className="text-xs font-semibold uppercase tracking-wider">Admin Access</span>
@@ -1541,7 +1580,7 @@ export default function AdminSettingsPage() {
                   For safety, Finely Cred uses a small <span className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>bootstrap allowlist</span> in code, plus a configurable
                   list here for operations. In production, this becomes full RBAC.
                 </p>
-                <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`} data-fc-accent="sky">
+                <div className={`${finelyOsCatalogCard('sky')} fc-surface-harmony`} data-fc-accent="sky">
                   <span className={FINELY_OS_ENTITY_SUBLABEL}>Bootstrap admins (code)</span>
                   <ul className={`mt-2 space-y-1 font-mono text-sm ${FINELY_OS_ENTITY_BODY}`}>
                     {bootstrapAdminEmails.length ? (
@@ -1552,7 +1591,7 @@ export default function AdminSettingsPage() {
                   </ul>
                 </div>
 
-                <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-3`}>
+                <div className={`${finelyOsCatalogCard('sky')} fc-surface-harmony space-y-3`}>
                   <span className={FINELY_OS_ENTITY_SUBLABEL}>Operational admins (configurable)</span>
                   <div className="flex flex-wrap gap-2">
                     {(((settings as any).security?.adminEmails ?? []) as string[]).length ? (
@@ -1611,7 +1650,7 @@ export default function AdminSettingsPage() {
                 </div>
               </div>
 
-              <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+              <div className={`${finelyOsCatalogCard('violet')} space-y-4`}>
                 <div className="flex items-center gap-2 text-violet-400">
                   <Webhook size={18} />
                   <span className="text-xs font-semibold uppercase tracking-wider">Webhook Security</span>
@@ -1630,7 +1669,7 @@ export default function AdminSettingsPage() {
                 </div>
               </div>
 
-              <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+              <div className={`${finelyOsCatalogCard('violet')} space-y-4`}>
                 <div className="flex items-center gap-2 text-violet-400">
                   <FileText size={18} />
                   <span className="text-xs font-semibold uppercase tracking-wider">Security Documentation</span>
@@ -1671,7 +1710,7 @@ export default function AdminSettingsPage() {
                 const renderStages = (kind: 'projectStages' | 'taskStages', title: string, subtitle: string) => {
                   const stages: WorkStageDefinition[] = (wb as any)[kind] ?? [];
                   return (
-                    <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+                    <div className={`${finelyOsCatalogCard('violet')} space-y-4`}>
                       <div className="space-y-1">
                         <div className={FINELY_OS_ENTITY_VALUE}>{title}</div>
                         <div className={FINELY_OS_ENTITY_BODY}>{subtitle}</div>
@@ -1679,7 +1718,7 @@ export default function AdminSettingsPage() {
 
                       <div className="space-y-3">
                         {stages.map((s, idx) => (
-                          <div key={s.id} className={`${finelyOsCatalogCard('emerald')} !p-4 fc-surface-harmony`} data-fc-accent="emerald">
+                          <div key={s.id} className={`${finelyOsCatalogCard('emerald')} fc-surface-harmony`} data-fc-accent="emerald">
                             <div className="flex flex-wrap items-start justify-between gap-3">
                               <div className="min-w-0">
                                 <div className={FINELY_OS_ENTITY_SUBLABEL}>id</div>
@@ -1769,7 +1808,7 @@ export default function AdminSettingsPage() {
                                         [kind]: stages.map((x) => (x.id === s.id ? { ...x, color: e.target.value } : x)),
                                       } as any)
                                     }
-                                    className={`h-10 w-14 rounded-xl ${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}
+                                    className="h-10 w-14 rounded-xl border border-sky-400/40 bg-black/40"
                                     title="Stage color"
                                   />
                                   <input
@@ -1786,7 +1825,7 @@ export default function AdminSettingsPage() {
                               </div>
                               <div className="space-y-1">
                                 <label className={FINELY_OS_ENTITY_SUBLABEL}>Preview</label>
-                                <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`} data-fc-accent="sky">
+                                <div className={`${finelyOsCatalogCard('sky')} fc-surface-harmony`} data-fc-accent="sky">
                                   <div className="flex items-center gap-3">
                                     <div
                                       className="h-2.5 w-2.5 rounded-full"
@@ -1841,10 +1880,27 @@ export default function AdminSettingsPage() {
             </div>
           )}
 
+          {/* Head of Society */}
+          {activeTab === 'heta' && (
+            <div className="space-y-6">
+              <div className={`${finelyOsCatalogCard('violet')} space-y-3`}>
+                <div className="flex items-center gap-2 text-violet-300">
+                  <Crown size={18} />
+                  <span className="text-xs font-semibold uppercase tracking-wider">Head of Society</span>
+                </div>
+                <p className={FINELY_OS_ENTITY_BODY}>
+                  Generate invite-only HOS access keys. Partners redeem keys on{' '}
+                  <span className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>/head-of-society</span> before entering the member portal.
+                </p>
+              </div>
+              <HosAccessCodesAdminPanel />
+            </div>
+          )}
+
           {/* Custom Fields */}
           {activeTab === 'customFields' && (
             <div className="space-y-6">
-              <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+              <div className={`${finelyOsCatalogCard('violet')} space-y-4`}>
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-2 text-violet-400">
                     <FileText size={18} />
@@ -1992,7 +2048,7 @@ export default function AdminSettingsPage() {
                       };
 
                       return (
-                        <div key={def.id} className={`${finelyOsCatalogCard('amber')} !p-4 fc-surface-harmony`} data-fc-accent="amber">
+                        <div key={def.id} className={`${finelyOsCatalogCard('rose')} fc-surface-harmony`} data-fc-accent="rose">
                           <div className="flex flex-wrap items-start justify-between gap-3">
                             <div className="grid md:grid-cols-2 gap-3 flex-1 min-w-[260px]">
                               <div className="space-y-1">
@@ -2117,7 +2173,7 @@ export default function AdminSettingsPage() {
                 )}
               </div>
 
-              <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+              <div className={`${finelyOsCatalogCard('violet')} space-y-4`}>
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-2 text-violet-400">
                     <Users size={18} />
@@ -2170,7 +2226,7 @@ export default function AdminSettingsPage() {
                 ) : (
                   <div className="space-y-4">
                     {layoutDraft.sections.map((sec, secIdx) => (
-                      <div key={sec.id} className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-3`}>
+                      <div key={sec.id} className={`${finelyOsCatalogCard('sky')} fc-surface-harmony space-y-3`}>
                         <div className="flex flex-wrap items-center justify-between gap-3">
                           <div className="flex-1 min-w-[220px]">
                             <label className={FINELY_OS_ENTITY_SUBLABEL}>Section title</label>
@@ -2299,7 +2355,7 @@ export default function AdminSettingsPage() {
                 )}
               </div>
 
-              <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-3`}>
+              <div className={`${finelyOsCatalogCard('violet')} space-y-3`}>
                 <div className="flex items-center gap-2 text-violet-400">
                   <RefreshCw size={18} />
                   <span className="text-xs font-semibold uppercase tracking-wider">Next step</span>
@@ -2314,6 +2370,6 @@ export default function AdminSettingsPage() {
         </div>
         <FinelyOsPageFooter />
 </div>
-    </PageShell>
+    </AdminSettingsFrame>
   );
 }

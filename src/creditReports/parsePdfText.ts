@@ -1,4 +1,5 @@
 import * as pdfjsLib from 'pdfjs-dist';
+import type { PdfSourceTextRun } from '../domain/creditReports';
 
 // Use the worker bundled by Vite.
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -13,6 +14,12 @@ export type PdfTextExtraction = {
   numPages: number;
   nonEmptyPages: number;
   pages: Array<{ page: number; text: string; extractedChars: number }>;
+  sourcePages: Array<{
+    page: number;
+    width: number;
+    height: number;
+    runs: PdfSourceTextRun[];
+  }>;
 };
 
 export async function extractPdfTextWithMeta(file: File): Promise<PdfTextExtraction> {
@@ -21,9 +28,11 @@ export async function extractPdfTextWithMeta(file: File): Promise<PdfTextExtract
 
   const parts: string[] = [];
   const pages: Array<{ page: number; text: string; extractedChars: number }> = [];
+  const sourcePages: PdfTextExtraction['sourcePages'] = [];
   let nonEmptyPages = 0;
   for (let i = 1; i <= doc.numPages; i++) {
     const page = await doc.getPage(i);
+    const viewport = page.getViewport({ scale: 1 });
     const content = await page.getTextContent();
     const items = (content.items as any[])
       .map((it) => {
@@ -32,9 +41,30 @@ export async function extractPdfTextWithMeta(file: File): Promise<PdfTextExtract
         // transform: [a,b,c,d,e,f] where e=x, f=y in PDF space
         const x = t && typeof t[4] === 'number' ? t[4] : 0;
         const y = t && typeof t[5] === 'number' ? t[5] : 0;
-        return { str: str.replace(/\s+/g, ' ').trim(), x, y };
+        const width = typeof it?.width === 'number' ? it.width : 0;
+        const fontHeight =
+          t && typeof t[2] === 'number' && typeof t[3] === 'number'
+            ? Math.max(1, Math.hypot(t[2], t[3]))
+            : Math.max(1, typeof it?.height === 'number' ? it.height : 8);
+        return { str: str.replace(/\s+/g, ' ').trim(), x, y, width, fontHeight };
       })
       .filter((x) => Boolean(x.str));
+
+    const clamp = (value: number) => Math.max(0, Math.min(1, value));
+    sourcePages.push({
+      page: i,
+      width: viewport.width,
+      height: viewport.height,
+      runs: items.map((item) => ({
+        text: item.str,
+        region: {
+          x: clamp(item.x / viewport.width),
+          y: clamp((viewport.height - item.y - item.fontHeight) / viewport.height),
+          width: clamp(Math.max(item.width, 1) / viewport.width),
+          height: clamp(item.fontHeight / viewport.height),
+        },
+      })),
+    });
 
     // Preserve rough layout by grouping into lines (y buckets) then ordering by x.
     // This massively improves downstream parsing vs a single space-joined blob.
@@ -74,7 +104,7 @@ export async function extractPdfTextWithMeta(file: File): Promise<PdfTextExtract
     }
     pages.push({ page: i, text: pageText, extractedChars: pageText.length });
   }
-  return { text: parts.join('\n\n'), numPages: doc.numPages, nonEmptyPages, pages };
+  return { text: parts.join('\n\n'), numPages: doc.numPages, nonEmptyPages, pages, sourcePages };
 }
 
 export { detectReportDateFromText } from './detectReportDateFromText';

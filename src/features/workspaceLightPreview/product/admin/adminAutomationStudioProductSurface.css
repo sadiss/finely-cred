@@ -1,0 +1,87 @@
+/* Admin automation studio — command deck (mosaic triggers + workroom bed) */
+
+.fc-admin-auto-command {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.fc-admin-auto-signal-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 1000px) {
+  .fc-admin-auto-signal-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .fc-admin-auto-signal-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fc-admin-auto-deck-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 900px) {
+  .fc-admin-auto-deck-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fc-admin-auto-deck-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 22px 20px;
+  border-radius: 20px;
+  text-align: left;
+  min-height: 160px;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.fc-admin-auto-deck-tile:hover {
+  transform: translateY(-2px);
+}
+
+.fc-admin-auto-deck-tile[data-active='true'] {
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.45);
+}
+
+.fc-admin-auto-deck-tile-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.fc-admin-auto-deck-count {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.fc-admin-auto-workroom {
+  padding: 24px 28px;
+  border-radius: 22px;
+  border: 1px solid rgba(16, 185, 129, 0.22);
+  background:
+    radial-gradient(circle at 0% 0%, rgba(16, 185, 129, 0.08), transparent 42%),
+    radial-gradient(circle at 100% 0%, rgba(139, 92, 246, 0.06), transparent 38%),
+    rgba(248, 250, 252, 0.92);
+}
+
+.fc-admin-auto-workroom-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+}

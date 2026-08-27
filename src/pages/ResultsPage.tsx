@@ -46,7 +46,7 @@ const CASE_STUDY_CATEGORY_LABELS: Record<CaseStudy['category'], string> = {
   heta_society: 'HETA Society',
 };
 
-const HIGHLIGHT_ACCENTS: FinelyOsPublicAccent[] = ['emerald', 'sky', 'fuchsia', 'amber', 'violet', 'rose'];
+const HIGHLIGHT_ACCENTS: FinelyOsPublicAccent[] = ['emerald', 'sky', 'fuchsia', 'violet', 'rose'];
 
 function ResultHighlightCard({ caseStudy, accent }: { caseStudy: CaseStudy; accent: FinelyOsPublicAccent }) {
   const stat = caseStudy.fundingSecured
@@ -56,7 +56,7 @@ function ResultHighlightCard({ caseStudy, accent }: { caseStudy: CaseStudy; acce
     : null;
 
   return (
-    <div className={`space-y-3 ${finelyOsCatalogCard(accent)} !p-5`} data-fc-accent={accent}>
+    <div className={`space-y-4 ${finelyOsCatalogCard(accent)}`} data-fc-accent={accent}>
       <div className="flex items-start justify-between gap-2">
         <span className="text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-full border border-white/20 bg-white/10 text-white/70 whitespace-nowrap">
           {CASE_STUDY_CATEGORY_LABELS[caseStudy.category] ?? 'Case study'}
@@ -130,18 +130,18 @@ export default function ResultsPage() {
             icon={DollarSign}
             label="Funding secured (documented)"
             value={stats.totalFundingSecured > 0 ? `$${stats.totalFundingSecured.toLocaleString('en-US')}` : '—'}
-            accent="amber"
+            accent="sky"
           />
           <FinelyOsOverviewStatTile
             icon={Layers}
             label="Practice areas"
             value={String(stats.categoryCount)}
-            accent="sky"
+            accent="rose"
           />
         </div>
         <FinelyOsComplianceStrip>Results vary · not legal advice · funding subject to underwriting</FinelyOsComplianceStrip>
 
-        <div className={`${finelyOsCatalogCard('fuchsia')} !p-5`} data-fc-accent="fuchsia">
+        <div className={finelyOsCatalogCard('rose')} data-fc-accent="rose">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="min-w-0">
               <div className={`${FINELY_OS_ENTITY_SUBLABEL} inline-flex items-center gap-1.5`}>
@@ -168,7 +168,7 @@ export default function ResultsPage() {
           ))}
         </div>
 
-        <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-3`} data-fc-accent="violet">
+        <div className={`${finelyOsCatalogCard('violet')} space-y-4`} data-fc-accent="violet">
           <div className={FINELY_OS_ENTITY_SUBLABEL}>Browse by practice area</div>
           <div className="flex flex-wrap gap-2">
             {categoryBreakdown.map(([category, count]) => (
@@ -184,7 +184,7 @@ export default function ResultsPage() {
           </div>
         </div>
 
-        <div className={`${finelyOsLeadMagnetPanel('amber')} !p-6`} data-fc-accent="amber">
+        <div className={`${finelyOsLeadMagnetPanel('sky')} !p-6`} data-fc-accent="sky">
           <div className={FINELY_OS_ENTITY_SUBLABEL}>Want the full library?</div>
           <p className={`mt-2 text-sm ${FINELY_OS_ENTITY_BODY}`}>
             This page shows a curated highlight subset. Browse every documented case study — filterable by category —

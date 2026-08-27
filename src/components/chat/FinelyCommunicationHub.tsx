@@ -47,6 +47,12 @@ export type FinelyCommunicationHubProps = {
   showAllAgents?: boolean;
   /** Admin workspace — team tab links to support inbox instead of requiring a partner file. */
   adminMode?: boolean;
+  /** Product review keeps hub navigation inside the redesigned workspace. */
+  navigationMode?: 'preview' | 'live';
+  /** Review mode can demonstrate the complete hub even before feature flags are configured. */
+  forceEnabled?: boolean;
+  /** Keeps shared hub behavior while matching the redesigned workspace presentation. */
+  visualVariant?: 'default' | 'product';
 };
 
 export function FinelyCommunicationHub({
@@ -60,12 +66,15 @@ export function FinelyCommunicationHub({
   initialTopic,
   showAllAgents,
   adminMode,
+  navigationMode = 'live',
+  forceEnabled = false,
+  visualVariant = 'default',
 }: FinelyCommunicationHubProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const chatEnabled = isFeatureEnabled('portalChat') || isFeatureEnabled('aiGateway');
-  const messagingEnabled = isFeatureEnabled('inAppMessaging');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const chatEnabled = forceEnabled || isFeatureEnabled('portalChat') || isFeatureEnabled('aiGateway');
+  const messagingEnabled = forceEnabled || isFeatureEnabled('inAppMessaging');
   const hubTabs = useMemo(
     () => (messagingEnabled ? HUB_TABS : HUB_TABS.filter((t) => t.id !== 'team')),
     [messagingEnabled],
@@ -77,7 +86,7 @@ export function FinelyCommunicationHub({
   const urlTopic = (searchParams.get('topic') as SupportTopic | null) ?? undefined;
   const explicitOpen = searchParams.get('openHub') === '1' || searchParams.get('openHub') === 'true';
 
-  const [open, setOpen] = useState(() => mode === 'page' || (mode === 'floating' && explicitOpen));
+  const [open, setOpen] = useState(() => mode === 'page');
   const [expanded, setExpanded] = useState(mode === 'page');
   const [tab, setTab] = useState<HubTab>(normalizeHubTab(initialTab ?? urlTab));
   const [threadId, setThreadId] = useState<string | undefined>(initialThreadId ?? urlThread ?? undefined);
@@ -87,25 +96,43 @@ export function FinelyCommunicationHub({
     displayName?: string;
     lane?: string;
   } | null>(null);
+  const [coachDraft, setCoachDraft] = useState<{
+    prompt: string;
+    contextLabel?: string;
+    key: number;
+  } | null>(null);
+  const [coachContextLabel, setCoachContextLabel] = useState<string | undefined>();
 
   const effectivePartnerId = focusPartner?.id ?? partnerId;
   const effectivePartnerName = focusPartner?.displayName ?? partnerDisplayName;
   const effectiveLane = focusPartner?.lane ?? lane;
 
   const unreadHint = useMemo(() => {
-    if (tab === 'team') return 'Team threads — AI suggests who to message';
-    if (tab === 'ai') return 'AI coach — smart routing to the right specialist';
-    return 'Meetings · Guide · Calendar';
+    if (tab === 'team') return 'Team messages';
+    if (tab === 'ai') return 'AI coach';
+    if (tab === 'meetings') return 'Meetings';
+    if (tab === 'guide') return 'Guide';
+    return 'Calendar';
   }, [tab]);
 
   useEffect(() => {
     setTab(normalizeHubTab(urlTabRaw ?? initialTab ?? 'ai'));
     if (urlThread) setThreadId(urlThread);
     if (urlTopic) setTopic(urlTopic);
-    if (mode === 'floating' && (explicitOpen || urlTabRaw)) {
-      setOpen(true);
-    }
-  }, [urlTabRaw, urlThread, urlTopic, mode, explicitOpen, initialTab]);
+  }, [urlTabRaw, urlThread, urlTopic, initialTab]);
+
+  useEffect(() => {
+    if (mode !== 'floating' || !explicitOpen) return;
+    setOpen(true);
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete('openHub');
+        return next;
+      },
+      { replace: true },
+    );
+  }, [mode, explicitOpen, setSearchParams]);
 
   const switchTab = useCallback((next: HubTab) => {
     const normalized = normalizeHubTab(next);
@@ -127,6 +154,8 @@ export function FinelyCommunicationHub({
         partnerId?: string;
         partnerDisplayName?: string;
         lane?: string;
+        prompt?: string;
+        contextLabel?: string;
       };
       setOpen(true);
       if (detail.tab) setTab(normalizeHubTab(detail.tab));
@@ -140,6 +169,14 @@ export function FinelyCommunicationHub({
           lane: detail.lane,
         });
       }
+      if (detail.prompt) {
+        setCoachDraft({
+          prompt: detail.prompt,
+          contextLabel: detail.contextLabel,
+          key: Date.now(),
+        });
+      }
+      if (detail.contextLabel) setCoachContextLabel(detail.contextLabel);
     };
     const onStaffDm = () => {
       setOpen(true);
@@ -165,6 +202,23 @@ export function FinelyCommunicationHub({
 
   if (!chatEnabled && mode === 'floating') return null;
 
+  const calendarPath =
+    navigationMode === 'preview'
+      ? adminMode
+        ? '/preview/workspace-light/admin/calendar'
+        : '/preview/workspace-light/portal/calendar'
+      : adminMode
+        ? '/admin/calendar'
+        : PORTAL_COMMS_PATHS.calendar;
+  const messagesPath =
+    navigationMode === 'preview'
+      ? adminMode
+        ? '/preview/workspace-light/admin/communications'
+        : '/preview/workspace-light/portal/messages'
+      : adminMode
+        ? '/admin/comms'
+        : '/portal/messages';
+
   const panelContent = (
     <>
       <div className={FINELY_OS_COMMS_HEADER}>
@@ -181,10 +235,16 @@ export function FinelyCommunicationHub({
           <div className="flex items-center gap-1 shrink-0">
             <button
               type="button"
-              onClick={() => navigate(adminMode ? '/admin/calendar' : PORTAL_COMMS_PATHS.calendar)}
+              onClick={() => {
+                if (mode === 'page') {
+                  switchTab('meetings');
+                  return;
+                }
+                navigate(calendarPath);
+              }}
               className="p-2 rounded-xl border border-sky-500/25 bg-sky-500/10 text-sky-200 hover:bg-sky-500/20"
-              title={adminMode ? 'Open admin calendar' : 'Open calendar & video meetings'}
-              aria-label={adminMode ? 'Open admin calendar' : 'Open calendar and video meetings'}
+              title={mode === 'page' ? 'Open meetings in Communication Hub' : adminMode ? 'Open admin calendar' : 'Open calendar & video meetings'}
+              aria-label={mode === 'page' ? 'Open meetings in Communication Hub' : adminMode ? 'Open admin calendar' : 'Open calendar and video meetings'}
             >
               <Calendar size={14} />
             </button>
@@ -201,7 +261,7 @@ export function FinelyCommunicationHub({
                 </button>
                 <button
                   type="button"
-                  onClick={() => navigate(`/portal/messages?hub=${tab}${topic ? `&topic=${topic}` : ''}`)}
+                  onClick={() => navigate(`${messagesPath}?hub=${tab}${topic ? `&topic=${topic}` : ''}`)}
                   className={`${FINELY_OS_LUXURY_PAGINATION_BTN} !p-2 text-[10px] font-black uppercase`}
                   title="Open full page"
                   aria-label="Open communication hub full page"
@@ -216,9 +276,15 @@ export function FinelyCommunicationHub({
           </div>
         </div>
 
-        <div className="flex border-b border-white/[0.08] overflow-x-auto bg-fc-chrome/98">
+        <div className="fc-comms-tabstrip flex overflow-x-auto">
           {hubTabs.map((t) => (
-            <button key={t.id} type="button" onClick={() => switchTab(t.id)} className={finelyOsCommsTab(tab === t.id)}>
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => switchTab(t.id)}
+              className={finelyOsCommsTab(tab === t.id)}
+              data-active={tab === t.id ? 'true' : undefined}
+            >
               <span className="mr-1">{t.emoji}</span> {t.label}
             </button>
           ))}
@@ -240,6 +306,11 @@ export function FinelyCommunicationHub({
             userName={effectivePartnerName}
             compact={!expanded && mode === 'floating'}
             showAllAgents={showAllAgents}
+            navigationMode={navigationMode}
+            workspaceRole={adminMode ? 'admin' : 'partner'}
+            draftPrompt={coachDraft?.prompt}
+            draftPromptKey={coachDraft?.key}
+            contextLabel={coachDraft?.contextLabel ?? coachContextLabel}
           />
         )}
         {(tab === 'team') && (
@@ -252,6 +323,7 @@ export function FinelyCommunicationHub({
               initialTopic={topic}
               lane={effectiveLane}
               adminMode={adminMode}
+              navigationMode={navigationMode}
             />
           ) : (
             <div className={`p-6 text-sm ${FINELY_OS_ENTITY_BODY}`}>
@@ -265,16 +337,31 @@ export function FinelyCommunicationHub({
             partnerDisplayName={effectivePartnerName}
             compact={!expanded && mode === 'floating'}
             adminMode={adminMode}
+            calendarPath={calendarPath}
           />
         )}
-        {tab === 'guide' && <HubGuidePanel compact={!expanded && mode === 'floating'} onSwitchTab={switchTab} partnerId={effectivePartnerId} />}
+        {tab === 'guide' && (
+          <HubGuidePanel
+            compact={!expanded && mode === 'floating'}
+            onSwitchTab={switchTab}
+            partnerId={effectivePartnerId}
+            navigationMode={navigationMode}
+            workspaceRole={adminMode ? 'admin' : 'partner'}
+          />
+        )}
       </div>
     </>
   );
 
   if (mode === 'page') {
     return (
-      <div data-fc-comms-shell="1" data-fc-communication-hub="page" className={`${FINELY_OS_COMMS_SHELL} min-h-[640px]`}>
+      <div
+        data-fc-comms-shell="1"
+        data-fc-communication-hub="page"
+        data-fc-obsidian-chat="1"
+        data-visual-variant={visualVariant}
+        className={`${FINELY_OS_COMMS_SHELL} min-h-[640px]`}
+      >
         {panelContent}
       </div>
     );
@@ -283,11 +370,16 @@ export function FinelyCommunicationHub({
   return (
     <div
       data-fc-communication-hub="floating"
-      className="fixed z-[150] bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))] left-auto max-w-[calc(100vw-2rem)]"
+      data-fc-obsidian-chat="1"
+      data-open={open ? 'true' : 'false'}
+      data-visual-variant={visualVariant}
+      className="fixed z-[150] bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))] left-auto w-fit max-w-[calc(100vw-2rem)] bg-transparent shadow-none border-0"
     >
       {open ? (
         <div
           data-fc-comms-shell="1"
+          role="dialog"
+          aria-label="Communication Hub"
           className={`${FINELY_OS_COMMS_SHELL} transition-all max-lg:fixed max-lg:inset-0 max-lg:w-full max-lg:h-[100dvh] max-lg:max-h-[100dvh] max-lg:rounded-none ${
             expanded
               ? 'lg:w-[min(920px,calc(100vw-40px))] lg:h-[min(780px,calc(100vh-80px))]'
@@ -301,7 +393,8 @@ export function FinelyCommunicationHub({
           type="button"
           onClick={() => setOpen(true)}
           className={`${FINELY_OS_COMMS_LAUNCHER} max-w-[calc(100vw-2rem)]`}
-          title="Open Communication Hub"
+          title="Open chat"
+          aria-label="Open chat"
         >
           <div className="flex items-center gap-3 min-w-0">
             <div className={`relative ${FINELY_OS_COMMS_ICON} w-12 h-12 shrink-0`}>
@@ -309,9 +402,8 @@ export function FinelyCommunicationHub({
               <Sparkles size={10} className="absolute -top-1 -right-1 text-sky-300" />
             </div>
             <div className="text-left min-w-0">
-              <div className={FINELY_OS_COMMS_LABEL}>Communication Hub</div>
-              <div className="text-white/90 text-sm font-semibold truncate">One chat — AI + team</div>
-              <div className={`text-[11px] ${FINELY_OS_ENTITY_BODY} hidden sm:block`}>Talk naturally · smart routing · no dropdowns</div>
+              <div className={FINELY_OS_COMMS_LABEL}>Chat</div>
+              <div className="text-white/90 text-sm font-semibold truncate">Ask Finely</div>
             </div>
           </div>
         </button>

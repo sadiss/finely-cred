@@ -469,7 +469,7 @@ export default function CreditSpecialistJoinPage() {
 
         {step === 'tier' && (
           <section className="space-y-4">
-            <div className={`${finelyOsCatalogCard('amber')} !p-4 space-y-3`}>
+            <div className={`${finelyOsCatalogCard('violet')} space-y-4`} data-fc-accent="violet">
               <h2 className={FINELY_OS_ENTITY_TITLE}>
                 {tierFromUrl ? 'Your tier is ready — continue when it looks right' : 'Pick your tier'}
               </h2>
@@ -522,7 +522,7 @@ export default function CreditSpecialistJoinPage() {
         )}
 
         {step === 'commit' && (
-          <section className={`${finelyOsCatalogCard('amber')} !p-4 space-y-4`}>
+          <section className={`${finelyOsCatalogCard('rose')} space-y-4`} data-fc-accent="rose">
             <div>
               <h2 className={FINELY_OS_ENTITY_TITLE}>Confirm your entry commitment</h2>
               <p className="text-xs font-bold text-emerald-300 mt-1">Result: unlocks full Specialist Hub access.</p>
@@ -530,10 +530,10 @@ export default function CreditSpecialistJoinPage() {
             <p className={`${FINELY_OS_ENTITY_BODY} text-xs`}>
               These two checks are required. They become part of your application notes for Finely ops.
             </p>
-            <label className="flex items-start gap-3 rounded-xl border border-amber-400/30 bg-black/25 p-4 cursor-pointer">
+            <label className="flex items-start gap-3 rounded-xl border border-rose-400/30 bg-black/25 p-6 cursor-pointer">
               <input
                 type="checkbox"
-                className="mt-1 accent-amber-400"
+                className="mt-1 accent-rose-400"
                 checked={intent.committedMinLeads}
                 onChange={(e) =>
                   persistIntent({ ...intent, committedMinLeads: e.target.checked })
@@ -585,7 +585,7 @@ export default function CreditSpecialistJoinPage() {
         )}
 
         {step === 'leads' && (
-          <section className={`${finelyOsCatalogCard('emerald')} !p-4 space-y-4`}>
+          <section className={`${finelyOsCatalogCard('emerald')} space-y-4`} data-fc-accent="emerald">
             <div>
               <h2 className={FINELY_OS_ENTITY_TITLE}>Bring your leads</h2>
               <p className={`${FINELY_OS_ENTITY_BODY} text-xs mt-1`}>
@@ -753,7 +753,7 @@ export default function CreditSpecialistJoinPage() {
         )}
 
         {step === 'profile' && (
-          <section className={`${finelyOsCatalogCard('amber')} !p-4 space-y-4`}>
+          <section className={`${finelyOsCatalogCard('sky')} space-y-4`} data-fc-accent="sky">
             <h2 className={FINELY_OS_ENTITY_TITLE}>Your minimal profile</h2>
             <p className={`${FINELY_OS_ENTITY_BODY} text-xs`}>
               Just three fields — we’ll save this with your {intent.minLeadsRequired}-lead / {CS_OFFER.freeLeadsWindowDays}-day
@@ -777,7 +777,7 @@ export default function CreditSpecialistJoinPage() {
             <button
               type="button"
               onClick={() => setShowOptionalProfile((v) => !v)}
-              className="text-xs font-bold text-amber-300 hover:text-amber-100 underline underline-offset-2"
+              className="text-sm font-extrabold text-violet-300 hover:text-violet-100 underline underline-offset-2"
             >
               {showOptionalProfile ? 'Hide optional details' : 'Add optional details (company, niche, monthly leads)'}
             </button>
@@ -849,7 +849,7 @@ export default function CreditSpecialistJoinPage() {
         )}
 
         {step === 'done' && (
-          <section className={`${finelyOsCatalogCard('emerald')} !p-4 space-y-4`}>
+          <section className={`${finelyOsCatalogCard('emerald')} space-y-4`} data-fc-accent="emerald">
             <div className="flex items-center gap-2 text-emerald-300">
               <CheckCircle2 size={22} />
               <h2 className={FINELY_OS_ENTITY_TITLE}>You’re set — finish account signup</h2>

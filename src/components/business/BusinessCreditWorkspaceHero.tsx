@@ -12,7 +12,9 @@ import {
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_PRIMARY_BTN,
   finelyOsCatalogCard,
+  type FinelyOsPublicAccent,
 } from '../../features/os/finelyOsLightUi';
+import { FinelyOsIconBadge } from '../../features/os/FinelyOsIconBadge';
 
 type Props = {
   partner: Partner | null;
@@ -37,15 +39,15 @@ export function BusinessCreditWorkspaceHero({ partner }: Props) {
   }, [partner]);
 
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-amber-500/25 bg-gradient-to-br from-amber-950/80 via-[#0c1018] to-violet-950/60 p-6 sm:p-8">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(251,191,36,0.12),transparent_55%)]" />
+    <div className="relative overflow-hidden rounded-3xl border border-violet-500/25 bg-gradient-to-br from-slate-950/90 via-[#0c1018] to-violet-950/60 p-6 sm:p-8">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(16,185,129,0.12),transparent_55%)]" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(139,92,246,0.08),transparent_50%)]" />
       <div className="relative grid lg:grid-cols-12 gap-6 items-center">
         <div className="lg:col-span-7 space-y-4">
-          <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-amber-300/90`}>Business Credit Command Center</div>
+          <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-violet-300/90`}>Business Credit Command Center</div>
           <h2 className="text-2xl sm:text-3xl font-black text-white leading-tight">
             Build fundability with{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-orange-400">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 to-sky-400">
               sequencing, not luck
             </span>
           </h2>
@@ -70,7 +72,7 @@ export function BusinessCreditWorkspaceHero({ partner }: Props) {
               label: 'Roadmap',
               value: stats ? `${stats.roadmapPct}%` : '—',
               hint: stats ? `${stats.roadmapDone}/${BUSINESS_ROADMAP_STEPS.length} steps` : 'Sign in',
-              accent: 'amber',
+              accent: 'rose',
             },
             {
               icon: Building2,
@@ -94,8 +96,8 @@ export function BusinessCreditWorkspaceHero({ partner }: Props) {
               accent: 'violet',
             },
           ].map(({ icon: Icon, label, value, hint, accent }) => (
-            <div key={label} className={`${finelyOsCatalogCard(accent as 'amber')} !p-4 backdrop-blur-sm`} data-fc-accent={accent}>
-              <Icon size={16} className="text-amber-400 mb-2" />
+            <div key={label} className={`${finelyOsCatalogCard(accent as FinelyOsPublicAccent)} !p-4 backdrop-blur-sm`} data-fc-accent={accent}>
+              <FinelyOsIconBadge icon={Icon} accent={accent as FinelyOsPublicAccent} size={16} className="p-2 mb-2" />
               <div className={`text-[10px] uppercase tracking-widest ${FINELY_OS_ENTITY_SUBLABEL}`}>{label}</div>
               <div className={`text-xl font-black mt-1 ${FINELY_OS_ENTITY_VALUE}`}>{value}</div>
               <div className={`text-[10px] mt-1 ${FINELY_OS_ENTITY_BODY}`}>{hint}</div>
@@ -105,10 +107,10 @@ export function BusinessCreditWorkspaceHero({ partner }: Props) {
       </div>
 
       {stats?.funding?.blockers?.[0] ? (
-        <div className="relative mt-4 flex items-start gap-3 p-3 rounded-xl border border-amber-500/30 bg-amber-500/10">
-          <Sparkles size={16} className="text-amber-300 shrink-0 mt-0.5" />
+        <div className="relative mt-4 flex items-start gap-3 p-3 rounded-xl border border-rose-500/30 bg-rose-500/10">
+          <Sparkles size={16} className="text-rose-300 shrink-0 mt-0.5" />
           <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
-            <span className="font-bold text-amber-200">Next priority:</span> {stats.funding.blockers[0]}
+            <span className="font-bold text-rose-200">Next priority:</span> {stats.funding.blockers[0]}
           </p>
         </div>
       ) : null}

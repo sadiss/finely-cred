@@ -38,6 +38,12 @@ const ACCENTS = {
     icon: 'text-fuchsia-200',
     aura: 'bg-fuchsia-400/30',
   },
+  navy: {
+    shell: 'border-slate-400/55 bg-gradient-to-br from-slate-500/28 via-slate-700/18 to-black/25',
+    glow: 'shadow-[0_0_38px_-8px_rgba(71,85,105,0.72),inset_0_1px_0_rgba(255,255,255,0.20)]',
+    icon: 'text-slate-200',
+    aura: 'bg-slate-500/32',
+  },
 } as const;
 
 export type FinelyOsIconAccent = keyof typeof ACCENTS;

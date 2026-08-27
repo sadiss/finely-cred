@@ -27,12 +27,12 @@ export function RoleWorkflowPanel({ roleId, compact = false, completedSteps }: P
   const progressLabel = roleWorkflowProgressLabel(completed, total);
 
   return (
-    <div className={`${finelyOsGlassShell('panel', 'amber')} ${compact ? 'p-4' : 'p-6'} space-y-4`}>
+    <div className={`${finelyOsGlassShell('panel', 'violet')} ${compact ? 'p-4' : 'p-6'} space-y-4`}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-amber-700`}>Role OS 2.0 · End-to-end workflow</div>
+          <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-violet-700`}>Your path</div>
           <h3 className={`mt-1 text-lg font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{workflow.label} journey</h3>
-          <p className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>From onboarding through daily operations — every step linked.</p>
+          <p className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>From setup through daily work — every step is linked.</p>
         </div>
         {progressLabel ? (
           <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-800">
@@ -48,7 +48,7 @@ export function RoleWorkflowPanel({ roleId, compact = false, completedSteps }: P
               <button
                 type="button"
                 onClick={() => navigate(step.path)}
-                className={`w-full text-left ${finelyOsInlineListItem()} p-4 flex items-start gap-3 transition-colors hover:border-amber-500/25 ${
+                className={`w-full text-left ${finelyOsInlineListItem()} p-4 flex items-start gap-3 transition-colors hover:border-violet-500/25 ${
                   isDone ? 'border-emerald-500/25 bg-emerald-500/[0.06]' : ''
                 }`}
               >
@@ -56,7 +56,7 @@ export function RoleWorkflowPanel({ roleId, compact = false, completedSteps }: P
                   className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-[10px] font-black ${
                     isDone
                       ? 'border-emerald-500/40 bg-emerald-500/15 text-emerald-700'
-                      : 'border-amber-500/35 bg-amber-500/10 text-amber-800'
+                      : 'border-sky-500/35 bg-sky-500/10 text-sky-800'
                   }`}
                 >
                   {isDone ? <CheckCircle2 size={14} /> : i + 1}

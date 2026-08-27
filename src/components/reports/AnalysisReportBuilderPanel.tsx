@@ -316,7 +316,7 @@ export function AnalysisReportBuilderPanel({ partners, defaultPartnerId, compact
       </div>
 
       <div className={`${finelyOsCatalogCard('violet')} !p-5 border border-sky-500/25 space-y-4`}>
-        <div className="flex items-center gap-2 text-white/85">
+        <div className="flex items-center gap-2">
           <Eye size={18} className="text-sky-300" />
           <span className={`text-sm font-black uppercase tracking-widest ${FINELY_OS_ENTITY_SUBLABEL} !normal-case`}>3 · Live preview</span>
           {preview ? (

@@ -16,7 +16,7 @@ export const MARKETING_DESK_GLOSSARY = [
   { say: 'Put back', means: 'Restore from cleanup', never: 'Undelete' },
   { say: "Today's to-dos", means: 'Real Projects & Tasks', never: 'NBA / autonomy' },
   { say: 'Mail on autopilot', means: 'Automated sequences', never: 'Cadence engine' },
-  { say: 'Practice mode', means: 'Owner simulation counters', never: 'Deep Swarm' },
+  { say: 'Practice mode', means: 'Owner simulation counters', never: 'Lead search tool jargon' },
 ] as const;
 
 export type MarketingDeskHelperId = 'find' | 'board' | 'clean' | 'ruth' | 'mail';

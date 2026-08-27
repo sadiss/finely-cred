@@ -38,7 +38,7 @@ export function StaffSocialPageAssignWizard() {
   };
 
   return (
-    <div className="rounded-2xl border border-violet-500/20 bg-violet-500/5 p-5 space-y-4">
+    <div className="rounded-2xl border border-violet-500/20 bg-violet-500/5 p-6 lg:p-8 space-y-4">
       <div className="flex items-center gap-2">
         <UserCheck size={18} className="text-violet-300" />
         <h3 className="font-bold text-white">Assign Meta page → staff agent</h3>
@@ -85,7 +85,7 @@ export function StaffSocialPageAssignWizard() {
       ) : null}
       {notice ? <p className="text-sm text-emerald-200/90">{notice}</p> : null}
       {pages.length === 0 ? (
-        <p className="text-xs text-amber-200/80">Connect Meta in Settings below before assigning pages.</p>
+        <p className="text-sm text-sky-200/90">Connect Meta in Settings below before assigning pages.</p>
       ) : null}
     </div>
   );

@@ -35,7 +35,6 @@ import {
   FINELY_OS_PAGE,
   finelyOsAlertBanner,
   finelyOsCatalogCard,
-  finelyOsCatalogCardCompact,
   finelyOsDeckTile,
   finelyOsMicroStat,
   finelyOsStatusChip,
@@ -54,12 +53,13 @@ import {
 } from '../../data/businessCreditDoctrineRepo';
 
 const TIERS: VendorTier[] = [1, 2, 3, 4];
-const VENDOR_ROW_ACCENTS: FinelyOsPublicAccent[] = ['emerald', 'sky', 'violet', 'amber', 'fuchsia'];
+// Four families that stay distinct on every neighbour, including the wrap back to emerald.
+const VENDOR_ROW_ACCENTS: FinelyOsPublicAccent[] = ['emerald', 'sky', 'violet', 'rose'];
 const VENDOR_PAGE_SIZE = 8;
 
 function tierBadge(tier: VendorTier) {
   if (tier === 1) return { label: 'Tier 1', cls: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700' };
-  if (tier === 2) return { label: 'Tier 2', cls: 'border-amber-500/30 bg-amber-500/10 text-amber-700' };
+  if (tier === 2) return { label: 'Tier 2', cls: 'border-sky-500/30 bg-sky-500/10 text-sky-700' };
   if (tier === 3) return { label: 'Tier 3', cls: 'border-violet-500/30 bg-violet-500/10 text-violet-700' };
   return { label: 'Tier 4', cls: 'border-sky-500/30 bg-sky-500/10 text-sky-700' };
 }
@@ -68,13 +68,13 @@ type VendorTab = 'vendors' | 'tier-ladder' | 'readiness';
 
 const DOCTRINE_TIER_ACCENTS: Record<1 | 2 | 3 | 4 | 5, FinelyOsDeckAccent> = {
   1: 'emerald',
-  2: 'amber',
+  2: 'sky',
   3: 'violet',
   4: 'sky',
   5: 'fuchsia',
 };
 
-const DOCTRINE_TIER_ROW_ACCENTS: FinelyOsPublicAccent[] = ['emerald', 'sky', 'violet', 'amber', 'fuchsia'];
+const DOCTRINE_TIER_ROW_ACCENTS: FinelyOsPublicAccent[] = ['emerald', 'sky', 'violet', 'rose'];
 
 const BUREAU_LABELS: Record<BusinessCreditBureauKey, string> = {
   dnb: 'D&B',
@@ -108,7 +108,7 @@ function DoctrineVendorRow({
   accent: FinelyOsPublicAccent;
 }) {
   return (
-    <div className={`${finelyOsCatalogCardCompact(accent)} !p-3`} data-fc-accent={accent}>
+    <div className={`${finelyOsCatalogCard(accent)}`} data-fc-accent={accent}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{vendor.name}</div>
         <span className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono shrink-0`}>{vendor.reportingBureau}</span>
@@ -146,7 +146,7 @@ function TierLadderTile({
 function FundingInstrumentCard({ instrument, accent }: { instrument: BusinessFundingInstrument; accent: FinelyOsPublicAccent }) {
   const isMca = instrument.instrumentType === 'merchant_cash_advance';
   return (
-    <div className={`${finelyOsCatalogCardCompact(accent)} space-y-3`} data-fc-accent={accent}>
+    <div className={`${finelyOsCatalogCard(accent)} space-y-3`} data-fc-accent={accent}>
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className={FINELY_OS_ENTITY_VALUE}>{FUNDING_INSTRUMENT_LABELS[instrument.instrumentType]}</div>
         <span className={finelyOsMicroStat(accent)}>{instrument.fundingRangeLabel}</span>
@@ -239,13 +239,13 @@ function VendorRow({
   const ctaLabel = vendor.website ? (opened ? 'Revisit vendor' : 'Open vendor') : opened ? 'Undo opened' : 'Mark opened';
 
   return (
-    <div className={`${finelyOsCatalogCardCompact(accent)} !p-3`} data-fc-accent={accent}>
+    <div className={`${finelyOsCatalogCard(accent)}`} data-fc-accent={accent}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{vendor.name}</div>
             {recommended ? (
-              <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/35 bg-amber-500/15 px-2 py-0.5 text-[9px] font-black uppercase text-amber-200">
+              <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/35 bg-emerald-500/15 px-2 py-0.5 text-[9px] font-black uppercase text-emerald-200">
                 <Star size={10} /> Best fit
               </span>
             ) : null}
@@ -342,7 +342,7 @@ export default function BusinessVendorsPage() {
           eyebrow="Business credit OS"
           title="Vendor sequencing center"
           subtitle={`${BUSINESS_TYPE_OPTIONS.find((o) => o.id === businessType)?.label ?? 'General'} · foundation ${foundation.percent}% · Tier ${maxUnlockedTier || 'locked'}`}
-          accent="amber"
+          accent="violet"
           kpis={[
             { label: 'Foundation', value: `${foundation.percent}%`, accent: foundation.complete ? 'emerald' : 'amber' },
             { label: 'Unlocked tier', value: maxUnlockedTier ? `Tier ${maxUnlockedTier}` : 'Locked', accent: maxUnlockedTier ? 'emerald' : 'amber' },
@@ -369,7 +369,7 @@ export default function BusinessVendorsPage() {
                 <KpiCard label="Funding instruments" value={allFundingInstruments.length} hint="Across all stages" tone="violet" />
               </div>
 
-              <div className={`${finelyOsCatalogCardCompact('violet')} space-y-3`} data-fc-accent="violet">
+              <div className={`${finelyOsCatalogCard('violet')} space-y-3`} data-fc-accent="violet">
                 <div className="flex items-center gap-2">
                   <Layers size={16} className="text-violet-400" />
                   <div className={FINELY_OS_ENTITY_TITLE}>Vendor tier ladder</div>
@@ -391,7 +391,7 @@ export default function BusinessVendorsPage() {
                 </div>
 
                 {activeStrategy ? (
-                  <div className={`${finelyOsCatalogCardCompact(DOCTRINE_TIER_ACCENTS[activeStrategy.tier] as FinelyOsPublicAccent)} space-y-3`} data-fc-accent={DOCTRINE_TIER_ACCENTS[activeStrategy.tier]}>
+                  <div className={`${finelyOsCatalogCard(DOCTRINE_TIER_ACCENTS[activeStrategy.tier] as FinelyOsPublicAccent)} space-y-3`} data-fc-accent={DOCTRINE_TIER_ACCENTS[activeStrategy.tier]}>
                     <div className={FINELY_OS_ENTITY_VALUE}>{activeStrategy.tierName}</div>
 
                     <div className="flex flex-wrap gap-2">
@@ -454,7 +454,7 @@ export default function BusinessVendorsPage() {
                 ) : null}
               </div>
 
-              <div className={`${finelyOsCatalogCardCompact('sky')} space-y-3`} data-fc-accent="sky">
+              <div className={`${finelyOsCatalogCard('sky')} space-y-3`} data-fc-accent="sky">
                 <div className="flex items-center gap-2">
                   <Landmark size={16} className="text-sky-400" />
                   <div className={FINELY_OS_ENTITY_TITLE}>Funding instrument browser</div>
@@ -475,7 +475,7 @@ export default function BusinessVendorsPage() {
                         title={opt.hint}
                         className={
                           active
-                            ? 'px-3 py-2 rounded-xl border border-amber-400/50 bg-amber-500/15 text-amber-100 text-[10px] font-black uppercase tracking-wide whitespace-normal text-center leading-snug transition-all'
+                            ? 'px-3 py-2 rounded-xl border border-violet-400/50 bg-violet-500/15 text-violet-100 text-[10px] font-black uppercase tracking-wide whitespace-normal text-center leading-snug transition-all'
                             : `${FINELY_OS_ENTITY_CHIP} hover:bg-white/10 cursor-pointer transition-all`
                         }
                       >
@@ -507,7 +507,7 @@ export default function BusinessVendorsPage() {
                 <div className={FINELY_OS_NOTICE}>Sign in as a partner to see your vendor sequencing.</div>
               ) : (
                 <>
-                  <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`} data-fc-accent="violet">
+                  <div className={`${finelyOsCatalogCard('violet')} space-y-4`} data-fc-accent="violet">
                     <div className="flex items-center gap-2">
                       <Sparkles size={16} className="text-violet-400" />
                       <div className={FINELY_OS_ENTITY_VALUE}>Foundation gate — required before Tier 1 vendors appear</div>
@@ -517,7 +517,7 @@ export default function BusinessVendorsPage() {
                     </div>
                     <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                       {foundation.steps.map((step) => (
-                        <div key={step.id} className={`${finelyOsCatalogCard(step.done ? 'emerald' : 'fuchsia')} !p-3 flex gap-2`} data-fc-accent={step.done ? 'emerald' : 'fuchsia'}>
+                        <div key={step.id} className={`${finelyOsCatalogCard(step.done ? 'emerald' : 'rose')} flex gap-3`} data-fc-accent={step.done ? 'emerald' : 'rose'}>
                           {step.done ? <CheckCircle2 size={16} className="text-emerald-500 shrink-0 mt-0.5" /> : <Circle size={16} className="text-fuchsia-400 shrink-0 mt-0.5" />}
                           <div>
                             <p className={`text-sm font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{step.title}</p>
@@ -542,7 +542,7 @@ export default function BusinessVendorsPage() {
                         label={`Tier ${t} opened`}
                         value={openedByTier[t]}
                         hint={unlocked[t] ? 'Unlocked' : tierMeta(t).unlockHint}
-                        tone={t === 1 ? 'emerald' : t === 2 ? 'amber' : t === 3 ? 'violet' : 'sky'}
+                        tone={t === 1 ? 'emerald' : t === 2 ? 'sky' : t === 3 ? 'violet' : 'sky'}
                       />
                     ))}
                   </div>
@@ -572,7 +572,7 @@ export default function BusinessVendorsPage() {
                           <p className={`mt-3 text-sm ${FINELY_OS_ENTITY_BODY}`}>{meta.desc}</p>
 
                           {!isUnlocked ? (
-                            <div className={`mt-4 ${finelyOsCatalogCard('fuchsia')} !p-5`} data-fc-accent="fuchsia">
+                            <div className={`mt-4 ${finelyOsCatalogCard('rose')}`} data-fc-accent="rose">
                               <div className="flex items-start gap-3">
                                 <Lock size={18} className="text-fuchsia-400 mt-0.5 shrink-0" />
                                 <div>

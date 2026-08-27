@@ -8,6 +8,8 @@ export type VendorProgressRecord = {
   partnerId: string;
   vendorId: string;
   status: VendorProgressStatus;
+  /** True when bureau/vendor reporting is confirmed on the partner EIN file. */
+  reported_verified?: boolean;
   createdAt: string;
   updatedAt: string;
 };
@@ -46,17 +48,20 @@ export function setVendorProgress(args: {
   partnerId: string;
   vendorId: string;
   status: VendorProgressStatus;
+  reported_verified?: boolean;
   tenantId?: string;
 }): VendorProgressRecord {
   const tenantId = (args.tenantId || '').trim() || FINELY_TENANT_ID;
   const store = loadStore();
   const idx = store.records.findIndex((r) => r.tenantId === tenantId && r.partnerId === args.partnerId && r.vendorId === args.vendorId);
   const createdAt = idx >= 0 ? store.records[idx].createdAt : nowIso();
+  const prev = idx >= 0 ? store.records[idx] : null;
   const next: VendorProgressRecord = {
     tenantId,
     partnerId: args.partnerId,
     vendorId: args.vendorId,
     status: args.status,
+    reported_verified: args.reported_verified ?? prev?.reported_verified,
     createdAt,
     updatedAt: nowIso(),
   };

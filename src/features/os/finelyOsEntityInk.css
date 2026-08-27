@@ -1,0 +1,108 @@
+/*
+ * Theme-aware ink for FINELY_OS_ENTITY_* tokens (finelyOsLightUi.ts).
+ * Default / dark beds: frost on navy. Light ivory/catalog beds: wlp-ink slate.
+ * Vars inherit — dark shells (Communication Hub, comms) keep :root frost.
+ */
+
+:root {
+  --fc-os-entity-ink: #f8faf9;
+  --fc-os-entity-body: rgba(255, 255, 255, 0.85);
+  --fc-os-entity-muted: rgba(255, 255, 255, 0.75);
+  --fc-os-entity-faint: rgba(255, 255, 255, 0.55);
+  --fc-os-entity-chip: rgba(255, 255, 255, 0.7);
+  --fc-os-entity-label: #c4b5fd;
+  --fc-os-entity-link: #7dd3fc;
+  --fc-os-entity-link-hover: #e0f2fe;
+  --fc-os-entity-empty-border: rgba(255, 255, 255, 0.12);
+  --fc-os-entity-empty-bg: rgba(255, 255, 255, 0.03);
+}
+
+/* Product layer — alias wlp ink ramp */
+.fc-wlp {
+  --fc-os-entity-ink: var(--wlp-ink);
+  --fc-os-entity-body: color-mix(in srgb, var(--wlp-ink) 85%, transparent);
+  --fc-os-entity-muted: color-mix(in srgb, var(--wlp-ink) 75%, transparent);
+  --fc-os-entity-faint: color-mix(in srgb, var(--wlp-ink) 55%, transparent);
+  --fc-os-entity-chip: color-mix(in srgb, var(--wlp-ink) 70%, transparent);
+  --fc-os-entity-label: var(--wlp-violet, #6d28d9);
+  --fc-os-entity-link: var(--wlp-sky, #0369a1);
+  --fc-os-entity-link-hover: #0c4a6e;
+  --fc-os-entity-empty-border: rgba(10, 22, 40, 0.12);
+  --fc-os-entity-empty-bg: rgba(10, 22, 40, 0.035);
+}
+
+html[data-fc-theme='dark'] .fc-wlp [data-bed='dark'],
+html[data-fc-theme='dark'] .fc-wlp .fc-premium-chart-card {
+  --fc-os-entity-ink: #f8faf9;
+  --fc-os-entity-body: rgba(255, 255, 255, 0.85);
+  --fc-os-entity-muted: rgba(255, 255, 255, 0.75);
+  --fc-os-entity-faint: rgba(255, 255, 255, 0.55);
+  --fc-os-entity-chip: rgba(255, 255, 255, 0.7);
+  --fc-os-entity-label: #c4b5fd;
+  --fc-os-entity-link: #7dd3fc;
+  --fc-os-entity-link-hover: #e0f2fe;
+  --fc-os-entity-empty-border: rgba(255, 255, 255, 0.12);
+  --fc-os-entity-empty-bg: rgba(255, 255, 255, 0.03);
+}
+
+/* Light theme — dark ink on ivory / catalog beds (not global html — comms stays frost) */
+html[data-fc-theme='light'] .fc-light-readable:not(.fc-luxury-glass):not(.fc-accent-card),
+html[data-fc-theme='light'] .fc-light-chrome-panel,
+html[data-fc-theme='light'] .fc-light-chrome-strip,
+html[data-fc-theme='light'] .fc-light-glass-panel,
+html[data-fc-theme='light'] .fc-soft-surface,
+html[data-fc-theme='light'] .fc-soft-surface-lg,
+html[data-fc-theme='light'] .fc-admin-workspace,
+html[data-fc-theme='light'] [data-fc-shell-surface='ivory'],
+html[data-fc-theme='light'] .fc-accent-card:not([data-bed='dark']):not(.fc-luxury-glass):not(.fc-premium-chart-card):not(.fc-wlp-signal),
+html[data-fc-theme='light'] .fc-surface-harmony:not([data-bed='dark']):not(.fc-accent-card),
+html[data-fc-theme='light'] .fc-wlp-panel[data-bed='light'],
+html[data-fc-theme='light'] .fc-wlp .fc-surface-harmony:not([data-bed='dark']):not(.fc-accent-card) {
+  --fc-os-entity-ink: #0a1628;
+  --fc-os-entity-body: rgba(10, 22, 40, 0.85);
+  --fc-os-entity-muted: rgba(10, 22, 40, 0.55);
+  --fc-os-entity-faint: rgba(10, 22, 40, 0.78);
+  --fc-os-entity-chip: rgba(10, 22, 40, 0.76);
+  --fc-os-entity-label: #6d28d9;
+  --fc-os-entity-link: #0369a1;
+  --fc-os-entity-link-hover: #0c4a6e;
+  --fc-os-entity-empty-border: rgba(10, 22, 40, 0.12);
+  --fc-os-entity-empty-bg: rgba(10, 22, 40, 0.035);
+}
+
+/* Light theme dark beds inside product layer — restore frost */
+html[data-fc-theme='light'] [data-bed='dark'],
+html[data-fc-theme='light'] .fc-premium-chart-card,
+html[data-fc-theme='light'] .fc-admin-ink-panel,
+html[data-fc-theme='light'] .fc-restore-solutions-hero,
+html[data-fc-theme='light'] .fc-wlp-command,
+html[data-fc-theme='light'] .fc-wlp .fc-accent-card:not([data-fc-kpi-surface='light']):not(.fc-wlp-kpi):not(.fc-wlp-metric):not(.fc-wlp-signal):not([class*='fc-admin-solid']),
+html[data-fc-theme='light'] .fc-admin-workspace .fc-accent-card:not([data-fc-kpi-surface='light']):not(.fc-wlp-signal):not([class*='fc-admin-solid']),
+html[data-fc-theme='light'] .fc-luxury-glass:not([data-fc-kpi-surface='light']):not(.fc-wlp-signal),
+html[data-fc-theme='light'] .fc-wlp-panel[data-accent]:not([data-accent='graphite']) {
+  --fc-os-entity-ink: #f8faf9;
+  --fc-os-entity-body: rgba(255, 255, 255, 0.85);
+  --fc-os-entity-muted: rgba(255, 255, 255, 0.75);
+  --fc-os-entity-faint: rgba(255, 255, 255, 0.55);
+  --fc-os-entity-chip: rgba(255, 255, 255, 0.7);
+  --fc-os-entity-label: #c4b5fd;
+  --fc-os-entity-link: #7dd3fc;
+  --fc-os-entity-link-hover: #e0f2fe;
+  --fc-os-entity-empty-border: rgba(255, 255, 255, 0.12);
+  --fc-os-entity-empty-bg: rgba(255, 255, 255, 0.03);
+}
+
+/* Dark site — ivory / light beds stay navy ink (tiles that do not lift to glass) */
+html[data-fc-theme='dark'] .fc-ivory-solid-tile,
+html[data-fc-theme='dark'] [data-bed='light']:not(.fc-accent-card):not(.fc-luxury-glass) {
+  --fc-os-entity-ink: #0a1628;
+  --fc-os-entity-body: rgba(10, 22, 40, 0.85);
+  --fc-os-entity-muted: rgba(10, 22, 40, 0.55);
+  --fc-os-entity-faint: rgba(10, 22, 40, 0.78);
+  --fc-os-entity-chip: rgba(10, 22, 40, 0.76);
+  --fc-os-entity-label: #6d28d9;
+  --fc-os-entity-link: #0369a1;
+  --fc-os-entity-link-hover: #0c4a6e;
+  --fc-os-entity-empty-border: rgba(10, 22, 40, 0.12);
+  --fc-os-entity-empty-bg: rgba(10, 22, 40, 0.035);
+}

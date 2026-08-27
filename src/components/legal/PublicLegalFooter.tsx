@@ -1,11 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { PUBLIC_HOS_NAV } from '../../config/siteWayfinderLanes';
 
 type Props = {
   className?: string;
 };
 
-/** Privacy, terms, disclaimer, and marketing unsubscribe links for public routes. */
+/** Privacy, terms, disclaimer, marketing unsubscribe, and HOS entrance links for public routes. */
 export function PublicLegalFooter({ className = '' }: Props) {
   const linkClass = 'hover:text-white transition-colors';
   return (
@@ -13,6 +14,9 @@ export function PublicLegalFooter({ className = '' }: Props) {
       className={`flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-white/30 ${className}`.trim()}
       aria-label="Legal links"
     >
+      <Link to={PUBLIC_HOS_NAV.path} className={linkClass}>
+        {PUBLIC_HOS_NAV.label}
+      </Link>
       <Link to="/privacy" className={linkClass}>
         Privacy Policy
       </Link>

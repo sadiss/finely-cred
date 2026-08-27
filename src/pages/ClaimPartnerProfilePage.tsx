@@ -143,8 +143,8 @@ export default function ClaimPartnerProfilePage() {
             </button>
           </div>
         ) : (
-          <div className={`space-y-4 ${finelyOsCatalogCard('violet')} !p-5`}>
-            <div className="inline-flex items-center gap-2 text-fuchsia-400">
+          <div className={`space-y-4 ${finelyOsCatalogCard('violet')}`}>
+            <div className="inline-flex items-center gap-2 text-violet-400">
               <KeyRound size={18} />
               <span className={FINELY_OS_ENTITY_SUBLABEL}>Claim link</span>
             </div>

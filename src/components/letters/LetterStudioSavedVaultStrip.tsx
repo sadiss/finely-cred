@@ -200,14 +200,14 @@ export function LetterStudioSavedVaultStrip({
 
       {letters.length === 0 ? (
         <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
-          No saved letters yet. Choose a validation letter above — it saves here automatically. Add a PDF anytime with{' '}
-          <span className="text-white font-semibold">Save PDF → Vault</span> in the preview.
+          No saved letters yet. Open Bureaus to draft — each PDF saves here automatically. Add one anytime with{' '}
+          <span className="font-extrabold">Save PDF → Vault</span> in the preview.
         </p>
       ) : bureauGroups ? (
         <div className="space-y-5">
           {bureauGroups.map((group) => (
             <div key={group.key} className="space-y-3">
-              <div className="text-[10px] font-black uppercase tracking-widest text-white/55">{group.label}</div>
+              <div className={`text-[10px] font-black uppercase tracking-widest ${FINELY_OS_ENTITY_BODY}`}>{group.label}</div>
               <FinelyOsPaginatedStack
                 items={group.letters}
                 pageSize={6}

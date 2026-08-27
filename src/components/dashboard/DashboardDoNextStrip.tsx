@@ -32,8 +32,8 @@ export function DashboardDoNextStrip({
         subline: 'Triage partners missing reports, open cases, and SLA tasks.',
         tiles: [
           { id: 'partners', label: 'Partners', value: 'Manage', accent: 'violet' as const, onClick: () => navigate('/admin/partners') },
-          { id: 'workflow', label: 'Ops queue', value: 'Open', accent: 'amber' as const, onClick: () => navigate('/admin/workflow') },
-          { id: 'support', label: 'Support', value: 'Inbox', accent: 'sky' as const, onClick: () => navigate('/admin/support') },
+          { id: 'workflow', label: 'Ops queue', value: 'Open', accent: 'rose' as const, onClick: () => navigate('/admin/workflow') },
+          { id: 'support', label: 'Partner', value: 'Conversations', accent: 'sky' as const, onClick: () => navigate('/admin/support') },
           { id: 'nora', label: 'Funding', value: 'Nora', accent: 'emerald' as const, onClick: () => navigate('/admin/nora-capital') },
         ],
         primary: { label: 'Open partner management', onClick: () => navigate('/admin/partners') },
@@ -43,13 +43,13 @@ export function DashboardDoNextStrip({
     if (role === 'agent' || role === 'credit_specialist') {
       return {
         roleLabel: 'Credit Specialist · Do next',
-        headline: 'Run your client pipeline',
+        headline: 'Run your partner pipeline',
         subline: 'Check partnership line, open disputes, and growth tools.',
         tiles: [
           { id: 'hub', label: 'Hub', value: 'Open', accent: 'violet' as const, onClick: () => navigate('/credit-specialist/hub') },
           { id: 'disputes', label: 'Disputes', value: String(openCasesCount), accent: 'fuchsia' as const, onClick: () => navigate('/portal/disputes') },
           { id: 'messages', label: 'Partnership', value: 'Line', accent: 'sky' as const, onClick: () => navigate('/portal/messages?hub=team&topic=credit_specialist_program') },
-          { id: 'clients', label: 'Customers', value: 'CRM', accent: 'emerald' as const, onClick: () => navigate('/admin/partners') },
+          { id: 'clients', label: 'Partners', value: 'CRM', accent: 'emerald' as const, onClick: () => navigate('/admin/partners') },
         ],
         primary: { label: 'Specialist hub', onClick: () => navigate('/credit-specialist/hub') },
         secondary: { label: 'Letter studio', onClick: () => navigate('/portal/letters') },
@@ -66,11 +66,11 @@ export function DashboardDoNextStrip({
       tiles: [
         { id: 'reports', label: 'Reports', value: String(reportsCount), accent: 'violet' as const, onClick: () => navigate('/portal/reports') },
         { id: 'monitoring', label: 'Monitoring', value: 'Links', accent: 'sky' as const, onClick: () => navigate('/resources/credit-monitoring') },
-        { id: 'tasks', label: 'Tasks', value: String(openTasksCount), accent: 'amber' as const, onClick: () => navigate('/portal/projects') },
-        { id: 'disputes', label: 'Cases', value: String(openCasesCount), accent: 'fuchsia' as const, onClick: () => navigate('/portal/disputes') },
+        { id: 'tasks', label: 'Tasks', value: String(openTasksCount), accent: 'emerald' as const, onClick: () => navigate('/portal/my-tasks') },
+        { id: 'disputes', label: 'Cases', value: String(openCasesCount), accent: 'rose' as const, onClick: () => navigate('/portal/disputes') },
       ],
       primary: reportsCount
-        ? { label: 'Partner dashboard', onClick: () => navigate('/portal/partner') }
+        ? { label: 'Partner dashboard', onClick: () => navigate('/portal/dashboard') }
         : { label: 'Upload report', onClick: () => navigate('/portal/reports') },
       secondary: reportsCount
         ? { label: 'Free guide', onClick: () => navigate('/free-guide') }

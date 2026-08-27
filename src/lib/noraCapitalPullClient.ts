@@ -53,6 +53,48 @@ export async function noraPullApplication(applicationId: string) {
   return invokeNoraCapital<{ application: unknown }>({ action: 'pull.application', applicationId });
 }
 
+/** Lender catalog entry — mirrors Finely `LenderPreset` / `LenderMatch` fields Nora may enrich. */
+export type NoraLenderCatalogEntry = {
+  id: string;
+  bank: string;
+  product: string;
+  projectedLimit?: string;
+  category?: 'national' | 'credit_union' | 'local' | 'private' | 'fintech' | 'cdfi' | string;
+  relationshipFriendly?: boolean;
+  noDocFriendly?: boolean;
+  limitBias?: 'high' | 'mid' | 'low';
+  stackingTier?: 'primary' | 'secondary' | 'national_low' | string;
+  why?: string;
+  matchCity?: string;
+  minMiddleScore?: number;
+  states?: string[];
+  color?: string;
+  accent?: string;
+};
+
+export type NoraLenderCatalogPullResponse = NoraPullResponse<{ lenders: NoraLenderCatalogEntry[] }> & {
+  lenders?: NoraLenderCatalogEntry[];
+};
+
+/**
+ * Pull Nora-side lender catalog filtered by partner geography and middle score.
+ * Degrades gracefully: `{ ok: true, lenders: [] }` when Nora has not implemented the route yet.
+ */
+export async function noraPullLenderCatalog(args: {
+  state?: string;
+  middleScore?: number;
+  zip?: string;
+}): Promise<NoraLenderCatalogPullResponse> {
+  const res = (await invokeNoraCapital<{ lenders: NoraLenderCatalogEntry[] }>({
+    action: 'pull.lenderCatalog',
+    state: args.state,
+    middleScore: args.middleScore,
+    zip: args.zip,
+  })) as NoraLenderCatalogPullResponse;
+  const lenders = res.lenders ?? res.data?.lenders ?? [];
+  return { ...res, lenders, data: { lenders } };
+}
+
 /** Sync Nora funding status back onto Finely partner journey signals. */
 export async function syncPartnerFundingFromNora(args: {
   partner: { id: string; importExternalId?: string | null; journeySignals?: Record<string, unknown> };

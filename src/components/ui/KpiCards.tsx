@@ -95,6 +95,48 @@ export function Sparkline({
   );
 }
 
+const KPI_LIGHT_TONE: Record<
+  NonNullable<Parameters<typeof KpiCard>[0]['tone']>,
+  { shell: string; label: string; value: string; hint: string }
+> = {
+  emerald: {
+    shell: 'border-[#0a1628]/10 border-l-[5px] border-l-emerald-500 bg-white shadow-[0_10px_36px_-22px_rgba(16,185,129,0.28)] hover:shadow-[0_14px_40px_-18px_rgba(16,185,129,0.35)]',
+    label: 'text-sm font-extrabold text-[#0a1628]/70',
+    value: 'text-4xl font-extrabold text-[#0a1628] leading-none',
+    hint: 'text-base font-semibold text-[#0a1628]/70',
+  },
+  sky: {
+    shell: 'border-[#0a1628]/10 border-l-[5px] border-l-sky-500 bg-white shadow-[0_10px_36px_-22px_rgba(14,165,233,0.25)] hover:shadow-[0_14px_40px_-18px_rgba(14,165,233,0.32)]',
+    label: 'text-sm font-extrabold text-[#0a1628]/70',
+    value: 'text-4xl font-extrabold text-[#0a1628] leading-none',
+    hint: 'text-base font-semibold text-[#0a1628]/70',
+  },
+  violet: {
+    shell: 'border-[#0a1628]/10 border-l-[5px] border-l-violet-500 bg-white shadow-[0_10px_36px_-22px_rgba(139,92,246,0.25)] hover:shadow-[0_14px_40px_-18px_rgba(139,92,246,0.32)]',
+    label: 'text-sm font-extrabold text-[#0a1628]/70',
+    value: 'text-4xl font-extrabold text-[#0a1628] leading-none',
+    hint: 'text-base font-semibold text-[#0a1628]/70',
+  },
+  amber: {
+    shell: 'border-[#0a1628]/10 border-l-[5px] border-l-sky-500 bg-white shadow-[0_10px_36px_-22px_rgba(14,165,233,0.22)] hover:shadow-[0_14px_40px_-18px_rgba(14,165,233,0.28)]',
+    label: 'text-sm font-extrabold text-[#0a1628]/70',
+    value: 'text-4xl font-extrabold text-[#0a1628] leading-none',
+    hint: 'text-base font-semibold text-[#0a1628]/70',
+  },
+  fuchsia: {
+    shell: 'border-[#0a1628]/10 border-l-[5px] border-l-fuchsia-500 bg-white shadow-[0_10px_36px_-22px_rgba(217,70,239,0.25)] hover:shadow-[0_14px_40px_-18px_rgba(217,70,239,0.32)]',
+    label: 'text-sm font-extrabold text-[#0a1628]/70',
+    value: 'text-4xl font-extrabold text-[#0a1628] leading-none',
+    hint: 'text-base font-semibold text-[#0a1628]/70',
+  },
+  rose: {
+    shell: 'border-[#0a1628]/10 border-l-[5px] border-l-rose-500 bg-white shadow-[0_10px_36px_-22px_rgba(244,63,94,0.25)] hover:shadow-[0_14px_40px_-18px_rgba(244,63,94,0.32)]',
+    label: 'text-sm font-extrabold text-[#0a1628]/70',
+    value: 'text-4xl font-extrabold text-[#0a1628] leading-none',
+    hint: 'text-base font-semibold text-[#0a1628]/70',
+  },
+};
+
 export function KpiCard({
   label,
   value,
@@ -102,16 +144,20 @@ export function KpiCard({
   series,
   tone = 'violet',
   onClick,
+  surface = 'dark',
 }: {
   label: string;
   value: number | string;
   hint?: string;
   series?: number[];
-  tone?: 'amber' | 'emerald' | 'sky' | 'violet' | 'fuchsia';
+  tone?: 'amber' | 'emerald' | 'sky' | 'violet' | 'fuchsia' | 'rose';
   onClick?: () => void;
+  surface?: 'dark' | 'light';
 }) {
   const numeric = typeof value === 'number' ? value : Number.NaN;
   const display = useCountUp(Number.isFinite(numeric) ? numeric : 0);
+  const light = surface === 'light';
+  const lightTone = KPI_LIGHT_TONE[tone] ?? KPI_LIGHT_TONE.violet;
   const toneCls =
     tone === 'emerald'
       ? 'border-emerald-500/20 bg-emerald-500/5'
@@ -120,9 +166,11 @@ export function KpiCard({
         : tone === 'violet'
           ? 'border-violet-500/20 bg-violet-500/5'
           : tone === 'amber'
-            ? 'border-amber-500/25 bg-amber-500/5'
+            ? 'border-sky-500/20 bg-sky-500/5'
             : tone === 'fuchsia'
               ? 'border-fuchsia-500/20 bg-fuchsia-500/5'
+              : tone === 'rose'
+                ? 'border-rose-500/20 bg-rose-500/5'
               : 'border-violet-500/20 bg-violet-500/5';
   const stroke =
     tone === 'emerald'
@@ -135,24 +183,33 @@ export function KpiCard({
             ? 'rgba(245,158,11,0.9)'
             : tone === 'fuchsia'
               ? 'rgba(217,70,239,0.9)'
+              : tone === 'rose'
+                ? 'rgba(251,113,133,0.9)'
               : 'rgba(167,139,250,0.9)';
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`text-left fc-spotlight-panel p-6 hover:brightness-105 transition-all ${
-        onClick ? 'cursor-pointer' : 'cursor-default'
-      } ${toneCls}`}
+      className={
+        light
+          ? `text-left rounded-xl border p-4 transition-shadow ${onClick ? 'cursor-pointer' : 'cursor-default'} ${lightTone.shell}`
+          : `text-left fc-accent-card fc-luxury-glass fc-spotlight-panel p-6 hover:brightness-105 transition-all ${
+              onClick ? 'cursor-pointer' : 'cursor-default'
+            } ${toneCls}`
+      }
       disabled={!onClick}
+      data-fc-kpi-surface={light ? 'light' : 'dark'}
+      data-fc-accent={tone === 'amber' ? 'sky' : tone}
+      data-bed={light ? 'light' : 'dark'}
     >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <div className="text-[11px] font-semibold text-white/70">{label}</div>
-          <div className="mt-2 text-4xl font-light text-white leading-none">
+          <div className={light ? lightTone.label : 'text-sm font-extrabold text-white/80'}>{label}</div>
+          <div className={light ? `mt-2 ${lightTone.value}` : 'mt-2 text-4xl font-extrabold text-white leading-none'}>
             {typeof value === 'number' ? fmtCompact(display) : String(value)}
           </div>
-          {hint ? <div className="mt-2 text-white/60 text-sm">{hint}</div> : null}
+          {hint ? <div className={`mt-2 ${light ? lightTone.hint : 'text-white/75 text-base font-semibold'}`}>{hint}</div> : null}
         </div>
         {series ? <Sparkline values={series} stroke={stroke} /> : null}
       </div>

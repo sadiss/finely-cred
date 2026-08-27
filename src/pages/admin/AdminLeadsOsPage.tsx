@@ -56,14 +56,14 @@ const OWNER_TILES: Array<{
   id: LeadsTab;
   title: string;
   blurb: string;
-  accent: 'violet' | 'emerald' | 'sky' | 'fuchsia' | 'amber';
+  accent: 'violet' | 'emerald' | 'sky' | 'rose';
 }> = [
-  { id: 'inbound', title: 'Inbound CRM', blurb: 'Pipeline board + cleanup for form leads.', accent: 'violet' },
-  { id: 'cmo', title: 'CMO Command', blurb: 'Owner command center for growth ops.', accent: 'amber' },
-  { id: 'distribution', title: 'Distribution', blurb: 'Link library → campaigns → channels.', accent: 'amber' },
-  { id: 'social', title: 'Social Leads', blurb: 'Meta Lead Ads + Messenger / IG.', accent: 'sky' },
+  { id: 'inbound', title: 'Inbound CRM', blurb: 'Pipeline board + cleanup for form leads.', accent: 'emerald' },
+  { id: 'cmo', title: 'CMO Command', blurb: 'Owner command center for growth ops.', accent: 'violet' },
+  { id: 'distribution', title: 'Distribution', blurb: 'Link library → campaigns → channels.', accent: 'sky' },
+  { id: 'social', title: 'Social Leads', blurb: 'Meta Lead Ads + Messenger / IG.', accent: 'rose' },
   { id: 'routing', title: 'Routing', blurb: 'Round-robin and territory rules.', accent: 'emerald' },
-  { id: 'intel', title: 'Lead hunt preview', blurb: 'Owner simulation — practice counters only.', accent: 'fuchsia' },
+  { id: 'intel', title: 'Lead hunt preview', blurb: 'Owner simulation — practice counters only.', accent: 'violet' },
 ];
 
 const DESK_TILES: Array<{
@@ -72,10 +72,10 @@ const DESK_TILES: Array<{
   href: string;
   accent: 'emerald' | 'violet' | 'rose' | 'sky';
 }> = [
-  { title: 'Find new people', blurb: 'One-tap Find · Daily pack · Review.', href: '/admin/marketing?tab=desk&helper=find', accent: 'emerald' },
-  { title: 'Board', blurb: 'New → Talking → Booked → Won/No.', href: '/admin/marketing?tab=desk&helper=board', accent: 'violet' },
-  { title: 'Clean out junk', blurb: 'Hide from Board. Put back anytime.', href: '/admin/marketing?tab=desk&helper=clean', accent: 'rose' },
-  { title: 'Mail on autopilot', blurb: 'Ready / Needs setup / Paused.', href: '/admin/marketing?tab=desk&helper=mail', accent: 'sky' },
+  { title: 'Find new people', blurb: 'One-tap Find · Daily pack · Review.', href: '/admin/marketing-desk?helper=find', accent: 'emerald' },
+  { title: 'Board', blurb: 'New → Talking → Booked → Won/No.', href: '/admin/marketing-desk?helper=board', accent: 'violet' },
+  { title: 'Clean out junk', blurb: 'Hide from Board. Put back anytime.', href: '/admin/marketing-desk?helper=clean', accent: 'rose' },
+  { title: 'Mail on autopilot', blurb: 'Ready / Needs setup / Paused.', href: '/admin/marketing-desk?helper=mail', accent: 'sky' },
 ];
 
 function tabFromParams(params: URLSearchParams): PageMode {
@@ -201,13 +201,13 @@ export default function AdminLeadsOsPage({
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
-              onClick={() => navigate('/admin/preview')}
+              onClick={() => navigate('/admin/studio-ux-command')}
               className={FINELY_OS_SECONDARY_BTN}
-              title="Structure preview — live theme unchanged"
+              title="Live UX command — not the ivory preview sandbox"
             >
-              Layout previews
+              Layout tools
             </button>
-            <button type="button" onClick={() => navigate('/admin/marketing?tab=desk')} className={FINELY_OS_PRIMARY_BTN}>
+            <button type="button" onClick={() => navigate('/admin/marketing-desk')} className={FINELY_OS_PRIMARY_BTN}>
               Open Marketing Desk
             </button>
           </div>
@@ -220,8 +220,8 @@ export default function AdminLeadsOsPage({
 
         {mode === 'launcher' ? (
           <div className="space-y-4">
-            <div className="rounded-2xl border border-amber-400/25 bg-black/35 !p-4">
-              <div className={`text-[10px] font-black uppercase tracking-[0.18em] text-amber-200/80`}>Owner Leads Ops</div>
+            <div className={`${finelyOsCatalogCard('emerald')} space-y-4`} data-fc-accent="emerald">
+              <div className={`text-[10px] font-black uppercase tracking-[0.18em] text-emerald-200/80`}>Owner Leads Ops</div>
               <h1 className={`mt-1 text-xl font-bold ${FINELY_OS_ENTITY_VALUE}`}>Daily work is on Marketing Desk</h1>
               <p className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>
                 Open Find, Board, Clean, or Mail below. Owner power tools stay here — practice mode and adapters live under Advanced labs.
@@ -242,12 +242,12 @@ export default function AdminLeadsOsPage({
                   <button
                     key={t.href}
                     type="button"
-                    className={`${finelyOsDeckTile(t.accent)} !p-4 text-left`}
+                    className={`${finelyOsDeckTile(t.accent)} text-left`}
                     onClick={() => navigate(t.href)}
                   >
                     <div className="font-semibold text-white">{t.title}</div>
                     <p className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>{t.blurb}</p>
-                    <span className="mt-3 inline-flex text-xs font-semibold text-amber-200/90">Open →</span>
+                    <span className="mt-3 inline-flex text-xs font-semibold text-emerald-200/90">Open →</span>
                   </button>
                 ))}
               </div>
@@ -260,7 +260,7 @@ export default function AdminLeadsOsPage({
                   <button
                     key={t.id}
                     type="button"
-                    className={`${finelyOsDeckTile(t.accent)} !p-4 text-left`}
+                    className={`${finelyOsDeckTile(t.accent)} text-left`}
                     onClick={() => setMode(t.id)}
                   >
                     <div className="font-semibold text-white">{t.title}</div>
@@ -270,7 +270,7 @@ export default function AdminLeadsOsPage({
               </div>
             </div>
 
-            <details className="rounded-2xl border border-white/10 bg-black/25 !p-4">
+            <details className={`${finelyOsCatalogCard('violet')} space-y-2`} data-fc-accent="violet">
               <summary className="cursor-pointer select-none text-white font-semibold">
                 Advanced labs · Practice mode / adapters / Overnight
               </summary>
@@ -280,7 +280,7 @@ export default function AdminLeadsOsPage({
                 </p>
                 <Overnight50AdminNav compact />
                 <LeadIntelSwarmDashboard />
-                <FinelyOsGlassPanel icon={Sparkles} title="Source adapters (labs)" subtitle="Templates for Owner Intel — not the daily Find path." accent="fuchsia">
+                <FinelyOsGlassPanel icon={Sparkles} title="Source adapters (labs)" subtitle="Templates for Owner Intel — not the daily Find path." accent="rose">
                   <LeadScrapeSourcePicker
                     onSelect={(_source, query) => {
                       setIntelSourceHint(query);
@@ -302,7 +302,7 @@ export default function AdminLeadsOsPage({
               </button>
               {/* Intel room has its own Find CTA — avoid a second identical Desk button here */}
               {mode !== 'intel' ? (
-                <button type="button" onClick={() => navigate('/admin/marketing?tab=desk')} className={FINELY_OS_SECONDARY_BTN}>
+                <button type="button" onClick={() => navigate('/admin/marketing-desk')} className={FINELY_OS_SECONDARY_BTN}>
                   Marketing Desk home
                 </button>
               ) : null}
@@ -314,7 +314,7 @@ export default function AdminLeadsOsPage({
                   <button type="button" onClick={() => setInboundView('pipeline')} className={finelyOsViewTab(inboundView === 'pipeline', 'violet')}>
                     Pipeline board
                   </button>
-                  <button type="button" onClick={() => setInboundView('cleanup')} className={finelyOsViewTab(inboundView === 'cleanup', 'fuchsia')}>
+                  <button type="button" onClick={() => setInboundView('cleanup')} className={finelyOsViewTab(inboundView === 'cleanup', 'rose')}>
                     Clean out junk
                   </button>
                 </div>
@@ -360,14 +360,14 @@ export default function AdminLeadsOsPage({
                         />
                       </div>
                       <div className="space-y-4 xl:w-80 shrink-0">
-                        <FinelyOsGlassPanel icon={Sparkles} title="Lead scoring" subtitle="Fit + suggested action" accent="fuchsia">
+                        <FinelyOsGlassPanel icon={Sparkles} title="Lead scoring" subtitle="Fit + suggested action" accent="rose">
                           <FinelyOsPaginatedStack
                             items={scoredCaptures}
                             pageSize={6}
                             emptyMessage="No web captures yet."
                             itemSpacingClassName="space-y-2"
                             renderItem={({ lead, score, stage }) => (
-                              <div key={lead.id} className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony text-sm`}>
+                              <div key={lead.id} className={`${finelyOsCatalogCard('sky')} fc-surface-harmony text-sm`} data-fc-accent="sky">
                                 <div className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{lead.fullName || lead.email}</div>
                                 <div className={`${FINELY_OS_ENTITY_SUBLABEL} mt-1`}>
                                   {leadOfferLabel(lead.offer)} · Score {score.score} · {score.band} · {stage}
@@ -406,7 +406,7 @@ export default function AdminLeadsOsPage({
 
             {mode === 'intel' ? (
               <div className="space-y-4">
-                <div className={`${finelyOsCatalogCard('emerald')} !p-4 flex flex-wrap items-center justify-between gap-3`}>
+                <div className={`${finelyOsCatalogCard('emerald')} flex flex-wrap items-center justify-between gap-3`} data-fc-accent="emerald">
                   <div>
                     <div className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Daily hunt lives on Marketing Desk</div>
                     <p className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>
@@ -416,17 +416,17 @@ export default function AdminLeadsOsPage({
                   <button
                     type="button"
                     className={FINELY_OS_PRIMARY_BTN}
-                    onClick={() => navigate('/admin/marketing?tab=desk&helper=find')}
+                    onClick={() => navigate('/admin/marketing-desk?helper=find')}
                   >
                     Open Marketing Desk Find
                   </button>
                 </div>
-                <details className="rounded-2xl border border-white/10 bg-black/25 !p-4" open>
+                <details className={`${finelyOsCatalogCard('violet')} space-y-2`} data-fc-accent="violet" open>
                   <summary className="cursor-pointer select-none text-white font-semibold">Advanced labs · practice mode & adapters</summary>
                   <div className="mt-4 space-y-4">
                     <Overnight50AdminNav compact />
                     <LeadIntelSwarmDashboard />
-                    <FinelyOsGlassPanel icon={Sparkles} title="Lead Intelligence Agent" subtitle="Owner labs — discover → stage → import." accent="fuchsia">
+                    <FinelyOsGlassPanel icon={Sparkles} title="Lead Intelligence Agent" subtitle="Owner labs — discover → stage → import." accent="rose">
                       <LeadScrapeSourcePicker
                         onSelect={(_source, query) => {
                           setIntelSourceHint(query);
@@ -434,8 +434,8 @@ export default function AdminLeadsOsPage({
                         }}
                       />
                       {intelSourceHint ? (
-                        <div className={`mt-4 rounded-xl border border-fuchsia-500/25 bg-fuchsia-500/10 px-4 py-2 text-sm ${FINELY_OS_ENTITY_BODY}`}>
-                          Suggested query: <span className="font-semibold text-fuchsia-100">{intelSourceHint}</span>
+                        <div className={`mt-4 rounded-xl border border-rose-500/25 bg-rose-500/10 px-4 py-2 text-sm ${FINELY_OS_ENTITY_BODY}`}>
+                          Suggested query: <span className="font-semibold text-rose-100">{intelSourceHint}</span>
                         </div>
                       ) : null}
                       <div className="mt-4">
@@ -448,7 +448,7 @@ export default function AdminLeadsOsPage({
             ) : null}
 
             {mode === 'distribution' ? (
-              <FinelyOsGlassPanel icon={Globe} title="Lead Growth Distribution" subtitle="Five wisdom levels — link library → campaigns → queue → channels → Python CLI." accent="amber">
+              <FinelyOsGlassPanel icon={Globe} title="Lead Growth Distribution" subtitle="Five wisdom levels — link library → campaigns → queue → channels → Python CLI." accent="violet">
                 <LeadDistributionHub />
               </FinelyOsGlassPanel>
             ) : null}
@@ -458,7 +458,7 @@ export default function AdminLeadsOsPage({
                 {!isMetaIntegrationLive() ? (
                   <div className={`${FINELY_OS_NOTICE_WARN} mb-4 text-sm`}>
                     Meta integration is not live — connect in{' '}
-                    <button type="button" className="underline text-amber-200" onClick={() => navigate('/admin/settings?tab=integrations')}>
+                    <button type="button" className="underline text-violet-200" onClick={() => navigate('/admin/settings?tab=integrations')}>
                       Admin Settings → Integrations
                     </button>{' '}
                     or use Social Hub simulate for local dev.
@@ -476,7 +476,7 @@ export default function AdminLeadsOsPage({
                   </button>
                 </div>
                 <div className="grid sm:grid-cols-2 gap-4">
-                  <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony border-sky-500/25 p-4 text-sm`}>
+                  <div className={`${finelyOsCatalogCard('sky')} fc-surface-harmony border-sky-500/25 p-4 text-sm`}>
                     <div className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Meta leads: {metaLeads.length}</div>
                     <p className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>Status: {loadMetaIntegrationConfig().status} · webhook ingests to lead_captures + meta_inbox_messages.</p>
                     {metaLeads.length > 0 ? (
@@ -498,7 +498,7 @@ export default function AdminLeadsOsPage({
                       </div>
                     ) : null}
                   </div>
-                  <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony border-sky-500/25 p-4 text-sm`}>
+                  <div className={`${finelyOsCatalogCard('sky')} fc-surface-harmony border-sky-500/25 p-4 text-sm`}>
                     <div className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Inbox threads: {socialInbox.length}</div>
                     {socialInbox.length === 0 ? (
                       <div className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>No DMs yet — connect Meta webhooks or simulate in Social Hub.</div>
@@ -533,7 +533,7 @@ export default function AdminLeadsOsPage({
 
             {mode === 'cmo' ? (
               <div className="space-y-4">
-                <details className="rounded-2xl border border-white/10 bg-black/25 !p-4">
+                <details className={`${finelyOsCatalogCard('rose')} space-y-2`} data-fc-accent="rose">
                   <summary className="cursor-pointer select-none text-white font-semibold">Advanced labs · Overnight / practice mode</summary>
                   <div className="mt-4">
                     <Overnight50AdminNav compact />

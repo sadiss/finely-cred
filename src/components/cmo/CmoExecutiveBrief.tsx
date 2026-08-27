@@ -23,10 +23,10 @@ export function CmoExecutiveBrief({ compact = false }: { compact?: boolean }) {
 
   return (
     <section className="fc-panel p-5 relative overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-amber-500/10 via-transparent to-white/[0.03]" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-violet-500/10 via-transparent to-white/[0.03]" />
       <div className="relative flex flex-wrap items-start justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/20 bg-amber-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.28em] text-amber-200">
+          <div className="inline-flex items-center gap-2 rounded-full border border-violet-400/20 bg-violet-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.28em] text-violet-200">
             <Crown size={14} /> Marketing executive brief
           </div>
           <h2 className="mt-3 text-2xl font-black tracking-tight text-white">Growth OS is watching the money paths.</h2>
@@ -40,10 +40,10 @@ export function CmoExecutiveBrief({ compact = false }: { compact?: boolean }) {
       </div>
 
       <div className="relative mt-5 grid gap-3 md:grid-cols-4">
-        <Metric icon={Target} label="Leads tracked" value={data.summary.leads} hint="local + emitted events" />
-        <Metric icon={CalendarClock} label="Posts queued" value={data.summary.scheduled} hint="approval/schedule queue" />
-        <Metric icon={Sparkles} label="Directives" value={data.summary.pendingDirectives} hint="needs review" />
-        <Metric icon={BarChart3} label="Booked calls" value={data.summary.booked} hint="event-based" />
+        <Metric accent="emerald" icon={Target} label="Leads tracked" value={data.summary.leads} hint="local + emitted events" />
+        <Metric accent="violet" icon={CalendarClock} label="Posts queued" value={data.summary.scheduled} hint="approval/schedule queue" />
+        <Metric accent="sky" icon={Sparkles} label="Directives" value={data.summary.pendingDirectives} hint="needs review" />
+        <Metric accent="rose" icon={BarChart3} label="Booked calls" value={data.summary.booked} hint="event-based" />
       </div>
 
       {!compact ? (
@@ -54,7 +54,7 @@ export function CmoExecutiveBrief({ compact = false }: { compact?: boolean }) {
               {data.channels.map((x) => (
                 <div key={x.channel} className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-black/25 px-3 py-2">
                   <span className="text-sm font-semibold text-white capitalize">{x.channel.replace(/_/g, ' ')}</span>
-                  <span className="text-xs font-black text-amber-200">{x.score}</span>
+                  <span className="text-xs font-black text-violet-200">{x.score}</span>
                 </div>
               ))}
             </div>
@@ -87,7 +87,14 @@ export function CmoExecutiveBrief({ compact = false }: { compact?: boolean }) {
   );
 }
 
-function Metric({ icon: Icon, label, value, hint }: { icon: any; label: string; value: number | string; hint: string }) {
+function Metric({ accent = 'violet', icon: Icon, label, value, hint }: { accent?: 'emerald' | 'violet' | 'sky' | 'rose'; icon: any; label: string; value: number | string; hint: string }) {
+  const chip = accent === 'emerald'
+    ? 'border-emerald-400/20 bg-emerald-400/10 text-emerald-200'
+    : accent === 'sky'
+      ? 'border-sky-400/20 bg-sky-400/10 text-sky-200'
+      : accent === 'rose'
+        ? 'border-rose-400/20 bg-rose-400/10 text-rose-200'
+        : 'border-violet-400/20 bg-violet-400/10 text-violet-200';
   return (
     <div className="fc-card p-4">
       <div className="flex items-center justify-between gap-3">
@@ -95,7 +102,7 @@ function Metric({ icon: Icon, label, value, hint }: { icon: any; label: string; 
           <div className="text-[10px] font-black uppercase tracking-[0.25em] text-white/40">{label}</div>
           <div className="mt-2 text-2xl font-black text-white">{value}</div>
         </div>
-        <div className="grid h-10 w-10 place-items-center rounded-2xl border border-amber-400/20 bg-amber-400/10 text-amber-200"><Icon size={18} /></div>
+        <div className={`grid h-10 w-10 place-items-center rounded-2xl border ${chip}`}><Icon size={18} /></div>
       </div>
       <div className="mt-2 text-xs text-white/45">{hint}</div>
     </div>

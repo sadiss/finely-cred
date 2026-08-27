@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ArrowRight, Gavel, Scale, ShieldAlert } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { useParams, useSearchParams } from 'react-router-dom';
+import { AdminWorkstationFrame, type AdminEmbeddablePageProps } from '../../features/workspaceLightPreview/product/admin/AdminWorkstationFrame';
+import { useMappedAdminNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { DisputeCaseWorkflowPanel } from '../../components/disputes/DisputeCaseWorkflowPanel';
 import { useAuth } from '../../auth/AuthProvider';
 import { getCase } from '../../data/casesRepo';
@@ -17,9 +18,13 @@ import {
   FINELY_OS_ENTITY_VALUE,
 } from '../../features/os/finelyOsLightUi';
 
-export default function AdminCaseDetailPage() {
-  const { id } = useParams();
-  const navigate = useNavigate();
+type AdminCaseDetailPageProps = AdminEmbeddablePageProps & { caseId?: string };
+
+export default function AdminCaseDetailPage({ embedded = false, caseId: caseIdProp }: AdminCaseDetailPageProps = {}) {
+  const { id: routeId } = useParams();
+  const [searchParams] = useSearchParams();
+  const id = caseIdProp || routeId || searchParams.get('caseId') || undefined;
+  const navigate = useMappedAdminNavigate();
   const auth = useAuth();
   const [version, setVersion] = useState(0);
 
@@ -45,16 +50,16 @@ export default function AdminCaseDetailPage() {
 
   if (!disputeCase) {
     return (
-      <PageShell badge="Admin" title="Case not found" subtitle="This dispute case does not exist.">
+      <AdminWorkstationFrame embedded={embedded} kind="case-detail-workstation" badge="Admin" title="Case not found" subtitle="This dispute case does not exist.">
         <ActionLink to="/admin/cases" icon={<ArrowLeft size={16} />}>
           Back to cases
         </ActionLink>
-      </PageShell>
+      </AdminWorkstationFrame>
     );
   }
 
   return (
-    <PageShell
+    <AdminWorkstationFrame embedded={embedded} kind="case-detail-workstation"
       badge="Admin"
       title={`${bureauShortCode(disputeCase.bureau)} • ${disputeCase.title}`}
       subtitle={`Collaborative workflow for ${partnerName} — rounds, complaints, and team messaging.`}
@@ -74,12 +79,12 @@ export default function AdminCaseDetailPage() {
               View partner <ArrowRight size={14} />
             </Button>
             <Button variant="outline" size="sm" onClick={() => navigate('/admin/support')}>
-              Support inbox
+              Partner conversations
             </Button>
           </div>
         </div>
 
-        <div className={`${finelyOsCatalogCard('violet')} !p-4 inline-flex items-center gap-2`} data-fc-accent="violet">
+        <div className={`${finelyOsCatalogCard('violet')} inline-flex items-center gap-2`} data-fc-accent="violet">
           <Gavel size={16} className="text-violet-600" />
           <span className={`${FINELY_OS_ENTITY_SUBLABEL} text-violet-700`}>{disputeCase.status}</span>
           <span className="text-slate-300">•</span>
@@ -87,8 +92,8 @@ export default function AdminCaseDetailPage() {
         </div>
 
         <DisputeCaseWorkflowPanel caseId={disputeCase.id} partnerId={disputeCase.partnerId} mode="admin" />
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
 </div>
-    </PageShell>
+    </AdminWorkstationFrame>
   );
 }

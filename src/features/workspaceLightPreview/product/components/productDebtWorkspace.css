@@ -1,0 +1,360 @@
+/* ——— Debt desk product shell ——— */
+
+.fc-partner-debt-desk-root {
+  width: 100%;
+  min-width: 0;
+}
+
+.fc-wlp-debt-workspace {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.fc-wlp-debt-workspace-embed {
+  width: 100%;
+  min-width: 0;
+}
+
+.fc-wlp-debt-workspace-embed .finely-unified-hub-layout,
+.fc-wlp-debt-workspace .finely-unified-hub-layout {
+  min-width: 0;
+}
+
+:is([data-fc-workspace-light-preview='1'], .fc-wlp) :is(.fc-wlp-debt-workspace, .fc-wlp-debt-workspace-embed) {
+  --fc-wlp-debt-scope: 1;
+}
+
+/* Command band — unique debt desk identity */
+.fc-wlp-debt-desk-band {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 20px;
+  padding: 28px 32px;
+  border-radius: 24px;
+  border: 1px solid rgba(244, 63, 94, 0.32);
+  background:
+    radial-gradient(ellipse 120% 90% at 0% 0%, rgba(244, 63, 94, 0.16), transparent 52%),
+    radial-gradient(ellipse 80% 70% at 100% 0%, rgba(139, 92, 246, 0.1), transparent 48%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.9));
+  box-shadow: 0 22px 56px -34px rgba(190, 18, 60, 0.35);
+}
+
+@media (max-width: 960px) {
+  .fc-wlp-debt-desk-band {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fc-wlp-debt-desk-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(190, 18, 60, 0.78);
+}
+
+.fc-wlp-debt-desk-title {
+  margin: 10px 0 0;
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  font-weight: 800;
+  line-height: 1.15;
+  color: #0a1628;
+}
+
+.fc-wlp-debt-desk-purpose {
+  margin: 12px 0 0;
+  max-width: 52ch;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.5;
+  color: rgba(10, 22, 40, 0.72);
+}
+
+.fc-wlp-debt-desk-signals {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: center;
+}
+
+.fc-wlp-debt-desk-signal {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.fc-wlp-debt-desk-signal[data-fc-accent='emerald'] {
+  border-color: rgba(16, 185, 129, 0.28);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(255, 255, 255, 0.94));
+}
+
+.fc-wlp-debt-desk-signal[data-fc-accent='rose'] {
+  border-color: rgba(244, 63, 94, 0.28);
+  background: linear-gradient(135deg, rgba(244, 63, 94, 0.1), rgba(255, 255, 255, 0.94));
+}
+
+.fc-wlp-debt-desk-signal[data-fc-accent='sky'] {
+  border-color: rgba(56, 189, 248, 0.28);
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(255, 255, 255, 0.94));
+}
+
+.fc-wlp-debt-desk-signal-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  flex-shrink: 0;
+  color: #fff;
+}
+
+.fc-wlp-debt-desk-signal[data-fc-accent='emerald'] .fc-wlp-debt-desk-signal-icon {
+  background: linear-gradient(145deg, #059669, #10b981);
+}
+
+.fc-wlp-debt-desk-signal[data-fc-accent='rose'] .fc-wlp-debt-desk-signal-icon {
+  background: linear-gradient(145deg, #e11d48, #fb7185);
+}
+
+.fc-wlp-debt-desk-signal[data-fc-accent='sky'] .fc-wlp-debt-desk-signal-icon {
+  background: linear-gradient(145deg, #0284c7, #38bdf8);
+}
+
+.fc-wlp-debt-desk-signal-copy strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 800;
+  color: #0a1628;
+}
+
+.fc-wlp-debt-desk-signal-copy span {
+  display: block;
+  margin-top: 2px;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(10, 22, 40, 0.58);
+}
+
+/* Embedded workstation body */
+.fc-wlp-debt-desk-body {
+  padding: 4px;
+  border-radius: 22px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background:
+    radial-gradient(ellipse 100% 60% at 50% 0%, rgba(139, 92, 246, 0.06), transparent 55%),
+    rgba(255, 255, 255, 0.72);
+}
+
+.fc-wlp-debt-desk-body .fc-wlp-debt-workspace-embed {
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+/* Overview workstation launcher tiles — luxury scale inside embed */
+.fc-wlp-debt-workspace-embed .grid.sm\:grid-cols-2.lg\:grid-cols-3.gap-3 button.rounded-xl {
+  min-height: 5.25rem !important;
+  padding: 18px 20px !important;
+  border-radius: 18px !important;
+  border: 1px solid rgba(244, 63, 94, 0.22) !important;
+  background:
+    radial-gradient(ellipse 90% 70% at 100% 0%, rgba(var(--fc-debt-tile-rgb, 139, 92, 246), 0.14), transparent 55%),
+    rgba(255, 255, 255, 0.92) !important;
+  box-shadow: 0 12px 32px -24px rgba(10, 22, 40, 0.28);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.fc-wlp-debt-workspace-embed .grid.sm\:grid-cols-2.lg\:grid-cols-3.gap-3 button.rounded-xl:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 36px -20px rgba(10, 22, 40, 0.32);
+}
+
+.fc-wlp-debt-workspace-embed .grid.sm\:grid-cols-2.lg\:grid-cols-3.gap-3 button.rounded-xl:nth-child(1) {
+  --fc-debt-tile-rgb: 16, 185, 129;
+}
+
+.fc-wlp-debt-workspace-embed .grid.sm\:grid-cols-2.lg\:grid-cols-3.gap-3 button.rounded-xl:nth-child(2) {
+  --fc-debt-tile-rgb: 244, 63, 94;
+}
+
+.fc-wlp-debt-workspace-embed .grid.sm\:grid-cols-2.lg\:grid-cols-3.gap-3 button.rounded-xl:nth-child(3) {
+  --fc-debt-tile-rgb: 56, 189, 248;
+}
+
+.fc-wlp-debt-workspace-embed .grid.sm\:grid-cols-2.lg\:grid-cols-3.gap-3 button.rounded-xl:nth-child(4) {
+  --fc-debt-tile-rgb: 139, 92, 246;
+}
+
+.fc-wlp-debt-workspace-embed .grid.sm\:grid-cols-2.lg\:grid-cols-3.gap-3 button.rounded-xl:nth-child(5) {
+  --fc-debt-tile-rgb: 16, 185, 129;
+}
+
+.fc-wlp-debt-workspace-embed .grid.sm\:grid-cols-2.lg\:grid-cols-3.gap-3 button.rounded-xl:nth-child(6) {
+  --fc-debt-tile-rgb: 56, 189, 248;
+}
+
+.fc-wlp-debt-workspace-embed .grid.sm\:grid-cols-2.lg\:grid-cols-3.gap-3 button.rounded-xl .text-sm {
+  font-size: 16px !important;
+  font-weight: 800 !important;
+}
+
+.fc-wlp-debt-workspace-embed .grid.sm\:grid-cols-2.lg\:grid-cols-3.gap-3 button.rounded-xl .text-\[11px\] {
+  font-size: 13px !important;
+  font-weight: 700 !important;
+}
+
+/* Unified hub tabs — readable comfortable density */
+.fc-wlp-debt-workspace .finely-unified-hub-layout [role='tablist'] button,
+.fc-wlp-debt-workspace-embed .finely-unified-hub-layout [role='tablist'] button {
+  font-size: 14px !important;
+  font-weight: 800 !important;
+  padding-top: 12px !important;
+  padding-bottom: 12px !important;
+}
+
+/* Case inspector overlay */
+.fc-wlp-debt-inspector {
+  border-color: rgba(244, 63, 94, 0.42) !important;
+  background:
+    radial-gradient(ellipse 80% 50% at 0% 0%, rgba(244, 63, 94, 0.14), transparent 55%),
+    linear-gradient(165deg, rgba(15, 23, 42, 0.98), rgba(30, 27, 75, 0.96)) !important;
+}
+
+.fc-wlp-debt-inspector-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.fc-wlp-debt-inspector-kicker {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(251, 113, 133, 0.92);
+}
+
+.fc-wlp-debt-inspector-title {
+  margin: 8px 0 0;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.fc-wlp-debt-inspector-close {
+  flex-shrink: 0;
+}
+
+.fc-wlp-debt-inspector-body {
+  max-height: 75vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.fc-wlp-debt-desk-compliance {
+  margin: 0;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(10, 22, 40, 0.62);
+}
+
+/* ——— Light preview: blocking alert on rose wash ——— */
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-debt-workspace, .fc-wlp-debt-workspace-embed) .border-rose-500\/45.bg-rose-500\/15,
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-debt-workspace, .fc-wlp-debt-workspace-embed) [class*='border-rose-500'][class*='bg-rose-500'] {
+  color: #9f1239 !important;
+  background: rgba(255, 241, 242, 0.96) !important;
+  border-color: rgba(190, 18, 60, 0.38) !important;
+}
+
+/* ——— Light preview: embedded coach panels ——— */
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-debt-workspace, .fc-wlp-debt-workspace-embed) .from-violet-500\/10 {
+  background: linear-gradient(90deg, rgba(245, 241, 255, 0.96), rgba(255, 255, 255, 0.92)) !important;
+  border-color: rgba(10, 22, 40, 0.12) !important;
+}
+
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-debt-workspace, .fc-wlp-debt-workspace-embed) .from-violet-500\/10 .text-white,
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-debt-workspace, .fc-wlp-debt-workspace-embed) .from-violet-500\/10 .text-base.font-black {
+  color: #0a1628 !important;
+}
+
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-debt-workspace, .fc-wlp-debt-workspace-embed) .from-violet-500\/10 [class*='text-emerald-2'],
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-debt-workspace, .fc-wlp-debt-workspace-embed) .from-violet-500\/10 [class*='text-emerald-3'] {
+  color: #047857 !important;
+}
+
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-debt-workspace, .fc-wlp-debt-workspace-embed) .from-violet-500\/10 [class*='text-white/'] {
+  color: rgba(10, 22, 40, 0.78) !important;
+}
+
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-debt-workspace, .fc-wlp-debt-workspace-embed) .border-emerald-500\/20.bg-white\/\[0\.07\] {
+  background: rgba(255, 255, 255, 0.94) !important;
+  border-color: rgba(10, 22, 40, 0.1) !important;
+}
+
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-debt-workspace, .fc-wlp-debt-workspace-embed) .border-emerald-500\/20 [class*='text-emerald-2'],
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-debt-workspace, .fc-wlp-debt-workspace-embed) .border-emerald-500\/20 [class*='text-emerald-3'] {
+  color: #047857 !important;
+}
+
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-debt-workspace, .fc-wlp-debt-workspace-embed) .border-emerald-500\/20 [class*='text-fuchsia-3'] {
+  color: #a21caf !important;
+}
+
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-debt-workspace, .fc-wlp-debt-workspace-embed) .border-emerald-500\/20 [class*='text-white/'] {
+  color: rgba(10, 22, 40, 0.78) !important;
+}
+
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-debt-workspace, .fc-wlp-debt-workspace-embed) .border-emerald-500\/20 .bg-emerald-500\/10,
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-debt-workspace, .fc-wlp-debt-workspace-embed) .border-emerald-500\/20 .bg-emerald-500\/5,
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-debt-workspace, .fc-wlp-debt-workspace-embed) .border-emerald-500\/20 .bg-fuchsia-500\/10,
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-debt-workspace, .fc-wlp-debt-workspace-embed) .border-emerald-500\/20 .bg-white\/\[0\.03\] {
+  background: rgba(10, 22, 40, 0.04) !important;
+}
+
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-debt-workspace, .fc-wlp-debt-workspace-embed) [class*='text-[9px]'],
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-debt-workspace, .fc-wlp-debt-workspace-embed) [class*='text-[10px]'],
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-debt-workspace, .fc-wlp-debt-workspace-embed) [class*='text-[11px]'] {
+  font-size: 0.75rem !important;
+}
+
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-debt-workspace, .fc-wlp-debt-workspace-embed) .border-emerald-400\/25.bg-black\/30,
+[data-fc-workspace-light-preview='1'] .fc-wlp-debt-workspace .border-emerald-400\/25.bg-black\/30 {
+  background: rgba(255, 255, 255, 0.94) !important;
+  border-color: rgba(16, 185, 129, 0.28) !important;
+}
+
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-debt-workspace, .fc-wlp-debt-workspace-embed) button.bg-black\/30,
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-debt-workspace, .fc-wlp-debt-workspace-embed) input.bg-black\/35,
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-debt-workspace, .fc-wlp-debt-workspace-embed) .border-dashed.bg-black\/35 {
+  background: rgba(255, 255, 255, 0.94) !important;
+  border-color: rgba(10, 22, 40, 0.12) !important;
+  color: #0a1628 !important;
+}
+
+[data-fc-workspace-light-preview='1'] :is(.fc-wlp-debt-workspace, .fc-wlp-debt-workspace-embed) input.bg-black\/35::placeholder {
+  color: rgba(10, 22, 40, 0.45) !important;
+}
+
+html[data-fc-workspace-light-preview='1'] [data-surface-key='partner:debt'] span[class*='text-violet-100'][class*='bg-violet-500'],
+html[data-fc-workspace-light-preview='1'] .fc-wlp-debt-workspace span[class*='text-violet-100'][class*='bg-violet-500'],
+html[data-fc-workspace-light-preview='1'] .fc-wlp-debt-workspace-embed span[class*='text-violet-100'][class*='bg-violet-500'] {
+  color: #5b21b6 !important;
+  background-color: rgba(139, 92, 246, 0.2) !important;
+  border-color: rgba(91, 33, 182, 0.45) !important;
+}

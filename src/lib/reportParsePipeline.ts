@@ -17,6 +17,7 @@ import {
   hashReportContent,
   setCachedParsedReport,
 } from './reportParseCache';
+import { stampReportSourceHash } from './reportSourceProvenance';
 
 export type ReportParseProgress = (status: string) => void;
 
@@ -284,7 +285,7 @@ export async function reparseStoredCreditReport(args: {
       ...args.record,
       provider: (bundle.provider ?? detectProviderFromHtml(html) ?? args.record.provider) as CreditReportProvider,
       reportDate: bundle.reportDate ?? args.record.reportDate,
-      parsed: withRefreshedContacts(bundle.parsed),
+      parsed: stampReportSourceHash(withRefreshedContacts(bundle.parsed), args.record.sha256),
       pdfText: bundle.pdfText,
       pdfMeta: bundle.pdfMeta as CreditReportRecord['pdfMeta'],
     };
@@ -304,6 +305,6 @@ export async function reparseStoredCreditReport(args: {
     reportDate: bundle.reportDate ?? args.record.reportDate,
     pdfText: bundle.pdfText,
     pdfMeta: bundle.pdfMeta as CreditReportRecord['pdfMeta'],
-    parsed: withRefreshedContacts(bundle.parsed),
+    parsed: stampReportSourceHash(withRefreshedContacts(bundle.parsed), args.record.sha256),
   };
 }

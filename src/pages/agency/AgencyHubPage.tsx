@@ -9,8 +9,9 @@ import {
   Users,
   Wallet,
 } from 'lucide-react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { useSearchParams } from 'react-router-dom';
+import { PartnerWorkstationFrame, type PartnerEmbeddablePageProps } from '../../features/workspaceLightPreview/product/partner/PartnerWorkstationFrame';
+import { useMappedPartnerNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { useAuth } from '../../auth/AuthProvider';
 import { getUserDisplayName } from '../../auth/userProfile';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
@@ -42,28 +43,28 @@ import {
   type AgencyHubLauncherId,
 } from '../../components/partner/roleHubLauncherPresets';
 import {
-  FINELY_OS_COMPACT_PAGE,
+  FINELY_OS_PAGE,
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
-  finelyOsCatalogCardCompact,
+  finelyOsCatalogCard,
 } from '../../features/os/finelyOsLightUi';
 
 const AGENCY_TOOL_DECK: RoleHubTool[] = [
-  { id: 'partners', label: 'Partners', detail: 'Route partner files', path: '/admin/partners', icon: Users, accent: 'amber', badge: 'Primary' },
+  { id: 'partners', label: 'Partners', detail: 'Route partner files', path: '/admin/partners', icon: Users, accent: 'emerald', badge: 'Primary' },
   { id: 'letters', label: 'Letters', detail: 'Studio + vault', path: '/portal/letters', icon: FileText, accent: 'violet' },
   { id: 'team', label: 'Team seats', detail: 'Invite operators', path: '/admin/team', icon: Building2, accent: 'sky' },
-  { id: 'payouts', label: 'Payouts', detail: 'Keep % center', path: `${AGENCY.hubPath}?tab=payouts`, icon: Wallet, accent: 'emerald' },
-  { id: 'training', label: 'Training', detail: 'Agency launch', path: `${AGENCY.hubPath}?tab=training`, icon: GraduationCap, accent: 'sky' },
-  { id: 'line', label: 'Agency line', detail: 'Message Finely', path: AGENCY.messagesDeepLink, icon: MessageSquare, accent: 'fuchsia' },
+  { id: 'payouts', label: 'Payouts', detail: 'Keep % center', path: `${AGENCY.hubPath}?tab=payouts`, icon: Wallet, accent: 'rose' },
+  { id: 'training', label: 'Training', detail: 'Agency launch', path: `${AGENCY.hubPath}?tab=training`, icon: GraduationCap, accent: 'emerald' },
+  { id: 'line', label: 'Agency line', detail: 'Message Finely', path: AGENCY.messagesDeepLink, icon: MessageSquare, accent: 'violet' },
 ];
 
-export default function AgencyHubPage() {
+export default function AgencyHubPage({ embedded = false }: PartnerEmbeddablePageProps = {}) {
   const auth = useAuth();
   const { partner } = usePartnerSession();
-  const navigate = useNavigate();
+  const navigate = useMappedPartnerNavigate();
   const [searchParams] = useSearchParams();
   const hubLauncher = usePartnerHubLauncher<AgencyHubLauncherId>();
   const gate = useMemo(() => resolveAgencyHubAccess(auth.user), [auth.user]);
@@ -128,27 +129,27 @@ export default function AgencyHubPage() {
 
   if (!auth.user) {
     return (
-      <PageShell badge={AGENCY.programName} title={AGENCY.hubName} subtitle="Sign in to run your white-label agency workspace.">
-        <div className={`${FINELY_OS_COMPACT_PAGE} flex flex-wrap gap-3`}>
+      <PartnerWorkstationFrame embedded={embedded} kind="agency-hub-workstation" badge={AGENCY.programName} title={AGENCY.hubName} subtitle="Sign in to run your white-label agency workspace.">
+        <div className={`${FINELY_OS_PAGE} flex flex-wrap gap-3`}>
           <button type="button" onClick={() => navigate(gate.cta?.path || AGENCY.signupPath)} className={FINELY_OS_PRIMARY_BTN}>
             Sign in
           </button>
           <BackToSiteButton />
-          <FinelyOsPageFooter />
+          {!embedded ? <FinelyOsPageFooter /> : null}
         </div>
-      </PageShell>
+      </PartnerWorkstationFrame>
     );
   }
 
   if (!gate.allowed) {
     return (
-      <PageShell
+      <PartnerWorkstationFrame embedded={embedded} kind="agency-hub-workstation"
         badge={AGENCY.programName}
         title={AGENCY.hubName}
         subtitle="Partners, letters, team, payouts, and white-label — after your agency tenant is live."
         back={{ to: '/dashboard', label: 'Dashboard' }}
       >
-        <div className={`${FINELY_OS_COMPACT_PAGE} max-w-3xl space-y-3`}>
+        <div className={`${FINELY_OS_PAGE} max-w-3xl space-y-3`}>
           <FinelyOsAlertBanner tone="warning" message={gate.message} />
           <div className="flex flex-wrap gap-2">
             {gate.cta ? (
@@ -160,36 +161,35 @@ export default function AgencyHubPage() {
               Agency careers
             </button>
           </div>
-          <FinelyOsPageFooter />
+          {!embedded ? <FinelyOsPageFooter /> : null}
         </div>
-      </PageShell>
+      </PartnerWorkstationFrame>
     );
   }
 
   return (
-    <PageShell
+    <PartnerWorkstationFrame embedded={embedded} kind="agency-hub-workstation"
       badge={AGENCY.programName}
       title={AGENCY.hubName}
       subtitle={`${tenant?.name || 'Agency workspace'}${getUserDisplayName(auth.user) ? ` — ${getUserDisplayName(auth.user)}` : ''}`}
       back={{ to: '/dashboard', label: 'Dashboard' }}
     >
-      <div className={`${FINELY_OS_COMPACT_PAGE} max-w-5xl`}>
+      <div className={`${FINELY_OS_PAGE} max-w-5xl`}>
         <FinelyNoticedStrip items={noticedItems} />
         <FinelyNowDoThisStrip
           items={nowDoItems}
           currentIndex={!tenantLive ? 0 : seatCount <= 1 ? 1 : 0}
-          className="!p-4"
         />
         <FinelyUnifiedHubLayout
           eyebrow={AGENCY.programName}
           title={AGENCY.hubName}
           subtitle="Your brand out front. Finely OS behind it — partners, letters, team, payouts, white-label."
-          accent="amber"
+          accent="emerald"
           kpis={[
-            { label: 'Tenant', value: tenant?.status === 'active' ? 'Live' : 'Setup', accent: 'amber' },
+            { label: 'Tenant', value: tenant?.status === 'active' ? 'Live' : 'Setup', accent: 'emerald' },
             { label: 'Seats', value: String(seatCount || 1), accent: 'violet' },
             { label: 'Role', value: roleLabel, accent: 'sky' },
-            { label: 'WL', value: tenant?.settings?.features?.whiteLabel ? 'On' : 'Finely', accent: 'emerald' },
+            { label: 'WL', value: tenant?.settings?.features?.whiteLabel ? 'On' : 'Finely', accent: 'rose' },
           ]}
           primaryAction={{ label: 'Partner files', onClick: () => navigate('/admin/partners') }}
           secondaryAction={{ label: 'Agency line', onClick: () => navigate(AGENCY.messagesDeepLink) }}
@@ -210,7 +210,7 @@ export default function AgencyHubPage() {
             headline="What matters now"
             subline="Route partners, run letters, manage seats — one obvious next step."
             tiles={[
-              { id: 'partners', label: 'Partners', value: 'Files', accent: 'amber', onClick: () => hubLauncher.open('partners') },
+              { id: 'partners', label: 'Partners', value: 'Files', accent: 'emerald', onClick: () => hubLauncher.open('partners') },
               { id: 'letters', label: 'Letters', value: 'Studio', accent: 'violet', onClick: () => hubLauncher.open('letters') },
               { id: 'team', label: 'Team', value: String(seatCount || 1), accent: 'sky', onClick: () => hubLauncher.open('team') },
               { id: 'payouts', label: 'Payouts', value: 'Open', accent: 'emerald', onClick: () => hubLauncher.open('payouts') },
@@ -219,7 +219,7 @@ export default function AgencyHubPage() {
             secondaryAction={{ label: 'White-label settings', onClick: () => navigate('/admin/access') }}
           />
           <RoleHubToolDeck tools={AGENCY_TOOL_DECK} title="Agency tools" subtitle="Partners → letters → seats → payouts." />
-          <div className={`${finelyOsCatalogCardCompact('amber')} !p-4 space-y-2`}>
+          <div className={`${finelyOsCatalogCard('rose')} space-y-2`} data-fc-accent="rose">
             <div className={FINELY_OS_ENTITY_SUBLABEL}>You run / Finely runs</div>
             <p className={`text-sm font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{split.headline}</p>
             <div className="grid sm:grid-cols-3 gap-2">
@@ -262,7 +262,7 @@ export default function AgencyHubPage() {
           subtitle="Manage partners inside your agency tenant."
           accent={ROLE_HUB_MODAL_ACCENT.partners}
         >
-          <div className={`${finelyOsCatalogCardCompact('sky')} !p-4 space-y-3`}>
+          <div className={`${finelyOsCatalogCard('sky')} space-y-3`} data-fc-accent="sky">
             <div className={`text-sm font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Partner files</div>
             <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
               Manage partners inside your agency tenant — restore, debt, and build lanes share Finely OS tools.
@@ -280,7 +280,7 @@ export default function AgencyHubPage() {
           subtitle="Letter studio, templates, and evidence vault."
           accent={ROLE_HUB_MODAL_ACCENT.letters}
         >
-          <div className={`${finelyOsCatalogCardCompact('violet')} !p-4 space-y-3`}>
+          <div className={`${finelyOsCatalogCard('violet')} space-y-3`} data-fc-accent="violet">
             <div className={`text-sm font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Letters & disputes</div>
             <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>Letter studio, template library, and evidence vault for partner files.</p>
             <div className="flex flex-wrap gap-2">
@@ -304,7 +304,7 @@ export default function AgencyHubPage() {
           subtitle="Invite operators and assign partner scope."
           accent={ROLE_HUB_MODAL_ACCENT.team}
         >
-          <div className={`${finelyOsCatalogCardCompact('emerald')} !p-4 space-y-3`}>
+          <div className={`${finelyOsCatalogCard('emerald')} space-y-3`} data-fc-accent="emerald">
             <div className={`text-sm font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Team & seats</div>
             <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
               Active / invited seats: {seatCount}. Invite operators and assign partner scope from Team & Roles.
@@ -325,7 +325,7 @@ export default function AgencyHubPage() {
           {partner ? (
             <PayoutCenterPanel role="agent" ownerId={partner.id} ownerEmail={partner.profile.email} />
           ) : (
-            <div className={`${finelyOsCatalogCardCompact('amber')} !p-4`}>
+            <div className={`${finelyOsCatalogCard('rose')}`} data-fc-accent="rose">
               <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>Complete onboarding to link payouts to your partner profile.</p>
             </div>
           )}
@@ -344,8 +344,8 @@ export default function AgencyHubPage() {
           </div>
         </PartnerHubWorkModal>
 
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
       </div>
-    </PageShell>
+    </PartnerWorkstationFrame>
   );
 }

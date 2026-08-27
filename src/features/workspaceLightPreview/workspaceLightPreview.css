@@ -1,0 +1,856 @@
+/**
+ * Light workspace preview — SOLID surfaces, vivid accents, no stacked glass washes.
+ * Scoped to [data-fc-workspace-light-preview="1"] on html or wrapper.
+ */
+
+html[data-fc-workspace-light-preview='1'],
+[data-fc-workspace-light-preview='1'] {
+  color-scheme: light;
+  --wlp-text-kicker: 12px;
+  --wlp-text-meta: 13px;
+  --wlp-text-body: 14px;
+  --wlp-text-title: 18px;
+  --wlp-text-lead: 22px;
+  --wlp-text-hero: 26px;
+}
+
+html[data-fc-workspace-light-app='1'] {
+  background: #eef2f7 !important;
+  color: #0a1628 !important;
+}
+
+/* ——— Root bed: clean cool canvas, no muddy mesh stack ——— */
+.fc-wl-preview-root {
+  background: var(--fc-wl-bed, #eef2f7);
+  color: var(--fc-wl-ink, #0a1628);
+  min-height: 100vh;
+}
+
+[data-fc-wl-page-bed='admin'] .fc-wl-preview-root,
+[data-fc-wl-page-bed='admin'] {
+  --fc-wl-bed: #eef2f7;
+}
+
+[data-fc-wl-page-bed='partner'] .fc-wl-preview-root,
+[data-fc-wl-page-bed='partner'] {
+  --fc-wl-bed: #f0f4f1;
+}
+
+[data-fc-wl-page-bed='hub'] .fc-wl-preview-root,
+[data-fc-wl-page-bed='hub'] {
+  --fc-wl-bed: #f4f6fa;
+}
+
+/* ——— Lab bar ——— */
+.fc-wl-lab-bar {
+  background: #ffffff !important;
+  border-bottom: 1px solid rgba(10, 22, 40, 0.1) !important;
+  box-shadow: 0 4px 20px -12px rgba(10, 22, 40, 0.12);
+}.fc-wl-lab-btn{
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 0.65rem;
+  border: 1px solid rgba(10, 22, 40, 0.12);
+  background: #ffffff;
+  padding: 0.35rem 0.65rem;
+  font-size: var(--wlp-text-body);
+  font-weight: 600;
+  color: rgba(10, 22, 40, 0.78);
+}
+
+.fc-wl-lab-btn:hover {
+  border-color: rgba(10, 22, 40, 0.2);
+  background: #f8fafc;
+}
+
+.fc-wl-lab-btn--active {
+  border-color: rgba(139, 92, 246, 0.45);
+  background: rgba(139, 92, 246, 0.08);
+  color: rgb(76, 29, 149);
+}
+
+.fc-wl-lab-btn--ghost {
+  border-color: transparent;
+  background: transparent;
+  color: rgba(10, 22, 40, 0.55);
+}
+
+/* ——— Hide duplicate PageShell chrome only (preview has its own WlWorkspaceChrome) ——— */
+[data-fc-workspace-light-preview='1'] .fc-pageshell-aurora {
+  display: none !important;
+}
+
+[data-fc-workspace-light-preview='1'] [data-fc-pageshell-root='1'] {
+  background: transparent !important;
+  color: #0a1628 !important;
+}
+
+/* ——— Kill glass / blur stacking inside preview ——— */
+[data-fc-workspace-light-preview='1'] :is(
+  .fc-light-glass-panel,
+  .fc-light-chrome-panel,
+  .fc-luxury-glass,
+  .fc-pop-surface,
+  .fc-spotlight-panel,
+  .fc-admin-dark-glass-surface
+) {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* ——— Shared workstations on the light product bed ———
+   One recipe, driven by `--fc-wl-card-accent`, so a light card is built the same way the
+   dark one is: lit top-left corner, quieter opposite corner, saturated edge, accent ring.
+
+   What was here before was a flat two-stop pastel per family (`#effbf7 → #d4f3e8`) over a
+   neutral white base. A flat tint has no lit corner and no ring, so it reads as "white box
+   with a faint colour cast" no matter which hue is assigned — which is why remapping hues
+   never changed how these pages looked. The corner wash and the ring are what make a card
+   look designed; the hue only says which card it is. */
+/* The neutral default lives on the scope ROOT, not on the card rule below. Put it on the
+   card rule and it inherits that rule's (high) specificity, which would then outrank the
+   per-family overrides and paint every card grey no matter which hue it asked for. An
+   inherited value, by contrast, always yields to any rule that matches the element. */
+[data-fc-workspace-light-preview='1'] {
+  --fc-wl-card-accent: 100, 116, 139;
+}
+
+[data-fc-workspace-light-preview='1'] .fc-accent-card:not([data-fc-kpi-surface='light']):not(.fc-partner-hub-glow-tile):not([class*='fc-admin-solid-']):not(.fc-admin-ink-panel):not(.fc-wl-kpi):not(.fc-wlp-signal) {
+  backdrop-filter: none !important;
+  background: linear-gradient(165deg, rgba(46, 16, 72, 0.88) 0%, rgba(8, 14, 24, 0.92) 100%) !important;
+  border-color: rgba(var(--fc-wl-card-accent), 0.58) !important;
+  box-shadow: 0 0 32px -12px rgba(var(--fc-wl-card-accent), 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-fc-workspace-light-preview='1'] .fc-accent-card[class*='border-emerald'] { --fc-wl-card-accent: 16, 185, 129; }
+[data-fc-workspace-light-preview='1'] .fc-accent-card[class*='border-violet'] { --fc-wl-card-accent: 139, 92, 246; }
+[data-fc-workspace-light-preview='1'] .fc-accent-card:is([class*='border-sky'], [class*='border-cyan']) { --fc-wl-card-accent: 14, 165, 233; }
+[data-fc-workspace-light-preview='1'] .fc-accent-card[class*='border-fuchsia'] { --fc-wl-card-accent: 217, 70, 239; }
+[data-fc-workspace-light-preview='1'] .fc-accent-card[class*='border-rose'] { --fc-wl-card-accent: 244, 63, 94; }
+/* Amber is an allowed BUTTON metal but never a card fill — borrow violet, matching
+   `finelyOsCatalogCard`'s own amber → violet mapping. */
+[data-fc-workspace-light-preview='1'] .fc-accent-card[class*='border-amber'] { --fc-wl-card-accent: 139, 92, 246; }
+
+[data-fc-workspace-light-preview='1'] .fc-light-readable :is(h1, h2, h3, h4, h5, h6, .text-white, .text-white\/90, .text-white\/85):not(button):not(a) {
+  color: #0a1628 !important;
+}
+
+[data-fc-workspace-light-preview='1'] .fc-light-readable :is(.text-white\/80, .text-white\/75, .text-white\/70):not(button):not(a) {
+  color: rgba(10, 22, 40, 0.76) !important;
+}
+
+[data-fc-workspace-light-preview='1'] .fc-light-readable :is(.text-white\/65, .text-white\/60, .text-white\/55, .text-white\/50, .text-white\/45, .text-white\/40, .text-white\/35):not(button):not(a) {
+  color: rgba(10, 22, 40, 0.78) !important;
+}
+
+[data-fc-workspace-light-preview='1'] .fc-accent-card:not([data-fc-kpi-surface='light']):not(.fc-wlp-kpi):not(.fc-wlp-metric):not([class*='fc-admin-solid']) :is(
+  h1, h2, h3, h4, h5, h6, .text-white, .text-white\/90, .text-white\/85, .font-semibold, .font-bold
+):not(button):not(a) {
+  color: rgba(255, 255, 255, 0.96) !important;
+}
+
+[data-fc-workspace-light-preview='1'] .fc-accent-card:not([data-fc-kpi-surface='light']):not(.fc-wlp-kpi):not(.fc-wlp-metric):not([class*='fc-admin-solid']) :is(
+  p, .text-sm, .text-xs, .text-white\/80, .text-white\/75, .text-white\/70, .text-white\/65, .text-white\/60
+):not(button):not(a) {
+  color: rgba(255, 255, 255, 0.78) !important;
+}
+
+[data-fc-workspace-light-preview='1'] .fc-light-readable :is(button, a) *,
+[data-fc-workspace-light-preview='1'] .fc-light-readable :is(button, a) {
+  color: inherit;
+}
+
+[data-fc-workspace-light-preview='1'] :is([data-surface-kind='letters-studio'], [data-surface-kind='letters-vault'], [data-surface-kind='evidence-vault'], [data-surface-kind='documents-vault'], [data-surface-kind='reports-workstation'], .fc-wlp-debt-workspace)
+  :is(h1, h2, h3, h4, h5, h6, .text-white, .text-white\/90, .text-white\/85):not(button):not(a):not(label.from-emerald-700):not(.fc-premium-chart-card *):not(.fc-premium-chart-card) {
+  color: #0a1628 !important;
+}
+
+[data-fc-workspace-light-preview='1'] :is([data-surface-kind='letters-studio'], [data-surface-kind='letters-vault'], [data-surface-kind='evidence-vault'], [data-surface-kind='documents-vault'], [data-surface-kind='reports-workstation'], .fc-wlp-debt-workspace)
+  :is(.text-white\/80, .text-white\/75, .text-white\/70):not(button):not(a) {
+  color: rgba(10, 22, 40, 0.76) !important;
+}
+
+[data-fc-workspace-light-preview='1'] :is([data-surface-kind='letters-studio'], [data-surface-kind='letters-vault'], [data-surface-kind='evidence-vault'], [data-surface-kind='documents-vault'], [data-surface-kind='reports-workstation'], .fc-wlp-debt-workspace)
+  :is(.text-white\/65, .text-white\/60, .text-white\/55, .text-white\/50, .text-white\/45, .text-white\/40, .text-white\/35):not(button):not(a) {
+  color: rgba(10, 22, 40, 0.78) !important;
+}
+
+[data-fc-workspace-light-preview='1'] :is([data-surface-kind='letters-studio'], [data-surface-kind='letters-vault'], [data-surface-kind='evidence-vault'], [data-surface-kind='documents-vault'], [data-surface-kind='reports-workstation'], .fc-wlp-debt-workspace)
+  :is(button:not([data-fc-hub-tab]), a, button:not([data-fc-hub-tab]) *, a *) {
+  color: inherit;
+}
+
+[data-fc-workspace-light-preview='1'] [data-surface-kind='strategy-reports'] button.text-white\/55 {
+  color: rgba(10, 22, 40, 0.68) !important;
+}
+
+[data-fc-workspace-light-preview='1'] [data-surface-kind='reports-workstation']
+  :is(.text-emerald-300, .text-emerald-200, .text-emerald-100) {
+  color: #065f46 !important;
+}
+
+[data-fc-workspace-light-preview='1'] [data-surface-kind='reports-workstation']
+  :is(.text-white\/65, .text-white\/60, .text-white\/55) {
+  color: rgba(10, 22, 40, 0.8) !important;
+}
+
+[data-fc-workspace-light-preview='1'] [data-surface-kind='reports-workstation'] .fc-button-platinum,
+[data-fc-workspace-light-preview='1'] [data-surface-kind='reports-workstation'] .fc-button-platinum-surface,
+[data-fc-workspace-light-preview='1'] [data-surface-kind='reports-workstation'] .fc-unified-hub-shell button.fc-button-platinum {
+  color: #0a1628 !important;
+  border-color: rgba(10, 22, 40, 0.16) !important;
+  background: linear-gradient(145deg, #f8fafc 0%, #e2e8f0 100%) !important;
+  box-shadow: 0 10px 24px -18px rgba(10, 22, 40, 0.28) !important;
+}
+
+html[data-fc-workspace-light-preview='1'] [data-surface-kind='reports-workstation'] [data-fc-report-upload] label.fc-wlp-report-upload-cta,
+html[data-fc-workspace-light-preview='1'] [data-surface-kind='reports-workstation'] [data-fc-report-upload] label.fc-wlp-report-upload-cta.text-white.text-xs,
+html[data-fc-workspace-light-preview='1'] [data-surface-kind='reports-workstation'] [data-fc-report-upload] label.fc-wlp-report-upload-cta *,
+html[data-fc-workspace-light-preview='1'] [data-surface-kind='reports-workstation'] [data-fc-report-upload] label.fc-wlp-report-upload-cta svg {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+html[data-fc-workspace-light-preview='1'] [data-surface-kind='reports-workstation'] .fc-premium-chart-card,
+html[data-fc-workspace-light-preview='1'] [data-surface-kind='reports-workstation'] .fc-premium-chart-card :is(.text-white, .text-white\/65, .text-white\/60, strong.text-white, strong, span),
+html[data-fc-workspace-light-preview='1'] [data-surface-kind='reports-workstation'] .fc-premium-chart-card strong.text-white.text-sm {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+[data-fc-workspace-light-preview='1'] [data-surface-kind='letters-studio'] :is(.text-sky-200\/90, .text-sky-200) {
+  color: #0369a1 !important;
+}
+
+[data-fc-workspace-light-preview='1'] [data-surface-kind='letters-studio'] :is(.text-violet-200\/90, .text-violet-200) {
+  color: #6d28d9 !important;
+}
+
+[data-fc-workspace-light-preview='1'] [data-surface-kind='letters-studio'] .text-\[10px\] {
+  font-size: 12px !important;
+}
+
+[data-fc-workspace-light-preview='1'] [data-surface-kind='letters-studio'] :is(.fc-wl-hub-eyebrow, .pc-restore-hub-eyebrow, p.text-violet-300, .text-violet-300, .text-violet-300\/85, [class*='text-violet-300']) {
+  color: #6d28d9 !important;
+}
+
+[data-fc-workspace-light-preview='1'] [data-surface-kind='letters-studio'] :is(.text-sky-300, .text-sky-200, .text-cyan-300) {
+  color: #0369a1 !important;
+}
+
+[data-fc-workspace-light-preview='1'] [data-fc-communication-hub][data-visual-variant='product'] :is(
+  .text-\[9px\],
+  .text-\[10px\],
+  .text-\[11px\],
+  .text-\[11\.5px\]
+) {
+  font-size: 12px !important;
+}
+
+[data-fc-workspace-light-preview='1'] [data-surface-kind='letters-studio'] :is(.fc-button-platinum, .fc-button-platinum-surface),
+[data-fc-workspace-light-preview='1'] [data-surface-kind='letters-studio'] .fc-unified-hub-shell button.fc-button-platinum {
+  color: #0a1628 !important;
+  border-color: rgba(10, 22, 40, 0.16) !important;
+  background: linear-gradient(145deg, #f8fafc 0%, #e2e8f0 100%) !important;
+  box-shadow: 0 10px 24px -18px rgba(10, 22, 40, 0.28) !important;
+}
+
+html[data-fc-workspace-light-preview='1'] [data-surface-kind='letters-studio'] .fc-light-readable .fc-view-tabs button[aria-selected='true'][class*='from-emerald'],
+html[data-fc-workspace-light-preview='1'] [data-surface-kind='letters-studio'] .fc-light-readable .fc-view-tabs button[aria-selected='true'][class*='from-violet'],
+html[data-fc-workspace-light-preview='1'] [data-surface-kind='letters-studio'] .fc-light-readable .fc-view-tabs button[aria-selected='true'][class*='from-sky'],
+html[data-fc-workspace-light-preview='1'] [data-surface-kind='letters-studio'] .fc-light-readable .fc-view-tabs button[aria-selected='true'][class*='from-fuchsia'],
+html[data-fc-workspace-light-preview='1'] [data-surface-kind='letters-studio'] .fc-light-readable .fc-view-tabs button[aria-selected='true'][class*='from-rose'] {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+[data-fc-workspace-light-preview='1'] [data-surface-kind='letters-studio'] .fc-unified-hub-shell [role='tab'][aria-selected='true'],
+[data-fc-workspace-light-preview='1'] [data-surface-kind='letters-studio'] .fc-unified-hub-shell [role='tab'][aria-selected='true'] *,
+[data-fc-workspace-light-preview='1'] .fc-view-tabs button[aria-selected='true'][class*='from-emerald-6'],
+[data-fc-workspace-light-preview='1'] .fc-view-tabs button[aria-selected='true'][class*='from-violet-6'],
+[data-fc-workspace-light-preview='1'] .fc-view-tabs button[aria-selected='true'][class*='from-sky-6'],
+[data-fc-workspace-light-preview='1'] .fc-view-tabs button[aria-selected='true'][class*='from-fuchsia-6'],
+[data-fc-workspace-light-preview='1'] .fc-view-tabs button[aria-selected='true'][class*='from-rose-6'] {
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+}
+
+[data-fc-workspace-light-preview='1'] [data-surface-kind='letters-studio'] :is(.text-sky-300, .text-sky-200, .text-cyan-300, .text-emerald-300) {
+  color: #0369a1 !important;
+}
+
+[data-fc-workspace-light-preview='1'] [data-surface-kind='reports-workstation']
+  :is(.text-fuchsia-300, .text-fuchsia-200) {
+  color: #a21caf !important;
+}
+
+[data-fc-workspace-light-preview='1'] [data-surface-kind='reports-workstation']
+  :is(.text-rose-100, .text-rose-200) {
+  color: #9f1239 !important;
+}
+
+[data-fc-workspace-light-preview='1'] .fc-wlp-debt-workspace .border-emerald-400\/25.bg-black\/30 {
+  background: linear-gradient(145deg, rgba(236, 253, 245, 0.92), rgba(240, 249, 255, 0.88)) !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+}
+
+[data-fc-workspace-light-preview='1'] .fc-wlp-debt-workspace button.bg-black\/30,
+[data-fc-workspace-light-preview='1'] .fc-wlp-debt-workspace input.bg-black\/35,
+[data-fc-workspace-light-preview='1'] .fc-wlp-debt-workspace .border-dashed.bg-black\/35 {
+  background: rgba(255, 255, 255, 0.82) !important;
+  color: #0a1628 !important;
+}
+
+[data-fc-workspace-light-preview='1'] .fc-wlp-debt-workspace input.bg-black\/35::placeholder {
+  color: rgba(10, 22, 40, 0.48) !important;
+}
+
+[data-fc-workspace-light-preview='1'] .fc-wlp-debt-workspace .border-dashed.bg-black\/35 .text-emerald-100 {
+  color: #047857 !important;
+}
+
+[data-fc-workspace-light-preview='1'] .fc-button-soft {
+  color: #38206d !important;
+  border-color: rgba(109, 40, 217, 0.26) !important;
+  background:
+    radial-gradient(circle at 86% 12%, rgba(255, 255, 255, 0.72), transparent 26%),
+    linear-gradient(140deg, #f4efff 0%, #e7ddfb 52%, #d9eef8 100%) !important;
+  box-shadow: 0 14px 30px -22px rgba(91, 47, 171, 0.55) !important;
+}
+
+[data-fc-workspace-light-preview='1'] .fc-button-soft:hover {
+  color: #2e155f !important;
+  border-color: rgba(91, 33, 182, 0.42) !important;
+  background: linear-gradient(140deg, #eee7ff 0%, #dacdf7 52%, #cce8f5 100%) !important;
+}
+
+[data-fc-workspace-light-preview='1'] .fc-wlp-light-notice {
+  color: #4c1d95 !important;
+  border-color: rgba(139, 92, 246, 0.3) !important;
+  background: linear-gradient(135deg, rgba(245, 241, 255, 0.98), rgba(248, 217, 229, 0.76)) !important;
+}
+
+[data-fc-workspace-light-preview='1'] .fc-wlp-light-notice :is(button, a, span) {
+  color: inherit;
+}
+
+[data-fc-workspace-light-preview='1'] [data-fc-restore-workspace='1'] .fc-restore-route-phase {
+  background: linear-gradient(145deg, rgba(239, 249, 253, 0.96), rgba(210, 237, 247, 0.72)) !important;
+  border-color: rgba(14, 165, 233, 0.24) !important;
+}
+
+[data-fc-workspace-light-preview='1'] [data-fc-restore-workspace='1'] .fc-restore-route-phase:nth-child(2) {
+  background: linear-gradient(145deg, rgba(245, 241, 255, 0.96), rgba(224, 215, 251, 0.72)) !important;
+  border-color: rgba(139, 92, 246, 0.24) !important;
+}
+
+[data-fc-workspace-light-preview='1'] [data-fc-restore-workspace='1']
+  .fc-restore-route-phase
+  :is(header, .fc-restore-route-row) {
+  border-color: rgba(10, 22, 40, 0.1) !important;
+}
+
+[data-fc-workspace-light-preview='1'] [data-fc-preserve-surface='1'] .fc-accent-card,
+[data-fc-workspace-light-preview='1'] [data-fc-preserve-surface='1'] .fc-spotlight-panel {
+  background: revert-layer !important;
+  box-shadow: revert-layer !important;
+}
+
+[data-fc-workspace-light-preview='1'] [data-fc-preserve-surface='1'] .fc-partner-hub-glow-tile,
+[data-fc-workspace-light-preview='1'] .fc-partner-hub-glow-tile,
+[data-fc-workspace-light-preview='1'] .fc-admin-ink-panel,
+[data-fc-workspace-light-preview='1'] [class*='fc-admin-solid-'] {
+  color: inherit;
+}
+
+[data-fc-workspace-light-preview='1'] [data-fc-preserve-surface='1'] .fc-partner-hub-glow-tile .text-white\/90,
+[data-fc-workspace-light-preview='1'] [data-fc-preserve-surface='1'] .fc-partner-hub-glow-tile .text-white\/75,
+[data-fc-workspace-light-preview='1'] .fc-partner-hub-glow-tile .text-white\/90,
+[data-fc-workspace-light-preview='1'] .fc-partner-hub-glow-tile .text-white\/75 {
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+[data-fc-workspace-light-preview='1'] [data-fc-accent='emerald'].fc-accent-card {
+  border-color: rgba(16, 185, 129, 0.35) !important;
+  border-left: 4px solid rgb(16, 185, 129) !important;
+}
+
+[data-fc-workspace-light-preview='1'] [data-fc-accent='violet'].fc-accent-card {
+  border-color: rgba(139, 92, 246, 0.35) !important;
+  border-left: 4px solid rgb(139, 92, 246) !important;
+}
+
+[data-fc-workspace-light-preview='1'] [data-fc-accent='sky'].fc-accent-card {
+  border-color: rgba(14, 165, 233, 0.35) !important;
+  border-left: 4px solid rgb(14, 165, 233) !important;
+}
+
+[data-fc-workspace-light-preview='1'] [data-fc-accent='fuchsia'].fc-accent-card {
+  border-color: rgba(217, 70, 239, 0.35) !important;
+  border-left: 4px solid rgb(217, 70, 239) !important;
+}
+
+/* ——— Hub command shell — solid white, strong accent frame ——— */
+/* Page hero. `border: 1px rgba(10,22,40,0.1)` on flat white is the neutral hairline that
+   made every one of these headers look like an unstyled container — and only two of the six
+   accents ever got an override, so the rest stayed neutral regardless of the hue passed in.
+   One accent-driven recipe now covers every hue: 700-level edge, lit corner, accent ring. */
+.fc-wl-hub-shell {
+  --fc-wl-hub-rgb: 139, 92, 246;
+  --fc-wl-hub-ink: #6d28d9;
+  border-radius: 1rem;
+  border: 2px solid var(--fc-wl-hub-ink);
+  background:
+    radial-gradient(960px 320px at 6% 0%, rgba(var(--fc-wl-hub-rgb), 0.2) 0%, transparent 60%),
+    radial-gradient(700px 280px at 98% 100%, rgba(var(--fc-wl-hub-rgb), 0.09) 0%, transparent 56%),
+    #ffffff;
+  padding: 1.5rem 1.75rem;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    0 0 0 1px rgba(var(--fc-wl-hub-rgb), 0.16),
+    0 20px 56px -28px rgba(var(--fc-wl-hub-rgb), 0.45);
+}
+
+[data-fc-wl-hub-accent='violet'] .fc-wl-hub-shell { --fc-wl-hub-rgb: 139, 92, 246; --fc-wl-hub-ink: #6d28d9; }
+[data-fc-wl-hub-accent='emerald'] .fc-wl-hub-shell { --fc-wl-hub-rgb: 16, 185, 129; --fc-wl-hub-ink: #047857; }
+[data-fc-wl-hub-accent='sky'] .fc-wl-hub-shell { --fc-wl-hub-rgb: 14, 165, 233; --fc-wl-hub-ink: #0369a1; }
+[data-fc-wl-hub-accent='rose'] .fc-wl-hub-shell { --fc-wl-hub-rgb: 244, 63, 94; --fc-wl-hub-ink: #be123c; }
+[data-fc-wl-hub-accent='fuchsia'] .fc-wl-hub-shell { --fc-wl-hub-rgb: 217, 70, 239; --fc-wl-hub-ink: #a21caf; }
+/* Amber stays a button metal, never a card wash — borrow violet. */
+[data-fc-wl-hub-accent='amber'] .fc-wl-hub-shell { --fc-wl-hub-rgb: 139, 92, 246; --fc-wl-hub-ink: #6d28d9; }.fc-wl-hub-eyebrow{
+  font-size: var(--wlp-text-kicker);
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: rgb(109, 40, 217);
+}
+
+[data-fc-wl-hub-accent='emerald'] .fc-wl-hub-eyebrow {
+  color: rgb(5, 120, 87);
+}
+
+.fc-wl-hub-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #0a1628;
+  letter-spacing: -0.02em;
+}
+
+.fc-wl-hub-sub {
+  font-size: 1rem;
+  color: rgba(10, 22, 40, 0.65);
+  line-height: 1.55;
+}
+
+/* Hub KPI row */
+/*
+ * Hub KPI tiles — solid saturated fills with light ink, the same treatment the partner
+ * dashboard gives its three score tiles. This is the one element on these pages that
+ * supplies VALUE contrast: a page built only from white-and-a-tint boxes has nothing for
+ * the eye to anchor on, which is why Documents/Evidence/Reports read as unfinished next to
+ * the dashboard even when every border is correct. The tint version that used to live here
+ * (a 22% wash on white) made the KPI row the palest thing on an already pale page.
+ */
+.fc-wl-kpi {
+  --fc-wl-kpi-from: #4c1d95;
+  --fc-wl-kpi-to: #2e1065;
+  --fc-wl-kpi-glow: 139, 92, 246;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: linear-gradient(150deg, var(--fc-wl-kpi-from) 0%, var(--fc-wl-kpi-to) 100%);
+  padding: 1.5rem 1.75rem;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 18px 40px -20px rgba(var(--fc-wl-kpi-glow), 0.5);
+}
+.fc-wl-kpi-label{
+  font-size: 0.8125rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.fc-wl-kpi-value {
+  font-size: 2.125rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.fc-wl-kpi[data-fc-accent='emerald'] { --fc-wl-kpi-from: #047857; --fc-wl-kpi-to: #064e3b; --fc-wl-kpi-glow: 16, 185, 129; }
+.fc-wl-kpi[data-fc-accent='violet'] { --fc-wl-kpi-from: #6d28d9; --fc-wl-kpi-to: #4c1d95; --fc-wl-kpi-glow: 139, 92, 246; }
+.fc-wl-kpi[data-fc-accent='sky'] { --fc-wl-kpi-from: #0369a1; --fc-wl-kpi-to: #075985; --fc-wl-kpi-glow: 14, 165, 233; }
+.fc-wl-kpi[data-fc-accent='rose'] { --fc-wl-kpi-from: #be123c; --fc-wl-kpi-to: #881337; --fc-wl-kpi-glow: 244, 63, 94; }
+.fc-wl-kpi[data-fc-accent='fuchsia'] { --fc-wl-kpi-from: #a21caf; --fc-wl-kpi-to: #701a75; --fc-wl-kpi-glow: 217, 70, 239; }
+
+/* These tiles are `fc-accent-card`s, so `index.css`'s light-theme accent-card rules
+   (`html[data-fc-theme="light"] .fc-accent-card[class*="border-sky-500"]`, already
+   `!important`) also target them. Two `!important` declarations are settled by specificity,
+   so this selector has to outrank that one — hence the leading `html` plus the
+   `[data-fc-accent]` qualifier. The tile is a dark bed here; the light card recipe must lose. */
+html[data-fc-workspace-light-preview='1'] .fc-wl-kpi.fc-accent-card[data-fc-accent] {
+  background-color: var(--fc-wl-kpi-to) !important;
+  background-image: linear-gradient(150deg, var(--fc-wl-kpi-from) 0%, var(--fc-wl-kpi-to) 100%) !important;
+  border-color: rgba(255, 255, 255, 0.18) !important;
+  border-width: 1px !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 18px 40px -20px rgba(var(--fc-wl-kpi-glow), 0.5) !important;
+}
+/* The KPI hint uses the shared `text-white/85` token, which the preview's light-ink rules
+   rewrite to navy for the (normally light) card underneath. On this dark tile that lands
+   navy-on-navy, so these have to outrank those rules — same specificity story as above. */
+html[data-fc-workspace-light-preview='1'] .fc-wl-kpi[data-fc-accent] > div,
+html[data-fc-workspace-light-preview='1'] .fc-wl-kpi[data-fc-accent] > div * {
+  color: #ffffff !important;
+}
+html[data-fc-workspace-light-preview='1'] .fc-wl-kpi[data-fc-accent] > .fc-wl-kpi-label {
+  color: rgba(255, 255, 255, 0.86) !important;
+}
+html[data-fc-workspace-light-preview='1'] .fc-wl-kpi[data-fc-accent] .lucide {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+/* Hub content tray — mostly white so the accented sections inside it still read, but it
+   needs a visible edge of its own or the page has no container at all, just floating text.
+   Driven by the same hub accent as the header above it so the two read as one unit. */
+.fc-wl-hub-content {
+  --fc-wl-hub-rgb: 139, 92, 246;
+  background:
+    radial-gradient(880px 260px at 4% 0%, rgba(var(--fc-wl-hub-rgb), 0.09) 0%, transparent 58%),
+    #ffffff;
+  border: 1.5px solid rgba(var(--fc-wl-hub-rgb), 0.4);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 14px 44px -26px rgba(var(--fc-wl-hub-rgb), 0.4);
+}
+
+[data-fc-wl-hub-accent='emerald'] .fc-wl-hub-content { --fc-wl-hub-rgb: 16, 185, 129; }
+[data-fc-wl-hub-accent='sky'] .fc-wl-hub-content { --fc-wl-hub-rgb: 14, 165, 233; }
+[data-fc-wl-hub-accent='rose'] .fc-wl-hub-content { --fc-wl-hub-rgb: 244, 63, 94; }
+[data-fc-wl-hub-accent='fuchsia'] .fc-wl-hub-content { --fc-wl-hub-rgb: 217, 70, 239; }
+
+[data-fc-workspace-light-preview='1'] .fc-unified-hub-content {
+  background: #ffffff !important;
+  border: 1.5px solid rgba(10, 22, 40, 0.14) !important;
+  border-radius: 1rem !important;
+  backdrop-filter: none !important;
+  box-shadow: 0 12px 40px -24px rgba(10, 22, 40, 0.14) !important;
+}
+
+/* ——— Section bands: SOLID white cards + top accent stripe (no gradient wash) ——— */
+[data-fc-wl-section='overview'],
+[data-fc-wl-section='ops'],
+[data-fc-wl-section='modules'],
+[data-fc-wl-section='partner-command'],
+[data-fc-wl-section='partner-overview'],
+[data-fc-wl-section='partner-launcher'],
+[data-fc-wl-section='partner-alerts'],
+[data-fc-wl-section='partner-admin-banner'] {
+  border-radius: 1rem;
+  padding: 1rem;
+  background: #ffffff;
+  border: 1px solid rgba(10, 22, 40, 0.08);
+  box-shadow: 0 10px 36px -22px rgba(10, 22, 40, 0.12);
+}
+
+[data-fc-wl-section='overview'] {
+  border-top: 4px solid rgb(16, 185, 129);
+  box-shadow: 0 14px 44px -22px rgba(16, 185, 129, 0.22);
+}
+
+[data-fc-wl-section='ops'] {
+  border-top: 4px solid rgb(139, 92, 246);
+  box-shadow: 0 14px 44px -22px rgba(139, 92, 246, 0.2);
+}
+
+[data-fc-wl-section='modules'] {
+  border-top: 4px solid rgb(14, 165, 233);
+  box-shadow: 0 14px 44px -22px rgba(14, 165, 233, 0.18);
+}
+
+[data-fc-wl-section='partner-command'] {
+  border-top: 4px solid rgb(16, 185, 129);
+  padding: 0.75rem;
+}
+
+[data-fc-wl-section='partner-overview'] {
+  border-top: 4px solid rgb(139, 92, 246);
+  padding: 0.75rem;
+}
+
+[data-fc-wl-section='partner-launcher'] {
+  border-top: 4px solid rgb(14, 165, 233);
+  background: #ffffff;
+}
+
+[data-fc-wl-section='partner-alerts'] {
+  border-top: 4px solid rgb(244, 63, 94);
+  box-shadow: 0 12px 36px -20px rgba(244, 63, 94, 0.2);
+}
+
+[data-fc-wl-section='partner-admin-banner'] {
+  border-top: 4px solid rgb(139, 92, 246);
+  padding: 0.75rem;
+}
+
+/* Partner workstation — no dark glass */
+.fc-wl-workstation {
+  background: #ffffff;
+  border: 1px solid rgba(10, 22, 40, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.8);
+}
+
+[data-fc-wl-section='partner-overview'] .fc-wl-workstation {
+  border: none;
+  box-shadow: none;
+  background: transparent;
+}
+
+/* Section headers */
+.fc-wl-section-header {
+  border-left: 4px solid rgb(139, 92, 246);
+  padding-left: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+[data-fc-wl-section='overview'] .fc-wl-section-header {
+  border-left-color: rgb(16, 185, 129);
+}
+
+[data-fc-wl-section='ops'] .fc-wl-section-header {
+  border-left-color: rgb(139, 92, 246);
+}
+
+[data-fc-wl-section='modules'] .fc-wl-section-header {
+  border-left-color: rgb(14, 165, 233);
+}.fc-wl-section-eyebrow{
+  font-size: var(--wlp-text-kicker);
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: rgba(10, 22, 40, 0.45);
+}
+
+.fc-wl-section-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0a1628;
+}.fc-wl-module-group-badge{
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  border: 1px solid rgba(10, 22, 40, 0.12);
+  background: #f8fafc;
+  padding: 0.25rem 0.7rem;
+  font-size: var(--wlp-text-kicker);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #0a1628;
+}
+
+[data-fc-wl-module-group='core'] .fc-wl-module-group-badge {
+  border-color: rgba(16, 185, 129, 0.35);
+  color: rgb(5, 120, 87);
+  background: rgba(16, 185, 129, 0.08);
+}
+
+[data-fc-wl-module-group='comms'] .fc-wl-module-group-badge {
+  border-color: rgba(14, 165, 233, 0.35);
+  color: rgb(2, 120, 180);
+  background: rgba(14, 165, 233, 0.08);
+}
+
+[data-fc-wl-module-group='automation'] .fc-wl-module-group-badge {
+  border-color: rgba(139, 92, 246, 0.35);
+  color: rgb(109, 40, 217);
+  background: rgba(139, 92, 246, 0.08);
+}
+
+[data-fc-wl-module-group='platform'] .fc-wl-module-group-badge {
+  border-color: rgba(30, 41, 59, 0.25);
+  color: rgb(30, 41, 59);
+  background: rgba(30, 41, 59, 0.06);
+}
+
+/* Hub catalog tiles on preview hub */
+.fc-wl-catalog-tile {
+  background: #ffffff;
+  border: 1px solid rgba(10, 22, 40, 0.1);
+  border-radius: 1rem;
+  box-shadow: 0 12px 40px -24px rgba(10, 22, 40, 0.15);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.fc-wl-catalog-tile:hover {
+  transform: translateY(-2px);
+}
+
+.fc-wl-catalog-tile[data-fc-accent='emerald'] {
+  border-left: 4px solid rgb(16, 185, 129);
+  box-shadow: 0 14px 44px -22px rgba(16, 185, 129, 0.25);
+}
+
+.fc-wl-catalog-tile[data-fc-accent='violet'] {
+  border-left: 4px solid rgb(139, 92, 246);
+  box-shadow: 0 14px 44px -22px rgba(139, 92, 246, 0.22);
+}
+
+.fc-wl-catalog-tile[data-fc-accent='sky'] {
+  border-left: 4px solid rgb(14, 165, 233);
+}
+
+.fc-wl-catalog-tile[data-fc-accent='fuchsia'] {
+  border-left: 4px solid rgb(217, 70, 239);
+}
+
+/* Partner portal nav — solid white bar */
+[data-fc-workspace-light-preview='1'] [data-fc-partner-portal-nav='1'] {
+  background: #ffffff !important;
+  border-color: rgba(10, 22, 40, 0.1) !important;
+  backdrop-filter: none !important;
+}
+
+/* Ops panels inside preview.
+   These were forced to plain `#ffffff` with a grey hairline, which fixed contrast by deleting
+   every accent the hub had — the reported "the hub is there but the colour is gone". Keep the
+   light bed (that part was right) but give each panel back its accent as a leading edge and a
+   faint wash, rotating by position so neighbours never match. */
+[data-fc-workspace-light-preview='1'] [data-fc-wl-section='ops'] :is(.fc-accent-card, .fc-luxury-glass) {
+  --fc-wl-ops-accent: 16, 185, 129;
+  background-image: linear-gradient(
+    118deg,
+    rgba(var(--fc-wl-ops-accent), 0.09) 0%,
+    rgba(255, 255, 255, 0.98) 46%
+  ) !important;
+  background-color: #ffffff !important;
+  border: 1px solid rgba(var(--fc-wl-ops-accent), 0.26) !important;
+  border-left: 3px solid rgba(var(--fc-wl-ops-accent), 0.85) !important;
+  box-shadow: 0 16px 38px -26px rgba(var(--fc-wl-ops-accent), 0.6) !important;
+}
+[data-fc-workspace-light-preview='1'] [data-fc-wl-section='ops'] :is(.fc-accent-card, .fc-luxury-glass):nth-of-type(4n + 2) { --fc-wl-ops-accent: 139, 92, 246; }
+[data-fc-workspace-light-preview='1'] [data-fc-wl-section='ops'] :is(.fc-accent-card, .fc-luxury-glass):nth-of-type(4n + 3) { --fc-wl-ops-accent: 14, 165, 233; }
+[data-fc-workspace-light-preview='1'] [data-fc-wl-section='ops'] :is(.fc-accent-card, .fc-luxury-glass):nth-of-type(4n + 4) { --fc-wl-ops-accent: 217, 70, 239; }
+
+/* Tab strip.
+   Same story: every tab was painted the same white and the selected one always violet, so the
+   hub's own emerald / violet / sky / fuchsia rotation never showed. Restore the rotation —
+   tinted chip when resting, saturated fill when selected. */
+/* A 9% fill behind a 28% hairline is not a control — it is a ghost, and it was why the
+   tab row at the top of Credit Reports read as transparent. An unselected tab still has to
+   look pressable, so it gets a fill you can actually see and accent ink on the label; the
+   selected tab then wins by going fully saturated with white ink, not by being the only
+   tab that has any colour at all. */
+[data-fc-workspace-light-preview='1'] [data-fc-hub-tab] {
+  --fc-wl-tab-accent: 16, 185, 129;
+  --fc-wl-tab-ink: 4, 120, 87;
+  background: rgba(var(--fc-wl-tab-accent), 0.26) !important;
+  border: 1.5px solid rgba(var(--fc-wl-tab-accent), 0.65) !important;
+  color: rgb(var(--fc-wl-tab-ink)) !important;
+  font-weight: 800;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7) !important;
+}
+[data-fc-workspace-light-preview='1'] [data-fc-hub-tab]:nth-of-type(4n + 2) { --fc-wl-tab-ink: 109, 40, 217; }
+[data-fc-workspace-light-preview='1'] [data-fc-hub-tab]:nth-of-type(4n + 3) { --fc-wl-tab-ink: 3, 105, 161; }
+[data-fc-workspace-light-preview='1'] [data-fc-hub-tab]:nth-of-type(4n + 4) { --fc-wl-tab-ink: 162, 28, 175; }
+[data-fc-workspace-light-preview='1'] [data-fc-hub-tab]:not([aria-selected='true']) * {
+  color: rgb(var(--fc-wl-tab-ink)) !important;
+}
+[data-fc-workspace-light-preview='1'] [data-fc-hub-tab]:nth-of-type(4n + 2) { --fc-wl-tab-accent: 139, 92, 246; }
+[data-fc-workspace-light-preview='1'] [data-fc-hub-tab]:nth-of-type(4n + 3) { --fc-wl-tab-accent: 14, 165, 233; }
+[data-fc-workspace-light-preview='1'] [data-fc-hub-tab]:nth-of-type(4n + 4) { --fc-wl-tab-accent: 217, 70, 239; }
+
+[data-fc-workspace-light-preview='1'] [data-fc-hub-tab]:hover {
+  background: rgba(var(--fc-wl-tab-accent), 0.38) !important;
+  border-color: rgba(var(--fc-wl-tab-accent), 0.8) !important;
+}
+
+/* Tab strips that predate `data-fc-hub-tab` — notably Credit Intel's own strip, the one the
+   owner saw as transparent at the top of Credit Reports. They render through
+   `finelyOsViewTab`, whose resting fill is a translucent white meant for dark glass; on this
+   white bed that is invisible, so give the same accent rotation the hub tabs get. */
+[data-fc-workspace-light-preview='1'] .fc-view-tabs > button:not([aria-selected='true']),
+[data-fc-workspace-light-preview='1'] .fc-view-tabs > button[aria-selected='false'] {
+  --fc-wl-tab-accent: 16, 185, 129;
+  --fc-wl-tab-ink: 4, 120, 87;
+  background: rgba(var(--fc-wl-tab-accent), 0.2) !important;
+  border: 1.5px solid rgba(var(--fc-wl-tab-accent), 0.5) !important;
+  color: rgb(var(--fc-wl-tab-ink)) !important;
+}
+[data-fc-workspace-light-preview='1'] .fc-view-tabs > button:nth-of-type(4n + 2) { --fc-wl-tab-accent: 139, 92, 246; --fc-wl-tab-ink: 109, 40, 217; }
+[data-fc-workspace-light-preview='1'] .fc-view-tabs > button:nth-of-type(4n + 3) { --fc-wl-tab-accent: 14, 165, 233; --fc-wl-tab-ink: 3, 105, 161; }
+[data-fc-workspace-light-preview='1'] .fc-view-tabs > button:nth-of-type(4n + 4) { --fc-wl-tab-accent: 217, 70, 239; --fc-wl-tab-ink: 162, 28, 175; }
+
+/* The strip itself needs to look like a control group holding the tabs, not empty page. */
+[data-fc-workspace-light-preview='1'] .fc-view-tabs {
+  background: rgba(10, 22, 40, 0.05) !important;
+  border: 1px solid rgba(10, 22, 40, 0.12) !important;
+}
+
+[data-fc-workspace-light-preview='1'] [aria-selected='true'][data-fc-hub-tab] {
+  --fc-wl-tab-ink: 4, 120, 87;
+  border-color: rgba(var(--fc-wl-tab-ink), 0.55) !important;
+  background-image: linear-gradient(
+    150deg,
+    rgb(var(--fc-wl-tab-ink)) 0%,
+    rgba(var(--fc-wl-tab-ink), 0.88) 100%
+  ) !important;
+  color: #ffffff !important;
+  box-shadow: 0 12px 24px -14px rgba(var(--fc-wl-tab-ink), 0.55) !important;
+}
+[data-fc-workspace-light-preview='1'] [aria-selected='true'][data-fc-hub-tab]:nth-of-type(4n + 2) { --fc-wl-tab-ink: 109, 40, 217; }
+[data-fc-workspace-light-preview='1'] [aria-selected='true'][data-fc-hub-tab]:nth-of-type(4n + 3) { --fc-wl-tab-ink: 3, 105, 161; }
+[data-fc-workspace-light-preview='1'] [aria-selected='true'][data-fc-hub-tab]:nth-of-type(4n + 4) { --fc-wl-tab-ink: 162, 28, 175; }
+[data-fc-workspace-light-preview='1'] [aria-selected='true'][data-fc-hub-tab],
+[data-fc-workspace-light-preview='1'] [aria-selected='true'][data-fc-hub-tab] * {
+  color: #ffffff !important;
+}
+
+/* Section outline inspector */
+[data-fc-wl-outlines='1'] [data-fc-wl-section] {
+  outline: 2px dashed rgba(139, 92, 246, 0.5);
+  outline-offset: 3px;
+}
+
+[data-fc-wl-density='comfortable'] [data-fc-wl-section] {
+  padding: 1.5rem;
+}
+
+[data-fc-workspace-light-preview='1'] {
+  overflow-x: clip;
+}
+
+[data-fc-workspace-light-preview='1'] .fc-wl-hub-shell .fc-button-platinum {
+  color: #0a1628 !important;
+  background: rgba(10, 22, 40, 0.06) !important;
+  border-color: rgba(10, 22, 40, 0.18) !important;
+}
+
+[data-fc-workspace-light-preview='1'] .fc-wl-hub-shell button[class*='from-emerald-7'] {
+  color: #ffffff !important;
+}
+
+[data-fc-workspace-light-preview='1'] .fc-wl-hub-shell .fc-wl-kpi .text-xs {
+  color: rgba(10, 22, 40, 0.78) !important;
+}
+
+html[data-fc-workspace-light-preview='1'][data-fc-theme='light'] .fc-view-tabs button[aria-selected='true'][class*='from-emerald'],
+html[data-fc-workspace-light-preview='1'][data-fc-theme='light'] .fc-view-tabs button[aria-selected='true'][class*='from-violet'],
+html[data-fc-workspace-light-preview='1'][data-fc-theme='light'] .fc-view-tabs button[aria-selected='true'][class*='from-sky'],
+html[data-fc-workspace-light-preview='1'][data-fc-theme='light'] .fc-view-tabs button[aria-selected='true'][class*='from-fuchsia'],
+html[data-fc-workspace-light-preview='1'][data-fc-theme='light'] .fc-view-tabs button[aria-selected='true'][class*='from-rose'] {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-fc-workspace-light-preview='1'] * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

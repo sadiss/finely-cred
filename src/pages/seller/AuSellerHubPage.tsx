@@ -11,8 +11,9 @@ import {
   GraduationCap,
   Wallet,
 } from 'lucide-react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { useSearchParams } from 'react-router-dom';
+import { PartnerWorkstationFrame, type PartnerEmbeddablePageProps } from '../../features/workspaceLightPreview/product/partner/PartnerWorkstationFrame';
+import { useMappedPartnerNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { useAuth } from '../../auth/AuthProvider';
 import { getUserDisplayName } from '../../auth/userProfile';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
@@ -68,15 +69,15 @@ const AU_TOOL_DECK: RoleHubTool[] = [
   { id: 'listings', label: 'Listings', detail: 'Add / update cards', path: AU_SELLER.listingsPath, icon: CreditCard, accent: 'violet', badge: 'Primary' },
   { id: 'market', label: 'Marketplace', detail: 'Partner-facing shelf', path: AU_SELLER.marketplacePath, icon: ShoppingBag, accent: 'sky' },
   { id: 'contracts', label: 'Contracts', detail: 'Accept & fulfill', path: AU_SELLER.contractsPath, icon: Link2, accent: 'emerald' },
-  { id: 'payouts', label: 'Payouts', detail: 'Placement fees', path: AU_SELLER.payoutsPath, icon: Wallet, accent: 'amber' },
-  { id: 'training', label: 'Training', detail: 'Tradeline track', path: `${AU_SELLER.hubPath}?tab=training`, icon: GraduationCap, accent: 'sky' },
-  { id: 'line', label: 'AU seller line', detail: 'Message Finely', path: AU_SELLER.messagesDeepLink, icon: MessageSquare, accent: 'fuchsia' },
+  { id: 'payouts', label: 'Payouts', detail: 'Placement fees', path: AU_SELLER.payoutsPath, icon: Wallet, accent: 'rose' },
+  { id: 'training', label: 'Training', detail: 'Tradeline track', path: `${AU_SELLER.hubPath}?tab=training`, icon: GraduationCap, accent: 'emerald' },
+  { id: 'line', label: 'AU seller line', detail: 'Message Finely', path: AU_SELLER.messagesDeepLink, icon: MessageSquare, accent: 'violet' },
 ];
 
-export default function AuSellerHubPage() {
+export default function AuSellerHubPage({ embedded = false }: PartnerEmbeddablePageProps = {}) {
   const auth = useAuth();
   const { partner } = usePartnerSession();
-  const navigate = useNavigate();
+  const navigate = useMappedPartnerNavigate();
   const [searchParams] = useSearchParams();
   const hubLauncher = usePartnerHubLauncher<AuSellerHubLauncherId>();
   const [seller, setSeller] = useState<AuSeller | null>(null);
@@ -209,7 +210,7 @@ export default function AuSellerHubPage() {
 
   if (!auth.user || (!sellerLoading && !gate.allowed)) {
     return (
-      <PageShell
+      <PartnerWorkstationFrame embedded={embedded} kind="au-seller-hub-workstation"
         badge={AU_SELLER.programName}
         title={AU_SELLER.hubName}
         subtitle="Listings, marketplace, contracts, and payouts — after you join as an AU seller."
@@ -231,15 +232,15 @@ export default function AuSellerHubPage() {
             </button>
             {!auth.user ? <BackToSiteButton /> : null}
           </div>
-          <FinelyOsPageFooter />
+          {!embedded ? <FinelyOsPageFooter /> : null}
         </div>
-      </PageShell>
+      </PartnerWorkstationFrame>
     );
   }
 
   if (partner && !hasActivation) {
     return (
-      <PageShell
+      <PartnerWorkstationFrame embedded={embedded} kind="au-seller-hub-workstation"
         badge={AU_SELLER.programName}
         title={AU_SELLER_MARKETING_HEADLINE}
         subtitle={`${AU_SELLER.startupFeeLabel} one-time activation — first ${AU_SELLER.listingSeasonDays}-day marketing season included.`}
@@ -248,16 +249,16 @@ export default function AuSellerHubPage() {
         <div className={`${FINELY_OS_COMPACT_PAGE} max-w-3xl`}>
           <AuSellerActivationPanel variant="paywall" activated={false} />
           <BackToSiteButton />
-          <FinelyOsPageFooter />
+          {!embedded ? <FinelyOsPageFooter /> : null}
         </div>
-      </PageShell>
+      </PartnerWorkstationFrame>
     );
   }
 
   const marketplaceShare = typeof window !== 'undefined' ? `${window.location.origin}${AU_SELLER.marketplacePath}` : AU_SELLER.marketplacePath;
 
   return (
-    <PageShell
+    <PartnerWorkstationFrame embedded={embedded} kind="au-seller-hub-workstation"
       badge={AU_SELLER.programName}
       title={AU_SELLER.hubName}
       subtitle={`${AU_SELLER_MARKETING_HEADLINE}${getUserDisplayName(auth.user) ? ` — welcome, ${getUserDisplayName(auth.user)}` : ''}`}
@@ -268,7 +269,7 @@ export default function AuSellerHubPage() {
         <FinelyNowDoThisStrip
           items={nowDoItems}
           currentIndex={listingsCount === 0 ? 0 : seller?.verification?.status === 'verified' ? 0 : 1}
-          className="!p-4"
+          className=""
         />
         <FinelyUnifiedHubLayout
           eyebrow={AU_SELLER.programName}
@@ -276,10 +277,10 @@ export default function AuSellerHubPage() {
           subtitle={AU_SELLER_MARKETING_HEADLINE}
           accent="violet"
           kpis={[
-            { label: 'Listings', value: String(listingsCount), accent: 'violet' },
-            { label: 'Verified', value: seller?.verification?.status === 'verified' ? 'Yes' : 'Pending', accent: 'emerald' },
-            { label: 'Profile', value: seller ? 'Active' : 'Setup', accent: 'amber' },
-            { label: 'Marketplace', value: 'Live', accent: 'sky' },
+            { label: 'Listings', value: String(listingsCount), accent: 'emerald' },
+            { label: 'Verified', value: seller?.verification?.status === 'verified' ? 'Yes' : 'Pending', accent: 'violet' },
+            { label: 'Profile', value: seller ? 'Active' : 'Setup', accent: 'sky' },
+            { label: 'Marketplace', value: 'Live', accent: 'rose' },
           ]}
           primaryAction={{ label: 'Manage listings', onClick: () => navigate(AU_SELLER.listingsPath) }}
           secondaryAction={{ label: 'AU seller line', onClick: () => navigate(AU_SELLER.messagesDeepLink) }}
@@ -313,8 +314,8 @@ export default function AuSellerHubPage() {
             renderItem={(item, idx) => (
               <div
                 key={item.title}
-                className={`space-y-2 ${finelyOsCatalogCard((['violet', 'emerald', 'sky', 'amber'] as const)[idx % 4])} !p-4`}
-                data-fc-accent={(['violet', 'emerald', 'sky', 'amber'] as const)[idx % 4]}
+                className={`space-y-2 ${finelyOsCatalogCard((['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4])}`}
+                data-fc-accent={(['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4]}
               >
                 <div className={`${FINELY_OS_ENTITY_VALUE} font-semibold`}>{item.title}</div>
                 <p className={FINELY_OS_ENTITY_BODY}>{item.description}</p>
@@ -335,9 +336,9 @@ export default function AuSellerHubPage() {
           subtitle="Share your shelf and manage partner-facing inventory."
           accent={ROLE_HUB_MODAL_ACCENT.marketplace}
         >
-          <div className={`space-y-3 ${finelyOsCatalogCard('violet')} !p-4`} data-fc-accent="violet">
+          <div className={`space-y-3 ${finelyOsCatalogCard('violet')}`} data-fc-accent="violet">
             <p className={FINELY_OS_ENTITY_BODY}>Share your marketplace presence and manage partner-facing inventory.</p>
-            <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+            <div className={`${finelyOsCatalogCard('sky')} fc-surface-harmony`} data-fc-accent="sky">
               <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-violet-700`}>Public marketplace link</div>
               <div className={`mt-2 font-mono text-sm ${FINELY_OS_ENTITY_BODY} break-all`}>{marketplaceShare}</div>
             </div>
@@ -363,7 +364,7 @@ export default function AuSellerHubPage() {
           accent={ROLE_HUB_MODAL_ACCENT.economics}
         >
           <div className="space-y-4">
-            <div className={`${finelyOsCatalogCard('emerald')} !p-4 ${FINELY_OS_ENTITY_BODY}`}>
+            <div className={`${finelyOsCatalogCard('emerald')} ${FINELY_OS_ENTITY_BODY}`} data-fc-accent="emerald">
               Many AU sellers also refer partners into Denefit in-house contracts for restoration packages — model that recurring stream alongside AU placement fees.
             </div>
             {seller ? <PayoutCenterPanel role="seller" ownerId={seller.id} ownerEmail={seller.email} seller={seller} /> : null}
@@ -391,7 +392,7 @@ export default function AuSellerHubPage() {
         >
           <div className="space-y-6">
             <AuSellerRoleAutomationPanel partnerId={partner?.id} listingsCount={listingsCount} />
-            <div className={`space-y-3 ${finelyOsCatalogCard('violet')} !p-4`} data-fc-accent="violet">
+            <div className={`space-y-3 ${finelyOsCatalogCard('violet')}`} data-fc-accent="violet">
               <p className={FINELY_OS_ENTITY_BODY}>Day-to-day AU seller operations.</p>
               <div className="flex flex-wrap gap-3">
                 {[
@@ -411,8 +412,8 @@ export default function AuSellerHubPage() {
           </div>
         </PartnerHubWorkModal>
 
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
       </div>
-    </PageShell>
+    </PartnerWorkstationFrame>
   );
 }

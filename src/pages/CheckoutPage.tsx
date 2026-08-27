@@ -120,7 +120,7 @@ export default function CheckoutPage({
           subtitle="Verify tradeline selections before AU request intake."
           accent="emerald"
           kpis={[
-            { label: 'Items', value: String(normalizedCart.length), accent: 'amber' },
+            { label: 'Items', value: String(normalizedCart.length), accent: 'violet' },
             { label: 'Subtotal', value: fmtUsd(subtotalCents), accent: 'emerald' },
           ]}
           tabs={[{ id: 'cart', label: 'Cart' }]}
@@ -148,7 +148,7 @@ export default function CheckoutPage({
                 pageSize={6}
                 itemSpacingClassName="space-y-3"
                 renderItem={(item, idx) => (
-                  <div key={`${item.id ?? idx}`} className={`flex flex-wrap items-center justify-between gap-4 ${finelyOsCatalogCard((['emerald', 'sky', 'amber', 'violet'] as const)[idx % 4])} !p-4`} data-fc-accent={(['emerald', 'sky', 'amber', 'violet'] as const)[idx % 4]}>
+                  <div key={`${item.id ?? idx}`} className={`flex flex-wrap items-center justify-between gap-4 ${finelyOsCatalogCard((['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4])}`} data-fc-accent={(['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4]}>
                     <div className="min-w-0">
                       <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{itemLabel(item)}</div>
                       <div className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>
@@ -171,7 +171,7 @@ export default function CheckoutPage({
                   AU inventory requires an account + quick intake so we can verify identity, confirm fit, and schedule posting.
                   Continue to the AU Request flow to submit your details and documents. After review, you’ll receive secure payment instructions.
                 </div>
-                <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-2`}>
+                <div className={`${finelyOsCatalogCard('sky')} fc-surface-harmony space-y-2`} data-fc-accent="sky">
                   <div className="flex items-center justify-between">
                     <span className={FINELY_OS_ENTITY_BODY}>Subtotal</span>
                     <span className={FINELY_OS_ENTITY_VALUE}>{fmtUsd(subtotalCents)}</span>
@@ -190,8 +190,8 @@ export default function CheckoutPage({
                 </div>
               </div>
 
-              <div className={`${finelyOsCatalogCard('violet')} !p-5 flex items-start gap-3`}>
-                <ShieldAlert size={18} className="mt-0.5 text-fuchsia-400 shrink-0" />
+              <div className={`${finelyOsCatalogCard('rose')} flex items-start gap-3`} data-fc-accent="rose">
+                <ShieldAlert size={18} className="mt-0.5 text-rose-400 shrink-0" />
                 <div className={FINELY_OS_ENTITY_BODY}>
                   Inventory availability and posting timelines vary. We do not promise score outcomes. If your goal is
                   lender readiness, book a free strategy call and we’ll pick the safest lane.

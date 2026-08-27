@@ -16,8 +16,8 @@
   --fdg-muted: #6b7684;
   --fdg-sky: #0f6fb8;
   --fdg-sky-wash: #e6f2fb;
-  --fdg-amber: #b26a04;
-  --fdg-amber-wash: #fdf3dc;
+  --fdg-amber: #e11d48;
+  --fdg-amber-wash: #ffe4e6;
   --fdg-violet: #6c4bb6;
   --fdg-emerald: #14724f;
   --fdg-rose: #b23046;
@@ -41,7 +41,7 @@
 .fdg-desk {
   background:
     radial-gradient(ellipse 60% 40% at 15% 0%, rgba(15, 111, 184, 0.16), transparent 58%),
-    radial-gradient(ellipse 50% 35% at 92% 12%, rgba(178, 106, 4, 0.1), transparent 55%),
+    radial-gradient(ellipse 50% 35% at 92% 12%, rgba(251, 113, 133, 0.1), transparent 55%),
     linear-gradient(180deg, #0b1420 0%, #070e18 45%, #050a11 100%);
 }
 
@@ -383,11 +383,11 @@
   position: relative;
   margin-top: 1.2rem;
   padding: 1rem 1.1rem;
-  background: linear-gradient(170deg, #fdf1cf 0%, #fbe7b4 100%);
+  background: linear-gradient(170deg, #ffe4e6 0%, #fecdd3 100%);
   border-radius: 2px;
-  box-shadow: 0 10px 24px rgba(60, 42, 8, 0.18);
+  box-shadow: 0 10px 24px rgba(80, 20, 40, 0.16);
   transform: rotate(-0.55deg);
-  color: #4a3608;
+  color: #4a1020;
 }
 
 .fdg-evidence::after {
@@ -585,7 +585,7 @@
   background: linear-gradient(90deg, #1d2733, #55677d);
 }
 .fdg-rail--amber {
-  background: linear-gradient(90deg, #b26a04, #e5ab3c);
+  background: linear-gradient(90deg, #e11d48, #fb7185);
 }
 .fdg-rail--violet {
   background: linear-gradient(90deg, #6c4bb6, #a68ce0);

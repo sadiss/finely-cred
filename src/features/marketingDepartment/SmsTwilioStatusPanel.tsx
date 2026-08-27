@@ -64,7 +64,7 @@ export function SmsTwilioStatusPanel() {
         <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/settings')}>
           Settings → Comms &amp; Twilio
         </button>
-        <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/phone')}>
+        <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/phone-hub')}>
           Phone Hub
         </button>
         <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/comms?room=sequences')}>

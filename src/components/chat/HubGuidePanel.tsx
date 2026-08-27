@@ -12,15 +12,32 @@ import {
   finelyOsCatalogCard,
   finelyOsInlineListItem,
 } from '../../features/os/finelyOsLightUi';
+import { resolveWorkspaceProductPath } from '../../features/workspaceLightPreview/product/workspaceProductNav';
 
 type Props = {
   compact?: boolean;
   onSwitchTab?: (tab: 'team' | 'ai' | 'meetings') => void;
   partnerId?: string;
+  navigationMode?: 'preview' | 'live';
+  workspaceRole?: 'partner' | 'admin';
 };
 
-export function HubGuidePanel({ compact, onSwitchTab, partnerId }: Props) {
+export function HubGuidePanel({
+  compact,
+  onSwitchTab,
+  partnerId,
+  navigationMode = 'live',
+  workspaceRole = 'partner',
+}: Props) {
   const navigate = useNavigate();
+  const navigateTo = (target: string) =>
+    navigate(
+      resolveWorkspaceProductPath(
+        target.startsWith('/admin') ? 'admin' : workspaceRole,
+        target,
+        navigationMode,
+      ),
+    );
 
   const shareGuide = (guide: { title: string; summary: string; path?: string }) => {
     if (!partnerId || !guide.path) return;
@@ -62,7 +79,7 @@ export function HubGuidePanel({ compact, onSwitchTab, partnerId }: Props) {
                     {surface.path ? (
                       <button
                         type="button"
-                        onClick={() => navigate(surface.path!)}
+                        onClick={() => navigateTo(surface.path!)}
                         className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/[0.04] px-2 py-1 text-[10px] font-black uppercase tracking-widest text-white/75 hover:bg-white/[0.08]"
                       >
                         <ExternalLink size={11} /> Open
@@ -98,14 +115,14 @@ export function HubGuidePanel({ compact, onSwitchTab, partnerId }: Props) {
               type="button"
               onClick={() => {
                 if (ch.path.startsWith('/admin')) {
-                  navigate(ch.path);
+                  navigateTo(ch.path);
                   return;
                 }
                 if (onSwitchTab) {
                   onSwitchTab('team');
                   openCommunicationHub({ tab: 'team', topic: ch.path.includes('topic=') ? (new URLSearchParams(ch.path.split('?')[1]).get('topic') as any) : undefined });
                 } else {
-                  navigate(ch.path);
+                  navigateTo(ch.path);
                 }
               }}
               className={`w-full text-left ${finelyOsInlineListItem()} hover:border-fuchsia-500/25`}
@@ -135,7 +152,7 @@ export function HubGuidePanel({ compact, onSwitchTab, partnerId }: Props) {
                   onSwitchTab('team');
                   openCommunicationHub({ tab: 'team', topic: t.value });
                 } else {
-                  navigate(`/portal/messages?hub=team&topic=${t.value}`);
+                  navigateTo(`/portal/messages?hub=team&topic=${t.value}`);
                 }
               }}
               className={`inline-flex items-center gap-1.5 ${FINELY_OS_ENTITY_CHIP} hover:bg-white/[0.06] text-xs`}

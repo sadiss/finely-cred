@@ -23,8 +23,15 @@ export type JourneyMapStop = {
 const BASE_LINKS: Record<JourneyStage, MapStopLink[]> = {
   intake: [{ label: 'Profile goals', path: '/portal/dashboard#profile-goals-readiness' }],
   report_upload: [{ label: 'Upload report', path: '/portal/reports' }],
-  analysis: [{ label: 'Credit analysis', path: '/portal/analysis' }, { label: 'Disputes', path: '/portal/disputes' }],
-  evidence: [{ label: 'Documents', path: '/portal/documents' }, { label: 'Reports intel', path: '/portal/reports' }],
+  analysis: [
+    { label: 'Credit reports', path: '/portal/reports' },
+    { label: 'Strategy reports', path: '/portal/analysis' },
+    { label: 'Disputes', path: '/portal/disputes' },
+  ],
+  evidence: [
+    { label: 'Evidence vault', path: '/portal/evidence' },
+    { label: 'Documents', path: '/portal/documents' },
+  ],
   letters: [{ label: 'Template library', path: '/portal/templates' }, { label: 'Letter studio', path: '/portal/letters' }],
   mailing: [{ label: 'Tasks & mail', path: '/portal/projects' }, { label: 'Dispute center', path: '/portal/disputes' }],
   funding: [{ label: 'Wealth paths', path: '/portal/wealth-paths' }, { label: 'Build center', path: '/portal/build' }],

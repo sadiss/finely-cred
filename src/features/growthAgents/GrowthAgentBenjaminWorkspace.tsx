@@ -258,14 +258,14 @@ export function GrowthAgentBenjaminWorkspace() {
                     <button
                       type="button"
                       className={FINELY_OS_SECONDARY_BTN}
-                      onClick={() => navigate('/admin/marketing?tab=desk&helper=board')}
+                      onClick={() => navigate('/admin/marketing-desk?helper=board')}
                     >
                       Desk · Board
                     </button>
                     <button
                       type="button"
                       className={FINELY_OS_SECONDARY_BTN}
-                      onClick={() => navigate('/admin/marketing?tab=desk&helper=mail')}
+                      onClick={() => navigate('/admin/marketing-desk?helper=mail')}
                     >
                       Desk · Mail
                     </button>
@@ -284,7 +284,7 @@ export function GrowthAgentBenjaminWorkspace() {
         <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate(AF.publicPath)}>
           Affiliate program
         </button>
-        <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/marketing?tab=desk&helper=find')}>
+        <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/marketing-desk?helper=find')}>
           Desk · Find
         </button>
         <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/growth-agents/marketing-director')}>

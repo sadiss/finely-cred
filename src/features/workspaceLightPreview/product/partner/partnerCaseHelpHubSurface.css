@@ -1,0 +1,174 @@
+/* Case Help hub — matter timeline */
+
+.fc-casehelp-timeline-layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 260px) 1fr;
+  gap: 22px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .fc-casehelp-timeline-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fc-casehelp-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 12px 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(244, 63, 94, 0.18);
+  background:
+    radial-gradient(circle at 0% 0%, rgba(244, 63, 94, 0.08), transparent 45%),
+    rgba(255, 255, 255, 0.55);
+}
+
+.fc-casehelp-timeline-step {
+  position: relative;
+  display: flex;
+  gap: 14px;
+  padding: 6px 8px 22px 8px;
+  border: none;
+  border-radius: 14px;
+  background: transparent;
+  text-align: left;
+  width: 100%;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.fc-casehelp-timeline-step:hover {
+  background: rgba(244, 63, 94, 0.05);
+}
+
+.fc-casehelp-timeline-step::before {
+  content: '';
+  position: absolute;
+  left: 25px;
+  top: 42px;
+  bottom: 0;
+  width: 2px;
+  background: rgba(244, 63, 94, 0.2);
+}
+
+.fc-casehelp-timeline-step:last-child::before {
+  display: none;
+}
+
+.fc-casehelp-timeline-marker {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 800;
+  border: 2px solid rgba(244, 63, 94, 0.35);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.fc-casehelp-timeline-step[data-active='true'] {
+  background: rgba(244, 63, 94, 0.08);
+}
+
+.fc-casehelp-timeline-step[data-active='true'] .fc-casehelp-timeline-marker {
+  border-color: rgba(244, 63, 94, 0.7);
+  background: rgba(244, 63, 94, 0.12);
+  color: #9f1239;
+}
+
+.fc-casehelp-timeline-label {
+  font-size: 1rem;
+  font-weight: 800;
+  padding-top: 6px;
+}
+
+.fc-casehelp-timeline-hint {
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.75;
+  margin-top: 2px;
+}
+
+.fc-casehelp-timeline-panel {
+  min-width: 0;
+  padding: 26px 30px;
+  border-radius: 22px;
+  border: 1px solid rgba(244, 63, 94, 0.18);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(139, 92, 246, 0.06), transparent 40%),
+    rgba(255, 255, 255, 0.72);
+}
+
+.fc-casehelp-timeline-panel-title {
+  font-size: 1.65rem;
+  font-weight: 800;
+  margin-bottom: 16px;
+}
+
+html[data-fc-theme='dark'] .fc-casehelp-timeline {
+  border-color: rgba(244, 63, 94, 0.28);
+  background:
+    radial-gradient(circle at 0% 0%, rgba(244, 63, 94, 0.12), transparent 45%),
+    rgba(15, 23, 42, 0.62);
+}
+
+html[data-fc-theme='dark'] .fc-casehelp-timeline-step:hover {
+  background: rgba(244, 63, 94, 0.1);
+}
+
+html[data-fc-theme='dark'] .fc-casehelp-timeline-marker {
+  background: rgba(15, 23, 42, 0.85);
+}
+
+html[data-fc-theme='dark'] .fc-casehelp-timeline-panel {
+  border-color: rgba(244, 63, 94, 0.28);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(139, 92, 246, 0.1), transparent 40%),
+    rgba(15, 23, 42, 0.62);
+}
+
+/* Light site — ink on ivory timeline beds */
+html[data-fc-theme='light'] .fc-casehelp-timeline,
+html[data-fc-theme='light'] .fc-casehelp-timeline-panel,
+html[data-fc-theme='light'] .fc-casehelp-timeline-label,
+html[data-fc-theme='light'] .fc-casehelp-timeline-panel-title {
+  color: var(--wlp-ink, #0a1628);
+}
+
+html[data-fc-theme='light'] .fc-casehelp-timeline-hint {
+  color: var(--wlp-muted, rgba(10, 22, 40, 0.68));
+  opacity: 1;
+}
+
+html[data-fc-theme='light'] .fc-casehelp-timeline-step:not([data-active='true']) {
+  color: var(--wlp-ink, #0a1628);
+}
+
+html[data-fc-theme='light'] .fc-casehelp-timeline-step:not([data-active='true']) .fc-casehelp-timeline-marker {
+  color: var(--wlp-ink, #0a1628);
+  background: rgba(255, 255, 255, 0.94);
+}
+
+/* Dark site — light ink on navy timeline beds */
+html[data-fc-theme='dark'] .fc-casehelp-timeline-label,
+html[data-fc-theme='dark'] .fc-casehelp-timeline-panel-title {
+  color: var(--wlp-ink, #f1f5f9);
+}
+
+html[data-fc-theme='dark'] .fc-casehelp-timeline-hint {
+  color: var(--wlp-muted, #cbd5e1);
+  opacity: 1;
+}
+
+html[data-fc-theme='dark'] .fc-casehelp-timeline-step:not([data-active='true']) {
+  color: #e2e8f0;
+}
+
+html[data-fc-theme='dark'] .fc-casehelp-timeline-step:not([data-active='true']) .fc-casehelp-timeline-marker {
+  color: #e2e8f0;
+}

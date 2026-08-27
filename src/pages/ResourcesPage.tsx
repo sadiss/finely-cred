@@ -2,14 +2,11 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, BookOpen, Calendar, Film, FileText, Library, ShieldCheck, Sparkles, Trophy } from 'lucide-react';
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { PageShell } from '../components/layout/PageShell';
-import { useAuth } from '../auth/AuthProvider';
-import { isAdminEmail } from '../auth/admin';
 import { captureLeadAttributionFromUrl } from '../lib/leadAttribution';
 import { usePublicSeoMeta } from '../hooks/usePublicSeoMeta';
 import { buildOrganizationSchema, buildWebPageSchema, injectJsonLd } from '../lib/seoSchema';
 import { MarketingStaffChatStrip } from '../components/marketing/MarketingStaffChatStrip';
 import { FinelyOsPageFooter } from '../features/os/FinelyOsPageFooter';
-import { FinelyUnifiedHubLayout } from '../features/unified/FinelyUnifiedHubLayout';
 import { FinelyNowDoThisStrip } from '../components/tours/FinelyNowDoThisStrip';
 import { FinelyNoticedStrip } from '../components/tours/FinelyNoticedStrip';
 import { buildResourcesNoticedItems } from '../lib/finelyProactiveSignals';
@@ -26,6 +23,7 @@ import {
   FINELY_OS_SECONDARY_BTN,
   finelyOsCatalogCard,
   finelyOsLandingContrastSection,
+  finelyOsSolidIconChip,
 } from '../features/os/finelyOsLightUi';
 import { LandingSellAtmosphere } from '../components/landing/LandingSellAtmosphere';
 import { TOUR_MANIFEST } from '../config/tourManifest';
@@ -55,8 +53,6 @@ const HASH_REDIRECTS: Record<string, string> = {
 export default function ResourcesPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const auth = useAuth();
-  const isAdmin = isAdminEmail(auth.user?.email);
   const [previewTour, setPreviewTour] = useState<SiteTourDefinition | null>(null);
 
   const hubCards = useMemo(
@@ -121,104 +117,110 @@ export default function ResourcesPage() {
           data-fc-contrast-band="1"
         >
           <LandingSellAtmosphere tone="platinum" />
-          <PublicLaneTitle
-            lane="resources"
-            eyebrow="Resource hub"
-            text="Guides, packs, and partner tools."
-            highlight="partner tools."
-            speedMs={36}
-            subtitle={
-              <p className="fc-light-contrast-body max-w-2xl text-base sm:text-lg">
-                Start with free guides if you&apos;re new — jump to one-sheets, bookstore, or monitoring when you know your lane.
-              </p>
-            }
-          />
+          <div className="relative grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:items-end">
+            <PublicLaneTitle
+              lane="resources"
+              eyebrow="Resource hub"
+              text="Guides, packs, and partner tools."
+              highlight="partner tools."
+              speedMs={36}
+              subtitle={
+                <p className="fc-light-contrast-body max-w-2xl text-base sm:text-lg">
+                  Start with free guides if you&apos;re new — jump to one-sheets, bookstore, or monitoring when you know your lane.
+                </p>
+              }
+            />
+            <div className="grid gap-3 sm:grid-cols-3 content-start">
+              {[
+                { value: String(hubCards.length), label: 'Dedicated pages', accent: 'emerald' as const },
+                { value: 'Free', label: 'Guide library', accent: 'violet' as const },
+                { value: '24/7', label: 'Self-serve access', accent: 'sky' as const },
+              ].map((kpi) => (
+                <div key={kpi.label} className={`${finelyOsCatalogCard(kpi.accent)} !p-5 text-center sm:text-left`} data-fc-accent={kpi.accent}>
+                  <div className={`text-2xl sm:text-3xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{kpi.value}</div>
+                  <div className={`mt-1 text-sm font-bold ${FINELY_OS_ENTITY_BODY}`}>{kpi.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
         </section>
 
-        <div className="space-y-4 py-6">
-          <FinelyUnifiedHubLayout
-            eyebrow="Resource library"
-            title="Pick a dedicated page"
-            subtitle="Each card opens its own route — guides, one-sheets, bookstore, monitoring, videos, stories, and events."
-            accent="violet"
-            kpis={[
-              { label: 'Lanes', value: String(hubCards.length), accent: 'violet' },
-              { label: 'Start', value: 'Guides', accent: 'emerald' },
-            ]}
-            primaryAction={{ label: 'All free guides', onClick: () => navigate('/resources/guides') }}
-            secondaryAction={{ label: 'Dispute letter guide', onClick: () => navigate('/free-guide') }}
-            detailSlot={
-              <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
-                Educational only — not legal advice. Prefer HTML bureau exports for best parse quality in the portal.
-              </p>
-            }
-          >
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-              <div className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
-                Curated hub for restore, business build, and funding prep.
-              </div>
-              {isAdmin ? (
-                <button type="button" onClick={() => navigate('/admin/resources')} className={FINELY_OS_SECONDARY_BTN}>
-                  Admin editor <ArrowRight size={14} />
-                </button>
-              ) : null}
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              {hubCards.map((card) => {
-                const Icon = CARD_ICONS[card.id] ?? BookOpen;
-                return (
-                  <button
-                    key={card.id}
-                    type="button"
-                    onClick={() => navigate(card.path)}
-                    className={`${finelyOsCatalogCard(card.accent)} !p-4 text-left transition-all hover:brightness-110`}
-                    data-fc-accent={card.accent}
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/15 bg-black/25">
-                        <Icon size={18} />
-                      </div>
-                      {card.badge ? <span className={FINELY_OS_ENTITY_SUBLABEL}>{card.badge}</span> : null}
-                    </div>
-                    <div className={`mt-3 font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{card.title}</div>
-                    <p className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>{card.desc}</p>
-                    <span className={`${FINELY_OS_PRIMARY_BTN} mt-3 !px-3 !py-2 text-[10px]`}>
-                      Open <ArrowRight size={12} />
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className={`mt-4 flex flex-wrap gap-3 ${finelyOsCatalogCard('amber')} !p-4`} data-fc-accent="amber">
-              <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => navigate('/start-here')}>
-                Start here <ArrowRight size={14} />
-              </button>
-              <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/fundability-readiness')}>
-                Fundability hub
-              </button>
-              <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/enlightenment-session')}>
-                Book a strategy call
-              </button>
-            </div>
-
-            <p className={`${FINELY_OS_COMPLIANCE_FOOTNOTE} mt-4`}>
-              Results vary · not legal advice · educational dispute workflow only.
+        <div className="space-y-6 py-8">
+          <div>
+            <div className={FINELY_OS_ENTITY_SUBLABEL}>Resource library</div>
+            <h2 className={`mt-1 text-2xl sm:text-3xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>
+              Pick a dedicated page
+            </h2>
+            <p className={`mt-2 max-w-2xl text-base ${FINELY_OS_ENTITY_BODY}`}>
+              Guides, one-sheets, bookstore, monitoring, videos, stories, and events — each opens its own route.
             </p>
-          </FinelyUnifiedHubLayout>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-12">
+            {hubCards.map((card) => {
+              const Icon = CARD_ICONS[card.id] ?? BookOpen;
+              const isFeatured = card.id === 'guides';
+              const spanClass = isFeatured ? 'lg:col-span-6' : 'lg:col-span-3';
+              return (
+                <button
+                  key={card.id}
+                  type="button"
+                  onClick={() => navigate(card.path)}
+                  className={`${finelyOsCatalogCard(card.accent)} ${spanClass} text-left transition-all hover:brightness-110 ${
+                    isFeatured ? '!p-6 lg:!p-8' : '!p-5'
+                  }`}
+                  data-fc-accent={card.accent}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className={finelyOsSolidIconChip(card.accent, isFeatured ? 'lg' : 'md')}>
+                      <Icon size={isFeatured ? 22 : 18} />
+                    </div>
+                    {card.badge ? <span className={FINELY_OS_ENTITY_SUBLABEL}>{card.badge}</span> : null}
+                  </div>
+                  <div className={`mt-4 font-extrabold ${isFeatured ? 'text-xl' : 'text-base'} ${FINELY_OS_ENTITY_VALUE}`}>
+                    {card.title}
+                  </div>
+                  <p className={`mt-2 leading-relaxed ${isFeatured ? 'text-base' : 'text-sm'} ${FINELY_OS_ENTITY_BODY}`}>
+                    {card.desc}
+                  </p>
+                  <span className={`${FINELY_OS_SECONDARY_BTN} mt-4 inline-flex !px-4 !py-2.5 !text-sm`}>
+                    Open <ArrowRight size={14} />
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className={`flex flex-wrap items-center gap-4 ${finelyOsCatalogCard('sky')}`} data-fc-accent="sky">
+            <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => navigate('/resources/guides')}>
+              All free guides <ArrowRight size={14} />
+            </button>
+            <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/free-guide')}>
+              Dispute letter guide
+            </button>
+            <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/start-here')}>
+              Start here
+            </button>
+            <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/enlightenment-session')}>
+              Book a strategy call
+            </button>
+          </div>
+
+          <p className={FINELY_OS_COMPLIANCE_FOOTNOTE}>
+            Results vary · not legal advice · funding subject to underwriting
+          </p>
         </div>
 
         <DedicatedSheetLinkStrip className="mb-4" />
 
         <div className="space-y-8 pb-6">
-          <section id="guides" className="fc-scroll-section space-y-3">
-            <h2 className="fc-launch-lane-header">Free guides, credit monitoring, and one-sheets</h2>
-            <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
+          <section id="guides" className={`${finelyOsCatalogCard('emerald')} fc-scroll-section space-y-3`} data-fc-accent="emerald">
+            <h2 className={`text-xl sm:text-2xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>Free guides, credit monitoring, and one-sheets</h2>
+            <p className={`text-base ${FINELY_OS_ENTITY_BODY}`}>
               Start with free guides if you&apos;re new. Need a human? Book a strategy call when you&apos;re ready.
             </p>
             <div className="flex flex-wrap gap-2">
-              <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => navigate('/resources/guides')}>
+              <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/resources/guides')}>
                 Open guides <ArrowRight size={14} />
               </button>
               <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/enlightenment-session')}>
@@ -227,9 +229,9 @@ export default function ResourcesPage() {
             </div>
           </section>
 
-          <section id="monitoring" className="fc-scroll-section space-y-3">
-            <h2 className="fc-launch-lane-header">Credit monitoring partners</h2>
-            <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
+          <section id="monitoring" className={`${finelyOsCatalogCard('sky')} fc-scroll-section space-y-3`} data-fc-accent="sky">
+            <h2 className={`text-xl sm:text-2xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>Credit monitoring partners</h2>
+            <p className={`text-base ${FINELY_OS_ENTITY_BODY}`}>
               Compare monitoring partners and pick the lane that fits your restore plan.
             </p>
             <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/resources/credit-monitoring')}>
@@ -237,9 +239,9 @@ export default function ResourcesPage() {
             </button>
           </section>
 
-          <section id="references" className="fc-scroll-section space-y-3">
-            <h2 className="fc-launch-lane-header">References &amp; bookstore</h2>
-            <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
+          <section id="references" className={`${finelyOsCatalogCard('violet')} fc-scroll-section space-y-3`} data-fc-accent="violet">
+            <h2 className={`text-xl sm:text-2xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>References &amp; bookstore</h2>
+            <p className={`text-base ${FINELY_OS_ENTITY_BODY}`}>
               Statutes, templates, and bookstore titles — educational only, not legal advice.
             </p>
             <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/resources/references')}>
@@ -247,13 +249,13 @@ export default function ResourcesPage() {
             </button>
           </section>
 
-          <LaunchPresenterDemoSection showAdminTools={isAdmin} />
+          <LaunchPresenterDemoSection showAdminTools={false} />
 
           {PUBLIC_DEMO_VIDEOS_ENABLED ? (
-          <section id="videos" className="fc-scroll-section space-y-3">
-            <h2 className="fc-launch-lane-header">Watch-how tours</h2>
-            <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
-              Factory watch-how tours — short MP4 walkthroughs for portal and public hubs.
+          <section id="videos" className={`${finelyOsCatalogCard('rose')} fc-scroll-section space-y-3`} data-fc-accent="rose">
+            <h2 className={`text-xl sm:text-2xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>Watch-how tours</h2>
+            <p className={`text-base ${FINELY_OS_ENTITY_BODY}`}>
+              Short walkthrough videos for portal and public hubs.
             </p>
             <div className="flex flex-wrap gap-2">
               {TOUR_MANIFEST.slice(0, 4).map((tour) => (
@@ -266,7 +268,7 @@ export default function ResourcesPage() {
                   {tour.title}
                 </button>
               ))}
-              <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => navigate('/resources/videos')}>
+              <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/resources/videos')}>
                 Full video library <ArrowRight size={14} />
               </button>
             </div>

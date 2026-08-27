@@ -1,0 +1,84 @@
+/* Evidence vault — control room with alert rail + status grid */
+
+.fc-wlp-evidence-control-room {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.fc-wlp-evidence-alert-rail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-radius: 18px;
+}
+
+.fc-wlp-evidence-status-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .fc-wlp-evidence-status-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.fc-wlp-evidence-status-tile {
+  text-align: left;
+  border-radius: 18px;
+  min-height: 148px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.15s ease;
+}
+
+.fc-wlp-evidence-status-tile:hover {
+  transform: translateY(-1px);
+}
+
+.fc-wlp-evidence-control-deck {
+  display: grid;
+  grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .fc-wlp-evidence-control-deck {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fc-wlp-evidence-tool-rail-tile {
+  width: 100%;
+  position: relative;
+  border-radius: 18px;
+}
+
+.fc-wlp-evidence-tool-rail-tile[data-active='true'] {
+  outline: 2px solid color-mix(in srgb, var(--wlp-accent, #10b981) 38%, transparent);
+}
+
+.fc-wlp-evidence-tool-rail-badge {
+  display: inline-flex;
+  margin-top: 8px;
+  min-width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: rgba(244, 63, 94, 0.16);
+  color: #be123c;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.fc-wlp-evidence-control-main {
+  min-width: 0;
+}

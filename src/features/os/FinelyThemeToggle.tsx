@@ -15,20 +15,30 @@ const META: Record<
 };
 
 /** Public theme toggle — light option hidden until admin enables or user is admin. */
-export function FinelyThemeToggle({ compact = false, adminPreview = false }: { compact?: boolean; adminPreview?: boolean }) {
+export function FinelyThemeToggle({
+  compact = false,
+  adminPreview = false,
+  pair = false,
+}: {
+  compact?: boolean;
+  adminPreview?: boolean;
+  /** Light | Dark only — the dashboard back-and-forth control. */
+  pair?: boolean;
+}) {
   const { preference, setPreference, cyclePreference } = useFinelySiteTheme();
   const auth = useAuth();
   const options = useMemo(() => {
-    if (adminPreview) return (['light', 'dark', 'system'] as FinelySiteThemePreference[]);
+    if (pair) return ['light', 'dark'] as FinelySiteThemePreference[];
+    if (adminPreview) return ['light', 'dark', 'system'] as FinelySiteThemePreference[];
     return themeToggleOptions(auth.user?.email);
-  }, [adminPreview, auth.user?.email]);
+  }, [adminPreview, auth.user?.email, pair]);
 
   if (!adminPreview && !shouldShowPublicThemeToggle(auth.user?.email)) {
     return null;
   }
 
-  if (compact) {
-    const active = META[preference] ?? META.dark;
+  if (compact && !pair) {
+    const active = META[preference === 'system' ? 'light' : preference] ?? META.light;
     const Icon = active.icon;
     return (
       <button
@@ -39,6 +49,7 @@ export function FinelyThemeToggle({ compact = false, adminPreview = false }: { c
         aria-label={`Theme ${active.label}. Click to change.`}
       >
         <Icon size={15} />
+        <span>{active.label}</span>
       </button>
     );
   }
@@ -52,20 +63,20 @@ export function FinelyThemeToggle({ compact = false, adminPreview = false }: { c
       {options.map((id) => {
         const opt = META[id];
         const Icon = opt.icon;
-        const active = preference === id;
+        const active = pair && preference === 'system' ? id === 'light' : preference === id;
         return (
           <button
             key={id}
             type="button"
             onClick={() => setPreference(id)}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-extrabold transition-all ${
               active ? 'fc-theme-toggle-active' : 'fc-theme-toggle-idle'
             }`}
             aria-pressed={active}
             title={opt.label}
           >
             <Icon size={14} />
-            <span className="hidden sm:inline">{opt.label}</span>
+            <span className={pair ? 'inline' : 'hidden sm:inline'}>{opt.label}</span>
           </button>
         );
       })}

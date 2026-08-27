@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Users } from 'lucide-react';
-import { PageShell } from '../../components/layout/PageShell';
+import { AdminWorkstationFrame, type AdminEmbeddablePageProps } from '../../features/workspaceLightPreview/product/admin/AdminWorkstationFrame';
+import { useMappedAdminNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { listTasks } from '../../data/tasksRepo';
 import { listProjects } from '../../data/projectsRepo';
 import { getActiveTenantId } from '../../tenancy/activeTenant';
@@ -9,7 +9,7 @@ import { useAuth } from '../../auth/AuthProvider';
 import { getAccessiblePartnerIdsForAdmin } from '../../tenancy/adminPartnerScope';
 import type { TaskItem } from '../../domain/tasks';
 import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
-import { FINELY_OS_BANNER, FINELY_OS_BACK_LINK, FINELY_OS_ENTITY_BODY, FINELY_OS_ENTITY_SUBLABEL, FINELY_OS_ENTITY_VALUE, FINELY_OS_KPI_ACCENTS, FINELY_OS_PAGE, finelyOsInlineListItem } from '../../features/os/finelyOsLightUi';
+import { FINELY_OS_BANNER, FINELY_OS_BACK_LINK, FINELY_OS_ENTITY_BODY, FINELY_OS_ENTITY_SUBLABEL, FINELY_OS_ENTITY_VALUE, FINELY_OS_KPI_ACCENTS, FINELY_OS_PAGE, FINELY_OS_PRIMARY_BTN, finelyOsInlineListItem } from '../../features/os/finelyOsLightUi';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 
 function assigneeKey(t: TaskItem): string {
@@ -27,8 +27,8 @@ function assigneeLabel(key: string): string {
   return key.replace('user:', 'User ');
 }
 
-export default function AdminWorkloadPage() {
-  const navigate = useNavigate();
+export default function AdminWorkloadPage({ embedded = false }: AdminEmbeddablePageProps = {}) {
+  const navigate = useMappedAdminNavigate();
   const auth = useAuth();
   const [version, setVersion] = useState(0);
   const [partnerIds, setPartnerIds] = useState<Set<string>>(new Set());
@@ -68,12 +68,33 @@ export default function AdminWorkloadPage() {
     return Array.from(map.entries()).sort((a, b) => b[1].length - a[1].length);
   }, [openTasks]);
 
+  const unassignedCount = openTasks.filter((t) => assigneeKey(t) === 'unassigned').length;
+  const busiestLane = byAssignee[0];
+
   return (
-    <PageShell badge="Admin" title="Workload" subtitle="Open tasks by assignee — Finely OS 400% ops capacity view.">
+    <AdminWorkstationFrame embedded={embedded} kind="workload-workstation" badge="Admin" title="Workload" subtitle="Who is carrying too much open work — and which task to reassign first.">
       <div className={FINELY_OS_PAGE}>
         <button type="button" onClick={() => navigate('/admin/projects')} className={FINELY_OS_BACK_LINK}>
           <ArrowLeft size={16} /> Projects
         </button>
+
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            className={FINELY_OS_PRIMARY_BTN}
+            onClick={() =>
+              navigate(
+                unassignedCount > 0
+                  ? '/admin/workflow?filter=unassigned'
+                  : busiestLane?.[1]?.[0]?.projectId
+                    ? `/admin/projects/${busiestLane[1][0].projectId}?task=${busiestLane[1][0].id}`
+                    : '/admin/workflow',
+              )
+            }
+          >
+            {unassignedCount > 0 ? 'Assign unowned tasks' : 'Open the busiest lane'}
+          </button>
+        </div>
 
         <div className={FINELY_OS_BANNER}>
           <Users className="text-emerald-400 shrink-0 mt-0.5" size={18} />
@@ -128,8 +149,8 @@ export default function AdminWorkloadPage() {
             </div>
           ))}
         </div>
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
 </div>
-    </PageShell>
+    </AdminWorkstationFrame>
   );
 }

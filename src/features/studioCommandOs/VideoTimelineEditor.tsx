@@ -101,7 +101,7 @@ export function VideoTimelineEditor({
               className={`${finelyOsDeckTile('amber', active)} shrink-0 snap-start !w-[min(240px,78vw)] px-3 py-3`}
             >
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[10px] font-black uppercase tracking-widest text-amber-200">Shot {idx + 1}</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-violet-200">Shot {idx + 1}</span>
                 <span className="text-[10px] font-mono text-white/40 inline-flex items-center gap-1">
                   <Clock size={10} /> {s.durationSec}s
                 </span>
@@ -234,7 +234,7 @@ export function VideoTimelineEditor({
                 />
                 <div className="mt-1 flex justify-between text-[10px] text-white/45">
                   <span>2s snappy</span>
-                  <span className="font-mono text-amber-200">{editing.durationSec}s</span>
+                  <span className="font-mono text-sky-200">{editing.durationSec}s</span>
                   <span>12s long</span>
                 </div>
               </label>

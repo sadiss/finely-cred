@@ -35,7 +35,9 @@ for (const rel of HUB_PAGES) {
   const hasTabs =
     src.includes('FinelyUnifiedHubLayout') ||
     src.includes('activeTab') ||
-    src.includes('finelyOsViewTab(tab ===');
+    src.includes('finelyOsViewTab(tab ===') ||
+    src.includes('FINELY_OS_VIEW_TABS') ||
+    src.includes('finelyOsViewTab(mode ===');
   const hasUrlSync = src.includes('useSearchParams') || src.includes('searchParams.get');
   const ok = hasTabs && hasUrlSync;
   console.log(`${ok ? '✓' : '✗'} ${rel}${ok ? '' : ` (tabs:${hasTabs} url:${hasUrlSync})`}`);

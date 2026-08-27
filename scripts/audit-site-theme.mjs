@@ -222,16 +222,16 @@ console.log(`${landingHarmonyOk ? '✓' : '✗'} Landing index — CK harmony ho
 if (!landingHarmonyOk) failed += 1;
 
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-const htmlOk = html.includes('finely.siteTheme.v1') && html.includes('data-fc-theme');
-console.log(`${htmlOk ? '✓' : '✗'} index.html — theme flash guard`);
+const htmlOk = html.includes('finely.siteTheme.v3') && html.includes("stored === 'dark' ? 'dark' : 'light'");
+console.log(`${htmlOk ? '✓' : '✗'} index.html — theme flash guard defaults light`);
 if (!htmlOk) failed += 1;
 
 const themeAccess = fs.readFileSync(path.join(root, 'src/lib/finelyThemeAccess.ts'), 'utf8');
 const themeAccessOk =
   themeAccess.includes('lightThemePublic') &&
   themeAccess.includes('canUseLightTheme') &&
-  themeAccess.includes("return ['dark', 'system']");
-console.log(`${themeAccessOk ? '✓' : '✗'} finelyThemeAccess — light gated until public flag or admin`);
+  themeAccess.includes('return true');
+console.log(`${themeAccessOk ? '✓' : '✗'} finelyThemeAccess — light is the product default`);
 if (!themeAccessOk) failed += 1;
 
 const themeToggle = fs.readFileSync(path.join(root, 'src/features/os/FinelyThemeToggle.tsx'), 'utf8');

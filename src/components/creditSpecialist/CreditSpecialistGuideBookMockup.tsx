@@ -61,7 +61,7 @@ export function CreditSpecialistGuideBookMockup({
             </div>
             <div className="relative z-10">
               <div className="text-[9px] uppercase tracking-[0.18em] text-white/40">Free in-app guide</div>
-              <div className="mt-1 text-2xl font-black tabular-nums text-[#f0cc75]">{valueLabel}</div>
+              <div className="mt-1 text-2xl font-black tabular-nums text-violet-200">{valueLabel}</div>
               <div className="mt-1 text-[10px] font-bold uppercase tracking-wider text-[#95e000]">Open to read →</div>
             </div>
           </div>

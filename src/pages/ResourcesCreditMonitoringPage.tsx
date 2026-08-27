@@ -52,7 +52,7 @@ export default function ResourcesCreditMonitoringPage() {
           primaryAction={{ label: 'Open partner portal', onClick: () => navigate('/login') }}
           secondaryAction={{ label: 'Resource hub', onClick: () => navigate('/resources') }}
         >
-          <div className={`space-y-4 ${finelyOsCatalogCard('violet')} !p-5`} data-fc-accent="violet">
+          <div className={`space-y-4 ${finelyOsCatalogCard('violet')}`} data-fc-accent="violet">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-violet-700`}>

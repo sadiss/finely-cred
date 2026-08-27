@@ -1,0 +1,169 @@
+/* AU seller hub — fulfillment ledger board */
+
+.fc-au-ledger {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.fc-au-ledger-board {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+
+@media (max-width: 1100px) {
+  .fc-au-ledger-board {
+    grid-template-columns: repeat(5, minmax(168px, 1fr));
+  }
+}
+
+.fc-au-ledger-column {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 148px;
+  padding: 16px 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(139, 92, 246, 0.28);
+  background:
+    radial-gradient(circle at 100% 0, rgba(139, 92, 246, 0.16), transparent 38%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(139, 92, 246, 0.08));
+  box-shadow: 0 22px 38px -32px rgba(10, 22, 39, 0.55);
+}
+
+.fc-au-ledger-column[data-fc-accent='violet'] {
+  border-color: rgba(139, 92, 246, 0.32);
+  background:
+    radial-gradient(circle at 100% 0, rgba(139, 92, 246, 0.18), transparent 38%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(139, 92, 246, 0.08));
+}
+
+.fc-au-ledger-column[data-fc-accent='sky'] {
+  border-color: rgba(56, 189, 248, 0.32);
+  background:
+    radial-gradient(circle at 100% 0, rgba(56, 189, 248, 0.18), transparent 38%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(56, 189, 248, 0.08));
+}
+
+.fc-au-ledger-column[data-fc-accent='emerald'] {
+  border-color: rgba(16, 185, 129, 0.32);
+  background:
+    radial-gradient(circle at 100% 0, rgba(16, 185, 129, 0.18), transparent 38%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(16, 185, 129, 0.08));
+}
+
+.fc-au-ledger-column[data-fc-accent='rose'],
+.fc-au-ledger-column[data-fc-accent='fuchsia'] {
+  border-color: rgba(244, 63, 94, 0.32);
+  background:
+    radial-gradient(circle at 100% 0, rgba(244, 63, 94, 0.16), transparent 38%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(244, 63, 94, 0.08));
+}
+
+.fc-au-ledger-column-head {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.fc-au-ledger-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  text-align: left;
+  font-weight: 800;
+  font-size: 15px;
+  transition: border-color 0.12s ease, background 0.12s ease, transform 0.12s ease;
+}
+
+.fc-au-ledger-row:hover {
+  transform: translateY(-1px);
+}
+
+.fc-au-ledger-row[data-active='true'] {
+  border-color: rgba(139, 92, 246, 0.45);
+  background: rgba(139, 92, 246, 0.1);
+  box-shadow: 0 6px 24px rgba(139, 92, 246, 0.1);
+}
+
+.fc-au-ledger-row-meta {
+  font-size: 13px;
+  font-weight: 650;
+  opacity: 0.76;
+  line-height: 1.35;
+}
+
+.fc-au-ledger-detail {
+  padding: 28px 32px;
+  border-radius: 24px;
+  border: 1px solid rgba(139, 92, 246, 0.16);
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.fc-au-ledger-detail[data-fc-accent='violet'] {
+  border-color: rgba(139, 92, 246, 0.24);
+  background: radial-gradient(circle at top left, rgba(139, 92, 246, 0.08), transparent 50%), rgba(255, 255, 255, 0.82);
+}
+
+.fc-au-ledger-detail[data-fc-accent='sky'] {
+  border-color: rgba(56, 189, 248, 0.24);
+  background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.08), transparent 50%), rgba(255, 255, 255, 0.82);
+}
+
+.fc-au-ledger-detail[data-fc-accent='emerald'] {
+  border-color: rgba(16, 185, 129, 0.24);
+  background: radial-gradient(circle at top left, rgba(16, 185, 129, 0.08), transparent 50%), rgba(255, 255, 255, 0.82);
+}
+
+.fc-au-ledger-detail[data-fc-accent='rose'],
+.fc-au-ledger-detail[data-fc-accent='fuchsia'] {
+  border-color: rgba(244, 63, 94, 0.24);
+  background: radial-gradient(circle at top left, rgba(244, 63, 94, 0.08), transparent 50%), rgba(255, 255, 255, 0.82);
+}
+
+.fc-au-ledger-detail-title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  margin-bottom: 18px;
+}
+
+.fc-au-marketplace-shelf {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+.fc-au-marketplace-link-band {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 22px;
+  border-radius: 18px;
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  background: radial-gradient(circle at top right, rgba(56, 189, 248, 0.12), transparent 55%);
+}
+
+.fc-au-marketplace-link-band code {
+  font-family: ui-monospace, monospace;
+  font-size: 13px;
+  font-weight: 700;
+  word-break: break-all;
+}
+
+.fc-au-hub-action-deck {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}

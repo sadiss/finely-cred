@@ -28,7 +28,7 @@ export function CmoExperimentLab() {
     <section className="fc-panel p-5 space-y-4">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.24em] text-amber-300/80">Experiment Lab</p>
+          <p className="text-xs uppercase tracking-[0.24em] text-sky-300/80">Experiment Lab</p>
           <h2 className="text-2xl font-semibold text-white">A/B testing and creative memory</h2>
           <p className="mt-2 text-sm text-slate-300">The CMO tests hooks, watches winners, and turns results into the next creative move.</p>
         </div>
@@ -47,11 +47,11 @@ export function CmoExperimentLab() {
               <div className="space-y-2">
                 {experiment.variants.map((variant) => (
                   <div key={variant.id} className="rounded-xl border border-white/10 bg-white/[0.03] p-3 text-sm text-slate-300">
-                    <div className="flex items-start justify-between gap-3"><span>{variant.hook}</span><strong className="text-amber-100">{variant.score150}</strong></div>
+                    <div className="flex items-start justify-between gap-3"><span>{variant.hook}</span><strong className="text-sky-100">{variant.score150}</strong></div>
                   </div>
                 ))}
               </div>
-              <p className="flex items-center gap-2 text-sm text-amber-100"><Trophy className="h-4 w-4" />{winner ? `Current winner: ${winner.label}` : experiment.recommendation}</p>
+              <p className="flex items-center gap-2 text-sm text-sky-100"><Trophy className="h-4 w-4" />{winner ? `Current winner: ${winner.label}` : experiment.recommendation}</p>
             </article>
           );
         })}

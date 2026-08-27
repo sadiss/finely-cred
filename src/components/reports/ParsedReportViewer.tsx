@@ -1,9 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Camera, ChevronDown, Database, ShieldAlert, ChevronLeft, ChevronRight } from 'lucide-react';
-import type { Bureau, ParsedCreditReport, ParsedTradeline, TradelineRow } from '../../domain/creditReports';
+import { ChevronDown, Database, FileCheck2, ScanSearch, ShieldAlert, ChevronLeft, ChevronRight } from 'lucide-react';
+import type { Bureau, CreditReportRecord, ParsedCreditReport, ParsedTradeline, TradelineRow } from '../../domain/creditReports';
+import { listReportsByPartner } from '../../data/reportsRepo';
+import { diffTradelines, summarizeTradelineDiff } from '../../domain/tradelineDiff';
+import { computeMiddleScore } from '../../domain/creditScoreMiddle';
 import { upsertEvidence } from '../../data/evidenceRepo';
 import { captureTradelineEvidenceScreenshot } from '../../lib/captureTradelineEvidenceScreenshot';
 import { CollapsibleSection } from '../ui/CollapsibleSection';
+import { ReportSourceEvidenceModal } from '../evidence/ReportSourceEvidenceModal';
 import { bureauShortCode } from '../../utils/bureaus';
 import {
   FINELY_OS_ENTITY_BODY,
@@ -72,6 +76,7 @@ export function ParsedReportViewer({
   parsed,
   partnerId,
   reportId,
+  reportRecord,
   scrollToCreditorName,
   layout = 'list',
   showSequence = false,
@@ -82,6 +87,8 @@ export function ParsedReportViewer({
   parsed: ParsedCreditReport;
   partnerId?: string;
   reportId?: string;
+  /** Original protected report record, required for source-faithful crop rendering. */
+  reportRecord?: CreditReportRecord;
   scrollToCreditorName?: string | null;
   layout?: 'list' | 'grid';
   showSequence?: boolean;
@@ -96,6 +103,7 @@ export function ParsedReportViewer({
   const [openIndex, setOpenIndex] = useState<number | null>(0);
   const [savingKey, setSavingKey] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [sourceTradeline, setSourceTradeline] = useState<ParsedTradeline | null>(null);
   const [filterBureau, setFilterBureau] = useState<Bureau | ''>('');
   const [filterType, setFilterType] = useState<string>('');
   const [filterStatus, setFilterStatus] = useState<string>('');
@@ -164,8 +172,18 @@ export function ParsedReportViewer({
     const tradelines = filteredTradelines.length;
     const withHistory = filteredTradelines.filter((t) => t.paymentHistory2y?.months?.length).length;
     const scoreCount = parsed.scores?.length ?? 0;
-    return { tradelines, withHistory, scoreCount, rawTradelines: parsed.tradelines.length };
+    const middle = computeMiddleScore(parsed.scores ?? []);
+    return { tradelines, withHistory, scoreCount, rawTradelines: parsed.tradelines.length, middle };
   }, [filteredTradelines, parsed.scores, parsed.tradelines.length]);
+
+  const vsPrior = useMemo(() => {
+    if (!partnerId) return null;
+    const reports = listReportsByPartner(partnerId).filter((r) => r.parsed?.tradelines?.length);
+    const currentIdx = reportId ? reports.findIndex((r) => r.id === reportId) : 0;
+    const prior = reports[currentIdx >= 0 ? currentIdx + 1 : 1];
+    if (!prior?.parsed?.tradelines?.length) return null;
+    return summarizeTradelineDiff(diffTradelines(prior.parsed.tradelines, parsed.tradelines));
+  }, [partnerId, reportId, parsed.tradelines]);
 
   const parseQualityNote = useMemo(() => {
     if (stats.rawTradelines === 0) {
@@ -203,9 +221,9 @@ export function ParsedReportViewer({
         reportId,
       });
       upsertEvidence(item);
-      setNotice(`Saved evidence screenshot: ${item.filename} — available in Team chat → Attach from vault.`);
+      setNotice(`Saved Finely Parsed Exhibit: ${item.filename}. Review it in the evidence vault before attaching.`);
     } catch (e: any) {
-      setNotice(`Screenshot failed: ${e?.message || 'unknown error'}`);
+      setNotice(`Parsed exhibit failed: ${e?.message || 'unknown error'}`);
     } finally {
       setSavingKey(null);
     }
@@ -216,23 +234,52 @@ export function ParsedReportViewer({
       {notice && <div className={FINELY_OS_NOTICE}>{notice}</div>}
       {parseQualityNote ? <div className={FINELY_OS_NOTICE_WARN}>{parseQualityNote}</div> : null}
       {!hideSummary ? (
-      <div className={`${finelyOsGlassShell('catalog', 'sky')} flex items-start justify-between gap-6`}>
-        <div className="space-y-1 min-w-0">
-          <div className="inline-flex items-center gap-2 text-sky-800">
-            <Database size={16} />
-            <span className={FINELY_OS_ENTITY_SUBLABEL}>Parsed report</span>
+      <div className={`${finelyOsGlassShell('catalog', 'sky')} space-y-5`}>
+        <div className="flex items-start justify-between gap-6">
+          <div className="space-y-1 min-w-0">
+            <div className="inline-flex items-center gap-2 text-sky-800">
+              <Database size={16} />
+              <span className={FINELY_OS_ENTITY_SUBLABEL}>Parsed report</span>
+            </div>
+            <p className={FINELY_OS_ENTITY_BODY}>
+              Provider: <span className={`${FINELY_OS_ENTITY_VALUE} font-mono`}>{parsed.provider}</span>
+            </p>
           </div>
-          <p className={FINELY_OS_ENTITY_BODY}>
-            Provider: <span className={`${FINELY_OS_ENTITY_VALUE} font-mono`}>{parsed.provider}</span>
-          </p>
+          <div className="text-right space-y-1 shrink-0">
+            <p className={FINELY_OS_ENTITY_SUBLABEL}>tradelines</p>
+            <p className={`text-2xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{stats.tradelines}</p>
+            <p className={`${FINELY_OS_ENTITY_SUBLABEL} normal-case`}>
+              with payment history: <span className={`${FINELY_OS_ENTITY_VALUE} font-mono`}>{stats.withHistory}</span>
+            </p>
+            {stats.middle.value != null ? (
+              <p className={`${FINELY_OS_ENTITY_SUBLABEL} normal-case`}>
+                Middle score: <span className={`${FINELY_OS_ENTITY_VALUE} font-mono`}>{stats.middle.value}</span> · Results vary
+              </p>
+            ) : null}
+          </div>
         </div>
-        <div className="text-right space-y-1 shrink-0">
-          <p className={FINELY_OS_ENTITY_SUBLABEL}>tradelines</p>
-          <p className={`text-2xl font-light ${FINELY_OS_ENTITY_VALUE}`}>{stats.tradelines}</p>
-          <p className={`${FINELY_OS_ENTITY_SUBLABEL} normal-case`}>
-            with payment history: <span className={`${FINELY_OS_ENTITY_VALUE} font-mono`}>{stats.withHistory}</span>
-          </p>
-        </div>
+        {vsPrior ? (
+          <div className="space-y-2 border-t border-sky-400/20 pt-4 text-left">
+            <p className={`text-base font-bold ${FINELY_OS_ENTITY_VALUE}`}>
+              vs your prior report:{' '}
+              <span className="font-mono font-extrabold">
+                {vsPrior.deleted} gone · {vsPrior.updated} updated · {vsPrior.added} new
+              </span>
+            </p>
+            {vsPrior.appearedLine ? (
+              <p className={`text-base ${FINELY_OS_ENTITY_BODY}`}>{vsPrior.appearedLine}</p>
+            ) : null}
+            {vsPrior.droppedLine ? (
+              <p className={`text-base ${FINELY_OS_ENTITY_BODY}`}>{vsPrior.droppedLine}</p>
+            ) : null}
+            {vsPrior.changedLine ? (
+              <p className={`text-base ${FINELY_OS_ENTITY_BODY}`}>{vsPrior.changedLine}</p>
+            ) : null}
+            <p className={`text-sm ${FINELY_OS_ENTITY_SUBLABEL} normal-case`}>
+              Open the matching account below for details. Results vary · not legal advice.
+            </p>
+          </div>
+        ) : null}
       </div>
       ) : null}
 
@@ -376,9 +423,18 @@ export function ParsedReportViewer({
                       : 'border-white/[0.08]'
               }`}
             >
-              <button
+              <div
+                role="button"
+                tabIndex={0}
+                aria-expanded={isOpen}
                 className="w-full flex items-start justify-between gap-4 text-left transition-colors px-5 py-4 md:px-6 md:py-5 hover:bg-white/[0.04] items-center"
                 onClick={() => setOpenIndex(isOpen ? null : idx)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    setOpenIndex(isOpen ? null : idx);
+                  }
+                }}
               >
                 <div className="min-w-0 flex-1">
                   {sequenceLabel ? (
@@ -438,6 +494,26 @@ export function ParsedReportViewer({
                   ) : null}
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
+                  {partnerId && reportRecord && isOpen ? (
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setSourceTradeline(t);
+                      }}
+                      data-no-capture="true"
+                      className={FINELY_OS_SECONDARY_BTN}
+                      disabled={!t.sourceAnchor}
+                      title={
+                        t.sourceAnchor
+                          ? 'Open this account in its original protected report'
+                          : 'Re-parse the original report to add source anchors'
+                      }
+                    >
+                      <ScanSearch size={14} className="text-sky-300" />
+                      {t.sourceAnchor ? 'Source crop' : 'Re-parse for source'}
+                    </button>
+                  ) : null}
                   {partnerId && isOpen ? (
                     <button
                       type="button"
@@ -448,15 +524,15 @@ export function ParsedReportViewer({
                       data-no-capture="true"
                       className={FINELY_OS_SECONDARY_BTN}
                       disabled={Boolean(savingKey)}
-                      title="Save screenshot to Evidence Vault — included when you download the dispute letter PDF (print-ready)"
+                      title="Create a labeled Finely Parsed Exhibit from extracted report data"
                     >
-                      <Camera size={14} className="text-amber-300" />
-                      {savingKey === screenshotKey ? 'Saving…' : 'Screenshot'}
+                      <FileCheck2 size={14} className="text-violet-300" />
+                      {savingKey === screenshotKey ? 'Creating…' : 'Parsed exhibit'}
                     </button>
                   ) : null}
                   <ChevronDown size={18} className={`text-white/45 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </div>
-              </button>
+              </div>
 
               {isOpen && (
                 <div className="px-4 pb-6 md:px-6 space-y-6 border-t border-white/[0.08] bg-black/20 w-full max-w-full overflow-visible">
@@ -644,6 +720,16 @@ export function ParsedReportViewer({
           ) : null}
         </div>
       </CollapsibleSection>
+      <ReportSourceEvidenceModal
+        open={Boolean(sourceTradeline && reportRecord && partnerId)}
+        record={reportRecord ?? null}
+        tradeline={sourceTradeline}
+        partnerId={partnerId ?? ''}
+        onCreated={(item) =>
+          setNotice(`Saved source-faithful crop: ${item.filename}. Review and approve it in the evidence vault before mailing.`)
+        }
+        onClose={() => setSourceTradeline(null)}
+      />
     </div>
   );
 }

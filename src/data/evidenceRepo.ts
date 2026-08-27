@@ -33,24 +33,33 @@ export function upsertEvidence(item: EvidenceItem): EvidenceItem {
   // are visible rather than silently lost.
   if (isSupabaseConfigured) {
     queueMicrotask(async () => {
-      const { error } = await supabase.from('evidence').upsert(
+      const basePayload = {
+        id: enriched.id,
+        partner_id: enriched.partnerId,
+        report_id: enriched.reportId ?? null,
+        type: enriched.type,
+        source: enriched.source ?? null,
+        section_key: (enriched as any).sectionKey ?? null,
+        creditor_name: (enriched as any).creditorName ?? null,
+        caption: (enriched as any).caption ?? null,
+        filename: enriched.filename ?? null,
+        mime_type: enriched.mimeType ?? null,
+        size_bytes: enriched.sizeBytes ?? null,
+        blob_ref: enriched.blobRef ?? null,
+        created_at: enriched.createdAt,
+      };
+      let { error } = await supabase.from('evidence').upsert(
         {
-          id: enriched.id,
-          partner_id: enriched.partnerId,
-          report_id: enriched.reportId ?? null,
-          type: enriched.type,
-          source: enriched.source ?? null,
-          section_key: (enriched as any).sectionKey ?? null,
-          creditor_name: (enriched as any).creditorName ?? null,
-          caption: (enriched as any).caption ?? null,
-          filename: enriched.filename ?? null,
-          mime_type: enriched.mimeType ?? null,
-          size_bytes: enriched.sizeBytes ?? null,
-          blob_ref: enriched.blobRef ?? null,
-          created_at: enriched.createdAt,
+          ...basePayload,
+          tags: enriched.tags ?? null,
+          provenance: enriched.provenance ?? null,
         },
         { onConflict: 'id' },
       );
+      if (error && /provenance|tags|schema cache|column/i.test(error.message)) {
+        const fallback = await supabase.from('evidence').upsert(basePayload, { onConflict: 'id' });
+        error = fallback.error;
+      }
       if (error) {
         console.warn(
           `Failed to sync evidence "${enriched.filename ?? enriched.id}" to Supabase (kept locally): ${error.message}. ` +

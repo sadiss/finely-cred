@@ -194,7 +194,7 @@ export function GrowthAgentCalebWorkspace() {
     if (!pillarHuntRecord || !pillarHuntPreview) return;
     setMarketingFindGeo(focus.city);
     setMarketingFindSuggestedQuery(pillarHuntPreview);
-    navigate('/admin/marketing?tab=desk&helper=find');
+    navigate('/admin/marketing-desk?helper=find');
   };
 
   const importedIntelCount = useMemo(() => {
@@ -281,7 +281,7 @@ export function GrowthAgentCalebWorkspace() {
         pending > 0
           ? {
               label: `Review ${pending} people`,
-              onClick: () => navigate('/admin/marketing?tab=desk&helper=find'),
+              onClick: () => navigate('/admin/marketing-desk?helper=find'),
             }
           : undefined
       }
@@ -558,10 +558,10 @@ export function GrowthAgentCalebWorkspace() {
       </details>
 
       <div className="flex flex-wrap gap-2">
-        <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/marketing?tab=desk&helper=find')}>
+        <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/marketing-desk?helper=find')}>
           Review people
         </button>
-        <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/marketing?tab=desk&helper=board')}>
+        <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/marketing-desk?helper=board')}>
           Open Board
         </button>
         <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/growth-agents/capture-links')}>

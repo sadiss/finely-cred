@@ -4,6 +4,51 @@ export type UploadActor = 'partner' | 'admin';
 
 export type Bureau = 'TUC' | 'EXP' | 'EQF';
 
+export type NormalizedReportRegion = {
+  /** Top-left normalized coordinates in the rendered source page (0–1). */
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+export type ReportSourceAnchor = {
+  fileType: CreditReportFileType;
+  /** PDF page, 1-indexed. */
+  page?: number;
+  /** Tight or approximate region in top-left normalized page coordinates. */
+  region?: NormalizedReportRegion;
+  /** Sanitized HTML locator; never execute source scripts to resolve it. */
+  htmlLocator?: string;
+  /** Normalized source text used to recover an anchor if the locator changes. */
+  textFingerprint?: string;
+  bureau?: Bureau;
+  parseVersion: string;
+  reportSha256?: string;
+  confidence?: 'exact' | 'approximate' | 'text_only';
+};
+
+export type PdfSourceTextRun = {
+  text: string;
+  region: NormalizedReportRegion;
+};
+
+export type ReportSourceMap = {
+  version: string;
+  fileType: CreditReportFileType;
+  pdfPages?: Array<{
+    page: number;
+    width: number;
+    height: number;
+    /** Selected runs may be retained for audit; full page text stays in the protected report blob. */
+    runs?: PdfSourceTextRun[];
+  }>;
+  html?: {
+    sanitized: boolean;
+    remoteResourcesRemoved: boolean;
+  };
+};
+
 export type PdfTextMeta = {
   numPages?: number;
   nonEmptyPages?: number;
@@ -14,6 +59,8 @@ export type PdfTextMeta = {
   ocrEngine?: string;
   /** Pages OCR’d (1-indexed), when available. */
   ocrPagesUsed?: number[];
+  /** Page dimensions retained for source-region rendering. */
+  pageDimensions?: Array<{ page: number; width: number; height: number }>;
 };
 
 export type PaymentHistoryCell = {
@@ -43,6 +90,7 @@ export type ParsedSection = {
   table?: ParsedTable;
   /** Phase 1: structured items (one per row) when columns map to known fields (collections, inquiries). */
   items?: ParsedSectionItem[];
+  sourceAnchor?: ReportSourceAnchor;
 };
 
 /** Structured personal information extracted from PI section (Phase 1). */
@@ -76,6 +124,7 @@ export type ParsedSectionItem = {
   fields: Record<string, string>;
   /** Original row index for reference. */
   rowIndex?: number;
+  sourceAnchor?: ReportSourceAnchor;
 };
 
 export type ParsedTradeline = {
@@ -104,6 +153,8 @@ export type ParsedTradeline = {
   dateLastActive?: string;
   /** Date last reported to bureau when distinct from DLA. */
   dateLastReported?: string;
+  /** Source location used for exact report comparison and derived exhibits. */
+  sourceAnchor?: ReportSourceAnchor;
 };
 
 export type ParsedScore = {
@@ -112,6 +163,7 @@ export type ParsedScore = {
   value: number;
   providerHint?: string;
   sourceText?: string;
+  sourceAnchor?: ReportSourceAnchor;
 };
 
 export type ParsedCreditReport = {
@@ -126,6 +178,8 @@ export type ParsedCreditReport = {
   creditorContacts?: ParsedCreditorContact[];
   /** Phase 1: tables we couldn't classify (still show in UI as "Other sections"). */
   unclassifiedSections?: ParsedSection[];
+  /** Spatial/text provenance captured during parsing. Optional for legacy reports. */
+  sourceMap?: ReportSourceMap;
   debug?: {
     tablesFound: number;
     subHeadersFound: number;
@@ -163,7 +217,11 @@ export type IdentityFaultKind =
   | 'missing_report_personal_info'
   | 'name_mismatch'
   | 'address_mismatch'
-  | 'missing_partner_mailing_address';
+  | 'missing_partner_mailing_address'
+  | 'ssn_mismatch'
+  | 'employer_mismatch'
+  | 'file_frozen'
+  | 'fraud_alert';
 
 export type ReportIdentityFault = {
   kind: IdentityFaultKind;
@@ -177,12 +235,18 @@ export type ReportIdentityCheck = {
     fullName?: string;
     addressLine1?: string;
     cityStateZip?: string;
+    ssnLast4?: string;
+    employer?: string;
   };
   report: {
     fullName?: string;
     addressRaw?: string;
     addressLine1?: string;
     cityStateZip?: string;
+    ssnLast4?: string;
+    employer?: string;
+    fileFrozen?: boolean;
+    fraudAlert?: boolean;
   };
   faults: ReportIdentityFault[];
 };

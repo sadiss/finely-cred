@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowRight, CheckCircle2, Circle, Eye, ListChecks, Mail, Upload } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { FINELY_OS_ENTITY_BODY, FINELY_OS_ENTITY_SUBLABEL } from '../../features/os/finelyOsLightUi';
 
 type Props = {
   openCount: number;
@@ -81,8 +82,8 @@ export function PartnerWorkHubPanel({ openCount, doneCount, scope, kind }: Props
               className="fc-light-glass-panel fc-light-chrome-panel rounded-xl px-4 py-3 text-left hover:border-white/20 transition-all group"
             >
               <a.icon size={18} className={`${a.color} mb-2`} />
-              <p className="text-sm font-medium text-white/85">{a.label}</p>
-              <p className="text-[10px] text-white/35 mt-1 group-hover:text-amber-200/80">Go →</p>
+              <p className={`text-sm font-medium ${FINELY_OS_ENTITY_BODY}`}>{a.label}</p>
+              <p className={`text-[10px] mt-1 ${FINELY_OS_ENTITY_SUBLABEL} normal-case tracking-normal group-hover:text-amber-700`}>Go →</p>
             </button>
           ))}
         </div>

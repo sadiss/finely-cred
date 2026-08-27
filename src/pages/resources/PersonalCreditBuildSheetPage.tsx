@@ -73,9 +73,9 @@ const RUNGS = [
     moves: 'Age, limit, utilization optics',
     detail:
       'A seasoned, low-utilization account can lend age and available limit to your file. Reporting is never automatic and issuer policies differ.',
-    bar: 'bg-amber-400',
-    text: 'text-amber-200',
-    border: 'border-amber-400/30',
+    bar: 'bg-violet-400',
+    text: 'text-violet-200',
+    border: 'border-violet-400/30',
   },
   {
     id: 'unsecured',
@@ -95,7 +95,7 @@ const WEIGHTS = [
   { label: 'Amounts owed', pct: 30, note: 'Utilization is the fastest lever you actually control.', bar: 'bg-sky-400' },
   { label: 'Length of history', pct: 15, note: 'Time only accrues if you keep the old account open.', bar: 'bg-violet-400' },
   { label: 'New credit', pct: 10, note: 'Every hard pull is a small, temporary, avoidable cost.', bar: 'bg-rose-400' },
-  { label: 'Credit mix', pct: 10, note: 'Revolving plus installment reads as a fuller file.', bar: 'bg-amber-400' },
+  { label: 'Credit mix', pct: 10, note: 'Revolving plus installment reads as a fuller file.', bar: 'bg-emerald-400' },
 ] as const;
 
 const TIMELINE = [
@@ -308,7 +308,7 @@ export default function PersonalCreditBuildSheetPage() {
         </section>
 
         {/* ── Download band ────────────────────────────────────────── */}
-        <section className="rounded-[1.25rem] border border-amber-400/25 bg-gradient-to-r from-amber-500/[0.08] to-transparent p-5">
+        <section className="rounded-[1.25rem] border border-violet-400/25 bg-gradient-to-r from-violet-500/[0.08] to-transparent p-6 lg:p-8">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="min-w-0">
               <h2 className="text-lg font-bold tracking-tight text-white">Same paycheck. A file that finally shows it.</h2>

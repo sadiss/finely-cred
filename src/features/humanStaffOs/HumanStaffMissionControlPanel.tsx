@@ -17,7 +17,18 @@ import {
   staffCmdSelected,
 } from './humanStaffOsUi';
 
-const missionOptions = ['deep_swarm', 'lead_action_center', 'city_growth_sprint', 'appointment_blitz', 'sales_follow_up', 'recruiting_drive', 'premium_content_push', 'geo_page_push', 'worker_repair', 'compliance_review'];
+const missionOptions = [
+  { id: 'deep_swarm', label: 'Lead discovery' },
+  { id: 'lead_action_center', label: 'Lead action center' },
+  { id: 'city_growth_sprint', label: 'City growth sprint' },
+  { id: 'appointment_blitz', label: 'Appointment follow-up' },
+  { id: 'sales_follow_up', label: 'Sales follow-up' },
+  { id: 'recruiting_drive', label: 'Recruiting drive' },
+  { id: 'premium_content_push', label: 'Premium content push' },
+  { id: 'geo_page_push', label: 'Local page publishing' },
+  { id: 'worker_repair', label: 'Automation repair' },
+  { id: 'compliance_review', label: 'Compliance review' },
+] as const;
 const cityOptions = ['dallas', 'houston', 'atlanta', 'phoenix', 'charlotte', 'miami', 'orlando', 'tampa', 'austin', 'st_louis'];
 
 export function HumanStaffMissionControlPanel({ selectedIds, onChanged }: { selectedIds: HumanStaffAgentId[]; onChanged: () => void }) {
@@ -79,8 +90,8 @@ export function HumanStaffMissionControlPanel({ selectedIds, onChanged }: { sele
         <label className="block">
           <span className="text-[10px] uppercase tracking-widest text-white/35">Mission type</span>
           <select value={missionType} onChange={(e) => setMissionType(e.target.value)} className="mt-2 w-full rounded-xl border border-white/10 bg-black/40 px-3 py-3 text-sm text-white/80">
-            {missionOptions.map((m) => (
-              <option key={m} value={m}>{m.replaceAll('_', ' ')}</option>
+            {missionOptions.map((mission) => (
+              <option key={mission.id} value={mission.id}>{mission.label}</option>
             ))}
           </select>
         </label>

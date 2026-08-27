@@ -82,13 +82,14 @@ export function EvidenceUploader({
       const shouldScan = !opts?.skipScan && scanMode;
       const finalFile = shouldScan ? await scanifyImage(file) : file;
       const effectiveCaption = (opts?.captionOverride ?? caption).trim() || undefined;
-      const { ref } = await blobStore.put(finalFile, {
+      const stored = await blobStore.put(finalFile, {
         partnerId,
         reportId,
         caption: effectiveCaption,
         scanMode: shouldScan,
         kind: 'evidence',
       });
+      const now = new Date().toISOString();
       const item: EvidenceItem = {
         id: newId('evidence'),
         partnerId,
@@ -99,8 +100,16 @@ export function EvidenceUploader({
         filename: finalFile.name,
         mimeType: finalFile.type || 'application/octet-stream',
         sizeBytes: finalFile.size,
-        blobRef: ref,
-        createdAt: new Date().toISOString(),
+        blobRef: stored.ref,
+        provenance: {
+          kind: 'raw_upload',
+          sourceReportId: reportId,
+          contentSha256: stored.sha256,
+          generatedAt: now,
+          mailEligible: true,
+          humanVerified: true,
+        },
+        createdAt: now,
       };
       onCreated(item, finalFile);
       if (opts?.clearCaptionAfter ?? true) setCaption('');

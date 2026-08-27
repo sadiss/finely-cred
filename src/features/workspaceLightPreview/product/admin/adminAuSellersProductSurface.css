@@ -1,0 +1,166 @@
+/* Admin AU sellers — supply command deck (dual approval lanes) */
+
+.fc-admin-au-command {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.fc-admin-au-command-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px;
+  border-radius: 20px;
+  border: 1px solid rgba(16, 185, 129, 0.22);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(139, 92, 246, 0.06));
+}
+
+.fc-admin-au-alert-rail {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.fc-admin-au-alert-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  border: 1px solid transparent;
+  text-align: left;
+  font-weight: 800;
+  transition: transform 0.12s ease, border-color 0.12s ease;
+}
+
+.fc-admin-au-alert-chip:hover {
+  transform: translateY(-1px);
+}
+
+.fc-admin-au-alert-chip[data-tone='rose'] {
+  border-color: rgba(244, 63, 94, 0.35);
+  background: linear-gradient(135deg, rgba(244, 63, 94, 0.12), rgba(244, 63, 94, 0.04));
+}
+
+.fc-admin-au-alert-chip[data-tone='sky'] {
+  border-color: rgba(56, 189, 248, 0.35);
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.12), rgba(56, 189, 248, 0.04));
+}
+
+.fc-admin-au-alert-chip[data-tone='emerald'] {
+  border-color: rgba(16, 185, 129, 0.35);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(16, 185, 129, 0.04));
+}
+
+.fc-admin-au-lanes {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+@media (min-width: 1024px) {
+  .fc-admin-au-lanes {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.fc-admin-au-lane {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 220px;
+  padding: 20px 18px;
+  border-radius: 22px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.fc-admin-au-lane[data-fc-accent='rose'] {
+  border-color: rgba(244, 63, 94, 0.28);
+  background: radial-gradient(circle at top right, rgba(244, 63, 94, 0.1), transparent 55%),
+    rgba(255, 255, 255, 0.72);
+}
+
+.fc-admin-au-lane[data-fc-accent='sky'] {
+  border-color: rgba(56, 189, 248, 0.28);
+  background: radial-gradient(circle at top right, rgba(56, 189, 248, 0.1), transparent 55%),
+    rgba(255, 255, 255, 0.72);
+}
+
+.fc-admin-au-lane-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.fc-admin-au-lane-title {
+  font-size: 1.125rem;
+  font-weight: 800;
+}
+
+.fc-admin-au-lane-scroll {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  scroll-snap-type: x mandatory;
+}
+
+.fc-admin-au-lane-card {
+  flex: 0 0 min(240px, 78vw);
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  background: rgba(255, 255, 255, 0.88);
+  text-align: left;
+  font-weight: 750;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.fc-admin-au-lane-card[data-active='true'] {
+  border-color: rgba(139, 92, 246, 0.45);
+  box-shadow: 0 8px 28px rgba(139, 92, 246, 0.12);
+}
+
+.fc-admin-au-inspector {
+  padding: 24px 28px;
+  border-radius: 24px;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(248, 250, 252, 0.88));
+}
+
+.fc-admin-au-inspector-head {
+  font-size: 1.75rem;
+  font-weight: 800;
+  margin-bottom: 20px;
+}
+
+.fc-admin-au-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.fc-admin-au-filter-chip {
+  border-radius: 999px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.fc-admin-au-filter-chip[data-active='true'] {
+  border-color: rgba(16, 185, 129, 0.45);
+  background: rgba(16, 185, 129, 0.12);
+}

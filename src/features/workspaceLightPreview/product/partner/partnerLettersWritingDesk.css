@@ -1,0 +1,103 @@
+/* Credit Letters — writing desk (compose studio). Not the old studio-hero light box. */
+
+.fc-wlp-letters-desk {
+  display: grid;
+  gap: 20px;
+}
+
+.fc-wlp-letters-blotter {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 800px) {
+  .fc-wlp-letters-blotter {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fc-wlp-letters-phase {
+  width: 100%;
+  text-align: left;
+  border-radius: 18px;
+  transition: transform 0.15s ease;
+}
+
+.fc-wlp-letters-phase[data-active='true'] {
+  transform: translateY(-2px);
+  outline: 2px solid color-mix(in srgb, var(--wlp-accent, #8b5cf6) 42%, transparent);
+}
+
+.fc-wlp-letters-phase-label {
+  font-size: 1.35rem;
+  line-height: 1.15;
+}
+
+.fc-wlp-letters-inks {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 960px) {
+  .fc-wlp-letters-inks {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.fc-wlp-letters-ink {
+  width: 100%;
+  text-align: left;
+  border-radius: 18px;
+  transition: transform 0.15s ease;
+}
+
+.fc-wlp-letters-ink[data-active='true'] {
+  transform: translateY(-2px);
+  outline: 2px solid color-mix(in srgb, var(--wlp-accent, #8b5cf6) 42%, transparent);
+}
+
+.fc-wlp-letters-paper {
+  min-width: 0;
+  border-radius: 22px;
+}
+
+/* Punch leftover studio chrome inside the paper well — no white/ivory slabs. */
+html[data-fc-theme='light'] .fc-wlp-letters-paper [data-fc-letter-studio='1'] :is(.text-white, .text-white\/90, .text-white\/80),
+[data-fc-workspace-light-preview='1'] .fc-wlp-letters-paper [data-fc-letter-studio='1'] :is(.text-white, .text-white\/90, .text-white\/80) {
+  color: #0a1628 !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp-letters-paper [data-fc-letter-studio='1'] :is(.text-white\/70, .text-white\/60, .text-white\/50),
+[data-fc-workspace-light-preview='1'] .fc-wlp-letters-paper [data-fc-letter-studio='1'] :is(.text-white\/70, .text-white\/60, .text-white\/50) {
+  color: rgba(10, 22, 40, 0.72) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp-letters-paper [data-fc-letter-studio='1'] .fc-light-glass-panel,
+html[data-fc-theme='light'] .fc-wlp-letters-paper [data-fc-letter-studio='1'] .fc-light-chrome-panel,
+[data-fc-workspace-light-preview='1'] .fc-wlp-letters-paper [data-fc-letter-studio='1'] .fc-light-glass-panel,
+[data-fc-workspace-light-preview='1'] .fc-wlp-letters-paper [data-fc-letter-studio='1'] .fc-light-chrome-panel {
+  background: linear-gradient(145deg, rgba(139, 92, 246, 0.1), rgba(255, 255, 255, 0.92)) !important;
+  border: 1.5px solid rgba(139, 92, 246, 0.28) !important;
+  color: #0a1628 !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp-letters-paper [data-fc-letter-studio='1'] [class*='bg-black/'],
+[data-fc-workspace-light-preview='1'] .fc-wlp-letters-paper [data-fc-letter-studio='1'] [class*='bg-black/'] {
+  background-color: rgba(255, 255, 255, 0.88) !important;
+  border-color: rgba(139, 92, 246, 0.22) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp-letters-paper [data-fc-letter-studio='1'] [class*='bg-amber'],
+[data-fc-workspace-light-preview='1'] .fc-wlp-letters-paper [data-fc-letter-studio='1'] [class*='bg-amber'] {
+  background: linear-gradient(145deg, rgba(244, 63, 94, 0.14), rgba(255, 255, 255, 0.94)) !important;
+  border-color: rgba(244, 63, 94, 0.32) !important;
+  color: #9f1239 !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp-letters-paper [data-fc-letter-studio='1'] .fc-light-glass-panel,
+html[data-fc-theme='dark'] .fc-wlp-letters-paper [data-fc-letter-studio='1'] .fc-light-chrome-panel {
+  background: linear-gradient(145deg, rgba(139, 92, 246, 0.16), rgba(10, 22, 40, 0.72)) !important;
+  border: 1.5px solid rgba(167, 139, 250, 0.35) !important;
+}

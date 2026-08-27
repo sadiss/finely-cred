@@ -13,6 +13,7 @@ export const ENTERPRISE_PERMISSION_GROUPS = [
   'canAssignRoles',
   'canViewTeamActivity',
   'canAccessAdminArea',
+  'canPreviewAllRoles',
   'canSwitchTenants',
   'canManageTenants',
 
@@ -174,6 +175,7 @@ export const ENTERPRISE_PERMISSIONS: Record<(typeof ENTERPRISE_PERMISSION_GROUPS
   canAssignRoles: { label: 'Assign roles', group: 'Team & access' },
   canViewTeamActivity: { label: 'View team activity', group: 'Team & access' },
   canAccessAdminArea: { label: 'Access admin area', group: 'Team & access' },
+  canPreviewAllRoles: { label: 'Preview all product roles', group: 'Team & access' },
   canSwitchTenants: { label: 'Switch tenants', group: 'Team & access' },
   canManageTenants: { label: 'Manage tenants', group: 'Team & access' },
 
@@ -185,14 +187,14 @@ export const ENTERPRISE_PERMISSIONS: Record<(typeof ENTERPRISE_PERMISSION_GROUPS
   canViewPaymentHistory: { label: 'View payment history', group: 'Billing & payments' },
   canManageInvoices: { label: 'Manage invoices', group: 'Billing & payments' },
 
-  canViewAllClients: { label: 'View all customers', group: 'Customers & partners' },
-  canCreatePartners: { label: 'Create partners', group: 'Customers & partners' },
-  canEditPartners: { label: 'Edit partners', group: 'Customers & partners' },
-  canDeletePartners: { label: 'Delete partners', group: 'Customers & partners' },
-  canImportPartners: { label: 'Import partners', group: 'Customers & partners' },
-  canViewPartnerPii: { label: 'View partner PII', group: 'Customers & partners' },
-  canMergePartners: { label: 'Merge partners', group: 'Customers & partners' },
-  canAssignPartnersToAgents: { label: 'Assign partners to agents', group: 'Customers & partners' },
+  canViewAllClients: { label: 'View all partners', group: 'Partners' },
+  canCreatePartners: { label: 'Create partners', group: 'Partners' },
+  canEditPartners: { label: 'Edit partners', group: 'Partners' },
+  canDeletePartners: { label: 'Delete partners', group: 'Partners' },
+  canImportPartners: { label: 'Import partners', group: 'Partners' },
+  canViewPartnerPii: { label: 'View partner PII', group: 'Partners' },
+  canMergePartners: { label: 'Merge partners', group: 'Partners' },
+  canAssignPartnersToAgents: { label: 'Assign partners to agents', group: 'Partners' },
 
   canExportData: { label: 'Export data', group: 'Data & export' },
   canExportPii: { label: 'Export PII', group: 'Data & export' },

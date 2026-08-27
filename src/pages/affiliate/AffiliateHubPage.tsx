@@ -9,8 +9,9 @@ import {
   GraduationCap,
   Wallet,
 } from 'lucide-react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { useSearchParams } from 'react-router-dom';
+import { PartnerWorkstationFrame, type PartnerEmbeddablePageProps } from '../../features/workspaceLightPreview/product/partner/PartnerWorkstationFrame';
+import { useMappedPartnerNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { useAuth } from '../../auth/AuthProvider';
 import { getUserDisplayName, getUserProfileMeta } from '../../auth/userProfile';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
@@ -57,7 +58,7 @@ import {
   type AffiliateHubLauncherId,
 } from '../../components/partner/roleHubLauncherPresets';
 import {
-  FINELY_OS_COMPACT_PAGE,
+  FINELY_OS_PAGE,
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,
@@ -70,15 +71,15 @@ const AF_TOOL_DECK: RoleHubTool[] = [
   { id: 'share', label: 'Share link', detail: 'Public apply page', path: AF.publicPath, icon: Link2, accent: 'sky', badge: 'Primary' },
   { id: 'calc', label: 'Payout calc', detail: 'Model commissions', path: `${AF.hubPath}?tab=calculator`, icon: Percent, accent: 'violet' },
   { id: 'payouts', label: 'Payouts', detail: 'Pending & paid', path: `${AF.hubPath}?tab=payouts`, icon: Wallet, accent: 'emerald' },
-  { id: 'operate', label: 'Campaigns', detail: 'Attribute traffic', path: `${AF.hubPath}?tab=operate`, icon: Megaphone, accent: 'amber' },
+  { id: 'operate', label: 'Campaigns', detail: 'Attribute traffic', path: `${AF.hubPath}?tab=operate`, icon: Megaphone, accent: 'rose' },
   { id: 'training', label: 'Training', detail: 'Referral playbook', path: `${AF.hubPath}?tab=training`, icon: GraduationCap, accent: 'sky' },
-  { id: 'messages', label: 'Messages', detail: 'Affiliate line', path: AF.messagesDeepLink, icon: MessageSquare, accent: 'fuchsia' },
+  { id: 'messages', label: 'Messages', detail: 'Affiliate line', path: AF.messagesDeepLink, icon: MessageSquare, accent: 'violet' },
 ];
 
-export default function AffiliateHubPage() {
+export default function AffiliateHubPage({ embedded = false }: PartnerEmbeddablePageProps = {}) {
   const auth = useAuth();
   const { partner } = usePartnerSession();
-  const navigate = useNavigate();
+  const navigate = useMappedPartnerNavigate();
   const [searchParams] = useSearchParams();
   const hubLauncher = usePartnerHubLauncher<AffiliateHubLauncherId>();
   const [affiliate, setAffiliate] = useState<Affiliate | null>(null);
@@ -161,13 +162,13 @@ export default function AffiliateHubPage() {
 
   if (!auth.user || (!affiliateLoading && !gate.allowed)) {
     return (
-      <PageShell
+      <PartnerWorkstationFrame embedded={embedded} kind="affiliate-hub-workstation"
         badge={AF.programName}
         title={AF.hubName}
         subtitle="Share your link, track referred partners, and get paid."
         back={{ to: AF.publicPath, label: 'Affiliate careers' }}
       >
-        <div className={`${FINELY_OS_COMPACT_PAGE} max-w-3xl space-y-3`}>
+        <div className={`${FINELY_OS_PAGE} max-w-3xl space-y-3`}>
           <FinelyOsAlertBanner
             tone={!auth.user || gate.reason === 'unauthenticated' ? 'info' : 'warning'}
             message={gate.message}
@@ -183,27 +184,27 @@ export default function AffiliateHubPage() {
             </button>
             {!auth.user ? <BackToSiteButton /> : null}
           </div>
-          <FinelyOsPageFooter />
+          {!embedded ? <FinelyOsPageFooter /> : null}
         </div>
-      </PageShell>
+      </PartnerWorkstationFrame>
     );
   }
 
   return (
-    <PageShell
+    <PartnerWorkstationFrame embedded={embedded} kind="affiliate-hub-workstation"
       badge={AF.programName}
       title={AF.hubName}
       subtitle={`Welcome${getUserDisplayName(auth.user) ? `, ${getUserDisplayName(auth.user)}` : ''} — share your link, track referrals, and get paid.`}
       back={{ to: '/dashboard', label: 'Dashboard' }}
     >
-      <div className={`${FINELY_OS_COMPACT_PAGE} fc-senior-simple max-w-5xl`}>
+      <div className={`${FINELY_OS_PAGE} fc-senior-simple max-w-5xl`}>
         <FinelyNoticedStrip
           items={buildAffiliateNoticedItems({
             hasReferralCode: Boolean(affiliate?.referralCode),
             tab: hubLauncher.openId ?? 'overview',
           })}
         />
-        <FinelyNowDoThisStrip items={nowDoItems} currentIndex={affiliate?.referralCode ? 0 : 0} className="!p-4" />
+        <FinelyNowDoThisStrip items={nowDoItems} currentIndex={affiliate?.referralCode ? 0 : 0} />
         <FinelyUnifiedHubLayout
           eyebrow={AF.programName}
           title={AF.hubName}
@@ -213,7 +214,7 @@ export default function AffiliateHubPage() {
             { label: 'Payout', value: `${AF.defaultCommissionPct}%`, accent: 'sky' },
             { label: 'Recurring', value: `${AF.defaultRecurringCommissionPct}%`, accent: 'violet' },
             { label: 'Denefit', value: `${AF.defaultDenefitsSharePct}%`, accent: 'emerald' },
-            { label: 'Status', value: affiliate?.status ?? '—', accent: 'amber' },
+            { label: 'Status', value: affiliate?.status ?? '—', accent: 'rose' },
           ]}
           primaryAction={{ label: 'Share application', onClick: () => navigate(AF.publicPath) }}
           secondaryAction={{ label: 'Messages', onClick: () => navigate(AF.messagesDeepLink) }}
@@ -251,8 +252,8 @@ export default function AffiliateHubPage() {
             renderItem={(item, idx) => (
               <div
                 key={item.title}
-                className={`space-y-2 ${finelyOsCatalogCard((['sky', 'violet', 'emerald', 'amber'] as const)[idx % 4])} !p-4`}
-                data-fc-accent={(['sky', 'violet', 'emerald', 'amber'] as const)[idx % 4]}
+                className={`space-y-3 ${finelyOsCatalogCard((['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4])}`}
+                data-fc-accent={(['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4]}
               >
                 <div className={FINELY_OS_ENTITY_VALUE}>{item.title}</div>
                 <p className={FINELY_OS_ENTITY_BODY}>{item.description}</p>
@@ -327,7 +328,7 @@ export default function AffiliateHubPage() {
           {affiliate ? <AffiliateCampaignManager affiliate={affiliate} onUpdated={setAffiliate} /> : null}
           <AffiliateReferralToolkit />
           <RolePromoLinksPanel role="affiliate" compact title="Affiliate promo matrix" />
-          <div className={`space-y-3 ${finelyOsCatalogCard('violet')} !p-4`} data-fc-accent="violet">
+          <div className={`space-y-4 ${finelyOsCatalogCard('sky')}`} data-fc-accent="sky">
             <p className={FINELY_OS_ENTITY_BODY}>Quick links to run your affiliate workflow.</p>
             <div className="flex flex-wrap gap-3">
               {[
@@ -346,8 +347,8 @@ export default function AffiliateHubPage() {
           </div>
         </PartnerHubWorkModal>
 
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
       </div>
-    </PageShell>
+    </PartnerWorkstationFrame>
   );
 }

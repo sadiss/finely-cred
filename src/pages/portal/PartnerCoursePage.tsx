@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, CheckCircle2, Lock, MessageCircle, PlayCircle, Sparkles } from 'lucide-react';
-import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { useLocation, useParams, useSearchParams } from 'react-router-dom';
+import { PartnerWorkstationFrame, type PartnerEmbeddablePageProps } from '../../features/workspaceLightPreview/product/partner/PartnerWorkstationFrame';
+import { useMappedPartnerNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { useAuth } from '../../auth/AuthProvider';
 import { isAdminEmail } from '../../auth/admin';
@@ -64,9 +65,9 @@ function CourseCommunityAskFinely({ courseTitle, lessonTitle }: { courseTitle: s
   }, [courseTitle, lessonTitle, location.pathname, question]);
 
   return (
-    <div className={`${finelyOsCatalogCard('sky')} !p-4 space-y-3 fc-surface-harmony`}>
+    <div className={`${finelyOsCatalogCard('sky')} space-y-4 fc-surface-harmony`}>
       <div className="inline-flex items-center gap-2">
-        <Sparkles size={16} className="text-amber-300" />
+        <Sparkles size={16} className="text-violet-300" />
         <span className={FINELY_OS_ENTITY_VALUE}>Ask Finely</span>
         <span className={FINELY_OS_ENTITY_SUBLABEL}>Community stub</span>
       </div>
@@ -95,10 +96,11 @@ function CourseCommunityAskFinely({ courseTitle, lessonTitle }: { courseTitle: s
   );
 }
 
-export default function PartnerCoursePage() {
-  const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
+export default function PartnerCoursePage({ embedded = false }: PartnerEmbeddablePageProps = {}) {
+  const navigate = useMappedPartnerNavigate();
+  const { id: routeId } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
+  const id = routeId || searchParams.get('courseId') || undefined;
   const auth = useAuth();
   const adminPreview = searchParams.get('preview') === 'admin' && isAdminEmail(auth.user?.email);
   const { partner } = usePartnerSession();
@@ -156,15 +158,15 @@ export default function PartnerCoursePage() {
 
   if (!partner) {
     return (
-      <PageShell badge="Partner Portal" title="Course" subtitle="Sign in with a partner profile to access self-paced lessons.">
+      <PartnerWorkstationFrame embedded={embedded} kind="course-detail-workstation" badge="Partner Portal" title="Course" subtitle="Sign in with a partner profile to access self-paced lessons.">
         <div className={`${FINELY_OS_LUXURY_EMPTY} text-left`}>No partner profile found.</div>
-      </PageShell>
+      </PartnerWorkstationFrame>
     );
   }
 
   if (!isFeatureEnabled('courses')) {
     return (
-      <PageShell badge="Partner Portal" title="Course" subtitle="Courses are disabled in Admin settings until your workspace enables them.">
+      <PartnerWorkstationFrame embedded={embedded} kind="course-detail-workstation" badge="Partner Portal" title="Course" subtitle="Courses are disabled in Admin settings until your workspace enables them.">
         <div className={`${FINELY_OS_NOTICE_WARN} space-y-2`}>
           <div className="inline-flex items-center gap-2 text-fuchsia-300">
             <Lock size={18} />
@@ -172,21 +174,21 @@ export default function PartnerCoursePage() {
           </div>
           <div className={FINELY_OS_ENTITY_BODY}>Courses are disabled right now.</div>
         </div>
-      </PageShell>
+      </PartnerWorkstationFrame>
     );
   }
 
   if (!course) {
-    return <PageShell badge="Partner Portal" title="Course not found" subtitle="That course does not exist." />;
+    return <PartnerWorkstationFrame embedded={embedded} kind="course-detail-workstation" badge="Partner Portal" title="Course not found" subtitle="That course does not exist." />;
   }
 
   if (!course.published && !adminPreview) {
     return (
-      <PageShell badge="Partner Portal" title={course.title} subtitle="This course is not published yet.">
+      <PartnerWorkstationFrame embedded={embedded} kind="course-detail-workstation" badge="Partner Portal" title={course.title} subtitle="This course is not published yet.">
         <div className={`${FINELY_OS_LUXURY_EMPTY} text-sm`}>
           Ask support to publish it, or preview as admin with <span className="font-mono">?preview=admin</span>.
         </div>
-      </PageShell>
+      </PartnerWorkstationFrame>
     );
   }
 
@@ -202,7 +204,7 @@ export default function PartnerCoursePage() {
   ];
 
   return (
-    <PageShell badge="Partner Portal" title={course.title} subtitle={course.desc}>
+    <PartnerWorkstationFrame embedded={embedded} kind="course-detail-workstation" badge="Partner Portal" title={course.title} subtitle={course.desc}>
       <EntitlementGate partnerId={partner.id} requiredKeys={[ENTITLEMENT_KEYS.courses]}>
         <div className={FINELY_OS_PAGE}>
           <div className="flex flex-wrap items-center justify-between gap-4">
@@ -221,7 +223,7 @@ export default function PartnerCoursePage() {
             accent="violet"
             kpis={[
               { label: 'Progress', value: `${done}/${totalLessons}`, hint: 'Lessons', accent: 'violet' },
-              { label: 'Modules', value: String(course.modules.length), hint: 'Sections', accent: 'amber' },
+              { label: 'Modules', value: String(course.modules.length), hint: 'Sections', accent: 'rose' },
               { label: 'Complete', value: courseDone ? '100%' : `${totalLessons ? Math.round((done / totalLessons) * 100) : 0}%`, hint: 'Course', accent: 'emerald' },
               { label: 'Cert', value: cert ? 'Ready' : '—', hint: 'Download', accent: 'sky' },
             ]}
@@ -232,11 +234,11 @@ export default function PartnerCoursePage() {
             secondaryAction={{ label: 'My tasks', onClick: () => navigate('/portal/my-tasks') }}
           >
             {tab === 'syllabus' && (
-              <div className={`${finelyOsCatalogCard('violet')} !p-4 space-y-4`}>
+              <div className={`${finelyOsCatalogCard('violet')} space-y-4`}>
                 <div className={FINELY_OS_ENTITY_SUBLABEL}>Lessons</div>
-                <div className="space-y-3">
-                  {course.modules.map((m) => (
-                    <div key={m.id} className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-2`}>
+                <div className="space-y-4">
+                  {course.modules.map((m, mIdx) => (
+                    <div key={m.id} className={`${finelyOsCatalogCard((['emerald', 'sky', 'rose'] as const)[mIdx % 3])} fc-surface-harmony space-y-2`} data-fc-accent={(['emerald', 'sky', 'rose'] as const)[mIdx % 3]}>
                       <div className={FINELY_OS_ENTITY_VALUE}>{m.title}</div>
                       <div className="space-y-1">
                         {m.lessons.map((l) => {
@@ -254,7 +256,7 @@ export default function PartnerCoursePage() {
                                 setTab('lesson');
                               }}
                               disabled={locked}
-                              className={`${finelyOsListItem(active, 'amber')} !p-3 text-[11px] ${locked ? 'opacity-50 cursor-not-allowed' : ''}`}
+                              className={`${finelyOsListItem(active, 'violet')} p-4 text-base ${locked ? 'opacity-50 cursor-not-allowed' : ''}`}
                             >
                               <span className="flex items-center justify-between gap-3 w-full">
                                 <span className="truncate">{l.title}</span>
@@ -277,7 +279,7 @@ export default function PartnerCoursePage() {
             )}
 
             {tab === 'lesson' && (
-              <div className={`${finelyOsCatalogCard('violet')} !p-4 space-y-4`}>
+              <div className={`${finelyOsCatalogCard('violet')} space-y-4`}>
                 {!activeLesson ? (
                   <div className={FINELY_OS_ENTITY_BODY}>Select a lesson from the syllabus tab.</div>
                 ) : (
@@ -345,7 +347,7 @@ export default function PartnerCoursePage() {
                         </div>
                       ) : null}
 
-                      <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-3 ${hasVideo ? '' : ''}`}>
+                      <div className={`${finelyOsCatalogCard('sky')} fc-surface-harmony space-y-3`}>
                         <div className={FINELY_OS_ENTITY_SUBLABEL}>{hasVideo ? 'Learn' : 'Lesson'}</div>
                         {!hasVideo ? <CourseLessonAudioPlayer course={course} lesson={activeLesson} /> : null}
                         {contentSplit.learnBlocks.length ? (
@@ -357,14 +359,14 @@ export default function PartnerCoursePage() {
                     </div>
 
                     {contentSplit.exampleBlocks.length ? (
-                      <div className={`${finelyOsCatalogCard('amber')} !p-4 fc-surface-harmony space-y-3`}>
+                      <div className={`${finelyOsCatalogCard('rose')} fc-surface-harmony space-y-3`} data-fc-accent="rose">
                         <div className={FINELY_OS_ENTITY_SUBLABEL}>Examples — worked samples</div>
                         <LessonBlockRenderer blocks={contentSplit.exampleBlocks as any} />
                       </div>
                     ) : null}
 
                     {hasVideo ? (
-                      <div className={`${finelyOsCatalogCard('amber')} !p-4 fc-surface-harmony`}>
+                      <div className={`${finelyOsCatalogCard('emerald')} fc-surface-harmony`} data-fc-accent="emerald">
                         <CourseLessonAudioPlayer course={course} lesson={activeLesson} />
                       </div>
                     ) : null}
@@ -376,7 +378,7 @@ export default function PartnerCoursePage() {
             {tab === 'community' && communityEnabled ? (
               <div className="space-y-4">
                 <CourseCommunityAskFinely courseTitle={course.title} lessonTitle={activeLesson?.title} />
-                <div className={`${finelyOsCatalogCard('violet')} !p-4 ${FINELY_OS_ENTITY_BODY}`}>
+                <div className={`${finelyOsCatalogCard('violet')} ${FINELY_OS_ENTITY_BODY}`}>
                   <p className={FINELY_OS_ENTITY_VALUE}>Cohort discussions</p>
                   <p className="mt-2 text-sm">
                     {course.studio?.cohortEnabled
@@ -390,9 +392,9 @@ export default function PartnerCoursePage() {
             ) : null}
           </FinelyUnifiedHubLayout>
 
-          <FinelyOsPageFooter />
+          {!embedded ? <FinelyOsPageFooter /> : null}
         </div>
       </EntitlementGate>
-    </PageShell>
+    </PartnerWorkstationFrame>
   );
 }

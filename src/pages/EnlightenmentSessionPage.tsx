@@ -72,8 +72,8 @@ export default function EnlightenmentSessionPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   usePublicSeoMeta({
-    title: 'Book an Enlightenment session',
-    description: 'Free Enlightenment session for personal credit, business credit, debt strategy, tradelines, and funding readiness.',
+    title: 'Book a Strategy call',
+    description: 'Book a free strategy call for personal credit, business credit, debt planning, tradelines, and funding readiness.',
     path: '/enlightenment-session',
   });
 
@@ -133,7 +133,7 @@ export default function EnlightenmentSessionPage() {
         }
       }
       setStatus('sent');
-      setStatusMsg('Payment received — your additional Enlightenment session is pending calendar confirmation.');
+      setStatusMsg('Payment received — your additional strategy call is pending calendar confirmation.');
     };
 
     void finish();
@@ -241,7 +241,7 @@ export default function EnlightenmentSessionPage() {
         window.dispatchEvent(new Event('finely:store'));
         addLeadNote(
           res.lead.id,
-          [`Enlightenment session request (paid follow-up)`, `Focus: ${focus}`, `Phone: ${phone.trim() || '—'}`, `Timeline: ${timeline.trim() || '—'}`, ``, `Goal:`, goal.trim() || '—'].join('\n'),
+          [`Strategy call request (paid follow-up)`, `Focus: ${focus}`, `Phone: ${phone.trim() || '—'}`, `Timeline: ${timeline.trim() || '—'}`, ``, `Goal:`, goal.trim() || '—'].join('\n'),
         );
 
         try {
@@ -299,7 +299,7 @@ export default function EnlightenmentSessionPage() {
       addLeadNote(
         res.lead.id,
         [
-          `Enlightenment session confirmed instantly`,
+          `Strategy call confirmed instantly`,
           `Focus: ${focus}`,
           `Phone: ${phone.trim() || '—'}`,
           `Slot: ${confirmedLabel}`,
@@ -352,8 +352,8 @@ export default function EnlightenmentSessionPage() {
   return (
     <PageShell
       badge="Public"
-      title="Book an Enlightenment session"
-      subtitle="Pick a date and time — first Enlightenment session free, confirmed instantly."
+      title="Book a Strategy call"
+      subtitle="Pick a date and time — your first strategy call is free and confirmed instantly."
     >
       <div className={FINELY_OS_PAGE}>
         <div className="flex flex-wrap items-center gap-3">
@@ -376,7 +376,7 @@ export default function EnlightenmentSessionPage() {
         <div className={FINELY_OS_BANNER}>
           <Sparkles size={16} className="mt-0.5 text-emerald-300 shrink-0" />
           <p className={FINELY_OS_ENTITY_BODY}>
-            First Enlightenment session is free · follow-ups $100 · pick a specific time (e.g. 5:00 PM) · calendar invite + reminder after you confirm.
+            Your first strategy call is free · follow-ups $100 · pick a specific time (e.g. 5:00 PM) · calendar invite + reminder after you confirm.
           </p>
         </div>
 
@@ -401,7 +401,7 @@ export default function EnlightenmentSessionPage() {
 
           <form onSubmit={onSubmit} className="space-y-6 min-w-0">
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8 items-start w-full min-w-0">
-              <section className={`${finelyOsCatalogCard('sky')} !p-5 sm:!p-6 lg:!p-7 min-w-0 overflow-hidden fc-surface-harmony space-y-5`} aria-labelledby="enlightenment-time-heading">
+              <section className={`${finelyOsCatalogCard('sky')} min-w-0 overflow-hidden fc-surface-harmony space-y-5`} aria-labelledby="enlightenment-time-heading">
                 <header className="space-y-1.5 border-b border-white/10 pb-4">
                   <h2 id="enlightenment-time-heading" className={FINELY_OS_ENTITY_VALUE}>Date &amp; time</h2>
                   <p className={`text-sm leading-relaxed ${FINELY_OS_ENTITY_SUBLABEL}`}>Your contact info and the slot you want — confirmed instantly when eligible.</p>
@@ -445,7 +445,7 @@ export default function EnlightenmentSessionPage() {
                 </div>
               </section>
 
-              <section className={`${finelyOsCatalogCard('violet')} !p-5 sm:!p-6 lg:!p-7 min-w-0 overflow-hidden fc-surface-harmony space-y-5`} aria-labelledby="enlightenment-details-heading">
+              <section className={`${finelyOsCatalogCard('violet')} min-w-0 overflow-hidden fc-surface-harmony space-y-5`} aria-labelledby="enlightenment-details-heading">
                 <header className="space-y-1.5 border-b border-white/10 pb-4">
                   <h2 id="enlightenment-details-heading" className={FINELY_OS_ENTITY_VALUE}>Session details</h2>
                   <p className={`text-sm leading-relaxed ${FINELY_OS_ENTITY_SUBLABEL}`}>Meeting agenda, goals, and consent — tell us what to cover on the call.</p>
@@ -471,8 +471,8 @@ export default function EnlightenmentSessionPage() {
 
                 <div className={sessionQuote.paymentRequired ? FINELY_OS_NOTICE_WARN : FINELY_OS_NOTICE_SUCCESS}>
                   {sessionQuote.paymentRequired
-                    ? 'This email already used the free Enlightenment session. Additional sessions are $100 — confirmed when payment clears.'
-                    : 'Eligible for one free Enlightenment session — confirmed the instant you submit.'}
+                    ? 'This email already used the free strategy call. Additional calls are $100 — confirmed when payment clears.'
+                    : 'Eligible for one free strategy call — confirmed the instant you submit.'}
                 </div>
 
                 <label className={`flex items-start gap-3 ${FINELY_OS_ENTITY_BODY} cursor-pointer`}>
@@ -520,7 +520,7 @@ export default function EnlightenmentSessionPage() {
 
                 <div className="flex flex-col sm:flex-row flex-wrap gap-3 pt-1">
                   <button type="submit" disabled={!canSend} className={`${FINELY_OS_SUCCESS_BTN} min-h-[44px] disabled:opacity-60`}>
-                    {status === 'sending' ? 'Confirming…' : sessionQuote.paymentRequired ? 'Continue to $100 payment' : 'Book an Enlightenment session'}{' '}
+                    {status === 'sending' ? 'Confirming…' : sessionQuote.paymentRequired ? 'Continue to $100 payment' : 'Book a strategy call'}{' '}
                     <ArrowRight size={14} />
                   </button>
                   <button type="button" onClick={() => navigate('/contact')} className={`${FINELY_OS_SECONDARY_BTN} min-h-[44px]`}>
@@ -535,7 +535,7 @@ export default function EnlightenmentSessionPage() {
           <div className={`flex items-start gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 ${FINELY_OS_ENTITY_BODY}`}>
             <Phone size={14} className="mt-0.5 shrink-0 text-sky-300" />
             <p className="text-[11px] leading-relaxed break-words">
-              What happens next: your slot locks instantly → calendar invite by email → reminder before your Enlightenment session → map your plan live together.
+              What happens next: your slot locks instantly → calendar invite by email → reminder before your strategy call → map your plan live together.
             </p>
           </div>
         </div>

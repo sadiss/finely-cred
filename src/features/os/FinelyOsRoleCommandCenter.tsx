@@ -7,7 +7,7 @@ export type RoleCommandTile = {
   label: string;
   value: string;
   hint?: string;
-  accent?: 'violet' | 'emerald' | 'amber' | 'fuchsia' | 'sky' | 'rose';
+  accent?: 'violet' | 'emerald' | 'sky' | 'rose' | 'fuchsia';
   onClick?: () => void;
 };
 
@@ -30,7 +30,6 @@ type Props = {
 const accentRing: Record<NonNullable<RoleCommandTile['accent']>, string> = {
   violet: 'border-violet-500/30 bg-violet-500/10',
   emerald: 'border-emerald-500/30 bg-emerald-500/10',
-  amber: 'border-amber-500/30 bg-amber-500/10',
   fuchsia: 'border-fuchsia-500/30 bg-fuchsia-500/10',
   sky: 'border-sky-500/30 bg-sky-500/10',
   rose: 'border-rose-500/30 bg-rose-500/10',

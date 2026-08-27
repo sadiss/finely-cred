@@ -30,8 +30,8 @@
 }
 
 .grs-mode-toggle__btn.is-active {
-  color: #f0d089;
-  background: rgba(212, 164, 71, 0.16);
+  color: #c4b5fd;
+  background: rgba(167, 139, 250, 0.16);
 }
 
 /* Parchment / light reader skins (Case Desk) */
@@ -50,7 +50,7 @@
 
 .grs-shell--light .grs-mode-toggle__btn.is-active {
   color: #1c1917;
-  background: rgba(180, 140, 60, 0.18);
+  background: rgba(167, 139, 250, 0.18);
 }
 
 .grs-shell--light .grs-toc-title {
@@ -62,7 +62,7 @@
 }
 
 .grs-shell--light .grs-toc-num {
-  color: rgba(120, 90, 30, 0.9);
+  color: rgba(109, 40, 217, 0.9);
 }
 
 .grs-shell--light .grs-toc-item:hover {
@@ -70,8 +70,8 @@
 }
 
 .grs-shell--light .grs-toc-item.is-active {
-  background: rgba(180, 140, 60, 0.12);
-  border-color: rgba(120, 90, 30, 0.28);
+  background: rgba(167, 139, 250, 0.12);
+  border-color: rgba(139, 92, 246, 0.28);
 }
 
 .grs-shell--light .grs-flip-controls button {
@@ -81,7 +81,7 @@
 }
 
 .grs-mode-toggle__btn:focus-visible {
-  outline: 2px solid rgba(240, 208, 137, 0.7);
+  outline: 2px solid rgba(167, 139, 250, 0.7);
   outline-offset: -2px;
 }
 
@@ -106,8 +106,8 @@
 }
 
 .grs-toc-item.is-active {
-  background: rgba(212, 164, 71, 0.1);
-  border-color: rgba(212, 164, 71, 0.28);
+  background: rgba(167, 139, 250, 0.1);
+  border-color: rgba(167, 139, 250, 0.28);
 }
 
 .grs-toc-num {
@@ -116,7 +116,7 @@
   font-weight: 900;
   letter-spacing: 0.06em;
   tabular-nums: true;
-  color: rgba(240, 208, 137, 0.85);
+  color: rgba(196, 181, 253, 0.85);
   min-width: 1.6rem;
 }
 

@@ -198,7 +198,7 @@ export default function ResourcesGuidesPage() {
             </div>
           ) : null}
 
-          <div className={`${finelyOsLeadMagnetPanel('emerald')} mb-4 !p-5`} data-fc-accent="emerald">
+          <div className={`${finelyOsLeadMagnetPanel('emerald')} mb-4`} data-fc-accent="emerald">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="max-w-2xl">
                 <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-emerald-600/25 bg-emerald-500/15 px-3 py-1.5">
@@ -232,15 +232,15 @@ export default function ResourcesGuidesPage() {
                   key={g.id}
                   type="button"
                   onClick={() => navigate(g.path)}
-                  className={`${finelyOsCatalogCard(g.accent)} !p-4 text-left transition-all hover:brightness-110`}
-                  data-fc-accent={g.accent}
+                  className={`${finelyOsCatalogCard(g.accent === 'amber' || g.accent === 'fuchsia' ? 'rose' : g.accent)} text-left transition-all hover:brightness-110`}
+                  data-fc-accent={g.accent === 'amber' || g.accent === 'fuchsia' ? 'rose' : g.accent}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <span className={FINELY_OS_ENTITY_SUBLABEL}>{g.badge || 'Free guide'}</span>
                     <FileText size={16} className="shrink-0 opacity-70" />
                   </div>
-                  <div className={`mt-2 ${FINELY_OS_ENTITY_VALUE} font-semibold`}>{g.title}</div>
-                  <p className={`mt-1 ${FINELY_OS_ENTITY_BODY} text-sm`}>{g.desc}</p>
+                  <div className={`mt-2 text-xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{g.title}</div>
+                  <p className={`mt-1 text-base ${FINELY_OS_ENTITY_BODY}`}>{g.desc}</p>
                   <span className={`${FINELY_OS_SECONDARY_BTN} mt-3`}>
                     Open guide <ArrowRight size={14} />
                   </span>
@@ -249,7 +249,7 @@ export default function ResourcesGuidesPage() {
             </div>
           </section>
 
-          <section className={`space-y-3 ${finelyOsCatalogCard('emerald')} !p-5`} data-fc-accent="emerald">
+          <section className={`space-y-4 ${finelyOsCatalogCard('emerald')}`} data-fc-accent="emerald">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-emerald-500/35 bg-emerald-500/15">
                 <BookOpen size={18} className="text-emerald-300" />
@@ -259,7 +259,7 @@ export default function ResourcesGuidesPage() {
                 <div className={`text-xs font-semibold uppercase tracking-wider ${FINELY_OS_ENTITY_BODY}`}>Field guides</div>
               </div>
             </div>
-            <p className={`${FINELY_OS_ENTITY_BODY} text-sm max-w-3xl`}>
+            <p className={`${FINELY_OS_ENTITY_BODY} text-base max-w-3xl`}>
               High-signal field guides for clean execution. Request access and you&apos;ll also receive a complimentary 60‑minute
               strategy call.
             </p>
@@ -271,10 +271,10 @@ export default function ResourcesGuidesPage() {
                 <div
                   key={x.id}
                   id={`guide-card-${x.id}`}
-                  className={`space-y-3 ${finelyOsCatalogCard((['emerald', 'sky', 'violet'] as const)[idx % 3])} !p-4 ${
-                    blogGuide?.id === x.id ? 'ring-2 ring-amber-400/60' : ''
+                  className={`space-y-3 ${finelyOsCatalogCard((['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4])} ${
+                    blogGuide?.id === x.id ? 'ring-2 ring-violet-400/60' : ''
                   }`}
-                  data-fc-accent={(['emerald', 'sky', 'violet'] as const)[idx % 3]}
+                  data-fc-accent={(['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4]}
                 >
                   <div className="flex items-center justify-between gap-2">
                     <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-[9px] font-bold uppercase tracking-widest text-emerald-200">
@@ -310,7 +310,7 @@ export default function ResourcesGuidesPage() {
         <div className="fixed inset-0 z-[300]">
           <div className="absolute inset-0 bg-slate-900/70 backdrop-blur-sm" onClick={closeLead} />
           <div className="absolute inset-x-0 top-10 px-4">
-            <div className={`mx-auto max-w-xl overflow-hidden shadow-2xl ${finelyOsCatalogCard('violet')} !p-5`}>
+            <div className={`mx-auto max-w-xl overflow-hidden shadow-2xl ${finelyOsCatalogCard('violet')}`}>
               <div className="flex items-start justify-between gap-4 border-b border-white/[0.08] p-4">
                 <div className="min-w-0">
                   <div className={`${FINELY_OS_ENTITY_SUBLABEL} font-bold text-fuchsia-300`}>Free guide + 60‑minute strategy call</div>
@@ -423,7 +423,7 @@ export default function ResourcesGuidesPage() {
                       </div>
                     </div>
 
-                    <label className={`flex cursor-pointer items-start gap-3 ${finelyOsCatalogCard('sky')} !p-4`}>
+                    <label className={`flex cursor-pointer items-start gap-3 ${finelyOsCatalogCard('sky')}`}>
                       <input
                         type="checkbox"
                         checked={consent}

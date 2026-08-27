@@ -5,7 +5,11 @@ import type { Partner } from '../../domain/partners';
 import type { PartnerOverallScoreResult } from '../../utils/partnerOverallScore';
 import { FUNDING_GOAL_PRESETS, formatFundingAmount, savePartnerFundingTarget } from '../../lib/partnerGoals';
 import { computeReadinessScore } from '../../domain/capitalReadiness';
-import { getOrCreateCapitalPlan } from '../../data/capitalReadinessRepo';
+import { buildReadinessScoreExtras, getOrCreateCapitalPlan } from '../../data/capitalReadinessRepo';
+import {
+  formatLenderMarketLine,
+  resolveLenderMarketSignals,
+} from '../../lib/lenderMarketSignals';
 import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_INPUT,
@@ -21,6 +25,7 @@ import {
 type DashboardFundingPanelProps = {
   partner: Partner | null;
   creditScore: number | null;
+  creditScoreLabel?: string;
   scoreFromReport: boolean;
   overallScore: PartnerOverallScoreResult | null;
   onSaved?: () => void;
@@ -29,6 +34,7 @@ type DashboardFundingPanelProps = {
 export function DashboardFundingPanel({
   partner,
   creditScore,
+  creditScoreLabel,
   scoreFromReport,
   overallScore,
   onSaved,
@@ -42,19 +48,40 @@ export function DashboardFundingPanel({
   const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [marketLine, setMarketLine] = useState<string | null>(null);
 
   useEffect(() => {
     setGoalInput(String(savedTarget || ''));
   }, [savedTarget]);
 
+  useEffect(() => {
+    const personal = partner?.routes?.[routeKey]?.personal;
+    const st = personal?.state;
+    const zip = personal?.postalCode;
+    if (!st && !(zip && zip.length >= 5)) {
+      setMarketLine(null);
+      return;
+    }
+    let cancelled = false;
+    void resolveLenderMarketSignals({ state: st, zip }).then((signals) => {
+      if (!cancelled) setMarketLine(formatLenderMarketLine(signals));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [partner, routeKey]);
+
   const capitalScore = useMemo(() => {
     if (!partner?.id) return null;
     try {
-      return computeReadinessScore(getOrCreateCapitalPlan(partner.id));
+      return computeReadinessScore(
+        getOrCreateCapitalPlan(partner.id),
+        buildReadinessScoreExtras(partner.id, partner),
+      );
     } catch {
       return null;
     }
-  }, [partner?.id]);
+  }, [partner]);
 
   const readinessPct = overallScore?.overall ?? capitalScore ?? null;
   const goal = Math.max(0, Math.round(Number(goalInput.replace(/[^\d]/g, '')) || savedTarget || 0));
@@ -115,7 +142,7 @@ export function DashboardFundingPanel({
                 />
                 <defs>
                   <linearGradient id="scoreGradFunding" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#fbbf24" />
+                    <stop offset="0%" stopColor="#38bdf8" />
                     <stop offset="100%" stopColor="#34d399" />
                   </linearGradient>
                 </defs>
@@ -125,13 +152,11 @@ export function DashboardFundingPanel({
               </div>
             </div>
             <div className="min-w-0 flex-1">
-              <p className={`${FINELY_OS_ENTITY_SUBLABEL} mb-2`}>Credit score</p>
+              <p className={`${FINELY_OS_ENTITY_SUBLABEL} mb-2`}>Middle score</p>
               <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
                 {creditScore == null
-                  ? 'Upload a tri-merge report to populate live bureau scores.'
-                  : scoreFromReport
-                    ? 'From your latest uploaded report'
-                    : 'From your partner file'}
+                  ? 'Upload a tri-merge report to see your middle bureau score.'
+                  : `${creditScoreLabel ?? (scoreFromReport ? 'From your latest uploaded report' : 'From your partner profile')} · Results vary`}
               </p>
               <button type="button" onClick={() => navigate(partner ? '/portal/reports' : '/onboarding')} className="mt-4 inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-violet-300 hover:text-violet-200">
                 {creditScore == null ? 'Upload report' : 'View reports'} <ArrowRight size={12} />
@@ -195,7 +220,12 @@ export function DashboardFundingPanel({
               </div>
             </div>
           ) : null}
-          <p className={`text-xs ${FINELY_OS_ENTITY_BODY} mt-3`}>Profile completeness, documents, disputes, and wealth-path milestones — not a funding guarantee.</p>
+          <p className={`text-xs ${FINELY_OS_ENTITY_BODY} mt-3`}>
+            Profile completeness, documents, disputes, and wealth-path milestones — not a funding guarantee.
+          </p>
+          <p className={`text-xs ${FINELY_OS_ENTITY_BODY} mt-2`}>
+            {marketLine ?? 'Funding subject to underwriting · results vary.'}
+          </p>
           <button type="button" onClick={() => navigate('/portal/wealth-paths')} className={`mt-4 inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-emerald-700`}>
             Wealth paths <ArrowRight size={12} />
           </button>

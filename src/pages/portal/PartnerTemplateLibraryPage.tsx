@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
 import { ArrowLeft } from 'lucide-react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { useSearchParams } from 'react-router-dom';
+import { PartnerWorkstationFrame, type PartnerEmbeddablePageProps } from '../../features/workspaceLightPreview/product/partner/PartnerWorkstationFrame';
+import { useMappedPartnerNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { TemplateLibraryHub } from '../../components/templates/TemplateLibraryHub';
 import { EntitlementGate } from '../../components/billing/EntitlementGate';
@@ -20,8 +21,8 @@ import { FINELY_OS_BACK_LINK, FINELY_OS_PAGE } from '../../features/os/finelyOsL
 
 type HubSection = 'overview' | 'vault' | 'reasons' | 'bases';
 
-export default function PartnerTemplateLibraryPage() {
-  const navigate = useNavigate();
+export default function PartnerTemplateLibraryPage({ embedded = false }: PartnerEmbeddablePageProps = {}) {
+  const navigate = useMappedPartnerNavigate();
   const [params, setParams] = useSearchParams();
   const { partner } = usePartnerSession();
   const section = ((params.get('section') as HubSection) || 'overview') as HubSection;
@@ -42,19 +43,27 @@ export default function PartnerTemplateLibraryPage() {
 
   if (!partner) {
     return (
-      <PageShell badge="Template Library" title="Sign in required" subtitle="Partner profile required.">
+      <PartnerWorkstationFrame
+        embedded={embedded}
+        kind="templates-workstation"
+        badge="Template Library"
+        title="Sign in required"
+        subtitle="Partner profile required."
+      >
         <button type="button" onClick={() => navigate('/portal/dashboard')} className="fc-button-brand">
           <ArrowLeft size={14} /> Dashboard
         </button>
-      </PageShell>
+      </PartnerWorkstationFrame>
     );
   }
 
   return (
-    <PageShell
+    <PartnerWorkstationFrame
+      embedded={embedded}
+      kind="templates-workstation"
       badge="Template Library"
       title="Letter building hub"
-      subtitle="Templates, saved reasons, and starter bases — then open Letter Studio to draft, preview, and save PDFs."
+      subtitle="Start from a proven letter or document instead of a blank page."
     >
       <EntitlementGate partnerId={partner.id} requiredKeys={[ENTITLEMENT_KEYS.templates]}>
         <div className={FINELY_OS_PAGE}>
@@ -75,12 +84,12 @@ export default function PartnerTemplateLibraryPage() {
           <FinelyUnifiedHubLayout
             eyebrow="Template library"
             title="Build every letter from one hub"
-            subtitle="Vault templates, Reasons OS, and starter bases — then execute in Letter Studio."
+            subtitle="Saved templates, dispute reasons, and starter bases — then draft in Letter Studio."
             accent="violet"
             kpis={[
               { label: 'Vault', value: String(vaultCount), hint: 'Saved templates', accent: 'violet' },
               { label: 'Saved reasons', value: String(savedReasonCount), hint: 'Custom snippets', accent: 'emerald' },
-              { label: 'Starter bases', value: String(TEMPLATE_BASES.length), hint: 'Scaffolds', accent: 'amber' },
+              { label: 'Starter bases', value: String(TEMPLATE_BASES.length), hint: 'Scaffolds', accent: 'sky' },
               { label: 'Built-in', value: String(builtInReasonCount), hint: 'Reason library', accent: 'sky' },
             ]}
             tabs={[
@@ -91,15 +100,15 @@ export default function PartnerTemplateLibraryPage() {
             ]}
             activeTab={section}
             onTabChange={(id) => setParams({ section: id })}
-            primaryAction={{ label: 'Letter Studio', onClick: () => navigate('/portal/letters') }}
-            secondaryAction={{ label: 'Reasons OS', onClick: () => setParams({ section: 'reasons' }) }}
+            primaryAction={{ label: 'Open Letter Studio', onClick: () => navigate('/portal/letters') }}
+            secondaryAction={{ label: 'Saved reasons', onClick: () => setParams({ section: 'reasons' }) }}
           >
             <TemplateLibraryHub partner={partner} unifiedShell />
           </FinelyUnifiedHubLayout>
 
-          <FinelyOsPageFooter />
+          {!embedded ? <FinelyOsPageFooter /> : null}
         </div>
       </EntitlementGate>
-    </PageShell>
+    </PartnerWorkstationFrame>
   );
 }

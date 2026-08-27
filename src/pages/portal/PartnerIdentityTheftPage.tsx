@@ -64,7 +64,7 @@ export default function PartnerIdentityTheftPage() {
               accent="violet"
               kpis={[
                 { label: 'Step 1', value: 'FTC report', hint: 'identitytheft.gov', accent: 'violet' },
-                { label: 'Step 2', value: '3 bureaus', hint: 'Freeze files', accent: 'amber' },
+                { label: 'Step 2', value: '3 bureaus', hint: 'Freeze files', accent: 'sky' },
                 { label: 'Step 3', value: 'Disputes', hint: 'Inaccurate tradelines', accent: 'emerald' },
                 { label: 'Step 4', value: 'Vault', hint: 'Proof pack', accent: 'sky' },
               ]}
@@ -94,32 +94,32 @@ export default function PartnerIdentityTheftPage() {
               {tab === 'freeze' && (
                 <div className="space-y-6 w-full">
                   <div className="grid sm:grid-cols-2 gap-4">
-                    <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony flex items-start gap-3`}>
-                      <FileCheck size={20} className="text-violet-300 shrink-0 mt-0.5" />
+                    <div className={`${finelyOsCatalogCard('emerald')} flex items-start gap-4`}>
+                      <FileCheck size={22} className="text-emerald-300 shrink-0 mt-0.5" />
                       <div>
-                        <div className={`${FINELY_OS_ENTITY_VALUE} text-sm`}>FTC Identity Theft Report</div>
+                        <div className={FINELY_OS_ENTITY_VALUE}>FTC Identity Theft Report</div>
                         <a
                           href="https://www.identitytheft.gov/"
                           target="_blank"
                           rel="noreferrer"
-                          className={`mt-1 inline-block ${FINELY_OS_ENTITY_ACCENT_LINK} text-xs`}
+                          className={`mt-2 inline-block ${FINELY_OS_ENTITY_ACCENT_LINK} text-base font-bold`}
                         >
                           Open identitytheft.gov
                         </a>
                       </div>
                     </div>
-                    <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony flex items-start gap-3`}>
-                      <AlertTriangle size={20} className="text-violet-300 shrink-0 mt-0.5" />
+                    <div className={`${finelyOsCatalogCard('violet')} flex items-start gap-4`}>
+                      <AlertTriangle size={22} className="text-violet-300 shrink-0 mt-0.5" />
                       <div>
-                        <div className={`${FINELY_OS_ENTITY_VALUE} text-sm`}>Prescreen opt-out</div>
-                        <a href="https://www.optoutprescreen.com/" target="_blank" rel="noreferrer" className={`mt-1 inline-block ${FINELY_OS_ENTITY_ACCENT_LINK} text-xs`}>
+                        <div className={FINELY_OS_ENTITY_VALUE}>Prescreen opt-out</div>
+                        <a href="https://www.optoutprescreen.com/" target="_blank" rel="noreferrer" className={`mt-2 inline-block ${FINELY_OS_ENTITY_ACCENT_LINK} text-base font-bold`}>
                           OptOutPrescreen.com
                         </a>
                       </div>
                     </div>
                   </div>
                   {(['credit_bureau', 'specialty', 'banking'] as const).map((group) => (
-                    <div key={group} className={`${finelyOsCatalogCard('violet')} !p-5`}>
+                    <div key={group} className={finelyOsCatalogCard(group === 'credit_bureau' ? 'sky' : group === 'specialty' ? 'rose' : 'emerald')}>
                       <div className={`${FINELY_OS_ENTITY_SUBLABEL} mb-3`}>
                         {group === 'credit_bureau' ? 'Major credit bureaus' : group === 'specialty' ? 'Innovis, SageStream, NCTUE & more' : 'Banking reports'}
                       </div>

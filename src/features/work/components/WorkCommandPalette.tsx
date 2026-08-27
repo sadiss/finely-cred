@@ -29,11 +29,11 @@ type PaletteScope = 'admin' | 'portal';
 
 const ADMIN_NAV_COMMANDS: CommandItem[] = [
   { id: 'nav_marketing', label: 'Marketing Department', hint: 'Get leads · content · follow up', href: '/admin/marketing', group: 'Navigate' },
-  { id: 'nav_marketing_find', label: 'Find new people', hint: 'Caleb · live search', href: '/admin/marketing?tab=desk&helper=find', group: 'Marketing' },
-  { id: 'nav_marketing_desk', label: 'Marketing daily desk', hint: 'Board · mail · clean', href: '/admin/marketing?tab=desk', group: 'Marketing' },
-  { id: 'nav_marketing_content', label: 'Content Studio', hint: 'Video · scripts · publish', href: '/admin/marketing?tab=content', group: 'Marketing' },
-  { id: 'nav_marketing_team', label: 'Marketing team', hint: 'Specialists + workers', href: '/admin/marketing?tab=team', group: 'Marketing' },
-  { id: 'nav_marketing_leads', label: 'Leads & CRM (hub)', hint: 'Pipeline + inbound', href: '/admin/marketing?tab=leads', group: 'Marketing' },
+  { id: 'nav_marketing_find', label: 'Find new people', hint: 'Caleb · live search', href: '/admin/marketing-desk?helper=find', group: 'Marketing' },
+  { id: 'nav_marketing_desk', label: 'Marketing daily desk', hint: 'Board · mail · clean', href: '/admin/marketing-desk', group: 'Marketing' },
+  { id: 'nav_marketing_content', label: 'Content Studio', hint: 'Video · scripts · publish', href: '/admin/content-studio', group: 'Marketing' },
+  { id: 'nav_marketing_team', label: 'Marketing team', hint: 'Specialists + workers', href: '/admin/growth-agents', group: 'Marketing' },
+  { id: 'nav_marketing_leads', label: 'Leads & CRM (hub)', hint: 'Pipeline + inbound', href: '/admin/leads-os', group: 'Marketing' },
   { id: 'nav_my_tasks', label: 'My tasks', href: '/admin/my-tasks', group: 'Navigate' },
   { id: 'nav_inbox', label: 'Ops Inbox', hint: 'Daily triage', href: '/admin/workflow', group: 'Navigate' },
   { id: 'nav_projects', label: 'Projects & Tasks', href: '/admin/projects', group: 'Navigate' },
@@ -43,7 +43,7 @@ const ADMIN_NAV_COMMANDS: CommandItem[] = [
   { id: 'nav_crm_risk', label: 'CRM — Work at risk', hint: 'Idle + SLA', href: '/admin/crm?smartList=work_at_risk', group: 'Navigate' },
   { id: 'nav_crm_referrals', label: 'CRM — Referrals', hint: 'Attribution analytics', href: '/admin/crm/referrals', group: 'Navigate' },
   { id: 'nav_crm_routing', label: 'CRM — Routing rules', hint: 'Auto-assign leads', href: '/admin/crm/routing', group: 'Navigate' },
-  { id: 'nav_checklists', label: 'Service delivery checklists', href: '/admin/marketing?tab=checklists', group: 'Navigate' },
+  { id: 'nav_checklists', label: 'Service delivery checklists', href: '/admin/playbooks', group: 'Navigate' },
   { id: 'nav_templates', label: 'Project templates', href: '/admin/projects/templates', group: 'Navigate' },
   { id: 'nav_portfolio', label: 'Portfolio dashboard', href: '/admin/projects/portfolio', group: 'Navigate' },
   { id: 'nav_crm_seq', label: 'CRM sequences', href: '/admin/crm/sequences', group: 'Navigate' },
@@ -84,9 +84,11 @@ const PORTAL_SHORTCUTS: Array<{ key: string; href: string }> = [
 export function WorkCommandPalette({
   scope = 'admin',
   partnerId,
+  surface = 'legacy',
 }: {
   scope?: PaletteScope;
   partnerId?: string;
+  surface?: 'legacy' | 'product';
 }) {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -120,6 +122,17 @@ export function WorkCommandPalette({
     return () => window.removeEventListener('keydown', onKey);
   }, [navigate, open, isPortal]);
 
+  useEffect(() => {
+    const onOpen = (event: Event) => {
+      const detail = (event as CustomEvent<{ scope?: PaletteScope }>).detail;
+      if (detail?.scope && detail.scope !== scope) return;
+      setOpen(true);
+      setQuery('');
+    };
+    window.addEventListener('finely:open-work-command-palette', onOpen as EventListener);
+    return () => window.removeEventListener('finely:open-work-command-palette', onOpen as EventListener);
+  }, [scope]);
+
   const items = useMemo(() => {
     const nav = isPortal ? PORTAL_NAV_COMMANDS : ADMIN_NAV_COMMANDS;
     const dynamic: CommandItem[] = [];
@@ -142,7 +155,7 @@ export function WorkCommandPalette({
           id: 'mkt_review',
           label: `Review ${review} people`,
           hint: 'Caleb find queue',
-          href: '/admin/marketing?tab=desk&helper=find#exceptions',
+          href: '/admin/marketing-desk?helper=find#exceptions',
           group: 'Marketing',
         });
       }
@@ -151,7 +164,7 @@ export function WorkCommandPalette({
           id: 'mkt_desk_tasks',
           label: `${deskOpen} desk task(s)`,
           hint: 'Marketing pipeline',
-          href: '/admin/marketing?tab=desk',
+          href: '/admin/marketing-desk',
           group: 'Marketing',
         });
       }
@@ -207,22 +220,49 @@ export function WorkCommandPalette({
     </>
   );
 
+  const product = surface === 'product';
+
   return (
-    <div className="fixed inset-0 z-[300] flex items-start justify-center pt-[12vh] px-4 bg-fc-chrome/90 backdrop-blur-sm" onClick={() => setOpen(false)}>
+    <div
+      className={
+        product
+          ? 'fixed inset-0 z-[340] flex items-start justify-center bg-[#07101d]/55 px-4 pt-[12vh] backdrop-blur-sm'
+          : 'fixed inset-0 z-[300] flex items-start justify-center pt-[12vh] px-4 bg-fc-chrome/90 backdrop-blur-sm'
+      }
+      onClick={() => setOpen(false)}
+    >
       <div
-        className={`w-full max-w-lg shadow-2xl overflow-hidden ${finelyOsGlassShell('panel', 'violet')}`}
+        className={
+          product
+            ? 'w-full max-w-xl overflow-hidden rounded-2xl border border-[#dde4ec] bg-white text-[#0a1628] shadow-2xl'
+            : `w-full max-w-lg shadow-2xl overflow-hidden ${finelyOsGlassShell('panel', 'violet')}`
+        }
         onClick={(e) => e.stopPropagation()}
       >
-        <div className={`flex items-center gap-2 border-b border-white/[0.08] px-4 py-3 ${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
-          <Search size={16} className="text-violet-300" />
+        <div
+          className={
+            product
+              ? 'flex items-center gap-3 border-b border-[#dde4ec] bg-[#f7f9fc] px-4 py-3'
+              : `flex items-center gap-2 border-b border-white/[0.08] px-4 py-3 ${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`
+          }
+        >
+          <Search size={16} className={product ? 'text-violet-600' : 'text-violet-300'} />
           <input
             autoFocus
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={isPortal ? 'Jump to portal page or project…' : 'Jump to project, CRM record, or page…'}
-            className={`flex-1 text-sm outline-none bg-transparent ${FINELY_OS_ENTITY_VALUE} placeholder:text-white/35`}
+            className={
+              product
+                ? 'flex-1 bg-transparent text-sm font-medium text-[#0a1628] outline-none placeholder:text-[#7b8796]'
+                : `flex-1 text-sm outline-none bg-transparent ${FINELY_OS_ENTITY_VALUE} placeholder:text-white/35`
+            }
           />
-          <button type="button" onClick={() => setOpen(false)} className="text-white/45 hover:text-white/80">
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            className={product ? 'rounded-lg p-2 text-[#526174] hover:bg-white hover:text-[#0a1628]' : 'text-white/45 hover:text-white/80'}
+          >
             <X size={16} />
           </button>
         </div>
@@ -237,20 +277,34 @@ export function WorkCommandPalette({
                     navigate(item.href);
                     setOpen(false);
                   }}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-white/[0.04] transition-colors"
+                  className={
+                    product
+                      ? 'flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-[#f7f9fc]'
+                      : 'w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-white/[0.04] transition-colors'
+                  }
                 >
-                  <Icon size={16} className={`${finelyOsModuleAccentText(i)} shrink-0`} />
+                  <Icon size={16} className={product ? 'shrink-0 text-violet-600' : `${finelyOsModuleAccentText(i)} shrink-0`} />
                   <span className="min-w-0 flex-1">
-                    <span className={`block text-sm truncate ${FINELY_OS_ENTITY_VALUE}`}>{item.label}</span>
-                    <span className={`block text-[10px] uppercase tracking-wider ${FINELY_OS_ENTITY_SUBLABEL}`}>{item.group}{item.hint ? ` • ${item.hint}` : ''}</span>
+                    <span className={product ? 'block truncate text-sm font-semibold text-[#0a1628]' : `block text-sm truncate ${FINELY_OS_ENTITY_VALUE}`}>{item.label}</span>
+                    <span className={product ? 'mt-0.5 block truncate text-xs text-[#526174]' : `block text-[10px] uppercase tracking-wider ${FINELY_OS_ENTITY_SUBLABEL}`}>{item.group}{item.hint ? ` · ${item.hint}` : ''}</span>
                   </span>
                 </button>
               </li>
             );
           })}
-          {!filtered.length ? <li className={`px-4 py-6 text-sm text-center ${FINELY_OS_ENTITY_BODY}`}>No matches</li> : null}
+          {!filtered.length ? (
+            <li className={product ? 'px-4 py-8 text-center text-sm text-[#526174]' : `px-4 py-6 text-sm text-center ${FINELY_OS_ENTITY_BODY}`}>
+              No matches
+            </li>
+          ) : null}
         </ul>
-        <div className={`border-t border-white/[0.08] px-4 py-2 text-[10px] flex flex-wrap items-center gap-x-3 gap-y-1 ${FINELY_OS_ENTITY_BODY}`}>
+        <div
+          className={
+            product
+              ? 'flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-[#dde4ec] bg-[#f7f9fc] px-4 py-2.5 text-xs text-[#526174]'
+              : `border-t border-white/[0.08] px-4 py-2 text-[10px] flex flex-wrap items-center gap-x-3 gap-y-1 ${FINELY_OS_ENTITY_BODY}`
+          }
+        >
           <span className="inline-flex items-center gap-1"><ListChecks size={12} /> Ctrl+K palette</span>
           {shortcutHints}
         </div>

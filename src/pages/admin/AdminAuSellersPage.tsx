@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ArrowRight, BadgeCheck, FileText, Plus, Search, ShieldCheck, ShieldX, X } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { AdminWorkstationFrame, type AdminEmbeddablePageProps } from '../../features/workspaceLightPreview/product/admin/AdminWorkstationFrame';
+import { useMappedAdminNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { getActiveTenantId } from '../../tenancy/activeTenant';
 import { createAuSeller, findAuSellerByEmail, listAuSellersByTenant, upsertAuSeller, upsertAuSellerListing } from '../../data/auSellerRepo';
 import type { AuSeller, AuSellerListing } from '../../domain/auSeller';
@@ -41,8 +41,8 @@ function fmtWhen(iso?: string) {
   }
 }
 
-export default function AdminAuSellersPage() {
-  const navigate = useNavigate();
+export default function AdminAuSellersPage({ embedded = false }: AdminEmbeddablePageProps = {}) {
+  const navigate = useMappedAdminNavigate();
   const [storeVersion, setStoreVersion] = useState(0);
   const [q, setQ] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -90,7 +90,7 @@ export default function AdminAuSellersPage() {
   };
 
   return (
-    <PageShell
+    <AdminWorkstationFrame embedded={embedded} kind="au-sellers-workstation"
       badge="Admin"
       title="AU Sellers"
       subtitle="Review supply-side sellers, verify status, and approve/reject listings with proof artifacts."
@@ -161,7 +161,7 @@ export default function AdminAuSellersPage() {
         )}
 
         <div className="grid lg:grid-cols-12 gap-6">
-          <div className={`lg:col-span-4 ${finelyOsCatalogCard('violet')} !p-5 p-4 space-y-3`}>
+          <div className={`lg:col-span-4 ${finelyOsCatalogCard('emerald')} space-y-4`} data-fc-accent="emerald">
             <div className={FINELY_OS_ENTITY_SUBLABEL}>Sellers</div>
             {sellers.length === 0 ? (
               <div className={FINELY_OS_ENTITY_BODY}>No sellers in this tenant yet.</div>
@@ -174,7 +174,7 @@ export default function AdminAuSellersPage() {
                       key={s.id}
                       type="button"
                       onClick={() => setSelectedId(s.id)}
-                      className={finelyOsListItem(active, 'amber')}
+                      className={finelyOsListItem(active, 'emerald')}
                     >
                       <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{s.fullName || s.email}</div>
                       <div className={`mt-1 ${FINELY_OS_ENTITY_SUBLABEL} font-mono truncate normal-case tracking-normal`}>
@@ -189,10 +189,10 @@ export default function AdminAuSellersPage() {
 
           <div className="lg:col-span-8 space-y-6">
             {!selected ? (
-              <div className={`${finelyOsCatalogCard('violet')} !p-5 ${FINELY_OS_ENTITY_BODY}`}>Select a seller.</div>
+              <div className={`${finelyOsCatalogCard('sky')} ${FINELY_OS_ENTITY_BODY}`} data-fc-accent="sky">Select a seller.</div>
             ) : (
               <>
-                <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+                <div className={`${finelyOsCatalogCard('violet')} space-y-4`} data-fc-accent="violet">
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
                       <div className={FINELY_OS_ENTITY_SUBLABEL}>Seller</div>
@@ -231,12 +231,12 @@ export default function AdminAuSellersPage() {
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-4">
-                    <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+                    <div className={`${finelyOsCatalogCard('emerald')} fc-surface-harmony`} data-fc-accent="emerald">
                       <div className={FINELY_OS_ENTITY_SUBLABEL}>Verification</div>
                       <div className={`mt-1 ${FINELY_OS_ENTITY_VALUE} capitalize`}>{selected.verification.status.replace(/_/g, ' ')}</div>
                       <div className={`mt-1 ${FINELY_OS_ENTITY_BODY} text-xs`}>Reviewed: {fmtWhen(selected.verification.reviewedAt)}</div>
                     </div>
-                    <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+                    <div className={`${finelyOsCatalogCard('rose')} fc-surface-harmony`} data-fc-accent="rose">
                       <div className={FINELY_OS_ENTITY_SUBLABEL}>Payouts</div>
                       <div className={`mt-1 ${FINELY_OS_ENTITY_VALUE}`}>{selected.payouts.method}</div>
                       <div className={`mt-1 ${FINELY_OS_ENTITY_BODY} text-xs font-mono truncate`}>
@@ -246,9 +246,9 @@ export default function AdminAuSellersPage() {
                   </div>
                 </div>
 
-                <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+                <div className={`${finelyOsCatalogCard('sky')} space-y-4`} data-fc-accent="sky">
                   <div className="flex items-center justify-between gap-3">
-                    <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-violet-300`}>
+                    <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-sky-300`}>
                       <BadgeCheck size={18} />
                       <span>Listings</span>
                     </div>
@@ -302,9 +302,9 @@ export default function AdminAuSellersPage() {
             )}
           </div>
         </div>
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
       </div>
-    </PageShell>
+    </AdminWorkstationFrame>
   );
 }
 

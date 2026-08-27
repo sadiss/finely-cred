@@ -15,7 +15,10 @@ export default defineConfig({
   build: {
     // Keep warnings meaningful without blocking builds.
     chunkSizeWarningLimit: 900,
+    // Gzip-sizing every chunk holds all output in memory at once; this box has 7.4 GB.
+    reportCompressedSize: false,
     rollupOptions: {
+      maxParallelFileOps: 2,
       output: {
         manualChunks: {
           // Heavyweight PDF tooling

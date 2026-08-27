@@ -46,7 +46,7 @@ function ChapterBody({ chapter }: { chapter: RealEstateGuideChapter }) {
             <ul className="mt-4 space-y-2.5">
               {sec.bullets.map((b) => (
                 <li key={b} className="flex gap-3 text-[15px] leading-relaxed text-white/70">
-                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-300/80" />
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-violet-300/80" />
                   <span>{b}</span>
                 </li>
               ))}
@@ -184,7 +184,7 @@ export default function RealEstateGuideReaderPage() {
         <button
           type="button"
           onClick={() => navigate(RE_GUIDE_PATH)}
-          className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-white/55 hover:text-amber-200"
+          className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-white/55 hover:text-violet-200"
         >
           <ArrowLeft size={14} /> Guide home
         </button>
@@ -208,14 +208,14 @@ export default function RealEstateGuideReaderPage() {
         return (
           <article className="reg-sheet overflow-hidden px-5 py-7 md:px-10 md:py-10 lg:px-12">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-200/75">{ch.kicker}</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.22em] text-violet-200/75">{ch.kicker}</span>
               <span className="text-[11px] text-white/40">
                 {ch.number} / {String(RE_GUIDE_CHAPTERS.length).padStart(2, '0')}
               </span>
             </div>
             <h1 className="reg-serif mt-3 text-3xl font-semibold leading-tight text-white md:text-4xl">{ch.title}</h1>
             <p className="mt-3 max-w-2xl text-base leading-relaxed text-white/60">{ch.subtitle}</p>
-            <div className="mt-6 h-px bg-gradient-to-r from-amber-300/40 via-white/10 to-transparent" aria-hidden />
+            <div className="mt-6 h-px bg-gradient-to-r from-violet-300/40 via-white/10 to-transparent" aria-hidden />
             <div className="mt-6">
               <ChapterBody chapter={ch} />
             </div>

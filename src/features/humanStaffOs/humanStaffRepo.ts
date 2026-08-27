@@ -73,7 +73,7 @@ export function resetHumanStaffDemo(): HumanStaffStore {
             createdAt: nowIso(),
             fromAgentId: 'pipeline_titan',
             toAgentIds: ['scout_supreme', 'switchboard'],
-            body: 'I own the lead outcome. Scout owns discovery depth. Switchboard owns whether the queue is actually moving. We should show that directly on the page.',
+            body: 'I own the lead outcome. Lead Research owns discovery depth. Switchboard owns whether the queue is actually moving. We should show that directly on the page.',
             tone: 'direct',
             priority: 'high',
             tags: ['deep-swarm', 'ownership'],

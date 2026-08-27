@@ -1,7 +1,82 @@
 import type { CreditReportProvider, ParsedCreditReport, PdfTextMeta } from '../domain/creditReports';
 import { detectProviderFromText } from './detectProvider';
-import { detectReportDateFromText, extractPdfTextWithMeta } from './parsePdfText';
+import { detectReportDateFromText, extractPdfTextWithMeta, type PdfTextExtraction } from './parsePdfText';
 import { parseCreditReportText } from './parseTextReport';
+
+const PDF_SOURCE_PARSE_VERSION = 'pdf-source-v1';
+
+function normalizeSourceText(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+function attachPdfSourceAnchors(
+  parsed: ParsedCreditReport | undefined,
+  sourcePages: PdfTextExtraction['sourcePages'],
+): ParsedCreditReport | undefined {
+  if (!parsed) return parsed;
+
+  const tradelines = (parsed.tradelines ?? []).map((tradeline) => {
+    const normalizedName = normalizeSourceText(tradeline.creditorName);
+    const tokens = normalizedName.split(' ').filter((token) => token.length >= 3);
+    let best:
+      | {
+          page: number;
+          score: number;
+          region: { x: number; y: number; width: number; height: number };
+        }
+      | undefined;
+
+    for (const page of sourcePages) {
+      for (const run of page.runs) {
+        const normalizedRun = normalizeSourceText(run.text);
+        if (!normalizedRun) continue;
+        const tokenMatches = tokens.filter((token) => normalizedRun.includes(token)).length;
+        const exact = Boolean(normalizedName && (normalizedRun.includes(normalizedName) || normalizedName.includes(normalizedRun)));
+        const score = exact ? 100 + tokenMatches : tokenMatches;
+        if (score < Math.min(2, Math.max(1, tokens.length))) continue;
+        if (!best || score > best.score) {
+          const y = Math.max(0, run.region.y - 0.025);
+          best = {
+            page: page.page,
+            score,
+            region: {
+              x: 0.02,
+              y,
+              width: 0.96,
+              height: Math.min(0.46, 1 - y),
+            },
+          };
+        }
+      }
+    }
+
+    if (!best) return tradeline;
+    return {
+      ...tradeline,
+      sourceAnchor: {
+        fileType: 'pdf' as const,
+        page: best.page,
+        region: best.region,
+        parseVersion: PDF_SOURCE_PARSE_VERSION,
+        confidence: best.score >= 100 ? ('exact' as const) : ('approximate' as const),
+      },
+    };
+  });
+
+  return {
+    ...parsed,
+    tradelines,
+    sourceMap: {
+      version: PDF_SOURCE_PARSE_VERSION,
+      fileType: 'pdf',
+      pdfPages: sourcePages.map((page) => ({
+        page: page.page,
+        width: page.width,
+        height: page.height,
+      })),
+    },
+  };
+}
 
 export type PdfParseResult = {
   provider: CreditReportProvider;
@@ -46,7 +121,17 @@ async function ocrPdfToText(
 export async function parseCreditReportPdf(file: File, opts?: { forceOcr?: boolean; onProgress?: (p: { status: string; page?: number; numPages?: number; progress01?: number }) => void }): Promise<PdfParseResult> {
   const res = await extractPdfTextWithMeta(file);
   const pdfText = res.text || '';
-  const pdfMeta: PdfTextMeta = { numPages: res.numPages, nonEmptyPages: res.nonEmptyPages, extractedChars: pdfText.length, ocrUsed: false };
+  const pdfMeta: PdfTextMeta = {
+    numPages: res.numPages,
+    nonEmptyPages: res.nonEmptyPages,
+    extractedChars: pdfText.length,
+    ocrUsed: false,
+    pageDimensions: res.sourcePages.map((page) => ({
+      page: page.page,
+      width: page.width,
+      height: page.height,
+    })),
+  };
   let provider: CreditReportProvider = pdfText ? detectProviderFromText(pdfText) : 'unknown';
   let reportDate = pdfText ? detectReportDateFromText(pdfText) : undefined;
 
@@ -59,6 +144,7 @@ export async function parseCreditReportPdf(file: File, opts?: { forceOcr?: boole
 
   const wantOcr = Boolean(opts?.forceOcr) || shouldOcr({ pdfText, pdfMeta, parsed: parsed ?? null });
   if (!wantOcr) {
+    parsed = attachPdfSourceAnchors(parsed, res.sourcePages);
     return { provider, reportDate, pdfText, pdfMeta, parsed };
   }
 
@@ -149,6 +235,7 @@ export async function parseCreditReportPdf(file: File, opts?: { forceOcr?: boole
       } as any,
     };
   }
+  parsed = attachPdfSourceAnchors(parsed, res.sourcePages);
 
   return {
     provider,

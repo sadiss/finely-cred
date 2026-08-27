@@ -1,13 +1,13 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { PartnerWorkstationFrame, type PartnerEmbeddablePageProps } from '../../features/workspaceLightPreview/product/partner/PartnerWorkstationFrame';
 import { useAuth } from '../../auth/AuthProvider';
 import { isDeveloperQaOnly } from '../../auth/staffIdentity';
 import { isAdminEmail } from '../../auth/admin';
 import { DeveloperQaCommandCenter } from '../../features/developer/DeveloperQaCommandCenter';
 import { FinelyOsAlertBanner } from '../../features/os/FinelyOsAlertBanner';
 
-export default function DeveloperQaHubPage() {
+export default function DeveloperQaHubPage({ embedded = false }: PartnerEmbeddablePageProps = {}) {
   const { user } = useAuth();
   const email = (user?.email || '').trim();
 
@@ -18,16 +18,16 @@ export default function DeveloperQaHubPage() {
 
   if (!isAdmin && !isDeveloper) {
     return (
-      <PageShell badge="Developer" title="Not authorized" subtitle="This hub is for developer QA allowlist accounts.">
+      <PartnerWorkstationFrame embedded={embedded} kind="developer-qa-workstation" badge="Developer" title="Not authorized" subtitle="This hub is for developer QA allowlist accounts.">
         <p className="text-white/60 text-base">
           Ask an owner to add your email to `VITE_DEVELOPER_EMAILS` and `EDGE_DEVELOPER_EMAILS`.
         </p>
-      </PageShell>
+      </PartnerWorkstationFrame>
     );
   }
 
   return (
-    <PageShell
+    <PartnerWorkstationFrame embedded={embedded} kind="developer-qa-workstation"
       badge={isAdmin ? 'Admin preview' : 'Developer QA'}
       title="AI launch command center"
       subtitle={
@@ -43,6 +43,6 @@ export default function DeveloperQaHubPage() {
         />
       ) : null}
       <DeveloperQaCommandCenter />
-    </PageShell>
+    </PartnerWorkstationFrame>
   );
 }

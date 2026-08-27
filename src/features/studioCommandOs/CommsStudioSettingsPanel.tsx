@@ -25,7 +25,7 @@ export function CommsStudioSettingsPanel() {
       <StudioSection eyebrow="delivery settings" title="Settings — domains, compliance, integrations">
         <div className="grid md:grid-cols-3 gap-3">
           <button type="button" className="rounded-2xl border border-white/10 bg-black/30 p-4 text-left hover:border-sky-500/30" onClick={() => navigate('/admin/support')}>
-            <div className="font-bold text-white text-sm">Support Inbox</div>
+            <div className="font-bold text-white text-sm">Partner conversations</div>
             <div className="text-xs text-white/50 mt-1">Live partner threads (Hub mirror)</div>
           </button>
           <button type="button" className="rounded-2xl border border-white/10 bg-black/30 p-4 text-left hover:border-sky-500/30" onClick={() => navigate('/admin/calendar')}>

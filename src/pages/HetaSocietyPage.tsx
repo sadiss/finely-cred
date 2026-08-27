@@ -52,21 +52,21 @@ const MEMBER_STEPS = [
 ] as const;
 
 const PILLAR_ICON: Record<(typeof HETA_SOCIETY_PILLARS)[number]['accent'], React.ComponentType<{ className?: string }>> = {
-  amber: Gavel,
+  rose: Gavel,
   violet: Building2,
   emerald: TrendingUp,
   sky: Shield,
 };
 
 const PILLAR_GLOW: Record<(typeof HETA_SOCIETY_PILLARS)[number]['accent'], string> = {
-  amber: 'bg-amber-500',
+  rose: 'bg-rose-500',
   violet: 'bg-violet-500',
   emerald: 'bg-emerald-500',
   sky: 'bg-sky-500',
 };
 
 const PILLAR_ICON_COLOR: Record<(typeof HETA_SOCIETY_PILLARS)[number]['accent'], string> = {
-  amber: 'text-amber-300',
+  rose: 'text-rose-300',
   violet: 'text-violet-300',
   emerald: 'text-emerald-300',
   sky: 'text-sky-300',
@@ -129,14 +129,14 @@ function HosAccessGate({
         {done ? (
           <div className="space-y-5 text-center sm:text-left">
             <div className="hos-landing-invite-seal mx-auto sm:mx-0">
-              <Sparkles className="h-6 w-6 text-amber-200" />
+              <Sparkles className="h-6 w-6 text-violet-200" />
             </div>
             <h2 className="text-2xl font-black text-white sm:text-3xl">Welcome to {HEAD_OF_SOCIETY_NAME}</h2>
             <p className="text-sm leading-relaxed text-white/65">
-              Reference <span className="font-mono text-amber-200/90">{leadId}</span>. Create your login to open your HOS
+              Reference <span className="font-mono text-violet-200/90">{leadId}</span>. Create your login to open your HOS
               command center — restore, build, and track up to {HETA_SOCIETY_DISPUTE_LIMIT} disputes.
             </p>
-            <Button variant="gold" size="lg" className="w-full" onClick={() => navigate(loginPath)}>
+            <Button variant="emerald" size="lg" className="w-full" onClick={() => navigate(loginPath)}>
               Create login & open portal <ArrowRight size={18} />
             </Button>
             <Button variant="platinum" size="lg" className="w-full" onClick={() => navigate('/free-guide')}>
@@ -156,7 +156,7 @@ function HosAccessGate({
                 </p>
               </div>
               <div className="hos-landing-invite-seal shrink-0">
-                <KeyRound className="h-5 w-5 text-amber-200" />
+                <KeyRound className="h-5 w-5 text-violet-200" />
               </div>
             </div>
 
@@ -179,7 +179,7 @@ function HosAccessGate({
                 <button
                   type="button"
                   onClick={verifyKey}
-                  className="group flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-100 via-amber-400 to-amber-600 py-4 text-sm font-black uppercase tracking-wide text-[#1a1400] shadow-[0_12px_40px_-12px_rgba(251,191,36,0.55)] transition hover:brightness-105"
+                  className="group flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-400 via-emerald-500 to-emerald-600 py-4 text-sm font-black uppercase tracking-wide text-white shadow-[0_12px_40px_-12px_rgba(16,185,129,0.55)] transition hover:brightness-105"
                 >
                   <Zap size={16} className="transition group-hover:scale-110" />
                   Verify access key
@@ -222,7 +222,7 @@ function HosAccessGate({
                 <button
                   type="submit"
                   disabled={busy}
-                  className="w-full rounded-xl bg-gradient-to-r from-amber-100 via-amber-400 to-amber-600 py-4 text-sm font-black uppercase tracking-wide text-[#1a1400] shadow-[0_12px_40px_-12px_rgba(251,191,36,0.5)] disabled:opacity-50"
+                  className="w-full rounded-xl bg-gradient-to-r from-emerald-400 via-emerald-500 to-emerald-600 py-4 text-sm font-black uppercase tracking-wide text-white shadow-[0_12px_40px_-12px_rgba(16,185,129,0.5)] disabled:opacity-50"
                 >
                   {busy ? 'Submitting…' : `Activate ${HETA_SOCIETY_SHORT} membership`}
                 </button>
@@ -376,11 +376,11 @@ export default function HetaSocietyPage() {
       <header className="hos-landing-nav">
         <div className="container mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3.5 sm:px-6">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-amber-400/35 bg-black/40 text-amber-200">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-violet-400/35 bg-black/40 text-violet-200">
               <Shield size={18} aria-hidden />
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-200/80">{HEAD_OF_SOCIETY_NAME}</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-violet-200/80">{HEAD_OF_SOCIETY_NAME}</p>
               <p className="text-xs font-bold text-white/70 truncate">Private member entrance · {HETA_SOCIETY_SHORT}</p>
             </div>
           </div>
@@ -388,7 +388,7 @@ export default function HetaSocietyPage() {
             <Button variant="outline" size="sm" onClick={() => navigate(loginPath)}>
               <LogIn size={16} /> Member login
             </Button>
-            <Button variant="gold" size="sm" onClick={scrollToAccess}>
+            <Button variant="emerald" size="sm" onClick={scrollToAccess}>
               Enter access key
             </Button>
           </div>
@@ -407,7 +407,7 @@ export default function HetaSocietyPage() {
             <div className="min-w-0">
               <div className="mb-5 flex flex-wrap gap-2">
                 <span className="hos-landing-chip">
-                  <Shield size={14} className="shrink-0 text-amber-200/90" aria-hidden /> {HETA_SOCIETY_SHORT} · Invite-only
+                  <Shield size={14} className="shrink-0 text-violet-200/90" aria-hidden /> {HETA_SOCIETY_SHORT} · Invite-only
                 </span>
                 <span className="hos-landing-chip !border-emerald-400/25 !bg-emerald-500/10 !text-emerald-100">
                   Men's restoration lane
@@ -416,7 +416,7 @@ export default function HetaSocietyPage() {
 
               <h1 className="max-w-2xl text-4xl font-black leading-[1.05] tracking-tight sm:text-5xl lg:text-[3.35rem]">
                 <span className="block text-white">{HETA_SOCIETY_TAGLINE}</span>
-                <span className="mt-3 block hos-flyer-foil">{HETA_SOCIETY_HERO_ACCENT}</span>
+                <span className="mt-3 block hos-landing-foil">{HETA_SOCIETY_HERO_ACCENT}</span>
               </h1>
 
               <p className="mt-6 max-w-xl text-base leading-relaxed text-white/62 sm:text-lg">
@@ -435,7 +435,7 @@ export default function HetaSocietyPage() {
               </div>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                <Button variant="gold" size="lg" onClick={scrollToAccess}>
+                <Button variant="emerald" size="lg" onClick={scrollToAccess}>
                   Enter access key <ArrowRight size={18} />
                 </Button>
                 <Button variant="outline" size="lg" onClick={() => navigate(loginPath)}>
@@ -452,7 +452,7 @@ export default function HetaSocietyPage() {
       {/* Manifesto */}
       <section className="hos-landing-manifesto py-8 sm:py-10">
         <div className="container mx-auto max-w-4xl px-4 text-center sm:px-6">
-          <p className="text-[10px] font-black uppercase tracking-[0.28em] text-amber-200/70">The standard</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.28em] text-violet-200/70">The standard</p>
           <p className="mt-4 text-xl font-bold leading-relaxed text-white/88 sm:text-2xl">&ldquo;{HETA_SOCIETY_MANIFESTO}&rdquo;</p>
         </div>
       </section>
@@ -460,7 +460,7 @@ export default function HetaSocietyPage() {
       {/* Pillars */}
       <section className="container mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-16">
         <div className="mb-10 max-w-2xl">
-          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-200/75">What you command</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-violet-200/75">What you command</p>
           <h2 className="mt-2 text-2xl font-black text-white sm:text-3xl">Restore. Build. Grow. On your terms.</h2>
           <p className="mt-3 text-sm leading-relaxed text-white/55 sm:text-base">
             Everything in HOS is built for men who want a tracked file — not hype, not random PDFs floating in email.
@@ -486,7 +486,7 @@ export default function HetaSocietyPage() {
         <div className="container mx-auto max-w-6xl px-4 sm:px-6">
           <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-200/75">Membership includes</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-violet-200/75">Membership includes</p>
               <h2 className="mt-2 text-2xl font-black text-white">Your HOS file, fully loaded</h2>
             </div>
           </div>
@@ -494,7 +494,7 @@ export default function HetaSocietyPage() {
             {HETA_SOCIETY_BENEFITS.map(({ id, title, desc }) => (
               <div
                 key={id}
-                className="rounded-2xl border border-amber-400/20 bg-gradient-to-br from-amber-500/[0.08] to-transparent p-5 transition hover:border-amber-400/35"
+                className="rounded-2xl border border-violet-400/20 bg-gradient-to-br from-violet-500/[0.08] to-transparent p-5 transition hover:border-violet-400/35"
               >
                 <p className="text-base font-black text-white">{title}</p>
                 <p className="mt-2 text-sm leading-relaxed text-white/55">{desc}</p>
@@ -507,7 +507,7 @@ export default function HetaSocietyPage() {
       {/* Comparison */}
       <section className="container mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-16">
         <div className="mb-8 max-w-2xl">
-          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-200/75">Choose your lane</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-violet-200/75">Choose your lane</p>
           <h2 className="mt-2 text-2xl font-black text-white sm:text-3xl">Free guide vs. full HOS membership</h2>
           <p className="mt-3 text-sm text-white/55">
             Start with the PDF if you only need letters. Join HOS when you want a tracked restoration file and portal tools.
@@ -536,20 +536,20 @@ export default function HetaSocietyPage() {
           </div>
 
           <div className="hidden lg:flex flex-col items-center justify-center px-2">
-            <span className="rounded-full border border-amber-400/35 bg-amber-500/15 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-amber-100">
+            <span className="rounded-full border border-violet-400/35 bg-violet-500/15 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-violet-100">
               VS
             </span>
           </div>
 
           <div className="hos-landing-vs-card hos-landing-vs-card--hos relative overflow-hidden">
-            <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-amber-500/20 blur-3xl" aria-hidden />
-            <p className="relative text-[10px] font-black uppercase tracking-[0.18em] text-amber-200/80">Private lane</p>
-            <h3 className="relative mt-2 text-xl font-black hos-flyer-foil">{HETA_SOCIETY_SHORT} membership</h3>
+            <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-violet-500/20 blur-3xl" aria-hidden />
+            <p className="relative text-[10px] font-black uppercase tracking-[0.18em] text-violet-200/80">Private lane</p>
+            <h3 className="relative mt-2 text-xl font-black hos-landing-foil">{HETA_SOCIETY_SHORT} membership</h3>
             <ul className="relative mt-5 space-y-3">
               {HOS_VS_FREE_GUIDE.map(({ feature, hos }) => (
                 <li key={feature} className="flex items-center gap-3 text-sm text-white/80">
                   {hos ? (
-                    <Check className="h-4 w-4 shrink-0 text-amber-300" />
+                    <Check className="h-4 w-4 shrink-0 text-emerald-300" />
                   ) : (
                     <X className="h-4 w-4 shrink-0 text-white/25" />
                   )}
@@ -557,7 +557,7 @@ export default function HetaSocietyPage() {
                 </li>
               ))}
             </ul>
-            <Button variant="gold" className="relative mt-6 w-full" onClick={scrollToAccess}>
+            <Button variant="emerald" className="relative mt-6 w-full" onClick={scrollToAccess}>
               Enter access key <ArrowRight size={16} />
             </Button>
           </div>
@@ -567,7 +567,7 @@ export default function HetaSocietyPage() {
       {/* Member path */}
       <section className="container mx-auto max-w-6xl px-4 pb-14 sm:px-6">
         <div className="mb-8">
-          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-200/75">Your path in</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-violet-200/75">Your path in</p>
           <h2 className="mt-2 text-2xl font-black text-white">Four steps to your command center</h2>
         </div>
         <div className="hos-landing-path">
@@ -589,13 +589,13 @@ export default function HetaSocietyPage() {
         <div className="container mx-auto max-w-6xl px-4 sm:px-6">
           <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-200/75">Inside the portal</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-violet-200/75">Inside the portal</p>
               <h2 className="mt-2 text-2xl font-black text-white sm:text-3xl">Your HOS command center</h2>
               <p className="mt-2 max-w-xl text-sm text-white/55">
                 Disputes, business build, and letter tools — one disciplined lane after you create login.
               </p>
             </div>
-            <Button variant="gold" onClick={() => navigate('/portal/hos')}>
+            <Button variant="emerald" onClick={() => navigate('/portal/hos')}>
               Preview portal <ArrowRight size={16} />
             </Button>
           </div>
@@ -605,7 +605,7 @@ export default function HetaSocietyPage() {
               <div className="hos-landing-portal-bar">
                 <span /><span /><span />
               </div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-amber-200/70">Dispute tracker</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-violet-200/70">Dispute tracker</p>
               <p className="mt-2 text-lg font-black text-white">{HETA_SOCIETY_DISPUTE_LIMIT} active slots · FCRA clock</p>
               <div className="mt-4 grid gap-2 sm:grid-cols-3">
                 {['Intake', 'Letter sent', '30-day window'].map((step, idx) => (
@@ -696,7 +696,7 @@ export default function HetaSocietyPage() {
       {/* FAQ */}
       <section className="container mx-auto max-w-6xl px-4 pb-16 sm:px-6">
         <div className="mb-8">
-          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-200/75">Questions</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-violet-200/75">Questions</p>
           <h2 className="mt-2 text-2xl font-black text-white">HOS FAQ</h2>
         </div>
         <div className="space-y-2">
@@ -710,7 +710,7 @@ export default function HetaSocietyPage() {
                   className="flex w-full items-center justify-between gap-3 px-4 py-4 text-left sm:px-5"
                 >
                   <span className="font-bold text-white/92">{q}</span>
-                  <ChevronDown className={`h-5 w-5 shrink-0 text-amber-200/70 transition-transform ${open ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`h-5 w-5 shrink-0 text-violet-200/70 transition-transform ${open ? 'rotate-180' : ''}`} />
                 </button>
                 {open ? (
                   <div className="border-t border-white/[0.06] px-4 pb-4 sm:px-5">
@@ -724,13 +724,13 @@ export default function HetaSocietyPage() {
 
         <div className="hos-landing-cta-banner mt-10 sm:flex sm:items-center sm:justify-between sm:gap-8">
           <div className="relative z-[1]">
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-200/80">Ready?</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-violet-200/80">Ready?</p>
             <p className="mt-2 text-2xl font-black text-white sm:text-3xl">Open your restoration file today</p>
             <p className="mt-2 max-w-lg text-sm text-white/55">
               Have your access key ready — verify it, create login, and start your first dispute round.
             </p>
           </div>
-          <Button variant="gold" size="lg" className="relative z-[1] mt-5 shrink-0 sm:mt-0" onClick={scrollToAccess}>
+          <Button variant="emerald" size="lg" className="relative z-[1] mt-5 shrink-0 sm:mt-0" onClick={scrollToAccess}>
             Enter access key <ArrowRight size={18} />
           </Button>
         </div>

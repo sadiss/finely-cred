@@ -9,13 +9,13 @@ export type LaunchRoleCourse = {
   hubPath: string;
   sopIds: string[];
   tourIds?: string[];
-  accent: 'emerald' | 'violet' | 'amber' | 'sky' | 'fuchsia';
+  accent: 'emerald' | 'violet' | 'sky' | 'rose';
 };
 
 export const LAUNCH_ROLE_COURSES: LaunchRoleCourse[] = [
   {
     id: 'course-partner-client',
-    role: 'Partner / client',
+    role: 'Partner',
     title: 'Fix credit step-by-step',
     desc: 'Monitoring → upload report → disputes → letters → follow-up.',
     lessonCount: 5,
@@ -38,13 +38,13 @@ export const LAUNCH_ROLE_COURSES: LaunchRoleCourse[] = [
   {
     id: 'course-agent',
     role: 'Credit specialist',
-    title: 'Work customer files',
-    desc: 'Hub economics, client dashboard, letter workflow execution.',
+    title: 'Work partner files',
+    desc: 'Hub economics, partner dashboard, letter workflow execution.',
     lessonCount: 4,
     hubPath: '/credit-specialist/hub',
     sopIds: ['sop-agent-client-file'],
     tourIds: ['tour-agent-client-file'],
-    accent: 'amber',
+    accent: 'rose',
   },
   {
     id: 'course-admin-ops',
@@ -66,7 +66,7 @@ export const LAUNCH_ROLE_COURSES: LaunchRoleCourse[] = [
     hubPath: '/business/dashboard',
     sopIds: ['sop-business-vendor-stack'],
     tourIds: ['tour-business-vendors'],
-    accent: 'fuchsia',
+    accent: 'violet',
   },
   {
     id: 'course-compliance',

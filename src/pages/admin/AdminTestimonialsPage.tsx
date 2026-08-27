@@ -137,7 +137,7 @@ export default function AdminTestimonialsPage() {
         </div>
 
         <div className="grid lg:grid-cols-12 gap-6">
-          <div className={`lg:col-span-4 space-y-3 ${finelyOsCatalogCard('amber')} !p-5`} data-fc-accent="amber">
+          <div className={`lg:col-span-4 space-y-4 ${finelyOsCatalogCard('emerald')}`} data-fc-accent="emerald">
             <div className={`flex items-center gap-2 ${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')}`}>
               <Search size={16} className="text-emerald-700 shrink-0" />
               <input
@@ -177,7 +177,7 @@ export default function AdminTestimonialsPage() {
             />
           </div>
 
-          <div className={`lg:col-span-8 space-y-4 ${finelyOsCatalogCard('violet')} !p-5`} data-fc-accent="violet">
+          <div className={`lg:col-span-8 space-y-4 ${finelyOsCatalogCard('violet')}`} data-fc-accent="violet">
             {!selected ? (
               <div className={FINELY_OS_LUXURY_EMPTY}>Select a testimonial.</div>
             ) : (

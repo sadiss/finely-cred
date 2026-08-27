@@ -1,21 +1,23 @@
 import React from 'react';
 import { ArrowLeft, Globe2, LayoutDashboard, ShieldCheck, Sparkles } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { AdminWorkstationFrame, type AdminEmbeddablePageProps } from '../workspaceLightPreview/product/admin/AdminWorkstationFrame';
+import { useMappedAdminNavigate } from '../workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { buildSitewideCursorPlan, buildSitewideUxSummary } from './sitewideUxEngine';
 import { SitewideKpiCommandStrip } from './SitewideKpiCommandStrip';
 import { SitewideNegativeItemsGuardPanel } from './SitewideNegativeItemsGuardPanel';
 import { SitewidePageMatrixPanel } from './SitewidePageMatrixPanel';
 import { SitewidePatternGallery } from './SitewidePatternGallery';
 
-export function SitewideUxCommandPage() {
-  const navigate = useNavigate();
+export function SitewideUxCommandPage({ embedded = false }: AdminEmbeddablePageProps = {}) {
+  const navigate = useMappedAdminNavigate();
   const summary = React.useMemo(() => buildSitewideUxSummary(), []);
   const plan = React.useMemo(() => buildSitewideCursorPlan(), []);
   const [tab, setTab] = React.useState<'overview' | 'pages' | 'patterns' | 'cursor'>('overview');
 
   return (
-    <PageShell
+    <AdminWorkstationFrame
+      embedded={embedded}
+      kind="sitewide-ux-workstation"
       badge="Admin"
       title="Sitewide UX Command Stack"
       subtitle="Audit and refactor public, admin, portal, business, seller, and AU pages without touching the protected extracted negative-items credit report layout."
@@ -73,7 +75,7 @@ export function SitewideUxCommandPage() {
           </section>
         ) : null}
       </div>
-    </PageShell>
+    </AdminWorkstationFrame>
   );
 }
 

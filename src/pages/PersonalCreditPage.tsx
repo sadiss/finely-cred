@@ -34,6 +34,9 @@ import {
   type PersonalCreditRestorePath,
 } from '../features/personalCredit/PersonalCreditHeroShell';
 import { FinelyLaunchHelpStrip } from '../components/tours/FinelyLaunchHelpStrip';
+import { FinelyNoticedStrip } from '../components/tours/FinelyNoticedStrip';
+import { FinelyNowDoThisStrip } from '../components/tours/FinelyNowDoThisStrip';
+import { buildPersonalCreditNoticedItems } from '../lib/finelyProactiveSignals';
 import { PC_RESTORE_BTN } from '../features/personalCredit/personalCreditRestoreButtons';
 import '../features/personalCredit/personalCreditRestoreVisual.css';
 
@@ -301,6 +304,20 @@ export default function PersonalCreditPage() {
       >
         <div className="pc-restore-contained space-y-4">
         <PersonalCreditRestoreSpectrum />
+        <FinelyNoticedStrip
+          surface="light"
+          items={buildPersonalCreditNoticedItems({ tab: 'packages' })}
+        />
+        <FinelyNowDoThisStrip
+          surface="light"
+          items={[
+            {
+              label: 'Choose done-for-you or do-it-yourself',
+              detail: 'Compare the restore paths below, then open intake when you know which level of help fits.',
+              to: '#pc-packages',
+            },
+          ]}
+        />
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {STATS.map((s) => (
@@ -428,7 +445,7 @@ export default function PersonalCreditPage() {
             stripClassName="fc-restore-chat-strip"
           />
 
-          <div className={`fc-ivory-glass-panel fc-ivory-pop-tile ${POP_ACCENT.sky} !p-5`}>
+          <div className={`fc-ivory-glass-panel fc-ivory-pop-tile ${POP_ACCENT.sky} p-6 lg:p-8`}>
             <div className="flex flex-wrap items-center justify-center gap-6 text-sm">
               <div className="flex items-center gap-2">
                 <Shield size={18} className="text-sky-300" />

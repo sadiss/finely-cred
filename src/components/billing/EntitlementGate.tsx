@@ -5,12 +5,19 @@ import { FinelyOsEntitlementUnlock } from '../../features/os/FinelyOsEntitlement
 export function EntitlementGate({
   partnerId,
   requiredKeys,
+  anyOfKeys,
   children,
   hideBillingCta,
   lockedActions,
 }: {
   partnerId: string;
-  requiredKeys: string[];
+  requiredKeys?: string[];
+  /**
+   * Unlock when the partner holds *any* of these. Needed for tiered products where the catalog
+   * grants a tier-specific key (`personal_build_starter` / `_pro` / `_elite`) rather than one
+   * shared module key.
+   */
+  anyOfKeys?: string[];
   children: React.ReactNode;
   hideBillingCta?: boolean;
   lockedActions?: React.ReactNode;
@@ -24,9 +31,12 @@ export function EntitlementGate({
   }, []);
 
   const entitlements = useMemo(() => listEntitlementsByPartner(partnerId), [partnerId, version]);
-  const hasAll = requiredKeys.every((k) => hasEntitlement(partnerId, k));
+  const required = requiredKeys ?? [];
+  const anyOf = anyOfKeys ?? [];
+  const hasAll = required.every((k) => hasEntitlement(partnerId, k));
+  const hasAny = anyOf.length === 0 || anyOf.some((k) => hasEntitlement(partnerId, k));
 
-  if (hasAll) return <>{children}</>;
+  if (hasAll && hasAny) return <>{children}</>;
 
   const canDevUnlock =
     import.meta.env.DEV && (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost');
@@ -52,7 +62,7 @@ export function EntitlementGate({
               e.preventDefault();
               e.stopPropagation();
               let changed = false;
-              for (const key of requiredKeys) {
+              for (const key of [...required, ...anyOf.slice(0, 1)]) {
                 const hadAccess = hasEntitlement(partnerId, key);
                 grantEntitlement({ partnerId, key, status: 'active' });
                 if (!hadAccess && hasEntitlement(partnerId, key)) changed = true;

@@ -68,9 +68,9 @@ export default function EventsPage() {
           eyebrow="Community"
           title="Events & Webinars"
           subtitle="Live trainings, Q&A, and walkthroughs — designed to help you pick the right lane and move with precision."
-          accent="amber"
+          accent="rose"
           kpis={[
-            { label: 'Upcoming', value: String(events.length), accent: 'amber' },
+            { label: 'Upcoming', value: String(events.length), accent: 'rose' },
             { label: 'Format', value: 'Live', accent: 'emerald' },
             { label: '1:1 option', value: 'Free session', accent: 'sky' },
           ]}
@@ -96,7 +96,7 @@ export default function EventsPage() {
                 const m = Math.max(0, Math.round((en - s) / 60000));
                 return m || null;
               })();
-              const accent = (['emerald', 'sky', 'violet', 'amber'] as const)[idx % 4];
+              const accent = (['emerald', 'sky', 'violet', 'rose'] as const)[idx % 4];
               return (
                 <div key={e.id} className={`space-y-5 ${finelyOsCatalogCard(accent)} !p-6`} data-fc-accent={accent}>
                   <div className="flex items-start justify-between gap-4">
@@ -111,13 +111,13 @@ export default function EventsPage() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
-                    <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-1`}>
+                    <div className={`${finelyOsCatalogCard('emerald')} fc-surface-harmony space-y-2`} data-fc-accent="emerald">
                       <div className={`flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
                         <Calendar size={14} /> When
                       </div>
                       <div className={FINELY_OS_ENTITY_VALUE}>{fmtWhen(e.startAt)}</div>
                     </div>
-                    <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-1`}>
+                    <div className={`${finelyOsCatalogCard('violet')} fc-surface-harmony space-y-2`} data-fc-accent="violet">
                       <div className={`flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
                         <Clock size={14} /> Duration
                       </div>

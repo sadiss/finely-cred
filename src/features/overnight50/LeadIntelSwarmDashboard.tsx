@@ -18,7 +18,7 @@ import { getLastGrowthWorkerProbe } from '../growthAgents/growthWorkerTick';
 import { LEAD_INTEL_SOURCE_ADAPTERS, getLeadIntelSourceRuntimeLabel, getLeadIntelSourceRuntimeMode } from './sourceAdapters';
 import { staffFeedAgentLabel } from '../staffCommandCenter/staffRoster';
 import { FinelyOsAlertBanner } from '../os/FinelyOsAlertBanner';
-import { finelyOsCatalogCardCompact, finelyOsMicroStat, FINELY_OS_SECONDARY_BTN } from '../os/finelyOsLightUi';
+import { finelyOsCatalogCard, finelyOsMicroStat, FINELY_OS_SECONDARY_BTN } from '../os/finelyOsLightUi';
 
 function fmt(n: number) { return new Intl.NumberFormat().format(n); }
 
@@ -100,36 +100,38 @@ export function LeadIntelSwarmDashboard() {
 
   const phaseLabel = session?.activeLabel || 'Idle';
 
+  const swarmStatAccents = ['emerald', 'violet', 'sky', 'rose'] as const;
+
   return (
-    <section className="space-y-3">
+    <section className="space-y-6">
       <FinelyOsAlertBanner
         tone="info"
         message="Simulation queue below · Live Serper imports run via Marketing Desk Find, Caleb auto-find, or Live bridge tick (marketing-hunt-tick)."
       />
 
-      <div className={`${finelyOsCatalogCardCompact('emerald')} relative overflow-hidden`}>
-        <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className={`${finelyOsCatalogCard('emerald')} relative overflow-hidden`}>
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-3xl">
             <div className="flex flex-wrap items-center gap-2">
-              <div className="inline-flex items-center gap-2 text-emerald-300 text-xs font-black uppercase tracking-[0.2em]">
-                <Radar size={14} /> Lead Intel practice mode
+              <div className="inline-flex items-center gap-2 text-emerald-300 text-sm font-black uppercase tracking-[0.2em]">
+                <Radar size={18} /> Lead Intel practice mode
               </div>
-              <span className="rounded-full border border-amber-400/30 bg-amber-500/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-amber-200">
+              <span className="rounded-full border border-violet-400/40 bg-violet-500/20 px-3 py-1 text-xs font-black uppercase tracking-widest text-violet-100">
                 Simulation
               </span>
             </div>
-            <h2 className="mt-2 text-xl font-black text-white">Practice queue + live Serper bridge</h2>
-            <p className="mt-2 text-white/65 text-sm">
+            <h2 className="mt-3 text-3xl font-extrabold text-white">Practice queue + live Serper bridge</h2>
+            <p className="mt-3 text-base font-semibold text-white/80">
               Local ticks train ops cadence. Real partner leads land in{' '}
               <strong className="text-emerald-200">Marketing Desk → Find</strong> or Caleb when Serper is wired.
             </p>
             {session ? (
-              <p className="mt-2 inline-flex items-center gap-2 text-amber-200/90 text-xs font-semibold">
-                <Clock size={14} /> Sim session · {session.jobsTotal} jobs · {session.mode}
+              <p className="mt-3 inline-flex items-center gap-2 text-violet-200 text-sm font-semibold">
+                <Clock size={16} /> Sim session · {session.jobsTotal} jobs · {session.mode}
               </p>
             ) : null}
             {enabled && phaseLabel ? (
-              <p className="mt-1 text-xs text-white/50 truncate max-w-2xl">Now: {phaseLabel}</p>
+              <p className="mt-2 text-sm text-white/60 truncate max-w-2xl">Now: {phaseLabel}</p>
             ) : null}
           </div>
           <div className="flex flex-wrap gap-2">
@@ -149,112 +151,113 @@ export function LeadIntelSwarmDashboard() {
         </div>
       </div>
 
-      <div className={`${finelyOsCatalogCardCompact('sky')} space-y-2`}>
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="text-white font-bold text-sm inline-flex items-center gap-2">
-            <Zap size={16} className="text-sky-300" /> Live Serper queue bridge
+      <div className={`${finelyOsCatalogCard('violet')} space-y-4`}>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="text-white font-extrabold text-xl inline-flex items-center gap-2">
+            <Zap size={20} className="text-violet-300" /> Live Serper queue bridge
           </div>
-          <span className={finelyOsMicroStat('sky')}>{liveBridge.shardSummary}</span>
+          <span className={finelyOsMicroStat('violet')}>{liveBridge.shardSummary}</span>
         </div>
         <div className="flex flex-wrap gap-2">
           {liveBridge.metroPack.map((city) => (
-            <span key={city} className={finelyOsMicroStat('emerald')}>{city}</span>
+            <span key={city} className={finelyOsMicroStat('sky')}>{city}</span>
           ))}
         </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-2 text-xs">
-          <div className="rounded-xl border border-white/10 bg-black/25 p-3">
-            <div className="text-white/45 uppercase tracking-wider text-[10px]">Review queue</div>
-            <div className="mt-1 text-lg font-black text-white">{fmt(liveBridge.stagingPending)}</div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className={finelyOsCatalogCard('emerald')}>
+            <div className="text-white/55 uppercase tracking-wider text-xs font-extrabold">Review queue</div>
+            <div className="mt-2 text-3xl font-extrabold text-white">{fmt(liveBridge.stagingPending)}</div>
           </div>
-          <div className="rounded-xl border border-white/10 bg-black/25 p-3">
-            <div className="text-white/45 uppercase tracking-wider text-[10px]">Last Find</div>
-            <div className="mt-1 text-lg font-black text-white">
+          <div className={finelyOsCatalogCard('violet')}>
+            <div className="text-white/55 uppercase tracking-wider text-xs font-extrabold">Last Find</div>
+            <div className="mt-2 text-3xl font-extrabold text-white">
               {liveBridge.lastFindFound != null ? fmt(liveBridge.lastFindFound) : '—'}
             </div>
-            <div className="text-white/40 truncate">{liveBridge.lastFindAt ? new Date(liveBridge.lastFindAt).toLocaleString() : 'Not run yet'}</div>
+            <div className="mt-1 text-sm font-semibold text-white/50 truncate">{liveBridge.lastFindAt ? new Date(liveBridge.lastFindAt).toLocaleString() : 'Not run yet'}</div>
           </div>
-          <div className="rounded-xl border border-white/10 bg-black/25 p-3">
-            <div className="text-white/45 uppercase tracking-wider text-[10px]">Auto-saved</div>
-            <div className="mt-1 text-lg font-black text-emerald-200">
+          <div className={finelyOsCatalogCard('sky')}>
+            <div className="text-white/55 uppercase tracking-wider text-xs font-extrabold">Auto-saved</div>
+            <div className="mt-2 text-3xl font-extrabold text-emerald-200">
               {liveBridge.lastFindAutoSaved != null ? fmt(liveBridge.lastFindAutoSaved) : '—'}
             </div>
           </div>
-          <div className="rounded-xl border border-white/10 bg-black/25 p-3">
-            <div className="text-white/45 uppercase tracking-wider text-[10px]">Worker probe</div>
-            <div className="mt-1 text-sm font-bold text-white truncate">{liveBridge.workerMode || 'Not probed'}</div>
-            <div className="text-white/40 truncate">{liveBridge.workerMessage || 'Run Caleb Test search'}</div>
+          <div className={finelyOsCatalogCard('rose')}>
+            <div className="text-white/55 uppercase tracking-wider text-xs font-extrabold">Worker probe</div>
+            <div className="mt-2 text-lg font-extrabold text-white truncate">{liveBridge.workerMode || 'Not probed'}</div>
+            <div className="mt-1 text-sm font-semibold text-white/50 truncate">{liveBridge.workerMessage || 'Run Caleb Test search'}</div>
           </div>
         </div>
-        {liveMsg ? <p className="text-xs text-sky-200/90">{liveMsg}</p> : null}
-        <a href="/admin/marketing?tab=desk&helper=find" className="inline-flex items-center gap-1 text-xs text-amber-200 hover:text-amber-100">
-          Open Find for live imports <ArrowRight size={12} />
+        {liveMsg ? <p className="text-sm font-semibold text-violet-200">{liveMsg}</p> : null}
+        <a href="/admin/marketing-desk?helper=find" className="inline-flex items-center gap-2 text-sm font-extrabold text-sky-200 hover:text-sky-100">
+          Open Find for live imports <ArrowRight size={16} />
         </a>
       </div>
 
-      <p className="text-xs text-white/45">Simulation stats track local queue only — not CRM rows. Live bridge invokes marketing-hunt-tick when Supabase is connected.</p>
+      <p className="text-sm font-semibold text-white/55">Simulation stats track local queue only — not CRM rows. Live bridge invokes marketing-hunt-tick when Supabase is connected.</p>
 
-      <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-3">
-        {[['jobs', stats.totalJobs], ['discovered', stats.discovered], ['enriched', stats.enriched], ['hot', stats.hot], ['imported', stats.imported], ['sources', stats.sourceCount], ['queued', stats.queued], ['running', stats.running]].map(([label, value]) => (
-          <div key={label} className="rounded-2xl border border-white/10 bg-black/30 p-4">
-            <div className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-black">{label}</div>
-            <div className="mt-1 text-2xl font-black text-white">{fmt(Number(value))}</div>
+      <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
+        {([['jobs', stats.totalJobs], ['discovered', stats.discovered], ['enriched', stats.enriched], ['hot', stats.hot], ['imported', stats.imported], ['sources', stats.sourceCount], ['queued', stats.queued], ['running', stats.running]] as const).map(([label, value], idx) => (
+          <div key={label} className={finelyOsCatalogCard(swarmStatAccents[idx % swarmStatAccents.length])} data-fc-accent={swarmStatAccents[idx % swarmStatAccents.length]}>
+            <div className="text-xs uppercase tracking-[0.2em] text-white/50 font-extrabold">{label}</div>
+            <div className="mt-2 text-3xl font-extrabold text-white">{fmt(Number(value))}</div>
           </div>
         ))}
       </div>
 
-      <div className="space-y-3">
-        <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
-          <div className="flex items-center justify-between gap-3"><h3 className="text-white font-black text-sm">Source adapters</h3><span className="text-white/40 text-xs">{LEAD_INTEL_SOURCE_ADAPTERS.length} configured</span></div>
-          <div className="mt-3 space-y-2 max-h-[420px] overflow-y-auto pr-1">
-            {LEAD_INTEL_SOURCE_ADAPTERS.slice(0, 12).map((s) => {
+      <div className="grid lg:grid-cols-2 gap-4">
+        <div className={finelyOsCatalogCard('sky')}>
+          <div className="flex items-center justify-between gap-3"><h3 className="text-white font-extrabold text-xl">Source adapters</h3><span className="text-white/50 text-sm font-bold">{LEAD_INTEL_SOURCE_ADAPTERS.length} configured</span></div>
+          <div className="mt-4 space-y-3 max-h-[420px] overflow-y-auto pr-1">
+            {LEAD_INTEL_SOURCE_ADAPTERS.slice(0, 12).map((s, idx) => {
               const runtime = getLeadIntelSourceRuntimeMode(s.id);
               const runtimeCls =
                 runtime === 'live'
                   ? 'border-emerald-400/30 bg-emerald-500/10 text-emerald-200'
-                  : 'border-amber-400/25 bg-amber-500/10 text-amber-200/90';
+                  : 'border-violet-400/30 bg-violet-500/10 text-violet-200';
+              const rowAccent = swarmStatAccents[idx % swarmStatAccents.length];
               return (
-              <div key={s.id} className="rounded-xl border border-white/10 bg-white/[0.025] p-3">
+              <div key={s.id} className={finelyOsCatalogCard(rowAccent)} data-fc-accent={rowAccent}>
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <div className="text-white/90 font-semibold text-sm">{s.label}</div>
-                      <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${runtimeCls}`}>
+                      <div className="text-white font-extrabold text-base">{s.label}</div>
+                      <span className={`rounded-full border px-3 py-1 text-xs font-extrabold uppercase tracking-wider ${runtimeCls}`}>
                         {getLeadIntelSourceRuntimeLabel(s.id)}
                       </span>
                     </div>
-                    <div className="mt-1 text-white/45 text-xs">{s.method} • {s.defaultCadenceMinutes}m</div>
+                    <div className="mt-2 text-white/55 text-sm font-semibold">{s.method} • {s.defaultCadenceMinutes}m</div>
                   </div>
-                  <ShieldCheck size={14} className={runtime === 'live' ? 'text-emerald-300' : 'text-amber-300/80'} />
+                  <ShieldCheck size={18} className={runtime === 'live' ? 'text-emerald-300' : 'text-violet-300'} />
                 </div>
               </div>
             );})}
-            <p className="text-xs text-white/40">+{LEAD_INTEL_SOURCE_ADAPTERS.length - 12} more in rotation</p>
+            <p className="text-sm font-semibold text-white/45">+{LEAD_INTEL_SOURCE_ADAPTERS.length - 12} more in rotation</p>
           </div>
         </div>
-        <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
-          <div className="flex items-center justify-between gap-3"><h3 className="text-white font-black text-sm">Ops feed</h3><span className="inline-flex items-center gap-2 text-amber-200/90 text-xs"><Activity size={14} /> {enabled ? 'sim + live bridge' : 'paused'}</span></div>
-          <div className="mt-3 space-y-2 max-h-[420px] overflow-y-auto pr-1">
-            {feed.length === 0 ? <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4 text-white/55 text-sm">Start the practice queue or run Live bridge to see feed events.</div> : feed.map((f) => (
-              <div key={f.id} className="rounded-xl border border-white/10 bg-white/[0.025] p-3">
-                <div className="flex items-start justify-between gap-3"><div className="text-white/80 text-sm"><span className="text-amber-200 font-bold">{staffFeedAgentLabel(f.agent)}</span> • {f.city}</div><span className="text-[10px] uppercase tracking-widest text-white/35">{f.severity}</span></div>
-                <div className="mt-1 text-white/65 text-sm">{f.message}</div>
+        <div className={finelyOsCatalogCard('rose')}>
+          <div className="flex items-center justify-between gap-3"><h3 className="text-white font-extrabold text-xl">Ops feed</h3><span className="inline-flex items-center gap-2 text-rose-200 text-sm font-extrabold"><Activity size={16} /> {enabled ? 'sim + live bridge' : 'paused'}</span></div>
+          <div className="mt-4 space-y-3 max-h-[420px] overflow-y-auto pr-1">
+            {feed.length === 0 ? <div className={`${finelyOsCatalogCard('violet')} text-white/70 text-base font-semibold`}>Start the practice queue or run Live bridge to see feed events.</div> : feed.map((f, idx) => (
+              <div key={f.id} className={finelyOsCatalogCard(swarmStatAccents[idx % swarmStatAccents.length])} data-fc-accent={swarmStatAccents[idx % swarmStatAccents.length]}>
+                <div className="flex items-start justify-between gap-3"><div className="text-white text-base font-semibold"><span className="text-violet-200 font-extrabold">{staffFeedAgentLabel(f.agent)}</span> • {f.city}</div><span className="text-xs uppercase tracking-widest text-white/45 font-extrabold">{f.severity}</span></div>
+                <div className="mt-2 text-white/70 text-base">{f.message}</div>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-        <h3 className="text-white font-black text-sm inline-flex items-center gap-2"><Search size={16} className="text-amber-300" /> Queued simulation jobs</h3>
-        <div className="mt-3 space-y-2 max-h-[360px] overflow-y-auto">
-          {jobs.filter((j) => j.status !== 'done').slice(0, 25).map((j) => (
-            <div key={j.id} className="rounded-xl border border-white/10 bg-black/30 p-3">
+      <div className={finelyOsCatalogCard('emerald')}>
+        <h3 className="text-white font-extrabold text-xl inline-flex items-center gap-2"><Search size={20} className="text-emerald-300" /> Queued simulation jobs</h3>
+        <div className="mt-4 space-y-3 max-h-[360px] overflow-y-auto">
+          {jobs.filter((j) => j.status !== 'done').slice(0, 25).map((j, idx) => (
+            <div key={j.id} className={finelyOsCatalogCard(swarmStatAccents[idx % swarmStatAccents.length])} data-fc-accent={swarmStatAccents[idx % swarmStatAccents.length]}>
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="text-white/85 font-semibold text-sm">{j.city} • {j.sourceId}</div>
-                <div className="text-[10px] uppercase tracking-widest text-white/40">{j.phase ?? 'discovering'} • {j.progress}%</div>
+                <div className="text-white font-extrabold text-base">{j.city} • {j.sourceId}</div>
+                <div className="text-xs uppercase tracking-widest text-white/50 font-extrabold">{j.phase ?? 'discovering'} • {j.progress}%</div>
               </div>
-              <div className="mt-2 h-1.5 rounded-full bg-white/10 overflow-hidden"><div className="h-full bg-amber-400 transition-all duration-700" style={{ width: `${j.progress}%` }} /></div>
-              <div className="mt-1 text-white/55 text-xs">{j.message}</div>
+              <div className="mt-3 h-2 rounded-full bg-white/10 overflow-hidden"><div className="h-full bg-emerald-400 transition-all duration-700" style={{ width: `${j.progress}%` }} /></div>
+              <div className="mt-2 text-white/65 text-sm font-semibold">{j.message}</div>
             </div>
           ))}
         </div>

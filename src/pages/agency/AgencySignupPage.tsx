@@ -37,9 +37,9 @@ function normalizeEmail(u: any): string {
 
 const FORM_LABEL = 'block text-[11px] font-bold uppercase tracking-wide text-slate-500 mb-1.5';
 const FORM_INPUT =
-  'w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 transition-colors';
+  'w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 transition-colors';
 
-const BUY_IN_ACCENTS: CareerAccent[] = ['slate', 'emerald', 'sky', 'gold', 'rose', 'navy'];
+const BUY_IN_ACCENTS: CareerAccent[] = ['emerald', 'sky', 'rose', 'navy', 'emerald', 'sky'];
 
 function agencySignupAuthUrl(tierId?: string): string {
   const next = tierId ? `/agency/signup?tier=${encodeURIComponent(tierId)}` : '/agency/signup';
@@ -223,7 +223,7 @@ export default function AgencySignupPage() {
         {/* One colorful buy-in chooser — no full includes re-list */}
         <section className="rounded-3xl border-2 border-slate-200 bg-slate-50 p-6 sm:p-8 space-y-5">
           <div>
-            <p className="text-[11px] font-black uppercase tracking-[0.24em] text-amber-700">Your plan</p>
+            <p className="text-[11px] font-black uppercase tracking-[0.24em] text-emerald-700">Your plan</p>
             <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">Pick your buy-in</h2>
             <p className="mt-1 max-w-2xl text-sm text-slate-500">
               One-time buy-in activates the matching capacity tier. Change it here anytime before you create the workspace.
@@ -239,17 +239,17 @@ export default function AgencySignupPage() {
 
         {/* Short summary only */}
         {selectedBuyIn && tier ? (
-          <section className="rounded-3xl border-2 border-amber-200 bg-white p-5 sm:p-6 space-y-3">
+          <section className="rounded-3xl border-2 border-emerald-200 bg-white p-5 sm:p-6 space-y-3">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <p className="text-[11px] font-black uppercase tracking-[0.2em] text-amber-700">Summary</p>
+                <p className="text-[11px] font-black uppercase tracking-[0.2em] text-emerald-700">Summary</p>
                 <h3 className="mt-1 text-xl font-bold text-slate-900">
                   {selectedBuyIn.name} · {tier.name}
                 </h3>
                 <p className="mt-0.5 text-sm text-slate-500">{selectedBuyIn.tagline}</p>
               </div>
               <div className="text-right shrink-0">
-                <p className="text-2xl font-black text-amber-700">{selectedBuyIn.priceLabel}</p>
+                <p className="text-2xl font-black text-emerald-700">{selectedBuyIn.priceLabel}</p>
                 <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">one-time</p>
               </div>
             </div>
@@ -317,7 +317,7 @@ export default function AgencySignupPage() {
             type="button"
             disabled={!canSubmit}
             onClick={submit}
-            className={`w-full sm:w-auto ${careerSolidBtn('gold', 'h-12 py-0 disabled:opacity-60 disabled:cursor-not-allowed')}`}
+            className={`w-full sm:w-auto ${careerSolidBtn('emerald', 'h-12 py-0 disabled:opacity-60 disabled:cursor-not-allowed')}`}
           >
             {busy ? 'Creating…' : 'Create workspace'} <ArrowRight size={16} />
           </button>

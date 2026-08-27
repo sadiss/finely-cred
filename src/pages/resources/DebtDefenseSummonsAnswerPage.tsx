@@ -28,7 +28,7 @@ export default function DebtDefenseSummonsAnswerPage() {
       accentWord="The deadline is the whole game."
       subtitle="Missing the deadline to answer a debt-collection summons usually means an automatic default judgment. Here is what a timely, properly drafted answer generally needs to say — by debt type — and the affirmative defenses courts most often see raised successfully."
       sourceNote="Sourced from Finely Cred's debt-litigation doctrine repository — real, verifiable statutes and case law only. General legal education, not legal advice."
-      accent="amber"
+      accent="rose"
       chatRoleId="dispute_coach"
       chatGoal="debt"
       chatRoleLabel="debt defense"
@@ -51,7 +51,7 @@ export default function DebtDefenseSummonsAnswerPage() {
         </p>
         <div className="mt-4 space-y-3">
           {playbooks.map((p, i) => (
-            <DebtLitigationPlaybookCard key={p.id} playbook={p} accent="amber" defaultOpen={i === 0} />
+            <DebtLitigationPlaybookCard key={p.id} playbook={p} accent="rose" defaultOpen={i === 0} />
           ))}
         </div>
       </section>

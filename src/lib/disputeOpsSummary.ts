@@ -3,8 +3,16 @@
  */
 
 import { listCases } from '../data/casesRepo';
+import { getReport } from '../data/reportsRepo';
+import type { DisputeCase } from '../domain/cases';
 import { INTER_ROUND_GUIDANCE, type DisputeRoundLabel } from '../domain/disputeWorkflow';
 import type { DisputeRoundStatus } from '../domain/disputeWorkflow';
+import type { ResponseOutcome } from '../domain/disputeRoundResponsePlaybook';
+import {
+  resolveDisputeCaseReportPair,
+  suggestDisputeOutcomeFromReports,
+  type TradelineDiffEntry,
+} from '../domain/tradelineDiff';
 
 export type DisputeOpsAttentionRow = {
   caseId: string;
@@ -34,7 +42,7 @@ export function listDisputeOpsAttentionRows(): DisputeOpsAttentionRow[] {
     const status = latest.status ?? 'draft';
     const windowDays = INTER_ROUND_GUIDANCE[latest.round].typicalWindowDays;
 
-    if (status === 'awaiting_response' && latest.mailedAt) {
+    if ((status === 'mailed' || status === 'awaiting_response') && latest.mailedAt) {
       const days = daysSince(latest.mailedAt);
       const overdue = days > windowDays;
       rows.push({
@@ -76,6 +84,42 @@ export function listDisputeOpsAttentionRows(): DisputeOpsAttentionRow[] {
     if (d !== 0) return d;
     return b.daysInState - a.daysInState;
   });
+}
+
+export type DisputeResponseOutcomeSuggestion = {
+  outcome: ResponseOutcome;
+  hint: string;
+  beforeReportId: string;
+  afterReportId: string;
+  diffs: TradelineDiffEntry[];
+};
+
+export function suggestResponseOutcomeForDisputeCase(
+  disputeCase: DisputeCase,
+): DisputeResponseOutcomeSuggestion | null {
+  const reportPair = resolveDisputeCaseReportPair(disputeCase);
+  if (!reportPair) return null;
+
+  const beforeReport = getReport(reportPair.beforeReportId);
+  const afterReport = getReport(reportPair.afterReportId);
+  const beforeTradelines = beforeReport?.parsed?.tradelines;
+  const afterTradelines = afterReport?.parsed?.tradelines;
+  if (!beforeTradelines?.length || !afterTradelines?.length) return null;
+
+  const suggestion = suggestDisputeOutcomeFromReports({
+    before: beforeTradelines,
+    after: afterTradelines,
+    disputedAccounts: disputeCase.items.map((item) => item.account),
+  });
+  if (!suggestion) return null;
+
+  return {
+    outcome: suggestion.outcome,
+    hint: suggestion.hint,
+    beforeReportId: reportPair.beforeReportId,
+    afterReportId: reportPair.afterReportId,
+    diffs: suggestion.diffs,
+  };
 }
 
 export function summarizeDisputeOpsForCoOwner(): string {

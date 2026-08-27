@@ -1,7 +1,7 @@
 import React from 'react';
 import { ArrowLeft, ArrowRight, BookOpen, CheckCircle2, Shield, Settings, FileText, Calendar, CreditCard } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { AdminWorkstationFrame, type AdminEmbeddablePageProps } from '../../features/workspaceLightPreview/product/admin/AdminWorkstationFrame';
+import { useMappedAdminNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import {
   FINELY_OS_PAGE,
@@ -14,8 +14,8 @@ import {
   finelyOsInlineListItem,
 } from '../../features/os/finelyOsLightUi';
 
-export default function AdminGuidePage() {
-  const navigate = useNavigate();
+export default function AdminGuidePage({ embedded = false }: AdminEmbeddablePageProps = {}) {
+  const navigate = useMappedAdminNavigate();
 
   const sections: Array<{
     title: string;
@@ -60,7 +60,7 @@ export default function AdminGuidePage() {
         'Free guide funnel (/free-guide) + short links (/g/code) — leads land in Admin → Leads with referral attribution.',
         'Comms Studio sends templates into Communication Hub threads — not a duplicate inbox.',
         'Print-ready QR PDF in affiliate/specialist toolkit for brochures and business cards.',
-        'Public enlightenment booking (/enlightenment-session) now includes time slot picker + agenda.',
+        'Public strategy-call booking (/enlightenment-session) now includes time slot picker + agenda.',
       ],
       cta: { label: 'CRM inbound', path: '/admin/crm?pipeline=inbound' },
     },
@@ -96,7 +96,7 @@ export default function AdminGuidePage() {
   ];
 
   return (
-    <PageShell
+    <AdminWorkstationFrame embedded={embedded} kind="guide-workstation"
       badge="Admin"
       title="Admin Guide"
       subtitle="How to run Finely Cred operations at an enterprise level — settings, workflow, templates, billing, and security."
@@ -134,8 +134,8 @@ export default function AdminGuidePage() {
             </div>
           ))}
         </div>
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
       </div>
-    </PageShell>
+    </AdminWorkstationFrame>
   );
 }

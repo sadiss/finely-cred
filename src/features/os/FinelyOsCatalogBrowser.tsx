@@ -12,6 +12,7 @@ import {
   FINELY_OS_LUXURY_PAGINATION,
   FINELY_OS_LUXURY_PAGINATION_BTN,
   FINELY_OS_TOOLBAR,
+  finelyOsGlassShell,
 } from './finelyOsLightUi';
 import {
   fcAdminCard,
@@ -25,7 +26,7 @@ import {
 /** Admin solid/glow cards — tones set per item (service type), with rotation fallback. */
 export type FinelyOsCatalogCardSurface = 'default' | 'adminSolid';
 
-const ADMIN_TONE_ROTATION: FcAdminTone[] = ['emerald', 'gold', 'sky', 'navy', 'teal', 'rose'];
+const ADMIN_TONE_ROTATION: FcAdminTone[] = ['emerald', 'violet', 'sky', 'navy', 'fuchsia', 'rose'];
 
 const ADMIN_SOLID_GLOW: Record<FcAdminTone, string> = {
   neutral:
@@ -44,6 +45,8 @@ const ADMIN_SOLID_GLOW: Record<FcAdminTone, string> = {
     'shadow-[0_0_0_1px_rgba(251,113,133,0.42),0_16px_44px_-12px_rgba(225,29,72,0.5),0_0_36px_rgba(251,113,133,0.24)] hover:shadow-[0_0_0_1px_rgba(251,113,133,0.55),0_18px_48px_-10px_rgba(225,29,72,0.55)] hover:brightness-110',
   violet:
     'shadow-[0_0_0_1px_rgba(167,139,250,0.42),0_16px_44px_-12px_rgba(124,58,237,0.5),0_0_36px_rgba(167,139,250,0.24)] hover:shadow-[0_0_0_1px_rgba(167,139,250,0.55),0_18px_48px_-10px_rgba(124,58,237,0.55)] hover:brightness-110',
+  fuchsia:
+    'shadow-[0_0_0_1px_rgba(217,70,239,0.42),0_16px_44px_-12px_rgba(192,38,211,0.5),0_0_36px_rgba(217,70,239,0.24)] hover:shadow-[0_0_0_1px_rgba(217,70,239,0.55),0_18px_48px_-10px_rgba(192,38,211,0.55)] hover:brightness-110',
 };
 
 function adminSolidMetaChipClass(m: string, cardTone: FcAdminTone, darkBed = false): string {
@@ -58,7 +61,7 @@ function adminSolidMetaChipClass(m: string, cardTone: FcAdminTone, darkBed = fal
     return 'border-sky-200/50 bg-sky-600/42 text-white font-semibold shadow-[0_0_14px_rgba(56,189,248,0.3)]';
   }
   if (s.includes('access:')) {
-    return 'border-amber-200/50 bg-amber-600/38 text-amber-50 font-semibold';
+    return 'border-violet-200/50 bg-violet-600/38 text-white font-semibold';
   }
   if (s.includes('done-for-you') || s.includes('hybrid') || s.includes('diy partner')) {
     return 'border-fuchsia-200/45 bg-fuchsia-600/38 text-white font-semibold';
@@ -211,7 +214,7 @@ export function FinelyOsCatalogBrowser({
   const renderCard = (item: FinelyOsCatalogItem, compact?: boolean) => {
     const accentIndex = item.accentIndex ?? item.title.length;
     const accent = FINELY_OS_KPI_ACCENTS[accentIndex % FINELY_OS_KPI_ACCENTS.length];
-    const iconAccents: FinelyOsIconAccent[] = ['violet', 'emerald', 'sky', 'amber', 'rose', 'fuchsia'];
+    const iconAccents: FinelyOsIconAccent[] = ['violet', 'emerald', 'sky', 'rose', 'fuchsia', 'navy'];
     const adminTone: FcAdminTone =
       item.adminTone ?? ADMIN_TONE_ROTATION[accentIndex % ADMIN_TONE_ROTATION.length];
     const selected = selectedIds?.has(item.id);
@@ -405,7 +408,7 @@ export function FinelyOsCatalogBrowser({
             : restoreChrome
             ? 'fc-restore-catalog-toolbar !border-[#0a1628]/12 !bg-white/92'
             : ivoryChrome
-              ? 'fc-glass-ivory !border-[#c4803d]/28'
+              ? finelyOsGlassShell('catalog', 'violet')
               : ''
         }`}
       >
@@ -420,11 +423,12 @@ export function FinelyOsCatalogBrowser({
             value={query}
             onChange={(e) => resetPage(e.target.value)}
             placeholder={searchPlaceholder}
+            aria-label={searchPlaceholder}
             className={`w-full pl-9 pr-3 py-2 mt-0 ${
               restoreChrome
                 ? 'rounded-lg border border-[#0a1628]/15 bg-white text-[#0a1628] placeholder:text-[#0a1628]/40 focus:outline-none focus:ring-2 focus:ring-emerald-500/30'
                 : ivoryChrome
-                ? 'rounded-lg border border-[#c4803d]/28 bg-white/70 text-[#0a1628] placeholder:text-[#0a1628]/40 focus:outline-none focus:ring-2 focus:ring-amber-500/25'
+                ? 'rounded-lg border border-violet-300/35 bg-white/70 text-[#0a1628] placeholder:text-[#0a1628]/40 focus:outline-none focus:ring-2 focus:ring-violet-500/25'
                 : `${FINELY_OS_ENTITY_INPUT}`
             }`}
           />
@@ -442,7 +446,7 @@ export function FinelyOsCatalogBrowser({
               restoreChrome
                 ? 'border border-[#0a1628]/10 bg-[#0a1628]/04'
                 : ivoryChrome
-                  ? 'fc-glass-ivory'
+                  ? finelyOsGlassShell('inner', 'violet')
                   : 'fc-light-glass-panel fc-light-chrome-panel'
             }`}
           >
@@ -475,7 +479,7 @@ export function FinelyOsCatalogBrowser({
       </div>
 
       {!filtered.length ? (
-        <div className={`${FINELY_OS_LUXURY_EMPTY} ${ivoryChrome ? 'fc-glass-ivory text-[#0a1628]/70' : ''}`}>
+        <div className={`${FINELY_OS_LUXURY_EMPTY} ${ivoryChrome ? `${finelyOsGlassShell('catalog', 'violet')} text-[#0a1628]/70` : ''}`}>
           {emptyMessage}
         </div>
       ) : view === 'grouped' && grouped ? (
@@ -491,7 +495,7 @@ export function FinelyOsCatalogBrowser({
                       : FINELY_OS_ENTITY_SUBLABEL
                 }`}
               >
-                <span className={`h-2 w-2 rounded-full ${ivoryChrome ? 'bg-amber-700/70' : 'bg-violet-400'}`} />
+                <span className={`h-2 w-2 rounded-full ${ivoryChrome ? 'bg-violet-500/80' : 'bg-violet-400'}`} />
                 {groupLabels?.[key] ?? key.replace(/_/g, ' ')}
                 <span className={`font-semibold ${ivoryChrome ? 'text-[#0a1628]/40' : 'text-white/40'}`}>
                   ({groupItems.length})
@@ -525,7 +529,7 @@ export function FinelyOsCatalogBrowser({
               : restoreChrome
               ? 'fc-restore-catalog-toolbar !border-[#0a1628]/12 !bg-white/92'
               : ivoryChrome
-                ? 'fc-glass-ivory !border-[#c4803d]/28'
+                ? finelyOsGlassShell('catalog', 'violet')
                 : ''
           }`}
         >
@@ -541,7 +545,7 @@ export function FinelyOsCatalogBrowser({
                 restoreChrome
                   ? '!border-[#0a1628]/15 !bg-white/80 !text-[#0a1628]'
                   : ivoryChrome
-                    ? '!border-[#c4803d]/30 !bg-white/55 !text-[#0a1628]'
+                    ? '!border-violet-300/35 !bg-white/55 !text-[#0a1628]'
                     : ''
               }`}
             >
@@ -555,7 +559,7 @@ export function FinelyOsCatalogBrowser({
                 restoreChrome
                   ? '!border-[#0a1628]/15 !bg-white/80 !text-[#0a1628]'
                   : ivoryChrome
-                    ? '!border-[#c4803d]/30 !bg-white/55 !text-[#0a1628]'
+                    ? '!border-violet-300/35 !bg-white/55 !text-[#0a1628]'
                     : ''
               }`}
             >

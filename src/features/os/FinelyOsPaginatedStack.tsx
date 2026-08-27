@@ -38,11 +38,29 @@ export function FinelyOsPaginatedStack<T>({
             Page {safePage + 1} of {totalPages} · {items.length} total
           </span>
           <div className="flex gap-2">
-            <button type="button" disabled={safePage <= 0} onClick={() => setPage((p) => p - 1)} className={FINELY_OS_LUXURY_PAGINATION_BTN}>
-              <ChevronLeft size={14} />
-            </button>
             <button
               type="button"
+              aria-label="Previous page"
+              disabled={safePage <= 0}
+              onClick={() => setPage((p) => p - 1)}
+              className={FINELY_OS_LUXURY_PAGINATION_BTN}
+            >
+              <ChevronLeft size={14} />
+            </button>
+            {totalPages > 2 ? (
+              <button
+                type="button"
+                aria-label="Jump to last page"
+                disabled={safePage >= totalPages - 1}
+                onClick={() => setPage(totalPages - 1)}
+                className={FINELY_OS_LUXURY_PAGINATION_BTN}
+              >
+                Last
+              </button>
+            ) : null}
+            <button
+              type="button"
+              aria-label="Next page"
               disabled={safePage >= totalPages - 1}
               onClick={() => setPage((p) => p + 1)}
               className={FINELY_OS_LUXURY_PAGINATION_BTN}

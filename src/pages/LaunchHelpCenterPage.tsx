@@ -1,7 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { ArrowRight, BookOpen, CheckCircle2, Film, GraduationCap, Search, Shield } from 'lucide-react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { PageShell } from '../components/layout/PageShell';
+import { useLocation } from 'react-router-dom';
+import { AdminWorkstationFrame, type AdminEmbeddablePageProps } from '../features/workspaceLightPreview/product/admin/AdminWorkstationFrame';
+import { useMappedAdminNavigate } from '../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { usePublicSeoMeta } from '../hooks/usePublicSeoMeta';
 import { FinelyOsPaginatedStack } from '../features/os/FinelyOsPaginatedStack';
 import { FinelyOsPageFooter } from '../features/os/FinelyOsPageFooter';
@@ -46,12 +47,12 @@ const LANES: Array<{ id: PlatformSopLane | 'all'; label: string }> = [
   { id: 'compliance', label: 'Compliance' },
 ];
 
-export default function LaunchHelpCenterPage() {
-  const navigate = useNavigate();
+export default function LaunchHelpCenterPage({ embedded = false }: AdminEmbeddablePageProps = {}) {
+  const navigate = useMappedAdminNavigate();
   const { pathname } = useLocation();
   const isAdmin = pathname.startsWith('/admin/launch-os');
   const [lane, setLane] = useState<PlatformSopLane | 'all'>('all');
-  const [moduleLane, setModuleLane] = useState<'all' | 'admin' | 'portal' | 'public'>('all');
+  const [moduleLane, setModuleLane] = useState<'all' | 'admin' | 'portal' | 'public'>('public');
   const [query, setQuery] = useState('');
   const [tourId, setTourId] = useState<string | null>(null);
 
@@ -79,7 +80,7 @@ export default function LaunchHelpCenterPage() {
   const modulePlaybooks = useMemo(() => listModulePlaybooksByLane(moduleLane), [moduleLane]);
 
   return (
-    <PageShell
+    <AdminWorkstationFrame embedded={embedded} kind="launch-os-workstation"
       badge={isAdmin ? 'Admin' : 'Help'}
       title={isAdmin ? 'Launch OS Help Center' : 'Help center — plain English playbooks'}
       subtitle="Every workflow in short steps. Open playbooks here or ask in chat on any page."
@@ -100,7 +101,7 @@ export default function LaunchHelpCenterPage() {
           kpis={[
             { label: 'Playbooks', value: String(PLATFORM_SOP_LIBRARY.length), accent: 'emerald' },
             { label: 'Modules', value: String(MODULE_PLAYBOOKS.length), accent: 'emerald' },
-            { label: 'Role courses', value: String(LAUNCH_ROLE_COURSES.length), accent: 'amber' },
+            { label: 'Role courses', value: String(LAUNCH_ROLE_COURSES.length), accent: 'rose' },
             { label: 'Video tours', value: String(TOUR_MANIFEST.length), accent: 'sky' },
             { label: 'Lanes', value: String(LANES.length - 1), accent: 'violet' },
           ]}
@@ -144,7 +145,7 @@ export default function LaunchHelpCenterPage() {
 
           {isAdmin && launchChecks.length ? (
             <section id="launch-checks" className="fc-scroll-section space-y-4 mb-8">
-              <div className={`${finelyOsCatalogCard('emerald')} !p-6`} data-fc-accent="emerald">
+              <div className={`${finelyOsCatalogCard('emerald')}`} data-fc-accent="emerald">
                 <div className="flex items-center gap-2 mb-4">
                   <CheckCircle2 size={18} />
                   <span className={FINELY_OS_ENTITY_VALUE}>Launch checklist gates</span>
@@ -162,7 +163,7 @@ export default function LaunchHelpCenterPage() {
           ) : null}
 
           <section id="modules" className="fc-scroll-section mb-8">
-            <div className={`${finelyOsCatalogCard('sky')} !p-6 space-y-4`} data-fc-accent="sky">
+            <div className={`${finelyOsCatalogCard('sky')} space-y-4`} data-fc-accent="sky">
               <div className="flex items-center gap-2">
                 <BookOpen size={20} className="text-sky-300" />
                 <span className={FINELY_OS_ENTITY_VALUE}>Module guides — how to use every screen</span>
@@ -213,15 +214,15 @@ export default function LaunchHelpCenterPage() {
           </section>
 
           <section id="training" className="fc-scroll-section mb-8">
-            <div className={`${finelyOsCatalogCard('amber')} !p-6 space-y-4`} data-fc-accent="amber">
+            <div className={`${finelyOsCatalogCard('rose')} space-y-4`} data-fc-accent="rose">
               <div className="flex items-center gap-2">
-                <GraduationCap size={20} className="text-amber-300" />
+                <GraduationCap size={20} className="text-rose-300" />
                 <span className={FINELY_OS_ENTITY_VALUE}>Role training tracks</span>
               </div>
               <p className={FINELY_OS_ENTITY_BODY}>Pick your role — each track links SOPs, tours, and the live hub where you work.</p>
               <div className="grid md:grid-cols-2 gap-4">
                 {LAUNCH_ROLE_COURSES.map((course) => (
-                  <div key={course.id} className={`${finelyOsCatalogCard(course.accent)} !p-5 space-y-3`} data-fc-accent={course.accent}>
+                  <div key={course.id} className={`${finelyOsCatalogCard(course.accent)} space-y-3`} data-fc-accent={course.accent}>
                     <div className={`${FINELY_OS_ENTITY_SUBLABEL}`}>{course.role}</div>
                     <h3 className={`${FINELY_OS_ENTITY_VALUE} text-lg font-semibold`}>{course.title}</h3>
                     <p className={`${FINELY_OS_ENTITY_BODY} text-sm`}>{course.desc}</p>
@@ -239,10 +240,11 @@ export default function LaunchHelpCenterPage() {
             items={sops}
             pageSize={6}
             itemSpacingClassName="grid md:grid-cols-2 gap-4"
-            renderItem={(sop) => {
+            renderItem={(sop, idx) => {
               const tour = sop.relatedTourId ? getTourById(sop.relatedTourId) : null;
+              const sopAccent = (['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4];
               return (
-                <div key={sop.id} className={`${finelyOsCatalogCard('sky')} !p-5 space-y-4`} data-fc-accent="sky">
+                <div key={sop.id} className={`${finelyOsCatalogCard(sopAccent)} space-y-4`} data-fc-accent={sopAccent}>
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <div className={`${FINELY_OS_ENTITY_SUBLABEL} capitalize`}>{sop.lane} · {sop.audience}</div>
@@ -291,12 +293,12 @@ export default function LaunchHelpCenterPage() {
           />
         </FinelyUnifiedHubLayout>
 
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
       </div>
 
       {PUBLIC_DEMO_VIDEOS_ENABLED ? (
       <FinelyTourPlayer tour={previewTour} open={Boolean(previewTour)} onClose={() => setTourId(null)} />
       ) : null}
-    </PageShell>
+    </AdminWorkstationFrame>
   );
 }

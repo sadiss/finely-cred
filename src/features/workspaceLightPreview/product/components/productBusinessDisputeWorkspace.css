@@ -1,0 +1,14 @@
+.fc-wlp-business-dispute-workspace {
+  width: 100%;
+  min-width: 0;
+}
+
+.fc-wlp-business-dispute-workspace-embed {
+  width: 100%;
+  min-width: 0;
+}
+
+.fc-wlp-business-dispute-workspace-embed .finely-unified-hub-layout,
+.fc-wlp-business-dispute-workspace .finely-unified-hub-layout {
+  min-width: 0;
+}

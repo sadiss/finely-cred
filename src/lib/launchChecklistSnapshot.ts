@@ -73,7 +73,7 @@ export function buildLaunchChecklistSnapshot(): LaunchCheckItem[] {
       label: 'Stripe checkout',
       status: isFeatureEnabled('stripeEnabled') ? 'ok' : 'warn',
       detail: isFeatureEnabled('stripeEnabled')
-        ? 'Paid enlightenment sessions + portal billing'
+        ? 'Paid strategy calls + portal billing'
         : 'Enable stripeEnabled for public-session-checkout',
     },
     {
@@ -178,7 +178,7 @@ export function buildLaunchChecklistSnapshot(): LaunchCheckItem[] {
       id: 'sitewide_hub_wave13',
       label: 'Sitewide hub wave 13',
       status: 'ok',
-      detail: 'Business lane sub-pages + enlightenment session on FinelyUnifiedHubLayout — npm run business:hub:audit',
+      detail: 'Business lane sub-pages + strategy-call booking on FinelyUnifiedHubLayout — npm run business:hub:audit',
     },
     {
       id: 'catalog_ux_no_long_lists',
@@ -328,7 +328,7 @@ export function buildLaunchChecklistSnapshot(): LaunchCheckItem[] {
       id: 'sitewide_light_marketing_wave37',
       label: 'Sitewide light marketing pages wave 37',
       status: 'ok',
-      detail: 'Pricing, affiliate, enlightenment session, personal credit, events, testimonials, portal partner select — catalog cards — theme:audit',
+      detail: 'Pricing, affiliate, strategy-call booking, personal credit, events, testimonials, portal partner select — catalog cards — theme:audit',
     },
     {
       id: 'sitewide_light_harmony_wave38',
@@ -560,7 +560,7 @@ export function buildLaunchChecklistSnapshot(): LaunchCheckItem[] {
       id: 'marketing_staff_chat',
       label: 'Marketing staff chat',
       status: 'ok',
-      detail: 'MarketingStaffChatStrip on all major public routes including checkout, legal, AU marketplace, testimonials, events, enlightenment, and 404 recovery',
+      detail: 'MarketingStaffChatStrip on all major public routes including checkout, legal, AU marketplace, testimonials, events, strategy-call booking, and 404 recovery',
     },
     {
       id: 'light_os_chrome',

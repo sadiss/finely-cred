@@ -37,6 +37,7 @@ export function CollapsibleSection({
   headerClassName = '',
   bodyClassName = '',
   variant = 'dark',
+  accentBar,
 }: React.PropsWithChildren<{
   title: React.ReactNode;
   subtitle?: React.ReactNode;
@@ -52,7 +53,9 @@ export function CollapsibleSection({
   className?: string;
   headerClassName?: string;
   bodyClassName?: string;
-  variant?: 'dark' | 'light';
+  variant?: 'dark' | 'light' | 'workspaceLight';
+  /** Top accent stripe for workspaceLight variant */
+  accentBar?: 'emerald' | 'violet' | 'sky' | 'fuchsia' | 'rose' | 'navy';
 }>) {
   const initialOpen = React.useMemo(() => {
     if (!storageKey) return defaultOpen;
@@ -87,19 +90,38 @@ export function CollapsibleSection({
 
   const clampOn = Boolean(enableClamp && open && !expanded);
 
-  const shell =
-    variant === 'light'
-      ? // Ivory/dashboard: transparent shell + violet border glow — never opaque white/gray slabs.
-        'rounded-3xl border border-violet-500/40 bg-transparent overflow-hidden shadow-[0_0_0_1px_rgba(139,92,246,0.16),0_14px_44px_-16px_rgba(139,92,246,0.48),0_0_28px_-8px_rgba(139,92,246,0.22)] ring-1 ring-inset ring-violet-400/15'
+  const workspaceLight = variant === 'workspaceLight';
+  const lightIvory = variant === 'light';
+
+  const accentTop =
+    accentBar === 'emerald'
+      ? 'border-t-[3px] border-t-emerald-500'
+      : accentBar === 'sky'
+        ? 'border-t-[3px] border-t-sky-500'
+        : accentBar === 'fuchsia'
+          ? 'border-t-[3px] border-t-fuchsia-500'
+          : accentBar === 'rose'
+            ? 'border-t-[3px] border-t-rose-500'
+            : accentBar === 'navy'
+              ? 'border-t-[3px] border-t-slate-700'
+              : accentBar === 'violet'
+                ? 'border-t-[3px] border-t-violet-500'
+                : 'border-t-[3px] border-t-violet-500';
+
+  const shell = workspaceLight
+    ? `fc-wl-module-shell rounded-2xl border border-[#0a1628]/10 bg-white overflow-hidden shadow-[0_12px_40px_-24px_rgba(10,22,40,0.18)] ${accentTop}`
+    : lightIvory
+      ? 'rounded-3xl border border-violet-500/40 bg-transparent overflow-hidden shadow-[0_0_0_1px_rgba(139,92,246,0.16),0_14px_44px_-16px_rgba(139,92,246,0.48),0_0_28px_-8px_rgba(139,92,246,0.22)] ring-1 ring-inset ring-violet-400/15'
       : 'fc-light-glass-panel fc-light-chrome-panel rounded-3xl overflow-hidden';
 
-  const headerBorder = variant === 'light' ? 'border-violet-500/15' : 'border-white/[0.08]';
-  const toggleHover = variant === 'light' ? 'hover:bg-violet-500/[0.05]' : 'hover:bg-white/[0.03]';
-  const chevronTone = variant === 'light' ? 'text-violet-600/70' : 'text-white/55';
-  const titleTone = variant === 'light' ? 'text-slate-900' : 'text-white';
-  const subtitleTone = variant === 'light' ? 'text-slate-600' : 'text-white/60';
-  const countChip =
-    variant === 'light'
+  const headerBorder = workspaceLight || lightIvory ? 'border-[#0a1628]/8' : 'border-white/[0.08]';
+  const toggleHover = workspaceLight || lightIvory ? 'hover:bg-[#0a1628]/[0.03]' : 'hover:bg-white/[0.03]';
+  const chevronTone = workspaceLight || lightIvory ? 'text-[#0a1628]/45' : 'text-white/55';
+  const titleTone = workspaceLight || lightIvory ? 'text-[#0a1628]' : 'text-white';
+  const subtitleTone = workspaceLight || lightIvory ? 'text-[#0a1628]/65' : 'text-white/60';
+  const countChip = workspaceLight
+    ? 'px-3 py-1 rounded-full border border-[#0a1628]/10 bg-[#0a1628]/[0.04] text-xs font-semibold text-[#0a1628]/75'
+    : lightIvory
       ? 'px-3 py-1 rounded-full border border-violet-500/30 bg-violet-500/[0.08] text-xs font-semibold text-violet-800'
       : 'px-3 py-1 rounded-full border border-fuchsia-500/30 bg-fuchsia-500/10 text-xs font-semibold text-fuchsia-200';
 

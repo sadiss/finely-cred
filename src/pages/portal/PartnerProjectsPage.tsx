@@ -12,6 +12,7 @@ import { FINELY_OS_PAGE } from '../../features/os/finelyOsLightUi';
 import { FinelyNowDoThisStrip } from '../../components/tours/FinelyNowDoThisStrip';
 import { FinelyNoticedStrip } from '../../components/tours/FinelyNoticedStrip';
 import { buildPortalWorkNoticedItems } from '../../lib/finelyProactiveSignals';
+import { pickMostOverdueTask, partnerTaskDeepLink } from '../../lib/partnerWorkNavigation';
 
 type HubTab = 'projects' | 'tasks';
 
@@ -30,8 +31,10 @@ export default function PartnerProjectsPage() {
   const openTasks = tasks.filter((t) => t.status === 'pending' || t.status === 'in_progress');
   const overdueTasks = openTasks.filter((t) => t.dueAt && Date.parse(t.dueAt) < Date.now());
 
+  const mostOverdue = useMemo(() => pickMostOverdueTask(overdueTasks), [overdueTasks]);
+
   return (
-    <PageShell badge="Partner Portal" title="Your projects" subtitle="Work OS — kanban, calendar, and draggable task boards.">
+    <PageShell badge="Partner Portal" title="Your projects" subtitle="Track the work Finely and your specialist assigned to you — start with what's overdue.">
       <div className={FINELY_OS_PAGE}>
         <FinelyNoticedStrip
           items={buildPortalWorkNoticedItems({
@@ -43,13 +46,13 @@ export default function PartnerProjectsPage() {
         <FinelyNowDoThisStrip currentIndex={tab === 'tasks' && overdueTasks.length > 0 ? 1 : 0} />
 
         <FinelyUnifiedHubLayout
-          eyebrow="Work OS"
-          title="Projects & tasks"
-          subtitle="Personal and business credit — drag tasks between columns or switch to calendar view."
+          eyebrow="Projects & tasks"
+          title="Your assigned work"
+          subtitle="See what is due, what is waiting, and what Finely already finished for you."
           accent="violet"
           kpis={[
             { label: 'Projects', value: String(projects.length), hint: 'Active lanes', accent: 'violet' },
-            { label: 'Open tasks', value: String(openTasks.length), hint: 'Needs action', accent: 'amber' },
+            { label: 'Open tasks', value: String(openTasks.length), hint: 'Needs action', accent: 'rose' },
             { label: 'Overdue', value: String(overdueTasks.length), hint: 'Due past', accent: 'rose' },
             { label: 'Scope', value: 'Personal + biz', hint: 'Filter below', accent: 'sky' },
           ]}
@@ -59,7 +62,14 @@ export default function PartnerProjectsPage() {
           ]}
           activeTab={tab}
           onTabChange={(id) => setTab(id as HubTab)}
-          primaryAction={{ label: 'My tasks', onClick: () => navigate('/portal/my-tasks') }}
+          primaryAction={
+            mostOverdue
+              ? {
+                  label: 'Open your most overdue task',
+                  onClick: () => navigate(partnerTaskDeepLink(mostOverdue)),
+                }
+              : { label: 'My tasks', onClick: () => navigate('/portal/my-tasks') }
+          }
           secondaryAction={{ label: 'Dashboard', onClick: () => navigate('/portal/dashboard') }}
         >
           {partner ? (

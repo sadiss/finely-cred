@@ -166,7 +166,7 @@ export default function AgentsPage() {
         <>
         <div className={`space-y-5 ${finelyOsCatalogCard('violet')} !p-8 sm:!p-10 border-2`} data-fc-accent="violet">
           <p className={CS_PUBLIC.pageKicker}>Credit specialist program</p>
-          <h2 className={CS_PUBLIC.pageTitle}>Run client files on Finely</h2>
+          <h2 className={CS_PUBLIC.pageTitle}>Run partner files on Finely</h2>
           <p className={CS_PUBLIC.pageLead}>
             <strong className="text-white">Credit specialist</strong> = you run restore, build, business, and debt files.
             Your keep starts around <strong className="text-white">30%</strong> per file — not 80%. Certified partner is the top step.
@@ -210,7 +210,7 @@ export default function AgentsPage() {
           </div>
           <div className="grid md:grid-cols-2 gap-4">
             {CREDIT_SPECIALIST_COMMS_CHANNELS.map((ch) => (
-              <div key={ch.title} className={`${finelyOsCatalogCard('sky')} !p-6 sm:!p-8 border-2 space-y-3`}>
+              <div key={ch.title} className={`${finelyOsCatalogCard((['emerald', 'violet', 'sky', 'rose'] as const)[CREDIT_SPECIALIST_COMMS_CHANNELS.indexOf(ch) % 4])} border-2 space-y-3`} data-fc-accent={(['emerald', 'violet', 'sky', 'rose'] as const)[CREDIT_SPECIALIST_COMMS_CHANNELS.indexOf(ch) % 4]}>
                 <h4 className={CS_PUBLIC.cardTitle}>{ch.title}</h4>
                 <p className={CS_PUBLIC.body}>{ch.description}</p>
                 <button type="button" onClick={() => navigate(ch.path)} className={FINELY_OS_SECONDARY_BTN}>
@@ -233,7 +233,7 @@ export default function AgentsPage() {
           <p className={CS_PUBLIC.sectionLead}>We review applications and reply by email with next steps.</p>
         </header>
         {statusMsg ? (
-          <div className={status === 'sent' ? FINELY_OS_NOTICE_SUCCESS : status === 'error' ? FINELY_OS_NOTICE_ERROR : `${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+          <div className={status === 'sent' ? FINELY_OS_NOTICE_SUCCESS : status === 'error' ? FINELY_OS_NOTICE_ERROR : `${finelyOsCatalogCard('sky')} fc-surface-harmony`}>
             <div className="inline-flex items-center gap-2 font-semibold">
               {status === 'sent' ? <BadgeCheck size={16} /> : <ShieldAlert size={16} />}
               <span>{statusMsg}</span>
@@ -242,8 +242,8 @@ export default function AgentsPage() {
         ) : null}
 
         <div className="grid lg:grid-cols-12 gap-6">
-          <div className={`lg:col-span-7 min-w-0 space-y-4 ${finelyOsCatalogCard('violet')} !p-5`}>
-            <div className="inline-flex items-center gap-2 text-fuchsia-400">
+          <div className={`lg:col-span-7 min-w-0 space-y-4 ${finelyOsCatalogCard('violet')}`}>
+            <div className="inline-flex items-center gap-2 text-violet-400">
               <Users size={18} />
               <span className={FINELY_OS_ENTITY_SUBLABEL}>Application</span>
             </div>
@@ -281,7 +281,7 @@ export default function AgentsPage() {
                 </div>
               </div>
 
-              <details className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`} open>
+              <details className={`${finelyOsCatalogCard('sky')} fc-surface-harmony`} open>
                 <summary className={`cursor-pointer select-none ${FINELY_OS_ENTITY_VALUE}`}>Socials + reach</summary>
                 <div className="mt-4 grid md:grid-cols-2 gap-4">
                   <input value={instagram} onChange={(e) => setInstagram(e.target.value)} className={formInput} placeholder="Instagram" />
@@ -304,7 +304,7 @@ export default function AgentsPage() {
                 </div>
               </div>
 
-              <details className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+              <details className={`${finelyOsCatalogCard('rose')} fc-surface-harmony`} data-fc-accent="rose">
                 <summary className={`cursor-pointer select-none ${FINELY_OS_ENTITY_VALUE}`}>Referral + payout</summary>
                 <div className="mt-4 grid md:grid-cols-2 gap-4">
                   <input value={referralCode} onChange={(e) => setReferralCode(e.target.value)} className={formInput} placeholder="Referral code (optional)" />
@@ -331,8 +331,8 @@ export default function AgentsPage() {
           </div>
 
           <div className="lg:col-span-5 min-w-0 space-y-6">
-            <div className={`space-y-3 ${finelyOsCatalogCard('violet')} !p-5`}>
-              <div className="inline-flex items-center gap-2 text-fuchsia-400">
+            <div className={`space-y-3 ${finelyOsCatalogCard('emerald')}`}>
+              <div className="inline-flex items-center gap-2 text-emerald-400">
                 <Building2 size={18} />
                 <span className={FINELY_OS_ENTITY_SUBLABEL}>What happens next</span>
               </div>

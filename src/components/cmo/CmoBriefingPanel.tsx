@@ -15,7 +15,7 @@ export function CmoBriefingPanel() {
     <section className="fc-panel p-5 space-y-4">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.24em] text-amber-300/80">Executive Briefs</p>
+          <p className="text-xs uppercase tracking-[0.24em] text-emerald-300/80">Executive Briefs</p>
           <h2 className="text-2xl font-semibold text-white">Morning orders and weekly kill/scale list</h2>
         </div>
         <button type="button" className="fc-button-brand inline-flex items-center gap-2" onClick={create}><Newspaper className="h-4 w-4" /> Generate brief</button>
@@ -40,7 +40,7 @@ export function CmoBriefingPanel() {
 function List({ title, items }: { title: string; items: string[] }) {
   return (
     <div>
-      <h4 className="text-sm font-semibold text-amber-100">{title}</h4>
+      <h4 className="text-sm font-semibold text-emerald-100">{title}</h4>
       <ul className="mt-2 space-y-2 text-sm text-slate-300">
         {items.map((item) => <li key={item} className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2">{item}</li>)}
       </ul>

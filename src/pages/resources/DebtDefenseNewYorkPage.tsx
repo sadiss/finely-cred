@@ -26,6 +26,7 @@ import {
   StateLawScrutinyBanner,
 } from '../../components/resources/DoctrineArticleParts';
 import { DebtLitigationPlaybookCard } from '../../components/resources/DebtLitigationPlaybookCard';
+import { finelyOsCatalogCard } from '../../features/os/finelyOsLightUi';
 
 export default function DebtDefenseNewYorkPage() {
   const mcaPreSuit = getPlaybook('merchant_cash_advance', 'pre_suit_validation');
@@ -112,12 +113,12 @@ export default function DebtDefenseNewYorkPage() {
           For ordinary consumer debt (not a business MCA), these federal statutes apply regardless of state.
         </p>
         <div className="mt-4 space-y-3">
-          {consumerSummonsAnswer ? <DebtLitigationPlaybookCard playbook={consumerSummonsAnswer} accent="fuchsia" /> : null}
-          {consumerPostJudgment ? <DebtLitigationPlaybookCard playbook={consumerPostJudgment} accent="fuchsia" /> : null}
+          {consumerSummonsAnswer ? <DebtLitigationPlaybookCard playbook={consumerSummonsAnswer} accent="rose" /> : null}
+          {consumerPostJudgment ? <DebtLitigationPlaybookCard playbook={consumerPostJudgment} accent="rose" /> : null}
         </div>
       </section>
 
-      <section className="rounded-[1.25rem] border border-amber-400/25 bg-amber-500/[0.04] p-5">
+      <section className={finelyOsCatalogCard('rose')} data-fc-accent="rose">
         <DoctrineSectionHeading Icon={FileWarning} title="What varies by state and is NOT covered here" eyebrow="Verify locally" />
         <DoctrineFieldList
           tone="warn"

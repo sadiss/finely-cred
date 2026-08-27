@@ -37,6 +37,9 @@ import { CmoIntegrationHealthPanel } from './CmoIntegrationHealthPanel';
 import { Overnight50AdminNav } from '../overnight50/Overnight50AdminNav';
 import { LeadIntelSwarmDashboard } from '../../features/overnight50/LeadIntelSwarmDashboard';
 import { SyntheticStaffFloor } from '../../features/overnight50/SyntheticStaffFloor';
+import { finelyOsViewTab } from '../../features/os/finelyOsLightUi';
+
+const TAB_ACCENTS = ['emerald', 'violet', 'sky', 'rose'] as const;
 
 export type CmoCommandTab =
   | 'staff'
@@ -89,8 +92,8 @@ export function CmoUnifiedCommandCenter({ embedded = false, defaultTab = 'staff'
   return (
     <div className={embedded ? 'space-y-4' : 'space-y-6'}>
       {!embedded ? (
-        <header className="fc-panel rounded-3xl border border-amber-300/15 p-5">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.24em] text-amber-300/90">
+        <header className="fc-panel rounded-3xl border border-violet-500/30 bg-violet-500/10 p-5 lg:p-6">
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.24em] text-violet-300">
             <Bot className="h-4 w-4" /> CMO Command
           </div>
           <h1 className="mt-2 text-2xl font-black text-white md:text-3xl">Finely Cred growth operating system</h1>
@@ -101,22 +104,20 @@ export function CmoUnifiedCommandCenter({ embedded = false, defaultTab = 'staff'
         </header>
       ) : null}
 
-      <div className="fc-panel overflow-hidden rounded-2xl border border-white/10 p-2">
-        <div className="flex gap-2 overflow-x-auto pb-1">
-          {TABS.map((t) => {
+      <div className="fc-panel overflow-hidden rounded-2xl border border-sky-500/20 p-2">
+        <div className="flex gap-2 overflow-x-auto pb-1" role="tablist">
+          {TABS.map((t, idx) => {
             const Icon = t.icon;
             const active = tab === t.id;
+            const accent = TAB_ACCENTS[idx % TAB_ACCENTS.length];
             return (
               <button
                 key={t.id}
                 type="button"
+                role="tab"
+                aria-selected={active}
                 onClick={() => setTab(t.id)}
-                className={
-                  'inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-[10px] font-bold uppercase tracking-wider transition sm:text-[11px] ' +
-                  (active
-                    ? 'bg-amber-300 text-slate-950'
-                    : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-slate-200')
-                }
+                className={`shrink-0 ${finelyOsViewTab(active, accent)} !min-w-0 gap-1.5 !px-3 !py-2 !text-[10px] !uppercase !tracking-wider sm:!text-[11px]`}
               >
                 <Icon size={13} />
                 {t.label}

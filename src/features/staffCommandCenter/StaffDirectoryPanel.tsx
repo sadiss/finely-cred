@@ -82,7 +82,7 @@ export function StaffDirectoryPanel({
             <h2 className={`mt-2 ${STAFF_CMD_TITLE}`}>Company roster — AI operators & human team</h2>
             <p className={`mt-2 max-w-3xl text-sm ${STAFF_CMD_BODY}`}>
               <span className="text-violet-200 font-semibold">AI operators</span> run growth systems.{' '}
-              <span className="text-amber-200 font-semibold">Human team</span> slots are real hires. Partner-facing humans live under the Partner team tab.
+              <span className="text-rose-200 font-semibold">Human team</span> slots are real hires. Partner-facing humans live under the Partner team tab.
             </p>
           </div>
           <div className={`${staffCmdHighlightPanel()} p-3 text-xs`}>
@@ -153,7 +153,7 @@ export function StaffDirectoryPanel({
                         <div>
                           <div className="text-xl font-bold text-white">{staffFullName(x)}</div>
                           <div className="mt-1 text-sm font-semibold text-violet-200/90">{x.title}</div>
-                          <div className="mt-1 text-[11px] text-white/40">Codename: {x.codename}</div>
+                          <div className="mt-1 text-[11px] text-white/40">{x.departmentId.replace(/_/g, ' ')}</div>
                         </div>
                         <div className="flex flex-wrap gap-2">
                           <button
@@ -178,7 +178,7 @@ export function StaffDirectoryPanel({
                             <button
                               type="button"
                               onClick={() => navigate(contentStudioUrlForStaff(x.id, x.id === 'shorts_factory' ? 'video' : 'intake'))}
-                              className="inline-flex items-center gap-1.5 rounded-xl border border-amber-400/35 bg-amber-500/12 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-amber-100 hover:bg-amber-500/18"
+                              className="inline-flex items-center gap-1.5 rounded-xl border border-sky-400/35 bg-sky-500/12 px-3 py-1.5 text-xs font-black uppercase tracking-widest text-sky-100 hover:bg-sky-500/18"
                             >
                               <Clapperboard size={12} /> Content Studio
                             </button>

@@ -14,7 +14,7 @@ import { Reveal } from '../ui';
 import { AU_SELLER, AU_SELLER_MARKETING_HEADLINE } from '../../config/auSellerProgram';
 import { signupUrlForRole } from '../../lib/onboardingRoleRouting';
 import { resolveFinelyCtaPath } from '../../lib/finelyCtaIntent';
-import { finelyOsLandingContrastSection } from '../../features/os/finelyOsLightUi';
+import { finelyOsCatalogCard, finelyOsLandingContrastSection } from '../../features/os/finelyOsLightUi';
 import { LandingTypewriterTitle } from './LandingTypewriterTitle';
 import { LandingSellAtmosphere } from './LandingSellAtmosphere';
 import { AuMarketplaceCard, networkFromPan, type AuCardFinish } from './AuMarketplaceCard';
@@ -98,7 +98,7 @@ export function LandingAuthorizedUserSection() {
 
         <div className="space-y-8">
           <Reveal>
-            <div className="relative overflow-hidden rounded-[1.5rem] border border-[#e0b24a]/28 bg-gradient-to-br from-[#0a1a14]/90 via-[#06120c]/88 to-[#040a08]/95 p-7 sm:p-9">
+            <div className="relative overflow-hidden rounded-[1.5rem] border border-emerald-400/28 bg-gradient-to-br from-[#0a1a14]/90 via-[#06120c]/88 to-[#040a08]/95 p-7 sm:p-9">
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_45%_at_100%_0%,rgba(163,230,53,0.12),transparent_55%)] pointer-events-none" />
               <div className="relative">
                 <h3 className="fc-sell-serif text-2xl sm:text-3xl font-semibold text-white text-center">What AU selling is</h3>
@@ -123,7 +123,7 @@ export function LandingAuthorizedUserSection() {
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {BENEFITS.map((b) => (
                 <div key={b.title} className="fc-sell-benefit-chip">
-                  <span className="mt-0.5 shrink-0 text-[#ffd993]">
+                  <span className="mt-0.5 shrink-0 text-emerald-300">
                     <b.Icon size={15} />
                   </span>
                   <span className="min-w-0">
@@ -146,7 +146,7 @@ export function LandingAuthorizedUserSection() {
                 <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-2">
                   {LAW_MARKETPLACE.map((item) => (
                     <div key={item.kicker} className="rounded-xl border border-white/8 bg-black/20 p-4">
-                      <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#ffd993]/90">{item.kicker}</p>
+                      <p className="text-[10px] font-black uppercase tracking-[0.28em] text-sky-300/90">{item.kicker}</p>
                       <p className="mt-2 text-sm leading-relaxed text-white/58">{item.text}</p>
                     </div>
                   ))}
@@ -177,14 +177,13 @@ export function LandingAuthorizedUserSection() {
               </div>
 
               {/* Center — $50 for life activation */}
-              <div className="relative overflow-hidden rounded-[1.5rem] border border-[#e0b24a]/45 bg-gradient-to-b from-[#1a160e]/95 via-[#12100c]/92 to-[#0a0e0c]/96 p-6 sm:p-7 flex flex-col items-center text-center shadow-[0_0_60px_-20px_rgba(224,178,74,0.45)]">
-                <div className="fc-sell-champagne-card__sheen opacity-50" />
-                <p className="relative text-[10px] font-black uppercase tracking-[0.3em] text-[#ffd993]/90">For life · one-time</p>
-                <div className="relative mt-4 fc-sell-price-jewel">
-                  <span className="fc-sell-price-jewel__amount">$50</span>
-                  <span className="fc-sell-price-jewel__label">activation</span>
+              <div className={`relative overflow-hidden ${finelyOsCatalogCard('violet')} !p-6 sm:!p-7 flex flex-col items-center text-center`} data-fc-accent="violet">
+                <p className="relative text-[10px] font-black uppercase tracking-[0.3em] text-violet-200">For life · one-time</p>
+                <div className="relative mt-4 flex flex-col items-center justify-center rounded-full border-2 border-violet-400/50 bg-violet-500/15 px-8 py-6 min-w-[9.5rem] shadow-[0_0_48px_-12px_rgba(139,92,246,0.55)]">
+                  <span className="fc-sell-serif text-4xl sm:text-5xl font-bold text-white leading-none">$50</span>
+                  <span className="mt-1 text-[9px] font-extrabold uppercase tracking-[0.22em] text-violet-200/80">activation</span>
                 </div>
-                <p className="relative mt-3 text-xs font-semibold uppercase tracking-widest text-[#ffd993]/85">
+                <p className="relative mt-3 text-xs font-semibold uppercase tracking-widest text-violet-200/85">
                   Residual income · money while you sleep
                 </p>
                 <p className="relative mt-2 text-sm text-white/55 max-w-[220px]">
@@ -200,16 +199,16 @@ export function LandingAuthorizedUserSection() {
                 <button
                   type="button"
                   onClick={() => navigate(AU_SELLER.publicPath)}
-                  className="relative mt-2 text-[11px] text-white/40 hover:text-[#ffd993] transition-colors underline-offset-4 hover:underline"
+                  className="relative mt-2 text-[11px] text-white/40 hover:text-violet-200 transition-colors underline-offset-4 hover:underline"
                 >
                   Full program details
                 </button>
               </div>
 
               {/* Right — potential earnings */}
-              <div className="relative overflow-hidden rounded-[1.25rem] border border-amber-400/30 bg-gradient-to-br from-amber-950/40 via-black/40 to-black/60 p-5 sm:p-6 flex flex-col justify-between">
+              <div className="relative overflow-hidden rounded-[1.25rem] border border-sky-400/30 bg-gradient-to-br from-sky-950/40 via-black/40 to-black/60 p-5 sm:p-6 flex flex-col justify-between">
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.28em] text-amber-200/90">Potential earnings</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.28em] text-sky-200/90">Potential earnings</p>
                   <h4 className="mt-2 text-lg font-semibold text-white leading-snug">Realistic placement math</h4>
                   <p className="mt-2 text-sm text-white/55 leading-relaxed">
                     Illustrative only — your inventory, limits, and seasons drive actual payouts. We help you build card depth so listings stay eligible cycle after cycle.
@@ -217,7 +216,7 @@ export function LandingAuthorizedUserSection() {
                 </div>
                 <div className="mt-4 grid grid-cols-2 gap-2">
                   <div className="rounded-lg border border-white/10 bg-black/30 px-3 py-2.5 text-center">
-                    <div className="text-lg font-light text-amber-100">2</div>
+                    <div className="text-lg font-light text-sky-100">2</div>
                     <div className="text-[10px] uppercase tracking-wider text-white/45">Partners per card / ~60 days</div>
                   </div>
                   <div className="rounded-lg border border-white/10 bg-black/30 px-3 py-2.5 text-center">
@@ -260,8 +259,8 @@ export function LandingAuthorizedUserSection() {
             Illustrative listings for demonstration · not live inventory · limits, age, and availability vary by seller
           </p>
 
-          <div className="mt-8 rounded-2xl border border-[#e0b24a]/28 bg-black/30 p-5 text-center">
-            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#ffd993]/90">
+          <div className="mt-8 rounded-2xl border border-sky-500/28 bg-black/30 p-5 text-center">
+            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-sky-300/90">
               Adding a teen as an authorized user?
             </p>
             <p className="mt-2 text-sm leading-relaxed text-white/58">
@@ -272,7 +271,7 @@ export function LandingAuthorizedUserSection() {
             <button
               type="button"
               onClick={() => navigate('/resources/au-teen-credit-sheet')}
-              className="mt-4 inline-flex items-center gap-2 rounded-xl border border-[#e0b24a]/45 bg-[#e0b24a]/10 px-5 py-2.5 text-xs font-black uppercase tracking-wider text-[#ffd993] transition-colors hover:bg-[#e0b24a]/20"
+              className="mt-4 inline-flex items-center gap-2 rounded-xl border border-sky-500/45 bg-sky-500/10 px-5 py-2.5 text-xs font-black uppercase tracking-wider text-sky-200 transition-colors hover:bg-sky-500/20"
             >
               Open the 2-sheet AU &amp; teen kit <ArrowRight size={14} />
             </button>

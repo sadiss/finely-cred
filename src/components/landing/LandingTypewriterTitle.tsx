@@ -1,7 +1,7 @@
 /**
  * Shared cinematic typewriter / reveal title for public sell bands.
  * - Intersection-triggered (or `immediate` for switchers)
- * - Gold caret while typing
+ * - Violet caret while typing
  * - `prefers-reduced-motion: reduce` → full text instantly
  * Keep ≤2–4 animated titles per page.
  */
@@ -25,7 +25,7 @@ export type LandingTypewriterTitleProps = {
   as?: LandingTitleTag;
   /** Skip intersection wait — type immediately (solution switchers). */
   immediate?: boolean;
-  /** Gold caret while typing (hidden when complete or reduced-motion). */
+  /** Violet caret while typing (hidden when complete or reduced-motion). */
   caret?: boolean;
 };
 
@@ -45,7 +45,7 @@ export function LandingTypewriterTitle({
   accentText,
   highlight,
   className = 'fc-sell-serif text-4xl sm:text-5xl lg:text-[3.35rem] font-semibold leading-[1.08] text-white',
-  accentClassName = 'text-[#ffd993] italic',
+  accentClassName = 'text-violet-300 italic',
   highlightClassName,
   speedMs = 38,
   delayMs = 120,
@@ -131,7 +131,7 @@ export function LandingTypewriterTitle({
       <span aria-hidden="true">{body}</span>
       {showCaret ? (
         <span
-          className="ml-0.5 inline-block h-[0.85em] w-[0.08em] min-w-[2px] translate-y-[0.05em] bg-gradient-to-b from-amber-200 via-amber-400 to-amber-600 align-baseline shadow-[0_0_12px_rgba(245,158,11,0.55)] animate-pulse"
+          className="ml-0.5 inline-block h-[0.85em] w-[0.08em] min-w-[2px] translate-y-[0.05em] bg-gradient-to-b from-violet-200 via-violet-400 to-violet-600 align-baseline shadow-[0_0_12px_rgba(139,92,246,0.55)] animate-pulse"
           aria-hidden
         />
       ) : null}

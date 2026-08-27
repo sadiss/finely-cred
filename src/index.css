@@ -1,4 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;700;900&display=swap');
+@import './styles/finelyMaterials.css';
+@import './features/os/finelyOsEntityInk.css';
 
 @tailwind base;
 @tailwind components;
@@ -38,13 +40,13 @@ body {
 
 /* Bump ultra-small arbitrary Tailwind sizes to readable minimums. */
 .text-\[9px\] {
-  font-size: 11px !important;
+  font-size: 12px !important;
 }
 .text-\[10px\] {
   font-size: 12px !important;
 }
 .text-\[11px\] {
-  font-size: 12px !important;
+  font-size: 14px !important;
 }
 
 /* Lead-magnet funnel uses intentional micro-type in mockups ? keep original scale */
@@ -65,6 +67,13 @@ samp {
 }
 
 :root {
+  --fc-workspace-kicker: 0.75rem;   /* 12px — eyebrows, chips, KPI labels */
+  --fc-workspace-meta: 0.8125rem;   /* 13px — timestamps, secondary lines */
+  --fc-workspace-body: 0.875rem;    /* 14px — default row/body copy */
+  --fc-workspace-title: 1.125rem;   /* 18px — panel titles */
+  --fc-workspace-section: 1.5rem;   /* 24px — section headings */
+  --fc-workspace-stat: 1.75rem;     /* 28px — KPI / stat numbers */
+
   /* White-label branding (overridden at runtime by active tenant). */
   /* Default to a richer gold (less orange). */
   --brand-primary: #fbbf24;
@@ -373,7 +382,8 @@ html[data-fc-theme="light"] {
   --fc-glass-hover-lift: 0 34px 76px -20px rgba(15, 23, 20, 0.2), 0 14px 30px -12px rgba(15, 23, 20, 0.1);
   --fc-light-heading: #050807;
   --fc-light-body: rgba(15, 23, 20, 0.82);
-  --fc-light-muted: rgba(15, 23, 20, 0.56);
+  /* 0.56 measured 4.13:1 on ivory panels — below the WCAG AA 4.5:1 floor. */
+  --fc-light-muted: rgba(15, 23, 20, 0.7);
   --fc-light-label: #b45309;
   --fc-light-label-muted: #92400e;
   --fc-light-scrim: rgba(232, 236, 234, 0.78);
@@ -1033,6 +1043,91 @@ html[data-fc-theme="light"] ::selection {
     [data-fc-public-shell="1"][data-fc-floating-hub="1"] .bg-fc-deep.min-h-screen {
       padding-bottom: max(7.5rem, calc(env(safe-area-inset-bottom, 0px) + 6rem)) !important;
     }
+  }
+
+  /* Communication Hub — match dashboard shell (dedicated tokens; --fc-bg-chrome unchanged) */
+  :root {
+    --fc-bg-chat-shell: var(--fc-bg-deep);
+    --fc-bg-chat-header: var(--fc-bg);
+  }
+  .fc-comms-solid-shell {
+    background-color: var(--fc-bg-chat-shell);
+    background-image: var(--fc-shell-gradient);
+  }
+  /* Dashboard hub launcher + panel — same solid rail as the left menu. Not the public chat. */
+  .fc-comms-launcher-solid,
+  [data-fc-communication-hub="floating"] [data-fc-comms-shell="1"],
+  [data-fc-communication-hub="page"] [data-fc-comms-shell="1"] {
+    background-color: #070a0f;
+    background-image:
+      radial-gradient(90% 44% at 4% -4%, rgba(148, 101, 255, 0.25), transparent 61%),
+      radial-gradient(85% 42% at 100% 48%, rgba(15, 199, 141, 0.1), transparent 68%),
+      linear-gradient(180deg, #070a0f, #101722 62%, #0b1119);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .fc-comms-solid-header {
+    background-color: var(--fc-bg-chat-header);
+    border-bottom-color: var(--fc-border);
+  }
+  [data-fc-public-chat-widget="1"] .fc-public-chat-panel {
+    background-color: var(--fc-bg-chat-shell);
+    background-image: var(--fc-shell-gradient);
+  }
+  [data-fc-public-chat-widget="1"] .fc-public-chat-messages {
+    background-color: transparent;
+  }
+
+  /* Partner + admin top nav tab strips — solid navy gradient bed (coordinates with colored tab pills) */
+  [data-fc-portal-sticky-tabs="1"] .fc-view-tabs,
+  [data-fc-admin-nav-bar="1"] .fc-view-tabs {
+    background-color: #0a1628 !important;
+    background-image:
+      radial-gradient(720px 280px at 0% 50%, rgba(139, 92, 246, 0.14) 0%, transparent 58%),
+      radial-gradient(680px 260px at 100% 50%, rgba(56, 189, 248, 0.1) 0%, transparent 55%),
+      linear-gradient(135deg, #0a1628 0%, #1e3a5f 46%, #142a45 100%) !important;
+    border-color: rgba(148, 163, 184, 0.28) !important;
+    box-shadow:
+      0 14px 36px -16px rgba(0, 0, 0, 0.48),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  [data-fc-portal-sticky-tabs="1"] .fc-view-tabs button:not([class*='from-']),
+  [data-fc-admin-nav-bar="1"] .fc-view-tabs button:not([class*='from-']) {
+    color: rgba(255, 255, 255, 0.72) !important;
+    font-weight: 700 !important;
+  }
+  [data-fc-portal-sticky-tabs="1"] .fc-view-tabs button:not([class*='from-']):hover,
+  [data-fc-admin-nav-bar="1"] .fc-view-tabs button:not([class*='from-']):hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+  }
+  html[data-fc-theme='light'] [data-fc-portal-sticky-tabs='1'] .fc-view-tabs,
+  html[data-fc-theme='light'] [data-fc-admin-nav-bar='1'] .fc-view-tabs {
+    background-color: #0f2744 !important;
+    background-image:
+      radial-gradient(720px 280px at 0% 50%, rgba(16, 185, 129, 0.12) 0%, transparent 58%),
+      radial-gradient(680px 260px at 100% 50%, rgba(139, 92, 246, 0.1) 0%, transparent 55%),
+      linear-gradient(135deg, #0f2744 0%, #1e3a5f 48%, #142a45 100%) !important;
+    border-color: rgba(148, 163, 184, 0.32) !important;
+  }
+  html[data-fc-theme='light'] [data-fc-portal-sticky-tabs='1'] .fc-view-tabs button:not([class*='from-']),
+  html[data-fc-theme='light'] [data-fc-admin-nav-bar='1'] .fc-view-tabs button:not([class*='from-']) {
+    color: rgba(255, 255, 255, 0.78) !important;
+  }
+  [data-fc-shell-surface='ivory'] [data-fc-portal-sticky-tabs='1'] .fc-view-tabs,
+  [data-fc-shell-surface='ivory'] [data-fc-admin-nav-bar='1'] .fc-view-tabs {
+    background-color: #0f2744 !important;
+    background-image:
+      radial-gradient(720px 280px at 0% 50%, rgba(16, 185, 129, 0.1) 0%, transparent 58%),
+      linear-gradient(135deg, #0f2744 0%, #1e3a5f 48%, #142a45 100%) !important;
+    border-color: rgba(148, 163, 184, 0.3) !important;
+    color: #ffffff !important;
+  }
+  [data-fc-shell-surface='ivory'] [data-fc-portal-sticky-tabs='1'] .fc-view-tabs button:not([class*='from-']),
+  [data-fc-shell-surface='ivory'] [data-fc-admin-nav-bar='1'] .fc-view-tabs button:not([class*='from-']) {
+    color: rgba(255, 255, 255, 0.76) !important;
   }
 
   [data-fc-communication-hub="floating"] [data-fc-comms-shell="1"] {
@@ -2170,6 +2265,62 @@ html[data-fc-theme="light"] ::selection {
   }
   html[data-fc-theme="light"] [data-fc-accent="fuchsia"].fc-accent-card:hover {
     box-shadow: var(--fc-light-pop-hover-xl), var(--fc-light-accent-glow-fuchsia), inset 0 1px 0 rgba(255, 255, 255, 0.98) !important;
+  }
+
+  /* Admin + partner app surfaces — luxury glass cards (not white water-wash) */
+  html[data-fc-theme="light"] [data-fc-app-surface="admin"] .fc-accent-card:not([data-fc-kpi-surface="light"]):not([class*="fc-admin-solid"]):not(.fc-wlp-kpi):not(.fc-wlp-metric):not(.fc-wlp-signal):not(.fc-partner-hub-glow-tile),
+  html[data-fc-theme="light"] [data-fc-app-surface="portal"] .fc-accent-card:not([data-fc-kpi-surface="light"]):not([class*="fc-admin-solid"]):not(.fc-wlp-kpi):not(.fc-wlp-metric):not(.fc-wlp-signal):not(.fc-partner-hub-glow-tile) {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: linear-gradient(165deg, rgba(46, 16, 72, 0.88) 0%, rgba(8, 14, 24, 0.92) 100%) !important;
+    border-color: rgba(167, 139, 250, 0.58) !important;
+    box-shadow: 0 0 32px -12px rgba(167, 139, 250, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  }
+  html[data-fc-theme="light"] [data-fc-app-surface="admin"] .fc-accent-card[class*="border-emerald"]:not([class*="fc-admin-solid"]),
+  html[data-fc-theme="light"] [data-fc-app-surface="portal"] .fc-accent-card[class*="border-emerald"]:not([class*="fc-admin-solid"]),
+  html[data-fc-theme="light"] [data-fc-app-surface="admin"] [data-accent="emerald"].fc-accent-card:not([class*="fc-admin-solid"]),
+  html[data-fc-theme="light"] [data-fc-app-surface="portal"] [data-accent="emerald"].fc-accent-card:not([class*="fc-admin-solid"]) {
+    background: linear-gradient(165deg, rgba(4, 56, 42, 0.94) 0%, rgba(8, 14, 24, 0.92) 100%) !important;
+    border-color: rgba(52, 211, 153, 0.58) !important;
+    box-shadow: 0 0 36px -10px rgba(52, 211, 153, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  }
+  html[data-fc-theme="light"] [data-fc-app-surface="admin"] .fc-accent-card[class*="border-violet"]:not([class*="fc-admin-solid"]),
+  html[data-fc-theme="light"] [data-fc-app-surface="portal"] .fc-accent-card[class*="border-violet"]:not([class*="fc-admin-solid"]),
+  html[data-fc-theme="light"] [data-fc-app-surface="admin"] [data-accent="violet"].fc-accent-card:not([class*="fc-admin-solid"]),
+  html[data-fc-theme="light"] [data-fc-app-surface="portal"] [data-accent="violet"].fc-accent-card:not([class*="fc-admin-solid"]) {
+    background: linear-gradient(165deg, rgba(52, 18, 82, 0.94) 0%, rgba(8, 14, 24, 0.92) 100%) !important;
+    border-color: rgba(167, 139, 250, 0.58) !important;
+    box-shadow: 0 0 36px -10px rgba(167, 139, 250, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  }
+  html[data-fc-theme="light"] [data-fc-app-surface="admin"] .fc-accent-card:is([class*="border-sky"], [class*="border-cyan"]):not([class*="fc-admin-solid"]),
+  html[data-fc-theme="light"] [data-fc-app-surface="portal"] .fc-accent-card:is([class*="border-sky"], [class*="border-cyan"]):not([class*="fc-admin-solid"]),
+  html[data-fc-theme="light"] [data-fc-app-surface="admin"] [data-accent="sky"].fc-accent-card:not([class*="fc-admin-solid"]),
+  html[data-fc-theme="light"] [data-fc-app-surface="portal"] [data-accent="sky"].fc-accent-card:not([class*="fc-admin-solid"]) {
+    background: linear-gradient(165deg, rgba(8, 52, 82, 0.94) 0%, rgba(8, 14, 24, 0.92) 100%) !important;
+    border-color: rgba(56, 189, 248, 0.58) !important;
+    box-shadow: 0 0 36px -10px rgba(56, 189, 248, 0.46), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  }
+  html[data-fc-theme="light"] [data-fc-app-surface="admin"] .fc-accent-card[class*="border-rose"]:not([class*="fc-admin-solid"]),
+  html[data-fc-theme="light"] [data-fc-app-surface="portal"] .fc-accent-card[class*="border-rose"]:not([class*="fc-admin-solid"]),
+  html[data-fc-theme="light"] [data-fc-app-surface="admin"] [data-accent="rose"].fc-accent-card:not([class*="fc-admin-solid"]),
+  html[data-fc-theme="light"] [data-fc-app-surface="portal"] [data-accent="rose"].fc-accent-card:not([class*="fc-admin-solid"]) {
+    background: linear-gradient(165deg, rgba(88, 12, 32, 0.94) 0%, rgba(8, 14, 24, 0.92) 100%) !important;
+    border-color: rgba(251, 113, 133, 0.58) !important;
+    box-shadow: 0 0 36px -10px rgba(244, 63, 94, 0.44), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  }
+  html[data-fc-theme="light"] [data-fc-app-surface="admin"] .fc-accent-card[class*="border-fuchsia"]:not([class*="fc-admin-solid"]),
+  html[data-fc-theme="light"] [data-fc-app-surface="portal"] .fc-accent-card[class*="border-fuchsia"]:not([class*="fc-admin-solid"]) {
+    background: linear-gradient(165deg, rgba(82, 8, 88, 0.94) 0%, rgba(8, 14, 24, 0.92) 100%) !important;
+    border-color: rgba(232, 121, 249, 0.58) !important;
+    box-shadow: 0 0 36px -10px rgba(217, 70, 239, 0.46), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  }
+  html[data-fc-theme="light"] [data-fc-app-surface="admin"] .fc-accent-card:not([class*="fc-admin-solid"]):not(.fc-wlp-kpi):not(.fc-wlp-metric) :is(h1, h2, h3, .font-semibold, .font-bold, .font-extrabold, .text-white),
+  html[data-fc-theme="light"] [data-fc-app-surface="portal"] .fc-accent-card:not([class*="fc-admin-solid"]):not(.fc-wlp-kpi):not(.fc-wlp-metric) :is(h1, h2, h3, .font-semibold, .font-bold, .font-extrabold, .text-white) {
+    color: rgba(255, 255, 255, 0.96) !important;
+  }
+  html[data-fc-theme="light"] [data-fc-app-surface="admin"] .fc-accent-card:not([class*="fc-admin-solid"]):not(.fc-wlp-kpi):not(.fc-wlp-metric) :is(p, .text-sm, .text-xs, [class*="text-white/"]),
+  html[data-fc-theme="light"] [data-fc-app-surface="portal"] .fc-accent-card:not([class*="fc-admin-solid"]):not(.fc-wlp-kpi):not(.fc-wlp-metric) :is(p, .text-sm, .text-xs, [class*="text-white/"]) {
+    color: rgba(255, 255, 255, 0.78) !important;
   }
 
   html[data-fc-theme="light"] .fc-wayfinder-lane-active[data-fc-accent="emerald"],
@@ -3625,6 +3776,15 @@ html[data-fc-theme="light"] ::selection {
   html[data-fc-theme="light"] .fc-light-chrome-strip :is(.text-white, .text-white\/70, .text-white\/55) {
     color: var(--fc-light-body) !important;
   }
+  /* Active view-tab gradients keep white ink — do not inherit chrome-strip body color. */
+  html[data-fc-theme="light"] .fc-view-tabs button[aria-selected='true'][class*='from-emerald'],
+  html[data-fc-theme="light"] .fc-view-tabs button[aria-selected='true'][class*='from-violet'],
+  html[data-fc-theme="light"] .fc-view-tabs button[aria-selected='true'][class*='from-sky'],
+  html[data-fc-theme="light"] .fc-view-tabs button[aria-selected='true'][class*='from-fuchsia'],
+  html[data-fc-theme="light"] .fc-view-tabs button[aria-selected='true'][class*='from-rose'] {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+  }
   html[data-fc-theme="light"] .fc-light-chrome-panel :is(.text-white, .text-white\/75, .text-white\/70, .text-white\/55) {
     color: var(--fc-light-body) !important;
   }
@@ -3691,14 +3851,22 @@ html[data-fc-theme="light"] ::selection {
   html[data-fc-theme="light"] .fc-light-black-scope [data-fc-credit-intel="1"] .fc-light-glass-panel :is(.text-white, .text-white\/75, .text-white\/70, .text-white\/60, .text-white\/55) {
     color: rgba(15, 23, 20, 0.68) !important;
   }
-  html[data-fc-theme="light"] [data-fc-comms-shell="1"] {
-    background: var(--fc-light-chrome-bg) !important;
+  html[data-fc-theme="light"] [data-fc-comms-shell="1"],
+  html[data-fc-theme="light"] .fc-comms-solid-shell,
+  html[data-fc-theme="light"] [data-fc-public-chat-widget="1"] .fc-public-chat-panel {
+    background-color: var(--fc-bg-deep) !important;
+    background-image: var(--fc-light-luxury-mesh) !important;
+    border-color: var(--fc-border) !important;
+    box-shadow: 0 26px 60px -18px rgba(15, 23, 20, 0.16) !important;
+  }
+  html[data-fc-theme="light"] .fc-comms-launcher-solid,
+  html[data-fc-theme="light"] [data-fc-communication-hub] [data-fc-comms-shell="1"] {
+    background-color: #070a0f !important;
     background-image:
-      radial-gradient(680px 240px at 0% 50%, rgba(217, 70, 239, 0.06) 0%, transparent 55%),
-      radial-gradient(620px 220px at 100% 50%, rgba(56, 189, 248, 0.05) 0%, transparent 52%),
-      var(--fc-glass-specular) !important;
-    border-color: var(--fc-light-chrome-border) !important;
-    box-shadow: var(--fc-light-chrome-shadow) !important;
+      radial-gradient(90% 44% at 4% -4%, rgba(148, 101, 255, 0.25), transparent 61%),
+      radial-gradient(85% 42% at 100% 48%, rgba(15, 199, 141, 0.1), transparent 68%),
+      linear-gradient(180deg, #070a0f, #101722 62%, #0b1119) !important;
+    backdrop-filter: none !important;
   }
 
   /* ?? Part CX ? CK harmony closure wave 51 (no Y-lift, light tooltips, studio buttons) ?? */
@@ -4023,7 +4191,8 @@ html[data-fc-theme="light"] ::selection {
   --fc-glass-specular: linear-gradient(168deg, rgba(255, 255, 255, 1) 0%, rgba(255, 250, 242, 0.78) 42%, rgba(255, 255, 255, 0.94) 100%);
   --fc-light-heading: #050807;
   --fc-light-body: rgba(15, 23, 20, 0.82);
-  --fc-light-muted: rgba(15, 23, 20, 0.56);
+  /* 0.56 measured 4.13:1 on ivory panels — below the WCAG AA 4.5:1 floor. */
+  --fc-light-muted: rgba(15, 23, 20, 0.7);
   --fc-light-pop-shadow: 0 30px 68px -18px rgba(15, 23, 20, 0.22), 0 14px 34px -12px rgba(15, 23, 20, 0.1);
   --fc-light-accent-glow-emerald: 0 20px 56px -4px rgba(16, 185, 129, 0.72);
   --fc-light-accent-glow-violet: 0 20px 58px -4px rgba(139, 92, 246, 0.68);
@@ -5639,8 +5808,8 @@ html.fc-onboarding-portal-open body {
 
 /* HOS landing page ? cinematic member entrance */
 .hos-landing {
-  --hos-gold: #f59e0b;
-  --hos-gold-soft: rgba(251, 191, 36, 0.14);
+  --hos-gold: #8b5cf6;
+  --hos-gold-soft: rgba(139, 92, 246, 0.14);
   --hos-ink: #050608;
   background: var(--hos-ink);
 }
@@ -5667,7 +5836,7 @@ html.fc-onboarding-portal-open body {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 90% 55% at 15% -5%, rgba(251, 191, 36, 0.14), transparent 55%),
+    radial-gradient(ellipse 90% 55% at 15% -5%, rgba(139, 92, 246, 0.16), transparent 55%),
     radial-gradient(ellipse 70% 50% at 95% 15%, rgba(139, 92, 246, 0.08), transparent 50%),
     linear-gradient(180deg, rgba(7, 9, 13, 0.35) 0%, rgba(5, 6, 8, 0.55) 50%, rgba(3, 4, 5, 0.92) 100%);
   pointer-events: none;
@@ -5699,7 +5868,7 @@ html.fc-onboarding-portal-open body {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  filter: drop-shadow(0 0 80px rgba(251, 191, 36, 0.2));
+  filter: drop-shadow(0 0 80px rgba(139, 92, 246, 0.2));
 }
 
 @keyframes hos-landing-crest-pulse {
@@ -5711,7 +5880,7 @@ html.fc-onboarding-portal-open body {
   position: sticky;
   top: 0;
   z-index: 50;
-  border-bottom: 1px solid rgba(251, 191, 36, 0.18);
+  border-bottom: 1px solid rgba(139, 92, 246, 0.18);
   background: rgba(5, 6, 8, 0.82);
   backdrop-filter: blur(20px);
   box-shadow: 0 8px 32px -12px rgba(0, 0, 0, 0.65);
@@ -5721,8 +5890,8 @@ html.fc-onboarding-portal-open body {
   position: relative;
   overflow: hidden;
   border-radius: 1.25rem;
-  border: 1px solid rgba(251, 191, 36, 0.2);
-  background: linear-gradient(145deg, rgba(251, 191, 36, 0.08) 0%, rgba(0, 0, 0, 0.45) 100%);
+  border: 1px solid rgba(52, 211, 153, 0.22);
+  background: linear-gradient(145deg, rgba(16, 185, 129, 0.1) 0%, rgba(0, 0, 0, 0.45) 100%);
   padding: 1rem 1.15rem;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
@@ -5731,7 +5900,7 @@ html.fc-onboarding-portal-open body {
   font-size: 1.75rem;
   font-weight: 900;
   line-height: 1;
-  background: linear-gradient(135deg, #fff8e7 0%, #fde68a 35%, #f59e0b 70%, #fcd34d 100%);
+  background: linear-gradient(135deg, #ecfdf5 0%, #6ee7b7 35%, #10b981 70%, #a78bfa 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -5739,9 +5908,9 @@ html.fc-onboarding-portal-open body {
 
 .hos-landing-manifesto {
   position: relative;
-  border-top: 1px solid rgba(251, 191, 36, 0.12);
-  border-bottom: 1px solid rgba(251, 191, 36, 0.12);
-  background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.06) 50%, transparent);
+  border-top: 1px solid rgba(139, 92, 246, 0.12);
+  border-bottom: 1px solid rgba(139, 92, 246, 0.12);
+  background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.06) 50%, transparent);
 }
 
 .hos-landing-pillar {
@@ -5756,8 +5925,8 @@ html.fc-onboarding-portal-open body {
 
 .hos-landing-pillar:hover {
   transform: translateY(-3px);
-  border-color: rgba(251, 191, 36, 0.35);
-  box-shadow: 0 24px 50px -24px rgba(251, 191, 36, 0.25);
+  border-color: rgba(139, 92, 246, 0.35);
+  box-shadow: 0 24px 50px -24px rgba(139, 92, 246, 0.25);
 }
 
 .hos-landing-pillar-glow {
@@ -5775,11 +5944,11 @@ html.fc-onboarding-portal-open body {
 .hos-landing-gate {
   position: relative;
   border-radius: 1.75rem;
-  border: 1px solid rgba(251, 191, 36, 0.35);
+  border: 1px solid rgba(16, 185, 129, 0.35);
   background: linear-gradient(165deg, rgba(16, 19, 26, 0.95) 0%, rgba(5, 6, 8, 0.98) 100%);
   box-shadow:
-    0 0 0 1px rgba(251, 191, 36, 0.1),
-    0 40px 100px -35px rgba(251, 191, 36, 0.28),
+    0 0 0 1px rgba(16, 185, 129, 0.1),
+    0 40px 100px -35px rgba(16, 185, 129, 0.28),
     0 24px 60px -30px rgba(0, 0, 0, 0.85);
 }
 
@@ -5788,7 +5957,7 @@ html.fc-onboarding-portal-open body {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: linear-gradient(135deg, rgba(251, 191, 36, 0.12) 0%, transparent 42%);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, transparent 42%);
   pointer-events: none;
 }
 
@@ -5797,14 +5966,14 @@ html.fc-onboarding-portal-open body {
   align-items: center;
   gap: 0.4rem;
   border-radius: 9999px;
-  border: 1px solid rgba(251, 191, 36, 0.35);
-  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  background: rgba(16, 185, 129, 0.1);
   padding: 0.35rem 0.75rem;
   font-size: 0.625rem;
   font-weight: 900;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: rgba(254, 243, 199, 0.95);
+  color: rgba(209, 250, 229, 0.95);
 }
 
 .hos-landing-vs-card {
@@ -5815,9 +5984,9 @@ html.fc-onboarding-portal-open body {
 }
 
 .hos-landing-vs-card--hos {
-  border-color: rgba(251, 191, 36, 0.35);
-  background: linear-gradient(160deg, rgba(251, 191, 36, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%);
-  box-shadow: 0 30px 70px -40px rgba(251, 191, 36, 0.35);
+  border-color: rgba(139, 92, 246, 0.35);
+  background: linear-gradient(160deg, rgba(139, 92, 246, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%);
+  box-shadow: 0 30px 70px -40px rgba(139, 92, 246, 0.35);
 }
 
 .hos-landing-path {
@@ -5830,7 +5999,7 @@ html.fc-onboarding-portal-open body {
   right: 2rem;
   top: 2.25rem;
   height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.35) 15%, rgba(251, 191, 36, 0.35) 85%, transparent);
+  background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.35) 15%, rgba(52, 211, 153, 0.35) 85%, transparent);
   display: none;
 }
 
@@ -5849,8 +6018,8 @@ html.fc-onboarding-portal-open body {
 }
 
 .hos-landing-path-step:hover {
-  border-color: rgba(251, 191, 36, 0.3);
-  background: rgba(251, 191, 36, 0.04);
+  border-color: rgba(139, 92, 246, 0.3);
+  background: rgba(139, 92, 246, 0.04);
 }
 
 .hos-landing-path-num {
@@ -5860,11 +6029,11 @@ html.fc-onboarding-portal-open body {
   width: 2.25rem;
   height: 2.25rem;
   border-radius: 9999px;
-  border: 2px solid rgba(251, 191, 36, 0.45);
-  background: linear-gradient(145deg, rgba(251, 191, 36, 0.25), rgba(251, 191, 36, 0.05));
+  border: 2px solid rgba(16, 185, 129, 0.45);
+  background: linear-gradient(145deg, rgba(16, 185, 129, 0.25), rgba(16, 185, 129, 0.05));
   font-size: 0.75rem;
   font-weight: 900;
-  color: #fde68a;
+  color: #a7f3d0;
 }
 
 .hos-landing-portal-mock {
@@ -5889,17 +6058,17 @@ html.fc-onboarding-portal-open body {
 }
 
 .hos-landing-portal-bar span:first-child { background: rgba(251, 113, 133, 0.55); }
-.hos-landing-portal-bar span:nth-child(2) { background: rgba(251, 191, 36, 0.55); }
+.hos-landing-portal-bar span:nth-child(2) { background: rgba(139, 92, 246, 0.55); }
 .hos-landing-portal-bar span:nth-child(3) { background: rgba(52, 211, 153, 0.55); }
 
 .hos-landing-cta-banner {
   position: relative;
   overflow: hidden;
   border-radius: 1.75rem;
-  border: 1px solid rgba(251, 191, 36, 0.35);
-  background: linear-gradient(125deg, rgba(251, 191, 36, 0.14) 0%, rgba(5, 6, 8, 0.95) 55%);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  background: linear-gradient(125deg, rgba(16, 185, 129, 0.14) 0%, rgba(5, 6, 8, 0.95) 55%);
   padding: 2rem;
-  box-shadow: 0 40px 90px -45px rgba(251, 191, 36, 0.4);
+  box-shadow: 0 40px 90px -45px rgba(16, 185, 129, 0.4);
 }
 
 .hos-landing-cta-banner::after {
@@ -5910,7 +6079,7 @@ html.fc-onboarding-portal-open body {
   width: 45%;
   height: 140%;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(251, 191, 36, 0.15), transparent 70%);
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.15), transparent 70%);
   pointer-events: none;
 }
 
@@ -5923,8 +6092,8 @@ html.fc-onboarding-portal-open body {
 }
 
 .hos-landing-faq-item[data-open='true'] {
-  border-color: rgba(251, 191, 36, 0.28);
-  background: linear-gradient(180deg, rgba(251, 191, 36, 0.06) 0%, rgba(0, 0, 0, 0.2) 100%);
+  border-color: rgba(139, 92, 246, 0.28);
+  background: linear-gradient(180deg, rgba(139, 92, 246, 0.06) 0%, rgba(0, 0, 0, 0.2) 100%);
 }
 
 .hos-landing-chip {
@@ -5932,14 +6101,14 @@ html.fc-onboarding-portal-open body {
   align-items: center;
   gap: 0.35rem;
   border-radius: 9999px;
-  border: 1px solid rgba(251, 191, 36, 0.28);
-  background: rgba(251, 191, 36, 0.07);
+  border: 1px solid rgba(139, 92, 246, 0.28);
+  background: rgba(139, 92, 246, 0.07);
   padding: 0.4rem 0.85rem;
   font-size: 0.65rem;
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(254, 243, 199, 0.92);
+  color: rgba(237, 233, 254, 0.92);
 }
 
 .hos-landing-invite-seal {
@@ -5949,9 +6118,23 @@ html.fc-onboarding-portal-open body {
   width: 3.5rem;
   height: 3.5rem;
   border-radius: 9999px;
-  border: 1px solid rgba(251, 191, 36, 0.35);
-  background: radial-gradient(circle at 30% 25%, rgba(251, 191, 36, 0.25), rgba(0, 0, 0, 0.5));
-  box-shadow: 0 0 30px -8px rgba(251, 191, 36, 0.45);
+  border: 1px solid rgba(139, 92, 246, 0.35);
+  background: radial-gradient(circle at 30% 25%, rgba(139, 92, 246, 0.25), rgba(0, 0, 0, 0.5));
+  box-shadow: 0 0 30px -8px rgba(139, 92, 246, 0.45);
+}
+
+.hos-landing-foil {
+  background: linear-gradient(
+    135deg,
+    #ede9fe 0%,
+    #c4b5fd 22%,
+    #8b5cf6 48%,
+    #6ee7b7 72%,
+    #ddd6fe 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 /* -- Sitewide platinum / dark rhythm ? champagne ivory + dark depth -- */
@@ -7054,4 +7237,205 @@ html .fc-admin-workspace :is(
 
 [data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] [data-fc-admin-nav-bar="1"] .fc-admin-nav-mode-toggle:hover {
   color: var(--fc-admin-ivory-ink) !important;
+}
+
+/* Communication Hub + public chat stay obsidian in Light.
+   Paint only the launcher pill and the open panel — never the floating wrapper.
+   Painting [data-fc-obsidian-chat="1"] itself put a second box behind Chat. */
+html[data-fc-theme="light"] [data-fc-obsidian-chat="1"][data-fc-comms-shell="1"],
+html[data-fc-theme="light"] [data-fc-obsidian-chat="1"][data-fc-communication-hub="page"],
+html[data-fc-theme="light"] [data-fc-obsidian-chat="1"] [data-fc-comms-shell="1"],
+html[data-fc-theme="light"] [data-fc-obsidian-chat="1"] .fc-comms-solid-shell,
+html[data-fc-theme="light"] [data-fc-obsidian-chat="1"] .fc-comms-solid-header,
+html[data-fc-theme="light"] [data-fc-obsidian-chat="1"] .fc-comms-launcher-solid,
+html[data-fc-theme="light"] [data-fc-obsidian-chat="1"] .fc-public-chat-panel,
+html[data-fc-theme="light"] .fc-comms-launcher-solid {
+  color-scheme: dark;
+  color: #f8fafc !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  background-color: #070a0f !important;
+  background-image:
+    radial-gradient(90% 44% at 4% -4%, rgba(148, 101, 255, 0.25), transparent 61%),
+    radial-gradient(85% 42% at 100% 48%, rgba(15, 199, 141, 0.1), transparent 68%),
+    linear-gradient(180deg, #070a0f, #101722 62%, #0b1119) !important;
+  box-shadow: 0 22px 60px -28px rgba(7, 10, 15, 0.85) !important;
+}
+
+html[data-fc-theme="light"] [data-fc-obsidian-chat="1"] :is(
+  .text-white,
+  .text-white\/90,
+  .text-white\/80,
+  .text-white\/75,
+  .text-white\/70,
+  .text-white\/65,
+  .text-white\/60,
+  .text-white\/55,
+  .text-white\/50,
+  .text-white\/45
+),
+html[data-fc-theme="light"] .fc-comms-launcher-solid :is(
+  .text-white,
+  .text-white\/90,
+  .text-white\/80
+) {
+  color: rgba(248, 250, 252, 0.92) !important;
+}
+
+html[data-fc-theme="light"] [data-fc-obsidian-chat="1"] .fc-light-glass-panel {
+  background: rgba(16, 23, 34, 0.94) !important;
+  background-image: none !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #f8fafc !important;
+  box-shadow: none !important;
+}
+
+.fc-comms-header-inner {
+  background:
+    radial-gradient(900px 320px at 0% 0%, rgba(16, 185, 129, 0.1) 0%, transparent 55%),
+    radial-gradient(700px 280px at 100% 0%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
+    #070a0f;
+}
+.fc-comms-tabstrip {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: #070a0f;
+}
+
+html[data-fc-theme="light"] [data-fc-obsidian-chat="1"] .fc-comms-header-inner,
+html[data-fc-theme="light"] [data-fc-obsidian-chat="1"] .fc-comms-tabstrip,
+html[data-fc-theme="light"] [data-fc-obsidian-chat="1"] .fc-comms-solid-header > div {
+  background-color: #070a0f !important;
+  background-image:
+    radial-gradient(900px 320px at 0% 0%, rgba(16, 185, 129, 0.1) 0%, transparent 55%),
+    radial-gradient(700px 280px at 100% 0%, rgba(139, 92, 246, 0.08) 0%, transparent 50%) !important;
+  color: #f8fafc !important;
+}
+
+html[data-fc-theme="light"] [data-fc-obsidian-chat="1"] .fc-comms-tabstrip {
+  background-image: none !important;
+}
+
+html[data-fc-theme="light"] [data-fc-obsidian-chat="1"] .fc-comms-tabstrip button {
+  color: rgba(248, 250, 252, 0.55) !important;
+  background-color: transparent !important;
+}
+html[data-fc-theme="light"] [data-fc-obsidian-chat="1"] .fc-comms-tabstrip button.is-active,
+html[data-fc-theme="light"] [data-fc-obsidian-chat="1"] .fc-comms-tabstrip button[data-active="true"] {
+  color: #f5d0fe !important;
+  background-color: rgba(192, 132, 252, 0.2) !important;
+}
+
+/* Do not turn faint white washes inside the hub into ivory cards. */
+html[data-fc-theme="light"] [data-fc-obsidian-chat="1"] [class*="bg-white/"] {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+
+html[data-fc-theme="light"] [data-fc-obsidian-chat="1"] :is(input, textarea, select) {
+  background-color: #101722 !important;
+  color: #f8fafc !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+}
+
+/* Closed hub is only the Chat pill — no second bed behind it. */
+[data-fc-communication-hub="floating"] {
+  width: fit-content;
+  background: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Hub chrome is the same in Light and Dark: dark tabs, purple glow on the
+   selected tab, purple agent rail, deeper purple composer. */
+.fc-comms-tab {
+  color: rgba(226, 232, 240, 0.55);
+  background: transparent;
+  border-bottom: 2px solid transparent;
+}
+.fc-comms-tab:hover {
+  color: rgba(248, 250, 252, 0.88);
+  background: rgba(192, 132, 252, 0.08);
+}
+.fc-comms-tab.is-active,
+.fc-comms-tab[data-active="true"] {
+  color: #f5d0fe;
+  background: rgba(192, 132, 252, 0.2);
+  border-bottom-color: #e879f9;
+  box-shadow: inset 0 0 22px rgba(192, 132, 252, 0.28);
+}
+.fc-comms-agent-rail {
+  border-color: rgba(192, 132, 252, 0.28);
+  background:
+    radial-gradient(90% 80% at 6% 0%, rgba(192, 132, 252, 0.32), transparent 58%),
+    linear-gradient(180deg, #22143a 0%, #181028 100%);
+}
+.fc-comms-composer {
+  border-color: rgba(167, 139, 250, 0.2);
+  background:
+    radial-gradient(80% 70% at 92% 100%, rgba(139, 92, 246, 0.18), transparent 52%),
+    linear-gradient(180deg, #14101f 0%, #0d0b16 100%);
+}
+
+html[data-fc-theme="light"] [data-fc-obsidian-chat="1"] .fc-comms-tab,
+html[data-fc-theme="light"] [data-fc-obsidian-chat="1"] .fc-comms-tabstrip button {
+  color: rgba(226, 232, 240, 0.58) !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+html[data-fc-theme="light"] [data-fc-obsidian-chat="1"] .fc-comms-tab:hover {
+  color: #f8fafc !important;
+  background-color: rgba(192, 132, 252, 0.08) !important;
+}
+html[data-fc-theme="light"] [data-fc-obsidian-chat="1"] .fc-comms-tab.is-active,
+html[data-fc-theme="light"] [data-fc-obsidian-chat="1"] .fc-comms-tab[data-active="true"],
+html[data-fc-theme="light"] [data-fc-obsidian-chat="1"] .fc-comms-tabstrip button.is-active,
+html[data-fc-theme="light"] [data-fc-obsidian-chat="1"] .fc-comms-tabstrip button[data-active="true"] {
+  color: #f5d0fe !important;
+  background-color: rgba(192, 132, 252, 0.2) !important;
+  border-bottom-color: #e879f9 !important;
+  box-shadow: inset 0 0 22px rgba(192, 132, 252, 0.28) !important;
+}
+html[data-fc-theme="light"] [data-fc-obsidian-chat="1"] [data-fc-comms-shell="1"] [class*="bg-white/"]:not([class*="bg-gradient"]),
+html[data-fc-theme="light"] [data-fc-obsidian-chat="1"][data-fc-comms-shell="1"] [class*="bg-white/"]:not([class*="bg-gradient"]) {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+html[data-fc-theme="light"] [data-fc-obsidian-chat="1"] .fc-comms-agent-rail {
+  background:
+    radial-gradient(90% 80% at 6% 0%, rgba(192, 132, 252, 0.32), transparent 58%),
+    linear-gradient(180deg, #22143a 0%, #181028 100%) !important;
+  border-color: rgba(192, 132, 252, 0.28) !important;
+  color: #f8fafc !important;
+}
+html[data-fc-theme="light"] [data-fc-obsidian-chat="1"] .fc-comms-composer {
+  background:
+    radial-gradient(80% 70% at 92% 100%, rgba(139, 92, 246, 0.18), transparent 52%),
+    linear-gradient(180deg, #14101f 0%, #0d0b16 100%) !important;
+  border-color: rgba(167, 139, 250, 0.2) !important;
+  color: #f8fafc !important;
+}
+html[data-fc-theme="light"] [data-fc-obsidian-chat="1"] .fc-button-soft,
+html[data-fc-theme="light"] [data-fc-obsidian-chat="1"] .fc-light-chrome-btn,
+html[data-fc-theme="light"] .fc-wlp [data-fc-obsidian-chat="1"] .fc-button-soft,
+[data-fc-workspace-light-preview="1"] [data-fc-obsidian-chat="1"] .fc-button-soft {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #f8fafc !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+html[data-fc-theme="light"] [data-fc-obsidian-chat="1"] .fc-button-soft:hover,
+html[data-fc-theme="light"] [data-fc-obsidian-chat="1"] .fc-light-chrome-btn:hover,
+html[data-fc-theme="light"] .fc-wlp [data-fc-obsidian-chat="1"] .fc-button-soft:hover,
+[data-fc-workspace-light-preview="1"] [data-fc-obsidian-chat="1"] .fc-button-soft:hover {
+  background: rgba(192, 132, 252, 0.18) !important;
+  color: #f5d0fe !important;
 }

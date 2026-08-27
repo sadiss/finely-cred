@@ -34,12 +34,12 @@ export default function PrivacyPage() {
           eyebrow="Legal"
           title="Privacy Policy"
           subtitle={`Last updated: ${new Date(LAST_UPDATED_ISO).toLocaleDateString()}`}
-          accent="fuchsia"
+          accent="rose"
           tabs={[{ id: 'privacy', label: 'Privacy' }]}
           activeTab="privacy"
           secondaryAction={{ label: 'Terms of service', onClick: () => navigate('/terms') }}
         >
-        <div className={`${finelyOsCatalogCard('violet')} !p-5 md:p-8 space-y-6`}>
+        <div className={`${finelyOsCatalogCard('violet')} space-y-6`}>
           <section className={`space-y-3 ${FINELY_OS_ENTITY_BODY}`}>
             <h2 className={`${FINELY_OS_ENTITY_VALUE} text-base`}>1. Information We Collect</h2>
             <p>
@@ -57,8 +57,8 @@ export default function PrivacyPage() {
               protect our rights. We do not sell your personal information to third parties for marketing.
             </p>
             <p>
-              If you are an agency user, you are responsible for obtaining any client consents required to input, store, or process
-              client information within the platform.
+              If you are an agency user, you are responsible for obtaining any partner consents required to input, store, or process
+              partner information within the platform.
             </p>
           </section>
 
@@ -66,7 +66,7 @@ export default function PrivacyPage() {
             <h2 className={`${FINELY_OS_ENTITY_VALUE} text-base`}>3. Data Security</h2>
             <p>
               We use industry-standard measures to protect your data, including access controls and secure transport (HTTPS). We
-              restrict access to partner/customer files based on account permissions. Sensitive information may be stored or transmitted
+              restrict access to partner files based on account permissions. Sensitive information may be stored or transmitted
               using encryption and short-lived access links where appropriate.
             </p>
             <p>

@@ -10,8 +10,9 @@ import {
   Sparkles,
   Target,
 } from 'lucide-react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { useSearchParams } from 'react-router-dom';
+import { PartnerWorkstationFrame, type PartnerEmbeddablePageProps } from '../../features/workspaceLightPreview/product/partner/PartnerWorkstationFrame';
+import { useMappedPartnerNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { useAuth } from '../../auth/AuthProvider';
 import { getUserDisplayName } from '../../auth/userProfile';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
@@ -47,29 +48,29 @@ import {
   type RealEstateHubLauncherId,
 } from '../../components/partner/roleHubLauncherPresets';
 import {
-  FINELY_OS_COMPACT_PAGE,
+  FINELY_OS_PAGE,
   FINELY_OS_COMPLIANCE_FOOTNOTE,
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
-  finelyOsCatalogCardCompact,
+  finelyOsCatalogCard,
 } from '../../features/os/finelyOsLightUi';
 
 const RE_TOOL_DECK: RoleHubTool[] = [
   { id: 'ref', label: 'Referrals', detail: 'Tracked handoff links', path: `${RE.hubPath}?tab=referrals`, icon: Link2, accent: 'emerald', badge: 'Primary' },
-  { id: 'restore', label: 'Restore path', detail: 'Partner credit handoff', path: '/pricing/personal-credit-restore', icon: Target, accent: 'amber' },
+  { id: 'restore', label: 'Restore path', detail: 'Partner credit handoff', path: '/pricing/personal-credit-restore', icon: Target, accent: 'violet' },
   { id: 'playbook', label: 'Playbook', detail: 'Underwriting readiness', path: `${RE.hubPath}?tab=playbook`, icon: BookOpen, accent: 'sky' },
-  { id: 'aff', label: 'Affiliate hub', detail: 'Campaigns & payouts', path: AF.hubPath, icon: Percent, accent: 'violet' },
-  { id: 'guide', label: 'Operator guide', detail: 'RE handbook', path: RE.guideReadPath, icon: GraduationCap, accent: 'sky' },
-  { id: 'line', label: 'Messages', detail: 'Affiliate line', path: RE.messagesDeepLink, icon: MessageSquare, accent: 'fuchsia' },
+  { id: 'aff', label: 'Affiliate hub', detail: 'Campaigns & payouts', path: AF.hubPath, icon: Percent, accent: 'rose' },
+  { id: 'guide', label: 'Operator guide', detail: 'RE handbook', path: RE.guideReadPath, icon: GraduationCap, accent: 'emerald' },
+  { id: 'line', label: 'Messages', detail: 'Affiliate line', path: RE.messagesDeepLink, icon: MessageSquare, accent: 'violet' },
 ];
 
-export default function RealEstateHubPage() {
+export default function RealEstateHubPage({ embedded = false }: PartnerEmbeddablePageProps = {}) {
   const auth = useAuth();
   const { partner } = usePartnerSession();
-  const navigate = useNavigate();
+  const navigate = useMappedPartnerNavigate();
   const [searchParams] = useSearchParams();
   const hubLauncher = usePartnerHubLauncher<RealEstateHubLauncherId>();
   const [affiliate, setAffiliate] = useState<Affiliate | null>(null);
@@ -148,43 +149,43 @@ export default function RealEstateHubPage() {
 
   if (!auth.user) {
     return (
-      <PageShell badge={RE.programName} title={RE.hubName} subtitle="Tagged affiliate lane for real-estate referrals — not a separate auth role.">
-        <div className={`${FINELY_OS_COMPACT_PAGE} flex flex-wrap gap-3`}>
+      <PartnerWorkstationFrame embedded={embedded} kind="real-estate-hub-workstation" badge={RE.programName} title={RE.hubName} subtitle="Tagged affiliate lane for real-estate referrals — not a separate auth role.">
+        <div className={`${FINELY_OS_PAGE} flex flex-wrap gap-3`}>
           <button type="button" onClick={() => navigate(RE.signupPath)} className={FINELY_OS_PRIMARY_BTN}>
             RE affiliate signup
           </button>
           <BackToSiteButton />
-          <FinelyOsPageFooter />
+          {!embedded ? <FinelyOsPageFooter /> : null}
         </div>
-      </PageShell>
+      </PartnerWorkstationFrame>
     );
   }
 
   if (affiliateLoading && !gate.allowed) {
     return (
-      <PageShell
+      <PartnerWorkstationFrame embedded={embedded} kind="real-estate-hub-workstation"
         badge={RE.programName}
         title={RE.hubName}
         subtitle="Checking real-estate affiliate tag…"
         back={{ to: AF.hubPath, label: 'Affiliate Hub' }}
       >
-        <div className={`${FINELY_OS_COMPACT_PAGE} max-w-3xl space-y-3`}>
+        <div className={`${FINELY_OS_PAGE} max-w-3xl space-y-3`}>
           <FinelyOsAlertBanner tone="info" message="Loading your affiliate lane — RE hub uses interest=real_estate (no separate auth role)." />
-          <FinelyOsPageFooter />
+          {!embedded ? <FinelyOsPageFooter /> : null}
         </div>
-      </PageShell>
+      </PartnerWorkstationFrame>
     );
   }
 
   if (!gate.allowed) {
     return (
-      <PageShell
+      <PartnerWorkstationFrame embedded={embedded} kind="real-estate-hub-workstation"
         badge={RE.programName}
         title={RE.hubName}
         subtitle="Real-estate filtered affiliate view (interest=real_estate)."
         back={{ to: AF.hubPath, label: 'Affiliate Hub' }}
       >
-        <div className={`${FINELY_OS_COMPACT_PAGE} max-w-3xl space-y-3`}>
+        <div className={`${FINELY_OS_PAGE} max-w-3xl space-y-3`}>
           <FinelyOsAlertBanner tone="warning" message={gate.message} />
           <div className="flex flex-wrap gap-2">
             {gate.cta ? (
@@ -202,25 +203,25 @@ export default function RealEstateHubPage() {
           <p className={FINELY_OS_COMPLIANCE_FOOTNOTE}>
             Results vary · not legal advice · funding and underwriting subject to lender approval · not income or closing guarantees
           </p>
-          <FinelyOsPageFooter />
+          {!embedded ? <FinelyOsPageFooter /> : null}
         </div>
-      </PageShell>
+      </PartnerWorkstationFrame>
     );
   }
 
   return (
-    <PageShell
+    <PartnerWorkstationFrame embedded={embedded} kind="real-estate-hub-workstation"
       badge={RE.programName}
       title={RE.hubName}
       subtitle={`Affiliate · interest=${RE.interest}${getUserDisplayName(auth.user) ? ` — ${getUserDisplayName(auth.user)}` : ''}`}
       back={{ to: '/dashboard', label: 'Dashboard' }}
     >
-      <div className={`${FINELY_OS_COMPACT_PAGE} max-w-5xl`}>
+      <div className={`${FINELY_OS_PAGE} max-w-5xl`}>
         <FinelyNoticedStrip items={noticedItems} />
         <FinelyNowDoThisStrip
           items={nowDoItems}
           currentIndex={affiliate?.referralCode ? 0 : 0}
-          className="!p-4"
+          className=""
         />
         <FinelyUnifiedHubLayout
           eyebrow="Tagged affiliate · Role OS 2.0"
@@ -230,7 +231,7 @@ export default function RealEstateHubPage() {
           kpis={[
             { label: 'Lane', value: 'RE', accent: 'emerald' },
             { label: 'Code', value: affiliate?.referralCode ? 'Live' : 'Setup', accent: 'sky' },
-            { label: 'Status', value: affiliate?.status ?? '—', accent: 'amber' },
+            { label: 'Status', value: affiliate?.status ?? '—', accent: 'rose' },
             { label: 'Auth role', value: 'affiliate', accent: 'violet' },
           ]}
           primaryAction={{ label: 'Share referral', onClick: () => navigate(AF.publicPath) }}
@@ -254,7 +255,7 @@ export default function RealEstateHubPage() {
             subline="Spot the credit block, hand off with a tracked link, stay on milestones — Finely runs the file."
             tiles={[
               { id: 'ref', label: 'Referrals', value: affiliate?.referralCode ? 'Ready' : 'Setup', accent: 'emerald', onClick: () => hubLauncher.open('referrals') },
-              { id: 'restore', label: 'Handoff', value: 'Restore', accent: 'amber', onClick: () => navigate('/pricing/personal-credit-restore') },
+              { id: 'restore', label: 'Handoff', value: 'Restore', accent: 'rose', onClick: () => navigate('/pricing/personal-credit-restore') },
               { id: 'score', label: 'Score path', value: 'CTA', accent: 'sky', onClick: () => navigate('/free-score-roadmap') },
               { id: 'au', label: 'AU optics', value: 'Educate', accent: 'violet', onClick: () => navigate('/tradelines?focus=au') },
             ]}
@@ -262,7 +263,7 @@ export default function RealEstateHubPage() {
             secondaryAction={{ label: 'RE operator guide', onClick: () => navigate(RE.guideReadPath) }}
           />
           <RoleHubToolDeck tools={RE_TOOL_DECK} title="RE affiliate tools" subtitle="Tag → hand off → educate — same affiliate role, filtered hub." />
-          <div className={`${finelyOsCatalogCardCompact('emerald')} !p-4 space-y-2`}>
+          <div className={`${finelyOsCatalogCard('emerald')} space-y-3`} data-fc-accent="emerald">
             <div className={FINELY_OS_ENTITY_SUBLABEL}>You run / Finely runs</div>
             <p className={`text-sm font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{split.headline}</p>
             <div className="grid sm:grid-cols-3 gap-2">
@@ -294,7 +295,7 @@ export default function RealEstateHubPage() {
         >
           <div className="space-y-3">
             <AffiliateReferralToolkit />
-            <div className={`${finelyOsCatalogCardCompact('sky')} !p-4 space-y-2`}>
+            <div className={`${finelyOsCatalogCard('sky')} space-y-3`} data-fc-accent="sky">
               <div className={`text-sm font-semibold ${FINELY_OS_ENTITY_VALUE}`}>RE handoff links</div>
               <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
                 Send buyers/sellers into restore or funding readiness — tracked to your affiliate code when present.
@@ -347,7 +348,7 @@ export default function RealEstateHubPage() {
           subtitle="Full affiliate hub, messages, and day-to-day RE links."
           accent={ROLE_HUB_MODAL_ACCENT.operate}
         >
-          <div className={`${finelyOsCatalogCardCompact('violet')} !p-4 space-y-3`}>
+          <div className={`${finelyOsCatalogCard('violet')} space-y-4`} data-fc-accent="violet">
             <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
               Same affiliate role — RE hub is a filtered view. Full campaigns and payouts live on Affiliate Hub.
             </p>
@@ -370,8 +371,8 @@ export default function RealEstateHubPage() {
         <p className={`mt-3 ${FINELY_OS_COMPLIANCE_FOOTNOTE}`}>
           Results vary · not legal advice · funding and underwriting subject to lender approval · payouts subject to verification · not income or closing guarantees
         </p>
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
       </div>
-    </PageShell>
+    </PartnerWorkstationFrame>
   );
 }

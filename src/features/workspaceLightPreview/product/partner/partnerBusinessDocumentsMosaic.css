@@ -1,0 +1,69 @@
+/* Business documents — catalog mosaic + compose strip */
+
+.fc-wlp-biz-docs-mosaic {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+@media (min-width: 1024px) {
+  .fc-wlp-biz-docs-mosaic {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.fc-wlp-biz-docs-mosaic-tile {
+  position: relative;
+  min-height: 220px;
+  border-radius: 22px;
+  text-align: left;
+  padding: 24px 26px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.15s ease, outline 0.15s ease;
+}
+
+.fc-wlp-biz-docs-mosaic-tile:hover {
+  transform: translateY(-3px);
+}
+
+.fc-wlp-biz-docs-mosaic-tile[data-active='true'] {
+  outline: 2px solid color-mix(in srgb, var(--wlp-accent, #10b981) 40%, transparent);
+  transform: translateY(-3px);
+}
+
+.fc-wlp-biz-docs-mosaic-value {
+  font-size: 2.5rem;
+  line-height: 1;
+  font-weight: 800;
+}
+
+.fc-wlp-biz-docs-mosaic-icon {
+  display: inline-flex;
+  height: 52px;
+  width: 52px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.fc-wlp-biz-docs-compose {
+  border-radius: 24px;
+  min-width: 0;
+}
+
+.fc-wlp-biz-docs-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: 16px;
+}
+
+.fc-wlp-biz-docs-row + .fc-wlp-biz-docs-row {
+  margin-top: 10px;
+}

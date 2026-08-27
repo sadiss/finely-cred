@@ -1,0 +1,79 @@
+/* Admin vendors — split workbench (tier rail + navigator + inspector) */
+
+.fc-admin-vendors-workbench {
+  display: grid;
+  grid-template-columns: 72px minmax(240px, 320px) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .fc-admin-vendors-workbench {
+    grid-template-columns: minmax(240px, 1fr) minmax(0, 1fr);
+  }
+
+  .fc-admin-vendors-tier-rail {
+    display: none;
+  }
+}
+
+.fc-admin-vendors-tier-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fc-admin-vendors-tier-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 72px;
+  padding: 10px 6px;
+  border-radius: 14px;
+  font-weight: 800;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  transition: transform 0.12s ease;
+}
+
+.fc-admin-vendors-tier-btn:hover {
+  transform: scale(1.03);
+}
+
+.fc-admin-vendors-tier-btn[data-active='true'] {
+  box-shadow: 0 0 0 2px rgba(244, 63, 94, 0.4);
+}
+
+.fc-admin-vendors-inspector-zones {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 700px) {
+  .fc-admin-vendors-inspector-zones {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Light site — idle tier tabs readable on ivory */
+html[data-fc-theme='light'] .fc-admin-vendors-tier-btn {
+  color: var(--wlp-ink, #0a1628);
+}
+
+html[data-fc-theme='light'] .fc-admin-vendors-tier-btn:not([data-active='true']) {
+  color: var(--wlp-ink, #0a1628);
+}
+
+/* Dark site — tier rail on navy glass */
+html[data-fc-theme='dark'] .fc-admin-vendors-tier-btn {
+  color: var(--wlp-ink, #f1f5f9);
+}
+
+html[data-fc-theme='dark'] .fc-admin-vendors-tier-btn:not([data-active='true']) {
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #e2e8f0;
+}

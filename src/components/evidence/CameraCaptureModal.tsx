@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Camera, RotateCw, Wand2, FileDown, Layers, Trash2, Crop, SwitchCamera, Zap } from 'lucide-react';
 import type { CropMargins, DocScanProfile, ScanPreset } from '../../utils/imageScan';
 import {
@@ -115,6 +115,15 @@ export function CameraCaptureModal({
   const lastCaptureQualityRef = useRef(0);
   const [multiPageMode, setMultiPageMode] = useState(false);
   const [profileMismatch, setProfileMismatch] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+  const titleId = 'camera-capture-modal-title';
+
+  const handleClose = useCallback(() => {
+    stopStream();
+    setCameraReady(false);
+    onClose();
+  }, [onClose]);
 
   const loadPdfLib = async () => {
     const { PDFDocument } = await import('pdf-lib');
@@ -168,6 +177,31 @@ export function CameraCaptureModal({
     if (s) s.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
   };
+
+  useEffect(() => {
+    if (!open) return;
+    previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        stopStream();
+        setCameraReady(false);
+        onClose();
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    const timer = window.setTimeout(() => {
+      const first = dialogRef.current?.querySelector<HTMLElement>(
+        'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [href], [tabindex]:not([tabindex="-1"])',
+      );
+      first?.focus();
+    }, 0);
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener('keydown', onKeyDown);
+      previousFocusRef.current?.focus();
+      previousFocusRef.current = null;
+    };
+  }, [onClose, open]);
 
   useEffect(() => {
     if (!open) return;
@@ -483,7 +517,7 @@ export function CameraCaptureModal({
     try {
       const files = await buildFilesForSave();
       await onSaveFiles({ mode: saveMode, files });
-      onClose();
+      handleClose();
     } catch (e: any) {
       setError(e?.message || 'Failed to save.');
     } finally {
@@ -502,16 +536,24 @@ export function CameraCaptureModal({
 
   return (
     <div className="fixed inset-0 z-[130] bg-black/85 backdrop-blur-md flex items-start sm:items-center justify-center p-3 sm:p-4 md:p-6 overflow-y-auto">
-      <div className="w-full max-w-6xl min-h-0 max-h-[100dvh] sm:max-h-[94vh] rounded-none sm:rounded-2xl border-0 sm:border border-white/[0.08] bg-fc-shell shadow-2xl overflow-hidden flex flex-col">
+      <div
+        ref={dialogRef}
+        className="w-full max-w-6xl min-h-0 max-h-[100dvh] sm:max-h-[94vh] rounded-none sm:rounded-2xl border-0 sm:border border-white/[0.08] bg-fc-shell shadow-2xl overflow-hidden flex flex-col"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+      >
         <div className={FINELY_OS_MODAL_HEADER}>
           <div className="min-w-0">
-            <div className="text-white font-semibold">{title}</div>
+            <div id={titleId} className="text-white font-semibold">
+              {title}
+            </div>
             <div className="text-white/50 text-xs mt-1">
               {subtitle ??
                 'Align your document in the frame — only the card/letter inside the box is captured and enhanced.'}
             </div>
           </div>
-          <FinelyOsModalCloseButton onClick={onClose} />
+          <FinelyOsModalCloseButton onClick={handleClose} />
         </div>
 
         <div className="grid lg:grid-cols-12 gap-0 flex-1 min-h-0 overflow-y-auto">
@@ -541,9 +583,10 @@ export function CameraCaptureModal({
                       void ensureStream();
                     }}
                     className={`p-2 rounded-xl border text-white/80 hover:text-white ${
-                      torchOn ? 'bg-amber-500/30 border-amber-400/40' : 'bg-black/55 border-white/20'
+                      torchOn ? 'bg-violet-500/30 border-violet-400/40' : 'bg-black/55 border-white/20'
                     }`}
                     title="Toggle flash / torch (rear camera)"
+                    aria-label={torchOn ? 'Turn off camera flash' : 'Turn on camera flash'}
                   >
                     <Zap size={16} />
                   </button>
@@ -552,6 +595,7 @@ export function CameraCaptureModal({
                     onClick={() => setFacingMode((m) => (m === 'environment' ? 'user' : 'environment'))}
                     className="p-2 rounded-xl bg-black/55 border border-white/20 text-white/80 hover:text-white"
                     title="Flip camera"
+                    aria-label="Flip camera"
                   >
                     <SwitchCamera size={16} />
                   </button>
@@ -624,7 +668,7 @@ export function CameraCaptureModal({
                       name="savemode"
                       checked={saveMode === 'pdf'}
                       onChange={() => setSaveMode('pdf')}
-                      className="accent-amber-500"
+                      className="accent-violet-500"
                       disabled={saving}
                     />
                     <span className="inline-flex items-center gap-2">
@@ -637,7 +681,7 @@ export function CameraCaptureModal({
                       name="savemode"
                       checked={saveMode === 'images'}
                       onChange={() => setSaveMode('images')}
-                      className="accent-amber-500"
+                      className="accent-violet-500"
                       disabled={saving}
                     />
                     <span className="inline-flex items-center gap-2">
@@ -679,7 +723,7 @@ export function CameraCaptureModal({
                       type="button"
                       onClick={() => setActiveId(p.id)}
                       className={`rounded-2xl border overflow-hidden text-left transition-all ${
-                        isActive ? 'border-amber-500/40 bg-amber-500/10' : 'border-white/[0.08] bg-white/[0.07] hover:bg-white/[0.03]'
+                        isActive ? 'border-violet-500/40 bg-violet-500/10' : 'border-white/[0.08] bg-white/[0.07] hover:bg-white/[0.03]'
                       }`}
                     >
                       <div className="aspect-[4/3] bg-fc-input flex items-center justify-center">
@@ -700,6 +744,7 @@ export function CameraCaptureModal({
                             e.stopPropagation();
                             deletePage(p.id);
                           }}
+                          aria-label={`Delete captured page ${p.preset}`}
                           className="p-2 rounded-xl bg-white/5 border border-white/[0.08] text-white/50 hover:text-white hover:bg-white/10 transition-all"
                           title="Delete page"
                         >
@@ -780,7 +825,7 @@ export function CameraCaptureModal({
 
                 <div className="fc-light-glass-panel fc-light-chrome-panel p-4 space-y-3">
                   <div className="flex items-center justify-between gap-3">
-                    <div className="inline-flex items-center gap-2 text-amber-400">
+                    <div className="inline-flex items-center gap-2 text-violet-300">
                       <Wand2 size={16} />
                       <span className="text-xs font-semibold uppercase tracking-wider">Scan preset</span>
                     </div>
@@ -804,7 +849,7 @@ export function CameraCaptureModal({
                           disabled={saving}
                           className={`rounded-xl border px-3 py-2 text-left text-[10px] font-black uppercase tracking-widest transition-all ${
                             on
-                              ? 'border-amber-500/40 bg-amber-500/10 text-amber-200'
+                              ? 'border-violet-500/40 bg-violet-500/10 text-violet-200'
                               : 'border-white/[0.08] bg-white/[0.07] text-white/60 hover:bg-white/[0.03] hover:text-white'
                           }`}
                         >
@@ -836,7 +881,7 @@ export function CameraCaptureModal({
                             onClick={() => setDefaultPreset(opt.id)}
                             className={`rounded-lg border px-2.5 py-1.5 text-[10px] font-black uppercase tracking-widest transition-all ${
                               on
-                                ? 'border-amber-500/40 bg-amber-500/10 text-amber-200'
+                                ? 'border-violet-500/40 bg-violet-500/10 text-violet-200'
                                 : 'border-white/[0.08] bg-white/[0.07] text-white/60 hover:bg-white/[0.03] hover:text-white'
                             }`}
                           >
@@ -850,7 +895,7 @@ export function CameraCaptureModal({
 
                 <div className="fc-light-glass-panel fc-light-chrome-panel p-4 space-y-3">
                   <div className="text-xs font-semibold uppercase tracking-wider text-white/70 inline-flex items-center gap-2">
-                    <Crop size={16} className="text-amber-400" /> Crop (manual)
+                    <Crop size={16} className="text-violet-300" /> Crop (manual)
                   </div>
                   <div className="text-white/50 text-xs">
                     Auto-detected on capture; fine-tune margins if needed.

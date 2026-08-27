@@ -22,6 +22,10 @@ function saveStore(store: Store) {
   saveJson(KEY, store, 1);
 }
 
+export function getLetter(id: string): LetterRecord | null {
+  return loadStore().letters.find((l) => l.id === id) ?? null;
+}
+
 export function listLettersByPartner(partnerId: string): LetterRecord[] {
   return filterTombstoned(
     loadStore().letters.filter((l) => l.partnerId === partnerId),

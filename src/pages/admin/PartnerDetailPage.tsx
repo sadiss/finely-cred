@@ -24,8 +24,11 @@ import {
   X,
 } from 'lucide-react';
 import { downloadBlob } from '../../utils/download';
-import { PageShell } from '../../components/layout/PageShell';
 import { EntityDetailShell } from '../../components/layout/EntityDetailShell';
+import {
+  AdminWorkstationFrame,
+  type AdminEmbeddablePageProps,
+} from '../../features/workspaceLightPreview/product/admin/AdminWorkstationFrame';
 import { KpiCard } from '../../components/ui/KpiCards';
 import { PdfReportFallbackView } from '../../components/reports/PdfReportFallbackView';
 import { adminDeletePartner, adminGetPartner, adminUpsertPartner, deletePartner, getPartner, upsertPartner } from '../../data/partnersRepo';
@@ -377,8 +380,11 @@ async function downloadPdfWithEvidence(args: {
   downloadBlob({ blob, filename: args.filename });
 }
 
-class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: Error | null }> {
-  constructor(props: { children: ReactNode }) {
+class ErrorBoundary extends Component<
+  { children: ReactNode; embedded?: boolean },
+  { hasError: boolean; error: Error | null }
+> {
+  constructor(props: { children: ReactNode; embedded?: boolean }) {
     super(props);
     this.state = { hasError: false, error: null };
   }
@@ -393,18 +399,24 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
   render() {
     if (this.state.hasError) {
       return (
-        <PageShell badge="Admin" title="Error loading partner" subtitle={`Render error: ${this.state.error?.message || 'Unknown error'}`}>
-          <button onClick={() => window.location.href = '/admin/partners'} className="px-4 py-2 rounded-xl bg-amber-500 text-black">
+        <AdminWorkstationFrame
+          embedded={this.props.embedded}
+          kind="partner-file-workstation"
+          badge="Admin"
+          title="Error loading partner"
+          subtitle={`Render error: ${this.state.error?.message || 'Unknown error'}`}
+        >
+          <button onClick={() => window.location.href = '/admin/partners'} className="px-4 py-2 rounded-xl bg-violet-600 text-white">
             Back to Partners
           </button>
-        </PageShell>
+        </AdminWorkstationFrame>
       );
     }
     return this.props.children;
   }
 }
 
-function PartnerDetailPageInner() {
+function PartnerDetailPageInner({ embedded = false }: AdminEmbeddablePageProps) {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -1220,7 +1232,13 @@ function PartnerDetailPageInner() {
 
   if (partner && !access.ok) {
     return (
-      <PageShell badge="Admin" title="Not authorized" subtitle="You don’t have access to this partner in the active tenant.">
+      <AdminWorkstationFrame
+        embedded={embedded}
+        kind="partner-file-workstation"
+        badge="Admin"
+        title="Not authorized"
+        subtitle="You don’t have access to this partner in the active tenant."
+      >
         <div className="space-y-4">
           <div className={`${FINELY_OS_NOTICE_WARN} ${FINELY_OS_ENTITY_BODY}`}>
             Reason: <span className="font-mono font-semibold">{String(access.reason || 'unknown')}</span>
@@ -1229,13 +1247,19 @@ function PartnerDetailPageInner() {
             Back to Partners
           </button>
         </div>
-      </PageShell>
+      </AdminWorkstationFrame>
     );
   }
 
   if (!partner) {
     return (
-      <PageShell badge="Admin" title="Partner not found" subtitle="This Partner record does not exist or the link may be invalid.">
+      <AdminWorkstationFrame
+        embedded={embedded}
+        kind="partner-file-workstation"
+        badge="Admin"
+        title="Partner not found"
+        subtitle="This Partner record does not exist or the link may be invalid."
+      >
         <div className="mt-6">
           <button
             type="button"
@@ -1246,7 +1270,7 @@ function PartnerDetailPageInner() {
             Back to Partner Management
           </button>
         </div>
-      </PageShell>
+      </AdminWorkstationFrame>
     );
   }
 
@@ -1333,6 +1357,7 @@ function PartnerDetailPageInner() {
 
   return (
     <EntityDetailShell
+      embedded={embedded}
       badge="Admin"
       title={partner.profile.fullName}
       subtitle={
@@ -1452,7 +1477,7 @@ function PartnerDetailPageInner() {
       )}
       <div className="space-y-8">
         {messageNotice ? (
-          <div className={`${finelyOsCatalogCard('sky')} !p-4 text-sm ${FINELY_OS_ENTITY_BODY}`}>{messageNotice}</div>
+          <div className={`${finelyOsCatalogCard('sky')} text-base ${FINELY_OS_ENTITY_BODY}`}>{messageNotice}</div>
         ) : null}
         {tab === 'overview' && (
           <PartnerOverviewTab
@@ -1694,7 +1719,7 @@ function PartnerDetailPageInner() {
                   </div>
                 </div>
 
-                <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-3`}>
+                <div className={`${finelyOsCatalogCard('emerald')} fc-surface-harmony space-y-3`}>
                   <div className={FINELY_OS_ENTITY_SUBLABEL}>Create task</div>
                   <div className="grid md:grid-cols-2 gap-3">
                     <div className="md:col-span-2">
@@ -1770,7 +1795,7 @@ function PartnerDetailPageInner() {
                     />
                     <button
                       type="button"
-                      className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                      className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 text-white font-black uppercase tracking-widest text-xs hover:brightness-110 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
                       disabled={!tasksDraftTitle.trim()}
                       onClick={() => {
                         const title = tasksDraftTitle.trim();
@@ -1814,7 +1839,7 @@ function PartnerDetailPageInner() {
                   </div>
                 </div>
 
-                <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+                <div className={`${finelyOsCatalogCard('violet')} space-y-4`}>
                   <WorkBoardShell
                     view={tasksView}
                     onViewChange={setTasksView}
@@ -1825,7 +1850,7 @@ function PartnerDetailPageInner() {
                   />
 
                   {partnerTasks.length === 0 ? (
-                    <div className={`${finelyOsCatalogCard('violet')} !p-5 ${FINELY_OS_ENTITY_BODY}`}>
+                    <div className={`${finelyOsCatalogCard('sky')} ${FINELY_OS_ENTITY_BODY}`}>
                       No tasks yet. Generate a letter in the Letters tab to auto-create mail + follow-up tasks.
                     </div>
                   ) : tasksView === 'kanban' ? (
@@ -1883,9 +1908,9 @@ function PartnerDetailPageInner() {
                 </div>
               </div>
 
-              <div className={`lg:col-span-5 ${finelyOsCatalogCard('violet')} !p-5 space-y-5`}>
+              <div className={`lg:col-span-5 ${finelyOsCatalogCard('rose')} space-y-5`}>
                 <div className="flex items-start justify-between gap-4">
-                  <div className="inline-flex items-center gap-2 text-violet-700">
+                  <div className="inline-flex items-center gap-2 text-rose-700">
                     <Bell size={16} />
                     <span className="text-xs font-semibold uppercase tracking-wider">Partner notifications</span>
                   </div>
@@ -1940,7 +1965,7 @@ function PartnerDetailPageInner() {
                           </div>
                         </div>
                         {!n.readAt && (
-                          <span className="shrink-0 inline-flex items-center px-2 py-1 rounded-full bg-amber-500 text-black text-[10px] font-black uppercase tracking-widest">
+                          <span className="shrink-0 inline-flex items-center px-2 py-1 rounded-full bg-sky-600 text-white text-xs font-black uppercase tracking-widest">
                             New
                           </span>
                         )}
@@ -2045,7 +2070,7 @@ function PartnerDetailPageInner() {
                   <button
                     type="button"
                     onClick={() => setAdminDebtLetterPath('validation')}
-                    className={`rounded-2xl border p-5 text-left transition min-h-[7.5rem] ${
+                    className={`rounded-2xl border p-6 lg:p-8 text-left transition min-h-[7.5rem] ${
                       adminDebtLetterPath === 'validation'
                         ? 'border-emerald-400/40 bg-emerald-500/15 ring-1 ring-emerald-400/25'
                         : 'border-white/10 bg-black/25 hover:border-emerald-400/20'
@@ -2053,38 +2078,38 @@ function PartnerDetailPageInner() {
                   >
                     <div className="text-emerald-100 font-black">Validation Center</div>
                     <div className="mt-2 text-xs text-white/55 leading-relaxed">FDCPA § 1692g proof demands — licensing, accounting, chain of title.</div>
-                    <div className="mt-3 text-[10px] uppercase tracking-widest text-emerald-200">{validationLetters.length} saved</div>
+                    <div className="mt-3 text-xs uppercase tracking-widest text-emerald-200">{validationLetters.length} saved</div>
                   </button>
                   <button
                     type="button"
                     onClick={() => setAdminDebtLetterPath('court')}
-                    className={`rounded-2xl border p-5 text-left transition min-h-[7.5rem] ${
+                    className={`rounded-2xl border p-6 lg:p-8 text-left transition min-h-[7.5rem] ${
                       adminDebtLetterPath === 'court'
-                        ? 'border-fuchsia-400/40 bg-fuchsia-500/15 ring-1 ring-fuchsia-400/25'
-                        : 'border-white/10 bg-black/25 hover:border-fuchsia-400/20'
+                        ? 'border-sky-400/40 bg-sky-500/15 ring-1 ring-sky-400/25'
+                        : 'border-white/10 bg-black/25 hover:border-sky-400/20'
                     }`}
                   >
-                    <div className="text-fuchsia-100 font-black">Affidavit & Court Center</div>
+                    <div className="text-sky-100 font-black">Affidavit & Court Center</div>
                     <div className="mt-2 text-xs text-white/55 leading-relaxed">Summons deadlines, sworn affidavits, burden of proof, SOL, standing.</div>
-                    <div className="mt-3 text-[10px] uppercase tracking-widest text-fuchsia-200">{courtLetters.length} saved</div>
+                    <div className="mt-3 text-xs uppercase tracking-widest text-sky-200">{courtLetters.length} saved</div>
                   </button>
                   <button
                     type="button"
                     onClick={() => setAdminDebtLetterPath('foreclosure')}
-                    className={`rounded-2xl border p-5 text-left transition min-h-[7.5rem] ${
+                    className={`rounded-2xl border p-6 lg:p-8 text-left transition min-h-[7.5rem] ${
                       adminDebtLetterPath === 'foreclosure'
-                        ? 'border-amber-400/40 bg-amber-500/15 ring-1 ring-amber-400/25'
-                        : 'border-white/10 bg-black/25 hover:border-amber-400/20'
+                        ? 'border-violet-400/40 bg-violet-500/15 ring-1 ring-violet-400/25'
+                        : 'border-white/10 bg-black/25 hover:border-violet-400/20'
                     }`}
                   >
-                    <div className="text-amber-100 font-black">Foreclosure Center</div>
+                    <div className="text-violet-100 font-black">Foreclosure Center</div>
                     <div className="mt-2 text-xs text-white/55 leading-relaxed">RESPA QWR, loss mitigation, dual-track, note/assignment demands, FCRA post-foreclosure.</div>
-                    <div className="mt-3 text-[10px] uppercase tracking-widest text-amber-200">UCC · RESPA</div>
+                    <div className="mt-3 text-xs uppercase tracking-widest text-violet-200">UCC · RESPA</div>
                   </button>
                   <button
                     type="button"
                     onClick={() => setAdminDebtLetterPath('repossession')}
-                    className={`rounded-2xl border p-5 text-left transition min-h-[7.5rem] ${
+                    className={`rounded-2xl border p-6 lg:p-8 text-left transition min-h-[7.5rem] ${
                       adminDebtLetterPath === 'repossession'
                         ? 'border-rose-400/40 bg-rose-500/15 ring-1 ring-rose-400/25'
                         : 'border-white/10 bg-black/25 hover:border-rose-400/20'
@@ -2092,12 +2117,12 @@ function PartnerDetailPageInner() {
                   >
                     <div className="text-rose-100 font-black">Repossession Center</div>
                     <div className="mt-2 text-xs text-white/55 leading-relaxed">Claim & delivery, wrongful repo, redemption, deficiency, personal property return.</div>
-                    <div className="mt-3 text-[10px] uppercase tracking-widest text-rose-200">UCC Art. 9</div>
+                    <div className="mt-3 text-xs uppercase tracking-widest text-rose-200">UCC Art. 9</div>
                   </button>
                   <button
                     type="button"
                     onClick={() => setAdminDebtLetterPath('bankruptcy')}
-                    className={`rounded-2xl border p-5 text-left transition min-h-[7.5rem] ${
+                    className={`rounded-2xl border p-6 lg:p-8 text-left transition min-h-[7.5rem] ${
                       adminDebtLetterPath === 'bankruptcy'
                         ? 'border-sky-400/40 bg-sky-500/15 ring-1 ring-sky-400/25'
                         : 'border-white/10 bg-black/25 hover:border-sky-400/20'
@@ -2105,7 +2130,7 @@ function PartnerDetailPageInner() {
                   >
                     <div className="text-sky-100 font-black">Bankruptcy Center</div>
                     <div className="mt-2 text-xs text-white/55 leading-relaxed">Chapter 7/13 prep, stay steps, creditor matrix, post-discharge bureau disputes.</div>
-                    <div className="mt-3 text-[10px] uppercase tracking-widest text-sky-200">Filing + credit</div>
+                    <div className="mt-3 text-xs uppercase tracking-widest text-sky-200">Filing + credit</div>
                   </button>
                 </div>
               </div>
@@ -2138,12 +2163,12 @@ function PartnerDetailPageInner() {
               }}
             />
 
-            <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+            <div className={`${finelyOsCatalogCard('rose')} space-y-4`}>
               <div>
                 <p className={FINELY_OS_ENTITY_SUBLABEL}>Debt case context</p>
                 <p className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>Cases are context for drafting. Validation and affidavit production stays above.</p>
               </div>
-              <div className="rounded-2xl border border-white/10 bg-black/25 p-4 space-y-3">
+              <div className="rounded-2xl border border-white/10 bg-black/25 p-6 lg:p-8 space-y-3">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className={FINELY_OS_ENTITY_VALUE}>Add debt/summons context</p>
@@ -2195,8 +2220,8 @@ function PartnerDetailPageInner() {
                       : null;
                     const outcomeRiskFlags = courtOutcome ? postCourtPlanRiskFlags(courtOutcome) : [];
                     return (
-                      <div key={d.id} className={`${finelyOsInlineListItem()} !p-0 overflow-hidden`}>
-                        <div className="p-4 flex items-center justify-between gap-4">
+                      <div key={d.id} className={`${finelyOsInlineListItem()} !p-6 overflow-hidden`}>
+                        <div className="flex items-center justify-between gap-4">
                           <div className="min-w-0">
                             <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{d.name}</div>
                             <div className={`${FINELY_OS_ENTITY_SUBLABEL} mt-0.5`}>
@@ -2205,17 +2230,17 @@ function PartnerDetailPageInner() {
                             </div>
                           </div>
                           {courtOutcome ? (
-                            <span className="shrink-0 rounded-xl border border-fuchsia-400/30 bg-fuchsia-500/10 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-fuchsia-200/90">
+                            <span className="shrink-0 rounded-xl border border-violet-400/30 bg-violet-500/10 px-3 py-2 text-xs font-black uppercase tracking-widest text-violet-200/90">
                               Court plan
                             </span>
                           ) : (
-                            <span className="shrink-0 rounded-xl border border-white/10 bg-black/25 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-white/45">
+                            <span className="shrink-0 rounded-xl border border-white/10 bg-black/25 px-3 py-2 text-xs font-black uppercase tracking-widest text-white/45">
                               Context
                             </span>
                           )}
                         </div>
                         {courtOutcome ? (
-                          <div className="px-4 pb-4 space-y-2 border-t border-white/10 pt-3">
+                          <div className="pt-4 space-y-2 border-t border-white/10">
                             <div className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>{courtOutcomeHeadline(courtOutcome)}</div>
                             {outcomeProgress && courtOutcome.plan ? (
                               <div className="flex flex-wrap gap-x-2 gap-y-1 text-[11px] text-white/60">
@@ -2244,7 +2269,7 @@ function PartnerDetailPageInner() {
 
         {tab === 'reports' && (
           <div className="space-y-6 w-full max-w-full overflow-visible">
-            <div className="rounded-2xl border border-emerald-400/30 bg-gradient-to-br from-emerald-500/10 via-transparent to-transparent p-4 md:p-5 space-y-3">
+            <div className="rounded-2xl border border-emerald-400/30 bg-gradient-to-br from-emerald-500/10 via-transparent to-transparent p-6 lg:p-8 space-y-3">
               <div className="text-[11px] font-black uppercase tracking-[0.22em] text-emerald-300">1 · Upload reports</div>
               <p className="text-sm text-white/65">IdentityIQ / MyScoreIQ HTML preferred — Creditor Contacts are at the bottom of those exports.</p>
               <ReportUploader
@@ -2273,9 +2298,9 @@ function PartnerDetailPageInner() {
             )}
 
             {selectedReport ? (
-              <div className="rounded-2xl border-2 border-amber-400/45 bg-gradient-to-br from-amber-500/15 via-orange-500/5 to-transparent p-4 md:p-6 shadow-[0_0_40px_rgba(251,191,36,0.12)] space-y-3">
+              <div className="rounded-2xl border-2 border-sky-400/45 bg-gradient-to-br from-sky-500/15 via-violet-500/5 to-transparent p-6 lg:p-8 shadow-[0_0_40px_rgba(24,182,239,0.12)] space-y-3">
                 <div>
-                  <div className="text-[11px] font-black uppercase tracking-[0.22em] text-amber-300">2 · Active report file</div>
+                  <div className="text-[11px] font-black uppercase tracking-[0.22em] text-sky-300">2 · Active report file</div>
                   <div className="mt-2 text-xl md:text-2xl font-light text-white truncate" title={selectedReport.filename}>
                     {selectedReport.filename}
                   </div>
@@ -2285,7 +2310,7 @@ function PartnerDetailPageInner() {
                   {!isLegacyPendingReportBlob(selectedReport.rawBlobRef) ? (
                     <button
                       type="button"
-                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-400 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 shadow-[0_0_24px_rgba(251,191,36,0.35)]"
+                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 text-white font-black uppercase tracking-widest text-xs hover:brightness-110 shadow-[0_0_24px_rgba(15,199,141,0.35)]"
                       title="Open stored report file"
                       onClick={() =>
                         void openStoredDocument({
@@ -2367,6 +2392,7 @@ function PartnerDetailPageInner() {
                     <CreditIntelTabs
                       parsed={selectedReport.parsed}
                       reportId={selectedReport.id}
+                      reportRecord={selectedReport}
                       partnerId={partner.id}
                       availableReports={reports.map((r) => ({ id: r.id, receivedAt: r.receivedAt, filename: r.filename, parsed: r.parsed }))}
                       onOpenLetterGenerator={() => setTabAndUrl('letters')}
@@ -2379,9 +2405,9 @@ reparseBlockedReason={selectedReportReparseBlockedReason}
                 ) : null}
               </div>
             ) : selectedReport?.parsed ? (
-              <div className="rounded-2xl border-2 border-fuchsia-400/40 bg-gradient-to-br from-fuchsia-500/12 via-violet-500/5 to-transparent p-4 md:p-6 space-y-6 shadow-[0_0_48px_rgba(232,121,249,0.12)] w-full max-w-full overflow-visible">
+              <div className="rounded-2xl border-2 border-rose-400/40 bg-gradient-to-br from-rose-500/12 via-violet-500/5 to-transparent p-6 lg:p-8 space-y-6 shadow-[0_0_48px_rgba(232,121,249,0.12)] w-full max-w-full overflow-visible">
                 <div>
-                  <div className="text-[11px] font-black uppercase tracking-[0.22em] text-fuchsia-300">3 · Credit Intelligence</div>
+                  <div className="text-[11px] font-black uppercase tracking-[0.22em] text-rose-300">3 · Credit Intelligence</div>
                   <p className="mt-1 text-sm text-white/65">
                     Creditors, collections, strategy, education, and simulation — separate from the file actions above.
                   </p>
@@ -2389,6 +2415,7 @@ reparseBlockedReason={selectedReportReparseBlockedReason}
                 <CreditIntelTabs
                   parsed={selectedReport.parsed}
                   reportId={selectedReport.id}
+                  reportRecord={selectedReport}
                   partnerId={partner.id}
                   availableReports={reports.map((r) => ({ id: r.id, receivedAt: r.receivedAt, filename: r.filename, parsed: r.parsed }))}
                   onOpenLetterGenerator={() => setTabAndUrl('letters')}
@@ -2409,7 +2436,7 @@ reparseBlockedReason={selectedReportReparseBlockedReason}
                   variant="admin"
                 />
               ) : (
-                <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-3 w-full`}>
+                <div className={`${finelyOsCatalogCard('sky')} space-y-3 w-full`}>
                   <div className={FINELY_OS_ENTITY_VALUE}>Parsing data missing</div>
                   <div className={FINELY_OS_ENTITY_BODY}>
                     This upload doesn’t currently have parsed tradelines attached. Click <span className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Re-parse</span> above to generate the overview and tradelines.
@@ -2417,7 +2444,7 @@ reparseBlockedReason={selectedReportReparseBlockedReason}
                 </div>
               )
             ) : (
-              <div className={`${finelyOsCatalogCard('violet')} !p-5 ${FINELY_OS_ENTITY_BODY} w-full`}>
+              <div className={`${finelyOsCatalogCard('emerald')} ${FINELY_OS_ENTITY_BODY} w-full`}>
                 Upload a report to view parsed tradelines.
               </div>
             )}
@@ -2466,7 +2493,7 @@ reparseBlockedReason={selectedReportReparseBlockedReason}
                 </div>
               </div>
               {reports.length === 0 ? (
-                <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony ${FINELY_OS_ENTITY_BODY}`}>
+                <div className={`${finelyOsCatalogCard('sky')} fc-surface-harmony ${FINELY_OS_ENTITY_BODY}`}>
                   No credit report uploaded yet. Upload one in the{' '}
                   <button type="button" onClick={() => setTabAndUrl('reports')} className={FINELY_OS_ENTITY_ACCENT_LINK}>
                     Reports
@@ -2505,11 +2532,11 @@ reparseBlockedReason={selectedReportReparseBlockedReason}
                 </div>
               ) : null}
               {analysisNotice ? (
-                <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony text-sm ${FINELY_OS_ENTITY_BODY}`}>{analysisNotice}</div>
+                <div className={`${finelyOsCatalogCard('violet')} fc-surface-harmony text-base ${FINELY_OS_ENTITY_BODY}`}>{analysisNotice}</div>
               ) : null}
             </div>
 
-            <div className={`${finelyOsCatalogCard('violet')} !p-5 backdrop-blur-xl`}>
+            <div className={`${finelyOsCatalogCard('emerald')} backdrop-blur-xl`}>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <div className={FINELY_OS_ENTITY_SUBLABEL}>Strategy reports</div>
@@ -2578,7 +2605,7 @@ reparseBlockedReason={selectedReportReparseBlockedReason}
             ) : null}
 
             <div ref={generatedLettersRef}>
-            <details className={`${finelyOsCatalogCard('violet')} !p-5`} open>
+            <details className={`${finelyOsCatalogCard('sky')}`} open>
               <summary className="cursor-pointer list-none flex flex-wrap items-end justify-between gap-3 [&::-webkit-details-marker]:hidden">
                 <div>
                   <p className={FINELY_OS_ENTITY_SUBLABEL}>Letters vault</p>
@@ -2778,7 +2805,7 @@ reparseBlockedReason={selectedReportReparseBlockedReason}
             </details>
             </div>
 
-            <div ref={analysisReportsRef} className={`mt-6 ${finelyOsCatalogCard('violet')} !p-5`}>
+            <div ref={analysisReportsRef} className={`mt-6 ${finelyOsCatalogCard('rose')}`}>
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="min-w-0">
                   <p className={FINELY_OS_ENTITY_SUBLABEL}>Strategy reports</p>
@@ -2823,16 +2850,16 @@ reparseBlockedReason={selectedReportReparseBlockedReason}
           onOpenTab={setTabAndUrl}
         />
 
-        <FinelyOsPageFooter />
+        {embedded ? null : <FinelyOsPageFooter />}
 </div>
     </EntityDetailShell>
   );
 }
 
-export default function PartnerDetailPage() {
+export default function PartnerDetailPage({ embedded = false }: AdminEmbeddablePageProps = {}) {
   return (
-    <ErrorBoundary>
-      <PartnerDetailPageInner />
+    <ErrorBoundary embedded={embedded}>
+      <PartnerDetailPageInner embedded={embedded} />
     </ErrorBoundary>
   );
 }

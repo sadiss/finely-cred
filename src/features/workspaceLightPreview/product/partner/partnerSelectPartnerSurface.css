@@ -1,0 +1,76 @@
+/* Partner picker — bento mosaic navigator */
+
+.fc-partner-picker-hero {
+  display: grid;
+  gap: 18px;
+  padding: 28px 32px;
+  border-radius: 24px;
+  border: 1px solid rgba(139, 92, 246, 0.28);
+  background:
+    radial-gradient(circle at 0% 0%, rgba(16, 185, 129, 0.12), transparent 42%),
+    radial-gradient(circle at 100% 0%, rgba(139, 92, 246, 0.14), transparent 45%),
+    linear-gradient(135deg, rgba(248, 250, 252, 0.98), rgba(241, 245, 249, 0.95));
+}
+
+.fc-partner-picker-bento {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+
+.fc-partner-picker-tile {
+  grid-column: span 4;
+  min-height: 210px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-align: left;
+  border-radius: 20px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.fc-partner-picker-tile:hover {
+  transform: translateY(-3px);
+}
+
+.fc-partner-picker-tile[data-size='featured'] {
+  grid-column: span 6;
+  min-height: 240px;
+}
+
+@media (max-width: 1024px) {
+  .fc-partner-picker-tile,
+  .fc-partner-picker-tile[data-size='featured'] {
+    grid-column: span 6;
+  }
+}
+
+@media (max-width: 640px) {
+  .fc-partner-picker-tile,
+  .fc-partner-picker-tile[data-size='featured'] {
+    grid-column: span 12;
+  }
+}
+
+.fc-partner-picker-tile[data-active='true'] {
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.55), 0 16px 40px rgba(76, 29, 149, 0.18);
+}
+
+.fc-partner-picker-tile-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.fc-partner-picker-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 24px 26px;
+  border-radius: 20px;
+}

@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowRight, ListChecks } from 'lucide-react';
 import { resolveFinelyPageContext } from '../../lib/finelyBrain/finelyBrainOrchestrate';
-import { FINELY_OS_PRIMARY_BTN, finelyOsCatalogCard, finelyOsIvorySolidTile } from '../../features/os/finelyOsLightUi';
+import { FINELY_OS_SUCCESS_BTN, finelyOsCatalogCard, finelyOsIvorySolidTile } from '../../features/os/finelyOsLightUi';
 
 export type NowDoThisItem = { label: string; detail?: string; to: string };
 
@@ -46,15 +46,15 @@ export function FinelyNowDoThisStrip({
   const upcoming = steps.slice(idx + 1, idx + 4);
 
   const light = surface === 'light';
-  const shell = light ? finelyOsIvorySolidTile('amber') : finelyOsCatalogCard('amber');
+  const shell = light ? finelyOsIvorySolidTile('emerald') : finelyOsCatalogCard('emerald');
 
   return (
     <div
       className={`fc-senior-simple ${shell} !p-5 space-y-4 ${className}`}
-      data-fc-accent="amber"
+      data-fc-accent="emerald"
       data-fc-now-do-this="1"
     >
-      <div className={`flex items-center gap-2 ${light ? 'text-amber-700' : 'text-amber-300'}`}>
+      <div className={`flex items-center gap-2 ${light ? 'text-emerald-700' : 'text-emerald-300'}`}>
         <ListChecks size={18} />
         <span className="text-xs font-bold uppercase tracking-[0.14em]">
           {title} · Step {idx + 1} of {total}
@@ -68,7 +68,7 @@ export function FinelyNowDoThisStrip({
       </div>
       <button
         type="button"
-        className={`fc-senior-tap-target ${FINELY_OS_PRIMARY_BTN} !py-4 !px-6 !text-base justify-center`}
+        className={`fc-senior-tap-target ${FINELY_OS_SUCCESS_BTN} !py-4 !px-6 !text-base justify-center`}
         onClick={() => navigate(current.to)}
       >
         Do this now <ArrowRight size={18} />

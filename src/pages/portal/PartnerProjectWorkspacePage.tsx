@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { PageShell } from '../../components/layout/PageShell';
+import { PartnerWorkstationFrame, type PartnerEmbeddablePageProps } from '../../features/workspaceLightPreview/product/partner/PartnerWorkstationFrame';
+import { useMappedPartnerNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { getProject, setProjectStage, setProjectStatus, upsertProject } from '../../data/projectsRepo';
 import { createTask, listTasksByPartner, setTaskStatus } from '../../data/tasksRepo';
 import { getWorkboardSettings } from '../../data/settingsRepo';
@@ -10,13 +11,12 @@ import { useProjectWorkspace, type WorkspaceView } from '../../features/work/hoo
 import { ProjectWorkspaceBody } from '../../features/work/workspace/ProjectWorkspaceBody';
 import { listPartnerPortalTasks, isProjectVisibleToPartner } from '../../lib/workVisibility';
 import type { TaskItem } from '../../domain/tasks';
-import { useNavigate } from 'react-router-dom';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubLayout';
 import { FINELY_OS_BACK_LINK } from '../../features/os/finelyOsLightUi';
 
-export default function PartnerProjectWorkspacePage() {
-  const navigate = useNavigate();
+export default function PartnerProjectWorkspacePage({ embedded = false }: PartnerEmbeddablePageProps = {}) {
+  const navigate = useMappedPartnerNavigate();
   const { partner } = usePartnerSession();
   const ws = useProjectWorkspace({ listPath: '/portal/projects' });
   const [createOpen, setCreateOpen] = useState(false);
@@ -47,21 +47,21 @@ export default function PartnerProjectWorkspacePage() {
 
   if (!partner) {
     return (
-      <PageShell badge="Partner Portal" title="Projects" subtitle="Sign in with a partner profile to view projects.">
+      <PartnerWorkstationFrame embedded={embedded} kind="project-detail-workstation" badge="Partner Portal" title="Projects" subtitle="Sign in with a partner profile to view projects.">
         <button type="button" onClick={() => navigate('/portal/dashboard')} className={FINELY_OS_BACK_LINK}>
           Back to dashboard
         </button>
-      </PageShell>
+      </PartnerWorkstationFrame>
     );
   }
 
   if (!ws.projectId || !project) {
     return (
-      <PageShell badge="Partner Portal" title="Project not found" subtitle="This project does not exist or you do not have access to it.">
+      <PartnerWorkstationFrame embedded={embedded} kind="project-detail-workstation" badge="Partner Portal" title="Project not found" subtitle="This project does not exist or you do not have access to it.">
         <button type="button" onClick={() => navigate('/portal/projects')} className={FINELY_OS_BACK_LINK}>
           Back to projects
         </button>
-      </PageShell>
+      </PartnerWorkstationFrame>
     );
   }
 
@@ -69,7 +69,7 @@ export default function PartnerProjectWorkspacePage() {
   const openTasks = tasks.filter((t) => t.status === 'pending' || t.status === 'in_progress').length;
 
   return (
-    <PageShell badge="Partner Portal" title={project.title} subtitle={`Your delivery project · ${projectStageLabel}`}>
+    <PartnerWorkstationFrame embedded={embedded} kind="project-detail-workstation" badge="Partner Portal" title={project.title} subtitle={`Your delivery project · ${projectStageLabel}`}>
       <FinelyUnifiedHubLayout
         eyebrow="Project workspace"
         title={project.title}
@@ -77,7 +77,7 @@ export default function PartnerProjectWorkspacePage() {
         accent="violet"
         kpis={[
           { label: 'Tasks', value: String(tasks.length), hint: 'Total', accent: 'violet' },
-          { label: 'Open', value: String(openTasks), hint: 'Active', accent: 'amber' },
+          { label: 'Open', value: String(openTasks), hint: 'Active', accent: 'sky' },
           { label: 'Phase', value: projectStageLabel, hint: 'Stage', accent: 'emerald' },
           { label: 'Status', value: project.status, hint: 'Project', accent: 'sky' },
         ]}
@@ -137,7 +137,7 @@ export default function PartnerProjectWorkspacePage() {
       />
       </FinelyUnifiedHubLayout>
 
-      <FinelyOsPageFooter />
+      {!embedded ? <FinelyOsPageFooter /> : null}
 
       <TaskCreateWizard
         open={aiCreateOpen}
@@ -185,6 +185,6 @@ export default function PartnerProjectWorkspacePage() {
         }}
         onCreateProject={() => {}}
       />
-    </PageShell>
+    </PartnerWorkstationFrame>
   );
 }

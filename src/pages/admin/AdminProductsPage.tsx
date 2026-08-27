@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { ArrowLeft, ArrowRight, Package, Search } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { AdminWorkstationFrame, type AdminEmbeddablePageProps } from '../../features/workspaceLightPreview/product/admin/AdminWorkstationFrame';
+import { useMappedAdminNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { FinelyOsOverviewStatTile } from '../../features/os/FinelyOsOverviewStatTile';
 import { allPackages, categoryLabels, formatPrice, type PricingPackage } from '../../config/pricingCatalog';
@@ -24,8 +24,8 @@ function groupLabel(cat: string) {
   return (categoryLabels as any)?.[cat] || cat;
 }
 
-export default function AdminProductsPage() {
-  const navigate = useNavigate();
+export default function AdminProductsPage({ embedded = false }: AdminEmbeddablePageProps = {}) {
+  const navigate = useMappedAdminNavigate();
   const [query, setQuery] = useState('');
 
   const packages = useMemo(() => {
@@ -48,7 +48,9 @@ export default function AdminProductsPage() {
   }, [packages]);
 
   return (
-    <PageShell
+    <AdminWorkstationFrame
+      embedded={embedded}
+      kind="products-workstation"
       badge="Admin"
       title="Products & Packages"
       subtitle="Read-only catalog view (pricingCatalog). Use this to audit what’s currently sellable and public."
@@ -64,7 +66,7 @@ export default function AdminProductsPage() {
         </div>
 
         <div className="grid sm:grid-cols-2 gap-4">
-          <FinelyOsOverviewStatTile icon={Package} label="Packages" value={packages.length} accent="amber" iconAccent="amber" />
+          <FinelyOsOverviewStatTile icon={Package} label="Packages" value={packages.length} accent="emerald" iconAccent="emerald" />
           <FinelyOsOverviewStatTile icon={Package} label="Categories" value={grouped.length} accent="violet" iconAccent="violet" />
         </div>
 
@@ -87,8 +89,8 @@ export default function AdminProductsPage() {
         </div>
 
         <div className="space-y-4">
-          {grouped.map(([cat, pkgs]) => (
-            <details key={cat} open className={`${finelyOsCatalogCard('violet')} !p-4 space-y-3`} data-fc-accent="violet">
+          {grouped.map(([cat, pkgs], idx) => (
+            <details key={cat} open className={`${finelyOsCatalogCard((['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4])} space-y-3`} data-fc-accent={(['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4]}>
               <summary className="cursor-pointer select-none flex items-center justify-between gap-3">
                 <div className="inline-flex items-center gap-2">
                   <Package size={16} className="text-fuchsia-300" />
@@ -97,7 +99,7 @@ export default function AdminProductsPage() {
                 <div className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono`}>{pkgs.length}</div>
               </summary>
 
-              <div className={`mt-4 overflow-x-auto ${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`} data-fc-accent="sky">
+              <div className={`mt-4 overflow-x-auto ${finelyOsCatalogCard('sky')} fc-surface-harmony`} data-fc-accent="sky">
                 <table className="min-w-[860px] w-full text-sm">
                   <thead>
                     <tr className={`${FINELY_OS_ENTITY_SUBLABEL} text-[10px] uppercase tracking-widest`}>
@@ -133,9 +135,9 @@ export default function AdminProductsPage() {
             </details>
           ))}
         </div>
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
 </div>
-    </PageShell>
+    </AdminWorkstationFrame>
   );
 }
 

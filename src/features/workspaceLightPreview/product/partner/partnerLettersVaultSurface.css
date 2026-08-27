@@ -1,0 +1,93 @@
+/* Letters vault — mail runway timeline + queue workbench */
+
+.fc-wlp-letters-mail-runway {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.fc-wlp-letters-mail-alert {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-radius: 20px;
+}
+
+.fc-wlp-letters-mail-pipeline {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  position: relative;
+}
+
+@media (max-width: 900px) {
+  .fc-wlp-letters-mail-pipeline {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.fc-wlp-letters-mail-pipeline::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 8%;
+  right: 8%;
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(16, 185, 129, 0.35), rgba(139, 92, 246, 0.35), rgba(56, 189, 248, 0.35), rgba(244, 63, 94, 0.35));
+  transform: translateY(-50%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+@media (max-width: 900px) {
+  .fc-wlp-letters-mail-pipeline::before {
+    display: none;
+  }
+}
+
+.fc-wlp-letters-mail-stage {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 132px;
+  padding: 20px 22px;
+  border-radius: 18px;
+  text-align: left;
+  transition: transform 0.15s ease;
+}
+
+.fc-wlp-letters-mail-stage:hover {
+  transform: translateY(-2px);
+}
+
+.fc-wlp-letters-mail-stage-value {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.fc-wlp-letters-mail-stage-label {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.fc-wlp-letters-mail-stage-hint {
+  font-size: 13px;
+  font-weight: 700;
+  opacity: 0.72;
+}
+
+.fc-wlp-letters-vault-deck {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+}
+
+.fc-wlp-letters-vault-deck [data-fc-partner-vault-workspace='1'] {
+  min-width: 0;
+}

@@ -23,7 +23,7 @@ const LINKS: {
   { to: '/admin/templates', label: 'Letter templates', hint: 'Bases + outputs', icon: PenLine, accent: 'sky' },
   { to: '/admin/comms', label: 'Comms studio', hint: 'Portal · email · SMS', icon: Mail, accent: 'fuchsia' },
   { to: '/admin/crm/referrals', label: 'Referrals', hint: 'Attribution analytics', icon: Target, accent: 'emerald' },
-  { to: '/admin/billing', label: 'Billing', hint: 'Checkout + packages', icon: CreditCard, accent: 'amber' },
+  { to: '/admin/billing', label: 'Billing', hint: 'Checkout + packages', icon: CreditCard, accent: 'violet' },
   { to: '/admin/products', label: 'Products', hint: 'Service catalog', icon: FileText, accent: 'rose' },
 ];
 

@@ -14,6 +14,7 @@ import {
 } from '../../data/soundEffectsCatalog';
 import { playSoundPreview, playVoicePreview, stopMediaPreview } from '../../lib/mediaPreviewPlayer';
 import { resolveVoicePreview } from '../../lib/voicePreviewEngine';
+import { FinelyOsPaginatedStack } from '../os/FinelyOsPaginatedStack';
 import { StudioKpiCards, StudioSection } from './StudioKpiCards';
 
 type Tab = 'voices' | 'sounds';
@@ -62,7 +63,7 @@ export function VoiceSoundLibraryPanel({
     () => [
       { label: 'Voice personas', value: EXPANDED_VOICE_COUNT, hint: 'Course, ad, testimonial, funding', tone: 'violet' as const },
       { label: 'Sound library', value: SOUND_EFFECTS_COUNT, hint: 'SFX, beds, cinematic, UI', tone: 'sky' as const },
-      { label: 'Active tab', value: tab === 'voices' ? 'Voices' : 'Sounds', hint: 'Click any item to preview audio', tone: 'amber' as const },
+      { label: 'Active tab', value: tab === 'voices' ? 'Voices' : 'Sounds', hint: 'Click any item to preview audio', tone: 'rose' as const },
       { label: 'Selected', value: tab === 'voices' ? (selectedVoiceId ? 1 : 0) : selectedSoundIds.length, hint: 'Applied to render plan', tone: 'emerald' as const },
     ],
     [tab, selectedVoiceId, selectedSoundIds.length],
@@ -113,6 +114,7 @@ export function VoiceSoundLibraryPanel({
           <button
             key={t}
             type="button"
+            aria-pressed={tab === t}
             onClick={() => setTab(t)}
             className={
               'inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold transition-all ' +
@@ -130,6 +132,7 @@ export function VoiceSoundLibraryPanel({
       <div className="relative">
         <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/35" />
         <input
+          aria-label={tab === 'voices' ? 'Search voice personas' : 'Search sound library'}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={tab === 'voices' ? 'Search 100+ voice personas…' : 'Search 300+ sounds…'}
@@ -144,6 +147,8 @@ export function VoiceSoundLibraryPanel({
               <button
                 key={g}
                 type="button"
+                aria-label={`Filter voice gender: ${g}`}
+                aria-pressed={gender === g}
                 onClick={() => setGender(g)}
                 className={`rounded-lg border px-3 py-1 text-[10px] font-bold uppercase tracking-widest ${
                   gender === g ? 'border-violet-400/40 bg-violet-500/15 text-violet-200' : 'border-white/10 text-white/50'
@@ -156,6 +161,8 @@ export function VoiceSoundLibraryPanel({
               <button
                 key={u}
                 type="button"
+                aria-label={`Filter voice use case: ${u}`}
+                aria-pressed={useCase === u}
                 onClick={() => setUseCase(u)}
                 className={`rounded-lg border px-3 py-1 text-[10px] font-bold uppercase tracking-widest ${
                   useCase === u ? 'border-emerald-400/40 bg-emerald-500/15 text-emerald-200' : 'border-white/10 text-white/50'
@@ -166,8 +173,12 @@ export function VoiceSoundLibraryPanel({
             ))}
           </div>
           <StudioSection eyebrow="Voice catalog" title={`Showing ${voices.length} of ${EXPANDED_VOICE_COUNT}`}>
-            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 max-h-[420px] overflow-y-auto pr-1">
-              {voices.map((v) => {
+            <FinelyOsPaginatedStack
+              items={voices}
+              pageSize={12}
+              itemSpacingClassName="grid gap-2 sm:grid-cols-2 lg:grid-cols-3"
+              emptyMessage="No voice personas match these filters."
+              renderItem={(v) => {
                 const selected = selectedVoiceId === v.id;
                 const playing = playingId === v.id;
                 return (
@@ -200,6 +211,7 @@ export function VoiceSoundLibraryPanel({
                     </div>
                     <button
                       type="button"
+                      aria-label={`${selected ? 'Remove' : 'Assign'} ${v.label} ${selected ? 'from' : 'to'} project`}
                       onClick={() => onSelectVoice?.(v.id)}
                       className={`mt-3 w-full rounded-lg border px-2 py-1 text-[10px] font-bold uppercase tracking-widest ${
                         selected ? 'border-emerald-400/40 bg-emerald-500/15 text-emerald-200' : 'border-white/10 text-white/50 hover:bg-white/5'
@@ -209,8 +221,8 @@ export function VoiceSoundLibraryPanel({
                     </button>
                   </div>
                 );
-              })}
-            </div>
+              }}
+            />
           </StudioSection>
         </>
       ) : (
@@ -220,6 +232,8 @@ export function VoiceSoundLibraryPanel({
               <button
                 key={c}
                 type="button"
+                aria-label={`Filter sound category: ${c === 'all' ? 'all' : soundCategoryLabel(c)}`}
+                aria-pressed={soundCategory === c}
                 onClick={() => setSoundCategory(c)}
                 className={`rounded-lg border px-3 py-1 text-[10px] font-bold uppercase tracking-widest ${
                   soundCategory === c ? 'border-sky-400/40 bg-sky-500/15 text-sky-200' : 'border-white/10 text-white/50'
@@ -230,8 +244,12 @@ export function VoiceSoundLibraryPanel({
             ))}
           </div>
           <StudioSection eyebrow="Sound effects & beds" title={`Showing ${sounds.length} of ${SOUND_EFFECTS_COUNT}`}>
-            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 max-h-[420px] overflow-y-auto pr-1">
-              {sounds.map((s) => {
+            <FinelyOsPaginatedStack
+              items={sounds}
+              pageSize={12}
+              itemSpacingClassName="grid gap-2 sm:grid-cols-2 lg:grid-cols-3"
+              emptyMessage="No sounds match these filters."
+              renderItem={(s) => {
                 const selected = selectedSoundIds.includes(s.id);
                 const playing = playingId === s.id;
                 return (
@@ -264,6 +282,7 @@ export function VoiceSoundLibraryPanel({
                     </div>
                     <button
                       type="button"
+                      aria-label={`${selected ? 'Remove' : 'Add'} ${s.label} ${selected ? 'from' : 'to'} project`}
                       onClick={() => onToggleSound?.(s.id)}
                       className={`mt-3 w-full rounded-lg border px-2 py-1 text-[10px] font-bold uppercase tracking-widest ${
                         selected ? 'border-emerald-400/40 bg-emerald-500/15 text-emerald-200' : 'border-white/10 text-white/50 hover:bg-white/5'
@@ -273,8 +292,8 @@ export function VoiceSoundLibraryPanel({
                     </button>
                   </div>
                 );
-              })}
-            </div>
+              }}
+            />
           </StudioSection>
         </>
       )}

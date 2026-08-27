@@ -1,0 +1,446 @@
+/* Partner dashboard — sovereign command deck */
+
+.fc-partner-command-deck {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.fc-partner-welcome-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+}
+
+.fc-partner-welcome-name {
+  display: block;
+  font-size: 0.95em;
+  letter-spacing: -0.02em;
+}
+
+.fc-partner-command-bridge {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 20px 22px 22px;
+  border-radius: 24px;
+  border: 1px solid rgba(16, 185, 129, 0.28);
+  background:
+    radial-gradient(920px 280px at 0% 0%, rgba(16, 185, 129, 0.14) 0%, transparent 58%),
+    radial-gradient(720px 240px at 100% 0%, rgba(139, 92, 246, 0.12) 0%, transparent 55%),
+    linear-gradient(165deg, rgba(15, 23, 42, 0.96) 0%, rgba(30, 27, 75, 0.92) 100%);
+  box-shadow: 0 22px 48px -32px rgba(15, 23, 42, 0.55);
+}
+
+.fc-partner-command-alert-rail {
+  padding-top: 4px;
+}
+
+.fc-partner-command-launcher {
+  border-radius: 22px;
+  overflow: hidden;
+  padding: 6px;
+}
+
+html[data-fc-theme='light'] .fc-partner-command-bridge {
+  border-color: rgba(6, 95, 70, 0.28);
+  background:
+    radial-gradient(920px 280px at 0% 0%, rgba(16, 185, 129, 0.12) 0%, transparent 58%),
+    radial-gradient(720px 240px at 100% 0%, rgba(139, 92, 246, 0.1) 0%, transparent 55%),
+    linear-gradient(165deg, #f8fffe 0%, #f5f3ff 100%);
+  box-shadow: 0 22px 48px -34px rgba(15, 23, 42, 0.18);
+}
+
+html[data-fc-theme='light'] .fc-partner-command-launcher {
+  background:
+    radial-gradient(720px 220px at 8% 0%, rgba(14, 165, 233, 0.14) 0%, transparent 58%),
+    #ffffff;
+  border-color: rgba(3, 105, 161, 0.28);
+}
+
+.fc-partner-command-title-accent {
+  color: #5eead4;
+  text-shadow: 0 0 32px rgba(16, 185, 129, 0.28);
+}
+
+.fc-partner-command-pulse {
+  display: flex;
+  width: fit-content;
+  max-width: 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 18px;
+}
+
+.fc-partner-command-pulse span,
+.fc-partner-command-pulse em {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 5px 10px;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 760;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.fc-partner-command-pulse i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #8f5cf6;
+  box-shadow: 0 0 10px rgba(143, 92, 246, 0.8);
+}
+
+.fc-partner-command-pulse i[data-accent='emerald'] {
+  background: #31d8a3;
+  box-shadow: 0 0 10px rgba(49, 216, 163, 0.8);
+}
+
+.fc-partner-command-pulse i[data-accent='violet'] {
+  background: #8f5cf6;
+  box-shadow: 0 0 10px rgba(143, 92, 246, 0.8);
+}
+
+.fc-partner-command-pulse i[data-accent='rose'] {
+  background: #ec4879;
+  box-shadow: 0 0 10px rgba(236, 72, 121, 0.8);
+}
+
+.fc-partner-command-pulse i[data-accent='sky'] {
+  background: #2aa7dc;
+  box-shadow: 0 0 10px rgba(42, 167, 220, 0.8);
+}
+
+.fc-partner-command-pulse em {
+  border-color: rgba(110, 231, 183, 0.35);
+  background: rgba(16, 185, 129, 0.12);
+  color: rgba(236, 253, 245, 0.95);
+}
+
+.fc-partner-score-tap {
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.fc-partner-score-tap:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
+}
+
+.fc-partner-command-engine {
+  border-radius: 22px;
+  overflow: hidden;
+}
+
+.fc-partner-command-disclosure {
+  text-align: center;
+  max-width: none;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--wlp-muted, #435063);
+  opacity: 1;
+}
+
+html[data-fc-theme='dark'] .fc-partner-command-disclosure {
+  color: var(--wlp-muted, #cbd5e1);
+}
+
+/* Focus band embeds legacy OS dark-glass panels — force light-readable cards on light site */
+html[data-fc-theme='light'] .fc-wlp-focus-band :is(#profile-goals-readiness, [data-fc-surface='dark']) .fc-accent-card {
+  background:
+    radial-gradient(720px 220px at 8% 0%, rgba(139, 92, 246, 0.12) 0%, transparent 58%),
+    #ffffff !important;
+  border-color: rgba(109, 40, 217, 0.28) !important;
+  color: #0a1628 !important;
+  box-shadow: 0 14px 40px -24px rgba(109, 40, 217, 0.22) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp-focus-band #profile-goals-readiness > .grid > div.fc-accent-card:nth-child(1) {
+  background:
+    radial-gradient(720px 220px at 8% 0%, rgba(14, 165, 233, 0.14) 0%, transparent 58%),
+    #ffffff !important;
+  border-color: rgba(3, 105, 161, 0.32) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp-focus-band #profile-goals-readiness > .grid > div.fc-accent-card:nth-child(2) {
+  background:
+    radial-gradient(720px 220px at 8% 0%, rgba(16, 185, 129, 0.14) 0%, transparent 58%),
+    #ffffff !important;
+  border-color: rgba(6, 95, 70, 0.32) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp-focus-band #profile-goals-readiness > .grid > div.fc-accent-card:nth-child(3) {
+  background:
+    radial-gradient(720px 220px at 8% 0%, rgba(139, 92, 246, 0.12) 0%, transparent 58%),
+    #ffffff !important;
+  border-color: rgba(109, 40, 217, 0.32) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp-focus-band :is(#profile-goals-readiness, [data-fc-surface='dark']) :is(
+  .text-white,
+  .text-white\/90,
+  .text-white\/85,
+  .text-white\/80,
+  .text-white\/78,
+  .text-white\/75,
+  .text-white\/70
+):not(button.bg-gradient-to-r):not(.fc-premium-chart-card *) {
+  color: #0a1628 !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp-focus-band :is(#profile-goals-readiness, [data-fc-surface='dark']) .text-sky-300,
+html[data-fc-theme='light'] .fc-wlp-focus-band :is(#profile-goals-readiness, [data-fc-surface='dark']) .text-sky-300\/80 {
+  color: #0369a1 !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp-focus-band :is(#profile-goals-readiness, [data-fc-surface='dark']) .text-emerald-300 {
+  color: #065f46 !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp-focus-band :is(#profile-goals-readiness, [data-fc-surface='dark']) .text-violet-300 {
+  color: #6d28d9 !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp-focus-band :is(#profile-goals-readiness, [data-fc-surface='dark']) :is(
+  [class*='bg-fuchsia-500/10'],
+  [class*='bg-white/\\[0.035\\]'],
+  [class*='bg-white/\\[0.04\\]']
+) {
+  background: rgba(217, 70, 239, 0.1) !important;
+  border-color: rgba(162, 28, 175, 0.32) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp-focus-band :is(#profile-goals-readiness, [data-fc-surface='dark']) button :is(p, span, div):not(.bg-emerald-500):not(.bg-rose-500) {
+  color: #0a1628 !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp-focus-band :is(#profile-goals-readiness, [data-fc-surface='dark']) .text-emerald-700,
+html[data-fc-theme='light'] .fc-wlp-focus-band :is(#profile-goals-readiness, [data-fc-surface='dark']) .text-rose-700,
+html[data-fc-theme='light'] .fc-wlp-focus-band :is(#profile-goals-readiness, [data-fc-surface='dark']) .text-violet-700,
+html[data-fc-theme='light'] .fc-wlp-focus-band :is(#profile-goals-readiness, [data-fc-surface='dark']) .text-sky-700 {
+  color: inherit;
+}
+
+html[data-fc-theme='light'] .fc-wlp-focus-band [aria-label='Funding overview'] .fc-accent-card {
+  background:
+    radial-gradient(720px 220px at 8% 0%, rgba(139, 92, 246, 0.12) 0%, transparent 58%),
+    #ffffff !important;
+  border-color: rgba(109, 40, 217, 0.28) !important;
+  color: #0a1628 !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp-focus-band [aria-label='Funding overview'] :is(
+  .text-white,
+  .text-white\/85,
+  .text-white\/75
+):not(button) {
+  color: #0a1628 !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp-focus-band [aria-label='Funding overview'] .text-sky-300,
+html[data-fc-theme='light'] .fc-wlp-focus-band [aria-label='Funding overview'] .text-emerald-300,
+html[data-fc-theme='light'] .fc-wlp-focus-band [aria-label='Funding overview'] .text-violet-300 {
+  color: #0369a1 !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp-focus-band [aria-label='Funding overview'] .text-emerald-300 {
+  color: #065f46 !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp-focus-band [aria-label='Funding overview'] .text-violet-300 {
+  color: #6d28d9 !important;
+}
+
+/* Lender fit section — compact grid still ships FINELY_OS white tokens on sky cards */
+html[data-fc-theme='light'] .fc-wlp .fc-partner-command-engine [data-fc-surface='light'] button :is(
+  .text-white,
+  .text-white\/90,
+  .text-white\/85,
+  .text-white\/80,
+  .text-white\/78,
+  .text-white\/75
+) {
+  color: #0a1628 !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp .fc-partner-command-engine [data-fc-surface='light'] .text-sky-300 {
+  color: #0369a1 !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp .fc-partner-command-engine [data-fc-surface='light'] :is(
+  [class*='bg-fuchsia-500/10'],
+  [class*='bg-white/\\[0.035\\]']
+) {
+  background: rgba(14, 165, 233, 0.12) !important;
+  border-color: rgba(3, 105, 161, 0.28) !important;
+}
+
+/* Lender logic compact grid — buttons inherit frost from OS list tokens on sky cards */
+html[data-fc-theme='light'] .fc-wlp .fc-partner-command-engine,
+html[data-fc-theme='light'] .fc-wlp .fc-partner-command-engine [data-fc-surface='light'],
+html[data-fc-theme='light'] .fc-wlp .fc-wl-lender-engine {
+  color: var(--wlp-ink, #0a1628);
+}
+
+html[data-fc-theme='light'] .fc-wlp .fc-partner-command-engine [data-fc-surface='light'] button,
+html[data-fc-theme='light'] .fc-wlp .fc-wl-lender-engine[data-fc-surface='light'] button,
+html[data-fc-theme='light'] .fc-wlp .fc-wl-lender-engine[data-fc-surface='light'] button * {
+  color: var(--wlp-ink, #0a1628) !important;
+  -webkit-text-fill-color: var(--wlp-ink, #0a1628) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp .fc-wl-lender-engine[data-fc-surface='light'] :is(
+  .text-white,
+  .text-white\/90,
+  .text-white\/85,
+  .text-white\/80,
+  .text-white\/78,
+  .text-white\/75,
+  .text-white\/70,
+  [class*='text-white/']
+) {
+  color: var(--wlp-ink, #0a1628) !important;
+  -webkit-text-fill-color: var(--wlp-ink, #0a1628) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp .fc-wl-lender-engine[data-fc-surface='light'] .text-sky-300 {
+  color: #0369a1 !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp .fc-wl-lender-engine[data-fc-surface='light'] :is(
+  .text-emerald-200,
+  .text-fuchsia-100,
+  .text-rose-200
+) {
+  color: #065f46 !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp .fc-wl-lender-engine[data-fc-surface='light'] .text-fuchsia-100 {
+  color: #86198f !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp .fc-wl-lender-engine[data-fc-surface='light'] .text-rose-200 {
+  color: #9f1239 !important;
+}
+
+/* Profile goals inside focus band — opaque ivory scrim; dark ramp must not bleed through tints */
+html[data-fc-theme='light'] .fc-wlp-focus-band .fc-wlp-passport-column #profile-goals-readiness {
+  color: var(--wlp-ink, #0a1628);
+  border: 1px solid rgba(10, 22, 40, 0.1);
+  border-radius: 22px;
+  padding: 20px;
+  background: #ffffff !important;
+  box-shadow: 0 22px 52px -28px rgba(3, 8, 16, 0.35);
+}
+
+html[data-fc-theme='light'] .fc-wlp-focus-band .fc-wlp-passport-column #profile-goals-readiness > div,
+html[data-fc-theme='light'] .fc-wlp-focus-band .fc-wlp-passport-column #profile-goals-readiness > .grid > div {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp-focus-band .fc-wlp-passport-column #profile-goals-readiness button[class*='bg-emerald-7'],
+html[data-fc-theme='light'] .fc-wlp-focus-band .fc-wlp-passport-column #profile-goals-readiness button[class*='bg-violet-7'],
+html[data-fc-theme='light'] .fc-wlp-focus-band .fc-wlp-passport-column #profile-goals-readiness button[class*='bg-sky-7'],
+html[data-fc-theme='light'] .fc-wlp-focus-band .fc-wlp-passport-column #profile-goals-readiness button[class*='text-white'] {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp-focus-band .fc-wlp-passport-column #profile-goals-readiness [class*='text-emerald-800'] {
+  color: #065f46 !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp .fc-wl-lender-engine[data-fc-surface='light'] :is(
+  .text-sky-700,
+  .text-sky-800,
+  .text-emerald-700,
+  .text-emerald-800,
+  .text-violet-700
+) {
+  color: #0a1628 !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp .fc-wl-lender-engine[data-fc-surface='light'] [class*='text-fuchsia-9'] {
+  color: #701a75 !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp-focus-band .fc-wlp-passport-column #profile-goals-readiness .fc-wl-lender-engine button,
+html[data-fc-theme='light'] .fc-wlp-focus-band .fc-wlp-passport-column #profile-goals-readiness .fc-wl-lender-engine button * {
+  color: var(--wlp-ink, #0a1628) !important;
+  -webkit-text-fill-color: var(--wlp-ink, #0a1628) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp .fc-partner-command-engine [data-fc-surface='light'] button[class*='bg-white'],
+html[data-fc-theme='light'] .fc-wlp .fc-wl-lender-engine[data-fc-surface='light'] button[class*='bg-white'],
+html[data-fc-theme='light'] .fc-wlp .fc-wl-lender-engine[data-fc-surface='light'] button[class*='border-white'] {
+  background: rgba(255, 255, 255, 0.94) !important;
+  border-color: rgba(10, 22, 40, 0.12) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp .fc-wl-lender-engine[data-fc-surface='light'] [class*='bg-fuchsia-500/10'] {
+  background: rgba(217, 70, 239, 0.1) !important;
+  border-color: rgba(162, 28, 175, 0.28) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp .fc-partner-command-engine [data-fc-surface='light'] :is(
+  .text-emerald-200,
+  .text-fuchsia-100,
+  .text-rose-200
+) {
+  color: #065f46 !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp .fc-partner-command-engine [data-fc-surface='light'] .text-fuchsia-100 {
+  color: #86198f !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp .fc-partner-command-engine [data-fc-surface='light'] .text-rose-200 {
+  color: #9f1239 !important;
+}
+
+html[data-fc-theme='dark'] .fc-wlp .fc-partner-command-engine [data-fc-surface='dark'] button,
+html[data-fc-theme='dark'] .fc-wlp .fc-wl-lender-engine:not([data-fc-surface='light']) button {
+  color: var(--wlp-ink, #f1f5f9);
+}
+
+/* Focus-band lender row — secondary tiles read as sky cards on light site, not frost on glass */
+html[data-fc-theme='light'] .fc-wlp-focus-band .fc-wlp-lender:not(:first-child) {
+  border: 1px solid rgba(3, 105, 161, 0.28);
+  background: linear-gradient(155deg, #e1f6ff 0%, #bee7f9 100%);
+  color: var(--wlp-ink, #0a1628);
+  box-shadow: 0 18px 34px -28px rgba(15, 126, 177, 0.42);
+}
+
+html[data-fc-theme='light'] .fc-wlp-focus-band .fc-wlp-lender:not(:first-child) :is(
+  .fc-wlp-lender-name,
+  .fc-wlp-lender-match,
+  .fc-wlp-lender-product,
+  .fc-wlp-lender-match-label,
+  .fc-wlp-metric-hint,
+  button,
+  button *
+) {
+  color: var(--wlp-ink, #0a1628) !important;
+  -webkit-text-fill-color: var(--wlp-ink, #0a1628) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp-focus-band .fc-wlp-lender:not(:first-child) .fc-wlp-lender-match-label,
+html[data-fc-theme='light'] .fc-wlp-focus-band .fc-wlp-lender:not(:first-child) .fc-wlp-metric-hint {
+  color: var(--wlp-muted, #435063) !important;
+  -webkit-text-fill-color: var(--wlp-muted, #435063) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp-focus-band .fc-wlp-lender:not(:first-child) .fc-wlp-lender-match {
+  color: var(--wlp-sky, #0369a1) !important;
+  -webkit-text-fill-color: var(--wlp-sky, #0369a1) !important;
+}

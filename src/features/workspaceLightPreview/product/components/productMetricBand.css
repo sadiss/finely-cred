@@ -1,0 +1,59 @@
+/**
+ * Jewel metric band presence.
+ *
+ * The band is a full-width "live summary" region, but the items were laid out as a wrapping flex row
+ * of 84px-wide buttons with 40px orbs. Four metrics therefore occupied roughly a quarter of a
+ * 1377px band and the rest read as dead space — the section looked unfinished rather than summary.
+ *
+ * These rules spread the metrics across the band and scale the orb and value up so the summary
+ * carries the weight its position implies. `auto-fit` keeps it honest at narrower widths: the
+ * columns simply reduce in count rather than leaving the same gap.
+ */
+
+.fc-wlp .fc-wlp-arch-metrics-jewel {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
+.fc-wlp .fc-wlp-arch-metrics-jewel-item {
+  gap: 7px;
+  padding: 10px 8px;
+  border-radius: 16px;
+  transition: transform 160ms ease, background-color 160ms ease;
+}
+
+.fc-wlp .fc-wlp-arch-metrics-jewel-item:not(:disabled):hover {
+  transform: translateY(-2px);
+  background-color: rgba(255, 255, 255, 0.62);
+}
+
+.fc-wlp .fc-wlp-arch-metrics-jewel-item .fcm-jewel {
+  --fcm-jewel-size: 56px;
+}
+
+.fc-wlp .fc-wlp-arch-metrics-jewel-item .fcm-foil {
+  font-size: 22px;
+  font-weight: 820;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.fc-wlp .fc-wlp-arch-metrics-jewel-item em {
+  font-size: var(--wlp-text-meta, 12px);
+  line-height: 1.25;
+}
+
+@media (max-width: 639px) {
+  .fc-wlp .fc-wlp-arch-metrics-jewel {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .fc-wlp .fc-wlp-arch-metrics-jewel-item .fcm-jewel {
+    --fcm-jewel-size: 46px;
+  }
+  .fc-wlp .fc-wlp-arch-metrics-jewel-item .fcm-foil {
+    font-size: 19px;
+  }
+}

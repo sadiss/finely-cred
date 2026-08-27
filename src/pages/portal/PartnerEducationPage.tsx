@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ArrowRight, BookOpen, GraduationCap, Headphones, Library, Scale } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { PartnerWorkstationFrame, type PartnerEmbeddablePageProps } from '../../features/workspaceLightPreview/product/partner/PartnerWorkstationFrame';
+import { useMappedPartnerNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { isFeatureEnabled } from '../../data/settingsRepo';
 import { listFreeGuidesEffective } from '../../data/freeGuidesRepo';
@@ -22,13 +22,13 @@ import {
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_LUXURY_EMPTY,
   FINELY_OS_PRIMARY_BTN,
-  finelyOsInlineListItem,
 } from '../../features/os/finelyOsLightUi';
 import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
+import { recommendedLessonForJourneyStage } from '../../lib/partnerEducationCurriculum';
 import { LAUNCH_ROLE_COURSES } from '../../config/launchRoleCourses';
 
-export default function PartnerEducationPage() {
-  const navigate = useNavigate();
+export default function PartnerEducationPage({ embedded = false }: PartnerEmbeddablePageProps = {}) {
+  const navigate = useMappedPartnerNavigate();
   const { partner } = usePartnerSession();
   type EduTab = 'curriculum' | 'guides' | 'explore';
   const [tab, setTab] = useState<EduTab>('curriculum');
@@ -49,11 +49,18 @@ export default function PartnerEducationPage() {
     [audioGuide],
   );
 
+  const recommendedLesson = useMemo(
+    () => recommendedLessonForJourneyStage(partner?.journeyStage),
+    [partner?.journeyStage],
+  );
+
   return (
-    <PageShell
+    <PartnerWorkstationFrame
+      embedded={embedded}
+      kind="education-workstation"
       badge="Partner Portal"
       title="Education Library"
-      subtitle="Learn credit basics, dispute steps, and what to do next — in plain language."
+      subtitle="Plain-English lessons for the step you're on this week — not a library to browse."
     >
       {!partner ? (
         <div className={FINELY_OS_LUXURY_EMPTY}>
@@ -86,14 +93,14 @@ export default function PartnerEducationPage() {
           <FinelyNowDoThisStrip currentIndex={tab === 'guides' ? 1 : tab === 'explore' ? 2 : 0} />
 
           <FinelyUnifiedHubLayout
-            eyebrow="Education library"
+            eyebrow="Education"
             title="Learn credit step by step"
-            subtitle="Dispute rounds, score models, and funding basics — in plain language."
+            subtitle="Lessons tied to your current restore step — not a catalog to wander."
             accent="violet"
             kpis={[
               { label: 'Field guides', value: String(guides.length), hint: 'Published', accent: 'emerald' },
               { label: 'Curriculum', value: '3 tracks', hint: 'Core topics', accent: 'violet' },
-              { label: 'Score models', value: '4', hint: 'Explained', accent: 'amber' },
+              { label: 'Score models', value: '4', hint: 'Explained', accent: 'sky' },
               { label: 'Stage', value: partner.journeyStage ?? 'intake', hint: 'Your journey', accent: 'sky' },
             ]}
             tabs={[
@@ -103,28 +110,31 @@ export default function PartnerEducationPage() {
             ]}
             activeTab={tab}
             onTabChange={(id) => setTab(id as EduTab)}
-            primaryAction={{ label: 'Training Academy', onClick: () => navigate('/portal/training/academy') }}
-            secondaryAction={{ label: 'Courses LMS', onClick: () => navigate('/portal/courses') }}
+            primaryAction={{
+              label: recommendedLesson.label,
+              onClick: () => navigate(recommendedLesson.path),
+            }}
+            secondaryAction={{ label: 'Training Academy', onClick: () => navigate('/portal/training/academy') }}
           >
           {tab === 'curriculum' && (
           <div className="grid lg:grid-cols-12 gap-6">
-            <div className={`lg:col-span-7 min-w-0 ${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+            <div className={`lg:col-span-7 min-w-0 ${finelyOsCatalogCard('violet')} space-y-4`}>
               <div className="inline-flex items-center gap-2 text-violet-300">
                 <GraduationCap size={18} />
                 <span className={FINELY_OS_ENTITY_SUBLABEL}>Core curriculum</span>
               </div>
               <div className="space-y-3">
-                <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-2`}>
+                <div className={`${finelyOsCatalogCard('emerald')} fc-surface-harmony space-y-2`} data-fc-accent="emerald">
                   <div className={FINELY_OS_ENTITY_VALUE}>Dispute rounds: Round 1 → Round 2 → Round 3</div>
                   <div className={FINELY_OS_ENTITY_BODY}>
                     What changes each round, how follow-up windows work, and why documentation discipline matters.
                   </div>
                 </div>
-                <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-2`}>
+                <div className={`${finelyOsCatalogCard('violet')} fc-surface-harmony space-y-2`} data-fc-accent="violet">
                   <div className={FINELY_OS_ENTITY_VALUE}>Utilization mechanics</div>
                   <div className={FINELY_OS_ENTITY_BODY}>Statement date vs due date and why reporting timing changes outcomes.</div>
                 </div>
-                <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-2`}>
+                <div className={`${finelyOsCatalogCard('rose')} fc-surface-harmony space-y-2`} data-fc-accent="rose">
                   <div className={FINELY_OS_ENTITY_VALUE}>Funding readiness sequencing</div>
                   <div className={FINELY_OS_ENTITY_BODY}>
                     How we stage personal → business → advanced layers to avoid avoidable denials.
@@ -133,25 +143,25 @@ export default function PartnerEducationPage() {
               </div>
             </div>
 
-            <div className={`lg:col-span-5 min-w-0 ${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
-              <div className="inline-flex items-center gap-2 text-violet-300">
+            <div className={`lg:col-span-5 min-w-0 ${finelyOsCatalogCard('sky')} space-y-4`} data-fc-accent="sky">
+              <div className="inline-flex items-center gap-2 text-sky-300">
                 <Scale size={18} />
                 <span className={FINELY_OS_ENTITY_SUBLABEL}>Score models</span>
               </div>
               <div className="space-y-3">
-                <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-2`}>
+                <div className={`${finelyOsCatalogCard('emerald')} fc-surface-harmony space-y-2`} data-fc-accent="emerald">
                   <div className={FINELY_OS_ENTITY_VALUE}>FICO 8</div>
                   <div className={FINELY_OS_ENTITY_BODY}>
                     Common “general lending” score used across many products (varies by lender).
                   </div>
                 </div>
-                <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-2`}>
+                <div className={`${finelyOsCatalogCard('violet')} fc-surface-harmony space-y-2`} data-fc-accent="violet">
                   <div className={FINELY_OS_ENTITY_VALUE}>Mortgage classic scores</div>
                   <div className={FINELY_OS_ENTITY_BODY}>
                     Many mortgage underwrites still use older FICO versions by bureau: Equifax FICO 5, Experian FICO 2, TransUnion FICO 4.
                   </div>
                 </div>
-                <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-2`}>
+                <div className={`${finelyOsCatalogCard('rose')} fc-surface-harmony space-y-2`} data-fc-accent="rose">
                   <div className={FINELY_OS_ENTITY_VALUE}>VantageScore (3.0 / 4.0)</div>
                   <div className={FINELY_OS_ENTITY_BODY}>Common in monitoring apps; underwriting may differ by lender/product.</div>
                 </div>
@@ -161,12 +171,12 @@ export default function PartnerEducationPage() {
               </div>
             </div>
 
-            <div className={`lg:col-span-12 ${finelyOsCatalogCard('emerald')} !p-5 space-y-4`} data-fc-accent="emerald">
+            <div className={`lg:col-span-12 ${finelyOsCatalogCard('emerald')} space-y-4`} data-fc-accent="emerald">
               <div className={FINELY_OS_ENTITY_VALUE}>Launch training tracks</div>
               <p className={FINELY_OS_ENTITY_BODY}>Follow the same step-by-step playbooks used across Finely Cred.</p>
               <div className="grid md:grid-cols-2 gap-3">
                 {LAUNCH_ROLE_COURSES.filter((c) => c.role.toLowerCase().includes('partner') || c.role.toLowerCase().includes('client') || c.role.toLowerCase().includes('compliance')).map((course) => (
-                  <div key={course.id} className={`${finelyOsCatalogCard(course.accent)} !p-4 space-y-2`} data-fc-accent={course.accent}>
+                  <div key={course.id} className={`${finelyOsCatalogCard(course.accent)} space-y-2`} data-fc-accent={course.accent}>
                     <div className={FINELY_OS_ENTITY_SUBLABEL}>{course.role}</div>
                     <div className={FINELY_OS_ENTITY_VALUE}>{course.title}</div>
                     <p className={`${FINELY_OS_ENTITY_BODY} text-sm`}>{course.desc}</p>
@@ -181,13 +191,13 @@ export default function PartnerEducationPage() {
           )}
 
           {tab === 'guides' && (
-          <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4 fc-band-violet rounded-3xl p-6`}>
+          <div className={`${finelyOsCatalogCard('violet')} space-y-4 fc-band-violet rounded-3xl p-6`}>
             <div className="inline-flex items-center gap-2 text-emerald-300">
               <BookOpen size={18} />
               <span className={FINELY_OS_ENTITY_SUBLABEL}>Insider field guides ({guides.length})</span>
             </div>
             <p className={FINELY_OS_ENTITY_BODY}>
-              Customer-first playbooks — tradelines, business credit, funding sequences, AI workflows, and topics most consumers never hear explained honestly.
+              Partner-first playbooks — tradelines, business credit, funding sequences, AI workflows, and topics most people never hear explained honestly.
             </p>
             <div className="grid md:grid-cols-2 gap-3">
               <FinelyOsPaginatedStack
@@ -195,8 +205,8 @@ export default function PartnerEducationPage() {
                 pageSize={8}
                 itemSpacingClassName="grid md:grid-cols-2 gap-3"
                 emptyMessage="No field guides published yet."
-                renderItem={(g) => (
-                <div key={g.id} className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-2`}>
+                renderItem={(g, idx) => (
+                <div key={g.id} className={`${finelyOsCatalogCard((['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4])} fc-surface-harmony space-y-2`} data-fc-accent={(['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4]}>
                   <div className={FINELY_OS_ENTITY_VALUE}>{g.title}</div>
                   <div className={`${FINELY_OS_ENTITY_BODY} text-sm line-clamp-2`}>{g.desc}</div>
                   <button
@@ -224,11 +234,12 @@ export default function PartnerEducationPage() {
             <button
               type="button"
               onClick={() => navigate('/portal/courses')}
-              className={`text-left ${finelyOsInlineListItem()} p-6 transition-all hover:shadow-md disabled:opacity-60 disabled:cursor-not-allowed`}
+              className={`text-left ${finelyOsCatalogCard('emerald')} transition-all hover:brightness-[1.02] disabled:opacity-60 disabled:cursor-not-allowed`}
+              data-fc-accent="emerald"
               disabled={!isFeatureEnabled('courses')}
               title={!isFeatureEnabled('courses') ? 'Courses are disabled in settings' : undefined}
             >
-              <div className="flex items-center gap-3 text-violet-300">
+              <div className="flex items-center gap-3 text-emerald-300">
                 <GraduationCap size={18} />
                 <span className={FINELY_OS_ENTITY_SUBLABEL}>Courses</span>
               </div>
@@ -243,7 +254,8 @@ export default function PartnerEducationPage() {
             <button
               type="button"
               onClick={() => navigate('/resources')}
-              className={`text-left ${finelyOsInlineListItem()} p-6 transition-all hover:shadow-md`}
+              className={`text-left ${finelyOsCatalogCard('violet')} transition-all hover:brightness-[1.02]`}
+              data-fc-accent="violet"
             >
               <div className="flex items-center gap-3 text-violet-300">
                 <Library size={18} />
@@ -258,9 +270,10 @@ export default function PartnerEducationPage() {
             <button
               type="button"
               onClick={() => navigate('/bookstore')}
-              className={`text-left ${finelyOsInlineListItem()} p-6 transition-all hover:shadow-md`}
+              className={`text-left ${finelyOsCatalogCard('sky')} transition-all hover:brightness-[1.02]`}
+              data-fc-accent="sky"
             >
-              <div className="flex items-center gap-3 text-violet-300">
+              <div className="flex items-center gap-3 text-sky-300">
                 <BookOpen size={18} />
                 <span className={FINELY_OS_ENTITY_SUBLABEL}>Bookstore</span>
               </div>
@@ -273,9 +286,9 @@ export default function PartnerEducationPage() {
           )}
           </FinelyUnifiedHubLayout>
 
-          <FinelyOsPageFooter />
+          {!embedded ? <FinelyOsPageFooter /> : null}
         </div>
       )}
-    </PageShell>
+    </PartnerWorkstationFrame>
   );
 }

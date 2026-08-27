@@ -1,0 +1,141 @@
+/**
+ * Litigation desk — hearing runway + full-width pipeline (not letter studio).
+ */
+
+.fc-wlp-litigation-desk {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-width: 0;
+}
+
+.fc-wlp-litigation-hud {
+  position: relative;
+  overflow: hidden;
+  padding: 28px 32px;
+  border-radius: 24px;
+  border: 2px solid rgba(139, 92, 246, 0.42);
+  background:
+    radial-gradient(ellipse 110% 80% at 0% 0%, rgba(139, 92, 246, 0.2), transparent 55%),
+    radial-gradient(ellipse 70% 60% at 100% 0%, rgba(14, 165, 233, 0.12), transparent 48%),
+    linear-gradient(145deg, #1e1538, #0f172a 62%);
+  box-shadow: 0 24px 56px -28px rgba(109, 40, 217, 0.55);
+}
+
+.fc-wlp-litigation-hud::before {
+  content: '§';
+  position: absolute;
+  top: 8px;
+  right: 28px;
+  font-size: clamp(4rem, 10vw, 7rem);
+  font-weight: 800;
+  line-height: 1;
+  color: rgba(167, 139, 250, 0.14);
+  pointer-events: none;
+}
+
+.fc-wlp-litigation-runway {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fc-wlp-litigation-runway-step {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  min-height: 88px;
+  padding: 18px 22px;
+  border-radius: 18px;
+  text-align: left;
+  border: 1.5px solid rgba(139, 92, 246, 0.22);
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(15, 23, 42, 0.92));
+  color: #f8fafc;
+  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.fc-wlp-litigation-runway-step:hover {
+  transform: translateY(-1px);
+  border-color: rgba(167, 139, 250, 0.5);
+}
+
+.fc-wlp-litigation-runway-step[data-active='true'] {
+  border-color: #a78bfa;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.28), 0 18px 36px -20px rgba(139, 92, 246, 0.55);
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.28), rgba(15, 23, 42, 0.95));
+}
+
+.fc-wlp-litigation-runway-step[data-done='true']:not([data-active='true']) {
+  border-color: rgba(16, 185, 129, 0.42);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.14), rgba(15, 23, 42, 0.92));
+}
+
+.fc-wlp-litigation-runway-n {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  font-size: 16px;
+  font-weight: 800;
+  background: rgba(167, 139, 250, 0.28);
+  color: #f8fafc;
+}
+
+.fc-wlp-litigation-runway-step[data-active='true'] .fc-wlp-litigation-runway-n {
+  background: #8b5cf6;
+}
+
+.fc-wlp-litigation-runway-step[data-done='true']:not([data-active='true']) .fc-wlp-litigation-runway-n {
+  background: #10b981;
+  color: #042f1e;
+}
+
+.fc-wlp-litigation-runway-copy strong {
+  display: block;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.fc-wlp-litigation-runway-copy span {
+  display: block;
+  margin-top: 4px;
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(248, 250, 252, 0.76);
+}
+
+.fc-wlp-litigation-runway-here {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #ddd6fe;
+}
+
+html[data-fc-theme='light'] .fc-wlp-litigation-hud,
+[data-fc-workspace-light-preview='1'] .fc-wlp-litigation-hud {
+  background:
+    radial-gradient(ellipse 110% 80% at 0% 0%, rgba(139, 92, 246, 0.16), transparent 55%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(245, 243, 255, 0.94));
+  color: #0a1628;
+}
+
+html[data-fc-theme='light'] .fc-wlp-litigation-runway-step,
+[data-fc-workspace-light-preview='1'] .fc-wlp-litigation-runway-step {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(255, 255, 255, 0.96));
+  color: #0a1628;
+}
+
+html[data-fc-theme='light'] .fc-wlp-litigation-runway-copy span,
+[data-fc-workspace-light-preview='1'] .fc-wlp-litigation-runway-copy span {
+  color: rgba(10, 22, 40, 0.64);
+}
+
+html[data-fc-theme='light'] .fc-wlp-litigation-runway-here,
+[data-fc-workspace-light-preview='1'] .fc-wlp-litigation-runway-here {
+  color: #6d28d9;
+}

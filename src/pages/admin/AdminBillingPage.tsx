@@ -9,8 +9,8 @@ import {
   XCircle,
   BadgeCheck,
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { AdminWorkstationFrame, type AdminEmbeddablePageProps } from '../../features/workspaceLightPreview/product/admin/AdminWorkstationFrame';
+import { useMappedAdminNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { loadJson } from '../../data/localJsonStore';
 import { listPartners } from '../../data/partnersRepo';
 import type { Partner } from '../../domain/partners';
@@ -53,8 +53,8 @@ type BillingStore = {
   entitlements: { id: string; partnerId: string; key: string; status: string }[];
 };
 
-export default function AdminBillingPage() {
-  const navigate = useNavigate();
+export default function AdminBillingPage({ embedded = false }: AdminEmbeddablePageProps = {}) {
+  const navigate = useMappedAdminNavigate();
   const [refreshKey, setRefreshKey] = useState(0);
   const [notice, setNotice] = useState<string | null>(null);
   const [entPartnerId, setEntPartnerId] = useState<string>('');
@@ -157,7 +157,9 @@ export default function AdminBillingPage() {
   }, [billingStore.agreements]);
 
   return (
-    <PageShell
+    <AdminWorkstationFrame
+      embedded={embedded}
+      kind="billing-workstation"
       badge="Admin"
       title="Billing & Agreements"
       subtitle="View and manage partner agreements, update statuses, and grant entitlements."
@@ -177,13 +179,13 @@ export default function AdminBillingPage() {
         {notice && <div className={FINELY_OS_NOTICE_SUCCESS}>{notice}</div>}
 
         <div className="grid sm:grid-cols-4 gap-4">
-          <FinelyOsOverviewStatTile icon={Clock} label="Pending review" value={agreementsByStatus.pending_review.length} accent="amber" iconAccent="amber" />
+          <FinelyOsOverviewStatTile icon={Clock} label="Pending review" value={agreementsByStatus.pending_review.length} accent="violet" iconAccent="violet" />
           <FinelyOsOverviewStatTile icon={CheckCircle2} label="Active" value={agreementsByStatus.active.length} accent="emerald" iconAccent="emerald" />
           <FinelyOsOverviewStatTile icon={AlertTriangle} label="Past due" value={agreementsByStatus.past_due.length} accent="rose" iconAccent="rose" />
-          <FinelyOsOverviewStatTile icon={CreditCard} label="Total" value={billingStore.agreements.length} accent="violet" iconAccent="violet" />
+          <FinelyOsOverviewStatTile icon={CreditCard} label="Total" value={billingStore.agreements.length} accent="sky" iconAccent="sky" />
         </div>
 
-        <details className={`${finelyOsCatalogCard('violet')} !p-5 space-y-0`}>
+        <details className={`${finelyOsCatalogCard('violet')} space-y-0`} data-fc-accent="violet">
           <summary className={`cursor-pointer select-none ${FINELY_OS_ENTITY_VALUE}`}>Denefit webhook events (diagnostics)</summary>
           <div className="mt-4 space-y-3">
             <div className={FINELY_OS_ENTITY_BODY}>
@@ -243,7 +245,7 @@ export default function AdminBillingPage() {
                   pageSize={10}
                   emptyMessage="No events found."
                   renderItem={(evt, idx) => (
-                    <div key={evt?.id || idx} className={`${finelyOsCatalogCard('emerald')} !p-4 fc-surface-harmony`} data-fc-accent="emerald">
+                    <div key={evt?.id || idx} className={`${finelyOsCatalogCard('emerald')} fc-surface-harmony`} data-fc-accent="emerald">
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="min-w-0">
                           <div className={FINELY_OS_ENTITY_VALUE}>
@@ -278,7 +280,7 @@ export default function AdminBillingPage() {
               {agreementsByStatus.pending_review.map((agreement) => (
                 <div
                   key={agreement.id}
-                  className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-3`}
+                  className={`${finelyOsCatalogCard('sky')} fc-surface-harmony space-y-3`}
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div>
@@ -320,7 +322,7 @@ export default function AdminBillingPage() {
         )}
 
         {/* All agreements */}
-        <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+        <div className={`${finelyOsCatalogCard('violet')} space-y-4`}>
           <div className={FINELY_OS_ENTITY_SUBLABEL}>All agreements</div>
 
           {billingStore.agreements.length === 0 ? (
@@ -333,7 +335,7 @@ export default function AdminBillingPage() {
               {billingStore.agreements.map((agreement) => (
                 <div
                   key={agreement.id}
-                  className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}
+                  className={`${finelyOsCatalogCard('sky')} fc-surface-harmony`}
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div>
@@ -410,10 +412,10 @@ export default function AdminBillingPage() {
           )}
         </div>
 
-        <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+        <div className={`${finelyOsCatalogCard('violet')} space-y-4`}>
           <div className={FINELY_OS_ENTITY_SUBLABEL}>Entitlements</div>
 
-          <div className={`${finelyOsCatalogCard('emerald')} !p-4 fc-surface-harmony`} data-fc-accent="emerald">
+          <div className={`${finelyOsCatalogCard('emerald')} fc-surface-harmony`} data-fc-accent="emerald">
             <div className={FINELY_OS_ENTITY_SUBLABEL}>Quick grant / revoke</div>
             <div className="mt-3 grid md:grid-cols-2 gap-4 items-end">
               <label className="block">
@@ -476,7 +478,7 @@ export default function AdminBillingPage() {
               {billingStore.entitlements.map((ent) => (
                 <div
                   key={ent.id}
-                  className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}
+                  className={`${finelyOsCatalogCard('sky')} fc-surface-harmony`}
                 >
                   <div className={`${FINELY_OS_ENTITY_VALUE} text-sm`}>{ent.key}</div>
                   <div className={`${FINELY_OS_ENTITY_SUBLABEL} mt-1 normal-case tracking-normal`}>
@@ -490,8 +492,8 @@ export default function AdminBillingPage() {
             </div>
           )}
         </div>
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
 </div>
-    </PageShell>
+    </AdminWorkstationFrame>
   );
 }

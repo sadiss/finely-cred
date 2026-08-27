@@ -340,7 +340,7 @@ export default function PartnerBillingPage() {
             kpis={[
               { label: 'Agreements', value: String(agreements.length), hint: 'Active + draft', accent: 'violet' },
               { label: 'Modules', value: String(activeEntitlementKeys.size), hint: 'Unlocked', accent: 'emerald' },
-              { label: 'Trial', value: trial.isActive ? 'Active' : '—', hint: '30-day', accent: 'amber' },
+              { label: 'Trial', value: trial.isActive ? 'Active' : '—', hint: '30-day', accent: 'rose' },
               { label: 'Billing', value: billingAccount?.status ?? 'new', hint: 'Account', accent: 'sky' },
             ]}
             tabs={[
@@ -358,7 +358,7 @@ export default function PartnerBillingPage() {
           {billingTab === 'profile' && (
           <>
           <div className="grid lg:grid-cols-12 gap-6">
-            <div className={`lg:col-span-7 min-w-0 ${finelyOsIvorySolidTile('violet')} !p-5 space-y-3`}>
+            <div className={`lg:col-span-7 min-w-0 ${finelyOsIvorySolidTile('violet')} space-y-4`}>
               <div className={`inline-flex items-center gap-2 ${FINELY_OS_IVORY_ENTITY_LABEL} text-violet-700`}>
                 <Shield size={18} />
                 <span>Profile</span>
@@ -390,14 +390,14 @@ export default function PartnerBillingPage() {
                   </button>
                 </div>
               </div>
-              <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony ${FINELY_OS_ENTITY_BODY}`}>
+              <div className={`${finelyOsCatalogCard('sky')} fc-surface-harmony ${FINELY_OS_ENTITY_BODY}`}>
                 Keep your contact information current so we can support your workflow, deadlines, and document requests.
               </div>
             </div>
           </div>
 
             {partnerFieldDefs.length ? (
-            <details className={`${finelyOsCatalogCard('violet')} !p-5`}>
+            <details className={finelyOsCatalogCard('violet')}>
               <summary className={`cursor-pointer select-none ${FINELY_OS_ENTITY_VALUE}`}>
                 Enterprise profile fields <span className={`${FINELY_OS_ENTITY_SUBLABEL} font-normal`}>(advanced)</span>
               </summary>
@@ -423,7 +423,7 @@ export default function PartnerBillingPage() {
             </details>
           ) : null}
 
-          <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+          <div className={`${finelyOsCatalogCard('violet')} space-y-4`}>
             <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-violet-300`}>
               <Shield size={18} />
               <span>Compliance & consent</span>
@@ -468,10 +468,11 @@ export default function PartnerBillingPage() {
                   label: 'Debt & collections workflow acknowledgment',
                   href: '/disclaimer#debt',
                 },
-              ].map((x) => {
+              ].map((x, idx) => {
                 const acceptedAt = (partner.consents as any)?.[x.key] as string | undefined;
+                const consentAccent = (['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4];
                 return (
-                  <div key={x.key} className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-3`}>
+                  <div key={x.key} className={`${finelyOsCatalogCard(consentAccent)} fc-surface-harmony space-y-3`} data-fc-accent={consentAccent}>
                     <label className="flex items-start gap-3 cursor-pointer">
                       <input
                         type="checkbox"
@@ -510,12 +511,12 @@ export default function PartnerBillingPage() {
 
           {billingTab === 'account' && (
           <>
-            <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-3`}>
+            <div className={`${finelyOsCatalogCard('violet')} space-y-3`}>
               <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-sky-300`}>
                 <CreditCard size={18} />
                 <span>Billing account</span>
               </div>
-              <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony ${FINELY_OS_ENTITY_BODY} space-y-2`}>
+              <div className={`${finelyOsCatalogCard('sky')} fc-surface-harmony ${FINELY_OS_ENTITY_BODY} space-y-2`}>
                 <div className={`${FINELY_OS_ENTITY_VALUE} text-base`}>Billing account</div>
                 <div className={FINELY_OS_ENTITY_SUBLABEL}>status</div>
                 <div>{billingAccount?.status ?? 'not created'}</div>
@@ -527,7 +528,7 @@ export default function PartnerBillingPage() {
                     {features.denefitsEnabled && isDenefitsConfigured() ? (
                       <span className="text-emerald-300">Live contracts configured</span>
                     ) : (
-                      <span className="text-amber-300">Demo — assign contracts in Admin Settings → In‑House Financing</span>
+                      <span className="text-violet-300">Demo — assign contracts in Admin Settings → In‑House Financing</span>
                     )}
                   </div>
                 </div>
@@ -563,7 +564,7 @@ export default function PartnerBillingPage() {
             </div>
 
           <div className="grid lg:grid-cols-12 gap-6">
-            <div className={`lg:col-span-7 min-w-0 ${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+            <div className={`lg:col-span-7 min-w-0 ${finelyOsCatalogCard('violet')} space-y-4`}>
               <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-emerald-300`}>
                 <BadgeCheck size={18} />
                 <span>Active agreements</span>
@@ -584,7 +585,7 @@ export default function PartnerBillingPage() {
                       ? `${formatPrice(pkg.priceAmount)}${pkg.interval === 'month' ? ' / month' : ''}${pkg.termMonths ? ` • ${pkg.termMonths} mo` : ''}`
                       : `${(agreement.amountCents / 100).toLocaleString()} cents`;
                     return (
-                      <div key={agreement.id} className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-1`}>
+                      <div key={agreement.id} className={`${finelyOsCatalogCard('emerald')} fc-surface-harmony space-y-1`} data-fc-accent="emerald">
                         <div className="flex items-center justify-between gap-3">
                           <div className={FINELY_OS_ENTITY_VALUE}>{title}</div>
                           <div className={FINELY_OS_ENTITY_SUBLABEL}>{agreement.rail === 'stripe' ? 'Stripe' : 'In-house'}</div>
@@ -607,7 +608,7 @@ export default function PartnerBillingPage() {
               )}
             </div>
 
-            <div className={`lg:col-span-5 min-w-0 ${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+            <div className={`lg:col-span-5 min-w-0 ${finelyOsCatalogCard('violet')} space-y-4`}>
               <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-fuchsia-300`}>
                 <CheckCircle2 size={18} />
                 <span>Entitlements</span>
@@ -652,7 +653,7 @@ export default function PartnerBillingPage() {
                   pageSize={6}
                   itemSpacingClassName="space-y-2"
                   renderItem={(entitlement) => (
-                    <div key={entitlement.id} className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony text-sm`}>
+                    <div key={entitlement.id} className={`${finelyOsCatalogCard('rose')} fc-surface-harmony text-base`} data-fc-accent="rose">
                       <div className="flex items-center justify-between gap-3">
                         <div className="min-w-0">
                           <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{entitlementLabel(entitlement.key)}</div>
@@ -673,7 +674,7 @@ export default function PartnerBillingPage() {
           )}
 
           {billingTab === 'access' && (
-          <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-5`}>
+          <div className={`${finelyOsCatalogCard('violet')} space-y-5`}>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-fuchsia-300`}>
                 <BadgeCheck size={18} />
@@ -828,7 +829,7 @@ export default function PartnerBillingPage() {
           ) : null}
 
           {billingTab === 'plans' && (
-          <div id="plans-section" className={`${finelyOsCatalogCard('violet')} !p-5 space-y-6`}>
+          <div id="plans-section" className={`${finelyOsCatalogCard('violet')} space-y-6`}>
             <div className={`flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-sky-300`}>
               <Clock size={18} />
               <span>Plans (hybrid)</span>
@@ -871,12 +872,12 @@ export default function PartnerBillingPage() {
                     key={pkg.id}
                     className={`relative rounded-2xl border p-5 space-y-3 transition-all ${
                       isRecommended
-                        ? `${finelyOsCatalogCard('violet')} !p-5 border-amber-500/40 ring-1 ring-amber-500/25 shadow-[0_0_24px_rgba(245,158,11,0.08)]`
+                        ? `${finelyOsCatalogCard('violet')} border-violet-500/40 ring-1 ring-violet-500/25 shadow-[0_0_24px_rgba(139,92,246,0.08)]`
                         : finelyOsInlineListItem()
                     }`}
                   >
                     {isRecommended ? (
-                      <div className="absolute -top-3 left-4 px-3 py-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] font-bold uppercase tracking-widest rounded-full flex items-center gap-1 shadow-md">
+                      <div className="absolute -top-3 left-4 px-3 py-1 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white text-[10px] font-bold uppercase tracking-widest rounded-full flex items-center gap-1 shadow-md">
                         <Star size={10} fill="currentColor" /> Recommended
                       </div>
                     ) : null}
@@ -887,7 +888,7 @@ export default function PartnerBillingPage() {
                         {pkg.badge ? ` • ${pkg.badge}` : ''}
                       </div>
                     </div>
-                    <div className="text-amber-300 text-lg font-semibold">{priceLine}</div>
+                    <div className="text-violet-700 text-lg font-extrabold">{priceLine}</div>
                     <div className={`${FINELY_OS_ENTITY_BODY} line-clamp-3`}>{pkg.description}</div>
 
                     <div className="pt-1 flex flex-wrap gap-2">

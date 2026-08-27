@@ -1,14 +1,30 @@
-/** Homepage — Done-for-you / Solutions snapshot on platinum champagne band. */
+/** Homepage — DIY / DFY / Wealth snapshot on platinum band with glass compare cards. */
 import React, { useEffect, useRef, useState } from 'react';
 import { ArrowRight, CheckCircle2, Shield, Trophy, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Reveal } from '../ui';
-import { finelyOsLandingPlatinumSection } from '../../features/os/finelyOsLightUi';
+import {
+  FINELY_OS_ENTITY_BODY,
+  FINELY_OS_ENTITY_SUBLABEL,
+  FINELY_OS_ENTITY_VALUE,
+  finelyOsCatalogCard,
+  finelyOsLandingPlatinumSection,
+  finelyOsSolidIconChip,
+  type FinelyOsPublicAccent,
+} from '../../features/os/finelyOsLightUi';
 import { LandingTypewriterTitle } from './LandingTypewriterTitle';
 import { LandingSellAtmosphere } from './LandingSellAtmosphere';
 import './landingSellBands.css';
 
-const CARDS = [
+const CARDS: Array<{
+  title: string;
+  range: string;
+  note: string;
+  Icon: typeof Zap;
+  featured: boolean;
+  points: string[];
+  accent: FinelyOsPublicAccent;
+}> = [
   {
     title: 'DIY',
     range: 'Tools + templates',
@@ -16,6 +32,7 @@ const CARDS = [
     Icon: Zap,
     featured: false,
     points: ['Letter kits & guides', 'Self-paced portal tools'],
+    accent: 'emerald',
   },
   {
     title: 'Done-For-You',
@@ -24,6 +41,7 @@ const CARDS = [
     Icon: Shield,
     featured: true,
     points: ['Strategy + dispute packets', 'Round tracking & responses', 'Dedicated specialist support'],
+    accent: 'violet',
   },
   {
     title: 'Wealth Builder',
@@ -32,8 +50,9 @@ const CARDS = [
     Icon: Trophy,
     featured: false,
     points: ['Fundability sequencing', 'Tradelines when appropriate'],
+    accent: 'sky',
   },
-] as const;
+];
 
 type Props = {
   onViewPricing: () => void;
@@ -79,17 +98,17 @@ function DiyDfySwitcher() {
   return (
     <div
       ref={ref}
-      className="mt-5 inline-flex items-center justify-center gap-2 rounded-full border border-[#e0b24a]/35 bg-[#0c1228]/55 px-4 py-2 backdrop-blur-sm"
+      className="mt-5 inline-flex items-center justify-center gap-2 rounded-full border border-emerald-400/30 bg-black/35 px-4 py-2 backdrop-blur-sm"
       aria-live="polite"
     >
-      <span className="text-[10px] font-black uppercase tracking-[0.22em] text-white/45">Path</span>
+      <span className={`${FINELY_OS_ENTITY_SUBLABEL} !text-[10px]`}>Path</span>
       <span className="relative h-[1.35em] min-w-[8.5rem] overflow-hidden text-center">
         {phrases.map((p, i) => (
           <span
             key={p}
-            className={`absolute inset-0 flex items-center justify-center fc-sell-serif text-lg sm:text-xl font-semibold transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
+            className={`absolute inset-0 flex items-center justify-center text-lg sm:text-xl font-extrabold transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
               i === idx
-                ? 'opacity-100 translate-y-0 text-[#ffd993]'
+                ? 'opacity-100 translate-y-0 text-emerald-300'
                 : 'opacity-0 translate-y-3 text-white/30 pointer-events-none'
             }`}
           >
@@ -121,13 +140,13 @@ export function LandingSolutionsSnapshotSection({ onViewPricing }: Props) {
               accentText="your choice"
               speedMs={52}
               delayMs={180}
-              className="fc-sell-serif text-4xl sm:text-5xl lg:text-[3.35rem] font-semibold leading-[1.08] text-white"
-              accentClassName="text-[#ffd993] italic"
+              className="text-4xl sm:text-5xl lg:text-[3.35rem] font-extrabold leading-[1.08] text-white"
+              accentClassName="text-emerald-300"
             />
             <div className="flex justify-center">
               <DiyDfySwitcher />
             </div>
-            <p className="mt-5 text-base sm:text-lg text-white/55 leading-relaxed">
+            <p className={`mt-5 text-base sm:text-lg leading-relaxed ${FINELY_OS_ENTITY_BODY}`}>
               Personal restore, business credit, debt strategy, tradelines, and wealth builder — one clear path to
               pricing.
             </p>
@@ -138,34 +157,23 @@ export function LandingSolutionsSnapshotSection({ onViewPricing }: Props) {
           {CARDS.map((card, i) => (
             <Reveal key={card.title} delay={90 + i * 90}>
               <div
-                className={`fc-sell-champagne-card h-full ${card.featured ? 'fc-sell-champagne-card--featured' : ''}`}
+                className={`relative h-full ${finelyOsCatalogCard(card.accent)} ${card.featured ? 'ring-2 ring-white/25 brightness-110' : ''}`}
+                data-fc-accent={card.accent}
               >
-                <div className="fc-sell-champagne-card__sheen" />
                 {card.featured ? (
-                  <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#c4803d] via-[#e0b24a] to-[#ffd993]" />
+                  <div className={`absolute top-4 right-4 ${FINELY_OS_ENTITY_SUBLABEL} text-violet-300`}>Most popular</div>
                 ) : null}
-                <div className="relative p-6 sm:p-7">
-                  {card.featured ? (
-                    <div className="absolute top-0 right-0 px-3 py-1.5 rounded-bl-xl bg-[#e0b24a] text-[#1a1204] text-[9px] font-black uppercase tracking-widest">
-                      Most popular
-                    </div>
-                  ) : null}
-                  <div
-                    className={`mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl border ${
-                      card.featured
-                        ? 'border-[#e0b24a]/50 bg-[#e0b24a]/15 text-[#9a6b1a]'
-                        : 'border-[#0c1228]/12 bg-[#0c1228]/05 text-[#0c1228]/70'
-                    }`}
-                  >
+                <div className="relative">
+                  <div className={`mb-4 ${finelyOsSolidIconChip(card.accent)}`}>
                     <card.Icon size={20} />
                   </div>
-                  <div className="fc-sell-serif text-2xl font-semibold text-[#0c1228]">{card.title}</div>
-                  <div className="mt-1 text-[#9a6b1a] text-base font-semibold tracking-wide">{card.range}</div>
-                  <p className="mt-3 text-[#3d4558] text-sm leading-relaxed">{card.note}</p>
+                  <div className={`text-2xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{card.title}</div>
+                  <div className={`mt-1 text-base font-bold text-emerald-300/90`}>{card.range}</div>
+                  <p className={`mt-3 text-base leading-relaxed ${FINELY_OS_ENTITY_BODY}`}>{card.note}</p>
                   <ul className="mt-4 space-y-2">
                     {card.points.map((p) => (
-                      <li key={p} className="flex items-center gap-2 text-xs text-[#3d4558]">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-[#9a6b1a] shrink-0" />
+                      <li key={p} className={`flex items-center gap-2 text-sm ${FINELY_OS_ENTITY_BODY}`}>
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                         {p}
                       </li>
                     ))}
@@ -184,11 +192,11 @@ export function LandingSolutionsSnapshotSection({ onViewPricing }: Props) {
             <button
               type="button"
               onClick={() => navigate('/free-guide')}
-              className="text-xs text-white/45 hover:text-[#ffd993] transition-colors underline-offset-4 hover:underline"
+              className="text-sm font-bold text-white/55 hover:text-emerald-300 transition-colors underline-offset-4 hover:underline"
             >
               Or start with the free guide
             </button>
-            <p className="fc-sell-compliance mt-2">Results vary · funding subject to underwriting · not income guarantees</p>
+            <p className="fc-sell-compliance mt-2">Results vary · not legal advice · funding subject to underwriting</p>
           </div>
         </Reveal>
       </div>

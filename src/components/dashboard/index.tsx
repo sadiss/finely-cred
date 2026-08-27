@@ -29,6 +29,7 @@ export type { LenderLogicEngineProps } from './LenderLogicEngine';
 export { DisputeWeaver } from './DisputeWeaver';
 
 import { buildDashboardMetrics } from '../../lib/dashboardMetrics';
+import { computeMiddleScore } from '../../domain/creditScoreMiddle';
 import { DashboardHeroMetrics } from './DashboardHeroMetrics';
 import { DashboardDoNextStrip } from './DashboardDoNextStrip';
 import { DashboardFundingPanel } from './DashboardFundingPanel';
@@ -252,13 +253,17 @@ export function MasteryOSDashboard({ user, onLogout }: MasteryOSDashboardProps) 
     });
   }, [currentPartner, showFundingPanel, storeVersion]);
 
+  const middleFromReport = useMemo(
+    () => computeMiddleScore(latestParsedReport?.scores ?? []),
+    [latestParsedReport],
+  );
+
   const clientCreditScore = useMemo(() => {
-    const scores = latestParsedReport?.scores?.filter((s) => s.value >= 300 && s.value <= 850) ?? [];
-    if (scores.length) return Math.round(scores.reduce((a, s) => a + s.value, 0) / scores.length);
+    if (middleFromReport.value != null) return middleFromReport.value;
     const routeKey = currentPartner?.primaryRoute || 'personal_restore';
     const s = currentPartner?.routes?.[routeKey]?.score;
     return typeof s === 'number' && s >= 300 ? s : null;
-  }, [latestParsedReport, currentPartner]);
+  }, [middleFromReport, currentPartner]);
 
   const kpi = useMemo(() => {
     if (isAdmin) {
@@ -898,7 +903,14 @@ export function MasteryOSDashboard({ user, onLogout }: MasteryOSDashboardProps) 
                     <DashboardFundingPanel
                       partner={currentPartner}
                       creditScore={clientCreditScore}
-                      scoreFromReport={Boolean(latestParsedReport?.scores?.length)}
+                      creditScoreLabel={
+                        middleFromReport.value != null
+                          ? middleFromReport.label
+                          : clientCreditScore != null
+                            ? 'From your partner profile'
+                            : undefined
+                      }
+                      scoreFromReport={Boolean(middleFromReport.value != null)}
                       overallScore={partnerOverall}
                       onSaved={() => {
                         setStoreVersion((v) => v + 1);
@@ -965,7 +977,14 @@ export function MasteryOSDashboard({ user, onLogout }: MasteryOSDashboardProps) 
 
               <section id="dash-lender" className="fc-scroll-section">
                 <h2 className="fc-launch-lane-header mb-6">Lender logic</h2>
-                <LenderLogicEngine userScore={heroMetrics.cards.find((c) => c.id === 'credit_score')?.value ? Number(heroMetrics.cards.find((c) => c.id === 'credit_score')!.value) : undefined} />
+                <LenderLogicEngine
+                  userScore={clientCreditScore ?? undefined}
+                  zip={currentPartner?.routes?.[currentPartner.primaryRoute || 'personal_restore']?.personal?.postalCode}
+                  state={currentPartner?.routes?.[currentPartner.primaryRoute || 'personal_restore']?.personal?.state}
+                  city={currentPartner?.routes?.[currentPartner.primaryRoute || 'personal_restore']?.personal?.city}
+                  address={currentPartner?.routes?.[currentPartner.primaryRoute || 'personal_restore']?.personal?.address1}
+                  address2={currentPartner?.routes?.[currentPartner.primaryRoute || 'personal_restore']?.personal?.address2}
+                />
               </section>
 
               <section id="dash-automation" className="fc-scroll-section space-y-8 animate-in slide-in-from-bottom-4 duration-700">

@@ -24,7 +24,31 @@
   font-weight: 800;
   letter-spacing: 0.32em;
   text-transform: uppercase;
-  color: var(--fc-sell-gold-soft);
+  color: #7dd3fc;
+}
+
+.fc-sell-kicker--emerald {
+  color: #6ee7b7;
+}
+
+.fc-sell-kicker--violet {
+  color: #c4b5fd;
+}
+
+.fc-sell-kicker--sky {
+  color: #7dd3fc;
+}
+
+.fc-sell:has(.fc-sell-atmosphere__base--emerald) .fc-sell-kicker {
+  color: #6ee7b7;
+}
+
+.fc-sell:has(.fc-sell-atmosphere__base--navy) .fc-sell-kicker {
+  color: #7dd3fc;
+}
+
+.fc-sell:has(.fc-sell-atmosphere__base--platinum) .fc-sell-kicker {
+  color: #c4b5fd;
 }
 
 .fc-sell-compliance {

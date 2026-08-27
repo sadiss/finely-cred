@@ -103,7 +103,7 @@ export function VideoCreationCopilotPanel({ compact, onApplyBrief, onContinue }:
     <div className={`${finelyOsCatalogCardCompact('amber')} space-y-3`}>
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <p className={`${FINELY_OS_ENTITY_SUBLABEL} text-amber-300 inline-flex items-center gap-1.5`}>
+          <p className={`${FINELY_OS_ENTITY_SUBLABEL} text-violet-300 inline-flex items-center gap-1.5`}>
             <Sparkles size={12} /> Video copilot
           </p>
           <h3 className="text-lg font-black text-white tracking-tight">Plan your clip — one tap or one sentence</h3>
@@ -126,11 +126,11 @@ export function VideoCreationCopilotPanel({ compact, onApplyBrief, onContinue }:
           <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div
               className={`max-w-[92%] text-sm leading-relaxed whitespace-pre-wrap ${
-                m.role === 'user' ? 'rounded-2xl px-3 py-2 bg-amber-500/20 text-amber-50' : finelyOsMessageBubble('assistant')
+                m.role === 'user' ? 'rounded-2xl px-3 py-2 bg-violet-500/20 text-violet-50' : finelyOsMessageBubble('assistant')
               }`}
             >
               {m.role === 'assistant' ? (
-                <div className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-amber-200/80 mb-1">
+                <div className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-violet-200/80 mb-1">
                   <Bot size={11} /> Copilot
                 </div>
               ) : null}
@@ -141,9 +141,9 @@ export function VideoCreationCopilotPanel({ compact, onApplyBrief, onContinue }:
         {busy ? (
           <div className="flex justify-start">
             <div className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-xs text-white/50 inline-flex gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-bounce" />
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-bounce [animation-delay:120ms]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-bounce [animation-delay:240ms]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" />
+              <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce [animation-delay:120ms]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce [animation-delay:240ms]" />
             </div>
           </div>
         ) : null}
@@ -153,10 +153,11 @@ export function VideoCreationCopilotPanel({ compact, onApplyBrief, onContinue }:
 
       <div className="space-y-2">
         <textarea
+          aria-label="Describe the video you want to create"
           value={displayDraft}
           onChange={(e) => setDraft(e.target.value)}
-          rows={compact ? 2 : 3}
-          className={`${FINELY_OS_COMPACT_TEXTAREA} w-full ${voice.listening ? 'border-amber-400/40 shadow-[0_0_0_1px_rgba(251,191,36,0.25)]' : ''}`}
+          rows={2}
+          className={`${FINELY_OS_COMPACT_TEXTAREA} w-full ${voice.listening ? 'border-violet-400/40 shadow-[0_0_0_1px_rgba(167,139,250,0.25)]' : ''}`}
           placeholder="Describe audience, hook, offer, tone… or tap a starter below"
           disabled={busy}
           onKeyDown={(e) => {
@@ -167,7 +168,7 @@ export function VideoCreationCopilotPanel({ compact, onApplyBrief, onContinue }:
           }}
         />
         {voice.listening ? (
-          <p className="text-[10px] text-amber-200/80 animate-pulse">Listening — speak naturally, transcript fills the box…</p>
+          <p className="text-[10px] text-violet-200/80 animate-pulse">Listening — speak naturally, transcript fills the box…</p>
         ) : null}
         <div className="flex flex-wrap items-center gap-2">
           {voice.supported ? (
@@ -214,7 +215,7 @@ export function VideoCreationCopilotPanel({ compact, onApplyBrief, onContinue }:
               type="button"
               disabled={busy}
               onClick={() => void sendTurn(chip.prompt)}
-              className="rounded-xl border border-amber-400/25 bg-amber-500/10 px-3 py-2 text-left text-xs font-semibold text-amber-50 hover:bg-amber-500/15 transition"
+              className="rounded-xl border border-violet-400/25 bg-violet-500/10 px-3 py-2 text-left text-xs font-semibold text-violet-50 hover:bg-violet-500/15 transition"
               title={chip.prompt}
             >
               {chip.label}

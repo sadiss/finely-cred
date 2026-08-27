@@ -12,8 +12,17 @@ import {
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_SECONDARY_BTN,
-  finelyOsGlassShell,
+  finelyOsCatalogCard,
 } from '../../features/os/finelyOsLightUi';
+
+const LANE_ACCENTS = ['emerald', 'violet', 'sky', 'rose'] as const;
+
+const ICON_TONE: Record<(typeof LANE_ACCENTS)[number], string> = {
+  emerald: 'text-emerald-300',
+  violet: 'text-violet-300',
+  sky: 'text-sky-300',
+  rose: 'text-rose-300',
+};
 
 /** Unified debt / business / funding / tradeline lane strip (Phases 21–24). */
 export function PartnerCreditLanesPanel({ partnerId, lane }: { partnerId: string; lane?: string }) {
@@ -35,61 +44,80 @@ export function PartnerCreditLanesPanel({ partnerId, lane }: { partnerId: string
   const showTradeline = tradeline.openTasks > 0 || tradeline.completedTasks > 0;
   const showFunding = lane === 'business_credit' || funding.pullsLast30.length > 0 || funding.remainingThisMonth < funding.plan.monthlyInquiryBudget;
 
-  if (!showDebt && !showBusiness && !showTradeline && !showFunding) return null;
+  const tiles = [
+    showDebt
+      ? {
+          key: 'debt',
+          title: 'Debt OS',
+          body: debtTimers.length ? `${debtTimers.length} active timer(s)` : 'No urgent deadlines',
+          href: '/portal/debt',
+          icon: Scale,
+        }
+      : null,
+    showBusiness
+      ? {
+          key: 'business',
+          title: 'Business credit',
+          body: businessSteps ? `${businessDone}/${businessSteps} roadmap steps` : 'Start business profile',
+          href: '/business/dashboard',
+          icon: BriefcaseBusiness,
+        }
+      : null,
+    showFunding
+      ? {
+          key: 'funding',
+          title: 'Funding ladder',
+          body: `${funding.remainingThisMonth} inquiry pull(s) left`,
+          href: '/portal/wealth-paths',
+          icon: TrendingUp,
+        }
+      : null,
+    showTradeline
+      ? {
+          key: 'tradeline',
+          title: 'Tradeline OS',
+          body: `${tradeline.openTasks} open · ${tradeline.completedTasks} done`,
+          href: '/tradelines',
+          icon: Layers,
+        }
+      : null,
+  ].filter((t): t is NonNullable<typeof t> => Boolean(t));
+
+  if (!tiles.length) return null;
 
   return (
-    <div className={`space-y-3 ${finelyOsGlassShell('panel', 'sky')}`}>
-      <div className={`${FINELY_OS_ENTITY_SUBLABEL} inline-flex items-center gap-2`}>
-        <Layers size={14} className="text-sky-300" /> Credit lanes OS
+    <div className={`${finelyOsCatalogCard('sky')} space-y-5`} data-fc-accent="sky">
+      <div className={`${FINELY_OS_ENTITY_SUBLABEL} inline-flex items-center gap-2 text-sm`}>
+        <Layers size={18} className="text-sky-300" /> Credit lanes
       </div>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
-        {showDebt ? (
-          <button type="button" onClick={() => navigate('/portal/debt')} className={`text-left ${finelyOsGlassShell('inner', 'fuchsia')} p-3 hover:opacity-90`}>
-            <Scale size={14} className="text-fuchsia-300 mb-1" />
-            <div className={FINELY_OS_ENTITY_VALUE}>Debt OS</div>
-            <div className={FINELY_OS_ENTITY_BODY}>
-              {debtTimers.length ? `${debtTimers.length} active timer(s)` : 'No urgent deadlines'}
-            </div>
-          </button>
-        ) : null}
-
-        {showBusiness ? (
-          <button type="button" onClick={() => navigate('/business/dashboard')} className={`text-left ${finelyOsGlassShell('inner', 'amber')} p-3 hover:opacity-90`}>
-            <BriefcaseBusiness size={14} className="text-amber-300 mb-1" />
-            <div className={FINELY_OS_ENTITY_VALUE}>Business credit</div>
-            <div className={FINELY_OS_ENTITY_BODY}>
-              {businessSteps ? `${businessDone}/${businessSteps} roadmap steps` : 'Start business profile'}
-            </div>
-          </button>
-        ) : null}
-
-        {showFunding ? (
-          <button type="button" onClick={() => navigate('/portal/wealth-paths')} className={`text-left ${finelyOsGlassShell('inner', 'emerald')} p-3 hover:opacity-90`}>
-            <TrendingUp size={14} className="text-emerald-300 mb-1" />
-            <div className={FINELY_OS_ENTITY_VALUE}>Funding ladder</div>
-            <div className={FINELY_OS_ENTITY_BODY}>{funding.remainingThisMonth} inquiry pull(s) left</div>
-          </button>
-        ) : null}
-
-        {showTradeline ? (
-          <button type="button" onClick={() => navigate('/tradelines')} className={`text-left ${finelyOsGlassShell('inner', 'violet')} p-3 hover:opacity-90`}>
-            <Layers size={14} className="text-violet-300 mb-1" />
-            <div className={FINELY_OS_ENTITY_VALUE}>Tradeline OS</div>
-            <div className={FINELY_OS_ENTITY_BODY}>
-              {tradeline.openTasks} open · {tradeline.completedTasks} done
-            </div>
-          </button>
-        ) : null}
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {tiles.map((tile, idx) => {
+          const accent = LANE_ACCENTS[idx % LANE_ACCENTS.length];
+          const Icon = tile.icon;
+          return (
+            <button
+              key={tile.key}
+              type="button"
+              onClick={() => navigate(tile.href)}
+              className={`${finelyOsCatalogCard(accent)} text-left min-h-[10rem]`}
+              data-fc-accent={accent}
+            >
+              <Icon size={22} className={`${ICON_TONE[accent]} mb-3`} />
+              <div className={`text-xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{tile.title}</div>
+              <div className={`mt-2 text-base font-semibold ${FINELY_OS_ENTITY_BODY}`}>{tile.body}</div>
+            </button>
+          );
+        })}
       </div>
 
       {debtTimers[0] ? (
-        <div className={`text-xs ${FINELY_OS_ENTITY_BODY} flex flex-wrap items-center justify-between gap-2`}>
+        <div className={`${FINELY_OS_ENTITY_BODY} flex flex-wrap items-center justify-between gap-3 text-base`}>
           <span>
             <span className={FINELY_OS_ENTITY_CHIP}>{debtTimers[0].label}</span> — {debtTimers[0].daysRemaining}d left
           </span>
           <button type="button" onClick={() => navigate('/portal/debt')} className={FINELY_OS_SECONDARY_BTN}>
-            Open debt workspace <ArrowRight size={12} />
+            Open debt workspace <ArrowRight size={16} />
           </button>
         </div>
       ) : null}

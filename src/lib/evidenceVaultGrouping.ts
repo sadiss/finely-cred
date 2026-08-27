@@ -121,6 +121,31 @@ export function evidenceVaultBucket(item: EvidenceItem): EvidenceVaultBucketId {
   return 'uncategorized';
 }
 
+/**
+ * Which of the two partner destinations a vault file belongs to.
+ *
+ * `Documents` and `Evidence vault` are separate pages, and a file must appear on exactly one of
+ * them — showing the same upload in both is what made the two pages feel like one duplicated
+ * list. The line is *purpose*, not file type:
+ *
+ *   documents — paperwork the partner supplies about themselves: ID, proof of address, the raw
+ *               report file they exported, signed contracts.
+ *   evidence  — exhibits that back a specific dispute reason: report crops, bureau replies,
+ *               collector and court paper, payment proof.
+ */
+export type EvidenceDestination = 'documents' | 'evidence';
+
+const EVIDENCE_BUCKETS = new Set<EvidenceVaultBucketId>([
+  'screenshots',
+  'bureau_responses',
+  'debt_docket',
+  'dispute_proof',
+]);
+
+export function evidenceDestination(item: EvidenceItem): EvidenceDestination {
+  return EVIDENCE_BUCKETS.has(evidenceVaultBucket(item)) ? 'evidence' : 'documents';
+}
+
 /** Subgroup label inside a bucket (e.g. tradeline vs section capture). */
 export function evidenceVaultSubgroupLabel(item: EvidenceItem): string {
   if (item.type === 'screenshot') {

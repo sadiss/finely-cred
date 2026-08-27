@@ -49,13 +49,13 @@ export default function PartnerCoursesPage() {
 
   const completedCount = progressRows.filter((r) => r.pct === 100).length;
 
-  const renderCourseCard = (c: (typeof courses)[0], partnerId: string) => {
+  const renderCourseCard = (c: (typeof courses)[0], partnerId: string, idx = 0) => {
     const prog = getCourseProgress({ partnerId, courseId: c.id });
     const totalLessons = c.modules.reduce((sum, m) => sum + m.lessons.length, 0);
     const done = prog.lessons.filter((l) => l.completedAt).length;
     const pct = totalLessons ? Math.round((done / totalLessons) * 100) : 0;
     return (
-      <div key={c.id} className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-3`}>
+      <div key={c.id} className={`${finelyOsCatalogCard((['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4])} fc-surface-harmony space-y-3`} data-fc-accent={(['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4]}>
         <div className="inline-flex items-center gap-2 text-violet-300">
           <GraduationCap size={16} />
           <span className={FINELY_OS_ENTITY_SUBLABEL}>Course</span>
@@ -91,7 +91,7 @@ export default function PartnerCoursesPage() {
         </div>
       ) : !features.courses ? (
         <div className={`${FINELY_OS_NOTICE_WARN} space-y-2`}>
-          <div className="inline-flex items-center gap-2 text-fuchsia-200">
+          <div className="inline-flex items-center gap-2 text-rose-200">
             <Lock size={18} />
             <span className={FINELY_OS_ENTITY_SUBLABEL}>Module gated</span>
           </div>
@@ -119,10 +119,10 @@ export default function PartnerCoursesPage() {
               subtitle="Lessons tied to disputes, evidence discipline, and funding readiness — keep Documents and Tasks open while you learn."
               accent="violet"
               kpis={[
-                { label: 'Published', value: String(courses.length), hint: 'Catalog', accent: 'violet' },
-                { label: 'In progress', value: String(progressRows.length), hint: 'Started', accent: 'amber' },
-                { label: 'Completed', value: String(completedCount), hint: 'Finished', accent: 'emerald' },
-                { label: 'Stage', value: partner.journeyStage ?? 'intake', hint: 'Journey', accent: 'sky' },
+                { label: 'Published', value: String(courses.length), hint: 'Catalog', accent: 'emerald' },
+                { label: 'In progress', value: String(progressRows.length), hint: 'Started', accent: 'violet' },
+                { label: 'Completed', value: String(completedCount), hint: 'Finished', accent: 'sky' },
+                { label: 'Stage', value: partner.journeyStage ?? 'intake', hint: 'Journey', accent: 'rose' },
               ]}
               tabs={[
                 { id: 'catalog', label: 'Catalog', badge: courses.length || undefined },
@@ -143,7 +143,7 @@ export default function PartnerCoursesPage() {
                       items={courses}
                       pageSize={6}
                       itemSpacingClassName="grid md:grid-cols-2 xl:grid-cols-3 gap-4"
-                      renderItem={(c) => renderCourseCard(c, partner.id)}
+                      renderItem={(c, idx) => renderCourseCard(c, partner.id, idx)}
                     />
                   )}
                 </>
@@ -155,14 +155,14 @@ export default function PartnerCoursesPage() {
                     <div className={`${FINELY_OS_ENTITY_BODY} text-sm`}>No courses started yet — open one from the catalog.</div>
                   ) : (
                     <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
-                      {progressRows.map(({ course }) => renderCourseCard(course, partner.id))}
+                      {progressRows.map(({ course }, idx) => renderCourseCard(course, partner.id, idx))}
                     </div>
                   )}
                 </>
               )}
 
               {tab === 'tips' && (
-                <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony ${FINELY_OS_ENTITY_BODY} space-y-3`}>
+                <div className={`${finelyOsCatalogCard('violet')} fc-surface-harmony ${FINELY_OS_ENTITY_BODY} space-y-4`} data-fc-accent="violet">
                   <p>Courses are designed to match the portal workflow. Keep your Documents Vault and Tasks page open while you work through lessons.</p>
                   <p>After each lesson, check My Tasks for any checklist items the course agent spawned for you.</p>
                   <button type="button" onClick={() => navigate('/portal/my-tasks')} className={FINELY_OS_SUCCESS_BTN}>

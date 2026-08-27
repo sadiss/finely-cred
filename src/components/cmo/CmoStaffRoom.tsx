@@ -87,7 +87,7 @@ export function CmoStaffRoom() {
       <div className="fc-panel p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/20 bg-amber-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.28em] text-amber-200">
+            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.28em] text-emerald-200">
               <Crown size={14} /> CMO Staff Room
             </div>
             <h3 className="mt-3 text-xl font-black text-white">Talk to the CMO like staff.</h3>
@@ -101,7 +101,7 @@ export function CmoStaffRoom() {
         <div className="mt-5 h-[420px] overflow-y-auto rounded-[28px] border border-white/10 bg-black/25 p-4 fc-scroll-area">
           <div className="space-y-3">
             {log.map((m, idx) => (
-              <div key={idx} className={`max-w-[92%] rounded-3xl border px-4 py-3 ${m.role === 'admin' ? 'ml-auto border-amber-400/20 bg-amber-400/10 text-amber-50' : 'border-white/10 bg-white/[0.04] text-white/78'}`}>
+              <div key={idx} className={`max-w-[92%] rounded-3xl border px-4 py-3 ${m.role === 'admin' ? 'ml-auto border-emerald-400/20 bg-emerald-400/10 text-emerald-50' : 'border-white/10 bg-white/[0.04] text-white/78'}`}>
                 <div className="mb-1 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.25em] text-white/38">{m.role === 'admin' ? <Send size={12} /> : <Bot size={12} />} {m.role}</div>
                 <div className="whitespace-pre-wrap text-sm leading-relaxed">{m.text}</div>
               </div>
@@ -119,14 +119,14 @@ export function CmoStaffRoom() {
         </div>
 
         {execSteps.length > 0 ? (
-          <div className="mt-4 rounded-2xl border border-amber-400/20 bg-amber-400/5 p-4">
+          <div className="mt-4 rounded-2xl border border-violet-400/20 bg-violet-400/5 p-4">
             <div className="flex items-center justify-between gap-2 mb-2">
-              <span className="text-[10px] font-black uppercase tracking-widest text-amber-200 inline-flex items-center gap-2"><ShieldAlert size={12} /> Delegation queue</span>
+              <span className="text-[10px] font-black uppercase tracking-widest text-violet-200 inline-flex items-center gap-2"><ShieldAlert size={12} /> Delegation queue</span>
               <button type="button" disabled={execBusy} onClick={() => void runPlan()} className="fc-button-soft text-[10px]">{execBusy ? 'Running…' : 'Run plan'}</button>
             </div>
             <div className="space-y-1.5 max-h-32 overflow-y-auto">
               {execSteps.map((s) => (
-                <div key={s.id} className="text-xs text-white/70"><span className="text-amber-200 font-bold">{delegateLabel(s.delegate)}</span> — {s.label} <span className="text-white/35">({s.status})</span></div>
+                <div key={s.id} className="text-xs text-white/70"><span className="text-violet-200 font-bold">{delegateLabel(s.delegate)}</span> — {s.label} <span className="text-white/35">({s.status})</span></div>
               ))}
             </div>
           </div>
@@ -138,7 +138,7 @@ export function CmoStaffRoom() {
           <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.25em] text-white/45"><Sparkles size={14} /> Playbooks</div>
           <div className="mt-3 space-y-2">
             {playbooks.map((p) => (
-              <button key={p.id} type="button" onClick={() => launch(p.id)} className="w-full rounded-2xl border border-white/10 bg-black/25 p-3 text-left transition hover:border-amber-400/30 hover:bg-amber-400/10">
+              <button key={p.id} type="button" onClick={() => launch(p.id)} className="w-full rounded-2xl border border-white/10 bg-black/25 p-3 text-left transition hover:border-emerald-400/30 hover:bg-emerald-400/10">
                 <div className="text-sm font-black text-white">{p.title}</div>
                 <div className="mt-1 text-xs text-white/50">Target: {p.dailyLeadTarget}/day • {p.channels.slice(0, 4).join(', ')}</div>
               </button>

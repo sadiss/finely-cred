@@ -59,7 +59,7 @@ const ROLE = 'au_seller' as const;
  */
 const SHELF_PANEL =
   'rounded-2xl border border-white/14 bg-[linear-gradient(150deg,rgba(6,78,59,0.28),rgba(2,20,26,0.72))] p-5 backdrop-blur-sm';
-const SHELF_KICKER = 'text-[10px] font-black uppercase tracking-[0.3em] text-amber-100';
+const SHELF_KICKER = 'text-[10px] font-black uppercase tracking-[0.3em] text-violet-200';
 const SHELF_TITLE = 'text-2xl sm:text-3xl font-bold tracking-tight text-white drop-shadow-[0_1px_12px_rgba(0,0,0,0.55)]';
 const SHELF_BODY = 'text-sm sm:text-[15px] leading-relaxed text-white/85';
 
@@ -73,11 +73,11 @@ const TIER_ACCENT = [
     pct: 'text-white',
   },
   {
-    border: 'border-amber-200/60',
-    panel: 'bg-[linear-gradient(165deg,rgba(251,191,36,0.24),rgba(18,12,4,0.9))]',
-    badge: 'border-amber-100/70 bg-[#1c1406] text-amber-50',
-    label: 'text-amber-100',
-    pct: 'text-amber-50',
+    border: 'border-violet-200/60',
+    panel: 'bg-[linear-gradient(165deg,rgba(139,92,246,0.24),rgba(12,8,22,0.9))]',
+    badge: 'border-violet-100/70 bg-[#14061c] text-violet-50',
+    label: 'text-violet-100',
+    pct: 'text-violet-50',
   },
   {
     border: 'border-sky-200/55',
@@ -87,11 +87,11 @@ const TIER_ACCENT = [
     pct: 'text-white',
   },
   {
-    border: 'border-amber-100/65',
-    panel: 'bg-[linear-gradient(165deg,rgba(252,211,77,0.28),rgba(20,14,4,0.92))]',
-    badge: 'border-amber-50/75 bg-[#1a1406] text-amber-50',
-    label: 'text-amber-50',
-    pct: 'text-[#fff8e7]',
+    border: 'border-rose-200/55',
+    panel: 'bg-[linear-gradient(165deg,rgba(244,63,94,0.24),rgba(22,8,12,0.9))]',
+    badge: 'border-rose-100/70 bg-[#1c0610] text-rose-50',
+    label: 'text-rose-100',
+    pct: 'text-rose-50',
   },
 ] as const;
 
@@ -152,7 +152,7 @@ export default function AuSellerPage() {
               maskImage: 'radial-gradient(ellipse 70% 60% at 50% 40%, black, transparent)',
             }}
           />
-          <div className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-amber-400/15 blur-3xl" />
+          <div className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-violet-400/15 blur-3xl" />
           <div className="pointer-events-none absolute -bottom-24 -left-10 h-72 w-72 rounded-full bg-emerald-500/12 blur-3xl" />
 
           <div className="relative grid gap-9 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
@@ -179,7 +179,7 @@ export default function AuSellerPage() {
                 {[
                   { icon: Megaphone, label: 'Buyer demand', sub: 'Finely markets', tone: 'border-sky-300/30 bg-sky-500/[0.1]', iconCls: 'text-sky-300' },
                   { icon: CreditCard, label: 'Your inventory', sub: 'list & rotate', tone: 'border-emerald-300/30 bg-emerald-500/[0.1]', iconCls: 'text-emerald-300' },
-                  { icon: Wallet, label: 'Payouts', sub: '35%+ floor', tone: 'border-amber-300/35 bg-amber-500/[0.12]', iconCls: 'text-amber-200' },
+                  { icon: Wallet, label: 'Payouts', sub: '35%+ floor', tone: 'border-violet-300/35 bg-violet-500/[0.12]', iconCls: 'text-violet-200' },
                 ].map(({ icon: Icon, label, sub, tone, iconCls }) => (
                   <div key={label} className={`rounded-xl border ${tone} px-3 py-3.5 text-center`}>
                     <Icon className={`mx-auto mb-1.5 ${iconCls}`} size={20} />
@@ -277,8 +277,8 @@ export default function AuSellerPage() {
             </p>
           </div>
           <div className="grid gap-3 sm:grid-cols-[1fr_1.4fr]">
-            <div className="rounded-2xl border border-amber-200/55 bg-[linear-gradient(160deg,rgba(251,191,36,0.22),rgba(2,20,26,0.65))] p-5 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
-              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-100">Activation</p>
+            <div className="rounded-2xl border border-violet-200/55 bg-[linear-gradient(160deg,rgba(139,92,246,0.22),rgba(2,20,26,0.65))] p-6 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-violet-100">Activation</p>
               <p className="mt-2 text-3xl font-black tracking-tight text-[#fff8e7] drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)]">
                 {AU_SELLER.startupFeeLabel}
               </p>
@@ -305,7 +305,7 @@ export default function AuSellerPage() {
           <div className="space-y-2.5">
             <p className="text-[13px] leading-relaxed text-white/82">
               Every seller starts at a{' '}
-              <strong className="text-amber-50">{AU_SELLER.defaultCommissionPct}% floor</strong> — your share climbs
+              <strong className="text-violet-100">{AU_SELLER.defaultCommissionPct}% floor</strong> — your share climbs
               automatically as your inventory grows and stays reliable.
             </p>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -344,7 +344,7 @@ export default function AuSellerPage() {
             Running partner restore or build files instead? That is the{' '}
             <button
               type="button"
-              className="font-semibold text-amber-200 underline decoration-amber-300/40 underline-offset-4 hover:text-amber-100"
+              className="font-semibold text-violet-200 underline decoration-violet-300/40 underline-offset-4 hover:text-violet-100"
               onClick={() => navigate('/credit-specialist')}
             >
               Credit Specialist
@@ -365,7 +365,7 @@ export default function AuSellerPage() {
                 i % 4 === 0
                   ? 'border-emerald-300/25 bg-emerald-400/[0.1] text-emerald-100'
                   : i % 4 === 1
-                    ? 'border-amber-300/25 bg-amber-400/[0.1] text-amber-100'
+                    ? 'border-violet-300/25 bg-violet-400/[0.1] text-violet-100'
                     : i % 4 === 2
                       ? 'border-sky-300/25 bg-sky-400/[0.1] text-sky-100'
                       : 'border-violet-300/25 bg-violet-400/[0.1] text-violet-100';
@@ -373,12 +373,12 @@ export default function AuSellerPage() {
                 i % 4 === 0
                   ? '!border-emerald-300/20'
                   : i % 4 === 1
-                    ? '!border-amber-300/25'
+                    ? '!border-violet-300/25'
                     : i % 4 === 2
                       ? '!border-sky-300/20'
                       : '!border-violet-300/20';
               return (
-                <div key={offering.title} className={`${SHELF_PANEL} !p-4 ${panelTone}`}>
+                <div key={offering.title} className={`${SHELF_PANEL} p-6 ${panelTone}`}>
                   <h3 className="text-base font-bold text-white">{offering.title}</h3>
                   <p className="mt-1.5 text-[13px] leading-relaxed text-white/82">{offering.description}</p>
                   <div className="mt-3 flex flex-wrap gap-1.5">
@@ -411,7 +411,7 @@ export default function AuSellerPage() {
           <div className="grid gap-6 lg:grid-cols-3">
             {[
               { title: 'Inside access', rows: ROLE_INSIDE_ACCESS[ROLE], accent: 'text-emerald-100' },
-              { title: 'Only a supplier can', rows: ROLE_UNIQUE_CAPABILITIES[ROLE], accent: 'text-amber-100' },
+              { title: 'Only a supplier can', rows: ROLE_UNIQUE_CAPABILITIES[ROLE], accent: 'text-violet-100' },
               { title: 'Your seller profile', rows: ROLE_PROFILE_FEATURES[ROLE], accent: 'text-sky-100' },
             ].map((col) => (
               <div key={col.title} className="space-y-3.5">
@@ -437,7 +437,7 @@ export default function AuSellerPage() {
           </div>
           <ol className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
             {[
-              { step: 'Sign up with the AU seller role.', tone: 'text-amber-200/80' },
+              { step: 'Sign up with the AU seller role.', tone: 'text-violet-200/80' },
               { step: 'Verify your supply-side profile and payout method.', tone: 'text-emerald-200/80' },
               {
                 step: `Activate for ${AU_SELLER.startupFeeLabel} — includes your first marketing season.`,
@@ -463,9 +463,9 @@ export default function AuSellerPage() {
             onCtaClick={() => navigate(sellerSignupUrl)}
             secondaryLabel="Already a seller? Open hub"
             onSecondaryClick={() => navigate(AU_SELLER.hubPath)}
-            accent="amber"
+            accent="rose"
           />
-          <div className="rounded-2xl border border-sky-300/25 bg-sky-500/[0.08] p-4">
+          <div className="rounded-2xl border border-sky-300/25 bg-sky-500/[0.08] p-6">
             <RoleGuideCta role={ROLE} compact />
           </div>
         </section>
@@ -494,7 +494,7 @@ export default function AuSellerPage() {
         economics={{ keepPctLabel: `${AU_SELLER.defaultCommissionPct}%+ payout`, buyInLabel: `${AU_SELLER.startupFeeLabel} to activate` }}
         ctaLabel="Start signup"
         onCta={() => navigate(sellerSignupUrl)}
-        accent="amber"
+        accent="rose"
       />
     </PageShell>
   );

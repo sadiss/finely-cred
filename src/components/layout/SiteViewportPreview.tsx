@@ -1,9 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Monitor, Smartphone, Tablet, ExternalLink } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthProvider';
 import { isAdminEmail } from '../../auth/admin';
 import { useIsMobileOrTabletViewport } from '../../hooks/useMediaQuery';
 import { inPreviewFrame } from '../../lib/inPreviewFrame';
+import { isPublicMarketingPath } from '../../lib/publicSitePaths';
 
 export type SiteViewportMode = 'desktop' | 'tablet' | 'mobile';
 
@@ -23,18 +25,28 @@ function SiteRoot({ children }: { children: React.ReactNode }) {
 }
 
 /**
- * Desktop/tablet/phone preview toolbar — **admins on a large screen only**.
- * Public visitors and real phones/tablets always see the live responsive layout with no switcher.
+ * Desktop/tablet/phone preview toolbar — **admins on workspace-preview routes only**.
+ * Never wrap public marketing / login (blocks header CTAs). Real phones/tablets always
+ * see the live responsive layout with no switcher.
  */
 export function SiteViewportPreview({ children }: Props) {
   const auth = useAuth();
+  const location = useLocation();
   const onRealCompactDevice = useIsMobileOrTabletViewport();
   const inIframe = useMemo(() => inPreviewFrame(), []);
   const isAdminReviewer = isAdminEmail(auth.user?.email);
   const [mode, setMode] = useState<SiteViewportMode>('desktop');
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
-  const canUsePreviewToolbar = isAdminReviewer && !onRealCompactDevice && !inIframe;
+  const onPreviewSurface =
+    location.pathname.startsWith('/preview/') ||
+    location.pathname.startsWith('/admin/dashboard-layout-preview');
+  const canUsePreviewToolbar =
+    isAdminReviewer &&
+    onPreviewSurface &&
+    !isPublicMarketingPath(location.pathname) &&
+    !onRealCompactDevice &&
+    !inIframe;
 
   useEffect(() => {
     if (!canUsePreviewToolbar) return;
@@ -65,6 +77,7 @@ export function SiteViewportPreview({ children }: Props) {
     typeof window !== 'undefined'
       ? `${window.location.pathname}${window.location.search}${window.location.hash}`
       : '/';
+  const workspaceReview = framePath.startsWith('/preview/workspace-light');
 
   const handleIframeLoad = (e: React.SyntheticEvent<HTMLIFrameElement>) => {
     try {
@@ -91,7 +104,7 @@ export function SiteViewportPreview({ children }: Props) {
       >
         <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2.5 flex flex-wrap items-center gap-2">
           <span className="text-[10px] font-black uppercase tracking-widest text-[#39ff14] w-full sm:w-auto">
-            Admin preview
+            {workspaceReview ? 'Workspace review' : 'Admin preview'}
           </span>
           {(
             [
@@ -115,17 +128,25 @@ export function SiteViewportPreview({ children }: Props) {
             </button>
           ))}
           <span className="text-[10px] text-white/40 ml-auto hidden sm:inline">
-            {framed ? `Live site at ${frameWidth}px viewport — real responsive breakpoints` : 'Full desktop width'}
+            {workspaceReview
+              ? framed
+                ? `${frameWidth}px responsive product view`
+                : 'Responsive product view'
+              : framed
+                ? `Live site at ${frameWidth}px viewport — real responsive breakpoints`
+                : 'Full desktop width'}
           </span>
-          <a
-            href={framePath}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-white/[0.12] text-white/70 hover:text-white hover:border-[#39ff14]/35 transition min-h-[40px] sm:ml-0 ml-auto"
-          >
-            <ExternalLink className="w-4 h-4" />
-            Open site
-          </a>
+          {!workspaceReview ? (
+            <a
+              href={framePath}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-white/[0.12] text-white/70 hover:text-white hover:border-[#39ff14]/35 transition min-h-[40px] sm:ml-0 ml-auto"
+            >
+              <ExternalLink className="w-4 h-4" />
+              Open site
+            </a>
+          ) : null}
         </div>
       </div>
 

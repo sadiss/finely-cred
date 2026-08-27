@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Camera, Download, Eye, FileText, Image as ImageIcon, Trash2, X } from 'lucide-react';
+import { Camera, Download, Eye, FileCheck2, FileText, Image as ImageIcon, Trash2, X } from 'lucide-react';
 import type { EvidenceItem } from '../../domain/evidence';
 import { getBlobUrl } from '../../storage/getBlobUrl';
 import { openBlobRefInNewTab } from '../../lib/openBlobRef';
@@ -126,10 +126,16 @@ export function EvidenceVaultTiles({
   items,
   onDelete,
   onUpsert,
+  showMailReview,
+  needsMailReview,
+  onApproveForMail,
 }: {
   items: EvidenceItem[];
   onDelete: (id: string) => void;
   onUpsert?: (item: EvidenceItem) => void;
+  showMailReview?: boolean;
+  needsMailReview?: (item: EvidenceItem) => boolean;
+  onApproveForMail?: (item: EvidenceItem) => void;
 }) {
   const visibleItems = useMemo(
     () => items.filter((e) => !(e.tags ?? []).includes('analysis_report')),
@@ -275,6 +281,11 @@ export function EvidenceVaultTiles({
                     ) : null}
                     <div className="text-[9px] text-white/45 uppercase tracking-wide">
                       {e.type === 'screenshot' ? 'Screenshot' : 'Upload'} · {(e.sizeBytes / 1024).toFixed(0)} KB
+                      {showMailReview && needsMailReview?.(e) ? (
+                        <span className="block text-rose-200/90 normal-case tracking-normal mt-0.5">Needs review</span>
+                      ) : showMailReview && needsMailReview && !needsMailReview(e) ? (
+                        <span className="block text-emerald-200/90 normal-case tracking-normal mt-0.5">Mail-eligible</span>
+                      ) : null}
                     </div>
                     {onUpsert ? (
                       <select
@@ -294,6 +305,16 @@ export function EvidenceVaultTiles({
                       </select>
                     ) : null}
                     <div className="flex flex-wrap gap-1 pt-0.5">
+                      {showMailReview && needsMailReview?.(e) && onApproveForMail ? (
+                        <button
+                          type="button"
+                          onClick={() => onApproveForMail(e)}
+                          className={`${FINELY_OS_SECONDARY_BTN} !px-1.5 !py-1 !text-[9px] inline-flex items-center gap-0.5 text-violet-100`}
+                          title="Confirm this exhibit matches the source before mailing"
+                        >
+                          <FileCheck2 size={10} /> Approve
+                        </button>
+                      ) : null}
                       <button
                         type="button"
                         onClick={() => void handlePreview(e)}

@@ -1,0 +1,149 @@
+/**
+ * Admin Partners product surface — split workbench / portfolio mosaic.
+ * ProductHubScaffold is chrome; this file styles the unique body only.
+ */
+
+.fc-partners-portfolio-workbench {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.fc-partners-portfolio-lenses {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 960px) {
+  .fc-partners-portfolio-lenses {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fc-partners-portfolio-lens {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 20px;
+  border-radius: 18px;
+  border: 1px solid rgba(var(--fc-sig-accent-rgb, 15, 187, 139), 0.28);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(var(--fc-sig-accent-rgb, 15, 187, 139), 0.18), transparent 58%),
+    linear-gradient(145deg, rgba(19, 28, 46, 0.92), rgba(12, 18, 32, 0.88));
+  color: #f8fafc;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.fc-partners-portfolio-lens[data-accent='emerald'] {
+  --fc-sig-accent-rgb: 15, 187, 139;
+}
+
+.fc-partners-portfolio-lens[data-accent='rose'] {
+  --fc-sig-accent-rgb: 236, 72, 121;
+}
+
+.fc-partners-portfolio-lens[data-accent='sky'] {
+  --fc-sig-accent-rgb: 42, 167, 220;
+}
+
+.fc-partners-portfolio-lens[data-accent='violet'] {
+  --fc-sig-accent-rgb: 143, 92, 246;
+}
+
+.fc-partners-portfolio-lens:hover,
+.fc-partners-portfolio-lens[data-active='true'] {
+  transform: translateY(-2px);
+  border-color: rgba(var(--fc-sig-accent-rgb), 0.55);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+}
+
+.fc-partners-portfolio-lens-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: rgba(var(--fc-sig-accent-rgb), 0.22);
+  color: rgb(var(--fc-sig-accent-rgb));
+  border: 1px solid rgba(var(--fc-sig-accent-rgb), 0.35);
+}
+
+.fc-partners-portfolio-lens-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.fc-partners-portfolio-lens-copy strong {
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.fc-partners-portfolio-lens-copy em {
+  font-style: normal;
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgba(226, 232, 240, 0.88);
+  line-height: 1.35;
+}
+
+.fc-partners-portfolio-lens-badge {
+  min-width: 28px;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  background: rgba(var(--fc-sig-accent-rgb), 0.22);
+  color: rgb(var(--fc-sig-accent-rgb));
+  border: 1px solid rgba(var(--fc-sig-accent-rgb), 0.35);
+}
+
+.fc-partners-portfolio-mosaic {
+  overflow: hidden;
+}
+
+.fc-partners-portfolio-mosaic-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+[data-page-signature='partner-portfolio'] .fc-wlp-atlas-grid {
+  margin-top: 4px;
+}
+
+[data-page-signature='partner-portfolio'][data-inspector='open'] .fc-partners-portfolio-mosaic-head h2 {
+  color: #f8fafc;
+}
+
+[data-page-signature='partner-portfolio'] .fc-partners-portfolio-mosaic {
+  color: #f8fafc;
+}
+
+[data-page-signature='partner-portfolio'] .fc-partners-portfolio-mosaic-head h2 {
+  color: #f8fafc !important;
+}
+
+[data-page-signature='partner-portfolio'] .fc-partners-portfolio-mosaic-head p {
+  color: rgba(226, 232, 240, 0.88) !important;
+}
+
+[data-page-signature='partner-portfolio'] .fc-wlp-atlas-canvas :is(.fc-light-chrome-panel, .fc-light-chrome-strip) {
+  background: linear-gradient(140deg, rgba(24, 38, 58, 0.85), rgba(16, 28, 44, 0.92));
+  border: 1px solid rgba(167, 139, 250, 0.28);
+  color: #f1f5f9;
+}

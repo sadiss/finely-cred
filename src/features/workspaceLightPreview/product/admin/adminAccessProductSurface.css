@@ -1,0 +1,66 @@
+/* Admin access — control room (status grid + inspector + alert rail) */
+
+.fc-admin-access-control {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.fc-admin-access-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-width: 0;
+}
+
+.fc-admin-access-zone-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 1100px) {
+  .fc-admin-access-zone-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .fc-admin-access-zone-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fc-admin-access-zone-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  padding: 16px 14px;
+  border-radius: 16px;
+  text-align: left;
+  transition: transform 0.12s ease;
+}
+
+.fc-admin-access-zone-tile:hover {
+  transform: translateY(-1px);
+}
+
+.fc-admin-access-zone-tile[data-selected='true'] {
+  box-shadow: 0 0 0 3px #fff, 0 0 0 8px #10b981;
+}
+
+.fc-admin-access-alert-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fc-admin-access-inspector-bed {
+  padding: 22px 24px;
+  border-radius: 20px;
+  border: 1px solid rgba(16, 185, 129, 0.18);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(56, 189, 248, 0.06), transparent 42%),
+    rgba(255, 255, 255, 0.92);
+}

@@ -7,6 +7,9 @@ export function PortalChatWidget(args: {
   lane?: string;
   journeyStage?: string;
   adminMode?: boolean;
+  forceEnabled?: boolean;
+  navigationMode?: 'preview' | 'live';
+  visualVariant?: 'default' | 'product';
 }) {
   return (
     <FinelyCommunicationHub
@@ -17,6 +20,9 @@ export function PortalChatWidget(args: {
       journeyStage={args.journeyStage}
       adminMode={args.adminMode}
       showAllAgents={args.adminMode}
+      forceEnabled={args.forceEnabled}
+      navigationMode={args.navigationMode}
+      visualVariant={args.visualVariant}
     />
   );
 }

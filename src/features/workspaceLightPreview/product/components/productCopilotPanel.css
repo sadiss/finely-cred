@@ -1,0 +1,295 @@
+/**
+ * productCopilotPanel.css — additive visual enrichment for the floating
+ * "Ask Finely" launcher + overlay (`ProductCopilotPanel.tsx`).
+ *
+ * Every rule here is additive-only against `workspaceProduct.css`:
+ *  - New elements this component introduces (`.fc-wlp-copilot-depth-layer`,
+ *    `.fc-wlp-copilot-content`, `.fc-wlp-copilot-hub-row`, ...) — no existing
+ *    selector targets them, so there is nothing to conflict with.
+ *  - Where an existing element needs enrichment (the panel shell itself),
+ *    the compound selector `.fc-wlp-copilot.fc-wlp-copilot--rich` is used.
+ *    Two classes always out-specificity the single-class base rule in
+ *    `workspaceProduct.css`, regardless of which stylesheet's chunk loads
+ *    first — so the enrichment is guaranteed to apply, not a cascade-order
+ *    gamble.
+ * `workspaceProduct.css` itself is never edited.
+ *
+ * IMPORTANT — `position` fix: the base `.fc-wlp-copilot` rule in
+ * `workspaceProduct.css` sets `position: fixed` so the panel floats above
+ * the viewport. Because `.fc-wlp-copilot.fc-wlp-copilot--rich` is always
+ * applied together with the base class (see the component's className),
+ * declaring a *different* `position` value here would win the cascade
+ * (two classes beats one) and silently downgrade the panel to
+ * `position: relative` — i.e. laid out in normal document flow, then
+ * nudged by `right`/`bottom` from wherever it happens to fall in that
+ * flow. That reproduces the reported bug exactly ("goes to the left,
+ * can't see the whole thing"). Keep this `fixed` — it still works fine as
+ * the positioning context the `::before` glow pseudo-element needs.
+ */
+
+.fc-wlp-copilot.fc-wlp-copilot--rich {
+  position: fixed;
+  isolation: isolate;
+  box-shadow:
+    0 42px 90px -34px rgba(3, 7, 13, 0.98),
+    0 0 0 1px rgba(255, 255, 255, 0.035) inset,
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 0 34px -8px rgba(148, 101, 255, 0.4);
+  /* Bigger default footprint (owner: "you don't see the whole thing" / "too
+     small"). `min-height` is derived from the SAME available-space calc as
+     `height` (both wrapped in `min()`), so it can never resolve larger than
+     what actually fits above `bottom: 24px` — that mismatch was the other
+     half of the clipping bug (a plain `min-height: 500px` fighting a
+     `height` that could legitimately resolve below 500px on shorter
+     viewports, pushing the top of the panel off-screen). */
+  width: min(460px, calc(100vw - 32px));
+  height: min(680px, calc(100vh - var(--wlp-review-h, 52px) - 34px));
+  min-height: min(420px, calc(100vh - var(--wlp-review-h, 52px) - 34px));
+  max-height: calc(100vh - var(--wlp-review-h, 52px) - 34px);
+  transition: width 240ms cubic-bezier(0.2, 0.8, 0.2, 1), height 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Expand-to-tall mode — anchored bottom-right in both states, so growing
+   width/height simply extends the panel further left and up. */
+.fc-wlp-copilot.fc-wlp-copilot--rich.fc-wlp-copilot--expanded {
+  width: min(720px, calc(100vw - 32px));
+  height: min(920px, calc(100vh - var(--wlp-review-h, 52px) - 20px));
+  min-height: min(480px, calc(100vh - var(--wlp-review-h, 52px) - 20px));
+  max-height: calc(100vh - var(--wlp-review-h, 52px) - 20px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fc-wlp-copilot.fc-wlp-copilot--rich {
+    transition: none;
+  }
+}
+.fc-wlp-copilot.fc-wlp-copilot--rich::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  z-index: -1;
+  border: 1px solid rgba(148, 101, 255, 0.28);
+  border-radius: 28px;
+  pointer-events: none;
+  animation: fc-wlp-copilot-glow-pulse 3.6s ease-in-out infinite;
+}
+@keyframes fc-wlp-copilot-glow-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+    box-shadow: 0 0 16px -6px rgba(148, 101, 255, 0.5);
+  }
+  50% {
+    opacity: 0.85;
+    box-shadow: 0 0 26px -4px rgba(148, 101, 255, 0.75);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fc-wlp-copilot.fc-wlp-copilot--rich::before {
+    animation: none;
+    opacity: 0.55;
+  }
+}
+
+/* Radial depth wash behind the panel content — a new element, so `.fcm-depth`
+   (position:relative by default) is safely repositioned to fill+sit behind. */
+.fc-wlp-copilot-depth-layer.fcm-depth {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Real panel content sits above the depth wash + grain overlay. */
+.fc-wlp-copilot-content {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+}
+
+/* Hub quick-actions row — meeting / team chat / guide entry points, so the
+   overlay reads as a genuine communication hub, not just a text box. */
+.fc-wlp-copilot-hub-row {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 0 13px 9px;
+  scrollbar-width: none;
+}
+.fc-wlp-copilot-hub-row::-webkit-scrollbar {
+  display: none;
+}
+.fc-wlp-copilot-hub-chip {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.055);
+  padding: 6px 9px;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 12px;
+  font-weight: 720;
+  white-space: nowrap;
+  transition: border-color 160ms ease, background 160ms ease, color 160ms ease, transform 160ms ease;
+}
+.fc-wlp-copilot-hub-chip:hover {
+  border-color: rgba(160, 126, 238, 0.5);
+  background: rgba(148, 101, 255, 0.16);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+/* Readability — this is a conversation interface; the message body and the
+   compose textarea are the primary reading surface, so they get the
+   biggest bump (14px, above the shared 12-13px chrome tokens). The
+   `.fc-wlp-copilot.fc-wlp-copilot--rich` prefix gives these enough
+   specificity to win over the single-class rules in `workspaceProduct.css`. */
+.fc-wlp-copilot.fc-wlp-copilot--rich .fc-wlp-copilot-message > div {
+  font-size: 14px;
+  line-height: 1.6;
+}
+.fc-wlp-copilot.fc-wlp-copilot--rich .fc-wlp-copilot-compose textarea {
+  font-size: 14px;
+}
+
+/* Dictation + read-aloud + language. These mirror capabilities the legacy Hub AI coach and
+   public chat already ship; the copilot reuses their hooks so behaviour cannot drift. */
+.fc-wlp-copilot-mic-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.78);
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+}
+.fc-wlp-copilot-mic-btn:hover {
+  border-color: rgba(160, 126, 238, 0.55);
+  background: rgba(148, 101, 255, 0.18);
+  color: #fff;
+}
+.fc-wlp-copilot-mic-btn[data-listening='true'] {
+  border-color: rgba(244, 63, 111, 0.6);
+  background: rgba(244, 63, 111, 0.22);
+  color: #ffd8e2;
+  animation: fc-wlp-copilot-mic-pulse 1.4s ease-in-out infinite;
+}
+@keyframes fc-wlp-copilot-mic-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(244, 63, 111, 0.42); }
+  50% { box-shadow: 0 0 0 6px rgba(244, 63, 111, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fc-wlp-copilot-mic-btn[data-listening='true'] {
+    animation: none;
+  }
+}
+
+.fc-wlp-copilot-message-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.fc-wlp-copilot-speak-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 7px;
+  padding: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+}
+.fc-wlp-copilot-speak-btn:hover {
+  background: rgba(148, 101, 255, 0.24);
+  color: #fff;
+}
+
+.fc-wlp-copilot-locale {
+  position: relative;
+  padding: 0 13px 8px;
+}
+.fc-wlp-copilot-locale-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 5px 9px;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+  font-weight: 720;
+  cursor: pointer;
+}
+.fc-wlp-copilot-locale-btn:hover {
+  border-color: rgba(160, 126, 238, 0.5);
+  color: #fff;
+}
+.fc-wlp-copilot-locale-menu {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 13px;
+  z-index: 5;
+  display: grid;
+  gap: 2px;
+  min-width: 176px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 13px;
+  padding: 6px;
+  background: #14162b;
+  box-shadow: 0 18px 44px rgba(6, 8, 20, 0.5);
+}
+.fc-wlp-copilot-locale-menu button {
+  border: none;
+  border-radius: 9px;
+  padding: 7px 10px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 12.5px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+.fc-wlp-copilot-locale-menu button:hover {
+  background: rgba(148, 101, 255, 0.2);
+  color: #fff;
+}
+.fc-wlp-copilot-locale-menu button[data-active='true'] {
+  background: rgba(16, 185, 129, 0.2);
+  color: #b8f5df;
+}
+
+/* Mobile (matches the existing `@media (max-width: 900px)` fullscreen
+   behavior in workspaceProduct.css): the expand control is meaningless at
+   this size, and the enlarged/expanded desktop geometry above must not
+   leak through. Same selectors, so this wins on source order — placed
+   last in the file on purpose. */
+@media (max-width: 900px) {
+  .fc-wlp-copilot-expand-btn {
+    display: none;
+  }
+  .fc-wlp-copilot.fc-wlp-copilot--rich,
+  .fc-wlp-copilot.fc-wlp-copilot--rich.fc-wlp-copilot--expanded {
+    top: calc(var(--wlp-review-h, 52px) + 8px);
+    right: 8px;
+    bottom: 76px;
+    left: 8px;
+    width: auto;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    border-radius: 22px;
+    transition: none;
+  }
+}

@@ -185,7 +185,7 @@ export default function PartnerWealthPathsPage() {
                 </div>
               )}
 
-              <div className={`${finelyOsCatalogCard('violet')} !p-5 md:p-8 space-y-4`}>
+              <div className={`${finelyOsCatalogCard('violet')} space-y-4`} data-fc-accent="violet">
                 <div className="flex items-start justify-between gap-6 flex-wrap">
                   <div className="space-y-2">
                     <div className={`inline-flex items-center gap-2 ${finelyOsStatusChip('warn')}`}>
@@ -237,7 +237,7 @@ export default function PartnerWealthPathsPage() {
               <div key={lane.id} className={`${finelyOsListItem(!locked, locked ? 'violet' : 'emerald')} p-6 ${locked ? 'opacity-80' : ''}`}>
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-3">
-                    <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony !p-0 w-10 h-10 flex items-center justify-center`}>
+                    <div className="h-12 w-12 rounded-xl bg-sky-500 text-white grid place-items-center shrink-0 shadow-[0_10px_18px_-12px_rgba(14,165,233,0.95)]">
                       {lane.icon}
                     </div>
                     <div className="space-y-1">

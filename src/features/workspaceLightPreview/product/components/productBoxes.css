@@ -1,0 +1,342 @@
+/*
+ * pbx-* — "the box is an object, not a fill" layer for the shared product
+ * primitives in `ProductUi.tsx` and `ProductCollectionSurface.tsx`.
+ *
+ * Every `.pbx-object` root gets a `ProductBoxSurface` (see `ProductUi.tsx`)
+ * as its first children: absolutely-positioned `.pbx-layer` spans carrying
+ * `fcm-depth` / `fcm-corner-wash` / `fcm-lacquer` classes from
+ * `finelyMaterials.css`. Because they are `position: absolute`, they are
+ * removed from grid/flex flow entirely (per spec, absolutely-positioned
+ * children never consume a grid track or flex slot), so they can be
+ * dropped into an existing `display: grid` / `display: flex` box (activity
+ * deck cards, pipeline bento tiles, health lattice tiles, collection mosaic
+ * items) without touching the number or order of real content children.
+ *
+ * `.pbx-object` intentionally only ever ADDS properties (`position`,
+ * `isolation`, `overflow`) that the underlying `workspaceProduct.css` rules
+ * for these same root classes never declare — so there is nothing to
+ * override there. The one place a real override is needed is `box-shadow`
+ * (every box root already carries its own drop shadow), which is why the
+ * rules below always pair the root's existing class with `.pbx-object`
+ * (e.g. `.fc-wlp-panel.pbx-object`), a compound selector that is
+ * guaranteed higher specificity than the single-class rule it replaces —
+ * regardless of stylesheet import order.
+ */
+
+.pbx-object {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+/* Decorative surface children — never intercept clicks, never take a
+   grid/flex slot, always paint first (see stacking note below). */
+.pbx-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+}
+/* `.fcm-depth` declares `position: relative` for its usual "apply to the
+   container itself" usage; here it is a full-bleed child instead, so this
+   compound selector (2 classes) wins over the single-class rule and keeps
+   it absolutely positioned. */
+.pbx-layer.fcm-depth {
+  position: absolute;
+}
+
+/*
+ * Real content siblings must be lifted into the "positioned" paint step so
+ * they render above the `.pbx-layer` spans regardless of DOM order — an
+ * absolutely-positioned element otherwise paints above non-positioned,
+ * in-flow content no matter where it sits in the markup. None of the box
+ * types below declare `position` on their direct children today, so this
+ * never overrides anything; it only adds the missing stacking context.
+ */
+.pbx-object > :not(.pbx-layer) {
+  position: relative;
+  z-index: 1;
+}
+
+/*
+ * Unified box-shadow language — depth-drop + specular top hairline, with an
+ * accent glow ring added for `hero`-tier boxes. Combined in ONE box-shadow
+ * value per state (see `finelyMaterials.css`'s note that box-shadow does
+ * not compose across classes on one element). Each selector pairs the
+ * root's own class with `.pbx-object` so it always outranks the plain
+ * single-class rule in `workspaceProduct.css` that it replaces.
+ */
+.fc-wlp-panel.pbx-object,
+.fc-wlp-metric.pbx-object,
+.fc-wlp-activity-deck-card.pbx-object,
+.fc-wlp-health-lattice-tile.pbx-object,
+.fc-wlp-pipeline-bento-tile.pbx-object,
+.fc-wlp-collection-item.pbx-object,
+.fc-wlp-dock-item.pbx-object,
+.fc-wlp-action-mosaic-card.pbx-object {
+  box-shadow:
+    0 20px 38px -28px rgba(10, 22, 40, 0.5),
+    inset 0 1px 0 var(--fcm-hairline, rgba(255, 255, 255, 0.65));
+  transition: box-shadow 200ms ease;
+}
+
+.fc-wlp-panel.pbx-object[data-bed='dark'],
+.fc-wlp-metric.pbx-object[data-bed='dark'],
+.fc-wlp-activity-deck-card.pbx-object[data-bed='dark'],
+.fc-wlp-health-lattice-tile.pbx-object[data-bed='dark'],
+.fc-wlp-pipeline-bento-tile.pbx-object[data-bed='dark'],
+.fc-wlp-collection-item.pbx-object[data-bed='dark'],
+.fc-wlp-dock-item.pbx-object[data-bed='dark'],
+.fc-wlp-action-mosaic-card.pbx-object[data-bed='dark'] {
+  box-shadow:
+    0 22px 42px -26px rgba(2, 4, 10, 0.58),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+/* `hero` and `featured` are the same tier (see `ProductBoxEmphasis` in
+   `ProductUi.tsx`) — `:is()` matches either without doubling every
+   compound selector below. */
+.fc-wlp-panel.pbx-object:is([data-pbx-tier='hero'], [data-pbx-tier='featured']),
+.fc-wlp-metric.pbx-object:is([data-pbx-tier='hero'], [data-pbx-tier='featured']),
+.fc-wlp-activity-deck-card.pbx-object:is([data-pbx-tier='hero'], [data-pbx-tier='featured']),
+.fc-wlp-health-lattice-tile.pbx-object:is([data-pbx-tier='hero'], [data-pbx-tier='featured']),
+.fc-wlp-pipeline-bento-tile.pbx-object:is([data-pbx-tier='hero'], [data-pbx-tier='featured']),
+.fc-wlp-collection-item.pbx-object:is([data-pbx-tier='hero'], [data-pbx-tier='featured']),
+.fc-wlp-dock-item.pbx-object:is([data-pbx-tier='hero'], [data-pbx-tier='featured']),
+.fc-wlp-action-mosaic-card.pbx-object:is([data-pbx-tier='hero'], [data-pbx-tier='featured']) {
+  box-shadow:
+    0 24px 46px -26px rgba(10, 22, 40, 0.52),
+    inset 0 1px 0 var(--fcm-hairline, rgba(255, 255, 255, 0.65)),
+    0 0 0 1px rgba(var(--fcm-accent-rgb), 0.32),
+    0 0 30px -4px rgba(var(--fcm-accent-rgb), 0.28);
+}
+
+.fc-wlp-panel.pbx-object[data-bed='dark']:is([data-pbx-tier='hero'], [data-pbx-tier='featured']),
+.fc-wlp-metric.pbx-object[data-bed='dark']:is([data-pbx-tier='hero'], [data-pbx-tier='featured']),
+.fc-wlp-activity-deck-card.pbx-object[data-bed='dark']:is([data-pbx-tier='hero'], [data-pbx-tier='featured']),
+.fc-wlp-health-lattice-tile.pbx-object[data-bed='dark']:is([data-pbx-tier='hero'], [data-pbx-tier='featured']),
+.fc-wlp-pipeline-bento-tile.pbx-object[data-bed='dark']:is([data-pbx-tier='hero'], [data-pbx-tier='featured']),
+.fc-wlp-collection-item.pbx-object[data-bed='dark']:is([data-pbx-tier='hero'], [data-pbx-tier='featured']),
+.fc-wlp-dock-item.pbx-object[data-bed='dark']:is([data-pbx-tier='hero'], [data-pbx-tier='featured']),
+.fc-wlp-action-mosaic-card.pbx-object[data-bed='dark']:is([data-pbx-tier='hero'], [data-pbx-tier='featured']) {
+  box-shadow:
+    0 26px 50px -24px rgba(2, 4, 10, 0.64),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 0 0 1px rgba(var(--fcm-accent-rgb), 0.42),
+    0 0 34px -2px rgba(var(--fcm-accent-rgb), 0.36);
+}
+
+.fc-wlp-panel.pbx-object[data-pbx-tier='quiet'] {
+  box-shadow:
+    0 14px 28px -24px rgba(10, 22, 40, 0.36),
+    inset 0 1px 0 rgba(10, 22, 40, 0.05);
+}
+
+/* Hover lift keeps working on interactive (button) boxes — just re-adds the
+   accent glow so the lift does not lose the hero ring on hover. */
+button.fc-wlp-panel.pbx-object:is([data-pbx-tier='hero'], [data-pbx-tier='featured']):hover,
+button.fc-wlp-metric.pbx-object:is([data-pbx-tier='hero'], [data-pbx-tier='featured']):hover,
+button.fc-wlp-activity-deck-card.pbx-object:is([data-pbx-tier='hero'], [data-pbx-tier='featured']):hover,
+button.fc-wlp-health-lattice-tile.pbx-object:is([data-pbx-tier='hero'], [data-pbx-tier='featured']):hover,
+button.fc-wlp-pipeline-bento-tile.pbx-object:is([data-pbx-tier='hero'], [data-pbx-tier='featured']):hover,
+button.fc-wlp-collection-item.pbx-object:is([data-pbx-tier='hero'], [data-pbx-tier='featured']):hover,
+button.fc-wlp-dock-item.pbx-object:is([data-pbx-tier='hero'], [data-pbx-tier='featured']):hover,
+button.fc-wlp-action-mosaic-card.pbx-object:is([data-pbx-tier='hero'], [data-pbx-tier='featured']):hover {
+  box-shadow:
+    0 30px 54px -26px rgba(10, 22, 40, 0.58),
+    inset 0 1px 0 var(--fcm-hairline, rgba(255, 255, 255, 0.65)),
+    0 0 0 1px rgba(var(--fcm-accent-rgb), 0.5),
+    0 0 36px -2px rgba(var(--fcm-accent-rgb), 0.36);
+}
+
+/*
+ * `.fc-wlp-collection[data-view="mosaic"] .fc-wlp-collection-item[data-featured="true"]`
+ * (ancestor class + attr, item class + attr — 4 selector units) is more
+ * specific than the generic `.fc-wlp-collection-item.pbx-object[...]` rules
+ * above (3 units), so the featured mosaic tile's own box-shadow would still
+ * win over ours. Requalify with the same ancestor context so the hero/dark
+ * box-shadow actually applies there too.
+ */
+.fc-wlp-collection[data-view='mosaic'] .fc-wlp-collection-item.pbx-object:is([data-pbx-tier='hero'], [data-pbx-tier='featured']) {
+  box-shadow:
+    0 24px 46px -26px rgba(10, 22, 40, 0.52),
+    inset 0 1px 0 var(--fcm-hairline, rgba(255, 255, 255, 0.65)),
+    0 0 0 1px rgba(var(--fcm-accent-rgb), 0.32),
+    0 0 30px -4px rgba(var(--fcm-accent-rgb), 0.28);
+}
+.fc-wlp-collection[data-view='mosaic'] .fc-wlp-collection-item.pbx-object[data-bed='dark']:is([data-pbx-tier='hero'], [data-pbx-tier='featured']) {
+  box-shadow:
+    0 26px 50px -24px rgba(2, 4, 10, 0.64),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 0 0 1px rgba(var(--fcm-accent-rgb), 0.42),
+    0 0 34px -2px rgba(var(--fcm-accent-rgb), 0.36);
+}
+button.fc-wlp-collection[data-view='mosaic'] .fc-wlp-collection-item.pbx-object:is([data-pbx-tier='hero'], [data-pbx-tier='featured']):hover,
+.fc-wlp-collection[data-view='mosaic'] button.fc-wlp-collection-item.pbx-object:is([data-pbx-tier='hero'], [data-pbx-tier='featured']):hover {
+  box-shadow:
+    0 30px 54px -26px rgba(10, 22, 40, 0.58),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 0 0 1px rgba(var(--fcm-accent-rgb), 0.5),
+    0 0 36px -2px rgba(var(--fcm-accent-rgb), 0.36);
+}
+
+/* =============================================================================
+ * Tonal hierarchy (three `data-pbx-tier` weights — see `ProductBoxEmphasis`
+ * in `ProductUi.tsx`): `quiet` containers, `raised` objects sitting inside
+ * them, `featured`/`hero` for the roughly-one-per-section standout. Rotating
+ * HUE (`accentAt`/`arrangeAccents`) without varying LIGHTNESS reads as flat —
+ * these rules are what actually separate a `raised` card from the `quiet`
+ * panel underneath it, by VALUE, not just colour.
+ *
+ * Two steps, because `.fcm-depth` (the first `.pbx-layer` child rendered by
+ * `ProductBoxSurface`) is a full-bleed *opaque* span, not a translucent
+ * wash: it fully paints over whatever `background` the `.pbx-object` root
+ * declares. That is the real mechanism behind "emerald tiles get lightened
+ * twice" — the legacy per-accent pastel from `workspaceProduct.css` was
+ * never actually showing through underneath the near-white depth material,
+ * it was just sitting there unused while `.fcm-depth`'s own pale ramp did
+ * all the painting, identically, regardless of tier or accent.
+ *   1. Neutralise the now-redundant root background so nothing is painted
+ *      twice (also avoids a stray colour bleeding past the child's rounded
+ *      corners on sub-pixel layouts).
+ *   2. Retune what `.fcm-depth` actually paints, once per tier, off the same
+ *      `--fcm-accent-rgb` token the rest of the material layer reads — so
+ *      `raised` gets a real, single-layer, noticeably-more-saturated fill
+ *      instead of inheriting `quiet`'s near-white by accident.
+ * ============================================================================= */
+/*
+ * The real surface paint lives on the `.pbx-layer.fcm-depth` sibling (a
+ * decorative child, absolutely positioned to fully cover this root — see the
+ * header comment above). Because it's a SIBLING and not an ancestor of the
+ * text nodes inside this box, anything that only walks up the DOM looking for
+ * a background (contrast tooling, print/reader modes) cannot see it, and
+ * would otherwise fall through to whatever real ancestor happens to be
+ * further up — on this workspace that's the dark app shell, not this card.
+ * `background-color: var(--fcm-bed)` (already defined on this same element
+ * by its own `[data-bed]` attribute, see `finelyMaterials.css`) gives that
+ * walk a correct, bed-matched, fully-opaque value to stop on. It never
+ * paints in practice: the opaque `.fcm-depth` sibling always covers it.
+ */
+.fc-wlp-panel.pbx-object[data-bed],
+.fc-wlp-metric.pbx-object[data-bed],
+.fc-wlp-activity-deck-card.pbx-object[data-bed],
+.fc-wlp-health-lattice-tile.pbx-object[data-bed],
+.fc-wlp-pipeline-bento-tile.pbx-object[data-bed],
+.fc-wlp-collection-item.pbx-object[data-bed],
+.fc-wlp-dock-item.pbx-object[data-bed],
+.fc-wlp-action-mosaic-card.pbx-object[data-bed] {
+  background-color: var(--fcm-bed);
+}
+
+/* `quiet` is a container that holds `raised` cards, so it stays the lightest of the three —
+   but "lightest" was implemented as literal white, which left it with no family and no edge
+   on a white page. A lit corner is enough to make it read as a panel without competing with
+   the cards sitting inside it. */
+.pbx-object[data-bed='light'][data-pbx-tier='quiet'] > .pbx-layer.fcm-depth {
+  background-image:
+    radial-gradient(circle at 100% 0, rgba(var(--fcm-accent-rgb), 0.16), transparent 38%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(var(--fcm-accent-rgb), 0.08));
+}
+
+/* Raised objects use the partner-home signal recipe — not a white water-wash slab. */
+.pbx-object[data-bed='light'][data-pbx-tier='standard'] > .pbx-layer.fcm-depth,
+.pbx-object[data-bed='light'][data-pbx-tier='raised'] > .pbx-layer.fcm-depth {
+  background-image:
+    radial-gradient(circle at 100% 0, rgba(var(--fcm-accent-rgb), 0.2), transparent 38%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(var(--fcm-accent-rgb), 0.1));
+}
+
+.pbx-object[data-bed='light'][data-pbx-tier='hero'] > .pbx-layer.fcm-depth,
+.pbx-object[data-bed='light'][data-pbx-tier='featured'] > .pbx-layer.fcm-depth {
+  background-image: linear-gradient(
+    152deg,
+    color-mix(in srgb, rgb(var(--fcm-accent-rgb)) 40%, #ffffff 60%) 0%,
+    color-mix(in srgb, rgb(var(--fcm-accent-rgb)) 60%, #ffffff 40%) 100%
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fc-wlp-panel.pbx-object,
+  .fc-wlp-metric.pbx-object,
+  .fc-wlp-activity-deck-card.pbx-object,
+  .fc-wlp-health-lattice-tile.pbx-object,
+  .fc-wlp-pipeline-bento-tile.pbx-object,
+  .fc-wlp-collection-item.pbx-object,
+  .fc-wlp-dock-item.pbx-object,
+  .fc-wlp-action-mosaic-card.pbx-object {
+    transition: none !important;
+  }
+}
+
+/*
+ * `ProductSegmentedBar` (`ProductUi.tsx`) — replaces a flat multi-color
+ * `<div>` distribution row. Each `.pbx-segmented-bar-fill` resolves its own
+ * `--fcm-accent-rgb` via `data-fcm-accent` (same token `fcm-depth` etc. use),
+ * so no hex is duplicated here, and gets a top-lit gradient + inset
+ * highlight so a single segment reads as a lacquered strip, not a paint fill.
+ */
+.pbx-segmented-bar {
+  display: flex;
+  align-items: stretch;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(10, 22, 40, 0.08);
+  box-shadow: inset 0 1px 2px rgba(10, 22, 40, 0.12);
+}
+.pbx-segmented-bar[data-bed='dark'] {
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 2px rgba(2, 4, 10, 0.4);
+}
+
+.pbx-segmented-bar-fill {
+  position: relative;
+  min-width: 2px;
+  background-image: linear-gradient(
+    180deg,
+    rgba(var(--fcm-accent-rgb), 0.98) 0%,
+    rgba(var(--fcm-accent-rgb), 0.8) 100%
+  );
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transition: width 260ms ease;
+}
+.pbx-segmented-bar-fill + .pbx-segmented-bar-fill {
+  border-left: 1px solid rgba(255, 255, 255, 0.4);
+}
+.pbx-segmented-bar[data-bed='dark'] .pbx-segmented-bar-fill + .pbx-segmented-bar-fill {
+  border-left-color: rgba(10, 22, 40, 0.35);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pbx-segmented-bar-fill {
+    transition: none !important;
+  }
+}
+
+/* Legend for a segmented bar — a distribution is unreadable without naming its parts. */
+.fc-wlp-portfolio-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin-top: 9px;
+}
+.fc-wlp-portfolio-legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--wlp-muted);
+  white-space: nowrap;
+}
+.fc-wlp-portfolio-legend > span > em {
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+  background-image: linear-gradient(
+    180deg,
+    rgba(var(--fcm-accent-rgb), 0.98) 0%,
+    rgba(var(--fcm-accent-rgb), 0.78) 100%
+  );
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}

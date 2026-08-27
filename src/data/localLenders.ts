@@ -1,4 +1,15 @@
-export type LenderCategory = 'national' | 'credit_union' | 'local';
+import {
+  geocodeAddress,
+  lookupZip,
+  searchFdicInstitutions,
+  searchNcuaNearby,
+  type FdicInstitution,
+  type NcuaNearbyResult,
+} from '../lib/publicDataClient';
+
+export type LenderCategory = 'national' | 'credit_union' | 'local' | 'private' | 'fintech' | 'cdfi';
+
+export type LenderMatchWhy = 'NCUA nearby' | 'FDIC in state' | 'curated preset';
 
 /** Higher = better for credit stacking / high-limit relationship lanes. */
 export type LimitBias = 'high' | 'mid' | 'low';
@@ -18,6 +29,8 @@ export type LenderPreset = {
   color: string;
   accent: string;
 };
+
+export type LenderMatch = LenderPreset & { why: LenderMatchWhy; matchCity?: string };
 
 /** Parse upper bound from projected limit string for ranking (e.g. "$25k - $250k" → 250000). */
 export function parseProjectedLimitHigh(projectedLimit: string): number {
@@ -39,7 +52,9 @@ export function stackingSortScore(p: LenderPreset): number {
   if (p.limitBias === 'high') score += 40_000;
   else if (p.limitBias === 'low') score -= 25_000;
   if (p.category === 'credit_union') score += 35_000;
-  else if (p.category === 'local') score += 30_000;
+  else if (p.category === 'local' || p.category === 'cdfi') score += 30_000;
+  else if (p.category === 'private') score += 15_000;
+  else if (p.category === 'fintech') score += 5_000;
   else if (p.category === 'national') score -= 5_000;
   if (p.relationshipFriendly) score += 10_000;
   return score;
@@ -537,3 +552,208 @@ export const BASE_LENDER_PRESETS: LenderPreset[] = [
     accent: 'text-teal-300',
   },
 ];
+
+function slugLenderId(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '').slice(0, 48);
+}
+
+function parseFdicRows(data: FdicInstitution | undefined): Array<{ name: string; city: string; state: string }> {
+  const rows = (data?.data ?? []) as Array<{ data?: Record<string, unknown> } | Record<string, unknown>>;
+  const out: Array<{ name: string; city: string; state: string }> = [];
+  for (const row of rows) {
+    const d = (row as { data?: Record<string, unknown> }).data ?? (row as Record<string, unknown>);
+    const name = String(d.NAME ?? d.INSTNAME ?? d.name ?? '').trim();
+    if (!name) continue;
+    out.push({
+      name,
+      city: String(d.CITY ?? d.city ?? '').trim(),
+      state: String(d.STALP ?? d.STNAME ?? d.state ?? '').trim(),
+    });
+  }
+  return out;
+}
+
+function parseNcuaRows(data: NcuaNearbyResult | undefined): Array<{ name: string; city?: string }> {
+  if (!data) return [];
+  const tryArray = (rows: unknown[]): Array<{ name: string; city?: string }> => {
+    const out: Array<{ name: string; city?: string }> = [];
+    for (const row of rows) {
+      const r = row as Record<string, unknown>;
+      const name = String(
+        r.CreditUnionName ?? r.CU_NAME ?? r.cuName ?? r.Name ?? r.name ?? r.CUNAME ?? '',
+      ).trim();
+      if (!name) continue;
+      const city = String(r.City ?? r.city ?? r.CITY ?? '').trim();
+      out.push(city ? { name, city } : { name });
+    }
+    return out;
+  };
+
+  if (Array.isArray(data)) return tryArray(data);
+  if (typeof data.raw === 'string' && data.raw.trim()) {
+    try {
+      const parsed = JSON.parse(data.raw) as unknown;
+      if (Array.isArray(parsed)) return tryArray(parsed);
+    } catch {
+      /* NCUA may return HTML — skip */
+    }
+  }
+  for (const key of ['CreditUnions', 'results', 'data', 'cu', 'CUs']) {
+    const candidate = (data as Record<string, unknown>)[key];
+    if (Array.isArray(candidate)) return tryArray(candidate);
+  }
+  return [];
+}
+
+function fdicToMatch(inst: { name: string; city: string; state: string }, index: number): LenderMatch {
+  const cityLabel = inst.city ? `${inst.city}, ${inst.state}` : inst.state;
+  return {
+    id: `fdic_${slugLenderId(`${inst.state}_${inst.name}`)}_${index}`,
+    bank: inst.name.toUpperCase(),
+    product: `Business LOC / relationship line (${cityLabel})`,
+    projectedLimit: '$15k - $150k',
+    category: 'local',
+    relationshipFriendly: true,
+    noDocFriendly: true,
+    limitBias: 'high',
+    stackingTier: 'primary',
+    color: 'from-violet-900/20 to-slate-900/80',
+    accent: 'text-violet-300',
+    why: 'FDIC in state',
+    matchCity: inst.city || undefined,
+  };
+}
+
+function ncuaToMatch(cu: { name: string; city?: string }, index: number): LenderMatch {
+  const cityLabel = cu.city ? `${cu.city}` : 'nearby';
+  return {
+    id: `ncua_${slugLenderId(cu.name)}_${index}`,
+    bank: cu.name.toUpperCase(),
+    product: `Member business card + LOC (${cityLabel})`,
+    projectedLimit: '$10k - $75k',
+    category: 'credit_union',
+    relationshipFriendly: true,
+    noDocFriendly: true,
+    limitBias: 'high',
+    stackingTier: 'primary',
+    color: 'from-emerald-900/20 to-slate-900/80',
+    accent: 'text-emerald-300',
+    why: 'NCUA nearby',
+    matchCity: cu.city,
+  };
+}
+
+export type ResolveLocalLendersArgs = {
+  zip?: string;
+  state?: string;
+  city?: string;
+  address?: string;
+  address2?: string;
+  radiusMiles?: number;
+};
+
+export type ResolveLocalLendersResult = {
+  ok: boolean;
+  matches: LenderMatch[];
+  error?: string;
+};
+
+/** Real FDIC / NCUA lookups — never fabricates placeholder lenders. */
+export async function resolveLocalLenderMatches(args: ResolveLocalLendersArgs): Promise<ResolveLocalLendersResult> {
+  const zip = (args.zip || '').trim();
+  const hasZip = zip.length >= 5;
+  const hasAddress = Boolean((args.address || '').trim());
+
+  if (!hasZip && !hasAddress) {
+    return { ok: true, matches: [] };
+  }
+
+  let state = (args.state || '').trim().toUpperCase();
+  let city = (args.city || '').trim();
+  let ncuaAddress = '';
+
+  if (hasZip) {
+    const zipRes = await lookupZip(zip.slice(0, 5));
+    if (zipRes.ok && zipRes.data?.places?.length) {
+      const place = zipRes.data.places[0];
+      if (!state) state = String(place['state abbreviation'] || place.state || '').trim().toUpperCase();
+      if (!city) city = String(place['place name'] || '').trim();
+    }
+  }
+
+  if (hasAddress) {
+    const street = [args.address, args.address2].filter(Boolean).join(' ').trim();
+    const geo = await geocodeAddress({
+      street,
+      city: city || undefined,
+      state: state || undefined,
+      zip: hasZip ? zip.slice(0, 5) : undefined,
+    });
+    if (geo.ok && geo.data?.result?.addressMatches?.length) {
+      const match = geo.data.result.addressMatches[0];
+      ncuaAddress = match.matchedAddress;
+      if (!city && match.matchedAddress) {
+        const parts = match.matchedAddress.split(',');
+        if (parts.length >= 2) city = parts[parts.length - 2]?.trim() ?? city;
+      }
+    } else if (street) {
+      ncuaAddress = [street, city, state, hasZip ? zip.slice(0, 5) : undefined].filter(Boolean).join(', ');
+    }
+  } else {
+    ncuaAddress = [city, state, hasZip ? zip.slice(0, 5) : undefined].filter(Boolean).join(', ');
+  }
+
+  if (!state && !ncuaAddress) {
+    return { ok: false, matches: [], error: 'geo_unresolved' };
+  }
+
+  const radius = Math.min(100, Math.max(1, args.radiusMiles ?? 50));
+  const fdicPromise = state
+    ? searchFdicInstitutions({
+        filters: `STALP:${state} AND ACTIVE:1`,
+        fields: 'NAME,CITY,STALP',
+        limit: 20,
+      })
+    : Promise.resolve({ ok: false as const, error: 'no_state' });
+
+  const ncuaPromise = ncuaAddress
+    ? searchNcuaNearby({ type: 'address', address: ncuaAddress, radius })
+    : Promise.resolve({ ok: false as const, error: 'no_address' });
+
+  const [fdicRes, ncuaRes] = await Promise.all([fdicPromise, ncuaPromise]);
+
+  const matches: LenderMatch[] = [];
+  const seen = new Set<string>();
+
+  if (ncuaRes.ok) {
+    parseNcuaRows(ncuaRes.data).forEach((cu, i) => {
+      const key = cu.name.toLowerCase();
+      if (seen.has(key)) return;
+      seen.add(key);
+      matches.push(ncuaToMatch(cu, i));
+    });
+  }
+
+  if (fdicRes.ok) {
+    parseFdicRows(fdicRes.data).forEach((inst, i) => {
+      const key = inst.name.toLowerCase();
+      if (seen.has(key)) return;
+      seen.add(key);
+      matches.push(fdicToMatch(inst, i));
+    });
+  }
+
+  if (!fdicRes.ok && !ncuaRes.ok) {
+    return {
+      ok: false,
+      matches: [],
+      error: fdicRes.error || ncuaRes.error || 'lookup_failed',
+    };
+  }
+
+  return { ok: true, matches };
+}
+
+export function curatedPresetMatches(): LenderMatch[] {
+  return BASE_LENDER_PRESETS.map((p) => ({ ...p, why: 'curated preset' as LenderMatchWhy }));
+}

@@ -88,13 +88,13 @@ export const COMMS_SURFACE_GUIDE: {
   },
   {
     id: 'support-inbox',
-    title: 'Support Inbox',
+    title: 'Partner conversations',
     emoji: '🛡️',
     audience: 'admin',
     summary: 'Admin view of the same live threads partners see in the Hub.',
     when: 'Reply to partners, specialists, and affiliates in real time.',
     path: ADMIN_COMMS_PATHS.supportInbox,
-    pathLabel: 'Open Support Inbox',
+    pathLabel: 'Open Partner conversations',
   },
 ];
 

@@ -102,7 +102,7 @@ export function AutomationCatalogExplorer() {
                   <div className="inline-flex items-center gap-2 text-violet-200 font-bold text-sm">
                     <Zap size={14} /> {t.label}
                   </div>
-                  <span className={`rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-widest ${t.tier === 'live' ? 'border-emerald-500/30 text-emerald-200' : 'border-amber-500/30 text-amber-200'}`}>
+                  <span className={`rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-widest ${t.tier === 'live' ? 'border-emerald-500/30 text-emerald-200' : 'border-sky-500/30 text-sky-200'}`}>
                     {t.tier}
                   </span>
                 </div>

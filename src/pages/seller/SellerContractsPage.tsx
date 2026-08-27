@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { ArrowRight, FileText, ShieldCheck } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { PartnerWorkstationFrame, type PartnerEmbeddablePageProps } from '../../features/workspaceLightPreview/product/partner/PartnerWorkstationFrame';
+import { useMappedPartnerNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { useAuth } from '../../auth/AuthProvider';
 import { SellerNav } from '../../components/seller/SellerNav';
 import { getOrCreateSellerForSession } from '../../seller/getOrCreateSellerForSession';
@@ -24,8 +24,8 @@ import {
 const formLabel = `block ${FINELY_OS_ENTITY_LABEL} mb-1`;
 const formInput = FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '');
 
-export default function SellerContractsPage() {
-  const navigate = useNavigate();
+export default function SellerContractsPage({ embedded = false }: PartnerEmbeddablePageProps = {}) {
+  const navigate = useMappedPartnerNavigate();
   const auth = useAuth();
   const seller = useMemo(() => getOrCreateSellerForSession({ user: auth.user }), [auth.user]);
   const [name, setName] = useState('');
@@ -50,7 +50,7 @@ export default function SellerContractsPage() {
   };
 
   return (
-    <PageShell badge="AU Seller" title="Seller Contracts" subtitle="Review and accept the seller agreement to submit inventory for approval.">
+    <PartnerWorkstationFrame embedded={embedded} kind="au-seller-contracts-workstation" badge="AU Seller" title="Seller Contracts" subtitle="Review and accept the seller agreement to submit inventory for approval.">
       <div className={FINELY_OS_PAGE}>
         <SellerNav />
 
@@ -58,8 +58,8 @@ export default function SellerContractsPage() {
           <div className={FINELY_OS_ENTITY_EMPTY}>No seller profile found.</div>
         ) : (
           <div className="space-y-6">
-            <div className={`space-y-4 ${finelyOsCatalogCard('violet')} !p-5`}>
-              <div className="inline-flex items-center gap-2 text-fuchsia-400">
+            <div className={`space-y-4 ${finelyOsCatalogCard('emerald')}`} data-fc-accent="emerald">
+              <div className="inline-flex items-center gap-2 text-emerald-400">
                 <FileText size={18} />
                 <span className={FINELY_OS_ENTITY_SUBLABEL}>Seller agreement (summary)</span>
               </div>
@@ -73,7 +73,7 @@ export default function SellerContractsPage() {
               </div>
             </div>
 
-            <div className={`space-y-4 ${finelyOsCatalogCard('violet')} !p-5`}>
+            <div className={`space-y-4 ${finelyOsCatalogCard('sky')}`} data-fc-accent="sky">
               <label className="flex items-start gap-3 cursor-pointer">
                 <input type="checkbox" checked={accepted} onChange={(e) => setAccepted(e.target.checked)} className="mt-1" />
                 <div>
@@ -104,8 +104,8 @@ export default function SellerContractsPage() {
           </div>
         )}
 
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
       </div>
-    </PageShell>
+    </PartnerWorkstationFrame>
   );
 }

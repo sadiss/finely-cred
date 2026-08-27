@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { ArrowLeft, Key, Webhook, ArrowDownToLine, Copy, Plus, Trash2, ToggleLeft, ToggleRight } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { AdminWorkstationFrame, type AdminEmbeddablePageProps } from '../../features/workspaceLightPreview/product/admin/AdminWorkstationFrame';
+import { useMappedAdminNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { AdminWebhooksPanel } from '../../features/admin/AdminWebhooksPanel';
 import { IntegrationGoLivePanel } from '../../features/integrations/IntegrationGoLivePanel';
 import { ProductionGoLiveChecklist } from '../../features/integrations/ProductionGoLiveChecklist';
@@ -29,8 +29,8 @@ import {
   finelyOsInlineListItem,
 } from '../../features/os/finelyOsLightUi';
 
-export default function AdminIntegrationHubPage() {
-  const navigate = useNavigate();
+export default function AdminIntegrationHubPage({ embedded = false }: AdminEmbeddablePageProps = {}) {
+  const navigate = useMappedAdminNavigate();
   const [version, setVersion] = useState(0);
   const [newKeyLabel, setNewKeyLabel] = useState('');
   const [revealedSecret, setRevealedSecret] = useState<string | null>(null);
@@ -62,7 +62,9 @@ export default function AdminIntegrationHubPage() {
   };
 
   return (
-    <PageShell
+    <AdminWorkstationFrame
+      embedded={embedded}
+      kind="integrations-workstation"
       badge="Platform"
       title="Integration Hub"
       subtitle="Outbound webhooks, inbound Zapier/Make routes, and partner API keys."
@@ -75,27 +77,27 @@ export default function AdminIntegrationHubPage() {
 
         <AdminWebhooksPanel />
 
-        <section className={`${finelyOsCatalogCard('violet')} !p-5 fc-surface-harmony space-y-4`} data-fc-accent="violet">
+        <section className={`${finelyOsCatalogCard('violet')} fc-surface-harmony space-y-4`} data-fc-accent="violet">
           <h2 className={`text-xl ${FINELY_OS_ENTITY_VALUE}`}>Go-live integration health</h2>
           <p className={FINELY_OS_ENTITY_BODY}>Supabase, comms delivery, email webhooks, Meta OAuth redirects, social + staff sync.</p>
           <IntegrationGoLivePanel />
         </section>
 
-        <section className={`${finelyOsCatalogCard('emerald')} !p-5 fc-surface-harmony space-y-4`} data-fc-accent="emerald">
+        <section className={`${finelyOsCatalogCard('emerald')} fc-surface-harmony space-y-4`} data-fc-accent="emerald">
           <h2 className={`text-xl ${FINELY_OS_ENTITY_VALUE}`}>Production deploy URLs</h2>
           <p className={FINELY_OS_ENTITY_BODY}>Live webhook + OAuth callback URLs from your Supabase project — copy into Resend, SendGrid, Azure, Google.</p>
           <ProductionDeployUrlsPanel />
         </section>
 
-        <section className={`${finelyOsCatalogCard('emerald')} !p-5 fc-surface-harmony space-y-4`} data-fc-accent="emerald">
+        <section className={`${finelyOsCatalogCard('sky')} fc-surface-harmony space-y-4`} data-fc-accent="sky">
           <h2 className={`text-xl ${FINELY_OS_ENTITY_VALUE}`}>Production deploy checklist</h2>
           <p className={FINELY_OS_ENTITY_BODY}>Copy-paste Supabase deploy commands, wire webhooks, and enable live comms when ready.</p>
           <ProductionGoLiveChecklist />
         </section>
 
-        <section className={`${finelyOsCatalogCard('sky')} !p-5 fc-surface-harmony space-y-4`} data-fc-accent="sky">
+        <section className={`${finelyOsCatalogCard('rose')} fc-surface-harmony space-y-4`} data-fc-accent="rose">
           <div>
-            <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-cyan-700`}>
+            <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-rose-700`}>
               <ArrowDownToLine size={16} />
               <span>Inbound map</span>
             </div>
@@ -117,7 +119,7 @@ export default function AdminIntegrationHubPage() {
           />
         </section>
 
-        <section className={`${finelyOsCatalogCard('amber')} !p-5 fc-surface-harmony space-y-4`} data-fc-accent="amber">
+        <section className={`${finelyOsCatalogCard('violet')} fc-surface-harmony space-y-4`} data-fc-accent="violet">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-amber-700`}>
@@ -205,7 +207,7 @@ export default function AdminIntegrationHubPage() {
           )}
         </section>
 
-        <section className={`${finelyOsCatalogCard('emerald')} !p-5 fc-surface-harmony space-y-3`} data-fc-accent="emerald">
+        <section className={`${finelyOsCatalogCard('emerald')} fc-surface-harmony space-y-3`} data-fc-accent="emerald">
           <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-violet-700`}>
             <Webhook size={16} />
             <span>Recent deliveries</span>
@@ -226,6 +228,6 @@ export default function AdminIntegrationHubPage() {
           )}
         </section>
       </div>
-    </PageShell>
+    </AdminWorkstationFrame>
   );
 }

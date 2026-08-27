@@ -42,7 +42,8 @@ import { addAuditEvent } from '../../data/auditRepo';
 import { newId } from '../../utils/ids';
 import { addRoundToCase, createDisputeCase, getCase, listCasesByPartner } from '../../data/casesRepo';
 import { suggestNextRound, DISPUTE_ROUND_ORDER, INTER_ROUND_GUIDANCE, type DisputeRoundLabel } from '../../domain/disputeWorkflow';
-import { addDaysIso, candidateToCaseItem, nowIso } from '../../domain/cases';
+import { addDaysIso, candidateToCaseItem, nowIso, type DisputeCase } from '../../domain/cases';
+import { buildPriorRoundTransferNote } from '../../domain/disputeRoundTransfer';
 import { createTask, listTasksByPartner } from '../../data/tasksRepo';
 import { ENTITLEMENT_KEYS } from '../../billing/entitlements';
 import { hasEntitlement } from '../../data/billingRepo';
@@ -483,6 +484,23 @@ function isStockDisputeIntro(text: string): boolean {
     t.includes('each numbered reason below states one factual problem') ||
     t.includes('inaccurate information on my credit report is blocking')
   );
+}
+
+function combinedRoundTransferNote(
+  manual: string | undefined,
+  disputeCases: DisputeCase[],
+  bureau: Bureau,
+  round: string,
+): string | undefined {
+  const nextRound: DisputeRoundLabel =
+    round === 'Round 2' || round === 'Round 3' || round === 'Round 4' ? round : 'Round 1';
+  const match = disputeCases.find((c) => c.bureau === bureau);
+  const auto = match ? buildPriorRoundTransferNote(match, nextRound) : null;
+  const manualTrim = (manual ?? '').trim();
+  if (manualTrim && auto && !manualTrim.includes('Carried forward from')) {
+    return `${manualTrim}\n\n${auto}`;
+  }
+  return manualTrim || auto || undefined;
 }
 
 function defaultDisputeIntro(
@@ -1212,7 +1230,9 @@ export function LettersCommandCenter({
   onOpenDisputeCenter,
   onOpenDebtCenter,
   onRequestGrantEntitlements,
+  mapPortalHref,
   debtCenterMode = false,
+  deskChrome = 'letter-studio',
 }: {
   partner: Partner;
   layout?: 'standalone' | 'embedded';
@@ -1224,8 +1244,12 @@ export function LettersCommandCenter({
   onOpenDisputeCenter?: () => void;
   onOpenDebtCenter?: () => void;
   onRequestGrantEntitlements?: (keys: string[]) => void;
+  /** Remap `/portal/*` deep links (e.g. workspace-light preview routes). */
+  mapPortalHref?: (href: string) => string;
   /** Dedicated validation/affidavit mode: hides dispute/template navigation and dispute shortcuts. */
   debtCenterMode?: boolean;
+  /** Debt product desk: skip letter-studio stepper chrome. */
+  deskChrome?: 'letter-studio' | 'debt-desk' | 'litigation-desk' | 'foreclosure-desk' | 'repo-desk' | 'bankruptcy-desk';
 }) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -1237,6 +1261,10 @@ export function LettersCommandCenter({
         return;
       }
       navigate(adminPartnerNavFromPortalHref(partner.id, trimmed));
+      return;
+    }
+    if (mapPortalHref) {
+      navigate(mapPortalHref(href));
       return;
     }
     navigate(href);
@@ -1579,7 +1607,8 @@ export function LettersCommandCenter({
     if (layout === 'embedded' && partner?.id) {
       return adminPartnerTab(partner.id, 'letters', { fromCapture: '1' });
     }
-    return '/portal/letters?fromCapture=1';
+    const href = '/portal/letters?fromCapture=1';
+    return mapPortalHref ? mapPortalHref(href) : href;
   };
 
   const goCapture = (args?: { candidate?: SelectedDispute | null }) => {
@@ -1860,7 +1889,10 @@ WRITING STANDARD:
           .replace(/\n?\s*Step\s*[1-5]\s*[—\-:].*?(?=\n\s*Step\s*[1-5]\s*[—\-:]|\n\n|$)/gis, '')
           .replace(/\n{3,}/g, '\n\n')
           .trim();
-        const withTransfer = mergeTransferNote(cleaned || intro, roundTransferNote);
+        const withTransfer = mergeTransferNote(
+          cleaned || intro,
+          combinedRoundTransferNote(roundTransferNote, disputeCases, b, round) ?? '',
+        );
         setIntroByBureau((prev) => ({ ...prev, [b]: ensureHtmlDraft(withTransfer) }));
       }
       if (questions.length) {
@@ -2020,12 +2052,12 @@ WRITING STANDARD:
         negativeType: dominant,
         round,
         accountLabel: items.length === 1 ? items[0]?.candidate.account : undefined,
-        transferNote: roundTransferNote.trim() || undefined,
+        transferNote: combinedRoundTransferNote(roundTransferNote, disputeCases, b, round),
       });
       const introText =
         !introTextRaw.trim() || isStockDisputeIntro(introTextRaw)
           ? fiveStepIntro
-          : mergeTransferNote(introTextRaw, roundTransferNote);
+          : mergeTransferNote(introTextRaw, combinedRoundTransferNote(roundTransferNote, disputeCases, b, round) ?? '');
       const introTextForMail = stripLetterVendorBranding(introText);
 
     setPdfErr(null);
@@ -2862,7 +2894,7 @@ useEffect(() => {
           negativeType: dominant,
           round: roundByBureau[b],
           accountLabel: items.length === 1 ? items[0]?.candidate.account : undefined,
-          transferNote: roundTransferNote.trim() || undefined,
+          transferNote: combinedRoundTransferNote(roundTransferNote, disputeCases, b, roundByBureau[b]),
         });
         if (raw.trim() !== built.trim()) {
           next[b] = plainTextToHtml(built);
@@ -2871,7 +2903,7 @@ useEffect(() => {
       }
       return changed ? next : prev;
     });
-  }, [selectedDisputes, roundByBureau, toneByBureau, tab, selectedByBureau]);
+  }, [selectedDisputes, roundByBureau, toneByBureau, tab, selectedByBureau, disputeCases, roundTransferNote]);
 
   const evidencePickerCandidate = useMemo(() => {
     const cid = evidencePicker?.candidateId;
@@ -4414,6 +4446,13 @@ useEffect(() => {
       ? (tab as DebtLetterTrack)
       : 'debt';
 
+  const skipLetterStudioChrome = deskChrome !== 'letter-studio';
+  const useValidationDesk = tab === 'validation' && skipLetterStudioChrome;
+  const useLitigationDesk = tab === 'court' && skipLetterStudioChrome;
+  const useForeclosureDesk = tab === 'foreclosure' && skipLetterStudioChrome;
+  const useRepoDesk = tab === 'repossession' && skipLetterStudioChrome;
+  const useBankruptcyDesk = tab === 'bankruptcy' && skipLetterStudioChrome;
+
   /** Court matters that already ended in a payment plan get the compliance rail, not the defense rail. */
   const debtCourtOutcome = useMemo(
     () => (debtId ? getCourtOutcomeByDebtCase(debtId) : null),
@@ -4931,7 +4970,7 @@ useEffect(() => {
                     <button
                       type="button"
                       onClick={() => void runAiDraftDebtLetter()}
-                      className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all disabled:opacity-60"
+                      className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-widest text-[10px] transition-all disabled:opacity-60"
                       title="AI drafts this letter using the selected scenario + legal basis"
                       disabled={draftBusy || !aiGatewayEnabled}
                     >
@@ -5443,7 +5482,7 @@ useEffect(() => {
             <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-3">
               <button
                 type="button"
-                className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all"
+                className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-widest text-[10px] transition-all"
                 onClick={async () => {
                   const choice = pdfChoice;
                   setPdfChoice(null);
@@ -5492,7 +5531,12 @@ useEffect(() => {
         </div>
       ) : null}
 
-      <div data-fc-letter-studio="1" className="space-y-3 w-full min-w-0 overflow-x-clip">
+      <div
+        data-fc-letter-studio={skipLetterStudioChrome ? undefined : '1'}
+        data-fc-debt-validation-host={useValidationDesk ? '1' : undefined}
+        data-fc-debt-desk={skipLetterStudioChrome ? deskChrome : undefined}
+        className="space-y-3 w-full min-w-0 overflow-x-clip"
+      >
         {layout === 'standalone' && !unifiedShell ? (
           <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-3">
             <button
@@ -5504,7 +5548,7 @@ useEffect(() => {
             <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
               <button
                 onClick={() => openVault()}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 min-h-[44px] px-4 py-2 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] whitespace-normal text-center leading-snug hover:brightness-110 transition-all"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 min-h-[44px] px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-widest text-[10px] whitespace-normal text-center leading-snug transition-all"
                 title="Open your Letters Vault (saved PDFs)"
               >
                 <ScrollText size={14} /> Letters Vault
@@ -5586,7 +5630,7 @@ useEffect(() => {
               </div>
               <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-3">
                 <div className="text-white/55 text-sm min-w-0">
-                  Next: <span className="text-white/85 font-semibold">{nextBestAction.label}</span>
+                  Next: <span className={`font-semibold ${FINELY_OS_ENTITY_BODY}`}>{nextBestAction.label}</span>
                 </div>
                 <button
                   type="button"
@@ -5612,7 +5656,7 @@ useEffect(() => {
                   onClick={() =>
                     onRequestGrantEntitlements([ENTITLEMENT_KEYS.disputes, ENTITLEMENT_KEYS.letters])
                   }
-                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 border-amber-400/50 bg-gradient-to-r from-amber-500/25 to-amber-600/15 hover:from-amber-500/35 hover:to-amber-600/25 shadow-[0_0_24px_-8px_rgba(251,191,36,0.55)] text-[11px] font-black uppercase tracking-widest text-amber-50 transition-all"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 border-violet-400/50 bg-gradient-to-r from-violet-600/25 to-violet-700/15 hover:from-violet-600/35 hover:to-violet-700/25 shadow-[0_0_24px_-8px_rgba(139,92,246,0.55)] text-[11px] font-black uppercase tracking-widest text-violet-100 transition-all"
                 >
                   Grant Credit Letters access
                 </button>
@@ -5669,7 +5713,7 @@ useEffect(() => {
                                         dominant,
                                         preset.round,
                                         items.length === 1 ? items[0]?.candidate.account : undefined,
-                                        roundTransferNote,
+                                        combinedRoundTransferNote(roundTransferNote, disputeCases, b, preset.round),
                                       ),
                                     ),
                             }));
@@ -5704,7 +5748,13 @@ useEffect(() => {
                                   setIntroByBureau((prev) => ({
                                     ...prev,
                                     [b]: plainTextToHtml(
-                                      defaultDisputeIntro(toneByBureau[b], dominant, suggested, items.length === 1 ? items[0]?.candidate.account : undefined, roundTransferNote),
+                                      defaultDisputeIntro(
+                                        toneByBureau[b],
+                                        dominant,
+                                        suggested,
+                                        items.length === 1 ? items[0]?.candidate.account : undefined,
+                                        combinedRoundTransferNote(roundTransferNote, disputeCases, b, suggested),
+                                      ),
                                     ),
                                   }));
                                 }
@@ -5729,7 +5779,15 @@ useEffect(() => {
                                     [b]:
                                       prev[b] && !isStockDisputeIntro(htmlToPlainText(prev[b]))
                                         ? prev[b]
-                                        : plainTextToHtml(defaultDisputeIntro(toneByBureau[b], dominant, r, undefined, roundTransferNote)),
+                                        : plainTextToHtml(
+                                            defaultDisputeIntro(
+                                              toneByBureau[b],
+                                              dominant,
+                                              r,
+                                              undefined,
+                                              combinedRoundTransferNote(roundTransferNote, disputeCases, b, r),
+                                            ),
+                                          ),
                                   }));
                                 }}
                                 className={`rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-all ${
@@ -5827,7 +5885,7 @@ useEffect(() => {
                             className={
                               'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold transition-all max-w-[220px] ' +
                               (isTargeted
-                                ? 'border-amber-400 bg-amber-500 text-black shadow-[0_0_16px_-2px_rgba(251,191,36,0.65)]'
+                                ? 'border-violet-400 bg-violet-600 text-white shadow-[0_0_16px_-2px_rgba(139,92,246,0.65)]'
                                 : hasEvidence
                                   ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-100 hover:bg-emerald-500/20'
                                   : 'border-white/15 bg-black/40 text-white/75 hover:bg-white/10')
@@ -6004,7 +6062,7 @@ useEffect(() => {
                                 return out;
                               });
                             }}
-                            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 min-h-[44px] px-5 py-2.5 rounded-xl border-2 border-amber-400/50 bg-gradient-to-r from-amber-500/25 to-amber-600/15 hover:from-amber-500/35 hover:to-amber-600/25 shadow-[0_0_24px_-8px_rgba(251,191,36,0.55)] text-[11px] font-black uppercase tracking-widest text-amber-50 transition-all whitespace-normal text-center leading-snug"
+                            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 min-h-[44px] px-5 py-2.5 rounded-xl border-2 border-violet-400/50 bg-gradient-to-r from-violet-600/25 to-violet-700/15 hover:from-violet-600/35 hover:to-violet-700/25 shadow-[0_0_24px_-8px_rgba(139,92,246,0.55)] text-[11px] font-black uppercase tracking-widest text-violet-100 transition-all whitespace-normal text-center leading-snug"
                             title="Apply recommended reasons to every selected item (stores an Undo snapshot)"
                           >
                             Auto reasons
@@ -6028,7 +6086,7 @@ useEffect(() => {
                             <button
                               type="button"
                               onClick={() => goPortalHref('/portal/billing')}
-                              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 border-amber-400/50 bg-gradient-to-r from-amber-500/25 to-amber-600/15 hover:from-amber-500/35 hover:to-amber-600/25 shadow-[0_0_24px_-8px_rgba(251,191,36,0.55)] text-[11px] font-black uppercase tracking-widest text-amber-50 transition-all"
+                              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 border-violet-400/50 bg-gradient-to-r from-violet-600/25 to-violet-700/15 hover:from-violet-600/35 hover:to-violet-700/25 shadow-[0_0_24px_-8px_rgba(139,92,246,0.55)] text-[11px] font-black uppercase tracking-widest text-violet-100 transition-all"
                               title="Premium feature: upgrade to unlock AI drafting"
                             >
                               <Lock size={14} /> Premium AI
@@ -6056,7 +6114,7 @@ useEffect(() => {
                           <button
                             type="button"
                             onClick={() => setGroupByCreditorByBureau((prev) => ({ ...prev, [b]: !(prev[b] ?? true) }))}
-                            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 border-amber-400/50 bg-gradient-to-r from-amber-500/25 to-amber-600/15 hover:from-amber-500/35 hover:to-amber-600/25 shadow-[0_0_24px_-8px_rgba(251,191,36,0.55)] text-[11px] font-black uppercase tracking-widest text-amber-50 transition-all"
+                            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 border-violet-400/50 bg-gradient-to-r from-violet-600/25 to-violet-700/15 hover:from-violet-600/35 hover:to-violet-700/25 shadow-[0_0_24px_-8px_rgba(139,92,246,0.55)] text-[11px] font-black uppercase tracking-widest text-violet-100 transition-all"
                             title="Group items by company name (reduces long lists)"
                           >
                             {groupOn ? 'Grouped' : 'Ungrouped'}
@@ -6124,7 +6182,7 @@ useEffect(() => {
                           <button
                             type="button"
                             onClick={() => setStudioOpenByBureau((prev) => ({ ...prev, [b]: !(prev[b] ?? true) }))}
-                            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 border-amber-400/50 bg-gradient-to-r from-amber-500/25 to-amber-600/15 hover:from-amber-500/35 hover:to-amber-600/25 shadow-[0_0_24px_-8px_rgba(251,191,36,0.55)] text-[11px] font-black uppercase tracking-widest text-amber-50 transition-all"
+                            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 border-violet-400/50 bg-gradient-to-r from-violet-600/25 to-violet-700/15 hover:from-violet-600/35 hover:to-violet-700/25 shadow-[0_0_24px_-8px_rgba(139,92,246,0.55)] text-[11px] font-black uppercase tracking-widest text-violet-100 transition-all"
                             title="Toggle editor + preview"
                           >
                             <ScrollText size={14} /> {studioOpen ? 'Hide studio' : 'Open studio'}
@@ -6148,7 +6206,7 @@ useEffect(() => {
                                             dominant,
                                             round,
                                             items.length === 1 ? items[0]?.candidate.account : undefined,
-                                            roundTransferNote,
+                                            combinedRoundTransferNote(roundTransferNote, disputeCases, b, round),
                                           ),
                                         ),
                                 }));
@@ -6202,7 +6260,7 @@ useEffect(() => {
                                     if (screenshotEvidence.length === 0) return goCapture({ candidate: target });
                                     setEvidencePicker({ candidateId: target.key });
                                   }}
-                                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all"
+                                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-widest text-[10px] transition-all"
                                   title="Jump to the first item without a screenshot"
                                 >
                                   Attach screenshot <ChevronRight size={14} />
@@ -6335,7 +6393,7 @@ useEffect(() => {
                                             dominant,
                                             round,
                                             items.length === 1 ? items[0]?.candidate.account : undefined,
-                                            roundTransferNote,
+                                            combinedRoundTransferNote(roundTransferNote, disputeCases, b, round),
                                           ),
                                         ),
                                       }));
@@ -6934,6 +6992,27 @@ useEffect(() => {
               ) : null
             }
           >
+            {useValidationDesk ? (
+            <ValidationCenterView
+              {...debtCenterSharedProps}
+              partner={partner}
+              storeVersion={storeVersion}
+              onOpenLettersVault={() => openVault()}
+              showPathSwitcher
+              deskLayout
+              onSwitchToCourt={() => setTab('court')}
+              onSwitchToBankruptcy={() => setTab('bankruptcy')}
+              onBuildDraft={(specId) => buildDebtCenterDraft(specId, false)}
+              onBuildCatalogDraft={(id) => buildCatalogDraft(id, 'validation')}
+              generateBusy={generateBusy}
+              generateError={draftErr}
+              vaultHighlightLetterId={vaultHighlightLetterId}
+              suppressVaultAutoPreview={suppressVaultAutoPreview}
+              onVaultLetterSaved={bumpVaultStore}
+              canMailLetters={canMailLetters}
+              onMailLetter={requestMailLetter}
+            />
+            ) : (
             <DebtTrackEasyFlow
               track={debtTrack}
               steps={debtLetterPathSteps}
@@ -6963,6 +7042,7 @@ useEffect(() => {
               onMailLetter={requestMailLetter}
             />
             </DebtTrackEasyFlow>
+            )}
           </EntitlementGate>
         )}
 
@@ -6983,6 +7063,33 @@ useEffect(() => {
               ) : null
             }
           >
+            {useLitigationDesk ? (
+            <AffidavitCourtCenterView
+              {...debtCenterSharedProps}
+              partner={partner}
+              storeVersion={storeVersion}
+              onOpenLettersVault={() => openVault()}
+              showPathSwitcher={false}
+              deskLayout
+              onSwitchToValidation={() => setTab('validation')}
+              onSwitchToBankruptcy={() => setTab('bankruptcy')}
+              onBuildDraft={(specId) => buildDebtCenterDraft(specId, true)}
+              onBuildCatalogDraft={(id) => buildCatalogDraft(id, 'court')}
+              generateBusy={generateBusy}
+              generateError={draftErr}
+              canMailLetters={canMailLetters}
+              onMailLetter={requestMailLetter}
+              vaultHighlightLetterId={vaultHighlightLetterId}
+              suppressVaultAutoPreview={suppressVaultAutoPreview}
+              onVaultLetterSaved={bumpVaultStore}
+              selectedSummonsDocId={selectedSummonsDocId}
+              onSummonsDocChange={setSelectedSummonsDocId}
+              summonsDocCount={processedDocuments.filter((d) => {
+                const t = String(d.docType || '').toLowerCase();
+                return t.includes('summons') || t.includes('complaint');
+              }).length}
+            />
+            ) : (
             <DebtTrackEasyFlow
               track={debtTrack}
               steps={debtLetterPathSteps}
@@ -7020,6 +7127,7 @@ useEffect(() => {
               }).length}
             />
             </DebtTrackEasyFlow>
+            )}
           </EntitlementGate>
         )}
 
@@ -7039,13 +7147,24 @@ useEffect(() => {
                         : [ENTITLEMENT_KEYS.letters, ENTITLEMENT_KEYS.packForeclosure],
                     )
                   }
-                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 border-amber-400/50 bg-gradient-to-r from-amber-500/25 to-amber-600/15 hover:from-amber-500/35 hover:to-amber-600/25 shadow-[0_0_24px_-8px_rgba(251,191,36,0.55)] text-[11px] font-black uppercase tracking-widest text-amber-50 transition-all"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 border-violet-400/50 bg-gradient-to-r from-violet-600/25 to-violet-700/15 hover:from-violet-600/35 hover:to-violet-700/25 shadow-[0_0_24px_-8px_rgba(139,92,246,0.55)] text-[11px] font-black uppercase tracking-widest text-violet-100 transition-all"
                 >
                   Grant foreclosure letter access
                 </button>
               ) : null
             }
           >
+            {useForeclosureDesk ? (
+            <ForeclosureCenterView
+              {...debtCenterSharedProps}
+              partner={partner}
+              letterHub={debtCenterMode ? 'debt' : 'credit'}
+              deskLayout
+              onSwitchToValidation={() => setTab('validation')}
+              onSwitchToRepossession={() => setTab('repossession')}
+              onBuildCatalogDraft={(id) => buildCatalogDraft(id, 'foreclosure')}
+            />
+            ) : (
             <DebtTrackEasyFlow
               track={debtTrack}
               steps={debtLetterPathSteps}
@@ -7062,6 +7181,7 @@ useEffect(() => {
               onBuildCatalogDraft={(id) => buildCatalogDraft(id, 'foreclosure')}
             />
             </DebtTrackEasyFlow>
+            )}
           </EntitlementGate>
         )}
 
@@ -7081,13 +7201,24 @@ useEffect(() => {
                         : [ENTITLEMENT_KEYS.letters, ENTITLEMENT_KEYS.packRepossession],
                     )
                   }
-                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 border-amber-400/50 bg-gradient-to-r from-amber-500/25 to-amber-600/15 hover:from-amber-500/35 hover:to-amber-600/25 shadow-[0_0_24px_-8px_rgba(251,191,36,0.55)] text-[11px] font-black uppercase tracking-widest text-amber-50 transition-all"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 border-violet-400/50 bg-gradient-to-r from-violet-600/25 to-violet-700/15 hover:from-violet-600/35 hover:to-violet-700/25 shadow-[0_0_24px_-8px_rgba(139,92,246,0.55)] text-[11px] font-black uppercase tracking-widest text-violet-100 transition-all"
                 >
                   Grant repossession letter access
                 </button>
               ) : null
             }
           >
+            {useRepoDesk ? (
+            <RepossessionCenterView
+              {...debtCenterSharedProps}
+              partner={partner}
+              letterHub={debtCenterMode ? 'debt' : 'credit'}
+              deskLayout
+              onSwitchToValidation={() => setTab('validation')}
+              onSwitchToForeclosure={() => setTab('foreclosure')}
+              onBuildCatalogDraft={(id) => buildCatalogDraft(id, 'repossession')}
+            />
+            ) : (
             <DebtTrackEasyFlow
               track={debtTrack}
               steps={debtLetterPathSteps}
@@ -7104,6 +7235,7 @@ useEffect(() => {
               onBuildCatalogDraft={(id) => buildCatalogDraft(id, 'repossession')}
             />
             </DebtTrackEasyFlow>
+            )}
           </EntitlementGate>
         )}
 
@@ -7127,7 +7259,7 @@ useEffect(() => {
                         : [ENTITLEMENT_KEYS.disputes, ENTITLEMENT_KEYS.letters, ENTITLEMENT_KEYS.packBankruptcy],
                     )
                   }
-                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 border-amber-400/50 bg-gradient-to-r from-amber-500/25 to-amber-600/15 hover:from-amber-500/35 hover:to-amber-600/25 shadow-[0_0_24px_-8px_rgba(251,191,36,0.55)] text-[11px] font-black uppercase tracking-widest text-amber-50 transition-all"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 border-violet-400/50 bg-gradient-to-r from-violet-600/25 to-violet-700/15 hover:from-violet-600/35 hover:to-violet-700/25 shadow-[0_0_24px_-8px_rgba(139,92,246,0.55)] text-[11px] font-black uppercase tracking-widest text-violet-100 transition-all"
                 >
                   Grant bankruptcy letter access
                 </button>
@@ -7137,7 +7269,8 @@ useEffect(() => {
             <BankruptcyLetterStudioPanel
               partner={partner}
               adminPartnerId={embeddedPartnerId}
-              showPathSwitcher
+              showPathSwitcher={!useBankruptcyDesk}
+              deskLayout={useBankruptcyDesk}
               onSwitchToValidation={() => setTab('validation')}
               onSwitchToCourt={() => setTab('court')}
               onSavedToVault={(letterId) => {
@@ -7373,7 +7506,7 @@ useEffect(() => {
                         setTplSaveBusy(false);
                       }
                     }}
-                    className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-widest text-[10px] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     {tplSaveBusy ? 'Savingâ€¦' : 'Save to Letters Vault'} <ChevronRight size={16} />
                   </button>

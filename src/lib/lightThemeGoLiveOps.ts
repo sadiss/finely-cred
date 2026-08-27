@@ -18,7 +18,7 @@ export const LIGHT_THEME_PRIORITY_ROUTES: LightThemePriorityRoute[] = [
   { path: '/portal/dashboard', label: 'Partner dashboard', lane: 'portal' },
   { path: '/portal/letters', label: 'Letter Studio', lane: 'portal' },
   { path: '/portal/debt', label: 'Debt center', lane: 'portal' },
-  { path: '/admin/dashboard', label: 'Admin dashboard', lane: 'admin' },
+  { path: '/admin', label: 'Admin dashboard', lane: 'admin' },
   { path: '/admin/workflow', label: 'Ops queue', lane: 'admin' },
   { path: '/admin/phone-hub', label: 'Phone Hub', lane: 'admin' },
 ];

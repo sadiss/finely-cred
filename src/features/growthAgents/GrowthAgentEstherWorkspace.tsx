@@ -251,7 +251,7 @@ export function GrowthAgentEstherWorkspace() {
             className={FINELY_OS_SECONDARY_BTN}
             onClick={() => {
               setMarketingFindGeo(focus.city);
-              navigate('/admin/marketing?tab=desk&helper=find');
+              navigate('/admin/marketing-desk?helper=find');
             }}
           >
             Open Desk · Find
@@ -286,7 +286,7 @@ export function GrowthAgentEstherWorkspace() {
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/marketing?tab=desk&helper=board')}>
+        <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/marketing-desk?helper=board')}>
           Desk · Board
         </button>
         <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/growth-agents/lead-discovery')}>

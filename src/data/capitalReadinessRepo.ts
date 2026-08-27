@@ -1,7 +1,98 @@
 import { loadJson, saveJson } from './localJsonStore';
 import { newId } from '../utils/ids';
-import type { CapitalDocItem, CapitalDocKey, CapitalDocStatus, CapitalEntity, CapitalReadinessPlan, LenderRelationship, RelationshipStage } from '../domain/capitalReadiness';
+import type { ParsedCreditReport, ParsedTradeline } from '../domain/creditReports';
+import { computeMiddleScore } from '../domain/creditScoreMiddle';
+import type { Partner } from '../domain/partners';
+import type {
+  CapitalDocItem,
+  CapitalDocKey,
+  CapitalDocStatus,
+  CapitalEntity,
+  CapitalReadinessPlan,
+  LenderRelationship,
+  ReadinessScoreExtras,
+  RelationshipStage,
+} from '../domain/capitalReadiness';
 import { computeReadinessScore, defaultDocs, nowIso } from '../domain/capitalReadiness';
+import { getPartnerSync } from './partnersRepo';
+import { listReportsByPartner } from './reportsRepo';
+import { listVendorProgress } from './vendorProgressRepo';
+
+const VENDORS_REQUIRED = 5;
+
+function codeIsDerog(codeRaw: string) {
+  const c = (codeRaw || '').trim().toUpperCase();
+  if (!c) return false;
+  if (['CO', 'COL', 'CL'].includes(c)) return true;
+  const n = Number(c);
+  if (Number.isFinite(n) && n >= 30) return true;
+  return c.includes('LATE') || c.includes('DELINQ') || c.includes('CHARGE') || c.includes('COLLECT');
+}
+
+function tradelineDerog(tradeline: ParsedTradeline) {
+  const status = String(tradeline.accountStatus || '').toLowerCase();
+  if (/charge|collection|derog|late|delinq|repo|foreclos|bankrupt/.test(status)) return true;
+  const cells = tradeline.paymentHistory2y?.byBureau
+    ? Object.values(tradeline.paymentHistory2y.byBureau).flatMap((row) => row ?? [])
+    : [];
+  return cells.some((cell) => codeIsDerog(cell.code));
+}
+
+function summarizeCreditExtras(parsed?: ParsedCreditReport | null): Pick<
+  ReadinessScoreExtras,
+  'utilizationPct' | 'derogatoryCount' | 'inquiryCount' | 'oldestAccountYears'
+> {
+  if (!parsed) return {};
+
+  const utilVals = parsed.tradelines
+    .flatMap((t) => (t.utilizationPct ? Object.values(t.utilizationPct) : []))
+    .filter((v): v is number => typeof v === 'number' && Number.isFinite(v));
+  const utilizationPct = utilVals.length ? Math.round(Math.max(...utilVals)) : null;
+
+  const derogatoryCount = parsed.tradelines.filter(tradelineDerog).length;
+  const inquiryCount =
+    parsed.sections?.find((s) => /inquir/i.test(s.key) || /inquir/i.test(s.title))?.items?.length ?? 0;
+
+  const openedDates = parsed.tradelines
+    .map((t) => (t.dateOpened ? new Date(t.dateOpened) : null))
+    .filter((d): d is Date => d != null && !Number.isNaN(d.getTime()));
+  const oldestAccountYears =
+    openedDates.length > 0
+      ? Math.max(0, (Date.now() - Math.min(...openedDates.map((d) => d.getTime()))) / (365.25 * 24 * 60 * 60 * 1000))
+      : undefined;
+
+  return {
+    utilizationPct,
+    derogatoryCount,
+    inquiryCount,
+    oldestAccountYears: oldestAccountYears != null ? Math.round(oldestAccountYears * 10) / 10 : undefined,
+  };
+}
+
+export function buildReadinessScoreExtras(partnerId: string, partner?: Partner | null): ReadinessScoreExtras {
+  const id = String(partnerId || '').trim();
+  const profile = partner ?? (id ? getPartnerSync(id) : null);
+  const latestParsed = id ? listReportsByPartner(id)[0]?.parsed ?? null : null;
+  const fromReport = computeMiddleScore(latestParsed?.scores ?? []).value;
+  const routeKey = profile?.primaryRoute || 'personal_restore';
+  const routeScore = profile?.routes?.[routeKey]?.score;
+  const middleScore =
+    fromReport != null && Number.isFinite(fromReport)
+      ? fromReport
+      : typeof routeScore === 'number' && Number.isFinite(routeScore)
+        ? routeScore
+        : null;
+
+  const vendorRows = id ? listVendorProgress({ partnerId: id }) : [];
+  const vendorsReporting = vendorRows.filter((v) => v.status === 'opened' && v.reported_verified).length;
+
+  return {
+    middleScore,
+    vendorsReporting,
+    vendorsRequired: VENDORS_REQUIRED,
+    ...summarizeCreditExtras(latestParsed),
+  };
+}
 
 const KEY = 'finely.capital_readiness.v1';
 
@@ -120,7 +211,7 @@ export function deleteRelationship(partnerId: string, id: string) {
   return upsertCapitalPlan({ ...plan, relationships: plan.relationships.filter((r) => r.id !== id) });
 }
 
-export function getPlanScore(partnerId: string): number {
-  return computeReadinessScore(getOrCreateCapitalPlan(partnerId));
+export function getPlanScore(partnerId: string, partner?: Partner | null): number {
+  return computeReadinessScore(getOrCreateCapitalPlan(partnerId), buildReadinessScoreExtras(partnerId, partner));
 }
 

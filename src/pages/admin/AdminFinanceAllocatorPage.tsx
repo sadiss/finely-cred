@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ArrowRight, Download, PiggyBank, Plus, RefreshCw, Save, Sparkles, Trash2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { AdminWorkstationFrame, type AdminEmbeddablePageProps } from '../../features/workspaceLightPreview/product/admin/AdminWorkstationFrame';
+import { useMappedAdminNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { useAuth } from '../../auth/AuthProvider';
 import { isAdminEmail } from '../../auth/admin';
 import { FINELY_TENANT_ID } from '../../domain/tenants';
@@ -84,8 +84,8 @@ const MODE_LABEL: Record<FinanceBucketMode, string> = {
   pct_remaining: '% of remaining',
 };
 
-export default function AdminFinanceAllocatorPage() {
-  const navigate = useNavigate();
+export default function AdminFinanceAllocatorPage({ embedded = false }: AdminEmbeddablePageProps = {}) {
+  const navigate = useMappedAdminNavigate();
   const auth = useAuth();
   const [version, setVersion] = useState(0);
   const [notice, setNotice] = useState<string | null>(null);
@@ -267,15 +267,15 @@ export default function AdminFinanceAllocatorPage() {
 
   if (!auth.user) {
     return (
-      <PageShell badge="Admin" title="Finance Allocator" subtitle="Sign in to continue.">
-        <div className={`${finelyOsCatalogCard('violet')} !p-5 ${FINELY_OS_ENTITY_BODY}`}>Not signed in.</div>
-      </PageShell>
+      <AdminWorkstationFrame embedded={embedded} kind="finance-workstation" badge="Admin" title="Finance Allocator" subtitle="Sign in to continue.">
+        <div className={`${finelyOsCatalogCard('violet')} ${FINELY_OS_ENTITY_BODY}`}>Not signed in.</div>
+      </AdminWorkstationFrame>
     );
   }
 
   if (!allowed) {
     return (
-      <PageShell badge="Admin" title="Finance Allocator" subtitle="Restricted.">
+      <AdminWorkstationFrame embedded={embedded} kind="finance-workstation" badge="Admin" title="Finance Allocator" subtitle="Restricted.">
         <div className="space-y-4">
           <div className={FINELY_OS_NOTICE_WARN}>
             <div className={FINELY_OS_ENTITY_BODY}>
@@ -287,12 +287,14 @@ export default function AdminFinanceAllocatorPage() {
             <ArrowLeft size={16} /> Back to Admin
           </button>
         </div>
-      </PageShell>
+      </AdminWorkstationFrame>
     );
   }
 
   return (
-    <PageShell
+    <AdminWorkstationFrame
+      embedded={embedded}
+      kind="finance-workstation"
       badge="Admin"
       title="Finance Allocator"
       subtitle="Track income and split it across buckets: taxes, marketing, payroll, agents, affiliates, and reserves."
@@ -320,7 +322,7 @@ export default function AdminFinanceAllocatorPage() {
         </div>
 
         <div className="grid lg:grid-cols-12 gap-6">
-          <div className={`lg:col-span-5 ${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+          <div className={`lg:col-span-5 ${finelyOsCatalogCard('violet')} space-y-4`}>
             <div className="flex items-center justify-between gap-3">
               <div className={FINELY_OS_ENTITY_SUBLABEL}>Allocation templates</div>
               <button
@@ -363,7 +365,7 @@ export default function AdminFinanceAllocatorPage() {
               />
             )}
 
-            <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-3`}>
+            <div className={`${finelyOsCatalogCard('sky')} fc-surface-harmony space-y-3`}>
               <div className={FINELY_OS_ENTITY_SUBLABEL}>Exports</div>
               <button type="button" onClick={exportCsv} className={`${FINELY_OS_SECONDARY_BTN} w-full justify-center`}>
                 <Download size={14} /> Export CSV
@@ -373,7 +375,7 @@ export default function AdminFinanceAllocatorPage() {
           </div>
 
           <div className="lg:col-span-7 space-y-6">
-            <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+            <div className={`${finelyOsCatalogCard('violet')} space-y-4`}>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className={FINELY_OS_ENTITY_VALUE}>Template editor</div>
                 <div className="flex flex-wrap gap-2">
@@ -517,7 +519,7 @@ export default function AdminFinanceAllocatorPage() {
               )}
             </div>
 
-            <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+            <div className={`${finelyOsCatalogCard('violet')} space-y-4`}>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className={FINELY_OS_ENTITY_VALUE}>Income events</div>
                 <button
@@ -637,17 +639,17 @@ export default function AdminFinanceAllocatorPage() {
                         </div>
                         {r ? (
                           <div className="grid md:grid-cols-3 gap-3 text-sm">
-                            <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+                            <div className={`${finelyOsCatalogCard('emerald')} fc-surface-harmony`} data-fc-accent="emerald">
                               <div className={FINELY_OS_ENTITY_SUBLABEL}>Allocated</div>
-                              <div className={`${FINELY_OS_ENTITY_VALUE} font-mono text-sm`}>{fmtMoney(r.allocatedCents)}</div>
+                              <div className={`${FINELY_OS_ENTITY_VALUE} font-mono text-xl`}>{fmtMoney(r.allocatedCents)}</div>
                             </div>
-                            <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+                            <div className={`${finelyOsCatalogCard('violet')} fc-surface-harmony`} data-fc-accent="violet">
                               <div className={FINELY_OS_ENTITY_SUBLABEL}>Remaining</div>
-                              <div className={`${FINELY_OS_ENTITY_VALUE} font-mono text-sm`}>{fmtMoney(r.remainingCents)}</div>
+                              <div className={`${FINELY_OS_ENTITY_VALUE} font-mono text-xl`}>{fmtMoney(r.remainingCents)}</div>
                             </div>
-                            <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+                            <div className={`${finelyOsCatalogCard('sky')} fc-surface-harmony`} data-fc-accent="sky">
                               <div className={FINELY_OS_ENTITY_SUBLABEL}>Lines</div>
-                              <div className={`${FINELY_OS_ENTITY_VALUE} font-mono text-sm`}>{r.lines.length}</div>
+                              <div className={`${FINELY_OS_ENTITY_VALUE} font-mono text-xl`}>{fmtMoney(r.lines.length)}</div>
                             </div>
                           </div>
                         ) : null}
@@ -665,9 +667,9 @@ export default function AdminFinanceAllocatorPage() {
             </div>
           </div>
         </div>
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
 </div>
-    </PageShell>
+    </AdminWorkstationFrame>
   );
 }
 

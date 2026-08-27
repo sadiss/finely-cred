@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Gavel, Scale, ShieldAlert } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { AdminWorkstationFrame, type AdminEmbeddablePageProps } from '../../features/workspaceLightPreview/product/admin/AdminWorkstationFrame';
+import { useMappedAdminNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { useAuth } from '../../auth/AuthProvider';
 import { listAllEscalations, updateEscalationStatus } from '../../data/escalationsRepo';
 import { listAllRegulatoryComplaints, setRegulatoryComplaintStatus } from '../../data/regulatoryComplaintsRepo';
@@ -25,9 +25,9 @@ import {
   finelyOsViewTab,
 } from '../../features/os/finelyOsLightUi';
 
-export default function AdminDisputeCollaborationPage() {
+export default function AdminDisputeCollaborationPage({ embedded = false }: AdminEmbeddablePageProps = {}) {
   const auth = useAuth();
-  const navigate = useNavigate();
+  const navigate = useMappedAdminNavigate();
   const [version, setVersion] = useState(0);
   const [tab, setTab] = useState<'escalations' | 'regulatory'>('escalations');
 
@@ -68,7 +68,7 @@ export default function AdminDisputeCollaborationPage() {
   const openComplaints = complaints.filter((c) => ['draft', 'submitted', 'in_review'].includes(c.status)).length;
 
   return (
-    <PageShell
+    <AdminWorkstationFrame embedded={embedded} kind="dispute-collaboration-workstation"
       badge="Admin"
       title="Dispute Collaboration Hub"
       subtitle="Central inbox for partner escalations and regulatory complaints — linked to case rounds and team messaging."
@@ -84,21 +84,21 @@ export default function AdminDisputeCollaborationPage() {
         </div>
 
         <div className="grid md:grid-cols-3 gap-4">
-          <FinelyOsOverviewStatTile icon={ShieldAlert} label="Open escalations" value={String(openEscalations)} accent="amber" iconAccent="amber" />
-          <FinelyOsOverviewStatTile icon={Scale} label="Active regulatory" value={String(openComplaints)} accent="rose" iconAccent="fuchsia" />
+          <FinelyOsOverviewStatTile icon={ShieldAlert} label="Open escalations" value={String(openEscalations)} accent="emerald" iconAccent="emerald" />
+          <FinelyOsOverviewStatTile icon={Scale} label="Active regulatory" value={String(openComplaints)} accent="rose" iconAccent="rose" />
           <FinelyOsOverviewStatTile
             icon={Gavel}
             label="Workflow"
             value="Status sync"
-            accent="violet"
-            iconAccent="violet"
+            accent="sky"
+            iconAccent="sky"
             hint="Update status here — partners get notified and case timelines update automatically."
           />
         </div>
 
         <div className={FINELY_OS_VIEW_TABS}>
           {(['escalations', 'regulatory'] as const).map((t) => (
-            <button key={t} type="button" onClick={() => setTab(t)} className={finelyOsViewTab(tab === t, t === 'escalations' ? 'fuchsia' : 'violet')}>
+            <button key={t} type="button" onClick={() => setTab(t)} className={finelyOsViewTab(tab === t, t === 'escalations' ? 'rose' : 'sky')}>
               {t === 'escalations' ? `Escalations (${escalations.length})` : `Regulatory (${complaints.length})`}
             </button>
           ))}
@@ -107,7 +107,7 @@ export default function AdminDisputeCollaborationPage() {
         {tab === 'escalations' ? (
           <div className="space-y-4">
             {escalations.length === 0 ? (
-              <div className={`${finelyOsCatalogCard('violet')} !p-5 ${FINELY_OS_ENTITY_BODY}`}>No escalations yet.</div>
+              <div className={`${finelyOsCatalogCard('rose')} ${FINELY_OS_ENTITY_BODY}`} data-fc-accent="rose">No escalations yet.</div>
             ) : (
               escalations.map((e) => (
                 <div key={e.id} className={`${finelyOsInlineListItem()} p-6 space-y-4`}>
@@ -155,7 +155,7 @@ export default function AdminDisputeCollaborationPage() {
         ) : (
           <div className="space-y-4">
             {complaints.length === 0 ? (
-              <div className={`${finelyOsCatalogCard('violet')} !p-5 ${FINELY_OS_ENTITY_BODY}`}>No regulatory complaints yet.</div>
+              <div className={`${finelyOsCatalogCard('sky')} ${FINELY_OS_ENTITY_BODY}`} data-fc-accent="sky">No regulatory complaints yet.</div>
             ) : (
               complaints.map((c) => (
                 <div key={c.id} className={`${finelyOsInlineListItem()} p-6 space-y-4`}>
@@ -200,8 +200,8 @@ export default function AdminDisputeCollaborationPage() {
             )}
           </div>
         )}
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
       </div>
-    </PageShell>
+    </AdminWorkstationFrame>
   );
 }

@@ -33,7 +33,7 @@ import {
   FINELY_OS_NOTICE_WARN,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
-  finelyOsCatalogCardCompact,
+  finelyOsCatalogCard,
   finelyOsGlowPanel,
   finelyOsGlowTile,
   finelyOsStatusChip,
@@ -223,7 +223,7 @@ export default function BusinessProfilePage() {
         ref={nonCitizenPanelRef}
         open={nonCitizenPanelOpen}
         onToggle={(e) => setNonCitizenPanelOpen((e.target as HTMLDetailsElement).open)}
-        className={`${finelyOsCatalogCardCompact('sky')} group scroll-mt-24`}
+        className={`${finelyOsCatalogCard('sky')} group scroll-mt-24`}
         data-fc-accent="sky"
       >
         <summary className="cursor-pointer select-none flex items-center justify-between gap-3">

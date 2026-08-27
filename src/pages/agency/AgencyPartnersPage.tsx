@@ -60,7 +60,7 @@ export default function AgencyPartnersPage() {
 
   const buyInTiers = useMemo(() => getPublicAgencyBuyInTiers(), []);
   const capacityTiers = useMemo(() => getPublicAgencyTiers(), []);
-  const buyInAccents: CareerAccent[] = ['slate', 'emerald', 'sky', 'gold', 'rose', 'navy'];
+  const buyInAccents: CareerAccent[] = ['emerald', 'sky', 'rose', 'navy', 'emerald', 'sky'];
 
   const defaultCapacityId = capacityTiers.find((t) => t.badge === 'Popular')?.id ?? capacityTiers[0]?.id ?? '';
   const [selectedCapacityId, setSelectedCapacityId] = useState(defaultCapacityId);
@@ -146,11 +146,11 @@ export default function AgencyPartnersPage() {
 
         {cardEligibility && cardBonus ? <FinelyOsAlertBanner tone="success" message={cardBonus.description} /> : null}
 
-        {/* Hero — white/slate, gold brand accent, large guide imagery */}
-        <section className="rounded-3xl border-2 border-amber-200 bg-white p-6 sm:p-10">
+        {/* Hero — white/slate, emerald brand accent, large guide imagery */}
+        <section className="rounded-3xl border-2 border-emerald-200 bg-white p-6 sm:p-10">
           <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
             <div className="space-y-5">
-              <p className="text-[11px] font-black uppercase tracking-[0.28em] text-amber-700">{AGENCY.programName}</p>
+              <p className="text-[11px] font-black uppercase tracking-[0.28em] text-emerald-700">{AGENCY.programName}</p>
               <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-[1.08] text-slate-900">
                 Own a branded credit services company.
               </h1>
@@ -162,7 +162,7 @@ export default function AgencyPartnersPage() {
 
               <div className="flex flex-wrap gap-2">
                 {[
-                  { icon: Building2, label: workSplit.youDo[0], tone: 'text-amber-700 bg-amber-50 border-amber-200' },
+                  { icon: Building2, label: workSplit.youDo[0], tone: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
                   { icon: UserCheck, label: workSplit.finelyRuns[0], tone: 'text-sky-700 bg-sky-50 border-sky-200' },
                   { icon: XCircle, label: workSplit.notYourJob[0], tone: 'text-slate-500 bg-slate-50 border-slate-200' },
                 ].map(({ icon: Icon, label, tone }) => (
@@ -175,7 +175,7 @@ export default function AgencyPartnersPage() {
               <button
                 type="button"
                 onClick={goToSignup}
-                className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-6 py-3.5 text-sm font-bold text-[#1a1205] shadow-lg shadow-amber-500/25 transition-all hover:bg-amber-400"
+                className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-3.5 text-sm font-extrabold text-white shadow-lg shadow-emerald-600/25 transition-all hover:bg-emerald-500"
               >
                 Create agency workspace <ArrowRight size={15} />
               </button>
@@ -209,7 +209,7 @@ export default function AgencyPartnersPage() {
                   <button
                     type="button"
                     onClick={() => navigate('/free-agency-guide')}
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-500 px-5 py-3.5 text-sm font-bold text-[#1a1205] shadow-lg shadow-amber-500/25 transition-all hover:bg-amber-400"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-violet-600 px-5 py-3.5 text-sm font-extrabold text-white shadow-lg shadow-violet-600/25 transition-all hover:bg-violet-500"
                   >
                     <Download size={16} /> Download
                   </button>
@@ -246,7 +246,7 @@ export default function AgencyPartnersPage() {
               <CareerPackagePanel kicker="One-time buy-in" title={`${selectedBuyIn.name} (one-time)`} included={selectedBuyIn.included} accent="emerald" />
             ) : null}
             {selectedCapacity ? (
-              <CareerPackagePanel kicker="This tier includes" title={selectedCapacity.name} included={selectedCapacity.features} accent="gold" />
+              <CareerPackagePanel kicker="This tier includes" title={selectedCapacity.name} included={selectedCapacity.features} accent="rose" />
             ) : null}
           </div>
         </section>
@@ -282,7 +282,7 @@ export default function AgencyPartnersPage() {
           loginNote="Requires a Finely login. If you only want to run your own partner files without a company tenant, use the Credit Specialist track instead."
           secondaryLabel="Solo specialist instead?"
           onSecondaryClick={() => navigate('/credit-specialist')}
-          accent="gold"
+          accent="emerald"
         />
 
         <DigitalInviteShareBand role="agency" />
@@ -301,7 +301,7 @@ export default function AgencyPartnersPage() {
         }}
         ctaLabel="Create workspace"
         onCta={goToSignup}
-        accent="gold"
+        accent="emerald"
         visible={Boolean(selectedCapacity)}
       />
     </PageShell>
@@ -317,13 +317,13 @@ function AgencyLightConsoleMock() {
       <div className="flex items-center gap-3 border-b border-slate-200 bg-slate-50 px-5 py-3">
         <span className="flex gap-1.5">
           <span className="h-2.5 w-2.5 rounded-full bg-rose-400" />
-          <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
+          <span className="h-2.5 w-2.5 rounded-full bg-violet-400" />
           <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
         </span>
         <span className="flex-1 truncate rounded-md border border-slate-200 bg-white px-3 py-1.5 font-mono text-xs text-slate-500">
           portal.yourbrand.com/partners
         </span>
-        <span className="hidden rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-amber-700 sm:inline">
+        <span className="hidden rounded-full border border-violet-300 bg-violet-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-violet-700 sm:inline">
           White-label
         </span>
       </div>
@@ -331,7 +331,7 @@ function AgencyLightConsoleMock() {
       <div className="grid gap-0 sm:grid-cols-[13rem_1fr]">
         <aside className="border-b border-slate-200 bg-slate-50 p-5 sm:border-b-0 sm:border-r">
           <div className="flex items-center gap-2">
-            <span className="grid h-9 w-9 place-items-center rounded-lg border-2 border-dashed border-amber-300 text-[9px] font-black uppercase tracking-widest text-amber-700">
+            <span className="grid h-9 w-9 place-items-center rounded-lg border-2 border-dashed border-violet-300 text-[9px] font-black uppercase tracking-widest text-violet-700">
               Logo
             </span>
             <span className="text-sm font-bold text-slate-900">Your Agency</span>
@@ -340,7 +340,7 @@ function AgencyLightConsoleMock() {
             {['Partners', 'Disputes', 'Letters', 'Payouts', 'Team'].map((n, i) => (
               <div
                 key={n}
-                className={`rounded-lg px-3 py-2 text-sm font-semibold ${i === 0 ? 'bg-amber-100 text-amber-800' : 'text-slate-500'}`}
+                className={`rounded-lg px-3 py-2 text-sm font-semibold ${i === 0 ? 'bg-violet-100 text-violet-800' : 'text-slate-500'}`}
               >
                 {n}
               </div>
@@ -352,7 +352,7 @@ function AgencyLightConsoleMock() {
           <div className="grid gap-3 sm:grid-cols-3">
             {[
               { icon: Users, label: 'Seats filled', value: `${seats.length - 1} / 6`, tone: 'text-sky-700 bg-sky-50 border-sky-200' },
-              { icon: LayoutDashboard, label: 'Active files', value: '38 / 100', tone: 'text-amber-700 bg-amber-50 border-amber-200' },
+              { icon: LayoutDashboard, label: 'Active files', value: '38 / 100', tone: 'text-violet-700 bg-violet-50 border-violet-200' },
               { icon: ShieldCheck, label: 'White-label', value: 'Co-branded', tone: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
             ].map(({ icon: Icon, label, value, tone }) => (
               <div key={label} className={`rounded-xl border-2 p-4 ${tone}`}>
@@ -387,7 +387,7 @@ function AgencyLightConsoleMock() {
           </div>
 
           <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-            <Rocket size={16} className="shrink-0 text-amber-600" />
+            <Rocket size={16} className="shrink-0 text-violet-600" />
             <p className="text-xs leading-relaxed text-slate-500">
               Upgrade a tier and this console grows with you — more seats, more file capacity, deeper white-label.
             </p>

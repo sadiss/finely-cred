@@ -35,7 +35,7 @@ export const STAFF_SOCIAL_PRESENCE: StaffSocialPresence[] = [
     title: 'Lead Discovery Director',
     mission: 'nurture',
     platforms: {
-      linkedin: { handle: '@scoutsupreme.finley', status: 'profile_drafted' },
+      linkedin: { handle: '@siennaroy.finley', status: 'profile_drafted' },
       instagram: { handle: '@finely.leads', status: 'page_requested' },
     },
     bioLine: 'Finds qualified prospects and explains why they matter — educational credit intel only.',

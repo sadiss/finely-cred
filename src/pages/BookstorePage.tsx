@@ -54,9 +54,9 @@ export default function BookstorePage() {
           eyebrow="Finely bookstore"
           title="Credit mastery ebooks & bundles"
           subtitle="Browse titles, compare bundles, and open listen-mode previews before you buy."
-          accent="fuchsia"
+          accent="emerald"
           kpis={[
-            { label: 'Titles', value: String(products.length), accent: 'amber' },
+            { label: 'Titles', value: String(products.length), accent: 'violet' },
             { label: 'Published', value: String(publishedCount), accent: 'emerald' },
           ]}
           tabs={[
@@ -70,9 +70,9 @@ export default function BookstorePage() {
         >
           {tab === 'catalog' && (
             <>
-        <div className={`flex flex-wrap items-start justify-between gap-4 ${finelyOsCatalogCard('amber')} !p-6`} data-fc-accent="amber">
+        <div className={`flex flex-wrap items-start justify-between gap-4 ${finelyOsCatalogCard('violet')}`} data-fc-accent="violet">
           <div>
-            <div className="inline-flex items-center gap-2 text-fuchsia-400">
+            <div className="inline-flex items-center gap-2 text-violet-400">
               <BookOpen size={18} />
               <span className={FINELY_OS_ENTITY_SUBLABEL}>Featured titles</span>
             </div>
@@ -94,8 +94,10 @@ export default function BookstorePage() {
           pageSize={6}
           itemSpacingClassName="grid grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center"
           emptyMessage="No bookstore titles yet."
-          renderItem={(p) => (
-              <div key={p.id} className={`w-full max-w-[340px] space-y-4 ${finelyOsCatalogCard('fuchsia')} !p-5 hover:border-fuchsia-500/30 transition-all`} data-fc-accent="fuchsia">
+          renderItem={(p, idx) => {
+              const accent = (['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4];
+              return (
+              <div key={p.id} className={`w-full max-w-[340px] space-y-4 ${finelyOsCatalogCard(accent)} hover:brightness-110 transition-all`} data-fc-accent={accent}>
                 <PhysicalEbook
                   title={p.title}
                   sub={p.sub}
@@ -103,15 +105,16 @@ export default function BookstorePage() {
                   price={formatPrice(p.priceAmount)}
                   accentColor={p.accentColor}
                 />
-                <p className={`${FINELY_OS_ENTITY_BODY} text-xs line-clamp-3 min-h-[3rem]`}>{p.desc}</p>
-                <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-[10px]`}>
+                <p className={`${FINELY_OS_ENTITY_BODY} text-base line-clamp-3 min-h-[3rem]`}>{p.desc}</p>
+                <div className={`${FINELY_OS_ENTITY_SUBLABEL}`}>
                   {splitBookIntoChapters(p.contentMarkdown ?? '', p.slug).length} chapters · {p.bullets?.length ?? 0} outcomes
                 </div>
                 <button type="button" onClick={() => navigate(`/bookstore/${p.slug}`)} className={`w-full justify-center ${FINELY_OS_SECONDARY_BTN}`}>
                   View details <ArrowRight size={14} />
                 </button>
               </div>
-            )}
+              );
+            }}
           />
             </>
           )}

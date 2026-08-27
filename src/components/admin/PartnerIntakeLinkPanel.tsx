@@ -67,7 +67,7 @@ export function PartnerIntakeLinkPanel({ partner, compact }: Props) {
   };
 
   return (
-    <div className={`${finelyOsCatalogCard('emerald')} ${compact ? '!p-4' : '!p-5'} space-y-3`} data-fc-accent="emerald">
+    <div className={`${finelyOsCatalogCard('emerald')} space-y-3`} data-fc-accent="emerald">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="inline-flex items-center gap-2 text-emerald-300">
@@ -82,7 +82,7 @@ export function PartnerIntakeLinkPanel({ partner, compact }: Props) {
       </div>
 
       {localInviteSim ? (
-        <div className={`text-xs ${FINELY_OS_ENTITY_BODY} rounded-xl border border-amber-500/25 bg-amber-500/10 px-3 py-2`}>
+        <div className={`text-sm ${FINELY_OS_ENTITY_BODY} rounded-xl border border-sky-500/25 bg-sky-500/10 px-4 py-3`}>
           Local dev mode: invites simulate without Supabase. Email opens a branded preview tab; SMS logs to the console.
         </div>
       ) : null}

@@ -5,8 +5,9 @@ export type WorkspaceView = 'overview' | 'list' | 'board' | 'calendar';
 
 export function useProjectWorkspace(opts?: { listPath?: string }) {
   const listPath = opts?.listPath ?? '/admin/projects';
-  const { id: projectId } = useParams<{ id: string }>();
+  const { id: routeProjectId } = useParams<{ id: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
+  const projectId = routeProjectId || searchParams.get('projectId') || undefined;
   const navigate = useNavigate();
   const [version, setVersion] = useState(0);
 

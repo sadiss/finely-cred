@@ -36,6 +36,8 @@ export type FinelyVoiceInputOptions = {
   onResult?: (text: string) => void;
   /** Called on every interim/final chunk — use for live typewriter in the composer. */
   onInterim?: (text: string, isFinal: boolean) => void;
+  /** Browser speech-recognition locale, for example `en-US` or `ht-HT`. */
+  lang?: string;
 };
 
 /** Legacy signature: useFinelyVoiceInput(onResult) */
@@ -49,9 +51,10 @@ export function useFinelyVoiceInput(
 }
 
 function useFinelyVoiceInputHook(options: FinelyVoiceInputOptions) {
-  const { onResult, onInterim } = options;
+  const { onResult, onInterim, lang } = options;
   const onResultRef = useRef(onResult);
   const onInterimRef = useRef(onInterim);
+  const langRef = useRef(lang);
   const [listening, setListening] = useState(false);
   const [supported, setSupported] = useState(false);
   const [interimTranscript, setInterimTranscript] = useState('');
@@ -60,7 +63,8 @@ function useFinelyVoiceInputHook(options: FinelyVoiceInputOptions) {
   useEffect(() => {
     onResultRef.current = onResult;
     onInterimRef.current = onInterim;
-  }, [onResult, onInterim]);
+    langRef.current = lang;
+  }, [onResult, onInterim, lang]);
 
   useEffect(() => {
     setSupported(Boolean(getSpeechRecognition()));
@@ -77,7 +81,7 @@ function useFinelyVoiceInputHook(options: FinelyVoiceInputOptions) {
     if (!Ctor) return;
     stop();
     const rec = new Ctor();
-    rec.lang = 'en-US';
+    rec.lang = langRef.current ?? 'en-US';
     rec.interimResults = true;
     rec.continuous = true;
     rec.maxAlternatives = 1;
@@ -120,10 +124,11 @@ function useFinelyVoiceInputHook(options: FinelyVoiceInputOptions) {
   return { supported, listening, interimTranscript, start, stop };
 }
 
-export function speakFinelyText(text: string) {
+export function speakFinelyText(text: string, lang = 'en-US') {
   if (typeof window === 'undefined' || !window.speechSynthesis) return;
   window.speechSynthesis.cancel();
   const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = lang;
   utter.rate = 0.92;
   utter.pitch = 1;
   window.speechSynthesis.speak(utter);

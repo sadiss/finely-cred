@@ -10,6 +10,19 @@ import { listLettersByPartner } from '../../data/lettersRepo';
 import { summarizePartnerDisputeRounds } from '../../lib/creditRestoreRoundRollup';
 import { computeCreditRestorePrimaryAlert } from '../../lib/creditRestorePrimaryAlert';
 import { listReportsByPartner } from '../../data/reportsRepo';
+import { computeMiddleScore } from '../../domain/creditScoreMiddle';
+
+type RestoreTabKey =
+  | 'reports'
+  | 'analysis'
+  | 'evidence'
+  | 'disputes'
+  | 'letters'
+  | 'tasks'
+  | 'notes'
+  | 'debt'
+  | 'overview'
+  | 'profile';
 
 type Props = {
   partner: Partner;
@@ -18,28 +31,34 @@ type Props = {
   lettersCount: number;
   openCasesCount: number;
   negativesCount?: number;
+  surface?: 'dark' | 'light';
+  /** When the parent page already renders the primary alert + CTAs, skip the inline banner here. */
+  suppressInlineAlert?: boolean;
+  /** Override default `/portal/*` tab targets (workspace-light preview). */
+  navigation?: Partial<Record<RestoreTabKey, string>>;
+  /** Remap guided CTA paths (debt case detail, preview shell). */
+  resolvePath?: (portalPath: string) => string;
 };
 
-const TAB_ROUTES = {
+const TAB_ROUTES: Record<RestoreTabKey, string> = {
   reports: '/portal/reports',
-  analysis: '/portal/analysis',
-  evidence: '/portal/documents',
+  analysis: '/portal/reports',
+  evidence: '/portal/evidence',
   disputes: '/portal/disputes',
   letters: '/portal/letters',
   tasks: '/portal/my-tasks',
-  notes: '/portal/partner',
+  notes: '/portal/messages',
   debt: '/portal/debt',
-  overview: '/portal/partner',
-  profile: '/portal/partner',
-} as const;
-
-type RestoreTabKey = keyof typeof TAB_ROUTES;
+  overview: '/portal/dashboard',
+  profile: '/portal/account',
+};
 
 function pathToTab(path?: string): RestoreTabKey {
   if (!path) return 'letters';
   if (path.includes('/debt')) return 'debt';
   if (path.includes('/disputes')) return 'disputes';
   if (path.includes('/reports')) return 'reports';
+  if (path.includes('/evidence')) return 'evidence';
   if (path.includes('/letters')) return 'letters';
   if (path.includes('/documents')) return 'evidence';
   return 'letters';
@@ -52,12 +71,22 @@ export function PartnerCreditRestoreCommandStrip({
   lettersCount,
   openCasesCount,
   negativesCount = 0,
+  surface = 'dark',
+  suppressInlineAlert = false,
+  navigation,
+  resolvePath,
 }: Props) {
   const navigate = useNavigate();
+  const tabRoutes = { ...TAB_ROUTES, ...navigation };
+  const go = (path: string) => navigate(resolvePath ? resolvePath(path) : path);
 
   const debtCases = useMemo(() => listDebtByPartner(partner.id), [partner.id]);
   const letters = useMemo(() => listLettersByPartner(partner.id), [partner.id]);
   const reports = useMemo(() => listReportsByPartner(partner.id), [partner.id]);
+  const middleScore = useMemo(
+    () => computeMiddleScore(reports.find((r) => r.parsed?.scores?.length)?.parsed?.scores ?? []),
+    [reports],
+  );
 
   const guided = useMemo(
     () =>
@@ -111,11 +140,12 @@ export function PartnerCreditRestoreCommandStrip({
   );
 
   return (
-    <div className="space-y-3">
-      {blocker ? (
+    <div className="space-y-6">
+      {blocker && !suppressInlineAlert ? (
         <FinelyOsAlertBanner
           tone={guided.tone === 'blocking' ? 'warning' : guided.tone === 'success' ? 'success' : 'info'}
           message={blocker}
+          surface={surface}
         />
       ) : null}
       <PartnerCreditWorkloadStrip partnerId={partner.id} compact />
@@ -125,19 +155,22 @@ export function PartnerCreditRestoreCommandStrip({
         evidenceCount={evidenceCount}
         lettersCount={lettersCount}
         openCasesCount={openCasesCount}
+        middleScore={middleScore.value}
+        middleScoreLabel={middleScore.value != null ? `${middleScore.label} · Results vary` : undefined}
         roundSummary={roundSummary}
         progressRail={guided.rail}
         guidedMessage={guided.show ? guided.message : undefined}
         onOpenTab={(tab) => {
-          const path = TAB_ROUTES[tab] ?? '/portal/partner';
+          const path = tabRoutes[tab] ?? tabRoutes.overview ?? '/portal/dashboard';
           if (guided.ctaPath && tab === pathToTab(guided.ctaPath) && guided.ctaPath.includes('/debt/')) {
-            navigate(guided.ctaPath);
+            go(guided.ctaPath);
             return;
           }
-          navigate(path);
+          go(path);
         }}
         primaryAction={primaryAction}
         secondaryAction={secondaryAction}
+        surface={surface}
       />
     </div>
   );

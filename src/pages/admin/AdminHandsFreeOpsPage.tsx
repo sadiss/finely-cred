@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, FileText, Mail, ShieldAlert, Users, Zap } from 'lucide-react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { PageShell } from '../../components/layout/PageShell';
+import { useSearchParams } from 'react-router-dom';
+import { AdminWorkstationFrame, type AdminEmbeddablePageProps } from '../../features/workspaceLightPreview/product/admin/AdminWorkstationFrame';
+import { useMappedAdminNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { FinelyOsGlassPanel } from '../../features/os/FinelyOsGlassPanel';
 import { FinelyOsOverviewStatTile } from '../../features/os/FinelyOsOverviewStatTile';
 import {
@@ -33,8 +34,8 @@ import { Overnight50AdminNav } from '../../components/overnight50/Overnight50Adm
 
 type QueueTab = 'draft_review' | 'mail_confirm' | 'complaint' | 'staff_gap' | 'all';
 
-export default function AdminHandsFreeOpsPage() {
-  const navigate = useNavigate();
+export default function AdminHandsFreeOpsPage({ embedded = false }: AdminEmbeddablePageProps = {}) {
+  const navigate = useMappedAdminNavigate();
   const [searchParams] = useSearchParams();
   const [version, setVersion] = useState(0);
   const [tab, setTab] = useState<QueueTab>('all');
@@ -149,12 +150,12 @@ export default function AdminHandsFreeOpsPage() {
   );
 
   return (
-    <PageShell title="Hands-Free Ops" subtitle="Autopilot queues — draft review, mail confirm, escalations">
+    <AdminWorkstationFrame embedded={embedded} kind="ops-autopilot-workstation" badge="Admin" title="Hands-Free Ops" subtitle="Autopilot queues — draft review, mail confirm, escalations">
       <div className="space-y-6">
         <Overnight50AdminNav compact />
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
           <FinelyOsOverviewStatTile icon={FileText} label="Auto-drafted today" value={String(lettersToday)} accent="emerald" iconAccent="emerald" />
-          <FinelyOsOverviewStatTile icon={FileText} label="Draft review queue" value={String(kpis.draftReview)} accent="amber" iconAccent="amber" />
+          <FinelyOsOverviewStatTile icon={FileText} label="Draft review queue" value={String(kpis.draftReview)} accent="violet" iconAccent="violet" />
           <FinelyOsOverviewStatTile icon={Mail} label="Mail confirm" value={String(kpis.mailConfirm)} accent="violet" iconAccent="violet" />
           <FinelyOsOverviewStatTile icon={ShieldAlert} label="Escalations" value={String(kpis.complaint)} accent="rose" iconAccent="rose" />
           <FinelyOsOverviewStatTile icon={Zap} label="Live automations" value={String(liveRules)} accent="sky" iconAccent="sky" />
@@ -178,7 +179,7 @@ export default function AdminHandsFreeOpsPage() {
         </FinelyOsGlassPanel>
 
         <div className="grid lg:grid-cols-2 gap-4">
-          <FinelyOsGlassPanel icon={FileText} title="How letter autopilot works" accent="amber">
+          <FinelyOsGlassPanel icon={FileText} title="How letter autopilot works" accent="sky">
             <ul className={`${FINELY_OS_ENTITY_BODY} text-sm space-y-2 list-disc pl-4`}>
               <li>Report uploaded → optional auto-draft with factual dispute findings only.</li>
               <li>Draft lands in partner vault + appears here for human review.</li>
@@ -190,7 +191,7 @@ export default function AdminHandsFreeOpsPage() {
             {staffGaps.length ? (
               <ul className={`${FINELY_OS_ENTITY_BODY} text-sm space-y-2`}>
                 {staffGaps.map((g) => (
-                  <li key={g} className="flex items-center gap-2 text-amber-200/90">
+                  <li key={g} className="flex items-center gap-2 text-rose-200">
                     <ShieldAlert size={14} /> {g}
                   </li>
                 ))}
@@ -233,6 +234,6 @@ export default function AdminHandsFreeOpsPage() {
           )}
         </FinelyOsGlassPanel>
       </div>
-    </PageShell>
+    </AdminWorkstationFrame>
   );
 }
