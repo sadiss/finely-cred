@@ -5,10 +5,10 @@ import { useNavigate } from 'react-router-dom';
 import { Reveal } from '../ui';
 import { FreeGuideFunnelStyles } from '../leadmagnet/FreeGuideFunnelStyles';
 import { LeadMagnetEbook } from '../leadmagnet/LeadMagnetHeroMockup';
-import { BUSINESS_CREDIT_PROCESS_BRIEF } from '../../resources/buildBusinessCreditProcessBriefPdf';
+import { PERSONAL_CREDIT_BUILD_SHEET } from '../../resources/buildPersonalCreditBuildSheetPdf';
 import {
   finelyOsCatalogCard,
-  finelyOsLandingPlatinumSection,
+  finelyOsLandingContrastSection,
   type FinelyOsPublicAccent,
 } from '../../features/os/finelyOsLightUi';
 
@@ -24,15 +24,6 @@ type OneSheetPreview = {
 
 const ONE_SHEETS: OneSheetPreview[] = [
   {
-    id: 'process_brief',
-    title: BUSINESS_CREDIT_PROCESS_BRIEF.title,
-    desc: BUSINESS_CREDIT_PROCESS_BRIEF.summary,
-    path: '/resources/business-credit-one-sheets',
-    badge: BUSINESS_CREDIT_PROCESS_BRIEF.sheetLabel,
-    accent: 'emerald',
-    lines: ['Six-layer build sequence', 'Specialist work model', 'Business Credit OS cockpit'],
-  },
-  {
     id: 'fundability_roadmap',
     title: 'Business Credit Fundability Roadmap',
     desc:
@@ -42,6 +33,15 @@ const ONE_SHEETS: OneSheetPreview[] = [
     accent: 'sky',
     lines: ['Fundability pillars', 'Week-by-week gates', 'Blockers vs green lights'],
   },
+  {
+    id: 'personal_build',
+    title: PERSONAL_CREDIT_BUILD_SHEET.title,
+    desc: PERSONAL_CREDIT_BUILD_SHEET.summary,
+    path: PERSONAL_CREDIT_BUILD_SHEET.route,
+    badge: PERSONAL_CREDIT_BUILD_SHEET.sheetLabel,
+    accent: 'violet',
+    lines: ['Five-rung instrument ladder', 'Utilization & statement timing', '12-month build calendar'],
+  },
 ];
 
 function OneSheetMockup({ accent, lines }: { accent: FinelyOsPublicAccent; lines: string[] }) {
@@ -50,13 +50,17 @@ function OneSheetMockup({ accent, lines }: { accent: FinelyOsPublicAccent; lines
       ? 'border-emerald-400/35'
       : accent === 'sky'
         ? 'border-sky-400/35'
-        : 'border-violet-400/35';
+        : accent === 'rose'
+          ? 'border-rose-400/35'
+          : 'border-violet-400/35';
   const accentGlow =
     accent === 'emerald'
       ? 'from-emerald-500/20 via-transparent to-emerald-900/10'
       : accent === 'sky'
         ? 'from-sky-500/20 via-transparent to-sky-900/10'
-        : 'from-violet-500/20 via-transparent to-violet-900/10';
+        : accent === 'rose'
+          ? 'from-rose-500/20 via-transparent to-rose-900/10'
+          : 'from-violet-500/20 via-transparent to-violet-900/10';
 
   return (
     <div
@@ -89,7 +93,7 @@ export function LandingMaterialsPreviewBand() {
 
   return (
     <section
-      className={`py-10 sm:py-14 ${finelyOsLandingPlatinumSection()}`}
+      className={`py-10 sm:py-14 ${finelyOsLandingContrastSection('fc-band-dark')}`}
       data-fc-contrast-band="1"
       aria-label="Partner guides and one-sheets preview"
     >
@@ -104,8 +108,8 @@ export function LandingMaterialsPreviewBand() {
               Free e-guide + <span className="text-sky-300">one-sheet previews</span>
             </h2>
             <p className="mt-2 max-w-2xl text-sm text-white/55 sm:text-base">
-              Skim the dispute letter guide and business credit PDFs before you book — every download is partner-ready
-              talking points, not generic fluff.
+              Skim the dispute letter guide, a business credit one-sheet, and the personal build blueprint before you
+              book — partner-ready talking points, not generic fluff.
             </p>
           </div>
         </Reveal>

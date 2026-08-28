@@ -3,7 +3,6 @@ import { ArrowRight, BookOpen, Calendar, ChevronDown, DollarSign, Users } from '
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthProvider';
 import { FlashyIcon } from '../../components/ui';
-import { FinelyMarketingWowStrip } from '../../components/marketing/FinelyMarketingWowStrip';
 import { FinelyOsPaginatedStack } from './FinelyOsPaginatedStack';
 import { finelyCtaNavigate } from '../../lib/finelyCtaIntent';
 import {
@@ -166,8 +165,6 @@ export function FinelyOsPublicCommandStrip() {
             </div>
           </div>
         </div>
-
-        <FinelyMarketingWowStrip compact className="!p-4 border-emerald-400/15 mt-6" />
       </div>
     </section>
   );

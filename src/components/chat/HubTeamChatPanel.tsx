@@ -528,10 +528,9 @@ export function HubTeamChatPanel({
 
   return (
     <div className={`flex flex-col h-full min-h-[360px] ${compact ? '' : 'lg:flex-row'}`}>
-      {!compact ? (
-        <div className="px-3 py-2 border-b border-white/[0.08] shrink-0 flex flex-wrap items-center gap-2">
+      <div className="px-3 py-2 border-b border-white/[0.08] shrink-0 flex flex-wrap items-center gap-2">
           <button type="button" onClick={() => setSidebarOpen((v) => !v)} className={FINELY_OS_PRIMARY_BTN}>
-            <MessageSquareText size={14} /> {sidebarOpen ? 'Hide' : 'Show'} past conversations
+            <MessageSquareText size={14} /> {sidebarOpen ? 'Hide' : 'Show'} conversations
           </button>
           {!showNew ? (
             <button
@@ -546,8 +545,7 @@ export function HubTeamChatPanel({
             </button>
           ) : null}
         </div>
-      ) : null}
-      {(sidebarOpen || compact) ? (
+      {sidebarOpen ? (
       <div
         className={`border-white/[0.08] bg-[#070b09]/40 ${compact ? 'border-b' : 'lg:w-72 lg:border-r shrink-0'} flex flex-col min-h-0 ${!compact && !sidebarOpen ? 'hidden' : ''}`}
       >

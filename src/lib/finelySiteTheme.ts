@@ -1,3 +1,5 @@
+import { isPublicMarketingPath } from './publicSitePaths';
+
 export type FinelySiteThemePreference = 'dark' | 'light' | 'system';
 
 export type FinelySiteThemeResolved = 'dark' | 'light';
@@ -24,9 +26,17 @@ export function resolveEffectiveTheme(preference: FinelySiteThemePreference): Fi
   return preference === 'system' ? resolveSystemTheme() : preference;
 }
 
-export function applyFinelySiteTheme(preference: FinelySiteThemePreference) {
-  if (typeof document === 'undefined') return resolveEffectiveTheme(preference);
-  const effective = resolveEffectiveTheme(preference);
+/** Public marketing stays dark luxury — workspace light must not restyle the site visitors see. */
+export function shouldForcePublicDarkTheme(pathname?: string): boolean {
+  const path = pathname ?? (typeof window !== 'undefined' ? window.location.pathname : '/');
+  return isPublicMarketingPath(path);
+}
+
+export function applyFinelySiteTheme(preference: FinelySiteThemePreference, pathname?: string) {
+  if (typeof document === 'undefined') {
+    return shouldForcePublicDarkTheme(pathname) ? 'dark' : resolveEffectiveTheme(preference);
+  }
+  const effective = shouldForcePublicDarkTheme(pathname) ? 'dark' : resolveEffectiveTheme(preference);
   document.documentElement.setAttribute('data-fc-theme', effective);
   document.documentElement.setAttribute('data-fc-theme-pref', preference);
   document.documentElement.style.colorScheme = effective;

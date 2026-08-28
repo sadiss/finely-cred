@@ -6,17 +6,17 @@ Use this when the owner says **“push everything”** or after a large Cursor s
 
 Active feature branch (check `git branch --show-current`):
 
-- **`fix/debt-guide-mockup-video-wordmark`** — debt/dispute funnels, launch-sprint portal work, marketing pages.
+- **`launch/ready-sovereign-supreme`** — sell-ready sweep + homepage UI restore + chat layout.
 
-`main` may be behind until this branch is merged.
+`main` may be behind until this branch is merged. **Do not create a new branch.**
 
 ## Pull on your machine
 
 ```powershell
 cd E:\Finely-Cred\Tishobe\finely-cred-main
 git fetch origin
-git checkout fix/debt-guide-mockup-video-wordmark
-git pull origin fix/debt-guide-mockup-video-wordmark
+git checkout launch/ready-sovereign-supreme
+git pull origin launch/ready-sovereign-supreme
 git log -1 --oneline
 ```
 
@@ -31,6 +31,8 @@ npm run dev
 
 Open **http://127.0.0.1:5173/** (Vite must stay running in that terminal).
 
+Full visual + chat notes since the last push: [`DEVELOPER_UI_RESTORE_HANDOFF.md`](./DEVELOPER_UI_RESTORE_HANDOFF.md).
+
 ## Typecheck before release
 
 ```powershell
@@ -41,6 +43,7 @@ npm run typecheck
 
 - `.env` / secrets (never commit)
 - `NUL.css` (Windows artifact; ignored)
+- `qa-shots/` local screenshots
 - Uncommitted local edits — only committed files exist on GitHub
 
 ## Owner request: full-folder push
@@ -51,11 +54,12 @@ Agents should stage **`src/`**, **`public/`**, **`scripts/`**, **`docs/`**, `pac
 
 | URL | Check |
 |-----|--------|
-| `/` | Homepage video — no FC shield logo overlay |
-| `/personal-credit` | Redirects to `/pricing/personal-credit-restore` |
-| `/pricing/personal-credit-restore` | Ivory hero, readable title, solid tiles, free DIY strip |
-| `/free-debt-guide` | Debt hero book + form |
-| `/free-guide` | Dispute video autoplay |
+| `/` | Skyline visible · law ticker moves · DIY/payment champagne on silver · debt navy · silver review card in the middle |
+| `/` chat | Thread stays visible while typing; options live under **More** |
+| `/personal-credit` | Public dark theme; restore pricing lives at `/pricing/personal-credit-restore` |
+| `/pricing/personal-credit-restore` | Readable restore page, public nav not ivory |
+| `/free-guide` | Dispute video / guide |
+| `/preview/workspace-light/portal/dashboard` | Hub chat shows the conversation, not a wall of options |
 
 ## Poster asset note
 

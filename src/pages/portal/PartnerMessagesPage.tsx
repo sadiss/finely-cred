@@ -119,6 +119,7 @@ export default function PartnerMessagesPage() {
 
             <FinelyCommunicationHub
               mode="page"
+              hideTabstrip
               partnerId={partner.id}
               partnerDisplayName={partner.profile.fullName}
               lane={(partner as { lane?: string }).lane}

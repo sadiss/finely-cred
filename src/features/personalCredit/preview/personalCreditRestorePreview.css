@@ -1,5 +1,20 @@
 /* Personal credit restore — premium preview (replaces live when approved) */
 
+html[data-fc-theme='dark'] [data-fc-pc-restore-preview='1'] .pc-prev-section:not(.pc-prev-hero),
+html[data-fc-theme='dark'] [data-fc-pc-restore-preview='1'] .pc-prev-path,
+html[data-fc-theme='dark'] [data-fc-pc-restore-preview='1'] .pc-prev-hero-glance,
+html[data-fc-theme='dark'] [data-fc-pc-restore-preview='1'] .pc-prev-path__btn strong,
+html[data-fc-theme='dark'] [data-fc-pc-restore-preview='1'] .pc-prev-path__btn span,
+html[data-fc-theme='dark'] [data-fc-pc-restore-preview='1'] .pc-prev-h2,
+html[data-fc-theme='dark'] [data-fc-pc-restore-preview='1'] .pc-prev-kicker {
+  color: var(--pc-ink);
+}
+
+html[data-fc-theme='dark'] [data-fc-pc-restore-preview='1'] .pc-prev-path__btn span,
+html[data-fc-theme='dark'] [data-fc-pc-restore-preview='1'] .pc-prev-hero-glance__detail {
+  color: var(--pc-ink-muted);
+}
+
 [data-fc-pc-restore-preview='1'] {
   --pc-ink: #0a1628;
   --pc-ink-muted: #4a5d78;
@@ -22,7 +37,7 @@
 }
 
 [data-fc-pageshell-root='1']:has([data-fc-pc-restore-preview='1']) {
-  background: #ffffff !important;
+  background: #060908 !important;
 }
 
 [data-fc-pageshell-root='1']:has([data-fc-pc-restore-preview='1']) .fc-landing-wealthy-ivory::before {

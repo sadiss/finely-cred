@@ -433,7 +433,7 @@ export default function PersonalCreditRestorePreviewPage() {
       <PageShell
         hideHero
         hideLaunchHelpStrip
-        surface="ivory"
+        surface="default"
         contentWidth="full"
         badge={isPreviewMode ? 'Preview' : undefined}
         title="Personal credit restore"

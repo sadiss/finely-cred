@@ -810,8 +810,8 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
       )}
 
       {open && (
-        <div className="fixed inset-0 sm:inset-auto sm:bottom-5 sm:right-5 z-[120] sm:w-[min(440px,calc(100vw-2rem))] sm:max-h-[calc(100vh-2rem)] flex flex-col">
-          <div className="relative flex flex-col h-full sm:h-[min(640px,calc(100vh-2rem))] sm:rounded-3xl border border-white/[0.08] fc-comms-solid-shell fc-public-chat-panel shadow-[0_24px_80px_-20px_rgba(0,0,0,0.85)] overflow-hidden ring-1 ring-white/5">
+        <div className="fixed inset-0 sm:inset-auto sm:bottom-4 sm:right-4 z-[120] sm:w-[min(420px,calc(100vw-1.5rem))] sm:max-h-[calc(100vh-1.25rem)] flex flex-col">
+          <div className="relative flex flex-col min-h-0 h-full sm:h-[min(760px,calc(100vh-1.25rem))] sm:rounded-3xl border border-white/[0.08] fc-comms-solid-shell fc-public-chat-panel shadow-[0_24px_80px_-20px_rgba(0,0,0,0.85)] overflow-hidden ring-1 ring-white/5">
             <div
               aria-hidden
               className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_20%_-10%,rgba(16,185,129,0.12),transparent_55%),radial-gradient(ellipse_60%_40%_at_90%_20%,rgba(45,212,191,0.08),transparent_50%),radial-gradient(ellipse_50%_35%_at_70%_100%,rgba(139,92,246,0.07),transparent_45%)]"
@@ -1012,7 +1012,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
               ) : null}
             </div>
 
-            <div className="relative shrink-0 px-3 py-3 border-t border-white/[0.08] bg-[#070d0b]/95 space-y-2">
+            <div className="relative shrink-0 px-3 pt-2.5 pb-2 border-t border-white/[0.08] bg-[#070d0b]/95 space-y-2">
               {pendingAttachments.length ? (
                 <div className="flex flex-wrap gap-1.5">
                   {pendingAttachments.map((a) => (
@@ -1024,31 +1024,48 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                 </div>
               ) : null}
 
+              {!goal && !handoffComplete ? (
+                <div className="flex gap-1 overflow-x-auto pb-0.5">
+                  {LANE_OPTIONS.map((x) => (
+                    <button
+                      key={x.id}
+                      data-testid={`public-chat-lane-chip-${x.id}`}
+                      type="button"
+                      onClick={() => pickGoal(x.id)}
+                      className={`shrink-0 px-2.5 py-1 rounded-full border text-[11px] font-bold ${x.card}`}
+                    >
+                      {x.emoji} {x.label}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+
               <textarea
                 ref={textareaRef}
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 placeholder={`Message ${presentation.firstName}…`}
                 dir={isRtlLocale(locale) ? 'rtl' : 'ltr'}
-                rows={3}
-                className="w-full bg-white/[0.08] border border-emerald-400/25 rounded-xl px-4 py-3 text-[15px] text-white placeholder:text-white/45 focus:border-emerald-400/55 focus:outline-none focus:ring-1 focus:ring-emerald-500/35 resize-none leading-relaxed shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+                rows={2}
+                className="w-full bg-white/[0.08] border border-emerald-400/25 rounded-xl px-3 py-2.5 text-[15px] text-white placeholder:text-white/45 focus:border-emerald-400/55 focus:outline-none focus:ring-1 focus:ring-emerald-500/35 resize-none leading-relaxed shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
+                    setOptionsOpen(false);
                     void sendMessage(draft);
                   }
                 }}
                 disabled={busy}
               />
 
-              <div className="grid grid-cols-4 gap-1.5 items-stretch">
+              <div className="flex items-center gap-1.5">
                 <button
                   type="button"
                   onClick={() => {
                     setEmojiOpen(false);
                     setOptionsOpen((v) => !v);
                   }}
-                  className={`inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-xl border text-xs font-black uppercase tracking-wider ${
+                  className={`inline-flex items-center justify-center gap-1 px-2.5 py-2 rounded-xl border text-[11px] font-black uppercase tracking-wider ${
                     optionsOpen
                       ? 'border-violet-300 bg-gradient-to-br from-violet-500 to-fuchsia-600 text-white'
                       : 'border-violet-400/80 bg-violet-500/25 text-violet-50 hover:bg-violet-500/35'
@@ -1057,18 +1074,17 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                   aria-label={optionsOpen ? t(locale, 'closeOptions') : t(locale, 'openOptions')}
                 >
                   <LayoutGrid size={14} />
-                  <span className="hidden sm:inline">{t(locale, 'openOptions')}</span>
+                  More
                 </button>
                 <input ref={fileInputRef} type="file" accept="application/pdf,image/*,.html,.htm" className="hidden" onChange={(e) => void handleAttachmentPick(e.target.files)} />
                 <button
                   type="button"
                   disabled={attachmentBusy || pendingAttachments.length >= MAX_CHAT_ATTACHMENTS}
                   onClick={() => fileInputRef.current?.click()}
-                  className="inline-flex items-center justify-center gap-1 px-2 py-2 rounded-xl border border-sky-400/40 bg-sky-500/15 text-xs font-bold uppercase tracking-wide text-sky-100 hover:bg-sky-500/25 disabled:opacity-40"
+                  className="inline-flex items-center justify-center gap-1 px-2.5 py-2 rounded-xl border border-sky-400/40 bg-sky-500/15 text-[11px] font-bold uppercase tracking-wide text-sky-100 hover:bg-sky-500/25 disabled:opacity-40"
                   title={`Attach up to ${MAX_CHAT_ATTACHMENTS} documents (PDF, image, HTML)`}
                 >
                   {attachmentBusy ? <Loader2 size={14} className="animate-spin" /> : <Paperclip size={14} />}
-                  <span className="hidden sm:inline">Attach</span>
                 </button>
                 <button
                   type="button"
@@ -1076,7 +1092,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                     setOptionsOpen(false);
                     setEmojiOpen((open) => !open);
                   }}
-                  className={`inline-flex items-center justify-center gap-1 px-2 py-2 rounded-xl border text-xs font-bold uppercase tracking-wide transition-all ${
+                  className={`inline-flex items-center justify-center gap-1 px-2.5 py-2 rounded-xl border text-[11px] font-bold uppercase tracking-wide transition-all ${
                     emojiOpen
                       ? 'border-fuchsia-400/50 bg-fuchsia-500/20 text-fuchsia-100 shadow-[0_0_0_1px_rgba(217,70,239,0.25)]'
                       : 'border-white/15 bg-white/[0.06] text-white/80 hover:border-fuchsia-400/35 hover:bg-fuchsia-500/10'
@@ -1085,87 +1101,31 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                   aria-label="Insert emoji"
                 >
                   <Smile size={14} />
-                  <span className="hidden sm:inline">Emoji</span>
                 </button>
                 <button
                   type="button"
-                  onClick={() => void sendMessage(draft)}
+                  onClick={() => {
+                    setOptionsOpen(false);
+                    void sendMessage(draft);
+                  }}
                   disabled={busy || (!sanitize(draft) && !pendingAttachments.length)}
-                  className="inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 text-black disabled:opacity-40 shadow-lg shadow-emerald-500/20 text-xs font-black uppercase tracking-wider"
+                  className="ml-auto inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 text-black disabled:opacity-40 shadow-lg shadow-emerald-500/20 text-[11px] font-black uppercase tracking-wider"
                   title="Send"
                 >
-                  <Send size={16} />
+                  <Send size={15} />
                   Send
                 </button>
               </div>
 
               {emojiOpen ? (
                 <FinelyPremiumEmojiPicker
-                  className="mt-1"
+                  className="mt-1 !max-h-40"
                   onPick={(emoji) => {
                     insertEmojiAtCursor(emoji);
                     setEmojiOpen(false);
                   }}
                 />
               ) : null}
-
-              {followUps.length > 0 ? (
-                <div className="space-y-1.5 pt-0.5">
-                  <span className={`${FINELY_OS_ENTITY_SUBLABEL} block text-teal-200/80`}>{t(locale, 'suggestedReplies')}</span>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                    {followUps.map((f) => (
-                      <button
-                        key={f}
-                        type="button"
-                        onClick={() => void sendMessage(f)}
-                        className="w-full px-2.5 py-2 rounded-xl border border-teal-400/35 bg-teal-500/15 text-xs text-teal-50 hover:bg-teal-500/25 text-left leading-snug"
-                      >
-                        {f}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-
-              {!goal && !handoffComplete ? (
-                <div className="space-y-1.5 pt-0.5">
-                  <span className={`${FINELY_OS_ENTITY_SUBLABEL} block text-emerald-200/80`}>{t(locale, 'pickLaneToStart')}</span>
-                  <div className="grid grid-cols-2 gap-1.5">
-                    {LANE_OPTIONS.map((x) => (
-                      <button
-                        key={x.id}
-                        data-testid={`public-chat-lane-chip-${x.id}`}
-                        type="button"
-                        onClick={() => pickGoal(x.id)}
-                        className={`w-full px-2.5 py-2 rounded-xl border text-xs font-semibold text-left transition-all ${x.card}`}
-                      >
-                        {x.emoji} {x.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-
-              <div className="space-y-1.5 pt-0.5">
-                <span className={`${FINELY_OS_ENTITY_SUBLABEL} block`}>{t(locale, 'language')}</span>
-                <div className="grid grid-cols-4 gap-1.5">
-                  {CHAT_LOCALE_ORDER.map((loc) => (
-                    <button
-                      key={loc}
-                      type="button"
-                      onClick={() => setLocale(loc)}
-                      className={`w-full py-1.5 rounded-lg text-xs font-semibold border transition-colors text-center ${
-                        locale === loc
-                          ? 'border-emerald-400/50 bg-emerald-500/20 text-emerald-100'
-                          : 'border-white/12 bg-white/[0.04] text-white/55 hover:border-white/25 hover:text-white/80'
-                      }`}
-                      aria-pressed={locale === loc}
-                    >
-                      {CHAT_LOCALE_LABELS[loc]}
-                    </button>
-                  ))}
-                </div>
-              </div>
             </div>
             <p className="shrink-0 text-xs text-center text-white/30 pb-2 px-3">Educational guidance · not legal advice</p>
 
@@ -1173,11 +1133,11 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
               <>
                 <button
                   type="button"
-                  className="absolute inset-0 z-20 bg-black/55"
+                  className="absolute inset-0 z-20 bg-transparent"
                   aria-label={t(locale, 'closeOptions')}
                   onClick={() => setOptionsOpen(false)}
                 />
-                <div className="absolute inset-x-0 bottom-0 z-30 max-h-[min(78vh,520px)] overflow-y-auto overscroll-contain rounded-t-3xl border-t border-white/15 bg-[#141a21] shadow-[0_-20px_60px_-12px_rgba(0,0,0,0.75)]">
+                <div className="absolute inset-x-0 bottom-0 z-30 max-h-[min(38vh,280px)] overflow-y-auto overscroll-contain rounded-t-3xl border-t border-white/15 bg-[#141a21] shadow-[0_-20px_60px_-12px_rgba(0,0,0,0.75)]">
                   <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-white/10 bg-[#141a21]/95 px-4 py-3 backdrop-blur-sm">
                     <span className="text-xs font-black uppercase tracking-[0.28em] text-white/55">{t(locale, 'yourOptions')}</span>
                     <button
@@ -1199,7 +1159,10 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                               data-testid={`public-chat-lane-${x.id}`}
                               key={x.id}
                               type="button"
-                              onClick={() => pickGoal(x.id)}
+                              onClick={() => {
+                                setOptionsOpen(false);
+                                pickGoal(x.id);
+                              }}
                               className={`px-2.5 py-2.5 rounded-xl border text-left transition-all ${x.card}`}
                             >
                               <div className="text-xs font-black uppercase tracking-widest text-white/90">{x.emoji} {x.label}</div>
@@ -1209,7 +1172,10 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                         </div>
                         <button
                           type="button"
-                          onClick={() => pickGoal('not_sure')}
+                          onClick={() => {
+                            setOptionsOpen(false);
+                            pickGoal('not_sure');
+                          }}
                           className="mt-2 w-full px-3 py-2 rounded-xl border border-dashed border-rose-400/35 bg-rose-500/15 text-xs font-black uppercase tracking-widest text-rose-100 hover:bg-rose-500/25"
                         >
                           Not sure — Welcome Concierge
@@ -1255,6 +1221,27 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                       >
                         {t(locale, 'pageHelp')}
                       </button>
+                    </div>
+
+                    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3">
+                      <div className={`${FINELY_OS_ENTITY_SUBLABEL} mb-2`}>{t(locale, 'language')}</div>
+                      <div className="grid grid-cols-4 gap-1.5">
+                        {CHAT_LOCALE_ORDER.map((loc) => (
+                          <button
+                            key={loc}
+                            type="button"
+                            onClick={() => setLocale(loc)}
+                            className={`w-full py-1.5 rounded-lg text-xs font-semibold border transition-colors text-center ${
+                              locale === loc
+                                ? 'border-emerald-400/50 bg-emerald-500/20 text-emerald-100'
+                                : 'border-white/12 bg-white/[0.04] text-white/55 hover:border-white/25 hover:text-white/80'
+                            }`}
+                            aria-pressed={locale === loc}
+                          >
+                            {CHAT_LOCALE_LABELS[loc]}
+                          </button>
+                        ))}
+                      </div>
                     </div>
 
                     <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3">

@@ -387,15 +387,26 @@ export function FinelyOsCatalogBrowser({
     }
 
     return (
-      <button
+      <div
         key={item.id}
-        type="button"
-        onClick={() => onItemClick?.(item.id)}
+        role={onItemClick ? 'button' : undefined}
+        tabIndex={onItemClick ? 0 : undefined}
+        onClick={onItemClick ? () => onItemClick(item.id) : undefined}
+        onKeyDown={
+          onItemClick
+            ? (event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  onItemClick(item.id);
+                }
+              }
+            : undefined
+        }
         className={className}
         data-catalog-item-id={darkBed ? item.id : undefined}
       >
         {inner}
-      </button>
+      </div>
     );
   };
 

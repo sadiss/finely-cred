@@ -18,6 +18,7 @@ import { finelyCtaNavigate } from '../../lib/finelyCtaIntent';
 import { FinelyCredLogo } from '../brand/FinelyCredLogo';
 import { categoryLabels } from '../../config/pricingCatalog';
 import { getFeaturedCaseStudies, getCaseStudyProofStats, type CaseStudy } from '../../data/caseStudiesRepo';
+import './landingSellBands.css';
 
 // ============================================================================
 // REALISTIC CREDIT CARD - Horizontal display optimized
@@ -408,7 +409,7 @@ export function HeroSection({ onGetStarted }: HeroSectionProps) {
   return (
     <section className="relative min-h-0 lg:min-h-[92vh] flex items-center overflow-hidden py-16 lg:py-0 finely-wealth-hero">
       <div className="absolute inset-0 bg-fc-chrome" />
-      <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=2400&q=80')] bg-cover bg-center opacity-35 saturate-110 contrast-105 animate-skyline-pan" />
+      <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=2400&q=80')] bg-cover bg-center opacity-50 saturate-110 contrast-105 animate-skyline-pan" />
       <div className="absolute inset-0 hero-clouds pointer-events-none opacity-30" />
       <div className="finely-marble-veil" />
       <div className="finely-gold-bokeh" />
@@ -592,25 +593,25 @@ export function ViolationLiveFeed() {
   ];
 
   return (
-    <div className="w-full bg-black/80 border-y border-violet-500/20">
-      <div className="container mx-auto px-4 py-1.5 flex flex-wrap items-center justify-center gap-2 text-[10px] text-white/45 uppercase tracking-wider">
-        <span className="text-sky-400/80">Illustrative workflow ticker</span>
+    <div className="fc-violation-ticker w-full">
+      <div className="container mx-auto px-4 py-1.5 flex flex-wrap items-center justify-center gap-2 text-[10px] text-white/50 uppercase tracking-wider">
+        <span className="text-[#e0b24a]">Live statute feed</span>
         <span className="text-white/25">·</span>
-        <span>Not live enforcement · educational examples only</span>
+        <span>Illustrative examples only · not live enforcement</span>
       </div>
-      <div className="py-3 overflow-hidden">
-      <div className="flex items-center whitespace-nowrap animate-marquee">
+      <div className="py-3.5 overflow-hidden">
+      <div className="flex items-center whitespace-nowrap animate-marquee-alternate">
         {[...violations, ...violations].map((v, i) => (
           <div key={i} className="flex items-center gap-6 px-8">
             <span className={`px-3 py-1 text-[10px] font-bold rounded border ${TICKER_CODE_ACCENTS[i % TICKER_CODE_ACCENTS.length].chip}`}>
               {v.code}
             </span>
-            <span className="text-xs text-white/50 uppercase tracking-wider">{v.msg}</span>
+            <span className="text-xs text-white/70 uppercase tracking-wider">{v.msg}</span>
             <span className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-500" />
               <span className="text-[10px] text-emerald-400 font-semibold">{v.status}</span>
             </span>
-            <span className="text-white/20">|</span>
+            <span className="text-[#e0b24a]/40">|</span>
           </div>
         ))}
       </div>
@@ -1866,6 +1867,15 @@ export function PhysicalEbook({ title, sub, vol, price, accentColor = "#f59e0b",
 // ============================================================================
 // TESTIMONIAL WITH CARD VISUAL
 // ============================================================================
+function partnerInitials(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('');
+}
+
 export function TestimonialDossier({
   id,
   service,
@@ -1876,6 +1886,8 @@ export function TestimonialDossier({
   resultValue,
   amount,
   accent = 'emerald',
+  variant = 'catalog',
+  metal = 'silver',
 }: {
   id: string;
   service?: string;
@@ -1886,29 +1898,74 @@ export function TestimonialDossier({
   resultValue?: string;
   amount?: string;
   accent?: FinelyOsPublicAccent;
+  variant?: 'catalog' | 'champagne';
+  metal?: 'silver' | 'gold' | 'bronze';
 }) {
   const value = resultValue ?? amount;
   const label = resultLabel ?? (amount ? 'Funded' : undefined);
+  const champagne = variant === 'champagne';
+  const featured = metal === 'silver';
+
+  if (champagne) {
+    return (
+      <article
+        className={`fc-testimonial-dossier fc-sell-dossier fc-sell-dossier--${metal}${featured ? ' fc-sell-dossier--featured' : ''} min-w-0 max-w-full`}
+      >
+        <div className="fc-sell-dossier__foil" aria-hidden />
+        <div className="fc-sell-dossier__sheen" aria-hidden />
+        <div className="fc-sell-dossier__body">
+          <div className="fc-sell-dossier__meta">
+            <span className="fc-sell-dossier__file">{id}</span>
+            <span className="fc-sell-dossier__verified">
+              <Verified size={12} /> Verified
+            </span>
+          </div>
+          {value ? (
+            <div className="fc-sell-dossier__result">
+              <span className="fc-sell-dossier__label">{label || 'Result'}</span>
+              <div className="fc-sell-dossier__value">{value}</div>
+            </div>
+          ) : null}
+          <div className="fc-sell-dossier__who">
+            <div className="fc-sell-dossier__crest" aria-hidden>
+              {partnerInitials(name)}
+            </div>
+            <div className="min-w-0">
+              <p className="fc-sell-dossier__name break-words">{name}</p>
+              <div className="fc-sell-dossier__stars" aria-label="5 star review">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} size={11} className="text-[#c4803d] fill-[#e0b24a]" />
+                ))}
+              </div>
+              {service ? <span className="fc-sell-dossier__service">{service}</span> : null}
+            </div>
+          </div>
+          <blockquote className="fc-sell-dossier__quote">“{review}”</blockquote>
+          <div className="fc-sell-dossier__milestone">{milestone}</div>
+        </div>
+      </article>
+    );
+  }
+
   return (
     <div
       className={`fc-testimonial-dossier card-lift h-full min-h-0 sm:min-h-[300px] !p-4 sm:!p-6 flex flex-col min-w-0 max-w-full overflow-hidden ${finelyOsCatalogCard(accent)}`}
       data-fc-accent={accent}
     >
-      {/* Mini Credit Card Visual */}
       {value && (
-        <div className="mb-6 p-4 rounded-2xl bg-black/[0.04] border border-black/10 min-w-0">
+        <div className="mb-6 p-4 rounded-2xl min-w-0 bg-black/[0.04] border border-black/10">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 min-w-0">
-              <CheckCircle2 size={16} className="text-emerald-700 shrink-0" />
-              <span className="text-xs text-emerald-800 font-semibold uppercase truncate">{label || 'Result'}</span>
+              <CheckCircle2 size={16} className="shrink-0 text-emerald-700" />
+              <span className="text-xs font-semibold uppercase truncate text-emerald-800">{label || 'Result'}</span>
             </div>
-            <span className="text-xl font-bold text-emerald-800 shrink-0">{value}</span>
+            <span className="text-xl font-bold shrink-0 text-emerald-800">{value}</span>
           </div>
         </div>
       )}
 
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-4 min-w-0 w-full">
-        <div className="w-10 h-10 shrink-0 rounded-full bg-black/[0.04] border border-black/10 flex items-center justify-center">
+        <div className="w-10 h-10 shrink-0 rounded-full flex items-center justify-center bg-black/[0.04] border border-black/10">
           <Star size={16} className="text-sky-500" />
         </div>
         <div className="min-w-0 flex-1 w-full">
@@ -1919,18 +1976,18 @@ export function TestimonialDossier({
             ))}
           </div>
           {service ? (
-            <span className="inline-block mt-2 text-[9px] px-2 py-1 rounded-full border border-black/10 bg-white/60 uppercase tracking-widest font-bold opacity-80">
+            <span className="inline-block mt-2 text-[9px] px-2 py-1 rounded-full uppercase tracking-widest font-bold border border-black/10 bg-white/60 opacity-80">
               {service}
             </span>
           ) : null}
         </div>
-        <Verified size={16} className="text-emerald-800 shrink-0 self-start sm:self-center" />
+        <Verified size={16} className="shrink-0 self-start sm:self-center text-emerald-800" />
       </div>
 
-      <p className="text-sm leading-relaxed italic mb-4 opacity-80 break-words">"{review}"</p>
+      <p className="text-sm leading-relaxed italic mb-4 break-words opacity-80">"{review}"</p>
 
-      <div className="mt-auto px-3 py-1.5 rounded-full bg-black/[0.04] border border-black/10 inline-block max-w-full">
-        <span className="text-[10px] font-bold uppercase tracking-wider opacity-85 truncate block">{milestone}</span>
+      <div className="mt-auto px-3 py-1.5 rounded-full inline-block max-w-full bg-black/[0.04] border border-black/10">
+        <span className="text-[10px] font-bold uppercase tracking-wider truncate block opacity-85">{milestone}</span>
       </div>
     </div>
   );
@@ -1947,7 +2004,7 @@ export function TestimonialDossier({
 function HomeProofStat({ value, label }: { value: string; label: string }) {
   return (
     <div className="flex items-baseline gap-1.5 min-w-0">
-      <span className="text-lg sm:text-xl font-black text-emerald-800 whitespace-nowrap">{value}</span>
+      <span className="text-lg sm:text-xl font-black text-emerald-200 whitespace-nowrap">{value}</span>
       <span className="text-[10px] uppercase tracking-wider opacity-60 whitespace-nowrap">{label}</span>
     </div>
   );
@@ -1965,8 +2022,8 @@ export function HomeHeroProofStrip({ className = '' }: { className?: string }) {
           data-fc-accent="emerald"
         >
           <div className="flex items-center gap-2 shrink-0">
-            <BadgeCheck size={16} className="text-emerald-600 shrink-0" />
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-70 whitespace-nowrap">
+            <BadgeCheck size={16} className="text-emerald-300 shrink-0" />
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/70 whitespace-nowrap">
               Documented results
             </span>
           </div>
@@ -1983,7 +2040,7 @@ export function HomeHeroProofStrip({ className = '' }: { className?: string }) {
           <button
             type="button"
             onClick={() => navigate('/results')}
-            className="shrink-0 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider border border-emerald-600/30 text-emerald-800 bg-emerald-500/10 hover:bg-emerald-500/20 transition-colors whitespace-nowrap"
+            className="shrink-0 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider border border-emerald-400/35 text-emerald-100 bg-emerald-500/15 hover:bg-emerald-500/25 transition-colors whitespace-nowrap"
           >
             See real case studies <ArrowRight size={14} />
           </button>
@@ -2007,20 +2064,32 @@ const CASE_STUDY_CATEGORY_LABELS: Record<CaseStudy['category'], string> = {
   heta_society: 'HOS Society',
 };
 
-export function ProvenResultsStrip({ caseStudies, className = '' }: { caseStudies?: CaseStudy[]; className?: string }) {
+const PROVEN_RESULT_ACCENTS: FinelyOsPublicAccent[] = ['emerald', 'violet', 'sky', 'rose', 'emerald', 'violet'];
+
+export function ProvenResultsStrip({
+  caseStudies,
+  className = '',
+  variant = 'catalog',
+}: {
+  caseStudies?: CaseStudy[];
+  className?: string;
+  variant?: 'catalog' | 'champagne';
+}) {
   const items = useMemo(() => caseStudies ?? getFeaturedCaseStudies(6), [caseStudies]);
   if (!items.length) return null;
+  const champagne = variant === 'champagne';
 
   return (
     <div className={`mt-10 sm:mt-12 ${className}`}>
       <div className="flex items-center justify-center gap-2 mb-5">
-        <BadgeCheck size={14} className="text-emerald-500 shrink-0" />
-        <span className="text-[11px] font-black uppercase tracking-[0.25em] text-white/60">
+        <BadgeCheck size={14} className={`shrink-0 ${champagne ? 'text-[#e0b24a]' : 'text-emerald-600'}`} />
+        <span className={`text-[11px] font-black uppercase tracking-[0.25em] ${champagne ? 'text-[#8a6a24]' : 'text-[#0c1228]/70'}`}>
           Proven results — real case studies
         </span>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 min-w-0">
-        {items.map((cs) => {
+        {items.map((cs, i) => {
+          const accent = PROVEN_RESULT_ACCENTS[i % PROVEN_RESULT_ACCENTS.length];
           const stat = cs.fundingSecured
             ? { label: 'Funded', value: cs.fundingSecured }
             : cs.startingScore != null && cs.endingScore != null
@@ -2029,26 +2098,27 @@ export function ProvenResultsStrip({ caseStudies, className = '' }: { caseStudie
           return (
             <div
               key={cs.id}
-              className={`!p-4 flex flex-col min-w-0 ${finelyOsCatalogCard('sky')}`}
-              data-fc-accent="sky"
+              className={`flex flex-col min-w-0 ${champagne ? 'fc-sell-dossier-plaque' : `${finelyOsCatalogCard(accent)} !p-5`}`}
+              data-fc-accent={champagne ? undefined : accent}
             >
+              {stat ? (
+                <div className="mb-3 rounded-2xl border border-white/15 bg-black/20 px-3 py-2.5">
+                  <span className="block text-[9px] font-black uppercase tracking-[0.2em] text-white/70">{stat.label}</span>
+                  <span className="block mt-0.5 text-2xl font-extrabold leading-tight text-white">{stat.value}</span>
+                </div>
+              ) : null}
               <div className="flex items-center justify-between gap-2 mb-2 min-w-0">
-                <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border border-black/10 bg-white/60 opacity-80 truncate">
+                <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full truncate border border-white/20 bg-white/10 text-white/80">
                   {CASE_STUDY_CATEGORY_LABELS[cs.category] ?? 'Case study'}
                 </span>
-                {stat ? (
-                  <span className="text-xs font-bold text-emerald-800 shrink-0">
-                    {stat.label}: {stat.value}
-                  </span>
-                ) : null}
               </div>
-              <p className="text-sm font-semibold mb-1 truncate">{cs.partnerAlias}</p>
-              <p className="text-xs leading-relaxed opacity-75 mb-3">{cs.summary}</p>
+              <p className="text-sm font-extrabold mb-1 truncate text-white">{cs.partnerAlias}</p>
+              <p className="text-xs leading-relaxed mb-3 text-white/70">{cs.summary}</p>
               <div className="mt-auto flex flex-wrap gap-1.5">
                 {cs.statutoryBasis.slice(0, 2).map((basis) => (
                   <span
                     key={basis}
-                    className="text-[9px] px-2 py-0.5 rounded-full border border-black/10 bg-black/[0.03] opacity-70"
+                    className="text-[9px] px-2 py-0.5 rounded-full border border-white/15 bg-black/20 text-white/65"
                   >
                     {basis.split('(')[0].trim()}
                   </span>

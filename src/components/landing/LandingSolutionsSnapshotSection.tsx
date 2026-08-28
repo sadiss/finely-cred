@@ -4,13 +4,8 @@ import { ArrowRight, CheckCircle2, Shield, Trophy, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Reveal } from '../ui';
 import {
-  FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
-  FINELY_OS_ENTITY_VALUE,
-  finelyOsCatalogCard,
   finelyOsLandingPlatinumSection,
-  finelyOsSolidIconChip,
-  type FinelyOsPublicAccent,
 } from '../../features/os/finelyOsLightUi';
 import { LandingTypewriterTitle } from './LandingTypewriterTitle';
 import { LandingSellAtmosphere } from './LandingSellAtmosphere';
@@ -23,7 +18,6 @@ const CARDS: Array<{
   Icon: typeof Zap;
   featured: boolean;
   points: string[];
-  accent: FinelyOsPublicAccent;
 }> = [
   {
     title: 'DIY',
@@ -32,7 +26,6 @@ const CARDS: Array<{
     Icon: Zap,
     featured: false,
     points: ['Letter kits & guides', 'Self-paced portal tools'],
-    accent: 'emerald',
   },
   {
     title: 'Done-For-You',
@@ -41,7 +34,6 @@ const CARDS: Array<{
     Icon: Shield,
     featured: true,
     points: ['Strategy + dispute packets', 'Round tracking & responses', 'Dedicated specialist support'],
-    accent: 'violet',
   },
   {
     title: 'Wealth Builder',
@@ -50,7 +42,6 @@ const CARDS: Array<{
     Icon: Trophy,
     featured: false,
     points: ['Fundability sequencing', 'Tradelines when appropriate'],
-    accent: 'sky',
   },
 ];
 
@@ -140,13 +131,13 @@ export function LandingSolutionsSnapshotSection({ onViewPricing }: Props) {
               accentText="your choice"
               speedMs={52}
               delayMs={180}
-              className="text-4xl sm:text-5xl lg:text-[3.35rem] font-extrabold leading-[1.08] text-white"
-              accentClassName="text-emerald-300"
+              className="text-4xl sm:text-5xl lg:text-[3.35rem] font-extrabold leading-[1.08] text-[#0c1228]"
+              accentClassName="text-[#8a6a24]"
             />
             <div className="flex justify-center">
               <DiyDfySwitcher />
             </div>
-            <p className={`mt-5 text-base sm:text-lg leading-relaxed ${FINELY_OS_ENTITY_BODY}`}>
+            <p className="mt-5 text-base sm:text-lg leading-relaxed text-[#0c1228]/70">
               Personal restore, business credit, debt strategy, tradelines, and wealth builder — one clear path to
               pricing.
             </p>
@@ -157,23 +148,23 @@ export function LandingSolutionsSnapshotSection({ onViewPricing }: Props) {
           {CARDS.map((card, i) => (
             <Reveal key={card.title} delay={90 + i * 90}>
               <div
-                className={`relative h-full ${finelyOsCatalogCard(card.accent)} ${card.featured ? 'ring-2 ring-white/25 brightness-110' : ''}`}
-                data-fc-accent={card.accent}
+                className={`relative h-full p-6 sm:p-7 ${card.featured ? 'fc-sell-champagne-card fc-sell-champagne-card--featured' : 'fc-sell-champagne-card'}`}
               >
+                <div className="fc-sell-champagne-card__sheen" aria-hidden />
                 {card.featured ? (
-                  <div className={`absolute top-4 right-4 ${FINELY_OS_ENTITY_SUBLABEL} text-violet-300`}>Most popular</div>
+                  <div className={`absolute top-4 right-4 ${FINELY_OS_ENTITY_SUBLABEL} !text-[#8a6a24]`}>Most popular</div>
                 ) : null}
                 <div className="relative">
-                  <div className={`mb-4 ${finelyOsSolidIconChip(card.accent)}`}>
+                  <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[rgba(196,128,61,0.35)] bg-[rgba(224,178,74,0.16)] text-[#8a6a24]">
                     <card.Icon size={20} />
                   </div>
-                  <div className={`text-2xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{card.title}</div>
-                  <div className={`mt-1 text-base font-bold text-emerald-300/90`}>{card.range}</div>
-                  <p className={`mt-3 text-base leading-relaxed ${FINELY_OS_ENTITY_BODY}`}>{card.note}</p>
+                  <div className="text-2xl font-extrabold text-[#0c1228]">{card.title}</div>
+                  <div className="mt-1 text-base font-bold text-[#8a6a24]">{card.range}</div>
+                  <p className="mt-3 text-base leading-relaxed text-[#0c1228]/70">{card.note}</p>
                   <ul className="mt-4 space-y-2">
                     {card.points.map((p) => (
-                      <li key={p} className={`flex items-center gap-2 text-sm ${FINELY_OS_ENTITY_BODY}`}>
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <li key={p} className="flex items-center gap-2 text-sm text-[#0c1228]/75">
+                        <CheckCircle2 className="w-4 h-4 text-[#8a6a24] shrink-0" />
                         {p}
                       </li>
                     ))}
@@ -192,7 +183,7 @@ export function LandingSolutionsSnapshotSection({ onViewPricing }: Props) {
             <button
               type="button"
               onClick={() => navigate('/free-guide')}
-              className="text-sm font-bold text-white/55 hover:text-emerald-300 transition-colors underline-offset-4 hover:underline"
+              className="text-sm font-bold text-[#0c1228]/55 hover:text-[#8a6a24] transition-colors underline-offset-4 hover:underline"
             >
               Or start with the free guide
             </button>

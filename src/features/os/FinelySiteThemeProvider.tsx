@@ -1,12 +1,13 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthProvider';
 import {
   clampThemePreference,
   canUseLightTheme,
   resolveEffectiveThemeForUser,
 } from '../../lib/finelyThemeAccess';
+import { isPublicMarketingPath } from '../../lib/publicSitePaths';
 import {
-  applyFinelySiteTheme,
   persistThemePreference,
   readStoredThemePreference,
   type FinelySiteThemePreference,
@@ -26,10 +27,11 @@ const FinelySiteThemeContext = createContext<FinelySiteThemeContextValue | null>
 const CYCLE_ALL: FinelySiteThemePreference[] = ['system', 'light', 'dark'];
 const CYCLE_DARK_ONLY: FinelySiteThemePreference[] = ['dark', 'system'];
 
-function applyTheme(pref: FinelySiteThemePreference, email?: string | null) {
+function applyTheme(pref: FinelySiteThemePreference, email?: string | null, pathname?: string) {
   const clamped = clampThemePreference(pref, email);
   persistThemePreference(clamped);
-  const effective = resolveEffectiveThemeForUser(clamped, email);
+  const path = pathname ?? (typeof window !== 'undefined' ? window.location.pathname : '/');
+  const effective = isPublicMarketingPath(path) ? 'dark' : resolveEffectiveThemeForUser(clamped, email);
   if (typeof document !== 'undefined') {
     document.documentElement.setAttribute('data-fc-theme', effective);
     document.documentElement.setAttribute('data-fc-theme-pref', clamped);
@@ -46,6 +48,7 @@ function applyTheme(pref: FinelySiteThemePreference, email?: string | null) {
 
 export function FinelySiteThemeProvider({ children }: { children: React.ReactNode }) {
   const auth = useAuth();
+  const { pathname } = useLocation();
   const email = auth.user?.email ?? null;
   const allowLight = canUseLightTheme(email);
 
@@ -53,36 +56,41 @@ export function FinelySiteThemeProvider({ children }: { children: React.ReactNod
     clampThemePreference(readStoredThemePreference(), email),
   );
   const [effective, setEffective] = useState<FinelySiteThemeResolved>(() =>
-    resolveEffectiveThemeForUser(readStoredThemePreference(), email),
+    isPublicMarketingPath(pathname) ? 'dark' : resolveEffectiveThemeForUser(readStoredThemePreference(), email),
   );
 
   const apply = useCallback(
     (pref: FinelySiteThemePreference) => {
-      const { clamped, effective: eff } = applyTheme(pref, email);
+      const { clamped, effective: eff } = applyTheme(pref, email, pathname);
       setPreferenceState(clamped);
       setEffective(eff);
     },
-    [email],
+    [email, pathname],
   );
 
   useEffect(() => {
-    const { clamped, effective: eff } = applyTheme(readStoredThemePreference(), email);
+    const { clamped, effective: eff } = applyTheme(readStoredThemePreference(), email, pathname);
     setPreferenceState(clamped);
     setEffective(eff);
-  }, [email, allowLight]);
+  }, [email, allowLight, pathname]);
 
   useEffect(() => {
     const onStore = () => {
-      const { clamped, effective: eff } = applyTheme(readStoredThemePreference(), email);
-      setPreferenceState(clamped);
-      setEffective(eff);
+      const pref = clampThemePreference(readStoredThemePreference(), email);
+      const eff = isPublicMarketingPath(pathname) ? 'dark' : resolveEffectiveThemeForUser(pref, email);
+      setPreferenceState((cur) => (cur === pref ? cur : pref));
+      setEffective((cur) => (cur === eff ? cur : eff));
+      if (typeof document === 'undefined') return;
+      document.documentElement.setAttribute('data-fc-theme', eff);
+      document.documentElement.setAttribute('data-fc-theme-pref', pref);
+      document.documentElement.style.colorScheme = eff;
     };
     window.addEventListener('finely:store', onStore as EventListener);
     return () => window.removeEventListener('finely:store', onStore as EventListener);
-  }, [email]);
+  }, [email, pathname]);
 
   useEffect(() => {
-    if (preference !== 'system' || !allowLight) return;
+    if (preference !== 'system' || !allowLight || isPublicMarketingPath(pathname)) return;
     const mq = window.matchMedia('(prefers-color-scheme: light)');
     const onChange = () => {
       const eff = resolveEffectiveThemeForUser('system', email);
@@ -92,7 +100,7 @@ export function FinelySiteThemeProvider({ children }: { children: React.ReactNod
     };
     mq.addEventListener('change', onChange);
     return () => mq.removeEventListener('change', onChange);
-  }, [preference, allowLight, email]);
+  }, [preference, allowLight, email, pathname]);
 
   const cyclePreference = useCallback(() => {
     const cycle = allowLight ? CYCLE_ALL : CYCLE_DARK_ONLY;

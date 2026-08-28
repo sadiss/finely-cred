@@ -82,9 +82,11 @@
       (function () {
         try {
           var stored = localStorage.getItem('finely.siteTheme.v3');
-          var pref = stored === 'dark' ? 'dark' : 'light';
+          var path = location.pathname || '/';
+          var isWorkspace = /^\/(admin|portal|dashboard|preview|onboarding|account|owners-guide)\b/.test(path);
+          var pref = isWorkspace ? (stored === 'dark' ? 'dark' : 'light') : 'dark';
           document.documentElement.setAttribute('data-fc-theme', pref);
-          document.documentElement.setAttribute('data-fc-theme-pref', pref);
+          document.documentElement.setAttribute('data-fc-theme-pref', stored === 'dark' || stored === 'light' ? stored : pref);
           document.documentElement.style.colorScheme = pref;
           // Clear stale service workers that cached blank shells (one-time boot fix).
           if ('serviceWorker' in navigator) {

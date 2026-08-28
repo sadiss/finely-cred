@@ -33,7 +33,7 @@ export function FinelyChatComposeBox({
   onChange,
   onSubmit,
   placeholder = 'Write your message…',
-  rows = 4,
+  rows = 2,
   busy = false,
   disabled = false,
   submitLabel = 'Send',
@@ -88,8 +88,8 @@ export function FinelyChatComposeBox({
               value={value}
               onChange={(e) => onChange(e.target.value)}
               placeholder={placeholder}
-              rows={compact ? 3 : rows}
-              className="w-full bg-transparent border-0 outline-none px-4 py-3 text-white text-sm leading-relaxed resize-none placeholder:text-white/35 min-h-[112px]"
+              rows={compact ? 2 : rows}
+              className={`w-full bg-transparent border-0 outline-none px-4 py-3 text-white text-sm leading-relaxed resize-none placeholder:text-white/35 ${compact ? 'min-h-[72px]' : 'min-h-[88px]'}`}
             />
           </div>
         </div>

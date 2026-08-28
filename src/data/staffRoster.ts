@@ -153,6 +153,9 @@ function mergeRosterFromSeed(existing: StaffMember[]): StaffMember[] {
 
 /** Re-apply seed shift windows (max 8h) and push to Supabase — call when public chat opens. */
 export function forceStaffShiftPolicyResync(): StaffMember[] {
+  if (appliedShiftPolicyVersion === SHIFT_POLICY_VERSION && memoryRoster?.length) {
+    return memoryRoster;
+  }
   const base = memoryRoster?.length ? memoryRoster : STAFF_ROSTER_SEED;
   memoryRoster = mergeRosterFromSeed(base);
   appliedShiftPolicyVersion = SHIFT_POLICY_VERSION;

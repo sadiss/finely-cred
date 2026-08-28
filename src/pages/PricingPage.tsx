@@ -561,7 +561,7 @@ export default function PricingPage() {
           </>
         ) : visiblePackages.length ? (
           <section
-            className={`relative overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8 2xl:-mx-10 px-4 sm:px-6 lg:px-8 2xl:px-10 py-8 sm:py-10 ${finelyOsLandingContrastSection('fc-band-violet')}`}
+            className={`fc-sell relative overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8 2xl:-mx-10 px-4 sm:px-6 lg:px-8 2xl:px-10 py-8 sm:py-10 ${finelyOsLandingContrastSection('fc-band-violet')}`}
             data-fc-contrast-band="1"
           >
             <LandingSellAtmosphere tone="platinum" />
@@ -579,7 +579,7 @@ export default function PricingPage() {
                 searchPlaceholder="Search packages in this category…"
                 selectLabel="Select"
                 onSelect={(pkgId) => handleSelectPackage(pkgId, visiblePackages)}
-                titleClassName="text-xl sm:text-2xl font-extrabold text-white"
+                titleClassName="text-xl sm:text-2xl font-extrabold text-[#0c1228]"
               />
               <p className={FINELY_OS_COMPLIANCE_FOOTNOTE}>
                 Results vary · not legal advice · funding subject to underwriting

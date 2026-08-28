@@ -7,6 +7,7 @@ const PUBLIC_PREFIXES = [
   '/case-desk-guide',
   '/resources',
   '/pricing',
+  '/personal-credit',
   '/services',
   '/contact',
   '/faq',

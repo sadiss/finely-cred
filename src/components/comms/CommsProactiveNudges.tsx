@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { AlertTriangle, Clock, Mail, Sparkles } from 'lucide-react';
 import { listTasksByPartner } from '../../data/tasksRepo';
 import { getLeadMagnetTrial, isLeadMagnetTrialActive, trialDaysRemaining } from '../../lib/leadMagnetTrial';
@@ -58,11 +58,32 @@ export function CommsProactiveNudges({ partnerId }: { partnerId: string; email?:
     return items.slice(0, 4);
   }, [partnerId]);
 
+  const [open, setOpen] = useState(false);
+
   if (nudges.length === 0) return null;
+
+  const first = nudges[0];
 
   return (
     <div className="px-3 py-2 border-b border-white/[0.08] space-y-2">
-      <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-violet-300`}>Proactive nudges</div>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center gap-2 text-left"
+        aria-expanded={open}
+      >
+        <span className={`${FINELY_OS_ENTITY_SUBLABEL} text-violet-300`}>Nudges</span>
+        <span className="text-xs font-semibold text-white/80 truncate">{first.title}</span>
+        {nudges.length > 1 ? (
+          <span className="shrink-0 text-[10px] font-black uppercase tracking-wider text-violet-200/80">
+            +{nudges.length - 1}
+          </span>
+        ) : null}
+        <span className="ml-auto shrink-0 text-[10px] font-bold uppercase tracking-wider text-white/45">
+          {open ? 'Hide' : 'Show'}
+        </span>
+      </button>
+      {open ? (
       <ul className="space-y-1.5">
         {nudges.map((n) => (
           <li key={n.id} className={`flex items-start gap-2 px-2.5 py-2 text-xs rounded-xl ${finelyOsInlineListItem(true)}`}>
@@ -74,6 +95,7 @@ export function CommsProactiveNudges({ partnerId }: { partnerId: string; email?:
           </li>
         ))}
       </ul>
+      ) : null}
     </div>
   );
 }

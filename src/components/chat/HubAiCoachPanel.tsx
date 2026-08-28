@@ -164,6 +164,7 @@ export function HubAiCoachPanel({
     [lane, showAllAgents],
   );
   const [agentPickerOpen, setAgentPickerOpen] = useState(false);
+  const [topicsOpen, setTopicsOpen] = useState(false);
   const [dutyTick, setDutyTick] = useState(0);
   const persona = useMemo(() => getPortalStaffPersona(personaId), [personaId]);
 
@@ -584,7 +585,7 @@ export function HubAiCoachPanel({
   };
 
   return (
-    <div className="flex flex-col h-full min-h-[320px]">
+    <div className="flex flex-col h-full min-h-0">
       <div className="fc-comms-agent-rail shrink-0 px-4 py-2 border-b space-y-2">
         {handoffBanner ? (
           <div className="text-[11px] text-emerald-200/90 rounded-lg border border-emerald-500/25 bg-emerald-500/10 px-3 py-2">
@@ -622,10 +623,13 @@ export function HubAiCoachPanel({
           </button>
         </div>
 
+        {compact ? null : (
         <p className="text-[10px] text-white/50">
           Type your question — or pick a specialist below to talk with that team member.
         </p>
+        )}
 
+        {compact ? null : (
         <div className="space-y-2">
           <button
             type="button"
@@ -663,7 +667,9 @@ export function HubAiCoachPanel({
             </div>
           ) : null}
         </div>
+        )}
 
+        {compact ? null : (
         <div className="flex flex-wrap gap-1">
           {toolsForPersona(personaId).map((tool) => (
             <button
@@ -676,11 +682,12 @@ export function HubAiCoachPanel({
             </button>
           ))}
         </div>
+        )}
       </div>
 
       {!enabled ? <FinelyOsAiGatewayBanner compact className="mx-3 mt-2 !p-2" /> : null}
 
-      <div ref={scrollerRef} className={`flex-1 overflow-y-auto space-y-3 ${compact ? 'p-3' : 'p-4'}`}>
+      <div ref={scrollerRef} className={`flex-1 min-h-0 overflow-y-auto space-y-3 ${compact ? 'p-3' : 'p-4'}`}>
         {messages.map((m) => (
           <div
             key={m.id}
@@ -751,13 +758,13 @@ export function HubAiCoachPanel({
       </div>
 
       {followUps.length > 0 && (
-        <div className="px-3 py-2 border-t border-white/[0.08] flex flex-wrap gap-1.5 bg-black/15">
+        <div className="px-3 py-1.5 border-t border-white/[0.08] flex gap-1.5 overflow-x-auto bg-black/15">
           {followUps.map((f) => (
             <button
               key={f}
               type="button"
               onClick={() => void sendPrompt(f.replace(/^Open /, 'How do I use '))}
-              className="px-2.5 py-1 rounded-full border border-emerald-500/25 bg-emerald-500/10 text-[10px] text-emerald-100 hover:bg-emerald-500/15"
+              className="shrink-0 px-2.5 py-1 rounded-full border border-emerald-500/25 bg-emerald-500/10 text-[10px] text-emerald-100 hover:bg-emerald-500/15"
             >
               {f}
             </button>
@@ -766,15 +773,15 @@ export function HubAiCoachPanel({
       )}
 
       {routingChips.length > 0 ? (
-        <div className="px-3 py-2 border-t border-white/[0.08] space-y-2 bg-emerald-500/5">
+        <div className="px-3 py-1.5 border-t border-white/[0.08] space-y-1.5 bg-emerald-500/5">
           <div className="text-[10px] uppercase tracking-widest text-emerald-300/90 font-black">Suggested next step</div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex gap-2 overflow-x-auto">
             {routingChips.map((chip) => (
               <button
                 key={chip.id}
                 type="button"
                 onClick={() => applyRoutingChip(chip)}
-                className="px-3 py-2 rounded-xl border border-emerald-500/25 bg-emerald-500/10 text-left hover:bg-emerald-500/20 transition-all max-w-[220px]"
+                className="shrink-0 px-3 py-2 rounded-xl border border-emerald-500/25 bg-emerald-500/10 text-left hover:bg-emerald-500/20 transition-all max-w-[220px]"
               >
                 <div className="text-xs font-semibold text-emerald-100">
                   {chip.emoji ? `${chip.emoji} ` : ''}
@@ -803,8 +810,8 @@ export function HubAiCoachPanel({
           onChange={(e) => setInput(e.target.value)}
           placeholder={t(locale, 'sendPlaceholder')}
           dir={isRtlLocale(locale) ? 'rtl' : 'ltr'}
-          rows={3}
-          className={`w-full resize-none ${FINELY_OS_COMPACT_TEXTAREA} !mt-0 border-emerald-500/20 focus:border-emerald-500/40 ${
+          rows={2}
+          className={`w-full resize-none ${FINELY_OS_COMPACT_TEXTAREA} !mt-0 !min-h-[4.5rem] !py-2.5 border-emerald-500/20 focus:border-emerald-500/40 ${
             voice.listening ? 'border-sky-400/40 shadow-[0_0_0_1px_rgba(56,189,248,0.22)]' : ''
           }`}
           onKeyDown={(e) => {
@@ -819,6 +826,16 @@ export function HubAiCoachPanel({
           <p className="text-[10px] text-emerald-200/75 animate-pulse">Listening — your words appear here as you speak…</p>
         ) : null}
         <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setTopicsOpen((v) => !v)}
+            className={`inline-flex items-center justify-center gap-1.5 ${FINELY_OS_SECONDARY_BTN} !px-3`}
+            aria-expanded={topicsOpen}
+          >
+            <Sparkles size={14} />
+            {topicsOpen ? 'Hide' : 'More'}
+          </button>
+          {compact ? null : (
           <label
             className={`inline-flex items-center gap-1.5 ${FINELY_OS_SECONDARY_BTN} !px-2`}
             title="Choose the coach and microphone language"
@@ -837,6 +854,7 @@ export function HubAiCoachPanel({
               ))}
             </select>
           </label>
+          )}
           {voice.supported ? (
             <button
               type="button"
@@ -884,37 +902,56 @@ export function HubAiCoachPanel({
         </div>
       </div>
 
-      <div className="fc-comms-composer border-t p-3 space-y-2">
+      {topicsOpen ? (
+      <div className="fc-comms-composer border-t px-3 py-2 space-y-2">
         <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-fuchsia-300/90 font-black">
           <Sparkles size={12} />
-          {path.length === 0 ? 'Try asking about…' : path[path.length - 1]?.label}
-          {path.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setPath((p) => p.slice(0, -1))}
-              className="ml-auto text-white/50 hover:text-white normal-case tracking-normal font-semibold"
-            >
-              ← Back
-            </button>
-          )}
+          {path.length === 0 ? 'Topics' : path[path.length - 1]?.label}
         </div>
-        <div className="flex flex-wrap gap-2 max-h-28 overflow-y-auto">
-          {currentNodes.map((node) => (
-            <button
-              key={node.id}
-              type="button"
-              onClick={() => onPickSuggestion(node)}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-fuchsia-500/25 bg-fuchsia-500/10 hover:bg-fuchsia-500/20 text-white/90 text-xs font-semibold transition-all"
-              title={node.hint}
+        {compact ? (
+          <label className={`inline-flex items-center gap-1.5 ${FINELY_OS_SECONDARY_BTN} !px-2`}>
+            <Languages size={14} />
+            <select
+              value={locale}
+              onChange={(event) => setLocale(event.target.value as ChatLocale)}
+              className="max-w-[8.5rem] bg-transparent text-inherit text-xs outline-none"
+              aria-label="Coach language"
             >
-              <span>{node.emoji}</span>
-              <span>{node.label}</span>
-              {node.children?.length ? <ChevronRight size={12} className="text-fuchsia-200/80" /> : null}
-              {node.navigate && !node.children?.length ? <ExternalLink size={11} className="text-white/40" /> : null}
-            </button>
-          ))}
-        </div>
+              {CHAT_LOCALE_ORDER.map((option) => (
+                <option key={option} value={option} className="bg-slate-950 text-white">
+                  {CHAT_LOCALE_LABELS[option]}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
+            {path.length > 0 ? (
+              <button
+                type="button"
+                onClick={() => setPath((p) => p.slice(0, -1))}
+                className="text-[11px] text-white/50 hover:text-white font-semibold"
+              >
+                ← Back
+              </button>
+            ) : null}
+            <div className="flex flex-wrap gap-2 max-h-20 overflow-y-auto">
+              {currentNodes.map((node) => (
+                <button
+                  key={node.id}
+                  type="button"
+                  onClick={() => onPickSuggestion(node)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-fuchsia-500/25 bg-fuchsia-500/10 hover:bg-fuchsia-500/20 text-white/90 text-xs font-semibold transition-all"
+                  title={node.hint}
+                >
+                  <span>{node.emoji}</span>
+                  <span>{node.label}</span>
+                  {node.children?.length ? <ChevronRight size={12} className="text-fuchsia-200/80" /> : null}
+                  {node.navigate && !node.children?.length ? <ExternalLink size={11} className="text-white/40" /> : null}
+                </button>
+              ))}
+            </div>
       </div>
+      ) : null}
     </div>
   );
 }

@@ -13,6 +13,7 @@ import {
   ProvenResultsStrip,
   HomeHeroProofStrip,
   WhatMakesDifferentSection,
+  ViolationLiveFeed,
   Footer,
   LandingPathChooserSection,
   LandingCinematicVideoStage,
@@ -22,6 +23,7 @@ import {
   LandingAuthorizedUserSection,
   LandingFinancingPreapprovalSection,
   MasteryOSSection,
+  LandingSellAtmosphere,
 } from './components/landing';
 import { SovereignPortal } from './components/portal';
 import { MasteryOSDashboard } from './components/dashboard';
@@ -71,12 +73,10 @@ import {
   finelyOsCatalogCard,
   finelyOsInlineListItem,
   finelyOsLeadMagnetPanel,
-  finelyOsLightMeshSection,
   finelyOsLandingContrastSection,
   finelyOsLandingPlatinumSection,
 } from './features/os/finelyOsLightUi';
 import { FinelyOsComplianceStrip } from './features/os/FinelyOsComplianceStrip';
-import { FinelyOsPublicCommandStrip } from './features/os/FinelyOsPublicCommandStrip';
 import { isFeatureEnabled } from './data/settingsRepo';
 import { usePublicSeoMeta } from './hooks/usePublicSeoMeta';
 import { FinelyCredLogo } from './components/brand/FinelyCredLogo';
@@ -507,7 +507,7 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
         <HeroSection onGetStarted={handleHeroGetStarted} onViewTradelines={onViewTradelines} />
       </div>
 
-      <FinelyOsPublicCommandStrip />
+      <ViolationLiveFeed />
 
       {/* 1b. Condensed proof/trust strip â€” directly beneath the hero (was buried at section #10) */}
       <HomeHeroProofStrip />
@@ -576,56 +576,62 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
       <LandingMaterialsPreviewBand />
 
       {/* 10. Social proof + compliance */}
-      <section className={`py-16 sm:py-20 overflow-x-hidden ${finelyOsLightMeshSection('fc-band-dark')}`}>
-        <div className="container mx-auto px-4 sm:px-6 max-w-6xl min-w-0">
+      <section className={`fc-sell py-16 sm:py-20 overflow-x-hidden relative ${finelyOsLandingPlatinumSection()}`} data-fc-contrast-band="1">
+        <LandingSellAtmosphere tone="platinum" />
+        <div className="container mx-auto px-4 sm:px-6 max-w-6xl min-w-0 relative z-10">
           <FinelyOsComplianceStrip className="mb-10" />
           <div className="text-center mb-12">
             <Reveal>
-              <p className="text-xs font-bold tracking-[0.3em] text-violet-400 uppercase mb-4">
+              <p className="text-xs font-bold tracking-[0.3em] text-[#8a6a24] uppercase mb-4">
                 <Trophy size={14} className="inline mr-2" /> Reviews
               </p>
-              <h2 className="text-3xl lg:text-4xl font-light text-white mb-4">
-                Partner <span className="text-violet-400">success stories</span>
+              <h2 className="text-3xl lg:text-4xl font-extrabold text-[#0c1228] mb-4">
+                Partner <span className="text-[#8a6a24]">success stories</span>
               </h2>
             </Reveal>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 min-w-0">
-            <Reveal delay={100}>
-              <TestimonialDossier
-                id="FC-881"
-                accent="emerald"
-                service="Tradelines"
-                name="Amy Peaks"
-                review="My score moved in the first cycle. The guidance was precise, the process was clean, and the results were exactly what I needed."
-                milestone="Profile strengthened"
-                resultLabel="Score lift"
-                resultValue="+68 pts"
-              />
-            </Reveal>
-            <Reveal delay={200}>
-              <TestimonialDossier
-                id="FC-924"
-                accent="sky"
-                service="Funding"
-                name="Jennifer Boykins"
-                review="I was skeptical at first, but the sequencing and execution were real. I qualified for funding faster than I thought possible."
-                milestone="5-month turnaround"
-                resultLabel="Funded"
-                resultValue="$58,000"
-              />
-            </Reveal>
-            <Reveal delay={300}>
-              <TestimonialDossier
-                id="FC-110"
-                accent="violet"
-                service="Credit Restoration"
-                name="Bruce Cunningham"
-                review="The strategy was detailed and disciplined. They didn't just send letters — they built a real case file and kept everything organized."
-                milestone="Accuracy restored"
-                resultLabel="Deleted"
-                resultValue="11 items"
-              />
-            </Reveal>
+          <div className="fc-sell-dossier-tray">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 min-w-0">
+              <Reveal delay={100}>
+                <TestimonialDossier
+                  id="FC-881"
+                  variant="champagne"
+                  metal="gold"
+                  service="Tradelines"
+                  name="Amy Peaks"
+                  review="My score moved in the first cycle. The guidance was precise, the process was clean, and the results were exactly what I needed."
+                  milestone="Profile strengthened"
+                  resultLabel="Score lift"
+                  resultValue="+68 pts"
+                />
+              </Reveal>
+              <Reveal delay={200}>
+                <TestimonialDossier
+                  id="FC-924"
+                  variant="champagne"
+                  metal="silver"
+                  service="Funding"
+                  name="Jennifer Boykins"
+                  review="I was skeptical at first, but the sequencing and execution were real. I qualified for funding faster than I thought possible."
+                  milestone="5-month turnaround"
+                  resultLabel="Funded"
+                  resultValue="$58,000"
+                />
+              </Reveal>
+              <Reveal delay={300}>
+                <TestimonialDossier
+                  id="FC-110"
+                  variant="champagne"
+                  metal="bronze"
+                  service="Credit Restoration"
+                  name="Bruce Cunningham"
+                  review="The strategy was detailed and disciplined. They didn't just send letters — they built a real case file and kept everything organized."
+                  milestone="Accuracy restored"
+                  resultLabel="Deleted"
+                  resultValue="11 items"
+                />
+              </Reveal>
+            </div>
           </div>
 
           <Reveal delay={400}>
@@ -636,7 +642,7 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
 
       {/* 9. Final CTA */}
       <section className={`py-20 lg:py-28 relative overflow-hidden ${finelyOsLandingPlatinumSection()}`} data-fc-contrast-band="1">
-        <div className="absolute inset-0 bg-gradient-to-b from-[#2e323a] via-[#4a4f59] to-[#23262d]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#05070c] via-[#0a1018] to-[#020308]" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_60%,rgba(16,185,129,0.15),transparent_70%)]" />
         <div className="container mx-auto px-6 relative z-10 text-center">
           <div className="max-w-3xl mx-auto space-y-8">

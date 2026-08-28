@@ -9,6 +9,7 @@ import { FinelyOsComplianceStrip } from '../../features/os/FinelyOsComplianceStr
 import {
   finelyOsCatalogCard,
   finelyOsLandingContrastSection,
+  finelyOsLandingPlatinumSection,
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_VALUE,
 } from '../../features/os/finelyOsLightUi';
@@ -96,42 +97,41 @@ export function LandingFinancingPreapprovalSection({ variant = 'full' }: Props) 
     return (
       <section
         id="financing-preapproval"
-        className={`fc-sell py-16 sm:py-20 relative overflow-hidden ${finelyOsLandingContrastSection('fc-band-dark')}`}
+        className={`fc-sell py-16 sm:py-20 relative overflow-hidden ${finelyOsLandingPlatinumSection()}`}
         data-fc-contrast-band="1"
       >
         <LandingSellAtmosphere tone="platinum" />
         <div className="container mx-auto px-4 sm:px-6 max-w-5xl relative z-10">
           <Reveal>
-            <div className="relative overflow-hidden rounded-[1.75rem] border border-violet-500/30 bg-gradient-to-br from-[#141820]/92 via-[#12141c]/90 to-[#0c1210]/95 px-6 py-10 sm:px-12 sm:py-12 shadow-[0_40px_90px_-36px_rgba(0,0,0,0.7)]">
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_50%_at_0%_0%,rgba(163,230,53,0.12),transparent_55%)] pointer-events-none" />
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_45%_45%_at_100%_100%,rgba(139,92,246,0.14),transparent_55%)] pointer-events-none" />
+            <div className="relative overflow-hidden fc-sell-champagne-card fc-sell-champagne-card--featured px-6 py-10 sm:px-12 sm:py-12">
+              <div className="fc-sell-champagne-card__sheen" aria-hidden />
               <div className="relative grid lg:grid-cols-[1.2fr_0.8fr] gap-8 items-center">
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.28em] text-emerald-300 mb-4">{copy.eyebrow}</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#8a6a24] mb-4">{copy.eyebrow}</p>
                   <LandingTypewriterTitle
                     text="Payment plans that report "
                     accentText="while you build"
-                    className="fc-sell-serif text-3xl sm:text-4xl lg:text-[2.75rem] font-semibold leading-[1.1] text-white"
-                    accentClassName="text-[#a3e635] italic"
+                    className="fc-sell-serif text-3xl sm:text-4xl lg:text-[2.75rem] font-semibold leading-[1.1] text-[#0c1228]"
+                    accentClassName="text-[#8a6a24] italic"
                   />
-                  <p className="mt-4 text-sm sm:text-base text-white/55 leading-relaxed max-w-xl">{copy.description}</p>
+                  <p className="mt-4 text-sm sm:text-base text-[#0c1228]/70 leading-relaxed max-w-xl">{copy.description}</p>
                   <ul className="mt-5 flex flex-wrap gap-2">
                     {copy.bullets.map((b) => (
                       <li
                         key={b}
-                        className="inline-flex items-center gap-1.5 rounded-full border border-violet-500/25 bg-black/25 px-3 py-1.5 text-[11px] text-white/65"
+                        className="inline-flex items-center gap-1.5 rounded-full border border-[rgba(196,128,61,0.28)] bg-[rgba(224,178,74,0.12)] px-3 py-1.5 text-[11px] text-[#0c1228]/75"
                       >
-                        <CheckCircle2 size={12} className="text-[#a3e635] shrink-0" />
+                        <CheckCircle2 size={12} className="text-[#8a6a24] shrink-0" />
                         {b}
                       </li>
                     ))}
                   </ul>
-                  <p className="fc-sell-compliance mt-5">{copy.compliance}</p>
+                  <p className="mt-5 text-[11px] leading-relaxed text-[#0c1228]/45">{copy.compliance}</p>
                 </div>
-                <div className={`${finelyOsCatalogCard('violet')} !p-6 sm:!p-7 text-center`} data-fc-accent="violet">
-                  <p className="text-[10px] font-black uppercase tracking-[0.28em] text-violet-200">Financing readiness</p>
-                  <p className="fc-sell-serif mt-3 text-2xl font-semibold text-white">Check pre-approval</p>
-                  <p className="mt-2 text-sm text-white/60 leading-relaxed">
+                <div className="fc-sell-champagne-card !p-6 sm:!p-7 text-center">
+                  <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#8a6a24]">Financing readiness</p>
+                  <p className="fc-sell-serif mt-3 text-2xl font-semibold text-[#0c1228]">Check pre-approval</p>
+                  <p className="mt-2 text-sm text-[#0c1228]/65 leading-relaxed">
                     A short application — know your options before you commit. No vendor named in our copy.
                   </p>
                   <button
@@ -145,11 +145,11 @@ export function LandingFinancingPreapprovalSection({ variant = 'full' }: Props) 
                   <button
                     type="button"
                     onClick={() => navigate('/enlightenment-session')}
-                    className="mt-3 text-xs text-white/50 hover:text-violet-200 transition-colors underline-offset-4 hover:underline"
+                    className="mt-3 text-xs text-[#0c1228]/50 hover:text-[#8a6a24] transition-colors underline-offset-4 hover:underline"
                   >
                     {copy.secondaryCta}
                   </button>
-                  {notice ? <p className="mt-3 text-xs text-violet-200">{notice}</p> : null}
+                  {notice ? <p className="mt-3 text-xs text-[#8a6a24]">{notice}</p> : null}
                 </div>
               </div>
             </div>

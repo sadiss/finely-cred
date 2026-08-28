@@ -53,6 +53,8 @@ export type FinelyCommunicationHubProps = {
   forceEnabled?: boolean;
   /** Keeps shared hub behavior while matching the redesigned workspace presentation. */
   visualVariant?: 'default' | 'product';
+  /** Hide the hub's own tab strip when an outer layout already owns the tabs. */
+  hideTabstrip?: boolean;
 };
 
 export function FinelyCommunicationHub({
@@ -69,6 +71,7 @@ export function FinelyCommunicationHub({
   navigationMode = 'live',
   forceEnabled = false,
   visualVariant = 'default',
+  hideTabstrip = false,
 }: FinelyCommunicationHubProps) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -222,7 +225,7 @@ export function FinelyCommunicationHub({
   const panelContent = (
     <>
       <div className={FINELY_OS_COMMS_HEADER}>
-        <div className={FINELY_OS_COMMS_HEADER_INNER}>
+          <div className={`${FINELY_OS_COMMS_HEADER_INNER} ${!expanded && mode === 'floating' ? '!p-3' : ''}`}>
           <div className="flex items-center gap-3 min-w-0">
             <div className={FINELY_OS_COMMS_ICON}>
               <MessageCircle size={20} className="text-fuchsia-300" />
@@ -276,7 +279,8 @@ export function FinelyCommunicationHub({
           </div>
         </div>
 
-        <div className="fc-comms-tabstrip flex overflow-x-auto">
+        {hideTabstrip ? null : (
+        <div className={`fc-comms-tabstrip flex overflow-x-auto ${!expanded && mode === 'floating' ? '[&_.fc-comms-tab]:!py-2' : ''}`}>
           {hubTabs.map((t) => (
             <button
               key={t.id}
@@ -289,13 +293,14 @@ export function FinelyCommunicationHub({
             </button>
           ))}
         </div>
+        )}
       </div>
 
       {effectivePartnerId ? <CommsProactiveNudges partnerId={effectivePartnerId} /> : null}
 
       <div
         className={`flex-1 min-h-0 overflow-hidden ${
-          expanded || mode === 'page' ? 'min-h-[420px]' : 'max-h-[52vh]'
+          expanded || mode === 'page' ? 'min-h-[420px]' : ''
         }`}
       >
         {(tab === 'ai' || tab === 'chat') && (
@@ -383,7 +388,7 @@ export function FinelyCommunicationHub({
           className={`${FINELY_OS_COMMS_SHELL} transition-all max-lg:fixed max-lg:inset-0 max-lg:w-full max-lg:h-[100dvh] max-lg:max-h-[100dvh] max-lg:rounded-none ${
             expanded
               ? 'lg:w-[min(920px,calc(100vw-40px))] lg:h-[min(780px,calc(100vh-80px))]'
-              : 'lg:w-[min(520px,calc(100vw-40px))]'
+              : 'lg:w-[min(520px,calc(100vw-40px))] lg:h-[min(720px,calc(100vh-80px))]'
           }`}
         >
           {panelContent}

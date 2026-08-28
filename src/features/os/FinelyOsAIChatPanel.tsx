@@ -65,7 +65,7 @@ export function FinelyOsAIChatPanel({
   };
 
   return (
-    <section className={`flex flex-col min-h-[520px] ${finelyOsGlassShell('panel', 'fuchsia')}`}>
+    <section className={`flex flex-col min-h-0 min-h-[420px] ${finelyOsGlassShell('panel', 'fuchsia')}`}>
       <div className="flex flex-wrap items-start justify-between gap-3 border-b border-fuchsia-500/20 pb-4">
         <div className="flex items-start gap-3 min-w-0">
           <FinelyOsIconBadge icon={Icon} accent="fuchsia" size={18} className="p-2.5 shrink-0" />
@@ -97,7 +97,7 @@ export function FinelyOsAIChatPanel({
 
       {error ? <div className={`mt-4 ${FINELY_OS_NOTICE_ERROR}`}>{error}</div> : null}
 
-      <div className="flex-1 overflow-y-auto py-4 space-y-3 min-h-[280px] max-h-[52vh]">
+      <div className="flex-1 min-h-0 overflow-y-auto py-4 space-y-3">
         {!messages.length ? (
           <div className={`rounded-2xl border border-dashed border-fuchsia-500/25 bg-fuchsia-500/[0.06] p-8 text-center`}>
             <FinelyOsIconBadge icon={Icon} accent="fuchsia" size={20} className="p-3 mx-auto mb-3" />
