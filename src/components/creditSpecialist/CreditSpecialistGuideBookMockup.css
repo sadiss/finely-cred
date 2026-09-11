@@ -127,6 +127,65 @@
   text-align: left;
 }
 
+.csg-book-edition,
+.csg-book-title,
+.csg-book-tagline,
+.csg-book-value-label,
+.csg-book-value,
+.csg-book-cta,
+.csg-book-cover h3,
+.csg-book-cover p,
+.csg-book-cover div {
+  color: #f8fafc !important;
+}
+
+.csg-book-edition {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #95e000 !important;
+}
+
+.csg-book-title {
+  margin-top: 0.5rem;
+  font-size: clamp(1.2rem, 2.4vw, 1.5rem);
+  font-weight: 600;
+  line-height: 1.15;
+  color: #ffffff !important;
+}
+
+.csg-book-tagline {
+  margin-top: 0.5rem;
+  font-size: 10px;
+  line-height: 1.45;
+  color: rgba(248, 250, 252, 0.78) !important;
+}
+
+.csg-book-value-label {
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(248, 250, 252, 0.62) !important;
+}
+
+.csg-book-value {
+  margin-top: 0.25rem;
+  font-size: 1.5rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: #c4b5fd !important;
+}
+
+.csg-book-cta {
+  margin-top: 0.25rem;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #95e000 !important;
+}
+
 .csg-book-cover::after {
   content: '';
   position: absolute;
@@ -145,7 +204,11 @@
   font-weight: 800;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--csg-gold-soft);
-  opacity: 0.85;
+  color: #5b21b6;
+  opacity: 0.9;
   white-space: nowrap;
+}
+
+.csg-cta-panel .csg-book-open-hint {
+  color: #c4b5fd !important;
 }

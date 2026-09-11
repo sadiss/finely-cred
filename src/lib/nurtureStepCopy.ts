@@ -1,4 +1,5 @@
 import type { NurtureSequenceDef } from '../domain/nurtureSequences';
+import { htmlFromPlainEmail } from '../comms/prebuiltHtmlEmailLayout';
 import { buildMarketingEmailFooter } from './commsUnsubscribeFooter';
 import { buildEnlightenmentSessionUrl, buildFunnelSuccessUrl, focusFromFunnelId } from './funnelPublicLinks';
 
@@ -21,7 +22,7 @@ export function buildNurtureStepEmail(args: {
   context: Record<string, unknown>;
   personaName: string;
   stepSubject?: string;
-}): { subject: string; text: string } {
+}): { subject: string; text: string; html: string } {
   const ctx: NurtureEmailContext = {
     firstName: firstNameFrom(args.context),
     guideTitle: String(args.context.guideTitle ?? 'your free resource'),
@@ -394,5 +395,9 @@ export function buildNurtureStepEmail(args: {
     }
   })();
 
-  return { subject: copy.subject, text: `${copy.text}${footer}` };
+  return {
+    subject: copy.subject,
+    text: `${copy.text}${footer}`,
+    html: htmlFromPlainEmail({ headline: copy.subject, text: copy.text, email: email || undefined }),
+  };
 }

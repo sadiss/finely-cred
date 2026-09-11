@@ -163,7 +163,7 @@ export default function PartnerHosHubProductSurface({ role, pageId, partnerId, d
             Reports live in your full portal workspace — upload once, then link files to each HOS dispute item from the tracker.
           </p>
           <button type="button" className="fc-wlp-btn-primary" onClick={() => navigate(reportsPath)}>
-            <Upload size={15} /> Open reports workstation
+            <Upload size={15} /> Open reports room
           </button>
         </ProductPanel>
       );
@@ -177,7 +177,7 @@ export default function PartnerHosHubProductSurface({ role, pageId, partnerId, d
           emphasis="raised"
         >
           <p className="fc-wlp-panel-copy">
-            Round-one letters and mail tracking stay in the letters workstation — use the dispute tracker to mark items sent.
+            Round-one letters and mail tracking stay in the letters room — use the dispute tracker to mark items sent.
           </p>
           <button type="button" className="fc-wlp-btn-primary" onClick={() => navigate(lettersPath)}>
             <FileText size={15} /> Open letter workspace

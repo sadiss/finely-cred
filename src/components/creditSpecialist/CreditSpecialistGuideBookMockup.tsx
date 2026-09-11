@@ -46,7 +46,7 @@ export function CreditSpecialistGuideBookMockup({
         <div className="csg-book">
           <div className="csg-book-spine" aria-hidden />
           <div className="csg-book-pages" aria-hidden />
-          <div className="csg-book-cover">
+          <div className="csg-book-cover lm-convert-keep-dark" data-fc-keep-ink="light">
             <div className="relative z-10">
               <img
                 src="/brand/finely-cred-logo-light.png"
@@ -55,14 +55,14 @@ export function CreditSpecialistGuideBookMockup({
                 width={120}
                 height={40}
               />
-              <p className="text-[9px] font-bold uppercase tracking-[0.22em] text-[#95e000]/90">{edition}</p>
-              <h3 className="mt-2 text-[1.35rem] font-semibold leading-tight text-white sm:text-[1.5rem]">{title}</h3>
-              <p className="mt-2 text-[10px] leading-relaxed text-white/55">{tagline}</p>
+              <p className="csg-book-edition">{edition}</p>
+              <h3 className="csg-book-title">{title}</h3>
+              <p className="csg-book-tagline">{tagline}</p>
             </div>
             <div className="relative z-10">
-              <div className="text-[9px] uppercase tracking-[0.18em] text-white/40">Free in-app guide</div>
-              <div className="mt-1 text-2xl font-black tabular-nums text-violet-200">{valueLabel}</div>
-              <div className="mt-1 text-[10px] font-bold uppercase tracking-wider text-[#95e000]">Open to read →</div>
+              <div className="csg-book-value-label">Free in-app guide</div>
+              <div className="csg-book-value">{valueLabel}</div>
+              <div className="csg-book-cta">Open to read →</div>
             </div>
           </div>
         </div>

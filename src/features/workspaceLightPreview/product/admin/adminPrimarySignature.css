@@ -1,9 +1,9 @@
 /**
  * Signature Admin Surface Styles (Primary PageIds)
- * Finely Cred - Compact Luxury Operating Surfaces
+ * Finely Cred — planned floors: rooms and space, not packed chrome.
  *
  * Enforces allowed brand accents only: emerald, violet, sky, rose, navy.
- * Compact luxury density: !p-4 max, luminous glass panels, color-forward gradients.
+ * Body rooms use p-6 / lg:p-8. Board owns the row; click a card → one wide sheet.
  */
 
 .fc-wlp-admin-primary-sig {
@@ -177,27 +177,53 @@
   color: #c4b5fd;
 }
 
+.fc-wlp-atlas-node-card[data-fc-accent='emerald'] {
+  border-color: rgba(15, 187, 139, 0.42);
+  background: linear-gradient(140deg, rgba(8, 42, 34, 0.88), rgba(16, 28, 44, 0.92));
+}
+
+.fc-wlp-atlas-node-card[data-fc-accent='violet'] {
+  border-color: rgba(139, 92, 246, 0.42);
+  background: linear-gradient(140deg, rgba(36, 22, 58, 0.88), rgba(16, 28, 44, 0.92));
+}
+
+.fc-wlp-atlas-node-card[data-fc-accent='sky'] {
+  border-color: rgba(56, 189, 248, 0.42);
+  background: linear-gradient(140deg, rgba(10, 36, 58, 0.88), rgba(16, 28, 44, 0.92));
+}
+
+.fc-wlp-atlas-node-card[data-fc-accent='rose'] {
+  border-color: rgba(251, 113, 133, 0.42);
+  background: linear-gradient(140deg, rgba(52, 18, 32, 0.88), rgba(16, 28, 44, 0.92));
+}
+
 .fc-wlp-atlas-node-card:hover,
 .fc-wlp-atlas-node-card[data-selected='true'] {
   transform: translateY(-2px);
-  border-color: rgba(15, 187, 139, 0.7);
+}
+
+.fc-wlp-atlas-node-card[data-fc-accent='emerald']:hover,
+.fc-wlp-atlas-node-card[data-fc-accent='emerald'][data-selected='true'] {
+  border-color: rgba(15, 187, 139, 0.78);
   box-shadow: 0 8px 22px rgba(15, 187, 139, 0.3);
-  background: linear-gradient(140deg, rgba(32, 52, 78, 0.9), rgba(20, 36, 54, 0.95));
 }
 
-.fc-wlp-atlas-node-card[data-risk='attention'],
-.fc-wlp-atlas-node-card[data-risk='high'] {
-  border-color: rgba(139, 92, 246, 0.4);
-  background: linear-gradient(140deg, rgba(42, 32, 58, 0.85), rgba(24, 20, 42, 0.92));
+.fc-wlp-atlas-node-card[data-fc-accent='violet']:hover,
+.fc-wlp-atlas-node-card[data-fc-accent='violet'][data-selected='true'] {
+  border-color: rgba(139, 92, 246, 0.78);
+  box-shadow: 0 8px 22px rgba(139, 92, 246, 0.3);
 }
 
-.fc-wlp-atlas-node-card[data-risk='attention']:hover,
-.fc-wlp-atlas-node-card[data-risk='attention'][data-selected='true'],
-.fc-wlp-atlas-node-card[data-risk='high']:hover,
-.fc-wlp-atlas-node-card[data-risk='high'][data-selected='true'] {
-  border-color: rgba(139, 92, 246, 0.8);
-  box-shadow: 0 8px 22px rgba(139, 92, 246, 0.35);
-  background: linear-gradient(140deg, rgba(52, 40, 78, 0.9), rgba(30, 24, 52, 0.95));
+.fc-wlp-atlas-node-card[data-fc-accent='sky']:hover,
+.fc-wlp-atlas-node-card[data-fc-accent='sky'][data-selected='true'] {
+  border-color: rgba(56, 189, 248, 0.78);
+  box-shadow: 0 8px 22px rgba(56, 189, 248, 0.3);
+}
+
+.fc-wlp-atlas-node-card[data-fc-accent='rose']:hover,
+.fc-wlp-atlas-node-card[data-fc-accent='rose'][data-selected='true'] {
+  border-color: rgba(251, 113, 133, 0.78);
+  box-shadow: 0 8px 22px rgba(251, 113, 133, 0.3);
 }
 
 .fc-wlp-atlas-node-header {
@@ -276,7 +302,7 @@
 
 .fc-wlp-partner-record-inspector {
   min-height: min(82vh, 920px);
-  max-height: min(88vh, 1100px);
+  max-height: none;
   overflow: hidden;
   padding: 20px 20px 16px;
   gap: 14px;
@@ -410,7 +436,7 @@
 
 .fc-wlp-partner-quick-actions {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -473,7 +499,7 @@
 .fc-wlp-partner-file-embed,
 .fc-wlp-partner-view-embed {
   flex: 1 1 auto;
-  min-height: 420px;
+  min-height: 28rem;
   overflow: auto;
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -583,21 +609,21 @@
 
 .fc-wlp-conveyor-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
-  gap: 16px;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 420px);
+  gap: 20px;
 }
 
 .fc-wlp-conveyor-stages {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
+  gap: 20px;
 }
 
 .fc-wlp-conveyor-stage-column {
   background: linear-gradient(160deg, rgba(20, 30, 48, 0.75), rgba(12, 20, 34, 0.85));
   border: 1px solid rgba(143, 92, 246, 0.2);
   border-radius: 14px;
-  padding: 12px;
+  padding: 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -854,8 +880,8 @@
 
 .fc-wlp-observatory-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
-  gap: 16px;
+  grid-template-columns: minmax(0, 1.2fr) minmax(360px, 0.8fr);
+  gap: 20px;
 }
 
 .fc-wlp-observatory-instruments {
@@ -942,7 +968,7 @@
 .fc-wlp-topology-map {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  gap: 20px;
 }
 
 .fc-wlp-topology-node {
@@ -1108,7 +1134,7 @@
   background: linear-gradient(150deg, #0e1828 0%, #162438 100%);
   border: 1px solid rgba(15, 187, 139, 0.4);
   border-radius: 20px;
-  padding: 20px;
+  padding: 1.5rem 2rem;
   max-width: 520px;
   width: 100%;
   color: #fff;
@@ -1120,9 +1146,37 @@
 
 /* Wide Drawer View for Complete Operational Partner Record */
 .fc-wlp-wide-drawer {
-  max-width: min(1200px, 94vw) !important;
+  max-width: min(1280px, 96vw) !important;
   max-height: 88vh;
   overflow-y: auto;
+  padding: 1.5rem 2rem;
+}
+
+.fc-wlp-wide-drawer .fc-wlp-op-inspector-panel,
+.fc-wlp-wide-drawer .fc-admin-inbox-inspector {
+  position: static;
+  max-height: none;
+  height: auto;
+  overflow: visible;
+  top: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.fc-wlp-workstation-sheet-body {
+  max-height: min(72vh, 820px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.fc-wlp-wide-drawer .fc-wlp-op-inspector-panel :is(.text-xs, .text-\[11px\], .text-\[10px\]),
+.fc-wlp-wide-drawer .fc-wlp-op-inspector-panel [class~='text-[11px]'],
+.fc-wlp-wide-drawer .fc-wlp-op-inspector-panel [class~='text-[10px]'] {
+  font-size: 1rem !important;
+  line-height: 1.45 !important;
 }
 
 /* ==========================================================================
@@ -1199,4 +1253,34 @@ html[data-fc-theme='light'] .fc-wlp-partner-record-inspector .text-slate-300 {
 [data-page-signature='partner-portfolio'] :is(.text-xs, [class~='text-[11px]']) {
   font-size: 16px !important;
   font-weight: 700;
+}
+
+/* Planned floor — rooms stay roomy on the six primary-signature pages */
+[data-page-signature='partner-portfolio'] .fc-wlp-instrument-tile,
+[data-page-signature='comms-switchboard-rails'] .fc-wlp-instrument-tile,
+[data-page-signature='mail-conveyor-dispatch'] .fc-wlp-instrument-tile,
+[data-page-signature='analytics-observatory-instruments'] .fc-wlp-instrument-tile,
+[data-page-signature='settings-control-room-topology'] .fc-wlp-instrument-tile,
+[data-page-signature='resources-library-gallery'] .fc-wlp-instrument-tile {
+  padding: 1.5rem !important;
+}
+
+[data-page-signature='partner-portfolio'] :is(.fc-accent-card, .fc-luxury-glass, .fc-wlp-atlas-card, .fc-wlp-switchboard-card, .fc-wlp-conveyor-stage-column, .fc-wlp-instrument-tile, .fc-wlp-topology-card, .fc-wlp-library-card),
+[data-page-signature='comms-switchboard-rails'] :is(.fc-accent-card, .fc-luxury-glass, .fc-wlp-atlas-card, .fc-wlp-switchboard-card, .fc-wlp-conveyor-stage-column, .fc-wlp-instrument-tile, .fc-wlp-topology-card, .fc-wlp-library-card),
+[data-page-signature='mail-conveyor-dispatch'] :is(.fc-accent-card, .fc-luxury-glass, .fc-wlp-atlas-card, .fc-wlp-switchboard-card, .fc-wlp-conveyor-stage-column, .fc-wlp-instrument-tile, .fc-wlp-topology-card, .fc-wlp-library-card),
+[data-page-signature='analytics-observatory-instruments'] :is(.fc-accent-card, .fc-luxury-glass, .fc-wlp-atlas-card, .fc-wlp-switchboard-card, .fc-wlp-conveyor-stage-column, .fc-wlp-instrument-tile, .fc-wlp-topology-card, .fc-wlp-library-card),
+[data-page-signature='settings-control-room-topology'] :is(.fc-accent-card, .fc-luxury-glass, .fc-wlp-atlas-card, .fc-wlp-switchboard-card, .fc-wlp-conveyor-stage-column, .fc-wlp-instrument-tile, .fc-wlp-topology-card, .fc-wlp-library-card),
+[data-page-signature='resources-library-gallery'] :is(.fc-accent-card, .fc-luxury-glass, .fc-wlp-atlas-card, .fc-wlp-switchboard-card, .fc-wlp-conveyor-stage-column, .fc-wlp-instrument-tile, .fc-wlp-topology-card, .fc-wlp-library-card) {
+  padding: 1.5rem !important;
+}
+
+@media (min-width: 1024px) {
+  [data-page-signature='partner-portfolio'] :is(.fc-accent-card, .fc-luxury-glass, .fc-wlp-atlas-card, .fc-wlp-switchboard-card, .fc-wlp-conveyor-stage-column, .fc-wlp-instrument-tile, .fc-wlp-topology-card, .fc-wlp-library-card),
+  [data-page-signature='comms-switchboard-rails'] :is(.fc-accent-card, .fc-luxury-glass, .fc-wlp-atlas-card, .fc-wlp-switchboard-card, .fc-wlp-conveyor-stage-column, .fc-wlp-instrument-tile, .fc-wlp-topology-card, .fc-wlp-library-card),
+  [data-page-signature='mail-conveyor-dispatch'] :is(.fc-accent-card, .fc-luxury-glass, .fc-wlp-atlas-card, .fc-wlp-switchboard-card, .fc-wlp-conveyor-stage-column, .fc-wlp-instrument-tile, .fc-wlp-topology-card, .fc-wlp-library-card),
+  [data-page-signature='analytics-observatory-instruments'] :is(.fc-accent-card, .fc-luxury-glass, .fc-wlp-atlas-card, .fc-wlp-switchboard-card, .fc-wlp-conveyor-stage-column, .fc-wlp-instrument-tile, .fc-wlp-topology-card, .fc-wlp-library-card),
+  [data-page-signature='settings-control-room-topology'] :is(.fc-accent-card, .fc-luxury-glass, .fc-wlp-atlas-card, .fc-wlp-switchboard-card, .fc-wlp-conveyor-stage-column, .fc-wlp-instrument-tile, .fc-wlp-topology-card, .fc-wlp-library-card),
+  [data-page-signature='resources-library-gallery'] :is(.fc-accent-card, .fc-luxury-glass, .fc-wlp-atlas-card, .fc-wlp-switchboard-card, .fc-wlp-conveyor-stage-column, .fc-wlp-instrument-tile, .fc-wlp-topology-card, .fc-wlp-library-card) {
+    padding: 2rem !important;
+  }
 }

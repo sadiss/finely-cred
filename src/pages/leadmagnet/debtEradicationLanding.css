@@ -130,10 +130,9 @@
 
 /* ── Hero: full-width title · single-book LEFT | form RIGHT ── */
 .del-hero-section {
-  /* Clear fixed site nav + give title room to breathe */
-  padding-top: clamp(5.75rem, 10vw, 7.5rem);
-  padding-bottom: clamp(3rem, 5vw, 4.5rem);
-  overflow: visible;
+  padding-top: clamp(5.25rem, 8vw, 6.75rem);
+  padding-bottom: clamp(5.5rem, 8vw, 7.5rem);
+  overflow: clip;
 }
 
 /* Cool sky/violet hero — navy title + violet accent */
@@ -213,7 +212,7 @@
 
 @media (min-width: 1024px) {
   .del-hero-product-col {
-    justify-self: start;
+    justify-self: center;
   }
 }
 
@@ -263,37 +262,27 @@
   }
 }
 
-/* Book left · form right — balanced gap; form nudged ~1in left from far-right edge */
+/* Book + form as one centered pair — not a giant left column and a far-right card */
 @media (min-width: 1024px) {
   .del-hero-grid.del-hero-grid--book-form {
-    grid-template-columns: minmax(0, 1.22fr) minmax(0, auto);
-    column-gap: clamp(2.5rem, 4vw, 4rem);
-    align-items: end;
+    grid-template-columns: minmax(16rem, 22rem) minmax(22rem, 24rem);
+    column-gap: clamp(1.5rem, 3vw, 2.75rem);
+    align-items: start;
+    justify-content: center;
   }
 
   .del-hero-grid--book-form .del-hero-form-col {
-    justify-self: end;
-    padding-left: clamp(0.25rem, 0.85in, 1.35rem);
+    justify-self: stretch;
+    padding-left: 0;
     margin-right: 0;
-    width: min(100%, 24rem);
+    width: 100%;
+    max-width: 24rem;
   }
 }
 
 @media (min-width: 1280px) {
   .del-hero-grid.del-hero-grid--book-form {
-    column-gap: clamp(3rem, 4.5vw, 4.5rem);
-  }
-
-  .del-hero-grid--book-form .del-hero-form-col {
-    padding-left: clamp(0.5rem, 1in, 1.5rem);
-    margin-right: 0;
-    width: min(100%, 24rem);
-  }
-}
-
-@media (min-width: 1536px) {
-  .del-hero-grid.del-hero-grid--book-form {
-    column-gap: clamp(3.25rem, 5vw, 5rem);
+    column-gap: clamp(1.75rem, 3vw, 3rem);
   }
 }
 
@@ -339,39 +328,38 @@
   overflow: visible;
   position: relative;
   margin-top: 0;
+  width: 100%;
 }
 
 .del-hero-title {
-  font-size: clamp(2.15rem, 3.5vw, 3.35rem);
+  font-size: clamp(2.15rem, 3.6vw, 3.35rem);
   font-weight: 700;
-  line-height: 1.1;
+  line-height: 1.12;
   letter-spacing: -0.03em;
   overflow: visible;
-  text-shadow: 0 2px 40px rgba(0, 0, 0, 0.35);
+  text-shadow: none;
 }
 
 .del-hero-title-line {
   display: block;
+  white-space: normal;
+  max-width: 100%;
+  margin-inline: auto;
 }
 
 .del-hero-title-line--navy {
   color: #000c3c;
 }
 
-@media (min-width: 1024px) {
-  .del-hero-title-line {
-    white-space: nowrap;
-  }
-}
-
 .del-hero-title-line--gold {
   display: block;
   width: fit-content;
-  max-width: none;
-  white-space: nowrap;
+  max-width: 100%;
+  white-space: normal;
   margin-top: 0.12em;
+  margin-inline: auto;
   padding-bottom: 0.06em;
-  padding-right: 0.28em;
+  padding-right: 0;
   color: #8b5cf6;
   overflow: visible;
   background: none;
@@ -438,32 +426,23 @@
 @media (min-width: 1024px) {
   .del-mockup-stack--hero,
   .del-mockup-stack--hero-book {
-    width: 100%;
-    max-width: min(100%, 42rem);
-    margin-left: 0;
-    margin-right: auto;
-    padding-bottom: 2rem;
+    width: auto;
+    max-width: min(100%, 22rem);
+    min-height: 0;
+    margin-inline: auto;
+    padding-bottom: 1.25rem;
     overflow: visible;
     transform: none;
   }
 }
 
 .del-mockup-stack--hero-book {
-  overflow-x: clip;
-  overflow-y: visible;
-  contain: layout style;
+  overflow: visible;
 }
 
 .del-mockup-stack--hero-book .del-hero-gold-backlight {
-  width: min(72%, 520px);
-  height: min(78%, 560px);
-}
-
-@media (min-width: 1024px) {
-  .del-mockup-stack--hero-book .del-hero-gold-backlight {
-    width: min(68%, 560px);
-    height: min(82%, 600px);
-  }
+  width: min(72%, 420px);
+  height: min(70%, 480px);
 }
 
 .del-hero-stage-halo {
@@ -566,12 +545,14 @@
   filter: drop-shadow(0 22px 42px rgba(0, 0, 0, 0.42));
 }
 
-/* Portrait e-guide cover (single book) */
+/* Tight-cropped portrait cover — sits beside the 24rem capture card */
 .del-mockup--hero,
 .del-mockup--hero-book {
+  display: block;
   width: auto;
-  max-width: min(100%, 320px);
-  max-height: min(62vh, 520px);
+  height: min(42vh, 440px);
+  max-width: min(100%, 20rem);
+  max-height: min(42vh, 440px);
   margin-inline: auto;
   margin-bottom: 0;
   transform: none;
@@ -583,51 +564,22 @@
     drop-shadow(0 24px 44px rgba(4, 10, 54, 0.22));
 }
 
-/* Hero portrait asset — dominant presence (single book) */
-.del-mockup--hero-book {
-  display: block;
-  width: auto;
-  height: auto;
-  max-width: min(98%, 480px);
-  max-height: min(74vh, 720px);
-}
-
 @media (min-width: 768px) {
   .del-mockup--hero,
   .del-mockup--hero-book {
-    max-width: min(100%, 520px);
-    max-height: min(74vh, 720px);
-  }
-
-  .del-mockup--hero-book {
-    max-width: min(100%, 580px);
-    max-height: min(76vh, 760px);
+    height: min(46vh, 500px);
+    max-width: min(100%, 21rem);
+    max-height: min(46vh, 500px);
   }
 }
 
 @media (min-width: 1024px) {
   .del-mockup--hero,
   .del-mockup--hero-book {
-    max-width: min(100%, 680px);
-    max-height: min(82vh, 900px);
-  }
-
-  .del-mockup--hero-book {
-    max-width: min(100%, 660px);
-    max-height: min(80vh, 880px);
-  }
-}
-
-@media (min-width: 1280px) {
-  .del-mockup--hero,
-  .del-mockup--hero-book {
-    max-width: min(100%, 720px);
-    max-height: min(84vh, 960px);
-  }
-
-  .del-mockup--hero-book {
-    max-width: min(100%, 700px);
-    max-height: min(82vh, 940px);
+    width: auto;
+    height: min(48vh, 520px);
+    max-width: min(100%, 22rem);
+    max-height: min(48vh, 520px);
   }
 }
 
@@ -691,8 +643,8 @@
 .del-mockup--footer {
   position: relative;
   z-index: 3;
-  max-width: min(100%, 420px);
-  max-height: min(40vh, 300px);
+  max-width: min(100%, 520px);
+  max-height: min(48vh, 380px);
   margin-bottom: -0.25rem;
   transform: none;
 }
@@ -786,29 +738,15 @@
 }
 
 .del-video-grid {
-  max-width: 92rem;
+  max-width: none;
 }
 
 @media (min-width: 1024px) {
-  .del-video-column--left {
-    transform: translateX(-2rem);
-    padding-right: 0.5rem;
-  }
-
+  .del-video-column--left,
   .del-video-column--right {
-    transform: translateX(2rem);
-    padding-left: 1rem;
-  }
-}
-
-@media (min-width: 1280px) {
-  .del-video-column--left {
-    transform: translateX(-2.75rem);
-  }
-
-  .del-video-column--right {
-    transform: translateX(2.75rem);
-    padding-left: 1.5rem;
+    transform: none;
+    padding-left: 0;
+    padding-right: 0;
   }
 }
 
@@ -1213,7 +1151,7 @@
 
 /* Shared luxury stage harmony + mobile polish */
 .del-hero-title.lm-lux-display {
-  font-size: clamp(2.25rem, 1.35rem + 3.2vw, 3.55rem);
+  font-size: clamp(2.15rem, 3.6vw, 3.35rem);
   overflow: visible;
 }
 
@@ -1284,8 +1222,8 @@
 
   .del-mockup--hero,
   .del-mockup--hero-book {
-    max-width: 100%;
-    max-height: min(72vh, 640px);
+    max-width: min(100%, 20rem);
+    max-height: min(48vh, 440px);
     margin-bottom: -0.15rem;
   }
 
@@ -1306,4 +1244,122 @@
   .del-value-card:hover {
     transform: none;
   }
+}
+
+/* Conversion field — light page, book stays the luxury object, form stays high-contrast. */
+.del-page--convert {
+  background: #f4f7fb;
+  color: #0a1628;
+}
+
+.del-page--convert .del-convert-atmosphere {
+  background:
+    radial-gradient(ellipse 70% 50% at 18% 0%, rgba(139, 92, 246, 0.12), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 90% 8%, rgba(16, 185, 129, 0.1), transparent 50%),
+    linear-gradient(180deg, #ffffff 0%, #f4f7fb 46%, #eef2f8 100%) !important;
+}
+
+.del-page--convert .del-video-section,
+.del-page--convert #preview,
+.del-page--convert .del-band,
+.del-page--convert .del-stats-strip,
+.del-page--convert .del-footer {
+  color: #0a1628;
+}
+
+.del-page--convert .del-video-section .text-white\/65,
+.del-page--convert #preview .text-white\/62,
+.del-page--convert #preview .text-white\/55,
+.del-page--convert .del-band .text-white\/60,
+.del-page--convert .del-stats-strip .text-white\/50,
+.del-page--convert .del-footer {
+  color: rgba(10, 22, 40, 0.68);
+}
+
+.del-page--convert #preview h2,
+.del-page--convert .del-video-section h2,
+.del-page--convert .del-band h2,
+.del-page--convert .del-stats-strip .text-white {
+  color: #0a1628;
+}
+
+.del-page--convert .del-discovery-card,
+.del-page--convert .del-stat-tile,
+.del-page--convert .del-value-card,
+.del-page--convert .del-testimonial-card {
+  background: #ffffff;
+  border: 1px solid rgba(139, 92, 246, 0.18);
+  color: #0a1628;
+}
+
+.del-page--convert .del-discovery-card .text-white,
+.del-page--convert .del-testimonial-card .text-white,
+.del-page--convert .del-value-card .text-white {
+  color: #0a1628;
+}
+
+.del-page--convert .del-discovery-card .text-white\/55,
+.del-page--convert .del-discovery-card .text-white\/58,
+.del-page--convert .del-discovery-card .text-white\/45,
+.del-page--convert .del-testimonial-card .text-white\/74,
+.del-page--convert .del-testimonial-card .text-white\/48,
+.del-page--convert .del-value-card .text-white\/40,
+.del-page--convert .text-white\/72,
+.del-page--convert .text-white\/58,
+.del-page--convert .text-white\/74,
+.del-page--convert .text-white\/48,
+.del-page--convert .text-white\/45,
+.del-page--convert .text-white\/40 {
+  color: rgba(10, 22, 40, 0.72) !important;
+}
+
+.del-page--convert .lm-seo-depth {
+  background: #ffffff;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  box-shadow: 0 12px 32px rgba(4, 10, 54, 0.06);
+}
+
+.del-page--convert .lm-seo-depth > summary {
+  color: #0a1628;
+}
+
+.del-page--convert .lm-seo-depth > summary .lm-seo-depth-hint {
+  color: rgba(10, 22, 40, 0.5);
+}
+
+.del-page--convert .del-band--toolkit,
+.del-page--convert .del-band--results,
+.del-page--convert .del-stats-strip {
+  background: transparent;
+}
+
+.del-page--convert .del-video-section .text-\[\#c4b5fd\],
+.del-page--convert .del-band .text-\[\#c4b5fd\] {
+  color: #7c3aed;
+}
+
+.del-page--convert .text-emerald-300 {
+  color: #047857;
+}
+
+.del-mini-check {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.del-page--convert .del-mini-check {
+  color: rgba(10, 22, 40, 0.72);
+}
+
+.del-page--convert .del-footer {
+  background: linear-gradient(180deg, #f4f7fb 0%, #eef2f8 100%);
+  border-top: 1px solid rgba(139, 92, 246, 0.16);
+}
+
+.del-page--convert .del-footer,
+.del-page--convert .del-footer p {
+  color: rgba(10, 22, 40, 0.48);
+}
+
+.del-page--convert #download {
+  padding-bottom: 6.5rem;
 }

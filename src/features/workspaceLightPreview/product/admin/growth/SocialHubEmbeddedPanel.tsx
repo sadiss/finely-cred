@@ -37,7 +37,14 @@ import {
   reviewSocialCaptionCompliance,
   saveSocialAutopilotConfig,
 } from '../../../../../lib/socialAutopilotEngine';
-import { publishSocialPostLive } from '../../../../../lib/metaSocialPublish';
+import {
+  isBlueskyIntegrationLive,
+  loadBlueskyIntegrationConfig,
+  saveBlueskyIntegrationConfig,
+} from '../../../../../data/blueskyIntegrationRepo';
+import { verifyBlueskySession } from '../../../../../lib/blueskyPublish';
+import { publishDueChannels } from '../../../../../lib/ownerTodayDeck';
+import type { SocialPlatform } from '../../../../../domain/socialContentSop';
 import { resolveStaffOnDuty } from '../../../../../data/staffRoster';
 import { StaffPortraitImg } from '../../../../../components/staff/StaffPortraitImg';
 import { staffMemberFullName } from '../../../../../domain/staffMember';
@@ -96,6 +103,8 @@ export function SocialHubEmbeddedPanel({ activeTab, onTabChange }: SocialHubEmbe
   };
 
   const [config, setConfig] = useState<MetaIntegrationConfig>(() => loadMetaIntegrationConfig());
+  const [bluesky, setBluesky] = useState(() => loadBlueskyIntegrationConfig());
+  const [platforms, setPlatforms] = useState<SocialPlatform[]>(['facebook', 'instagram']);
   const [caption, setCaption] = useState('');
   const [scheduleDate, setScheduleDate] = useState('');
   const [notice, setNotice] = useState<string | null>(null);
@@ -208,7 +217,7 @@ export function SocialHubEmbeddedPanel({ activeTab, onTabChange }: SocialHubEmbe
     }
     const scheduledAt = scheduleDate ? new Date(scheduleDate).toISOString() : new Date().toISOString();
     const pageId = config.connectedPages[0]?.pageId;
-    queueSocialPost({ caption, scheduledAt, pageId });
+    queueSocialPost({ caption, scheduledAt, pageId, platforms });
     setCaption('');
     setScheduleDate('');
     refreshLocal();
@@ -282,6 +291,20 @@ export function SocialHubEmbeddedPanel({ activeTab, onTabChange }: SocialHubEmbe
             placeholder="Write caption — attach media from Media Studio…"
             className={`${FINELY_OS_ENTITY_INPUT} mt-2 resize-y min-h-[160px]`}
           />
+          <div className="mt-3 flex flex-wrap gap-3">
+            {(['facebook', 'instagram', 'bluesky'] as const).map((p) => (
+              <label key={p} className={`inline-flex items-center gap-2 text-sm ${FINELY_OS_ENTITY_BODY}`}>
+                <input
+                  type="checkbox"
+                  checked={platforms.includes(p)}
+                  onChange={(e) =>
+                    setPlatforms((cur) => (e.target.checked ? [...cur, p] : cur.filter((x) => x !== p)))
+                  }
+                />
+                {p === 'bluesky' ? 'Bluesky' : p === 'facebook' ? 'Facebook' : 'Instagram'}
+              </label>
+            ))}
+          </div>
           <div className="grid md:grid-cols-2 gap-3 mt-3">
             <div>
               <label className={FINELY_OS_ENTITY_SUBLABEL}>Schedule</label>
@@ -414,21 +437,17 @@ export function SocialHubEmbeddedPanel({ activeTab, onTabChange }: SocialHubEmbe
                       setNotice(`${stats.dueToPublish.length} post(s) would publish now`);
                       return;
                     }
-                    if (isMetaIntegrationLive()) {
+                    if (isMetaIntegrationLive() || isBlueskyIntegrationLive()) {
                       let published = 0;
                       let failed = 0;
                       for (const p of stats.dueToPublish) {
-                        const live = await publishSocialPostLive(p);
-                        if (live.ok) {
-                          updateSocialPostStatus(p.id, 'published');
-                          published += 1;
-                        } else {
-                          updateSocialPostStatus(p.id, 'failed');
-                          failed += 1;
-                        }
+                        const live = await publishDueChannels(p);
+                        if (/posted|Published/i.test(live) && !/failed/i.test(live)) published += 1;
+                        else if (/failed/i.test(live)) failed += 1;
+                        else published += 1;
                       }
                       refreshLocal();
-                      setNotice(`Meta live publish: ${published} published${failed ? ` · ${failed} failed` : ''}`);
+                      setNotice(`Live publish: ${published} sent${failed ? ` · ${failed} failed` : ''}`);
                       return;
                     }
                     const result = publishDueSocialPosts({ force: true, dryRun: false });
@@ -652,6 +671,52 @@ export function SocialHubEmbeddedPanel({ activeTab, onTabChange }: SocialHubEmbe
                 </button>
                 <button type="button" onClick={handleSimulateLead} className="fc-wlp-btn-secondary">
                   Simulate lead (dev)
+                </button>
+              </div>
+            </div>
+          </div>
+          <div className="fc-wlp-growth-social-settings" data-fcm-accent="sky">
+            <p className="fc-wlp-growth-rail-label">Bluesky</p>
+            <p className={`${FINELY_OS_ENTITY_BODY} mt-1`}>
+              Status: {bluesky.status}
+              {bluesky.handle ? ` · ${bluesky.handle}` : ''}
+            </p>
+            <p className={`${FINELY_OS_ENTITY_BODY} mt-2`}>
+              Free AT Protocol. Create an app password at bsky.app → Settings → App passwords. Nothing posts until you approve.
+            </p>
+            <div className="mt-4 space-y-3 max-w-lg">
+              <div>
+                <label className={FINELY_OS_ENTITY_SUBLABEL}>Handle</label>
+                <input
+                  value={bluesky.handle}
+                  onChange={(e) => setBluesky((c) => ({ ...c, handle: e.target.value }))}
+                  className={FINELY_OS_ENTITY_INPUT}
+                  placeholder="yourname.bsky.social"
+                />
+              </div>
+              <div>
+                <label className={FINELY_OS_ENTITY_SUBLABEL}>App password</label>
+                <input
+                  type="password"
+                  value={bluesky.appPassword}
+                  onChange={(e) => setBluesky((c) => ({ ...c, appPassword: e.target.value }))}
+                  className={FINELY_OS_ENTITY_INPUT}
+                  placeholder="xxxx-xxxx-xxxx-xxxx"
+                />
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  className="fc-wlp-btn-primary"
+                  onClick={() => {
+                    saveBlueskyIntegrationConfig(bluesky);
+                    void verifyBlueskySession().then((result) => {
+                      setBluesky(loadBlueskyIntegrationConfig());
+                      setNotice(result.ok ? 'Bluesky session verified.' : result.error ?? 'Bluesky session failed.');
+                    });
+                  }}
+                >
+                  Save and test Bluesky
                 </button>
               </div>
             </div>

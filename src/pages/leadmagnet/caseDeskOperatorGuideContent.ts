@@ -15,9 +15,9 @@ export const CASE_DESK_GUIDE_META = {
   title: 'Case Desk Operator Guide',
   shortTitle: 'Case Desk Guide',
   edition: 'Operator handbook · v1',
-  tagline: 'Packet anatomy. Scope discipline. Validation first. Escalate with evidence.',
+  tagline: 'How a packet is built. How scope stays tight. Validation first. Escalate with evidence.',
   description:
-    'Free Case Desk Operator handbook — how Finely Cred case help works assigned partner matters: packets, scope, validation-first sequence, escalation portals, and complaint ladders.',
+    'A free Case Desk Operator handbook: how Finely Cred case help works assigned partner matters — packets, scope, a validation-first sequence, escalation portals, and complaint ladders.',
   valueLabel: 'Free · no signup to read',
   compliance:
     'Educational platform handbook · not legal advice · attorney applicants must be licensed where they practice · results vary · not an offer of employment',

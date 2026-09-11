@@ -7,6 +7,7 @@ import path from 'path';
 import sharp from 'sharp';
 import { STAFF_ROSTER_SEED } from '../src/data/staffRoster';
 import { effectivePortraitGender } from '../src/lib/staffPortrait';
+import { isHaitianStaffId } from '../src/lib/haitianCompanionDesk';
 import {
   STAFF_PORTRAIT_CATALOG,
   portraitFolderForGender,
@@ -61,6 +62,12 @@ async function main() {
   let fail = 0;
 
   for (const member of STAFF_ROSTER_SEED) {
+    if (isHaitianStaffId(member.id)) {
+      console.log(`⏭ ${member.firstName} ${member.lastName} — Haitian portrait is locked, not RandomUser`);
+      ok += 1;
+      continue;
+    }
+
     const src = STAFF_PORTRAIT_CATALOG[member.id];
     if (!src) {
       console.warn(`⚠ No catalog entry for ${member.id}`);

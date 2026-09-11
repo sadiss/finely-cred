@@ -3,6 +3,7 @@ import { CORE_PARTNER_GUIDES } from './corePartnerGuides';
 import { AGENCY_GUIDE } from './agencyGuideContent';
 import { AFFILIATE_TOOLKIT_FREE_GUIDE } from './affiliateToolkitFreeGuide';
 import { SCORE_BOOST_FREE_GUIDE } from './scoreBoostFreeGuide';
+import { KREYOL_COMPANION_GUIDE } from './kreyolCompanionGuide';
 
 export type FreeGuideId =
   | 'credit-dispute-letter-guide'
@@ -38,7 +39,8 @@ export type FreeGuideId =
   | 'vendor-tier-matrix-free'
   | 'debt-settlement-tax-traps'
   | 'mortgage-overlay-dispute-prep'
-  | 'identity-theft-block-unblock';
+  | 'identity-theft-block-unblock'
+  | 'kreyol-companion-kit';
 
 export type FreeGuide = {
   id: FreeGuideId;
@@ -88,6 +90,7 @@ export const FREE_GUIDES: FreeGuide[] = [
   AGENCY_GUIDE,
   SCORE_BOOST_FREE_GUIDE,
   AFFILIATE_TOOLKIT_FREE_GUIDE,
+  KREYOL_COMPANION_GUIDE,
   ...CORE_PARTNER_GUIDES,
 ];
 

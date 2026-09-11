@@ -48,6 +48,7 @@ const ADMIN_NAV_COMMANDS: CommandItem[] = [
   { id: 'nav_portfolio', label: 'Portfolio dashboard', href: '/admin/projects/portfolio', group: 'Navigate' },
   { id: 'nav_crm_seq', label: 'CRM sequences', href: '/admin/crm/sequences', group: 'Navigate' },
   { id: 'nav_partners', label: 'Partners', href: '/admin/partners', group: 'Navigate' },
+  { id: 'nav_haitian', label: 'Haitian community', hint: 'Download kits · cities · Pale Kreyòl', href: '/admin/haitian', group: 'Navigate' },
   { id: 'nav_bridge_ops', label: 'Finely Cred ↔ Bridge ops', hint: 'Fund-ready + handoffs', href: '/admin/finely-bridge-ops', group: 'Navigate' },
 ];
 
@@ -62,6 +63,7 @@ const PORTAL_NAV_COMMANDS: CommandItem[] = [
   { id: 'p_calendar', label: 'Calendar & sessions', href: '/portal/calendar', group: 'Navigate' },
   { id: 'p_documents', label: 'Document vault', href: '/portal/documents', group: 'Navigate' },
   { id: 'p_debt', label: 'Debt legal center', href: '/portal/debt', group: 'Navigate' },
+  { id: 'p_haitian', label: 'Haitian community', hint: 'Credit help · kits · Pale Kreyòl', href: '/portal/haitian', group: 'Navigate' },
   { id: 'p_courses', label: 'Courses & education', href: '/portal/courses', group: 'Navigate' },
 ];
 

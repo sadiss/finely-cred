@@ -11,6 +11,7 @@ import { findFreeGuideById } from '../resources/freeGuides';
 import { addLeadTags } from '../data/leadOpsRepo';
 import { isCreditSpecialistLeadOffer } from './leadOfferLabels';
 import { isFinelyAdminTestMode } from './finelyAdminTestMode';
+import { markLeadMagnetUnlocked } from './leadMagnetUnlock';
 
 export class LeadMagnetDuplicateLaneError extends Error {
   existingFunnelId: string;
@@ -119,6 +120,7 @@ export async function submitLeadMagnetCapture(args: LeadMagnetCaptureInput): Pro
     );
   }
   recordFunnelConversion(args.funnelConfig.funnelId, abVariant);
+  markLeadMagnetUnlocked(args.funnelConfig.funnelId);
 
   return { leadId: result.lead.id, fullName, email, phone };
 }

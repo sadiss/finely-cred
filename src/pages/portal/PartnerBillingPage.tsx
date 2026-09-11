@@ -353,7 +353,7 @@ export default function PartnerBillingPage() {
             activeTab={billingTab}
             onTabChange={(id) => setBillingTab(id as BillingTab)}
             primaryAction={{ label: 'Open checkout', onClick: () => navigate('/portal/checkout') }}
-            secondaryAction={{ label: 'Compare pricing', onClick: () => navigate('/pricing') }}
+            secondaryAction={{ label: 'Compare pricing', onClick: () => navigate('/pricing/personal-credit-restore') }}
           >
           {billingTab === 'profile' && (
           <>
@@ -899,7 +899,7 @@ export default function PartnerBillingPage() {
                       >
                         Select <ArrowRight size={14} />
                       </button>
-                      <button type="button" onClick={() => navigate('/pricing')} className={FINELY_OS_SECONDARY_BTN}>
+                      <button type="button" onClick={() => navigate('/pricing/personal-credit-restore')} className={FINELY_OS_SECONDARY_BTN}>
                         Compare <ArrowRight size={14} />
                       </button>
                     </div>

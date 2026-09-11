@@ -54,6 +54,7 @@ import {
   finelyOsViewTab,
   type FinelyOsPublicAccent,
 } from '../features/os/finelyOsLightUi';
+import './pricingPage.css';
 
 type TabKey = PricingCategory | 'agency' | 'banking_reports';
 type DeliveryMode = 'DIY' | 'DFY';
@@ -246,18 +247,67 @@ export default function PricingPage() {
     [debtBalanceBandCents],
   );
 
+  const activeTabAccent = TAB_ACCENT[activeTab];
+  const mosaicOrbs = ['Personal', 'Business', 'Debt', 'Wealth'] as const;
+  const mosaicOrbAccents: FinelyOsPublicAccent[] = ['emerald', 'violet', 'rose', 'sky'];
+
   return (
-    <PageShell hideHero title="Solutions" subtitle="Pick DIY or Done‑For‑You, then choose the solution that matches your goals.">
-      <div className={`${FINELY_OS_PAGE} space-y-0`}>
+    <PageShell
+      hideHero
+      title="Solutions"
+      subtitle="Pick DIY or Done‑For‑You, then choose the solution that matches your goals."
+      surface="ivory"
+      contentWidth="full"
+      laneHero={
+        <div data-fc-pricing-mosaic="1" data-fc-service-floor="catalog">
+          <section className="pricing-mosaic-hero" aria-label="Solutions catalog">
+            <div className="pricing-mosaic-hero__orbs" aria-hidden>
+              {mosaicOrbs.map((label, i) => (
+                <div
+                  key={label}
+                  className={`pricing-mosaic-hero__orb pricing-mosaic-hero__orb--${mosaicOrbAccents[i]}`}
+                >
+                  {label}
+                </div>
+              ))}
+            </div>
+            <div className="pricing-mosaic-hero__inner">
+              <p className={`${FINELY_OS_ENTITY_SUBLABEL} tracking-[0.22em]`}>Package catalog</p>
+              <LandingTypewriterTitle
+                as="h2"
+                text="Every solution — "
+                accentText="your next step."
+                className="pricing-mosaic-hero__title mt-2"
+                accentClassName="text-emerald-700"
+                immediate
+                speedMs={28}
+              />
+              <p className={`mt-3 text-base max-w-xl ${FINELY_OS_ENTITY_BODY}`}>
+                Pick DIY or done-for-you, choose your lane, then compare packages in the catalog stage below.
+              </p>
+              <div className="mt-5 flex flex-wrap gap-3">
+                <button type="button" onClick={() => setChooserOpen(true)} className={FINELY_OS_PRIMARY_BTN}>
+                  Browse all solutions <ArrowRight size={16} />
+                </button>
+                <button type="button" onClick={() => navigate('/free-guide')} className={FINELY_OS_SECONDARY_BTN}>
+                  Start free guide
+                </button>
+              </div>
+              <p className={`${FINELY_OS_COMPLIANCE_FOOTNOTE} mt-4`}>
+                Results vary · not legal advice · funding subject to underwriting
+              </p>
+            </div>
+          </section>
+        </div>
+      }
+    >
+      <div className={`${FINELY_OS_PAGE} space-y-0`} data-fc-pricing-mosaic="1" data-fc-service-floor="catalog">
         <div className="space-y-4 py-4">
           <PricingSolutionsHero
             activeKey={heroKey}
             onBrowseSolutions={() => setChooserOpen(true)}
-            browseLabel="Browse all solutions"
+            browseLabel="Switch solution"
           />
-          <p className={FINELY_OS_COMPLIANCE_FOOTNOTE}>
-            Educational only · not legal advice · payments cover software access and guided workflows.
-          </p>
         </div>
 
         {/* Free workspace — dark glass band (sole Free entry on this page) */}
@@ -266,7 +316,7 @@ export default function PricingPage() {
           data-fc-contrast-band="1"
         >
           <LandingSellAtmosphere tone="platinum" />
-          <div className="relative max-w-6xl mx-auto">
+          <div className="relative w-full max-w-none">
             <div className={`${finelyOsCatalogCard('emerald')} grid gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:items-center`} data-fc-accent="emerald">
               <div className="min-w-0 space-y-4">
                 <div className="flex flex-wrap items-center gap-2">
@@ -336,286 +386,251 @@ export default function PricingPage() {
           </div>
         </section>
 
-        <div className="space-y-4 py-6">
-        <div className={`${FINELY_OS_NOTICE_SUCCESS} flex items-start gap-3`}>
-          <Sparkles size={18} className="mt-0.5 text-emerald-400 shrink-0" />
-          <div>
-            <div className="font-semibold text-emerald-200">Payment plans / pre-approval</div>
-            <p className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>
-              Build credit while you pay. Our financing option reports your payments to Equifax, adding a positive
-              installment tradeline to your credit file. Look for the{' '}
-              <span className="text-emerald-300 font-semibold">In‑House Financing</span> button on eligible packages.
-            </p>
-            <p className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>
-              We can also connect you to lenders and funding pathways when your profile is ready (bureau-pull dependent).
-              Results vary · not legal advice · funding subject to underwriting.
-            </p>
-            <button
-              type="button"
-              onClick={() =>
-                void startFinancingPreapprovalInterest({
-                  source: 'lead_magnet',
-                  funnelPath: '/pricing',
-                  captureLead: false,
-                  openApplication: true,
-                })
-              }
-              className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-emerald-300 hover:text-white transition-colors"
-            >
-              Payment plans / pre-approval →
-            </button>
-          </div>
-        </div>
+        <section
+          className={`fc-sell relative overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8 2xl:-mx-10 px-4 sm:px-6 lg:px-8 2xl:px-10 py-10 sm:py-14 ${finelyOsLandingContrastSection('fc-band-violet')}`}
+          data-fc-contrast-band="1"
+        >
+          <LandingSellAtmosphere tone="platinum" />
+          <div className="relative max-w-[var(--pm-max)] mx-auto space-y-6">
+            <div className="pricing-mosaic-notices">
+              <div className={`${FINELY_OS_NOTICE_SUCCESS} flex items-start gap-3 pricing-mosaic-slot`}>
+                <Sparkles size={18} className="mt-0.5 text-emerald-400 shrink-0" />
+                <div>
+                  <div className="font-bold text-emerald-200 text-base">Payment plans / pre-approval</div>
+                  <p className={`mt-1 text-base ${FINELY_OS_ENTITY_BODY}`}>
+                    Build credit while you pay. In-house financing reports to Equifax on eligible packages.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      void startFinancingPreapprovalInterest({
+                        source: 'lead_magnet',
+                        funnelPath: '/pricing',
+                        captureLead: false,
+                        openApplication: true,
+                      })
+                    }
+                    className="mt-3 inline-flex items-center gap-2 text-sm font-bold text-emerald-300 hover:text-white transition-colors"
+                  >
+                    Payment plans / pre-approval →
+                  </button>
+                </div>
+              </div>
+              <div className={`${FINELY_OS_NOTICE_WARN} flex items-start gap-3 pricing-mosaic-slot`}>
+                <Scale size={18} className="mt-0.5 text-rose-400 shrink-0" />
+                <div>
+                  <div className={`font-bold text-base ${FINELY_OS_ENTITY_VALUE}`}>What your payment covers</div>
+                  <p className={`mt-1 text-base ${FINELY_OS_ENTITY_BODY}`}>
+                    Software access, resource library, templates, and guided workflows — plus coaching where included.
+                  </p>
+                </div>
+              </div>
+            </div>
 
-        <div className={`${FINELY_OS_NOTICE_WARN} flex items-start gap-3`}>
-          <Scale size={18} className="mt-0.5 text-rose-400 shrink-0" />
-          <div>
-            <div className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>What your payment covers</div>
-            <p className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>
-              Finely Cred is an educational-first platform. Payments cover your access to the software, resource library, templates,
-              and guided workflows — plus coaching and strategy calls where included.
-            </p>
-            <details className={`mt-3 ${finelyOsCatalogCard('sky')} fc-surface-harmony group`} data-fc-accent="sky">
-              <summary className="cursor-pointer list-none text-sm font-semibold text-white/85 [&::-webkit-details-marker]:hidden flex items-center justify-between gap-2">
-                <span>Compare what payments cover</span>
-                <span className="text-[10px] font-black uppercase tracking-widest text-sky-300 group-open:hidden">Expand</span>
-              </summary>
-              <div className="mt-3 grid sm:grid-cols-2 lg:grid-cols-4 gap-2">
-                {[
-                  'Software access + tailored workflow system',
-                  'Resource library + knowledge base',
-                  'Templates + letters studio (when entitled)',
-                  'Strategy calls (when included)',
-                ].map((x, idx) => (
-                  <div key={x} className={`flex items-center gap-2 ${finelyOsCatalogCard((['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4])} fc-surface-harmony text-xs`} data-fc-accent={(['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4]}>
-                    <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
-                    <span className={`truncate ${FINELY_OS_ENTITY_BODY}`}>{x}</span>
-                  </div>
+            <div className="pricing-mosaic-stage">
+              <nav className="pricing-mosaic-rail" aria-label="Solution categories">
+                {TABS.map((tab, idx) => (
+                  <button
+                    key={tab.key}
+                    type="button"
+                    onClick={() => setActiveTab(tab.key)}
+                    className={`pricing-mosaic-tab pricing-mosaic-tab--${tab.accent} ${
+                      activeTab === tab.key ? 'pricing-mosaic-tab--active' : ''
+                    } ${idx % 3 === 0 ? 'pricing-mosaic-tab--tall' : ''}`}
+                    data-fc-accent={tab.accent}
+                  >
+                    <span className="pricing-mosaic-tab__icon">{tab.icon}</span>
+                    <span className={`pricing-mosaic-tab__label ${FINELY_OS_ENTITY_VALUE}`}>{tab.label}</span>
+                  </button>
                 ))}
-              </div>
-            </details>
-            <div className={`mt-3 text-[11px] ${FINELY_OS_ENTITY_SUBLABEL}`}>
-              Educational information only. No guarantees. If you need legal advice, consult a licensed attorney.
-            </div>
-          </div>
-        </div>
+              </nav>
 
-        <div className="grid md:grid-cols-2 gap-4">
-          <button type="button" onClick={() => setDeliveryMode('DIY')} className={finelyOsListItem(deliveryMode === 'DIY', 'emerald')}>
-            <div className={FINELY_OS_ENTITY_VALUE}>DIY (Do‑It‑Yourself)</div>
-            <div className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>
-              You use the app + resources + templates. Best for people who want to move fast on their own.
-            </div>
-          </button>
-          <button type="button" onClick={() => setDeliveryMode('DFY')} className={finelyOsListItem(deliveryMode === 'DFY', 'violet')}>
-            <div className={FINELY_OS_ENTITY_VALUE}>DFY (Done‑For‑You)</div>
-            <div className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>
-              We build your workflow, packets, and strategy with you. Best for complex files and high‑impact outcomes.
-            </div>
-          </button>
-        </div>
-
-        <div className="-mx-1 px-1 overflow-x-auto pb-1">
-          <div className={`${FINELY_OS_VIEW_TABS} flex-nowrap sm:flex-wrap min-w-min sm:min-w-0`}>
-          {TABS.map((tab) => (
-            <button
-              key={tab.key}
-              type="button"
-              onClick={() => setActiveTab(tab.key)}
-              className={`shrink-0 ${finelyOsViewTab(activeTab === tab.key, tab.accent)}`}
-              data-fc-accent={tab.accent}
-            >
-              {tab.icon}
-              {tab.label}
-            </button>
-          ))}
-          </div>
-        </div>
-
-        {tabDescription ? <div className={FINELY_OS_ENTITY_BODY}>{tabDescription}</div> : null}
-
-        {activeTab === 'personal_credit' && (
-          <div className={`${finelyOsCatalogCard('sky')} fc-surface-harmony flex flex-wrap items-center justify-between gap-3`} data-fc-accent="sky">
-            <div className={FINELY_OS_ENTITY_BODY}>
-              Choose your lane:{' '}
-              <span className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Restore</span> (cleanup) or{' '}
-              <span className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Building</span> (strengthening).
-            </div>
-            <div className={FINELY_OS_VIEW_TABS}>
-              <button type="button" onClick={() => setPersonalLane('restore')} className={finelyOsViewTab(personalLane === 'restore', 'emerald')}>
-                Restore
-              </button>
-              <button type="button" onClick={() => setPersonalLane('building')} className={finelyOsViewTab(personalLane === 'building', 'emerald')}>
-                Building
-              </button>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'debt_legal' && (
-            <div className={`${FINELY_OS_NOTICE_WARN} flex items-start gap-3`}>
-            <AlertCircle size={18} className="mt-0.5 text-rose-400 shrink-0" />
-            <div>
-              <div className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Important legal note</div>
-              <p className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>
-                Debt & Legal tools are provided for educational and workflow support. You are responsible for reviewing
-                your documents and your state/court rules before filing or serving anything. If you need legal advice,
-                consult a licensed attorney.
-              </p>
-              <p className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>
-                <strong>Financing note:</strong> We do not present in-house financing as a one-click option for debt defense,
-                because swapping one debt for another is usually not ideal. If you want a credit-building path, book a free strategy call
-                and we'll map the safest strategy.
-              </p>
-              <div className={`mt-4 rounded-xl border border-rose-500/20 bg-black/25 p-4`}>
-                <div className={`text-xs font-semibold uppercase tracking-wider ${FINELY_OS_ENTITY_SUBLABEL}`}>
-                  Which tier fits your balance?
-                </div>
-                <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>
-                  Pick your approximate total debt balance — illustrative guidance only, exact package and pricing confirmed after intake.
-                </p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {DEBT_BALANCE_BANDS.map((band) => (
-                    <button
-                      key={band.label}
-                      type="button"
-                      onClick={() => setDebtBalanceBandCents(band.amountCents)}
-                      className={finelyOsViewTab(debtBalanceBandCents === band.amountCents, 'rose')}
-                    >
-                      {band.label}
+              <div className="pricing-mosaic-main">
+                <div className="pricing-mosaic-controls">
+                  <div className="pricing-mosaic-mode">
+                    <button type="button" onClick={() => setDeliveryMode('DIY')} className={finelyOsListItem(deliveryMode === 'DIY', 'emerald')}>
+                      <div className={`text-base font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>DIY</div>
+                      <div className={`mt-1 text-base ${FINELY_OS_ENTITY_BODY}`}>Templates + tools — you execute.</div>
                     </button>
-                  ))}
-                </div>
-                {debtBalanceRecommendation ? (
-                  <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-rose-500/25 bg-rose-500/[0.08] px-3 py-2.5">
-                    <div className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
-                      Recommended: <span className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{debtBalanceRecommendation.name}</span>{' '}
-                      · {formatPrice(debtBalanceRecommendation.priceAmount)}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setActiveTab('debt_legal');
-                        handleSelectPackage(debtBalanceRecommendation.id, debtLegalPackages);
-                      }}
-                      className={FINELY_OS_SUCCESS_BTN}
-                    >
-                      Start with this tier <ArrowRight size={14} />
+                    <button type="button" onClick={() => setDeliveryMode('DFY')} className={finelyOsListItem(deliveryMode === 'DFY', 'violet')}>
+                      <div className={`text-base font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>DFY</div>
+                      <div className={`mt-1 text-base ${FINELY_OS_ENTITY_BODY}`}>We build strategy + packets with you.</div>
                     </button>
                   </div>
-                ) : null}
-                <div className="mt-3 overflow-x-auto">
-                  <table className="w-full text-xs text-left">
-                    <thead>
-                      <tr className="text-white/50 border-b border-white/10">
-                        <th className="py-2 pr-3 font-semibold">Typical debt / complexity</th>
-                        <th className="py-2 font-semibold">Package (sticker)</th>
-                      </tr>
-                    </thead>
-                    <tbody className="text-white/75">
-                      {debtLegalPackages.filter((p) => p.debtBalanceGuidance && p.isPublic).map((p) => (
-                        <tr key={p.id} className="border-b border-white/5">
-                          <td className="py-2 pr-3">{p.debtBalanceGuidance?.label}</td>
-                          <td className="py-2">
-                            {p.name} · {formatPrice(p.priceAmount)}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                  {tabDescription ? (
+                    <div className={`${finelyOsCatalogCard(activeTabAccent)} !p-5`} data-fc-accent={activeTabAccent}>
+                      <p className={`text-base ${FINELY_OS_ENTITY_BODY}`}>{tabDescription}</p>
+                    </div>
+                  ) : null}
                 </div>
+
+                {activeTab === 'personal_credit' && (
+                  <div className={`${finelyOsCatalogCard('sky')} flex flex-wrap items-center justify-between gap-3 !p-5`} data-fc-accent="sky">
+                    <div className={`text-base ${FINELY_OS_ENTITY_BODY}`}>
+                      Lane: <span className={`font-bold ${FINELY_OS_ENTITY_VALUE}`}>Restore</span> or{' '}
+                      <span className={`font-bold ${FINELY_OS_ENTITY_VALUE}`}>Building</span>
+                    </div>
+                    <div className={FINELY_OS_VIEW_TABS}>
+                      <button type="button" onClick={() => setPersonalLane('restore')} className={finelyOsViewTab(personalLane === 'restore', 'emerald')}>
+                        Restore
+                      </button>
+                      <button type="button" onClick={() => setPersonalLane('building')} className={finelyOsViewTab(personalLane === 'building', 'sky')}>
+                        Building
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'debt_legal' && (
+                  <div className={`${finelyOsCatalogCard('rose')} flex items-start gap-3 !p-5 lg:!p-6`} data-fc-accent="rose">
+                    <AlertCircle size={20} className="mt-0.5 text-rose-400 shrink-0" />
+                    <div className="min-w-0 w-full">
+                      <div className={`text-xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>Important legal note</div>
+                      <p className={`mt-2 text-base ${FINELY_OS_ENTITY_BODY}`}>
+                        Debt & Legal tools are educational and workflow support. Consult a licensed attorney for legal advice.
+                      </p>
+                      <div className="mt-4 rounded-xl border border-rose-500/20 bg-black/25 p-4 lg:p-5">
+                        <div className={`text-xs font-bold uppercase tracking-wider ${FINELY_OS_ENTITY_SUBLABEL}`}>
+                          Which tier fits your balance?
+                        </div>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {DEBT_BALANCE_BANDS.map((band) => (
+                            <button
+                              key={band.label}
+                              type="button"
+                              onClick={() => setDebtBalanceBandCents(band.amountCents)}
+                              className={finelyOsViewTab(debtBalanceBandCents === band.amountCents, 'rose')}
+                            >
+                              {band.label}
+                            </button>
+                          ))}
+                        </div>
+                        {debtBalanceRecommendation ? (
+                          <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-rose-500/25 bg-rose-500/[0.08] px-3 py-2.5">
+                            <div className={`text-base ${FINELY_OS_ENTITY_BODY}`}>
+                              Recommended: <span className={`font-bold ${FINELY_OS_ENTITY_VALUE}`}>{debtBalanceRecommendation.name}</span>{' '}
+                              · {formatPrice(debtBalanceRecommendation.priceAmount)}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setActiveTab('debt_legal');
+                                handleSelectPackage(debtBalanceRecommendation.id, debtLegalPackages);
+                              }}
+                              className={FINELY_OS_SUCCESS_BTN}
+                            >
+                              Start with this tier <ArrowRight size={14} />
+                            </button>
+                          </div>
+                        ) : null}
+                        <div className="mt-3 overflow-x-auto">
+                          <table className="w-full text-sm text-left">
+                            <thead>
+                              <tr className="text-white/50 border-b border-white/10">
+                                <th className="py-2 pr-3 font-bold">Typical debt / complexity</th>
+                                <th className="py-2 font-bold">Package (sticker)</th>
+                              </tr>
+                            </thead>
+                            <tbody className="text-white/75">
+                              {debtLegalPackages.filter((p) => p.debtBalanceGuidance && p.isPublic).map((p) => (
+                                <tr key={p.id} className="border-b border-white/5">
+                                  <td className="py-2 pr-3">{p.debtBalanceGuidance?.label}</td>
+                                  <td className="py-2">
+                                    {p.name} · {formatPrice(p.priceAmount)}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'agency' ? (
+                  <>
+                    <div className={`${finelyOsCatalogCard('violet')} space-y-4 !p-6 lg:!p-8`} data-fc-accent="violet">
+                      <div>
+                        <p className={FINELY_OS_ENTITY_SUBLABEL}>{CS.programName}</p>
+                        <p className={`mt-2 text-2xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>Revenue-share partnership — not flat SaaS</p>
+                        <p className={`mt-2 text-base ${FINELY_OS_ENTITY_BODY}`}>
+                          Run partner credit files on Finely&apos;s operating stack with training, white-label portal, dispute studio, and a dedicated partnership line.
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap gap-3">
+                        <button type="button" onClick={() => navigate(CS.publicPath)} className={FINELY_OS_PRIMARY_BTN}>
+                          Explore {CS.plural} <ArrowRight size={14} />
+                        </button>
+                        <button type="button" onClick={() => navigate(resolveFinelyCtaPath('agent_intake'))} className={FINELY_OS_SUCCESS_BTN}>
+                          Apply to program <ArrowRight size={14} />
+                        </button>
+                        <button type="button" onClick={() => navigate(CS.hubPath)} className={FINELY_OS_SECONDARY_BTN}>
+                          Specialist hub
+                        </button>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
+                      {agencyTiers
+                        .filter((t) => t.isPublic)
+                        .map((tier) => (
+                          <AgencyTierCard key={tier.id} tier={tier} onSelect={() => handleAgencyTier(tier.id)} />
+                        ))}
+                    </div>
+                  </>
+                ) : visiblePackages.length ? (
+                  <div className={`pricing-mosaic-catalog-bed ${finelyOsCatalogCard('emerald')} !p-6 lg:!p-8`} data-fc-accent="emerald">
+                    <p className={`text-2xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>Compare packages</p>
+                    <p className={`mt-2 text-base ${FINELY_OS_ENTITY_BODY}`}>
+                      {deliveryMode} packages in {TABS.find((t) => t.key === activeTab)?.label ?? 'this category'}
+                    </p>
+                    <div className="mt-5">
+                      <PricingPackageCatalog
+                        packages={visiblePackages}
+                        pageSize={6}
+                        includePersonalCompare={activeTab === 'personal_credit' || activeTab === 'banking_reports'}
+                        searchPlaceholder="Search packages in this category…"
+                        selectLabel="Select"
+                        onSelect={(pkgId) => handleSelectPackage(pkgId, visiblePackages)}
+                        titleClassName="text-xl sm:text-2xl font-extrabold text-white"
+                      />
+                    </div>
+                    <p className={`${FINELY_OS_COMPLIANCE_FOOTNOTE} mt-4`}>
+                      Results vary · not legal advice · funding subject to underwriting
+                    </p>
+                  </div>
+                ) : (
+                  <div className={FINELY_OS_LUXURY_EMPTY}>
+                    No {deliveryMode} packages in this category yet. Switch to {deliveryMode === 'DIY' ? 'DFY' : 'DIY'} to see
+                    available options.
+                  </div>
+                )}
+
+                {activeTab === 'tradeline_promo' && (
+                  <div className={`${FINELY_OS_NOTICE_WARN} flex items-start gap-3 pricing-mosaic-slot`}>
+                    <Shield size={18} className="mt-0.5 text-rose-400 shrink-0" />
+                    <div>
+                      <div className={`font-bold text-base ${FINELY_OS_ENTITY_VALUE}`}>How Tradeline Packages Work</div>
+                      <ul className={`mt-2 text-base ${FINELY_OS_ENTITY_BODY} space-y-1 list-disc pl-4`}>
+                        <li>
+                          <strong>Authorized User (AU) tradelines:</strong> We add you to seasoned credit accounts with perfect
+                          payment history.
+                        </li>
+                        <li>
+                          <strong>Primary installment tradeline:</strong> Your in-house financing plan reports to Equifax as a
+                          positive installment account.
+                        </li>
+                        <li>
+                          <strong>Bonus resources:</strong> Each package includes educational materials and strategy guidance.
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
-        )}
-
-        {activeTab === 'agency' ? (
-          <>
-            <div className={`${finelyOsCatalogCard('violet')} space-y-4`} data-fc-accent="violet">
-              <div>
-                <p className={FINELY_OS_ENTITY_SUBLABEL}>{CS.programName}</p>
-                <p className={`mt-2 text-xl font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Revenue-share partnership — not flat SaaS</p>
-                <p className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>
-                  Run partner credit files on Finely&apos;s operating stack with training, white-label portal, dispute studio, and a dedicated partnership line.
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-3">
-                <button type="button" onClick={() => navigate(CS.publicPath)} className={FINELY_OS_PRIMARY_BTN}>
-                  Explore {CS.plural} <ArrowRight size={14} />
-                </button>
-                <button type="button" onClick={() => navigate(resolveFinelyCtaPath('agent_intake'))} className={FINELY_OS_SUCCESS_BTN}>
-                  Apply to program <ArrowRight size={14} />
-                </button>
-                <button type="button" onClick={() => navigate(CS.hubPath)} className={FINELY_OS_SECONDARY_BTN}>
-                  Specialist hub
-                </button>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
-            {agencyTiers
-              .filter((t) => t.isPublic)
-              .map((tier) => (
-                <AgencyTierCard key={tier.id} tier={tier} onSelect={() => handleAgencyTier(tier.id)} />
-              ))}
-            </div>
-          </>
-        ) : visiblePackages.length ? (
-          <section
-            className={`fc-sell relative overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8 2xl:-mx-10 px-4 sm:px-6 lg:px-8 2xl:px-10 py-8 sm:py-10 ${finelyOsLandingContrastSection('fc-band-violet')}`}
-            data-fc-contrast-band="1"
-          >
-            <LandingSellAtmosphere tone="platinum" />
-            <div className="relative space-y-4">
-              <div className={`${finelyOsCatalogCard('sky')} !p-4 sm:!p-5`} data-fc-accent="sky">
-                <p className={`text-sm font-bold ${FINELY_OS_ENTITY_VALUE}`}>Compare packages</p>
-                <p className={`mt-1 text-base ${FINELY_OS_ENTITY_BODY}`}>
-                  Transparent glass tiers — pick DIY or done-for-you, then select the package that matches your lane.
-                </p>
-              </div>
-              <PricingPackageCatalog
-                packages={visiblePackages}
-                pageSize={6}
-                includePersonalCompare={activeTab === 'personal_credit' || activeTab === 'banking_reports'}
-                searchPlaceholder="Search packages in this category…"
-                selectLabel="Select"
-                onSelect={(pkgId) => handleSelectPackage(pkgId, visiblePackages)}
-                titleClassName="text-xl sm:text-2xl font-extrabold text-[#0c1228]"
-              />
-              <p className={FINELY_OS_COMPLIANCE_FOOTNOTE}>
-                Results vary · not legal advice · funding subject to underwriting
-              </p>
-            </div>
-          </section>
-        ) : (
-          <div className={FINELY_OS_LUXURY_EMPTY}>
-            No {deliveryMode} packages in this category yet. Switch to {deliveryMode === 'DIY' ? 'DFY' : 'DIY'} to see
-            available options.
-          </div>
-        )}
-
-        {activeTab === 'tradeline_promo' && (
-          <div className={`${FINELY_OS_NOTICE_WARN} flex items-start gap-3`}>
-            <Shield size={18} className="mt-0.5 text-rose-400 shrink-0" />
-            <div>
-              <div className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>How Tradeline Packages Work</div>
-              <ul className={`mt-2 ${FINELY_OS_ENTITY_BODY} space-y-1 list-disc pl-4`}>
-                <li>
-                  <strong>Authorized User (AU) tradelines:</strong> We add you to seasoned credit accounts with perfect
-                  payment history.
-                </li>
-                <li>
-                  <strong>Primary installment tradeline:</strong> Your in-house financing plan reports to Equifax as a
-                  positive installment account.
-                </li>
-                <li>
-                  <strong>Bonus resources:</strong> Each package includes educational materials and strategy guidance.
-                </li>
-              </ul>
-            </div>
-          </div>
-        )}
-
-        </div>
+        </section>
 
         <section
           className={`fc-sell relative overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8 2xl:-mx-10 px-4 sm:px-6 lg:px-8 2xl:px-10 py-14 sm:py-20 ${finelyOsLandingContrastSection('fc-band-emerald')}`}

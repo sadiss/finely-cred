@@ -60,16 +60,15 @@ export function BusinessCreditOneSheetsPanel() {
           <FileText className="text-violet-300 mt-0.5 shrink-0" size={18} />
           <div>
             <div className={FINELY_OS_ENTITY_SUBLABEL}>Premium one-sheets</div>
-            <h3 className={`mt-1 ${FINELY_OS_ENTITY_VALUE}`}>3-sheet Process Brief + partner one-sheets</h3>
+            <h3 className={`mt-1 ${FINELY_OS_ENTITY_VALUE}`}>Process brief and partner one-sheets</h3>
             <p className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>
-              Start with the 3-sheet Process Brief, then Fundability Roadmap and Tier Ladder & Capital Outlook, then
-              destination PDFs. Results vary · not guaranteed · business credit only · funding subject to underwriting ·
-              outlay varies by vendors.
+              Start with the process brief, then the Fundability Roadmap and Tier Ladder, then the destination sheets
+              that match the file.
             </p>
           </div>
         </div>
         <Link to={LIBRARY_PATH} className={`${FINELY_OS_SECONDARY_BTN} inline-flex items-center gap-2 shrink-0`}>
-          Open full Partner One-Sheets library <ArrowRight size={14} />
+          Open the full partner one-sheets library <ArrowRight size={14} />
         </Link>
       </div>
       {err ? <p className="text-sm text-rose-300">{err}</p> : null}
@@ -103,7 +102,7 @@ export function BusinessCreditOneSheetsPanel() {
         </button>
       </div>
 
-      <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-white/45`}>Roadmap, ladder & path one-sheets</div>
+      <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-white/45`}>Roadmap, ladder, and path one-sheets</div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {sheets.map((s, i) => (
           <div
@@ -148,7 +147,7 @@ export function BusinessCreditOneSheetsPanel() {
       </div>
       <div className="pt-1">
         <Link to={LIBRARY_PATH} className={`text-sm text-amber-200/90 hover:text-amber-100 inline-flex items-center gap-1.5`}>
-          Browse descriptive Partner One-Sheets library <ArrowRight size={14} />
+          Browse the partner one-sheets library <ArrowRight size={14} />
         </Link>
       </div>
     </section>

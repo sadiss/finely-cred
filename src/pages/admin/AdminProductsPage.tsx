@@ -60,7 +60,7 @@ export default function AdminProductsPage({ embedded = false }: AdminEmbeddableP
           <button type="button" onClick={() => navigate('/admin')} className={FINELY_OS_BACK_LINK} title="Back to Admin Dashboard">
             <ArrowLeft size={16} /> Admin dashboard
           </button>
-          <button type="button" onClick={() => navigate('/pricing')} className={FINELY_OS_PRIMARY_BTN} title="Open the public pricing page">
+          <button type="button" onClick={() => navigate('/pricing/personal-credit-restore')} className={FINELY_OS_PRIMARY_BTN} title="Open the public pricing page">
             View public pricing <ArrowRight size={14} />
           </button>
         </div>

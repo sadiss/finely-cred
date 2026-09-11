@@ -1,0 +1,119 @@
+/* Internal paper preview — mailed stock, not mosaic chrome. */
+
+.fc-ht-paper-stack {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.fc-ht-paper {
+  background: #fff;
+  color: #1c1917;
+  border: 1px solid #d6d3d1;
+  border-radius: 0;
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.12);
+  max-width: 40rem;
+  overflow: hidden;
+}
+
+.fc-ht-paper__navy {
+  background: #0b1f3a;
+  color: #fff;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.7rem 1.5rem;
+}
+
+.fc-ht-paper__body {
+  padding: 1.5rem 1.6rem 1.7rem;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+.fc-ht-paper__name {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.fc-ht-paper__unit,
+.fc-ht-paper__addr {
+  margin: 0.2rem 0 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #44403c;
+}
+
+.fc-ht-paper__rule {
+  height: 1px;
+  background: #d6d3d1;
+  margin: 1.1rem 0;
+  border: 0;
+}
+
+.fc-ht-paper__meta,
+.fc-ht-paper__re,
+.fc-ht-paper__hi {
+  margin: 0 0 0.45rem;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.fc-ht-paper__artifact {
+  margin: 1rem 0 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.fc-ht-paper__p {
+  margin: 0.85rem 0 0;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.55;
+}
+
+.fc-ht-paper__close {
+  margin: 1.25rem 0 0;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.fc-ht-paper__sign {
+  margin: 1rem 0 0;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.fc-ht-paper__kicker {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #0b1f3a;
+}
+
+.fc-ht-paper__word {
+  display: flex;
+  gap: 0.75rem;
+  margin: 0.45rem 0 0;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.fc-ht-paper__word span:first-child {
+  min-width: 7.5rem;
+  font-weight: 800;
+}
+
+.fc-ht-paper__foot {
+  margin: 1.4rem 0 0;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #57534e;
+}

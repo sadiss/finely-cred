@@ -378,7 +378,7 @@ export default function PartnerCheckoutPage() {
                 View billing
               </button>
             ) : (
-              <button type="button" onClick={() => navigate('/pricing')} className={FINELY_OS_SECONDARY_BTN}>
+              <button type="button" onClick={() => navigate('/pricing/personal-credit-restore')} className={FINELY_OS_SECONDARY_BTN}>
                 Explore upgrades
               </button>
             )}
@@ -405,7 +405,7 @@ export default function PartnerCheckoutPage() {
           <button type="button" onClick={() => navigate('/portal/dashboard')} className={FINELY_OS_BACK_LINK}>
             <ArrowLeft size={16} /> Open dashboard
           </button>
-          <button type="button" onClick={() => navigate('/pricing')} className={FINELY_OS_BACK_LINK}>
+          <button type="button" onClick={() => navigate('/pricing/personal-credit-restore')} className={FINELY_OS_BACK_LINK}>
             View all pricing <ArrowRight size={16} />
           </button>
         </div>
@@ -447,7 +447,7 @@ export default function PartnerCheckoutPage() {
               ? { label: 'Open dashboard', onClick: () => navigate('/portal/dashboard') }
               : { label: 'Billing hub', onClick: () => navigate('/portal/billing') }
           }
-          secondaryAction={{ label: 'Compare pricing', onClick: () => navigate('/pricing') }}
+          secondaryAction={{ label: 'Compare pricing', onClick: () => navigate('/pricing/personal-credit-restore') }}
         >
         {checkoutTab === 'catalog' && availablePackages.length > 1 && (
           <div className="space-y-4">

@@ -10,18 +10,20 @@ type Props = {
   surface?: 'dark' | 'light';
 };
 
-export function FinelyOsAlertBanner({ tone = 'info', message, className = '', surface = 'dark' }: Props) {
+export function FinelyOsAlertBanner({ tone = 'info', message, className = '', surface = 'light' }: Props) {
   const Icon = tone === 'warning' || tone === 'blocking' ? AlertCircle : tone === 'success' ? CheckCircle2 : Info;
 
   if (surface === 'light') {
     const tint = alertToneToVisibleTint(tone);
     return (
       <div
-        className={`${finelyOsVisibleTintShell(tint)} flex items-start gap-3 text-sm font-medium ${className}`}
+        className={`fc-os-alert fc-wlp-signal ${finelyOsVisibleTintShell(tint)} flex items-start gap-3 text-sm font-bold ${className}`}
+        data-fc-os-alert="light"
+        data-fc-os-alert-tone={tone}
         data-fc-visible-tint={tint}
       >
-        <Icon size={18} className={`mt-0.5 shrink-0 ${finelyOsVisibleTintIcon(tint)}`} />
-        <p>{message}</p>
+        <Icon size={18} className={`fc-os-alert-copy mt-0.5 shrink-0 ${finelyOsVisibleTintIcon(tint)}`} />
+        <p className="fc-os-alert-copy">{message}</p>
       </div>
     );
   }
@@ -31,9 +33,13 @@ export function FinelyOsAlertBanner({ tone = 'info', message, className = '', su
       ? 'rounded-xl border border-rose-500/45 bg-rose-500/15 px-4 py-3 text-sm text-rose-100'
       : finelyOsAlertBanner(tone);
   return (
-    <div className={`${cls} flex items-start gap-3 ${className}`}>
-      <Icon size={18} className="mt-0.5 shrink-0 opacity-90" />
-      <p>{message}</p>
+    <div
+      className={`fc-os-alert fc-wlp-signal ${cls} flex items-start gap-3 ${className}`}
+      data-fc-os-alert="dark"
+      data-fc-os-alert-tone={tone}
+    >
+      <Icon size={18} className="fc-os-alert-copy mt-0.5 shrink-0 opacity-90" />
+      <p className="fc-os-alert-copy">{message}</p>
     </div>
   );
 }

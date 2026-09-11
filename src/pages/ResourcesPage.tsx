@@ -65,7 +65,7 @@ export default function ResourcesPage() {
 
   usePublicSeoMeta({
     title: 'Resources & tools',
-    description: 'Free guides, one-sheets, bookstore, monitoring partners, and partner education — curated Finely Cred resource hub.',
+    description: 'Free guides, one-sheets, bookstore titles, and monitoring partners — the Finely Cred library for restore and funding work.',
     path: '/resources',
   });
 
@@ -90,7 +90,7 @@ export default function ResourcesPage() {
         origin,
         path: '/resources',
         name: 'Resources & Tools — Finely Cred',
-        description: 'Free guides, calculators, videos, and education for credit restore and business funding.',
+        description: 'Free guides, one-sheets, and education for credit restore and business funding.',
       }),
     );
   }, [redirectTo]);
@@ -103,7 +103,7 @@ export default function ResourcesPage() {
     <PageShell
       badge="Public"
       title="Resource hub"
-      subtitle="Free guides, credit monitoring partners, and partner education — pick a lane or book a strategy call."
+      subtitle="Free guides, monitoring partners, and partner education — pick a library or book a session."
       hideHero
     >
       <div className={`${FINELY_OS_PAGE} fc-senior-simple space-y-0`}>
@@ -121,20 +121,20 @@ export default function ResourcesPage() {
             <PublicLaneTitle
               lane="resources"
               eyebrow="Resource hub"
-              text="Guides, packs, and partner tools."
+              text="Guides, sheets, and partner tools."
               highlight="partner tools."
               speedMs={36}
               subtitle={
                 <p className="fc-light-contrast-body max-w-2xl text-base sm:text-lg">
-                  Start with free guides if you&apos;re new — jump to one-sheets, bookstore, or monitoring when you know your lane.
+                  Start with a free guide if you are new. Open a one-sheet, the bookstore, or monitoring when you already know the work.
                 </p>
               }
             />
             <div className="grid gap-3 sm:grid-cols-3 content-start">
               {[
-                { value: String(hubCards.length), label: 'Dedicated pages', accent: 'emerald' as const },
+                { value: String(hubCards.length), label: 'Libraries', accent: 'emerald' as const },
                 { value: 'Free', label: 'Guide library', accent: 'violet' as const },
-                { value: '24/7', label: 'Self-serve access', accent: 'sky' as const },
+                { value: 'Open', label: 'Read without signup', accent: 'sky' as const },
               ].map((kpi) => (
                 <div key={kpi.label} className={`${finelyOsCatalogCard(kpi.accent)} !p-5 text-center sm:text-left`} data-fc-accent={kpi.accent}>
                   <div className={`text-2xl sm:text-3xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{kpi.value}</div>
@@ -149,10 +149,10 @@ export default function ResourcesPage() {
           <div>
             <div className={FINELY_OS_ENTITY_SUBLABEL}>Resource library</div>
             <h2 className={`mt-1 text-2xl sm:text-3xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>
-              Pick a dedicated page
+              Choose a library
             </h2>
             <p className={`mt-2 max-w-2xl text-base ${FINELY_OS_ENTITY_BODY}`}>
-              Guides, one-sheets, bookstore, monitoring, videos, stories, and events — each opens its own route.
+              Guides, one-sheets, the bookstore, monitoring, videos, stories, and events each open their own page.
             </p>
           </div>
 
@@ -202,7 +202,7 @@ export default function ResourcesPage() {
               Start here
             </button>
             <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/enlightenment-session')}>
-              Book a strategy call
+              Book a session
             </button>
           </div>
 
@@ -215,16 +215,16 @@ export default function ResourcesPage() {
 
         <div className="space-y-8 pb-6">
           <section id="guides" className={`${finelyOsCatalogCard('emerald')} fc-scroll-section space-y-3`} data-fc-accent="emerald">
-            <h2 className={`text-xl sm:text-2xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>Free guides, credit monitoring, and one-sheets</h2>
+            <h2 className={`fc-launch-lane-header text-xl sm:text-2xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>Free guides, credit monitoring, and one-sheets</h2>
             <p className={`text-base ${FINELY_OS_ENTITY_BODY}`}>
-              Start with free guides if you&apos;re new. Need a human? Book a strategy call when you&apos;re ready.
+              Start with a free guide if you are new. Need a person? Book a session when you are ready.
             </p>
             <div className="flex flex-wrap gap-2">
               <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/resources/guides')}>
                 Open guides <ArrowRight size={14} />
               </button>
               <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/enlightenment-session')}>
-                Book a strategy call
+                Book a session
               </button>
             </div>
           </section>
@@ -253,9 +253,9 @@ export default function ResourcesPage() {
 
           {PUBLIC_DEMO_VIDEOS_ENABLED ? (
           <section id="videos" className={`${finelyOsCatalogCard('rose')} fc-scroll-section space-y-3`} data-fc-accent="rose">
-            <h2 className={`text-xl sm:text-2xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>Watch-how tours</h2>
+            <h2 className={`text-xl sm:text-2xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>Short walkthroughs</h2>
             <p className={`text-base ${FINELY_OS_ENTITY_BODY}`}>
-              Short walkthrough videos for portal and public hubs.
+              Short videos that show how the public and portal screens work.
             </p>
             <div className="flex flex-wrap gap-2">
               {TOUR_MANIFEST.slice(0, 4).map((tour) => (
@@ -284,7 +284,7 @@ export default function ResourcesPage() {
           roleId="nurture_concierge"
           goal="personal"
           roleLabel="welcome concierge"
-          subline="Need help picking a guide, sheet kit, or bookstore title?"
+          subline="Need help choosing a guide, a one-sheet, or a bookstore title?"
         />
         <FinelyOsPageFooter />
       </div>

@@ -9,6 +9,7 @@ import { FinelyUnifiedHubLayout } from '../features/unified/FinelyUnifiedHubLayo
 import { MarketingStaffChatStrip } from '../components/marketing/MarketingStaffChatStrip';
 import {
   FINELY_OS_BACK_LINK,
+  FINELY_OS_COMPLIANCE_FOOTNOTE,
   FINELY_OS_ENTITY_BODY,
   finelyOsCatalogCard,
   FINELY_OS_ENTITY_SUBLABEL,
@@ -34,8 +35,9 @@ const codeChip = 'px-1.5 py-0.5 rounded bg-white/10 font-mono text-xs text-emera
 export default function FaqPage() {
   const navigate = useNavigate();
   usePublicSeoMeta({
-    title: 'FAQ',
-    description: 'Answers about credit restore, disputes, tradelines, billing, and the Finely Cred platform.',
+    title: 'FAQ — Finely Cred',
+    description:
+      'Clear answers about credit restore, disputes, tradelines, billing, and how partners work with Finely Cred.',
     path: '/faq',
   });
   const [openId, setOpenId] = useState<string | null>('getting-started');
@@ -50,12 +52,12 @@ export default function FaqPage() {
         a: (
           <div className="space-y-2">
             <p>
-              Credit repair is the process of identifying potentially inaccurate, incomplete, duplicated, or outdated information on your credit
-              reports and challenging it through the appropriate channels (credit bureaus and/or furnishers).
+              Credit repair is the work of finding information on your reports that may be inaccurate, incomplete,
+              duplicated, or outdated, then challenging it with the bureaus and the companies that furnished it.
             </p>
             <p className={muted}>
-              Important: accurate and properly verified information may remain on a report. Credit repair is not a promise of score increase or
-              deletion of accurate items.
+              Accurate, properly verified information can stay on a report. This is not a promise that a score will rise
+              or that an accurate item will be deleted.
             </p>
           </div>
         ),
@@ -67,12 +69,10 @@ export default function FaqPage() {
         a: (
           <div className="space-y-2">
             <p>
-              Start with onboarding/intake, then upload your credit report(s) in the Partner Portal. From there you’ll see detected
-              tradelines, dispute candidates, and an evidence checklist.
+              Begin with a short intake, then upload your credit reports in the partner portal. You will see the
+              tradelines we detected, the items worth reviewing, and an evidence checklist for the first round.
             </p>
-            <p className={muted}>
-              Shortcut: go to <code className={codeChip}>/onboarding</code>.
-            </p>
+            <p className={muted}>Open onboarding from the site header, or start the free dispute guide if you want to read first.</p>
           </div>
         ),
       },
@@ -83,8 +83,8 @@ export default function FaqPage() {
         a: (
           <div className="space-y-2">
             <p>
-              You can upload HTML or PDF credit reports. The parser extracts tradelines and highlights dispute angles (e.g. inconsistent
-              dates, balances, or status codes).
+              You can upload HTML or PDF credit reports. We extract tradelines and flag inconsistencies such as dates,
+              balances, or status codes that do not match across the file.
             </p>
             <p className={muted}>
               Tip: if the PDF is scanned, upload the best-quality version available or export a text-based PDF if possible.
@@ -113,8 +113,8 @@ export default function FaqPage() {
         a: (
           <div className="space-y-2">
             <p>
-              No—Finely Cred is not a law firm and does not provide legal advice. We provide educational information, software tools, templates,
-              and workflow support.
+              No. Finely Cred is not a law firm and does not provide legal advice. We provide education, software tools,
+              letter templates, and a workspace for the file.
             </p>
             <p className={muted}>
               Results vary by file and bureau responses. We do not guarantee deletions, approvals, or specific score increases.
@@ -150,7 +150,7 @@ export default function FaqPage() {
               <li>Some updates can appear in 30–45 days, but complex files can take longer.</li>
               <li>Consistency matters: evidence discipline, deadlines, and tracking improve outcomes.</li>
             </ul>
-            <p className={muted}>We focus on execution quality and sequencing, not “instant fixes.”</p>
+            <p className={muted}>We focus on the quality of the round, not an instant fix.</p>
           </div>
         ),
       },
@@ -225,8 +225,8 @@ export default function FaqPage() {
         a: (
           <div className="space-y-2">
             <p>
-              Plans activate entitlements that unlock portal modules (reports, documents, disputes, debt, escalations, etc.). You can view
-              what’s unlocked in Profile & Billing.
+              Each plan unlocks the portal modules you need — reports, documents, disputes, debt, and escalations. You
+              can see what is unlocked under Profile and Billing.
             </p>
             <p className={muted}>
               You can still upload key documents any time—keeping your vault current makes everything faster.
@@ -279,9 +279,9 @@ export default function FaqPage() {
               business bureaus (where applicable).
             </p>
             <ul className="list-disc pl-4 space-y-1">
-              <li>Entity + compliance basics (address, phone, listings)</li>
-              <li>Vendor sequencing and trade accounts</li>
-              <li>Monitoring and readiness milestones</li>
+              <li>A real entity with a matching address, phone, and public listings</li>
+              <li>Vendor accounts opened in a sensible order, then paid on time</li>
+              <li>Monitoring and readiness checkpoints before you apply for capital</li>
             </ul>
             <p className={muted}>Not all outcomes are guaranteed; lenders make independent decisions.</p>
           </div>
@@ -467,8 +467,7 @@ export default function FaqPage() {
               actually look at.
             </p>
             <p className={muted}>
-              Shortcut: see current tiers at{' '}
-              <code className={codeChip}>/pricing?tab=wealth_builder</code>. Results vary; funding is subject to underwriting.
+              See current Wealth Builder tiers on the pricing page. Results vary. Funding is subject to underwriting.
             </p>
           </div>
         ),
@@ -491,7 +490,7 @@ export default function FaqPage() {
               target funding pathway from roughly $100K–$150K at Starter to $400K+ at the flagship Superior tier.
             </p>
             <p className={muted}>
-              See exact current pricing and inclusions per tier at <code className={codeChip}>/pricing?tab=wealth_builder</code>.
+              Open pricing and choose Wealth Builder for the current tiers and what each one includes.
             </p>
           </div>
         ),
@@ -554,12 +553,12 @@ export default function FaqPage() {
   }, [items, query]);
 
   return (
-    <PageShell badge="Public" title="FAQ" subtitle="Common questions about onboarding, reports, disputes, and support.">
+    <PageShell badge="Public" title="FAQ" subtitle="How restore, disputes, billing, and partner support actually work.">
       <div className={FINELY_OS_PAGE}>
         <FinelyUnifiedHubLayout
           eyebrow="Help center"
           title="Frequently asked questions"
-          subtitle="Onboarding, reports, disputes, billing, and platform support."
+          subtitle="Restore, disputes, billing, and how to reach the team — answered in complete sentences."
           accent="fuchsia"
           kpis={[
             { label: 'Topics', value: String(items.length), accent: 'fuchsia' },
@@ -568,7 +567,7 @@ export default function FaqPage() {
           tabs={[{ id: 'faq', label: 'All questions' }]}
           activeTab="faq"
           primaryAction={{ label: 'Contact support', onClick: () => navigate('/contact') }}
-          secondaryAction={{ label: 'Book session', onClick: () => navigate('/consultation') }}
+          secondaryAction={{ label: 'Book a session', onClick: () => navigate('/consultation') }}
         >
         <div className={`${FINELY_OS_TOOLBAR} !p-2 w-full sm:max-w-md mb-4`}>
           <Search size={14} className="text-emerald-400 shrink-0" />
@@ -603,7 +602,9 @@ export default function FaqPage() {
         />
 
         <div className={`${FINELY_OS_NOTICE_WARN} space-y-3 mt-6`}>
-          <div className={FINELY_OS_ENTITY_BODY}>Still have questions? Partners can sign in for faster triage in the Communication Hub.</div>
+          <div className={FINELY_OS_ENTITY_BODY}>
+            Still have questions? Partners can sign in and message the team from the Communication Hub.
+          </div>
           <div className="flex flex-wrap gap-3">
             <button type="button" onClick={() => navigate('/contact')} className={FINELY_OS_SUCCESS_BTN}>Contact us</button>
             <button type="button" onClick={() => navigate('/login')} className={FINELY_OS_SECONDARY_BTN}>Partner sign in</button>
@@ -611,11 +612,15 @@ export default function FaqPage() {
         </div>
         </FinelyUnifiedHubLayout>
 
+        <p className={FINELY_OS_COMPLIANCE_FOOTNOTE}>
+          Results vary · not legal advice · funding subject to underwriting
+        </p>
+
         <MarketingStaffChatStrip
           roleId="support_specialist"
           goal="not_sure"
           roleLabel="support specialist"
-          subline="Still have questions after reading the FAQ? Chat with our on-duty team member."
+          subline="Still have a question after the FAQ? Chat with whoever is on support today."
           buttonTone="secondary"
         />
 

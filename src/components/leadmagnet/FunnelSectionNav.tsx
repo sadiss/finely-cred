@@ -37,7 +37,7 @@ export function FunnelSectionNav({ sections, className = '' }: Props) {
 
   return (
     <nav className={`sticky top-0 z-30 fc-funnel-nav backdrop-blur border-b border-white/[0.08] ${className}`}>
-      <div className="container mx-auto px-3 sm:px-6 max-w-7xl flex gap-1.5 sm:gap-2 overflow-x-auto py-2 sm:py-2.5 [scrollbar-width:thin]">
+      <div className="fc-viewport-floor flex gap-1.5 sm:gap-2 overflow-x-auto py-2 sm:py-2.5 [scrollbar-width:thin]">
         {sections.map((s) => {
           const active = activeId === s.id;
           return (

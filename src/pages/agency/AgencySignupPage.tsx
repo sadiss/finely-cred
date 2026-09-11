@@ -194,8 +194,9 @@ export default function AgencySignupPage() {
       title="Create your agency workspace"
       subtitle="Pick your buy-in once, confirm the short summary, then name the tenant."
       hideHero
+      contentWidth="full"
     >
-      <div className={`${FINELY_OS_PAGE} max-w-5xl mx-auto pb-20`}>
+      <div className={`${FINELY_OS_PAGE} fc-viewport-floor pb-20`}>
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-4">
             <button type="button" onClick={() => navigate(-1)} className={FINELY_OS_BACK_LINK}>

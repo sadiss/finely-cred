@@ -20,10 +20,10 @@ import {
 import { LeadMagnetCobrandFooterMarks } from '../../components/brand/LeadMagnetCobrand';
 import { LeadMagnetFunnelHeroVideo } from '../../components/leadmagnet/LeadMagnetFunnelHeroVideo';
 import { getLeadMagnetVisualTheme } from '../../components/leadmagnet/leadMagnetVisualThemes';
+import { getLeadMagnetPremiumProfile } from '../../components/leadmagnet/leadMagnetPremiumProfiles';
 import { DEBT_FUNNEL } from '../../domain/leadMagnetFunnels';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
 import { PremiumLeadMagnetCaptureForm } from '../../components/leadmagnet/PremiumLeadMagnetCaptureForm';
-import { LandingTypewriterTitle } from '../../components/landing/LandingTypewriterTitle';
 import { loadSettings } from '../../data/settingsRepo';
 import { buildTelHref, DEFAULT_SUPPORT_PHONE_DISPLAY } from '../../lib/telLink';
 import { DEBT_GUIDE_CHAPTERS, DEBT_GUIDE_META, DEBT_GUIDE_READ_PATH } from './debtEradicationGuideContent';
@@ -36,6 +36,7 @@ import {
 import '../../components/leadmagnet/premiumLeadMagnetShared.css';
 import '../../components/leadmagnet/leadMagnetLuxuryStage.css';
 import './debtEradicationLanding.css';
+import '../../components/leadmagnet/leadMagnetConvert.css';
 
 const DEBT_THEME = getLeadMagnetVisualTheme(DEBT_FUNNEL);
 
@@ -88,7 +89,7 @@ function GlassPanel({
 
 function MiniCheck({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex items-start gap-3 text-sm leading-relaxed text-white/72">
+    <div className="del-mini-check flex items-start gap-3 text-sm leading-relaxed">
       <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#a78bfa] text-[#040a36] shadow-[0_0_22px_rgba(167, 139, 250,0.24)]">
         <CheckCircle2 size={13} strokeWidth={3} />
       </span>
@@ -218,10 +219,11 @@ function Testimonial({
 
 export default function DebtEradicationLandingPage() {
   usePublicSeoMeta({
-    title: 'Annihilate Your Debt — Free Eradication Guide',
+    title: 'Debt validation guide — free educational playbook',
     description:
-      'Crush collections, navigate summons, reduce foreclosure pressure, and rebuild stronger with the free debt eradication guide from Finely Cred.',
+      'A written collections playbook from Finely Cred: validation letters, summons triage, and a live debt lane. Results vary · not legal advice · funding subject to underwriting.',
     path: DEBT_FUNNEL.path,
+    faqs: getLeadMagnetPremiumProfile(DEBT_FUNNEL)?.faqs,
   });
 
   const supportPhone = loadSettings().site.supportPhone || DEFAULT_SUPPORT_PHONE_DISPLAY;
@@ -232,7 +234,7 @@ export default function DebtEradicationLandingPage() {
   }, []);
   const abVariant = useMemo(() => assignFunnelVariant(DEBT_FUNNEL.funnelId), []);
   const experiment = useMemo(() => getExperimentForFunnel(DEBT_FUNNEL.funnelId), []);
-  const headlineOverride = experiment?.headlines?.[abVariant];
+  const headlineLines = ['Validate the claim.', 'Own the timeline.'] as const;
   const ctaOverride = experiment?.ctaLabels?.[abVariant];
   const onGuideCaptured = () => recordFunnelConversion(DEBT_FUNNEL.funnelId, abVariant);
 
@@ -243,106 +245,85 @@ export default function DebtEradicationLandingPage() {
   const discoveries = [
     {
       icon: Gavel,
-      title: 'Crush Collections',
-      desc: 'Stop creditor harassment, collection pressure, and chaos with a clearer response plan.',
+      title: 'Answer collections',
+      desc: 'Replace endless calls with a written validation plan and a dated paper trail.',
     },
     {
       icon: Home,
-      title: 'Wipe Out Foreclosures',
-      desc: 'Understand the pressure points and learn the next moves to protect your home where possible.',
+      title: 'Read foreclosure pressure',
+      desc: 'Understand the pressure points and the next moves that can protect a home where possible.',
     },
     {
       icon: Scale,
-      title: 'Destroy Bankruptcy',
-      desc: 'Learn your options, avoid panic decisions, and move with structure instead of fear.',
+      title: 'Study bankruptcy options',
+      desc: 'Learn the options, avoid rushed decisions, and move with a structure instead of a threat.',
     },
     {
       icon: ShieldCheck,
-      title: 'Protect Your Assets',
-      desc: 'Keep what matters in view: home, income, peace of mind, and future opportunity.',
+      title: 'Protect what you can keep',
+      desc: 'Keep home, income, and future opportunity in view while you document the file.',
     },
     {
       icon: TrendingUp,
-      title: 'Rebuild Stronger',
-      desc: 'Build credit, wealth, and a better financial future after the storm.',
+      title: 'Rebuild after resolution',
+      desc: 'Sequence credit work after the debt file is stable — without promising a score.',
     },
   ];
 
   const stats = [
     { icon: Download, value: '15,000+', label: 'Guides Downloaded' },
-    { icon: BadgeCheck, value: '98%', label: 'Partner Success Rate' },
+    { icon: BadgeCheck, value: 'Written', label: 'Validation first' },
     { icon: Star, value: '4.9/5', label: 'Average Rating' },
     { icon: Lock, value: '100%', label: 'Free. No Obligation.' },
   ];
 
   return (
-    <main className="del-page lm-lux-theme--navy min-h-screen overflow-hidden bg-[#000c3c] text-white selection:bg-[#a78bfa]/30 selection:text-white">
-      <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_28%_12%,rgba(167, 139, 250,0.2),transparent_28%),radial-gradient(circle_at_78%_28%,rgba(12, 24, 80,0.3),transparent_32%),linear-gradient(180deg,#000c3c_0%,#060c2f_42%,#000c3c_100%)]" />
+    <main className="del-page del-page--convert lm-convert-page lm-lux-theme--navy min-h-screen overflow-hidden selection:bg-[#a78bfa]/30 selection:text-[#0a1628]">
+      <div className="del-convert-atmosphere pointer-events-none fixed inset-0 z-0" />
       <div className="lm-lux-grain lm-lux-grain--fixed pointer-events-none" aria-hidden />
-      <div className="pointer-events-none fixed inset-x-0 top-0 z-0 h-[420px] bg-gradient-to-b from-[#060c2f]/55 to-transparent" />
 
       {/* Hero — ivory field · full-width title · book LEFT | form RIGHT */}
       <section className="del-hero-section del-hero-section--ivory relative z-10 border-b border-[#a78bfa]/30 pt-20 md:pt-24">
         <div className="pointer-events-none absolute left-[8%] top-[18%] h-[380px] w-[380px] rounded-full bg-[#a78bfa]/12 blur-[110px]" />
         <div className="pointer-events-none absolute right-[10%] top-[22%] h-[320px] w-[320px] rounded-full bg-[#000c3c]/06 blur-[100px]" />
         <div className="absolute bottom-0 left-0 right-0 lm-lux-rule" />
-        <div className="relative z-[2] mx-auto max-w-[94rem] px-5 md:px-8">
+        <div className="relative z-[2] fc-viewport-floor">
           <div className="del-hero-head del-hero-head--full text-center">
             <p className="del-hero-kicker text-[11px] font-black uppercase tracking-[0.22em] text-[#8b5cf6]">
               Free debt &amp; summons guide
             </p>
-            <h1 className="del-hero-title del-serif lm-lux-display del-hero-title--typewriter mt-3 md:mt-4">
-              {headlineOverride ? (
-                <LandingTypewriterTitle
-                  as="span"
-                  text={headlineOverride}
-                  className="del-hero-title-line del-hero-title-line--gold block"
-                  speedMs={40}
-                  delayMs={120}
-                  caret
-                  immediate
-                />
-              ) : (
-                <>
-                  <LandingTypewriterTitle
-                    as="span"
-                    text="Annihilate Your Debt."
-                    className="del-hero-title-line del-hero-title-line--navy block"
-                    speedMs={40}
-                    delayMs={120}
-                    caret
-                    immediate
-                  />
-                  <LandingTypewriterTitle
-                    as="span"
-                    text="Take Back Control."
-                    className="del-hero-title-line del-hero-title-line--gold block"
-                    speedMs={42}
-                    delayMs={980}
-                    caret
-                    immediate
-                  />
-                </>
-              )}
+            <h1 className="del-hero-title del-serif lm-lux-display mt-3 md:mt-4">
+              {headlineLines.map((line, i) => (
+                <span
+                  key={line}
+                  className={
+                    i === 0 && headlineLines.length > 1
+                      ? 'del-hero-title-line del-hero-title-line--navy block'
+                      : 'del-hero-title-line del-hero-title-line--gold block'
+                  }
+                >
+                  {line}
+                </span>
+              ))}
             </h1>
             <div className="del-hero-title-rule lm-lux-rule--draw mx-auto" aria-hidden />
             <p className="del-hero-lede mx-auto mt-5 max-w-2xl md:mt-6">
-              Crush collections, navigate summons with calm urgency, ease foreclosure fear, and rebuild stronger —
-              step by step.
+              A written sequence for collections, summons, and the rebuild after resolution — one calm next step at a
+              time.
             </p>
           </div>
 
-          <div className="del-hero-grid del-hero-grid--book-form relative mt-8 grid items-end gap-10 md:mt-10 lg:mt-12">
+          <div className="del-hero-grid del-hero-grid--book-form relative mt-6 grid items-center gap-6 md:mt-8 lg:mt-8">
             <div className="del-hero-product-col relative z-10 order-2 flex min-w-0 flex-col items-center lg:order-1">
-              <div className="del-hero-stage relative flex w-full items-end justify-center">
-                <GuideMockup tall className="w-full max-w-none" />
+              <div className="del-hero-stage relative flex w-full flex-col items-center justify-center">
+                <GuideMockup tall className="w-full" />
               </div>
             </div>
 
             <div className="del-hero-form-col relative z-20 order-1 min-w-0 lg:order-2">
-              <div className="del-hero-form del-hero-form--capture lm-lux-panel mx-auto lg:mx-0 lg:ml-auto">
+              <div className="del-hero-form del-hero-form--capture lm-lux-panel mx-auto">
                 <h2 className="del-hero-form-capture-title">
-                  Get Your <span className="text-[#c4b5fd]">Free</span> Guide Now
+                  Download the <span className="text-[#c4b5fd]">free</span> validation guide
                 </h2>
                 <PremiumLeadMagnetCaptureForm
                   funnelConfig={DEBT_FUNNEL}
@@ -354,10 +335,10 @@ export default function DebtEradicationLandingPage() {
                   Results vary · not legal advice · educational guide only
                 </p>
                 <Link
-                  to={DEBT_GUIDE_READ_PATH}
+                  to={`${DEBT_GUIDE_READ_PATH}?preview=1`}
                   className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#a78bfa]/45 bg-[#a78bfa]/10 px-4 py-2.5 text-[11px] font-black uppercase tracking-[0.14em] text-[#c4b5fd] transition hover:border-[#c4b5fd]/70 hover:bg-[#a78bfa]/16"
                 >
-                  <BookOpen size={14} /> Read all {DEBT_GUIDE_CHAPTERS.length} pages free — no signup
+                  <BookOpen size={14} /> See preview
                 </Link>
                 <Link to={DEBT_FUNNEL.bookingPath ?? '/enlightenment-session'} className="lm-secondary-book-link">
                   <Calendar size={14} /> Book a session
@@ -380,30 +361,24 @@ export default function DebtEradicationLandingPage() {
       </a>
 
       <section className="del-video-section relative z-10 border-b border-[#a78bfa]/20">
-        <div className="del-video-grid mx-auto grid gap-14 px-5 md:px-8 lg:grid-cols-2 lg:items-center lg:gap-20 xl:gap-32">
+        <div className="del-video-grid fc-viewport-floor grid gap-10 lg:grid-cols-2 lg:items-center lg:gap-14">
           <div className="del-video-column del-video-column--left w-full">
             <VideoPreview onGoForm={scrollToDownload} />
           </div>
           <div className="del-video-column del-video-column--right">
             <SectionKicker>Exclusive video</SectionKicker>
-            <LandingTypewriterTitle
-              as="h2"
-              text="See How This System Can Change Your Life"
-              className="del-serif mt-5 text-4xl font-black leading-[1.08] tracking-[-0.035em] md:text-5xl xl:text-6xl"
-              highlight="Change Your Life"
-              highlightClassName="text-[#c4b5fd]"
-              speedMs={34}
-              delayMs={200}
-            />
+            <h2 className="del-serif mt-5 text-4xl font-black leading-[1.08] tracking-[-0.035em] md:text-5xl">
+              See How the <span className="text-[#7c3aed]">Validation Sequence</span> Works
+            </h2>
             <p className="mt-5 max-w-xl text-base leading-relaxed text-white/65">
-              A short, trust-building overview of the guide — so you know debt pressure is not the end of the story.
+              A short overview of the guide — so you know what to do first when a collector writes.
             </p>
             <div className="mt-7 grid gap-3">
-              <MiniCheck>Stop collection calls and aggressive letters with better documentation.</MiniCheck>
-              <MiniCheck>End foreclosure fear by understanding your possible next moves.</MiniCheck>
-              <MiniCheck>Avoid bankruptcy traps by knowing the options before you choose.</MiniCheck>
-              <MiniCheck>Reduce or eliminate debt pressure with a cleaner plan.</MiniCheck>
-              <MiniCheck>Rebuild your credit and protect your future.</MiniCheck>
+              <MiniCheck>Answer collection letters with a written request and a dated log.</MiniCheck>
+              <MiniCheck>Read foreclosure pressure and map the next moves that are actually available.</MiniCheck>
+              <MiniCheck>Study bankruptcy options before you choose one under a deadline.</MiniCheck>
+              <MiniCheck>Keep a cleaner plan for verified debts you intend to resolve.</MiniCheck>
+              <MiniCheck>Rebuild the file after the debt work is stable.</MiniCheck>
             </div>
             <button
               type="button"
@@ -417,55 +392,70 @@ export default function DebtEradicationLandingPage() {
         </div>
       </section>
 
-      {/* Page index — the manual is readable in-app before any signup */}
-      <section id="read-online" className="relative z-10 border-b border-[#a78bfa]/20 py-9 md:py-12">
-        <div className="mx-auto max-w-7xl px-5 md:px-8">
-          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+      <section id="preview" className="relative z-10 border-b border-[#a78bfa]/20 py-9 md:py-12">
+        <div className="fc-viewport-floor">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="max-w-2xl">
-              <SectionKicker>Read it now · no signup</SectionKicker>
+              <SectionKicker>Cover + Page I preview</SectionKicker>
               <h2 className="del-serif del-section-title mt-4 text-3xl font-black tracking-[-0.035em] md:text-4xl">
                 {DEBT_GUIDE_META.title}
               </h2>
               <p className="mt-3 text-sm leading-relaxed text-white/62">
-                {DEBT_GUIDE_CHAPTERS.length} pages, start to finish, in the browser. Triage, chain of title,
-                validation leverage, evidence discipline, summons education, settlement math, and the rebuild.
+                See the first page preview. The full {DEBT_GUIDE_CHAPTERS.length}-page manual unlocks after you enter
+                your details — not before.
               </p>
             </div>
             <Link
-              to={DEBT_GUIDE_READ_PATH}
+              to={`${DEBT_GUIDE_READ_PATH}?preview=1`}
               className="group inline-flex h-12 shrink-0 items-center justify-center gap-2 overflow-hidden rounded-xl border border-[#ddd6fe]/55 bg-[linear-gradient(135deg,#8b5cf6_0%,#a78bfa_42%,#ddd6fe_68%,#6d28d9_100%)] px-6 text-[11px] font-black uppercase tracking-[0.12em] text-[#040a36] shadow-[0_16px_48px_rgba(167,139,250,0.28)] transition hover:-translate-y-0.5 hover:brightness-110"
             >
-              <BookOpen size={15} /> Open Page I
+              <BookOpen size={15} /> See preview
             </Link>
           </div>
 
           <div className="mt-7 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-            {DEBT_GUIDE_CHAPTERS.map((ch) => (
-              <Link
-                key={ch.id}
-                to={`${DEBT_GUIDE_READ_PATH}?chapter=${ch.id}`}
-                className="del-discovery-card group flex items-start gap-3.5 rounded-[1.1rem] p-4 text-left transition duration-300 hover:-translate-y-1"
-              >
-                <span className="del-serif mt-0.5 shrink-0 text-2xl leading-none text-[#c4b5fd]">{ch.number}</span>
-                <span className="min-w-0">
-                  <span className="block text-sm font-bold leading-snug text-white">{ch.title}</span>
-                  <span className="mt-1 block text-[12.5px] leading-relaxed text-white/55">{ch.teaser}</span>
-                  <span className="mt-1.5 block text-[10px] font-black uppercase tracking-[0.16em] text-[#8b5cf6]">
-                    {ch.readMinutes} min · {ch.kicker}
+            {DEBT_GUIDE_CHAPTERS.map((ch, i) =>
+              i === 0 ? (
+                <Link
+                  key={ch.id}
+                  to={`${DEBT_GUIDE_READ_PATH}?preview=1`}
+                  className="del-discovery-card group flex items-start gap-3.5 rounded-[1.1rem] p-4 text-left transition duration-300 hover:-translate-y-1"
+                >
+                  <span className="del-serif mt-0.5 shrink-0 text-2xl leading-none text-[#c4b5fd]">{ch.number}</span>
+                  <span className="min-w-0">
+                    <span className="block text-[10px] font-black uppercase tracking-[0.16em] text-emerald-300">
+                      Preview
+                    </span>
+                    <span className="mt-1 block text-sm font-bold leading-snug text-white">{ch.title}</span>
+                    <span className="mt-1 block text-[12.5px] leading-relaxed text-white/55">{ch.teaser}</span>
                   </span>
-                </span>
-              </Link>
-            ))}
+                </Link>
+              ) : (
+                <div
+                  key={ch.id}
+                  className="del-discovery-card flex items-start gap-3.5 rounded-[1.1rem] p-4 text-left opacity-70"
+                >
+                  <span className="del-serif mt-0.5 shrink-0 text-2xl leading-none text-[#c4b5fd]">{ch.number}</span>
+                  <span className="min-w-0">
+                    <span className="block text-[10px] font-black uppercase tracking-[0.16em] text-white/45">
+                      Unlocks after signup
+                    </span>
+                    <span className="mt-1 block text-sm font-bold leading-snug text-white">{ch.title}</span>
+                    <span className="mt-1 block text-[12.5px] leading-relaxed text-white/55">{ch.teaser}</span>
+                  </span>
+                </div>
+              ),
+            )}
           </div>
           <p className="del-compliance mt-4">{DEBT_GUIDE_META.compliance}</p>
         </div>
       </section>
 
       <section id="free-toolkit" className="del-band del-band--toolkit relative z-10 border-y border-[#a78bfa]/20 py-8 md:py-10">
-        <div className="mx-auto max-w-7xl px-5 md:px-8 space-y-3">
+        <div className="fc-viewport-floor space-y-3">
           <details className="lm-seo-depth">
             <summary>
-              <span>Your free debt freedom kit</span>
+              <span>Your free debt validation kit</span>
               <span className="lm-seo-depth-hint">Expand</span>
             </summary>
             <div className="lm-seo-depth-body">
@@ -498,7 +488,7 @@ export default function DebtEradicationLandingPage() {
             <div className="lm-seo-depth-body">
               <div className="mx-auto mb-6 max-w-3xl text-center">
                 <h2 className="del-serif del-section-title text-3xl font-black tracking-[-0.035em] md:text-4xl">
-                  Your Roadmap to <span className="text-[#c4b5fd]">Total Debt Eradication</span>
+                    A roadmap for <span className="text-[#c4b5fd]">validation and the rebuild</span>
                 </h2>
               </div>
               <div className="grid gap-3.5 md:grid-cols-2 lg:grid-cols-5">
@@ -512,7 +502,7 @@ export default function DebtEradicationLandingPage() {
       </section>
 
       <section className="del-stats-strip relative z-10 border-y border-[#a78bfa]/20 py-8">
-        <div className="mx-auto grid max-w-7xl gap-3 px-5 md:grid-cols-4 md:px-8">
+        <div className="fc-viewport-floor grid gap-3 md:grid-cols-4">
           {stats.map((stat) => (
             <div key={stat.label} className="del-stat-tile flex items-center gap-3.5">
               <div className="del-stat-icon flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[#a78bfa]/4 bg-[#a78bfa]/12 text-[#c4b5fd]">
@@ -525,13 +515,13 @@ export default function DebtEradicationLandingPage() {
             </div>
           ))}
         </div>
-        <p className="del-compliance mx-auto mt-4 max-w-7xl px-5 text-center md:px-8">
+        <p className="del-compliance fc-viewport-floor mt-4 text-center">
           Results vary · not legal advice · funding subject to underwriting
         </p>
       </section>
 
       <section id="results" className="del-band del-band--results relative z-10 py-8 md:py-10">
-        <div className="mx-auto max-w-7xl px-5 md:px-8">
+        <div className="fc-viewport-floor">
           <details className="lm-seo-depth">
             <summary>
               <span>Partner stories</span>
@@ -569,22 +559,23 @@ export default function DebtEradicationLandingPage() {
         </div>
       </section>
 
-      <section id="download" className="relative z-10 border-t border-[#a78bfa]/25 px-5 pb-12 pt-2 md:px-8">
-        <div className="del-cta-panel mx-auto max-w-7xl overflow-visible rounded-[1.65rem]">
-          <div className="relative z-10 grid gap-0 overflow-hidden rounded-[1.65rem] lg:grid-cols-[0.92fr_1.08fr]">
-            <div className="relative flex min-h-[300px] flex-col items-center justify-end overflow-visible p-6 pb-12 md:p-8 md:pb-14">
+      <section id="download" className="relative z-10 border-t border-[#a78bfa]/25 pb-12 pt-2">
+        <div className="fc-viewport-floor">
+        <div className="del-cta-panel overflow-visible rounded-[1.65rem]">
+          <div className="relative z-10 grid gap-0 overflow-hidden rounded-[1.65rem] lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+            <div className="relative flex min-h-0 flex-col items-center justify-center overflow-visible p-6 md:p-8">
               <GuideMockup footer className="relative z-10" />
               <div className="del-cta-caption relative z-10 mt-4 w-full max-w-xs rounded-xl px-4 py-3 text-center backdrop-blur-sm">
                 <div className="text-[10px] font-black uppercase tracking-[0.18em] text-[#8b5cf6]">Your roadmap to</div>
-                <div className="text-sm font-black uppercase tracking-[0.06em] text-white">Debt freedom starts now.</div>
+                <div className="text-sm font-black uppercase tracking-[0.06em] text-white">A written validation plan.</div>
               </div>
             </div>
             <div className="relative z-10 p-7 md:p-10">
               <h3 className="del-cta-title del-serif text-2xl font-black tracking-[-0.02em] md:text-3xl">
-                Get Instant Access to Your Free Guide
+                Download the free validation guide
               </h3>
               <p className="del-cta-lede mt-2 max-w-2xl text-sm leading-relaxed">
-                Join partners who are crushing debt pressure and building a better future.
+                Join partners who are answering collections with paperwork and a dated log.
               </p>
               <div className="mt-6">
                 <PremiumLeadMagnetCaptureForm
@@ -600,10 +591,11 @@ export default function DebtEradicationLandingPage() {
             </div>
           </div>
         </div>
+        </div>
       </section>
 
       <footer className="del-footer relative z-10 px-5 py-8 md:px-8">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 text-xs text-white/42 md:flex-row">
+        <div className="fc-viewport-floor flex flex-col items-center justify-between gap-6 text-xs text-white/42 md:flex-row">
           <LeadMagnetCobrandFooterMarks />
           <div className="flex flex-wrap items-center justify-center gap-6">
             <a href="/privacy">Privacy Policy</a>

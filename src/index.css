@@ -451,9 +451,23 @@ html[data-fc-theme="light"] ::selection {
 
 @layer components {
   .fc-container {
-    /* Wider, more ?premium? content width (reduces cramped big-box feel). */
     @apply mx-auto w-full px-4 sm:px-6 lg:px-8 2xl:px-10;
-    max-width: 1560px;
+    max-width: none;
+  }
+
+  /* Page floors: gutters only. No 1440 / 5xl / 6xl / 7xl column. */
+  .fc-viewport-floor {
+    width: 100%;
+    max-width: none;
+    margin-inline: 0;
+    padding-left: max(clamp(1.5rem, 4vw, 3.5rem), env(safe-area-inset-left, 0px));
+    padding-right: max(clamp(1.5rem, 4vw, 3.5rem), env(safe-area-inset-right, 0px));
+  }
+
+  /* Full-width marketing shell: no second box. Restore keeps its own gutter. */
+  [data-fc-pageshell-root='1'][data-fc-content-width='full']:not(:has([data-fc-restore-pricing='1'])):not(:has([data-fc-pc-restore-preview='1'])) .fc-container.fc-container--marketing-full {
+    padding-left: max(0px, env(safe-area-inset-left, 0px)) !important;
+    padding-right: max(0px, env(safe-area-inset-right, 0px)) !important;
   }
 
   .fc-panel {
@@ -1446,6 +1460,101 @@ html[data-fc-theme="light"] ::selection {
       radial-gradient(ellipse 60% 80% at 0% 0%, rgba(251, 191, 36, 0.08), transparent 55%),
       color-mix(in srgb, var(--fc-bg-chrome) 90%, transparent);
   }
+
+  /* Ivory service/pricing — colored lanes, not a white slab */
+  [data-fc-shell-surface='ivory'] .fc-wayfinder,
+  [data-fc-shell-surface='ivory'] .fc-wayfinder--solutions {
+    --fc-os-entity-ink: #0a1628;
+    z-index: 45;
+    position: relative;
+    border-bottom-color: rgba(16, 185, 129, 0.22);
+    background:
+      radial-gradient(ellipse 70% 80% at 8% 0%, rgba(16, 185, 129, 0.28), transparent 55%),
+      radial-gradient(ellipse 50% 70% at 92% 0%, rgba(139, 92, 246, 0.24), transparent 50%),
+      #eef4ff;
+    box-shadow: 0 16px 36px -28px rgba(10, 22, 40, 0.35);
+  }
+  [data-fc-shell-surface='ivory'] > .fc-container,
+  [data-fc-shell-surface='ivory'] [data-fc-ask-finely-slot] {
+    z-index: 1;
+  }
+  [data-fc-shell-surface='ivory'] [data-fc-launch-help-strip='1'] {
+    border-color: rgba(139, 92, 246, 0.35) !important;
+    background:
+      radial-gradient(ellipse 80% 70% at 0% 0%, rgba(16, 185, 129, 0.2), transparent 55%),
+      radial-gradient(ellipse 70% 60% at 100% 100%, rgba(139, 92, 246, 0.18), transparent 50%),
+      #ffffff !important;
+  }
+  /* Dark Ask Finely on the black public floor — light-theme remaps must not paint the field navy. */
+  html[data-fc-theme='light'] [data-fc-launch-help-tone='dark'] textarea {
+    color: #fff !important;
+  }
+  html[data-fc-theme='light'] [data-fc-launch-help-tone='dark'] textarea::placeholder {
+    color: rgba(255, 255, 255, 0.42) !important;
+  }
+  html[data-fc-theme='light'] [data-fc-launch-help-tone='dark'] :is(.text-white, [class*='text-white/']) {
+    color: rgba(255, 255, 255, 0.78) !important;
+  }
+  html[data-fc-theme='light'] [data-fc-launch-help-tone='dark'] :is(.text-white\/90, .text-white\/85) {
+    color: rgba(255, 255, 255, 0.9) !important;
+  }
+  html[data-fc-theme='light'] [data-fc-launch-help-tone='dark'] :is(.text-white\/40, .text-white\/35, .text-white\/42) {
+    color: rgba(255, 255, 255, 0.42) !important;
+  }
+  [data-fc-shell-surface='ivory'] .fc-wayfinder-kicker {
+    color: rgba(10, 22, 40, 0.5);
+  }
+  [data-fc-shell-surface='ivory'] .fc-wayfinder-secondary {
+    border-color: rgba(139, 92, 246, 0.32);
+    background: rgba(139, 92, 246, 0.1);
+    color: #4c1d95;
+  }
+  [data-fc-shell-surface='ivory'] .fc-wayfinder-secondary:hover {
+    background: rgba(139, 92, 246, 0.16);
+  }
+  [data-fc-shell-surface='ivory'] .fc-wayfinder-lane {
+    color: #0a1628;
+  }
+  [data-fc-shell-surface='ivory'] .fc-wayfinder-lane[data-fc-accent='emerald'] {
+    border-color: rgba(16, 185, 129, 0.45) !important;
+    background:
+      radial-gradient(120% 90% at 100% 0%, rgba(16, 185, 129, 0.28), transparent 55%),
+      #ffffff !important;
+  }
+  [data-fc-shell-surface='ivory'] .fc-wayfinder-lane[data-fc-accent='violet'] {
+    border-color: rgba(139, 92, 246, 0.45) !important;
+    background:
+      radial-gradient(120% 90% at 100% 0%, rgba(139, 92, 246, 0.28), transparent 55%),
+      #ffffff !important;
+  }
+  [data-fc-shell-surface='ivory'] .fc-wayfinder-lane[data-fc-accent='sky'] {
+    border-color: rgba(14, 165, 233, 0.45) !important;
+    background:
+      radial-gradient(120% 90% at 100% 0%, rgba(14, 165, 233, 0.26), transparent 55%),
+      #ffffff !important;
+  }
+  [data-fc-shell-surface='ivory'] .fc-wayfinder-lane[data-fc-accent='rose'],
+  [data-fc-shell-surface='ivory'] .fc-wayfinder-lane[data-fc-accent='fuchsia'] {
+    border-color: rgba(244, 63, 94, 0.42) !important;
+    background:
+      radial-gradient(120% 90% at 100% 0%, rgba(244, 63, 94, 0.24), transparent 55%),
+      #ffffff !important;
+  }
+  [data-fc-shell-surface='ivory'] .fc-wayfinder-lane[data-fc-accent='amber'] {
+    border-color: rgba(16, 185, 129, 0.45) !important;
+    background:
+      radial-gradient(120% 90% at 100% 0%, rgba(16, 185, 129, 0.26), transparent 55%),
+      #ffffff !important;
+  }
+  [data-fc-shell-surface='ivory'] .fc-wayfinder-lane .text-xs {
+    color: rgba(10, 22, 40, 0.62);
+  }
+  [data-fc-shell-surface='ivory'] .fc-wayfinder-lane:hover {
+    filter: brightness(0.98);
+  }
+  [data-fc-shell-surface='ivory'] .fc-wayfinder-lane-active {
+    box-shadow: 0 16px 36px -22px rgba(10, 22, 40, 0.28);
+  }
   .fc-mobile-nav-section {
     border-radius: 1rem;
     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -1483,13 +1592,29 @@ html[data-fc-theme="light"] ::selection {
   html[data-fc-theme="light"] .fc-public-nav-row:hover {
     background: rgba(15, 23, 20, 0.05);
   }
+  html[data-fc-theme="light"] .fc-public-nav-row .text-white\/92,
   html[data-fc-theme="light"] .fc-public-nav-row .text-white\/90 {
     color: rgba(15, 23, 20, 0.9) !important;
+  }
+  html[data-fc-theme="light"] .fc-public-nav-row .text-white\/70 {
+    color: rgba(15, 23, 20, 0.62) !important;
   }
   html[data-fc-theme="light"] .fc-public-nav-row .text-white\/48 {
     color: rgba(15, 23, 20, 0.52) !important;
   }
-  html[data-fc-theme="light"] .fc-mobile-nav-section {
+  html[data-fc-theme="light"] .fc-public-nav-panel .fc-public-nav-section-title,
+  html[data-fc-theme="light"] .fc-public-nav-panel--luxury .fc-public-nav-section-title,
+  html[data-fc-theme="light"] .fc-public-nav-panel--luxury .text-white\/40 {
+    color: rgba(15, 23, 20, 0.48) !important;
+  }
+  html[data-fc-theme="light"] .fc-mobile-nav-section.fc-public-nav-panel--luxury {
+    background:
+      radial-gradient(ellipse 80% 60% at 10% 0%, rgba(251, 191, 36, 0.1), transparent 55%),
+      radial-gradient(ellipse 70% 50% at 90% 10%, rgba(16, 185, 129, 0.08), transparent 50%),
+      rgba(255, 255, 255, 0.97) !important;
+    border-color: rgba(15, 23, 20, 0.1) !important;
+  }
+  html[data-fc-theme="light"] .fc-mobile-nav-section:not(.fc-public-nav-panel--luxury) {
     background: rgba(255, 255, 255, 0.04);
     border-color: rgba(255, 255, 255, 0.1);
   }
@@ -1687,9 +1812,10 @@ html[data-fc-theme="light"] ::selection {
     ) !important;
   }
 
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] [class*="bg-white/"]:not([class*="bg-gradient"]),
-  html[data-fc-theme="light"] [data-fc-public-shell="1"] [class*="bg-white/"]:not([class*="bg-gradient"]),
-  html[data-fc-theme="light"] [data-fc-app-surface] [class*="bg-white/"]:not([class*="bg-gradient"]),
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] [class*="bg-white/"]:not([class*="bg-gradient"]),
+  html[data-fc-theme="light"] [data-fc-public-shell="1"]:has([data-fc-shell-surface="ivory"]) [class*="bg-white/"]:not([class*="bg-gradient"]),
+  html[data-fc-theme="light"] [data-fc-app-surface="admin"] [class*="bg-white/"]:not([class*="bg-gradient"]),
+  html[data-fc-theme="light"] [data-fc-app-surface="portal"] [class*="bg-white/"]:not([class*="bg-gradient"]),
   html[data-fc-theme="light"] [data-fc-onboarding-shell="1"] [class*="bg-white/"]:not([class*="bg-gradient"]),
   html[data-fc-theme="light"] [data-fc-comms-shell="1"] [class*="bg-white/"]:not([class*="bg-gradient"]),
   html[data-fc-theme="light"] [data-fc-letter-studio="1"] [class*="bg-white/"]:not([class*="bg-gradient"]),
@@ -1701,9 +1827,11 @@ html[data-fc-theme="light"] ::selection {
     box-shadow: var(--fc-glass-inset), 0 6px 22px -10px rgba(15, 23, 20, 0.1) !important;
   }
 
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] [class*="border-white/"],
-  html[data-fc-theme="light"] [data-fc-public-shell="1"] [class*="border-white/"],
-  html[data-fc-theme="light"] [data-fc-app-surface] [class*="border-white/"],
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] [class*="border-white/"],
+  html[data-fc-theme="light"] [data-fc-public-shell="1"]:has([data-fc-shell-surface="ivory"]) [class*="border-white/"],
+  html[data-fc-theme="light"] [data-fc-app-surface="admin"] [class*="border-white/"]:not([data-bed="dark"]):not([data-bed="dark"] *),
+  html[data-fc-theme="light"] [data-fc-app-surface="portal"] [class*="border-white/"]:not([data-bed="dark"]):not([data-bed="dark"] *),
+  html[data-fc-theme="light"] [data-fc-app-surface="app"] [class*="border-white/"]:not([data-bed="dark"]):not([data-bed="dark"] *),
   html[data-fc-theme="light"] [data-fc-onboarding-shell="1"] [class*="border-white/"],
   html[data-fc-theme="light"] [data-fc-comms-shell="1"] [class*="border-white/"],
   html[data-fc-theme="light"] [data-fc-letter-studio="1"] [class*="border-white/"],
@@ -1810,7 +1938,9 @@ html[data-fc-theme="light"] ::selection {
   html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] .text-white\/45,
   html[data-fc-theme="light"] [data-fc-public-shell="1"]:has([data-fc-shell-surface="ivory"]) .text-white\/45,
   html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] .text-white\/40,
-  html[data-fc-theme="light"] [data-fc-public-shell="1"]:has([data-fc-shell-surface="ivory"]) .text-white\/40 {
+  html[data-fc-theme="light"] [data-fc-public-shell="1"]:has([data-fc-shell-surface="ivory"]) .text-white\/40,
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] .text-white\/35,
+  html[data-fc-theme="light"] [data-fc-public-shell="1"]:has([data-fc-shell-surface="ivory"]) .text-white\/35 {
     color: rgba(15, 20, 18, 0.48) !important;
   }
 
@@ -2045,39 +2175,46 @@ html[data-fc-theme="light"] ::selection {
     border-color: rgba(15, 23, 20, 0.08) !important;
   }
 
-  /* ?? Light theme vivid accent pop + frosted tint chips ?? */
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] .text-amber-300,
-  html[data-fc-theme="light"] [data-fc-app-surface] .text-amber-300 {
+  /* Jewel utilities → dark ink on ivory / admin / portal only. Black public floors keep light jewels. */
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] .text-amber-300,
+  html[data-fc-theme="light"] [data-fc-app-surface="admin"] .text-amber-300,
+  html[data-fc-theme="light"] [data-fc-app-surface="portal"] .text-amber-300 {
     color: #b45309 !important;
   }
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] .text-amber-300\/70,
-  html[data-fc-theme="light"] [data-fc-app-surface] .text-amber-300\/70 {
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] .text-amber-300\/70,
+  html[data-fc-theme="light"] [data-fc-app-surface="admin"] .text-amber-300\/70,
+  html[data-fc-theme="light"] [data-fc-app-surface="portal"] .text-amber-300\/70 {
     color: #c2410c !important;
   }
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] .text-emerald-300,
-  html[data-fc-theme="light"] [data-fc-app-surface] .text-emerald-300 {
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] .text-emerald-300,
+  html[data-fc-theme="light"] [data-fc-app-surface="admin"] .text-emerald-300,
+  html[data-fc-theme="light"] [data-fc-app-surface="portal"] .text-emerald-300 {
     color: #047857 !important;
   }
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] .text-sky-300,
-  html[data-fc-theme="light"] [data-fc-app-surface] .text-sky-300 {
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] .text-sky-300,
+  html[data-fc-theme="light"] [data-fc-app-surface="admin"] .text-sky-300,
+  html[data-fc-theme="light"] [data-fc-app-surface="portal"] .text-sky-300 {
     color: #0369a1 !important;
   }
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] .text-violet-300,
-  html[data-fc-theme="light"] [data-fc-app-surface] .text-violet-300 {
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] .text-violet-300,
+  html[data-fc-theme="light"] [data-fc-app-surface="admin"] .text-violet-300,
+  html[data-fc-theme="light"] [data-fc-app-surface="portal"] .text-violet-300 {
     color: #6d28d9 !important;
   }
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] .text-fuchsia-100,
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] .text-fuchsia-300,
-  html[data-fc-theme="light"] [data-fc-app-surface] .text-fuchsia-100 {
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] .text-fuchsia-100,
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] .text-fuchsia-300,
+  html[data-fc-theme="light"] [data-fc-app-surface="admin"] .text-fuchsia-100,
+  html[data-fc-theme="light"] [data-fc-app-surface="portal"] .text-fuchsia-100 {
     color: #a21caf !important;
   }
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] .text-emerald-100,
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] .text-emerald-200,
-  html[data-fc-theme="light"] [data-fc-app-surface] .text-emerald-200 {
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] .text-emerald-100,
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] .text-emerald-200,
+  html[data-fc-theme="light"] [data-fc-app-surface="admin"] .text-emerald-200,
+  html[data-fc-theme="light"] [data-fc-app-surface="portal"] .text-emerald-200 {
     color: #047857 !important;
   }
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] .text-rose-200,
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] .text-rose-300 {
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] .text-rose-200,
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] .text-rose-300 {
     color: #be123c !important;
   }
 
@@ -2723,64 +2860,66 @@ html[data-fc-theme="light"] ::selection {
     -webkit-backdrop-filter: blur(18px) saturate(165%) !important;
   }
 
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] .text-amber-400,
-  html[data-fc-theme="light"] [data-fc-app-surface] .text-amber-400,
-  html[data-fc-theme="light"] [data-fc-public-shell="1"] .text-amber-400 {
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] .text-amber-400,
+  html[data-fc-theme="light"] [data-fc-app-surface="admin"] .text-amber-400,
+  html[data-fc-theme="light"] [data-fc-app-surface="portal"] .text-amber-400 {
     color: #d97706 !important;
   }
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] .text-amber-100,
-  html[data-fc-theme="light"] [data-fc-app-surface] .text-amber-100,
-  html[data-fc-theme="light"] [data-fc-public-shell="1"] .text-amber-100 {
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] .text-amber-100,
+  html[data-fc-theme="light"] [data-fc-app-surface="admin"] .text-amber-100,
+  html[data-fc-theme="light"] [data-fc-app-surface="portal"] .text-amber-100 {
     color: #92400e !important;
   }
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] .text-emerald-400,
-  html[data-fc-theme="light"] [data-fc-app-surface] .text-emerald-400,
-  html[data-fc-theme="light"] [data-fc-public-shell="1"] .text-emerald-400 {
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] .text-emerald-400,
+  html[data-fc-theme="light"] [data-fc-app-surface="admin"] .text-emerald-400,
+  html[data-fc-theme="light"] [data-fc-app-surface="portal"] .text-emerald-400 {
     color: #059669 !important;
   }
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] .text-emerald-100,
-  html[data-fc-theme="light"] [data-fc-app-surface] .text-emerald-100,
-  html[data-fc-theme="light"] [data-fc-public-shell="1"] .text-emerald-100 {
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] .text-emerald-100,
+  html[data-fc-theme="light"] [data-fc-app-surface="admin"] .text-emerald-100,
+  html[data-fc-theme="light"] [data-fc-app-surface="portal"] .text-emerald-100 {
     color: #065f46 !important;
   }
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] .text-sky-100,
-  html[data-fc-theme="light"] [data-fc-app-surface] .text-sky-100,
-  html[data-fc-theme="light"] [data-fc-public-shell="1"] .text-sky-100 {
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] .text-sky-100,
+  html[data-fc-theme="light"] [data-fc-app-surface="admin"] .text-sky-100,
+  html[data-fc-theme="light"] [data-fc-app-surface="portal"] .text-sky-100 {
     color: #075985 !important;
   }
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] .text-sky-400,
-  html[data-fc-theme="light"] [data-fc-app-surface] .text-sky-400,
-  html[data-fc-theme="light"] [data-fc-public-shell="1"] .text-sky-400 {
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] .text-sky-400,
+  html[data-fc-theme="light"] [data-fc-app-surface="admin"] .text-sky-400,
+  html[data-fc-theme="light"] [data-fc-app-surface="portal"] .text-sky-400 {
     color: #0284c7 !important;
   }
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] .text-cyan-300,
-  html[data-fc-theme="light"] [data-fc-app-surface] .text-cyan-300,
-  html[data-fc-theme="light"] [data-fc-public-shell="1"] .text-cyan-300 {
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] .text-cyan-300,
+  html[data-fc-theme="light"] [data-fc-app-surface="admin"] .text-cyan-300,
+  html[data-fc-theme="light"] [data-fc-app-surface="portal"] .text-cyan-300 {
     color: #0e7490 !important;
   }
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] .text-teal-300,
-  html[data-fc-theme="light"] [data-fc-app-surface] .text-teal-300 {
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] .text-teal-300,
+  html[data-fc-theme="light"] [data-fc-app-surface="admin"] .text-teal-300,
+  html[data-fc-theme="light"] [data-fc-app-surface="portal"] .text-teal-300 {
     color: #0f766e !important;
   }
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] .text-violet-200,
-  html[data-fc-theme="light"] [data-fc-app-surface] .text-violet-200,
-  html[data-fc-theme="light"] [data-fc-public-shell="1"] .text-violet-200 {
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] .text-violet-200,
+  html[data-fc-theme="light"] [data-fc-app-surface="admin"] .text-violet-200,
+  html[data-fc-theme="light"] [data-fc-app-surface="portal"] .text-violet-200 {
     color: #6d28d9 !important;
   }
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] .text-fuchsia-200,
-  html[data-fc-theme="light"] [data-fc-app-surface] .text-fuchsia-200 {
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] .text-fuchsia-200,
+  html[data-fc-theme="light"] [data-fc-app-surface="admin"] .text-fuchsia-200,
+  html[data-fc-theme="light"] [data-fc-app-surface="portal"] .text-fuchsia-200 {
     color: #a21caf !important;
   }
 
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] [class*="900px_280px"]:not(.fc-accent-card),
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] [class*="900px_320px"]:not(.fc-accent-card),
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] [class*="900px_360px"]:not(.fc-accent-card),
-  html[data-fc-theme="light"] [data-fc-public-shell="1"] [class*="900px_280px"]:not(.fc-accent-card),
-  html[data-fc-theme="light"] [data-fc-public-shell="1"] [class*="900px_320px"]:not(.fc-accent-card),
-  html[data-fc-theme="light"] [data-fc-public-shell="1"] [class*="900px_360px"]:not(.fc-accent-card),
-  html[data-fc-theme="light"] [data-fc-app-surface] [class*="900px_280px"]:not(.fc-accent-card),
-  html[data-fc-theme="light"] [data-fc-app-surface] [class*="900px_320px"]:not(.fc-accent-card),
-  html[data-fc-theme="light"] [data-fc-app-surface] [class*="900px_360px"]:not(.fc-accent-card) {
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] [class*="900px_280px"]:not(.fc-accent-card),
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] [class*="900px_320px"]:not(.fc-accent-card),
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] [class*="900px_360px"]:not(.fc-accent-card),
+  html[data-fc-theme="light"] [data-fc-app-surface="admin"] [class*="900px_280px"]:not(.fc-accent-card),
+  html[data-fc-theme="light"] [data-fc-app-surface="admin"] [class*="900px_320px"]:not(.fc-accent-card),
+  html[data-fc-theme="light"] [data-fc-app-surface="admin"] [class*="900px_360px"]:not(.fc-accent-card),
+  html[data-fc-theme="light"] [data-fc-app-surface="portal"] [class*="900px_280px"]:not(.fc-accent-card),
+  html[data-fc-theme="light"] [data-fc-app-surface="portal"] [class*="900px_320px"]:not(.fc-accent-card),
+  html[data-fc-theme="light"] [data-fc-app-surface="portal"] [class*="900px_360px"]:not(.fc-accent-card) {
     background-color: var(--fc-glass-bg) !important;
     background-image: none !important;
     backdrop-filter: blur(var(--fc-glass-blur)) saturate(var(--fc-glass-saturate)) !important;
@@ -2839,8 +2978,9 @@ html[data-fc-theme="light"] ::selection {
     box-shadow: var(--fc-glass-inset), 0 8px 24px -12px rgba(217, 70, 239, 0.16) !important;
   }
 
-  html[data-fc-theme="light"] [data-fc-app-surface] .rounded-xl.border.border-white\/\[0\.08\].bg-white\/\[0\.04\],
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] .rounded-xl.border.border-white\/\[0\.08\].bg-white\/\[0\.04\] {
+  html[data-fc-theme="light"] [data-fc-app-surface="admin"] .rounded-xl.border.border-white\/\[0\.08\].bg-white\/\[0\.04\],
+  html[data-fc-theme="light"] [data-fc-app-surface="portal"] .rounded-xl.border.border-white\/\[0\.08\].bg-white\/\[0\.04\],
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] .rounded-xl.border.border-white\/\[0\.08\].bg-white\/\[0\.04\] {
     background: var(--fc-glass-bg-inner) !important;
     backdrop-filter: blur(16px) saturate(var(--fc-glass-saturate)) !important;
     border-color: var(--fc-glass-border-dim) !important;
@@ -2848,8 +2988,8 @@ html[data-fc-theme="light"] ::selection {
     box-shadow: var(--fc-glass-inset) !important;
   }
 
-  html[data-fc-theme="light"] [data-fc-public-shell="1"] section.rounded-3xl.border.backdrop-blur-xl,
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] section.rounded-3xl.border.backdrop-blur-xl {
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] section.rounded-3xl.border.backdrop-blur-xl,
+  html[data-fc-theme="light"] [data-fc-public-shell="1"]:has([data-fc-shell-surface="ivory"]) section.rounded-3xl.border.backdrop-blur-xl {
     background: var(--fc-glass-bg-strong) !important;
     backdrop-filter: blur(calc(var(--fc-glass-blur) + 6px)) saturate(var(--fc-glass-saturate)) !important;
     border-color: var(--fc-glass-border-dim) !important;
@@ -2872,11 +3012,18 @@ html[data-fc-theme="light"] ::selection {
     box-shadow: var(--fc-glass-hover-lift), var(--fc-glass-inset);
   }
 
-  html[data-fc-theme="light"] [data-fc-public-shell="1"] .text-white\/40,
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] .text-white\/40,
-  html[data-fc-theme="light"] [data-fc-app-surface] .text-white\/40,
-  html[data-fc-theme="light"] [data-fc-public-shell="1"] .text-white\/35,
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] .text-white\/35 {
+  html[data-fc-theme="light"] [data-fc-shell-surface="ivory"] .text-white\/40,
+  html[data-fc-theme="light"] [data-fc-shell-surface="ivory"] .text-white\/35,
+  html[data-fc-theme="light"] [data-fc-app-surface="admin"] .text-white\/40,
+  html[data-fc-theme="light"] [data-fc-app-surface="admin"] .text-white\/35,
+  html[data-fc-theme="light"] [data-fc-app-surface="portal"] .text-white\/40,
+  html[data-fc-theme="light"] [data-fc-app-surface="portal"] .text-white\/35,
+  html[data-fc-theme="light"] .fc-light-chrome-strip .text-white\/40,
+  html[data-fc-theme="light"] .fc-light-chrome-strip .text-white\/35,
+  html[data-fc-theme="light"] .fc-light-chrome-strip [class*="placeholder:text-white"],
+  html[data-fc-theme="light"] .fc-unified-hub-shell .text-white\/40,
+  html[data-fc-theme="light"] .fc-unified-hub-shell .text-white\/35,
+  html[data-fc-theme="light"] .fc-unified-hub-shell [class*="placeholder:text-white"] {
     color: var(--fc-light-muted) !important;
   }
 
@@ -2906,14 +3053,14 @@ html[data-fc-theme="light"] ::selection {
   }
 
   /* ?? Part CB ? Light pop 100% wave 29 ?? */
-  html[data-fc-theme="light"] .fc-pageshell-hero h1 {
+  html[data-fc-theme="light"] [data-fc-shell-surface="ivory"] .fc-pageshell-hero h1 {
     color: var(--fc-light-heading) !important;
     font-weight: 800 !important;
     letter-spacing: -0.03em !important;
     line-height: 1.05 !important;
   }
-  html[data-fc-theme="light"] .fc-pageshell-hero > p,
-  html[data-fc-theme="light"] .fc-pageshell-hero p.text-white\/55 {
+  html[data-fc-theme="light"] [data-fc-shell-surface="ivory"] .fc-pageshell-hero > p,
+  html[data-fc-theme="light"] [data-fc-shell-surface="ivory"] .fc-pageshell-hero p.text-white\/55 {
     color: var(--fc-light-body) !important;
     font-weight: 500;
   }
@@ -3207,24 +3354,24 @@ html[data-fc-theme="light"] ::selection {
     color: var(--fc-light-muted) !important;
   }
 
-  /* Colorful boxes on black contrast bands ? dark rich copy, not white */
+  /* Dark contrast-band tiles keep light ink — do not navy utilities on dark glass. */
   html[data-fc-theme="light"] [data-fc-contrast-band="1"] .fc-accent-card,
   html[data-fc-theme="light"] [data-fc-contrast-band="1"] .fc-hub-kpi,
   html[data-fc-theme="light"] [data-fc-contrast-band="1"] .fc-light-readable.fc-accent-card {
-    color: var(--fc-light-heading) !important;
+    color: rgba(255, 255, 255, 0.9) !important;
   }
   html[data-fc-theme="light"] [data-fc-contrast-band="1"] .fc-accent-card :is(.text-white, .text-white\/90, .text-white\/85),
   html[data-fc-theme="light"] [data-fc-contrast-band="1"] .fc-hub-kpi :is(.text-white, .text-white\/90, .text-white\/85),
   html[data-fc-theme="light"] [data-fc-contrast-band="1"] .fc-accent-card [class*="text-white/"] {
-    color: var(--fc-light-heading) !important;
+    color: rgba(255, 255, 255, 0.95) !important;
   }
   html[data-fc-theme="light"] [data-fc-contrast-band="1"] .fc-accent-card :is(.text-white\/80, .text-white\/75, .text-white\/70),
   html[data-fc-theme="light"] [data-fc-contrast-band="1"] .fc-hub-kpi :is(.text-white\/80, .text-white\/75, .text-white\/70) {
-    color: var(--fc-light-body) !important;
+    color: rgba(255, 255, 255, 0.78) !important;
   }
   html[data-fc-theme="light"] [data-fc-contrast-band="1"] .fc-accent-card :is(.text-white\/65, .text-white\/60, .text-white\/55, .text-white\/50, .text-white\/45, .text-white\/40),
   html[data-fc-theme="light"] [data-fc-contrast-band="1"] .fc-hub-kpi :is(.text-white\/65, .text-white\/60, .text-white\/55, .text-white\/50, .text-white\/45, .text-white\/40) {
-    color: var(--fc-light-muted) !important;
+    color: rgba(255, 255, 255, 0.62) !important;
   }
   html[data-fc-theme="light"] [data-fc-contrast-band="1"] .fc-accent-card h1,
   html[data-fc-theme="light"] [data-fc-contrast-band="1"] .fc-accent-card h2,
@@ -3232,7 +3379,7 @@ html[data-fc-theme="light"] ::selection {
   html[data-fc-theme="light"] [data-fc-contrast-band="1"] .fc-hub-kpi h1,
   html[data-fc-theme="light"] [data-fc-contrast-band="1"] .fc-hub-kpi h2,
   html[data-fc-theme="light"] [data-fc-contrast-band="1"] .fc-hub-kpi h3 {
-    color: var(--fc-light-heading) !important;
+    color: rgba(255, 255, 255, 0.98) !important;
   }
 
   html[data-fc-theme="light"] .fc-light-mesh-section :is(.text-white, h1, h2, h3, h4) {
@@ -3273,6 +3420,37 @@ html[data-fc-theme="light"] ::selection {
   }
   html[data-fc-theme="light"] .fc-light-mesh-section .text-amber-300 {
     color: #d97706 !important;
+  }
+
+  html[data-fc-theme="light"] [data-fc-contrast-band="1"] .fc-accent-card .text-amber-300,
+  html[data-fc-theme="light"] [data-fc-contrast-band="1"] .fc-accent-card .text-amber-400 {
+    color: #fbbf24 !important;
+  }
+  html[data-fc-theme="light"] [data-fc-contrast-band="1"] .fc-accent-card .text-emerald-300,
+  html[data-fc-theme="light"] [data-fc-contrast-band="1"] .fc-accent-card .text-emerald-400 {
+    color: #34d399 !important;
+  }
+  html[data-fc-theme="light"] [data-fc-contrast-band="1"] .fc-accent-card .text-violet-300 {
+    color: #c4b5fd !important;
+  }
+  html[data-fc-theme="light"] [data-fc-contrast-band="1"] .fc-accent-card .text-sky-200,
+  html[data-fc-theme="light"] [data-fc-contrast-band="1"] .fc-accent-card .text-sky-300,
+  html[data-fc-theme="light"] [data-fc-contrast-band="1"] .fc-accent-card .text-sky-400 {
+    color: #7dd3fc !important;
+  }
+  html[data-fc-theme="light"] [data-fc-contrast-band="1"] .fc-accent-card .text-fuchsia-200,
+  html[data-fc-theme="light"] [data-fc-contrast-band="1"] .fc-accent-card .text-fuchsia-300 {
+    color: #f0abfc !important;
+  }
+
+  /* Islands that must keep their original ink regardless of shell remaps. */
+  html[data-fc-theme="light"] [data-fc-keep-ink="light"],
+  html[data-fc-theme="light"] [data-fc-keep-ink="light"] :is(.text-white, [class*="text-white/"]) {
+    color: rgba(248, 250, 252, 0.95) !important;
+  }
+  html[data-fc-theme="light"] [data-fc-keep-ink="dark"],
+  html[data-fc-theme="light"] [data-fc-keep-ink="dark"] :is(.text-white, [class*="text-white/"]) {
+    color: #0a1628 !important;
   }
 
   html[data-fc-theme="light"] [data-fc-accent="emerald"].fc-accent-card,
@@ -3773,7 +3951,8 @@ html[data-fc-theme="light"] ::selection {
     color: var(--fc-light-heading) !important;
     filter: brightness(1.02);
   }
-  html[data-fc-theme="light"] .fc-light-chrome-strip :is(.text-white, .text-white\/70, .text-white\/55) {
+  html[data-fc-theme="light"] .fc-light-chrome-strip :is(.text-white, .text-white\/70, .text-white\/55, .text-white\/40, .text-white\/35),
+  html[data-fc-theme="light"] .fc-light-chrome-strip [class*="placeholder:text-white"] {
     color: var(--fc-light-body) !important;
   }
   /* Active view-tab gradients keep white ink — do not inherit chrome-strip body color. */
@@ -6158,18 +6337,16 @@ html.fc-onboarding-portal-open body {
   color: transparent;
 }
 
-/* -- Sitewide platinum / dark rhythm ? champagne ivory + dark depth -- */
+/* Cool public ivory + saturated brand overlays. Never champagne / tan / gold fills. */
 .fc-landing-wealthy-ivory {
   position: relative;
   color: #0a1628;
   background:
-    radial-gradient(ellipse 90% 70% at 12% 8%, rgba(255, 248, 230, 0.98) 0%, transparent 55%),
-    radial-gradient(ellipse 70% 55% at 92% 88%, rgba(232, 196, 122, 0.28) 0%, transparent 52%),
-    radial-gradient(ellipse 50% 40% at 70% 20%, rgba(16, 185, 129, 0.08) 0%, transparent 50%),
-    linear-gradient(145deg, #faf6ee 0%, #f3ebdc 42%, #ebe2d0 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.72),
-    0 28px 80px -48px rgba(20, 14, 6, 0.35);
+    radial-gradient(ellipse 80% 55% at 0% -6%, rgba(16, 185, 129, 0.48), transparent 52%),
+    radial-gradient(ellipse 70% 50% at 100% 0%, rgba(139, 92, 246, 0.44), transparent 50%),
+    radial-gradient(ellipse 55% 42% at 78% 100%, rgba(14, 165, 233, 0.32), transparent 48%),
+    linear-gradient(180deg, #eef4ff 0%, #e6f7f0 42%, #f0f3ff 100%);
+  box-shadow: none;
 }
 
 .fc-landing-wealthy-ivory::before {
@@ -6178,8 +6355,9 @@ html.fc-onboarding-portal-open body {
   inset: 0;
   pointer-events: none;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.28) 0%, transparent 32%),
-    radial-gradient(circle at 78% 28%, rgba(224, 178, 74, 0.12), transparent 42%);
+    radial-gradient(circle at 16% 18%, rgba(16, 185, 129, 0.38), transparent 38%),
+    radial-gradient(circle at 84% 14%, rgba(139, 92, 246, 0.36), transparent 40%),
+    radial-gradient(circle at 72% 88%, rgba(244, 63, 94, 0.22), transparent 44%);
 }
 
 .fc-landing-wealthy-ivory > * {
@@ -6204,6 +6382,33 @@ html.fc-onboarding-portal-open body {
 
 .fc-landing-wealthy-ivory :is(p, .fc-landing-ivory-body) {
   color: rgba(10, 22, 40, 0.7);
+}
+
+/* Dark islands on ivory shells — navy ink must not win. */
+.fc-landing-wealthy-ivory .pb-au,
+.fc-landing-wealthy-ivory .pb-au :is(h1, h2, h3, .fc-landing-ivory-title, .pb-kicker, .pb-h2) {
+  color: #f8fafc;
+}
+.fc-landing-wealthy-ivory .pb-au :is(p, .fc-landing-ivory-body) {
+  color: #e2e8f0;
+}
+.fc-landing-wealthy-ivory .dl-docket,
+.fc-landing-wealthy-ivory .dl-docket :is(h1, h2, h3, .fc-landing-ivory-title, strong) {
+  color: #f8fafc;
+}
+.fc-landing-wealthy-ivory .dl-docket :is(p, .fc-landing-ivory-body) {
+  color: #e2e8f0;
+}
+.fc-landing-wealthy-ivory .dl-notice,
+.fc-landing-wealthy-ivory .dl-notice :is(p, strong, span) {
+  color: #f8fafc;
+}
+.fc-landing-wealthy-ivory .dl-notice span {
+  color: #fecdd3;
+}
+.fc-landing-wealthy-ivory .dl-docket__row,
+.fc-landing-wealthy-ivory .dl-docket__row :is(p, span, strong) {
+  color: #0a1628;
 }
 
 .fc-landing-wealthy-ivory .text-amber-500,
@@ -6286,6 +6491,19 @@ html.fc-onboarding-portal-open body {
   color: rgba(10, 22, 40, 0.62) !important;
 }
 
+[data-fc-shell-surface='ivory'] [data-fc-contrast-band='1'] .fc-accent-card,
+[data-fc-shell-surface='ivory'] [data-fc-contrast-band='1'] .fc-luxury-glass,
+[data-fc-shell-surface='ivory'] .fc-ivory-dark-panel,
+[data-fc-shell-surface='ivory'] [data-fc-keep-ink='light'] {
+  color: rgba(248, 250, 252, 0.92) !important;
+}
+[data-fc-shell-surface='ivory'] [data-fc-contrast-band='1'] .fc-accent-card :is(.text-white, [class*='text-white/']),
+[data-fc-shell-surface='ivory'] [data-fc-contrast-band='1'] .fc-luxury-glass :is(.text-white, [class*='text-white/']),
+[data-fc-shell-surface='ivory'] .fc-ivory-dark-panel :is(.text-white, [class*='text-white/']),
+[data-fc-shell-surface='ivory'] [data-fc-keep-ink='light'] :is(.text-white, [class*='text-white/']) {
+  color: rgba(248, 250, 252, 0.92) !important;
+}
+
 /* Invite share band — was near-black */
 [data-fc-shell-surface='ivory'] .bg-\[\#08070f\] {
   background: linear-gradient(160deg, #fffdf8 0%, #f3ebdc 100%) !important;
@@ -6324,6 +6542,193 @@ html.fc-onboarding-portal-open body {
     radial-gradient(ellipse 72% 58% at 90% 92%, rgba(251, 191, 36, 0.2) 0%, transparent 54%),
     radial-gradient(ellipse 50% 42% at 55% 45%, rgba(14, 165, 233, 0.07) 0%, transparent 48%),
     linear-gradient(152deg, #faf4e6 0%, #f0e2c8 42%, #e6d4b4 100%);
+}
+
+/*
+ * PageShell puts data-fc-shell-surface AND .fc-landing-wealthy-ivory on the SAME node.
+ * Descendant selectors never hit the floor — keep same-element rules here.
+ */
+.fc-public-legal-footer {
+  padding-top: 3.75rem;
+  padding-bottom: 4.75rem;
+  color: rgba(255, 255, 255, 0.32);
+}
+
+[data-fc-shell-surface='ivory'] .fc-public-legal-footer {
+  color: rgba(10, 22, 40, 0.42);
+}
+
+[data-fc-shell-surface='ivory'] .fc-public-legal-footer a:hover {
+  color: #0a1628;
+}
+
+[data-fc-shell-surface='ivory']:has([data-fc-pc-restore-preview='1']).fc-landing-wealthy-ivory,
+[data-fc-shell-surface='ivory']:has([data-fc-bc-preview='1']).fc-landing-wealthy-ivory,
+[data-fc-shell-surface='ivory']:has([data-fc-debt-preview='1']).fc-landing-wealthy-ivory,
+[data-fc-shell-surface='ivory']:has([data-fc-tradelines='1']).fc-landing-wealthy-ivory {
+  background:
+    radial-gradient(ellipse 80% 55% at 0% -6%, rgba(16, 185, 129, 0.22), transparent 52%),
+    radial-gradient(ellipse 70% 50% at 100% 0%, rgba(139, 92, 246, 0.18), transparent 50%),
+    linear-gradient(180deg, #f4f7fb 0%, #eef4f8 48%, #f7f9fc 100%);
+}
+
+[data-fc-shell-surface='ivory']:has([data-fc-bc-preview='1']).fc-landing-wealthy-ivory {
+  background: #ffffff;
+}
+
+[data-fc-shell-surface='ivory']:has([data-fc-pc-restore-preview='1']).fc-landing-wealthy-ivory {
+  background: #f7f9fc;
+}
+
+[data-fc-shell-surface='ivory']:has([data-fc-debt-preview='1']).fc-landing-wealthy-ivory {
+  background: #ffffff;
+}
+
+[data-fc-shell-surface='ivory']:has([data-fc-pc-restore-preview='1']).fc-landing-wealthy-ivory::before,
+[data-fc-shell-surface='ivory']:has([data-fc-bc-preview='1']).fc-landing-wealthy-ivory::before,
+[data-fc-shell-surface='ivory']:has([data-fc-debt-preview='1']).fc-landing-wealthy-ivory::before {
+  background:
+    radial-gradient(circle at 16% 18%, rgba(16, 185, 129, 0.16), transparent 38%),
+    radial-gradient(circle at 84% 14%, rgba(139, 92, 246, 0.12), transparent 40%);
+}
+
+[data-fc-shell-surface='ivory']:has([data-fc-bc-preview='1']).fc-landing-wealthy-ivory::before {
+  display: none;
+}
+
+[data-fc-shell-surface='ivory']:has([data-fc-pc-restore-preview='1']).fc-landing-wealthy-ivory::before {
+  display: none;
+}
+
+[data-fc-shell-surface='ivory']:has([data-fc-debt-preview='1']).fc-landing-wealthy-ivory::before {
+  display: none;
+}
+
+[data-fc-shell-surface='ivory']:has([data-fc-credit-build='1']).fc-landing-wealthy-ivory {
+  background: #ffffff !important;
+  background-image: none !important;
+  box-shadow: none;
+}
+[data-fc-shell-surface='ivory']:has([data-fc-credit-build='1']).fc-landing-wealthy-ivory::before {
+  display: none !important;
+  opacity: 0 !important;
+  background: none !important;
+}
+
+[data-fc-shell-surface='ivory']:has([data-fc-haitian-desk='1']).fc-landing-wealthy-ivory {
+  background: #ffffff !important;
+  background-image: none !important;
+  box-shadow: none;
+}
+[data-fc-shell-surface='ivory']:has([data-fc-haitian-desk='1']).fc-landing-wealthy-ivory::before {
+  display: none !important;
+  opacity: 0 !important;
+  background: none !important;
+}
+
+[data-fc-shell-surface='ivory']:has([data-fc-tradelines='1']).fc-landing-wealthy-ivory {
+  background: #ffffff !important;
+  background-image: none !important;
+  box-shadow: none;
+}
+[data-fc-shell-surface='ivory']:has([data-fc-tradelines='1']).fc-landing-wealthy-ivory::before {
+  display: none !important;
+  opacity: 0 !important;
+  background: none !important;
+}
+
+[data-fc-shell-surface='ivory']:not(:has([data-fc-restore-pricing='1'])):not(:has([data-fc-pc-restore-preview='1'])):not(:has([data-fc-bc-preview='1'])):not(:has([data-fc-debt-preview='1'])):not(:has([data-fc-haitian-desk='1'])):not(:has([data-fc-credit-build='1'])):not(:has([data-fc-tradelines='1'])).fc-landing-wealthy-ivory {
+  background:
+    radial-gradient(ellipse 80% 55% at 0% -6%, rgba(16, 185, 129, 0.48), transparent 52%),
+    radial-gradient(ellipse 70% 50% at 100% 0%, rgba(139, 92, 246, 0.44), transparent 50%),
+    radial-gradient(ellipse 55% 42% at 78% 100%, rgba(14, 165, 233, 0.32), transparent 48%),
+    linear-gradient(180deg, #eef4ff 0%, #e6f7f0 42%, #f0f3ff 100%);
+  box-shadow: none;
+}
+[data-fc-shell-surface='ivory']:not(:has([data-fc-restore-pricing='1'])):not(:has([data-fc-pc-restore-preview='1'])):not(:has([data-fc-bc-preview='1'])):not(:has([data-fc-debt-preview='1'])):not(:has([data-fc-haitian-desk='1'])):not(:has([data-fc-credit-build='1'])):not(:has([data-fc-tradelines='1'])).fc-landing-wealthy-ivory::before {
+  display: block;
+  opacity: 1;
+  background:
+    radial-gradient(circle at 16% 18%, rgba(16, 185, 129, 0.38), transparent 38%),
+    radial-gradient(circle at 84% 14%, rgba(139, 92, 246, 0.36), transparent 40%),
+    radial-gradient(circle at 72% 88%, rgba(244, 63, 94, 0.22), transparent 44%);
+}
+
+[data-fc-shell-surface='ivory']:has([data-fc-service-floor='debt-legal']).fc-landing-wealthy-ivory::before {
+  background:
+    radial-gradient(circle at 12% 12%, rgba(244, 63, 94, 0.28), transparent 40%),
+    radial-gradient(circle at 88% 18%, rgba(14, 165, 233, 0.22), transparent 42%),
+    radial-gradient(circle at 70% 90%, rgba(139, 92, 246, 0.14), transparent 44%);
+}
+
+[data-fc-shell-surface='ivory']:has([data-fc-service-floor='catalog']).fc-landing-wealthy-ivory::before {
+  background:
+    radial-gradient(circle at 8% 8%, rgba(16, 185, 129, 0.3), transparent 40%),
+    radial-gradient(circle at 90% 12%, rgba(139, 92, 246, 0.26), transparent 42%),
+    radial-gradient(circle at 70% 92%, rgba(14, 165, 233, 0.16), transparent 44%);
+}
+
+[data-fc-shell-surface='ivory']:has([data-fc-service-floor='business-credit']).fc-landing-wealthy-ivory::before {
+  background:
+    radial-gradient(circle at 10% 10%, rgba(139, 92, 246, 0.3), transparent 40%),
+    radial-gradient(circle at 88% 16%, rgba(16, 185, 129, 0.24), transparent 42%),
+    radial-gradient(circle at 72% 92%, rgba(14, 165, 233, 0.14), transparent 44%);
+}
+
+[data-fc-shell-surface='ivory']:not(:has([data-fc-restore-pricing='1'])) .fc-light-chrome-strip,
+[data-fc-shell-surface='ivory']:not(:has([data-fc-restore-pricing='1'])) .fc-light-chrome-panel,
+[data-fc-shell-surface='ivory']:not(:has([data-fc-restore-pricing='1'])) .fc-light-glass-panel,
+[data-fc-shell-surface='ivory']:not(:has([data-fc-restore-pricing='1'])) .fc-soft-surface,
+[data-fc-shell-surface='ivory']:not(:has([data-fc-restore-pricing='1'])) .fc-soft-surface-lg {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.94) 0%, rgba(238, 244, 255, 0.88) 100%) !important;
+  border-color: rgba(16, 185, 129, 0.22) !important;
+  color: #0a1628 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 16px 40px -28px rgba(10, 22, 40, 0.16) !important;
+}
+
+[data-fc-shell-surface='ivory']:not(:has([data-fc-restore-pricing='1'])) .fc-view-tabs button:not([class*='from-']):hover {
+  background: rgba(16, 185, 129, 0.1) !important;
+  color: #0a1628 !important;
+}
+
+[data-fc-shell-surface='ivory']:not(:has([data-fc-restore-pricing='1'])) [data-fc-accent='emerald'].fc-accent-card:not([class*='fc-admin-solid']) {
+  background:
+    radial-gradient(ellipse 90% 70% at 0% 0%, rgba(16, 185, 129, 0.22), transparent 55%),
+    #ffffff !important;
+  border-color: rgba(16, 185, 129, 0.4) !important;
+}
+
+[data-fc-shell-surface='ivory']:not(:has([data-fc-restore-pricing='1'])) [data-fc-accent='violet'].fc-accent-card:not([class*='fc-admin-solid']),
+[data-fc-shell-surface='ivory']:not(:has([data-fc-restore-pricing='1'])) [data-fc-accent='fuchsia'].fc-accent-card:not([class*='fc-admin-solid']) {
+  background:
+    radial-gradient(ellipse 90% 70% at 0% 0%, rgba(139, 92, 246, 0.22), transparent 55%),
+    #ffffff !important;
+  border-color: rgba(139, 92, 246, 0.4) !important;
+}
+
+[data-fc-shell-surface='ivory']:not(:has([data-fc-restore-pricing='1'])) [data-fc-accent='sky'].fc-accent-card:not([class*='fc-admin-solid']) {
+  background:
+    radial-gradient(ellipse 90% 70% at 0% 0%, rgba(14, 165, 233, 0.2), transparent 55%),
+    #ffffff !important;
+  border-color: rgba(14, 165, 233, 0.4) !important;
+}
+
+[data-fc-shell-surface='ivory']:not(:has([data-fc-restore-pricing='1'])) [data-fc-accent='rose'].fc-accent-card:not([class*='fc-admin-solid']) {
+  background:
+    radial-gradient(ellipse 90% 70% at 0% 0%, rgba(244, 63, 94, 0.18), transparent 55%),
+    #ffffff !important;
+  border-color: rgba(244, 63, 94, 0.38) !important;
+}
+
+[data-fc-shell-surface='ivory']:not(:has([data-fc-restore-pricing='1'])) .bg-\[\#08070f\] {
+  background:
+    radial-gradient(ellipse 80% 60% at 0% 0%, rgba(139, 92, 246, 0.16), transparent 55%),
+    linear-gradient(160deg, #ffffff 0%, #eef4ff 100%) !important;
+  border-color: rgba(139, 92, 246, 0.28) !important;
+}
+
+.fc-admin-roles-chip {
+  left: max(1rem, calc(var(--wlp-rail-w, var(--fc-admin-rail-w, 0px)) + 1rem));
 }
 
 .fc-restore-solutions-hero::before {
@@ -7303,7 +7708,9 @@ html[data-fc-theme="light"] [data-fc-obsidian-chat="1"] :is(
   .text-white\/60,
   .text-white\/55,
   .text-white\/50,
-  .text-white\/45
+  .text-white\/45,
+  .text-white\/40,
+  .text-white\/35
 ),
 html[data-fc-theme="light"] .fc-comms-launcher-solid :is(
   .text-white,
@@ -7470,4 +7877,19 @@ html[data-fc-theme="light"] .fc-wlp [data-fc-obsidian-chat="1"] .fc-button-soft:
 [data-fc-workspace-light-preview="1"] [data-fc-obsidian-chat="1"] .fc-button-soft:hover {
   background: rgba(192, 132, 252, 0.18) !important;
   color: #f5d0fe !important;
+}
+
+/* Careers black floor: keep Ask Finely + back chip readable under light-theme remaps. */
+html[data-fc-theme="light"] .fc-light-black-scope [data-fc-launch-help-tone="dark"] textarea,
+html[data-fc-theme="light"] .fc-light-black-scope [data-fc-launch-help-tone="dark"] textarea::placeholder {
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+html[data-fc-theme="light"] .fc-light-black-scope [data-fc-launch-help-tone="dark"] textarea::placeholder {
+  color: rgba(255, 255, 255, 0.42) !important;
+}
+html[data-fc-theme="light"] .fc-light-black-scope [data-fc-launch-help-tone="dark"] :is(.text-white, [class*="text-white/"]) {
+  color: rgba(255, 255, 255, 0.78) !important;
+}
+html[data-fc-theme="light"] .fc-light-black-scope [data-fc-launch-help-tone="dark"] :is(.text-white\/40, .text-white\/35, .text-white\/42) {
+  color: rgba(255, 255, 255, 0.42) !important;
 }

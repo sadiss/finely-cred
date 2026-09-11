@@ -1,8 +1,11 @@
 import React, { useCallback, useState } from 'react';
 import { ArrowRight, BookOpen, Download, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { LeadMagnetUnlockModal } from '../leadmagnet/LeadMagnetUnlockModal';
+import { CREDIT_SPECIALIST_GUIDE_FUNNEL } from '../../domain/leadMagnetFunnels';
 import { FINELY_OS_SECONDARY_BTN, FINELY_OS_SUCCESS_BTN } from '../../features/os/finelyOsLightUi';
-import { CS_GUIDE_READ_PATH, CS_JOIN_PATH } from '../../pages/leadmagnet/creditSpecialistGuideContent';
+import { useLeadMagnetUnlockFlow } from '../../lib/useLeadMagnetUnlockFlow';
+import { CS_GUIDE_READ_PATH, CS_JOIN_PATH, CS_PRICING_PATH } from '../../pages/leadmagnet/creditSpecialistGuideContent';
 import {
   CREDIT_SPECIALIST_TWO_SHEET,
   downloadCreditSpecialistTwoSheet,
@@ -28,6 +31,7 @@ type Props = {
   /** Overrides the default navigation to the in-app reader. */
   onReadGuide?: () => void;
   showJoinLink?: boolean;
+  showPricingLink?: boolean;
 };
 
 function cn(...classes: Array<string | false | null | undefined>) {
@@ -71,10 +75,12 @@ export function CreditSpecialistGuideActions({
   readLabel = 'Read Guide',
   onReadGuide,
   showJoinLink = false,
+  showPricingLink = false,
 }: Props) {
   const navigate = useNavigate();
   const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const unlock = useLeadMagnetUnlockFlow(CREDIT_SPECIALIST_GUIDE_FUNNEL.funnelId);
 
   const handleDownload = useCallback(async () => {
     setDownloading(true);
@@ -89,6 +95,10 @@ export function CreditSpecialistGuideActions({
   }, []);
 
   const handleRead = onReadGuide ?? (() => navigate(CS_GUIDE_READ_PATH));
+  const requestDownload = () => {
+    if (unlock.requestAccess('download')) return;
+    void handleDownload();
+  };
   const iconSize = size === 'lg' ? 18 : size === 'md' ? 16 : 14;
   const osSizeOverride = size === 'lg' ? '!h-14 !px-8 !text-xs' : size === 'sm' ? '!h-10 !px-4 !text-[10px]' : '';
 
@@ -111,7 +121,7 @@ export function CreditSpecialistGuideActions({
         </button>
         <button
           type="button"
-          onClick={() => void handleDownload()}
+          onClick={requestDownload}
           disabled={downloading}
           className={downloadClass}
           aria-label={`${CREDIT_SPECIALIST_TWO_SHEET.downloadLabel} (PDF)`}
@@ -119,6 +129,18 @@ export function CreditSpecialistGuideActions({
           {downloading ? <Loader2 size={iconSize} className="animate-spin" /> : <Download size={iconSize} />}
           {downloading ? 'Building PDF…' : CREDIT_SPECIALIST_TWO_SHEET.downloadLabel}
         </button>
+        {showPricingLink ? (
+          <button
+            type="button"
+            onClick={() => navigate(CS_PRICING_PATH)}
+            className={cn(
+              'inline-flex items-center justify-center px-1 text-[11px] font-bold uppercase tracking-[0.14em] transition-colors',
+              JOIN_TONE[tone],
+            )}
+          >
+            See pricing →
+          </button>
+        ) : null}
         {showJoinLink ? (
           <button
             type="button"
@@ -128,7 +150,7 @@ export function CreditSpecialistGuideActions({
               JOIN_TONE[tone],
             )}
           >
-            Pricing &amp; join →
+            Join →
           </button>
         ) : null}
       </div>
@@ -138,7 +160,7 @@ export function CreditSpecialistGuideActions({
           tone === 'onLight' ? 'text-slate-500' : 'text-white/45',
         )}
       >
-        Free to read — no signup. The {CREDIT_SPECIALIST_TWO_SHEET.shortLabel} is a 2-page PDF: the offer on sheet one,
+        The {CREDIT_SPECIALIST_TWO_SHEET.shortLabel} is a 2-page PDF: the offer on sheet one,
         your weekly operating rhythm on sheet two.
       </p>
       {error ? <p className="mt-1 text-[11px] text-rose-400">{error}</p> : null}

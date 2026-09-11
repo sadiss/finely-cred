@@ -41,7 +41,7 @@ export const FINANCING_PREAPPROVAL_PUBLIC = {
   primaryCta: 'Check financing pre-approval',
   secondaryCta: 'Book a strategy call',
   tertiaryCta: 'See pricing',
-  compliance: 'Results vary · financing subject to underwriting · not a credit guarantee',
+  compliance: 'Results vary · not legal advice · funding subject to underwriting',
   interestTag: 'financing_preapproval',
 } as const;
 

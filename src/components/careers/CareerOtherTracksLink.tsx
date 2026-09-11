@@ -9,7 +9,14 @@ type Props = {
   only?: PublicCareerTrackId[];
   label?: string;
   className?: string;
+  /** Black career floors use light ink. White pills (AU) pass `onLight`. */
+  tone?: 'onDark' | 'onLight';
 };
+
+const ON_DARK =
+  'text-white/75 underline decoration-white/30 underline-offset-4 hover:text-white hover:decoration-white/60';
+const ON_LIGHT =
+  'text-slate-600 underline decoration-slate-300 underline-offset-4 hover:text-slate-900 hover:decoration-slate-500';
 
 /**
  * Single, unobtrusive cross-link to other career tracks — replaces the 6-track
@@ -17,10 +24,18 @@ type Props = {
  * several it collapses into a small dropdown so it never competes with the
  * page's primary CTA.
  */
-export function CareerOtherTracksLink({ currentId, only, label = 'Other careers', className = '' }: Props) {
+export function CareerOtherTracksLink({
+  currentId,
+  only,
+  label = 'Other careers',
+  className = '',
+  tone = 'onDark',
+}: Props) {
   const navigate = useNavigate();
   const tracks = PUBLIC_CAREER_TRACKS.filter((t) => t.id !== currentId && (!only || only.includes(t.id)));
   if (!tracks.length) return null;
+
+  const triggerClass = className || (tone === 'onLight' ? ON_LIGHT : ON_DARK);
 
   if (tracks.length === 1) {
     const track = tracks[0]!;
@@ -28,7 +43,7 @@ export function CareerOtherTracksLink({ currentId, only, label = 'Other careers'
       <button
         type="button"
         onClick={() => navigate(track.path)}
-        className={`inline-flex items-center gap-1 text-sm font-semibold text-slate-500 underline decoration-slate-300 underline-offset-4 hover:text-slate-800 hover:decoration-slate-500 ${className}`}
+        className={`inline-flex items-center gap-1 text-sm font-semibold ${triggerClass}`}
       >
         {track.label} instead? <span aria-hidden>→</span>
       </button>
@@ -36,8 +51,8 @@ export function CareerOtherTracksLink({ currentId, only, label = 'Other careers'
   }
 
   return (
-    <details className={`group relative ${className}`}>
-      <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-slate-800">
+    <details className="group relative">
+      <summary className={`inline-flex cursor-pointer list-none items-center gap-1.5 text-sm font-semibold ${triggerClass}`}>
         {label} <ChevronDown size={14} className="transition-transform group-open:rotate-180" />
       </summary>
       <div className="absolute right-0 z-20 mt-2 w-64 rounded-xl border-2 border-slate-200 bg-white p-2 shadow-xl">

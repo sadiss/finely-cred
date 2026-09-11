@@ -13,6 +13,7 @@ export type LeadOffer =
   | 'enlightenment_session'
   | 'consultation_booking'
   | 'dispute_letter_guide'
+  | 'haitian_credit_kit'
   | 'debt_validation_playbook'
   | 'business_credit_jumpstart'
   | 'primary_tradeline_insider'

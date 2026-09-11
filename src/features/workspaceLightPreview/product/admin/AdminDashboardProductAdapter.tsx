@@ -83,14 +83,14 @@ const PIPELINE_ICONS = [Users, Gavel, Target] as const;
 const PIPELINE_CHART_COLORS = ['#10b981', '#8b5cf6', '#38bdf8', '#f43f5e'] as const;
 
 const WORKSPACE_DOCK_IDS = [
-  { id: 'partners', title: 'Partner operations', description: 'Profiles, reports, documents, and progress', icon: Users, route: '/admin/partners' },
-  { id: 'cases', title: 'Cases & disputes', description: 'Rounds, findings, approvals, and outcomes', icon: Gavel, route: '/admin/cases' },
-  { id: 'work', title: 'Team work queue', description: 'Ownership, due dates, and service targets', icon: Inbox, route: '/admin/workflow' },
-  { id: 'crm', title: 'Leads & CRM', description: 'Qualified people, outreach, and pipeline', icon: Target, route: '/admin/crm' },
-  { id: 'support', title: 'Partner support', description: 'Threads, triage, and replies', icon: MessageSquareText, route: '/admin/support' },
-  { id: 'mail', title: 'Mail fulfillment', description: 'Letter review, approval, and delivery', icon: Mail, route: '/admin/mail' },
-  { id: 'playbooks', title: 'Playbooks & help', description: 'SOPs, walkthroughs, and launch guidance', icon: BookOpen, route: '/admin/resources' },
-  { id: 'settings', title: 'Platform settings', description: 'Security, payments, messaging, and webhooks', icon: Settings, route: '/admin/settings' },
+  { id: 'partners', title: 'Partner operations', description: 'Open profiles, reports, documents, and progress.', icon: Users, route: '/admin/partners' },
+  { id: 'cases', title: 'Cases & disputes', description: 'Work rounds, findings, approvals, and outcomes.', icon: Gavel, route: '/admin/cases' },
+  { id: 'work', title: 'Team work queue', description: 'See ownership, due dates, and service targets.', icon: Inbox, route: '/admin/workflow' },
+  { id: 'crm', title: 'Leads & CRM', description: 'Qualify people, run outreach, and move the pipeline.', icon: Target, route: '/admin/crm' },
+  { id: 'support', title: 'Partner support', description: 'Triage threads and reply to partners.', icon: MessageSquareText, route: '/admin/support' },
+  { id: 'mail', title: 'Mail fulfillment', description: 'Review, approve, and deliver letters.', icon: Mail, route: '/admin/mail' },
+  { id: 'playbooks', title: 'Playbooks & help', description: 'Open SOPs, walkthroughs, and launch guidance.', icon: BookOpen, route: '/admin/resources' },
+  { id: 'settings', title: 'Platform settings', description: 'Configure security, payments, messaging, and webhooks.', icon: Settings, route: '/admin/settings' },
 ] as const;
 
 const OPS_LANES = [
@@ -370,7 +370,7 @@ function AdminDashboardCommandDeck({
               Your <span className="fc-wlp-command-title-accent">operating picture.</span>
             </>
           }
-          description="Partners, cases, leads, and team workload — one screen with the next move up front."
+          description="Partners, cases, leads, and team workload appear here, with the next move at the top."
           status={model.overviewStatus}
           freshness={model.freshness}
           icon={Command}
@@ -444,8 +444,8 @@ function AdminDashboardCommandDeck({
         <section className="fc-wlp-section" data-surface-layout="command-deck">
           <ProductSectionHeader
             eyebrow="Core lanes"
-            title="Partners, leads, workflow, support"
-            description="Jump straight into the queues that move the platform today."
+            title="Partners, leads, workflow, and support"
+            description="Open the queues that move partner work today."
           />
           <div className="fc-admin-deck-lanes">
             {OPS_LANES.map((lane) => {
@@ -637,9 +637,9 @@ function AdminDashboardCommandDeck({
 
         <section className="fc-wlp-section">
           <ProductSectionHeader
-            eyebrow="Workspace dock"
-            title="Open the next operating lane"
-            description="Core destinations stay visible. Specialized tools live behind search."
+            eyebrow="Workspaces"
+            title="Open a workspace"
+            description="The rooms you use most stay visible. Everything else is in search."
           />
           <ProductWorkspaceDock
             items={WORKSPACE_DOCK_IDS.map((item, index) => ({
@@ -661,7 +661,7 @@ function AdminDashboardCommandDeck({
       <ProductDrawer
         open={Boolean(detail)}
         title={detail?.title ?? 'Details'}
-        subtitle="Focused detail without adding another dashboard layer"
+        subtitle="More detail for this signal"
         onClose={() => setDetail(null)}
       >
         {detail ? (

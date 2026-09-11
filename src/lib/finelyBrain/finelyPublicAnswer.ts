@@ -9,6 +9,20 @@ import {
   resolveFinelyPageContext,
   type FinelyBrainCitation,
 } from './finelyBrainOrchestrate';
+import {
+  HUMAN_CREDIT_RESTORE,
+  HUMAN_DISPUTE_VS_DEBT,
+  HUMAN_FREE_GUIDE,
+  HUMAN_GENERIC_NEXT,
+  HUMAN_I_DONT_KNOW,
+  HUMAN_PRICING,
+  HUMAN_SITE_OVERVIEW,
+  excerptAnswersQuery,
+  humanSpokenReply,
+  shouldSkipKnowledgeArticle,
+  speakKnowledgeHit,
+  speakPageHelp,
+} from './humanCreditTalk';
 
 export type FinelyPublicAnswerChannel = 'strip' | 'chat' | 'voice';
 
@@ -38,22 +52,8 @@ export type FinelyPublicTopic =
   | 'credit_restore'
   | 'dispute_vs_debt'
   | 'page_help'
-  | 'pricing_funding';
-
-const DISPUTE_VS_DEBT_REPLY =
-  'Credit dispute letters go to the bureaus and furnishers under the FCRA — they challenge inaccurate fields on your credit reports. ' +
-  'Debt letters (validation, cease-contact, settlement) go to collectors or creditors on the debt track — different rules, different mail targets. ' +
-  'In Finely Cred, use Disputes + Letter Studio for report inaccuracies; use Debt workflows for collections and validation. ' +
-  'Pick one clean claim per letter and keep your evidence in the vault.';
-
-const SITE_OVERVIEW_REPLY =
-  'Finely Cred is an educational platform for partners fixing personal credit, handling debt the right way, and building fundability. ' +
-  'You get guided disputes, document storage, letter tools, and optional done-for-you support — all in one portal. ' +
-  'Start with a free guide or Ask Finely on any page for the next step.';
-
-const FREE_GUIDE_REPLY =
-  'The free guide is a step-by-step credit dispute field kit — rights cheat sheet, round-one letter sequence, and escalation ladder. ' +
-  'Open Start free guide (/free-guide) — no payment required. Work DIY from there or book a session when you want hands-on help.';
+  | 'pricing_funding'
+  | 'term_explain';
 
 const INTERNAL_ROUTE_PATTERN = /\/(?:admin|portal)(?:\/[^\s)]*)?/gi;
 const INTERNAL_LEAK_TERMS =
@@ -79,10 +79,13 @@ export function hasStrongPublicKnowledgeHit(message: string, pathname?: string, 
   return hits.length > 0;
 }
 
-/** Route public strip/chat/voice FAQ prompts through one brain for consistent copy. */
-export function shouldUseFinelyPublicAnswer(message: string, pathname?: string): boolean {
-  if (classifyFinelyPublicTopic(message) !== null) return true;
-  return hasStrongPublicKnowledgeHit(message, pathname);
+/**
+ * Only intercept when we classified a real FAQ — not every knowledge hit.
+ * A KB hit used to dump the homepage SOP ("Steps: 1. 2. 3.") for questions
+ * like "what is FCRA". Those go to the live specialist path instead.
+ */
+export function shouldUseFinelyPublicAnswer(message: string, _pathname?: string): boolean {
+  return classifyFinelyPublicTopic(message) !== null;
 }
 
 /**
@@ -189,12 +192,18 @@ export function classifyFinelyPublicTopic(message: string): FinelyPublicTopic | 
     return 'pricing_funding';
   }
 
+  if (humanSpokenReply(message)) {
+    return 'term_explain';
+  }
+
   return null;
 }
 
 function needsComplianceFooter(message: string, topic: FinelyPublicTopic | 'general'): boolean {
   const msg = message.toLowerCase();
-  if (topic === 'pricing_funding' || topic === 'credit_restore' || topic === 'dispute_vs_debt') return true;
+  if (topic === 'pricing_funding' || topic === 'credit_restore' || topic === 'dispute_vs_debt' || topic === 'term_explain') {
+    return true;
+  }
   return /\b(fund|funding|loan|credit score|delete|removal|guarantee|legal|lawsuit|attorney|fdcpa|fcra)\b/.test(msg);
 }
 
@@ -223,34 +232,30 @@ function buildGeneralReply(
   hits: FinelyKnowledgeHit[],
   message: string,
 ): string {
+  const spoken = humanSpokenReply(message);
+  if (spoken) return spoken;
+
   const msg = message.toLowerCase();
+  const askingPageHelp = /\b(what should i do on this page|what is this page for|help on this page|what do i do here)\b/.test(msg);
 
   if (PUBLIC_DEMO_VIDEOS_ENABLED && (msg.includes('video') || msg.includes('watch'))) {
     return ctx.tour
-      ? `Tap "Watch how" to play: ${ctx.tour.title}. It walks through each step slowly with captions.`
-      : 'Open Resources → Videos for guided tours, or use Start Here for an overview.';
+      ? `There is a short walkthrough for this page: ${ctx.tour.title}. Tap Watch how if you want to see it.`
+      : 'Tell me what you want to see and I will walk you through it.';
   }
 
-  if (msg.includes('video') || msg.includes('watch')) {
-    return isPublicSafeSop(ctx.sop)
-      ? `${ctx.sop.title}. ${ctx.sop.whenToUse} Follow the numbered steps on this page, or ask me to walk through one step at a time.`
-      : 'Tell me what you are trying to do on this page and I will guide you step by step.';
+  if (askingPageHelp && isPublicSafeSop(ctx.sop)) {
+    return speakPageHelp(ctx.sop.whenToUse, ctx.sop.steps[0]?.label);
   }
 
-  if (isPublicSafeSop(ctx.sop)) {
-    const steps = ctx.sop.steps.map((s) => `${s.order}. ${s.label}`).join('  ');
-    const watch = PUBLIC_DEMO_VIDEOS_ENABLED && ctx.tour ? ' Want to watch a short video? Tap "Watch how".' : '';
-    return `${ctx.sop.title}. ${ctx.sop.whenToUse}\nSteps: ${steps}.${watch}`;
-  }
-
-  const top = hits[0];
+  const top = hits.find(
+    (h) => !shouldSkipKnowledgeArticle(h.id) && excerptAnswersQuery(message, `${h.title} ${h.snippet}`),
+  );
   if (top) {
-    const watch =
-      PUBLIC_DEMO_VIDEOS_ENABLED && ctx.tour ? ' Ask "watch how" for a video on this page.' : '';
-    return `${top.title}: ${top.snippet}${watch}`;
+    return speakKnowledgeHit(top.title, top.snippet);
   }
 
-  return 'Tell me what you are trying to do — fix credit, upload a report, or refer someone — and I will guide you step by step.';
+  return HUMAN_I_DONT_KNOW;
 }
 
 function buildTopicReply(
@@ -260,33 +265,27 @@ function buildTopicReply(
   message: string,
 ): string {
   switch (topic) {
-    case 'site_overview': {
-      const page =
-        (isPublicSafeSop(ctx.sop) ? ctx.sop.whenToUse : null) ??
-        (hits[0]
-          ? `${hits[0].title}: ${hits[0].snippet}`
-          : 'Tell me your goal — restore credit, debt help, or business funding.');
-      return `${SITE_OVERVIEW_REPLY}\n\nOn this page: ${page}`;
-    }
+    case 'site_overview':
+      return HUMAN_SITE_OVERVIEW;
     case 'dispute_vs_debt':
-      return DISPUTE_VS_DEBT_REPLY;
-    case 'credit_restore': {
-      const hit = hits.find((h) => /restore|dispute|report/i.test(h.title + h.text)) ?? hits[0];
-      return hit
-        ? `Personal credit restore here means evidence-first disputes plus clean documentation — not quick-fix hype.\n\n${hit.title}: ${hit.snippet}`
-        : 'Personal credit restore starts with a current report, then one inaccurate item at a time with proof in your vault. Open Start Here or your free guide for the first checklist.';
-    }
+      return HUMAN_DISPUTE_VS_DEBT;
+    case 'credit_restore':
+      return HUMAN_CREDIT_RESTORE;
+    case 'term_explain':
+      return humanSpokenReply(message) ?? HUMAN_GENERIC_NEXT;
     case 'page_help':
-      return buildGeneralReply(ctx, hits, message);
+      return isPublicSafeSop(ctx.sop)
+        ? speakPageHelp(ctx.sop.whenToUse, ctx.sop.steps[0]?.label)
+        : HUMAN_GENERIC_NEXT;
     case 'pricing_funding': {
       const msg = message.toLowerCase();
       if (
         /\b(start (the )?free guide|free guide stack|how do i start (the )?free guide)\b/.test(msg) ||
         /\bstart free guide\b/.test(msg)
       ) {
-        return FREE_GUIDE_REPLY;
+        return HUMAN_FREE_GUIDE;
       }
-      return buildGeneralReply(ctx, hits, message);
+      return HUMAN_PRICING;
     }
     default:
       return buildGeneralReply(ctx, hits, message);
@@ -314,7 +313,7 @@ export function finelyPublicAnswer(input: FinelyPublicAnswerInput): FinelyPublic
   let replyBody =
     classified != null
       ? buildTopicReply(classified, ctx, hits, input.message)
-      : buildGeneralReply(ctx, hits, input.message);
+      : humanSpokenReply(input.message) ?? buildGeneralReply(ctx, hits, input.message);
 
   replyBody = sanitizeFinelyPublicReply(replyBody);
 

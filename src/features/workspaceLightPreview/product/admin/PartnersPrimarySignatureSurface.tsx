@@ -431,7 +431,9 @@ function PartnersPrimarySignatureSurface({ role, pageId, dataMode, entityId }: W
 
   const openPartnerRecord = (partnerId: string) => {
     setSelectedPartnerId(partnerId);
-    const nextPath = `${adminPartnerRecordPath(pathname, partnerId)}?tab=overview`;
+    const missing = listReportsByPartner(partnerId).length === 0;
+    const tab = missing ? 'reports' : 'findings';
+    const nextPath = `${adminPartnerRecordPath(pathname, partnerId)}?view=admin&tab=${tab}`;
     navigate(nextPath, { replace: false });
   };
 
@@ -1009,12 +1011,13 @@ function PartnersPrimarySignatureSurface({ role, pageId, dataMode, entityId }: W
                 pageSize={12}
                 itemSpacingClassName="fc-wlp-atlas-nodes"
                 emptyMessage="No partners match your search."
-                renderItem={(partner) => {
+                renderItem={(partner, index) => {
                   const name = partner.profile?.fullName ?? 'Partner';
                   const isSelected = selectedPartnerId === partner.id;
                   const hasBreach = breachPartnerIds.has(partner.id);
                   const hasNoReport = missingReportIds.has(partner.id);
                   const riskState = hasBreach ? 'high' : hasNoReport ? 'attention' : 'normal';
+                  const family = (['emerald', 'violet', 'sky', 'rose'] as const)[index % 4];
                   const initials = name
                     .split(' ')
                     .map((n) => n[0])
@@ -1028,6 +1031,7 @@ function PartnersPrimarySignatureSurface({ role, pageId, dataMode, entityId }: W
                       className="fc-wlp-atlas-node-card"
                       data-selected={isSelected ? 'true' : undefined}
                       data-risk={riskState}
+                      data-fc-accent={family}
                     >
                       <button
                         type="button"

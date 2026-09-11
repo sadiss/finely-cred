@@ -8,6 +8,8 @@ import { reconcileCtaBridgeConversion } from '../lib/funnelCtaBridge';
 import { finelyCtaNavigate } from '../lib/finelyCtaIntent';
 import { useAuth } from '../auth/AuthProvider';
 import { LandingSellAtmosphere } from '../components/landing/LandingSellAtmosphere';
+import { FinelyNowDoThisStrip } from '../components/tours/FinelyNowDoThisStrip';
+import { FinelyNoticedStrip } from '../components/tours/FinelyNoticedStrip';
 import {
   FINELY_OS_COMPLIANCE_FOOTNOTE,
   FINELY_OS_ENTITY_BODY,
@@ -57,7 +59,7 @@ const PATHS = [
     icon: Users,
     accent: 'emerald' as const,
     primary: { label: 'Credit Specialist path', to: '/credit-specialist' },
-    secondary: { label: 'Read free CS guide', to: '/credit-specialist-guide' },
+    secondary: { label: 'See CS guide preview', to: '/credit-specialist-guide' },
   },
   {
     id: 'login',
@@ -101,8 +103,21 @@ export default function StartHerePage() {
   };
 
   return (
-    <PageShell badge="Start here" title="What do you need help with?" subtitle="Pick a path. Your next step appears on the right." hideHero>
+    <PageShell badge="Start here" title="Tell us what arrived" subtitle="A credit report, a collector letter, or a company file — pick a lane, and the next step appears on the right." hideHero>
       <div className={`${FINELY_OS_PAGE} fc-senior-simple space-y-0`}>
+        <FinelyNowDoThisStrip surface="light" />
+        <FinelyNoticedStrip
+          surface="light"
+          items={[
+            {
+              id: 'start-here-pick',
+              tone: 'info',
+              text: 'Pick one lane — then take the next step on the right.',
+              actionLabel: 'Start free guide',
+              to: '/free-guide',
+            },
+          ]}
+        />
         {/* Path doors + selected next step */}
         <section
           className={`fc-sell relative overflow-hidden -mx-4 px-4 py-12 sm:-mx-6 sm:px-6 sm:py-14 lg:-mx-8 lg:px-8 2xl:-mx-10 2xl:px-10 ${finelyOsLandingContrastSection('fc-band-violet')}`}

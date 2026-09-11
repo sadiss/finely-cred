@@ -14,6 +14,10 @@
   color: #fff;
 }
 
+.lm-convert-page.csg-page {
+  color: var(--lm-convert-ink, #0a1628);
+}
+
 .csg-serif {
   font-family: 'Cormorant Garamond', 'Georgia', 'Times New Roman', serif;
 }
@@ -231,7 +235,8 @@
 }
 
 .csg-callout {
-  border-left: 3px solid var(--csg-gold);
+  border: 1px solid rgba(167, 139, 250, 0.35);
+  border-left: none;
   background: rgba(167, 139, 250, 0.08);
   color: rgba(255, 255, 255, 0.78);
 }
@@ -341,4 +346,151 @@
   border-color: rgba(251, 113, 133, 0.35);
   background: rgba(251, 113, 133, 0.1);
   color: #fb7185;
+}
+
+/* Light convert field — navy ink, white cards. Reader stays navy. */
+.lm-convert-page.csg-page {
+  color: #0a1628;
+}
+
+.lm-convert-page .csg-hero-title {
+  color: #0a1628;
+}
+
+.lm-convert-page .csg-hero-lede {
+  color: rgba(10, 22, 40, 0.72);
+}
+
+.lm-convert-page .csg-hero-kicker {
+  color: #047857;
+}
+
+.lm-convert-page .csg-hero-title-gold {
+  background: linear-gradient(135deg, #6d28d9 0%, #5b21b6 50%, #047857 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.lm-convert-page .csg-compliance {
+  color: rgba(10, 22, 40, 0.62);
+}
+
+.lm-convert-page .csg-accent-gold {
+  color: #6d28d9;
+}
+
+.lm-convert-page .csg-accent-lime {
+  color: #047857;
+}
+
+.lm-convert-page .csg-accent-sky {
+  color: #0369a1;
+}
+
+.lm-convert-page .csg-accent-rose {
+  color: #be123c;
+}
+
+.lm-convert-page .csg-kicker {
+  color: #6d28d9;
+}
+
+.lm-convert-page .csg-chapter-card,
+.lm-convert-page .csg-pillar-card,
+.lm-convert-page .csg-stat-tile {
+  background: #ffffff;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  box-shadow: 0 12px 32px rgba(4, 10, 54, 0.06);
+  color: #0a1628;
+}
+
+.lm-convert-page .csg-chapter-card h3,
+.lm-convert-page .csg-pillar-card h3,
+.lm-convert-page .csg-stat-tile .text-white {
+  color: #0a1628;
+}
+
+.lm-convert-page .csg-ghost-btn {
+  border-color: rgba(5, 150, 105, 0.45);
+  background: rgba(16, 185, 129, 0.08);
+  color: #047857;
+}
+
+.lm-convert-page.csg-page footer,
+.lm-convert-page.csg-page footer a,
+.lm-convert-page.csg-page footer p {
+  color: rgba(10, 22, 40, 0.5);
+}
+
+.lm-convert-page .csg-mini-check {
+  color: rgba(10, 22, 40, 0.72);
+}
+
+.lm-convert-page.csg-page h1,
+.lm-convert-page.csg-page h2,
+.lm-convert-page.csg-page h3:not(.csg-book-title) {
+  color: #0a1628;
+}
+
+.lm-convert-page .csg-book-cover,
+.lm-convert-page .csg-book-cover h3,
+.lm-convert-page .csg-book-title {
+  color: #ffffff !important;
+}
+
+.lm-convert-page .csg-cta-panel {
+  background:
+    radial-gradient(ellipse 80% 60% at 10% 0%, rgba(52, 211, 153, 0.12), transparent 50%),
+    radial-gradient(ellipse 70% 50% at 90% 100%, rgba(167, 139, 250, 0.16), transparent 55%),
+    linear-gradient(165deg, #0a1428 0%, #050a14 100%) !important;
+  color: #f8fafc;
+}
+
+.lm-convert-page .csg-cta-panel h2,
+.lm-convert-page .csg-cta-panel h3 {
+  color: #ffffff;
+}
+
+.lm-convert-page .csg-cta-panel .csg-kicker {
+  color: #c4b5fd;
+}
+
+.lm-convert-page .csg-cta-panel .lm-lux-field {
+  color: rgba(255, 255, 255, 0.94);
+  border-color: rgba(167, 139, 250, 0.45);
+}
+
+.lm-convert-page .csg-cta-panel .lm-lux-field::placeholder {
+  color: rgba(248, 250, 252, 0.72);
+}
+
+.lm-convert-page .csg-cta-panel .lm-lux-field-icon {
+  color: #c4b5fd;
+}
+
+.lm-convert-page .csg-cta-panel .csg-compliance,
+.lm-convert-page .csg-cta-panel .csg-hero-lede {
+  color: rgba(248, 250, 252, 0.62);
+}
+
+.lm-convert-page .csg-pillar-card:nth-child(2) > div:first-child,
+.lm-convert-page .csg-stat-tile:nth-child(2) > div:first-child {
+  color: #047857;
+  border-color: rgba(4, 120, 87, 0.35);
+  background: rgba(16, 185, 129, 0.12);
+}
+
+.lm-convert-page .csg-pillar-card:nth-child(3) > div:first-child,
+.lm-convert-page .csg-stat-tile:nth-child(3) > div:first-child {
+  color: #0369a1;
+  border-color: rgba(3, 105, 161, 0.35);
+  background: rgba(14, 165, 233, 0.12);
+}
+
+.lm-convert-page .csg-pillar-card:nth-child(4) > div:first-child,
+.lm-convert-page .csg-stat-tile:nth-child(4) > div:first-child {
+  color: #be123c;
+  border-color: rgba(190, 18, 60, 0.35);
+  background: rgba(244, 63, 94, 0.12);
 }

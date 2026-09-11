@@ -80,7 +80,7 @@
 .fc-wlp-report-room-tabs {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
+  gap: 18px;
 }
 .fc-wlp-report-room-tabs > button {
   --fc-report-room-rgb: 42, 167, 220;

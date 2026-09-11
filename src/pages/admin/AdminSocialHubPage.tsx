@@ -47,7 +47,7 @@ import { staffMemberFullName } from '../../domain/staffMember';
 import { isSupabaseConfigured, supabase } from '../../lib/supabaseClient';
 import { FinelyOsGlassPanel } from '../../features/os/FinelyOsGlassPanel';
 import { StaffSocialPageAssignWizard } from '../../features/staffCommandCenter/StaffSocialPageAssignWizard';
-import { buildMetaOAuthRedirectUris, primaryMetaOAuthRedirectUri } from '../../lib/metaOAuthUrls';
+import { buildMetaOAuthRedirectUris, primaryMetaOAuthRedirectUri, startMetaPageOAuth } from '../../lib/metaOAuthUrls';
 import { SocialDisclosureReviewPanel } from '../../features/social/SocialDisclosureReviewPanel';
 import { processRecruitingAutopilotTick } from '../../lib/recruitingSopAutopilot';
 import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
@@ -185,15 +185,10 @@ export default function AdminSocialHubPage() {
 
   const connectMeta = () => {
     const appId = (config.appId ?? '').trim();
-    if (!appId || appId === 'YOUR_META_APP_ID') {
+    if (!startMetaPageOAuth(appId, config)) {
       setNotice('Enter your Meta App ID in Settings, then try again.');
       setTab('settings');
-      return;
     }
-    const redirectUri = `${window.location.origin}/admin/social-hub?tab=settings`;
-    const scopes = ['pages_show_list', 'pages_read_engagement', 'pages_manage_posts', 'instagram_basic', 'leads_retrieval'].join(',');
-    const url = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${encodeURIComponent(appId)}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}&response_type=code`;
-    window.location.href = url;
   };
 
   const saveSettings = () => {

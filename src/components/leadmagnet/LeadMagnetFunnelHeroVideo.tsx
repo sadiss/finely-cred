@@ -125,7 +125,9 @@ export function LeadMagnetFunnelHeroVideo({ config, theme, posterUrl, className 
     if (!next) void el.play().catch(() => undefined);
   };
 
-  const label = getFunnelMediaForConfig(config)?.videoTitle ?? `Watch the ${theme.badge.toLowerCase()}`;
+  const label =
+    getFunnelMediaForConfig(config)?.videoTitle ??
+    (config.id === 'kreyol' ? 'Gade kominote ayisyen an' : `Watch the ${theme.badge.toLowerCase()}`);
 
   const gradeClass = `lm-video-grade--${colorGrade}`;
 

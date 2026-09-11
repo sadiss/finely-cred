@@ -119,17 +119,18 @@ export default function AuSellerPage() {
     <PageShell
       badge="Public"
       title={AU_SELLER.programName}
-      subtitle="Supply tradelines — Finely markets to buyers and routes fulfillment."
+      subtitle="You list verified cards. Finely Cred markets to buyers and routes the orders."
       hideHero
+      contentWidth="full"
     >
-      <div className={`${FINELY_OS_PAGE} max-w-6xl mx-auto`}>
+      <div className={`${FINELY_OS_PAGE} fc-viewport-floor`}>
         <div className="flex flex-wrap items-center gap-4">
-          <BackToSiteButton variant="ghost" label="Back to home" />
+          <BackToSiteButton variant="ghost" label="Back to home" className="!border-white/20 !bg-black/50 !text-white hover:!bg-black/70" />
         </div>
 
         <div className="mt-2 flex justify-end">
           <div className="inline-block rounded-full bg-white/95 px-3.5 py-1.5 shadow-sm">
-            <CareerOtherTracksLink currentId="au_sellers" />
+            <CareerOtherTracksLink currentId="au_sellers" tone="onLight" />
           </div>
         </div>
         {cardEligibility && cardBonus ? <FinelyOsAlertBanner tone="success" message={cardBonus.description} /> : null}
@@ -178,8 +179,8 @@ export default function AuSellerPage() {
               <div className="grid grid-cols-3 gap-2.5 max-w-lg">
                 {[
                   { icon: Megaphone, label: 'Buyer demand', sub: 'Finely markets', tone: 'border-sky-300/30 bg-sky-500/[0.1]', iconCls: 'text-sky-300' },
-                  { icon: CreditCard, label: 'Your inventory', sub: 'list & rotate', tone: 'border-emerald-300/30 bg-emerald-500/[0.1]', iconCls: 'text-emerald-300' },
-                  { icon: Wallet, label: 'Payouts', sub: '35%+ floor', tone: 'border-violet-300/35 bg-violet-500/[0.12]', iconCls: 'text-violet-200' },
+                  { icon: CreditCard, label: 'Your inventory', sub: 'You list and rotate', tone: 'border-emerald-300/30 bg-emerald-500/[0.1]', iconCls: 'text-emerald-300' },
+                  { icon: Wallet, label: 'Payouts', sub: '35% starting share', tone: 'border-violet-300/35 bg-violet-500/[0.12]', iconCls: 'text-violet-200' },
                 ].map(({ icon: Icon, label, sub, tone, iconCls }) => (
                   <div key={label} className={`rounded-xl border ${tone} px-3 py-3.5 text-center`}>
                     <Icon className={`mx-auto mb-1.5 ${iconCls}`} size={20} />

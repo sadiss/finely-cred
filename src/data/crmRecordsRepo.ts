@@ -152,6 +152,10 @@ function leadToRecord(lead: LeadCapture, op: LeadOp): CrmRecord {
     lead.offer === 'credit_specialist_join' || lead.offer === 'credit_specialist_guide'
       ? ['credit-specialist', `offer:${lead.offer}`]
       : [];
+  const haitianTags =
+    lead.offer === 'haitian_credit_kit' || /haitian|krey[oò]l/i.test(lead.interest ?? '')
+      ? ['haitian-community', 'offer:haitian_credit_kit']
+      : [];
 
   return {
     id: `crm_lead_${lead.id}`,
@@ -159,7 +163,7 @@ function leadToRecord(lead: LeadCapture, op: LeadOp): CrmRecord {
     target,
     stage: op.stage,
     source: lead.source,
-    tags: Array.from(new Set([...(op.tags ?? []), ...csTags])),
+    tags: Array.from(new Set([...(op.tags ?? []), ...csTags, ...haitianTags])),
     contact: {
       fullName: lead.fullName,
       email: lead.email,
@@ -198,7 +202,7 @@ export function listCrmRecords(filters?: {
       if (filters?.stage && r.stage !== filters.stage) return false;
       if (filters?.q?.trim()) {
         const q = filters.q.trim().toLowerCase();
-        const hay = [r.contact.fullName, r.contact.email, r.contact.company, r.contact.phone].filter(Boolean).join(' ').toLowerCase();
+        const hay = [r.contact.fullName, r.contact.email, r.contact.company, r.contact.phone, r.packageInterest, r.tags.join(' ')].filter(Boolean).join(' ').toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;

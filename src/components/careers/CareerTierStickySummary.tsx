@@ -42,7 +42,7 @@ export function CareerTierStickySummary({
     <div
       className={`fixed inset-x-0 bottom-0 z-40 border-t-2 border-slate-200 bg-white/97 backdrop-blur-md shadow-[0_-20px_50px_-20px_rgba(15,23,42,0.25)] ${className}`}
     >
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
+      <div className="fc-viewport-floor flex flex-wrap items-center justify-between gap-3 py-3">
         <div className="min-w-0">
           <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
             {roleLabel}

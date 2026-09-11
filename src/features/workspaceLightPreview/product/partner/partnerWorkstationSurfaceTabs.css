@@ -1,7 +1,7 @@
 .fc-wlp-workstation-tabs {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 16px;
   margin-bottom: 14px;
 }
 
@@ -477,7 +477,7 @@ html[data-fc-theme='dark'] .fc-wlp-orders-ledger-row span {
 .fc-wlp-billing-ledger-summary {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+  gap: 20px;
   padding: 18px 20px;
   border-bottom: 1px solid rgba(15, 23, 42, 0.08);
   background: linear-gradient(180deg, rgba(139, 92, 246, 0.08), rgba(255, 255, 255, 0.5));
@@ -615,7 +615,7 @@ html[data-fc-theme='dark'] .fc-wlp-orders-ledger-row span {
 .fc-wlp-id-runway-track {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
+  gap: 18px;
   margin-bottom: 18px;
 }
 
@@ -852,7 +852,7 @@ html[data-fc-theme='dark'] .fc-wlp-orders-ledger-row span {
 .fc-wlp-courses-runway-track {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+  gap: 20px;
   margin-bottom: 18px;
 }
 
@@ -1071,7 +1071,7 @@ html[data-fc-theme='dark'] .fc-wlp-orders-ledger-row span {
 .fc-wlp-work-command-pods {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+  gap: 20px;
 }
 
 .fc-wlp-work-command-pod {
@@ -1199,7 +1199,7 @@ html[data-fc-theme='dark'] .fc-wlp-orders-ledger-row span {
 .fc-wlp-au-market-bento {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  gap: 20px;
   margin-bottom: 18px;
 }
 
@@ -1339,7 +1339,7 @@ html[data-fc-theme='dark'] .fc-wlp-orders-ledger-row span {
 .fc-wlp-au-orders-summary {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+  gap: 20px;
   padding: 18px 20px;
   border-bottom: 1px solid rgba(15, 23, 42, 0.08);
   background: linear-gradient(180deg, rgba(139, 92, 246, 0.08), rgba(255, 255, 255, 0.5));
@@ -1452,11 +1452,11 @@ html[data-fc-theme='dark'] .fc-wlp-au-market-tile p {
 
 /* —— My tasks queue + detail workbench —— */
 .fc-wlp-task-workbench {
-  display: grid;
-  grid-template-columns: minmax(300px, 400px) minmax(0, 1fr);
-  gap: 20px;
-  align-items: start;
-  min-height: 520px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: stretch;
+  min-height: 0;
 }
 
 .fc-wlp-task-queue-panel {
@@ -1492,9 +1492,12 @@ html[data-fc-theme='dark'] .fc-wlp-au-market-tile p {
 }
 
 .fc-wlp-task-queue-scroll {
-  flex: 1;
-  overflow-y: auto;
-  max-height: 62vh;
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  overflow-x: auto;
+  max-height: none;
+  padding: 0 12px 14px;
 }
 
 .fc-wlp-task-queue-row {
@@ -1502,11 +1505,12 @@ html[data-fc-theme='dark'] .fc-wlp-au-market-tile p {
   grid-template-columns: 44px minmax(0, 1fr) auto;
   gap: 12px;
   align-items: center;
-  width: 100%;
-  padding: 16px 20px;
-  border: 0;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
-  background: transparent;
+  flex: 0 0 min(240px, 78vw);
+  width: min(240px, 78vw);
+  padding: 14px 16px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 14px;
+  background: #fff;
   text-align: left;
   transition: background 0.15s ease;
 }
@@ -1896,7 +1900,7 @@ html[data-fc-theme='dark'] .fc-wlp-alert-river-card p {
 .fc-wlp-seller-runway-track {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+  gap: 20px;
   margin-bottom: 18px;
 }
 
@@ -2008,7 +2012,7 @@ html[data-fc-theme='dark'] .fc-wlp-seller-payout-rail-head {
 .fc-wlp-account-command-pods {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 10px;
+  gap: 18px;
 }
 
 .fc-wlp-account-command-pod {
@@ -2049,7 +2053,7 @@ html[data-fc-theme='dark'] .fc-wlp-seller-payout-rail-head {
 .fc-wlp-account-command-footer {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
+  gap: 20px;
 }
 
 /* —— Billing control room (alert rail + status grid + stage deck) —— */
@@ -2070,7 +2074,7 @@ html[data-fc-theme='dark'] .fc-wlp-seller-payout-rail-head {
 .fc-wlp-billing-status-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+  gap: 20px;
 }
 
 .fc-wlp-billing-status-tile {
@@ -2285,7 +2289,7 @@ html[data-fc-theme='dark'] .fc-wlp-readiness-nav-item strong {
 .fc-wlp-escalation-status-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+  gap: 20px;
 }
 
 .fc-wlp-escalation-status-tile {

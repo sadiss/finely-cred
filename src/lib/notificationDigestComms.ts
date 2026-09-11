@@ -7,6 +7,7 @@ import { newId } from '../utils/ids';
 import { renderTextTemplate } from '../utils/textTemplate';
 import { isFeatureEnabled } from '../data/settingsRepo';
 import { sendEmail } from './commsDeliveryClient';
+import { htmlFromPlainEmail } from '../comms/prebuiltHtmlEmailLayout';
 import { sendEmailFromTemplate } from './commsEngine';
 import { buildNotificationDigest, formatDigestSummary, type NotificationDigest } from './notificationDigestEngine';
 
@@ -58,7 +59,12 @@ export async function sendAdminDigestEmail(args: {
     }
 
     try {
-      await sendEmail({ toEmail, subject, text: body });
+      await sendEmail({
+        toEmail,
+        subject,
+        text: body,
+        html: htmlFromPlainEmail({ headline: subject, text: body, email: toEmail }),
+      });
       addCommsSend({ ...logBase, status: 'sent' });
       sent += 1;
     } catch {

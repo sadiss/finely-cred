@@ -196,7 +196,7 @@ export const DISPUTE_GUIDE_EXTENDED_PAGES: GeneratedGuidePage[] = [
   {
     id: 'validation-first-doctrine',
     title: 'Validation First — Challenge Before You Pay',
-    subtitle: 'Finely Cred doctrine — never default to paying charge-offs or collections as step one',
+    subtitle: 'Finely Cred playbook — never default to paying charge-offs or collections as step one',
     sections: [
       {
         paragraphs: [

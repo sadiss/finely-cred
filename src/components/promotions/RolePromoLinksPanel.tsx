@@ -100,7 +100,7 @@ export function RolePromoLinksPanel({
         label: 'Services / pricing',
         type: 'service',
         asset: 'pricing',
-        url: buildPromotedUrl({ ...common, path: '/pricing', promoType: 'service', promoAsset: 'pricing' }),
+        url: buildPromotedUrl({ ...common, path: '/pricing/personal-credit-restore', promoType: 'service', promoAsset: 'pricing' }),
       },
       {
         label: 'Book strategy call',

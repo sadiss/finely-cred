@@ -60,7 +60,7 @@
 .fc-wlp-dispute-runway-signals {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 20px;
   justify-content: center;
 }
 

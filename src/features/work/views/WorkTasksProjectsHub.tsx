@@ -305,7 +305,7 @@ export function WorkTasksProjectsHub({
         )
       ) : null}
 
-      <div className={`${finelyOsCatalogCardCompact('sky')} flex flex-wrap items-center gap-3 !py-3`}>
+      <div className="flex flex-wrap items-center gap-3">
         {role === 'admin' ? (
           <button
             type="button"
@@ -358,7 +358,7 @@ export function WorkTasksProjectsHub({
         <div className="space-y-3">
           <div className={FINELY_OS_VIEW_TABS}>
             <button type="button" onClick={() => setProjectView('journey')} className={tabClass(projectView === 'journey', 'emerald')}>
-              Journey board
+              Pipeline
             </button>
             {role === 'admin' ? (
               <button type="button" onClick={() => setProjectView('list')} className={tabClass(projectView === 'list', 'violet')}>
@@ -434,7 +434,7 @@ export function WorkTasksProjectsHub({
             taskCountByProject={taskCountByProject}
           />
 
-          <div className={`flex-1 min-w-0 ${finelyOsCatalogCardCompact('emerald')} space-y-3`}>
+          <div className="flex-1 min-w-0 space-y-3">
             <WorkBoardShell
               view={taskView}
               onViewChange={setTaskView}

@@ -9,7 +9,7 @@
 .fc-admin-dispute-collab-alerts {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
+  gap: 20px;
 }
 
 @media (max-width: 900px) {
@@ -29,8 +29,8 @@
 
 .fc-admin-dispute-collab-layout {
   display: grid;
-  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
-  gap: 18px;
+  grid-template-columns: minmax(380px, 0.46fr) minmax(0, 1fr);
+  gap: 20px;
   align-items: start;
 }
 
@@ -50,13 +50,19 @@
 .fc-admin-dispute-collab-filters {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 12px;
+}
+
+.fc-admin-dispute-collab-filters .fc-view-tab-idle,
+.fc-admin-dispute-collab-filters [class*='fc-view-tab'] {
+  min-height: 44px;
+  padding: 0.65rem 1.1rem;
 }
 
 .fc-admin-dispute-collab-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 18px;
   overflow-y: auto;
   padding-right: 4px;
 }

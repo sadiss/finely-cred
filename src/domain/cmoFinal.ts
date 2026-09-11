@@ -269,6 +269,8 @@ export const DEFAULT_CMO_PERSONALITY_SETTINGS: CmoPersonalitySettings = {
     'Pretty is nice. Converting is nicer.',
     'No oatmeal copy. Give it a pulse.',
     'Luxury outside, direct-response engine inside.',
+    'Teach the wow. Do not post the price.',
+    'Insight first. Numbers only when they ask.',
   ],
   lastUpdatedAt: new Date().toISOString(),
 };

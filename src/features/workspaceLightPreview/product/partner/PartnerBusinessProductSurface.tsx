@@ -19,6 +19,7 @@ import { BusinessCreditRoadmapPanel } from '../../../../components/business/Busi
 import { BUSINESS_ROADMAP_STEPS } from '../../../../domain/businessCredit';
 import { getBusinessCreditProfile } from '../../../../data/businessCreditRepo';
 import { hasEntitlement } from '../../../../data/billingRepo';
+import { useStaffEntitlementBypass } from '../../../../components/billing/EntitlementGate';
 import { getPartnerSync } from '../../../../data/partnersRepo';
 import { evaluateFoundationSteps } from '../../../../lib/businessVendorSequencing';
 import type { Partner } from '../../../../domain/partners';
@@ -62,6 +63,7 @@ type LoadState =
 export default function PartnerBusinessProductSurface({ role, pageId, partnerId, dataMode }: WorkspaceProductSurfaceProps) {
   const navigate = useNavigate();
   const mapPortalHref = usePartnerProductPathResolver();
+  const staffBypass = useStaffEntitlementBypass();
   const { partner: sessionPartner } = usePartnerSession();
   const partner = useMemo(
     () => (partnerId ? getPartnerSync(partnerId) ?? sessionPartner : sessionPartner),
@@ -82,7 +84,7 @@ export default function PartnerBusinessProductSurface({ role, pageId, partnerId,
     let cancelled = false;
     setState({ status: 'loading' });
     try {
-      if (!partnerOwnsBusinessLine(partnerId!)) {
+      if (!staffBypass && !partnerOwnsBusinessLine(partnerId!)) {
         if (!cancelled) setState({ status: 'locked' });
         return;
       }
@@ -96,7 +98,7 @@ export default function PartnerBusinessProductSurface({ role, pageId, partnerId,
     return () => {
       cancelled = true;
     };
-  }, [isDemo, partnerId, retryToken]);
+  }, [isDemo, partnerId, retryToken, staffBypass]);
 
   const demoSpec = useMemo(() => getWorkspaceProductPageSpec('partner', pageId), [pageId]);
   const activePartner = state.status === 'ready' ? state.partner : partner;
@@ -166,7 +168,7 @@ export default function PartnerBusinessProductSurface({ role, pageId, partnerId,
           <div className="flex items-center gap-2">
             <Layers size={18} className="text-sky-400" />
             <div>
-              <p className="fc-wlp-eyebrow">Workstations</p>
+              <p className="fc-wlp-eyebrow">Rooms</p>
               <h2 className={`text-2xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>Jump</h2>
             </div>
           </div>

@@ -1,4 +1,5 @@
 import { supabase, isSupabaseConfigured } from './supabaseClient';
+import { searchFreeWebFirst } from './freeSearchRouter';
 import { LAW_REFERENCES, REGULATORY_PORTALS, type LegalResourceLink } from './legalResources';
 
 export type LegalResearchSnippet = {
@@ -23,6 +24,17 @@ export async function researchLegalTopic(args: {
   }
 
   try {
+    const free = await searchFreeWebFirst(`${q} official site`);
+    if (!free.needsSerper && free.hits.length) {
+      return {
+        snippets: [...free.hits.map((h) => ({ title: h.title, link: h.link, snippet: h.snippet })), ...fallback].slice(
+          0,
+          8,
+        ),
+        fromWeb: true,
+      };
+    }
+
     const { data, error } = await supabase.functions.invoke('legal-research', {
       body: { query: q, topic: args.topic, state: args.state || undefined },
     });

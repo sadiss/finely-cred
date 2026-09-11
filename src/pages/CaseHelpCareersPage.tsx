@@ -108,6 +108,10 @@ export default function CaseHelpCareersPage() {
     description:
       'Join the Finely Cred case desk as a paralegal, attorney/counsel, or case consultant. You work assigned partner matters with scoped, audited access — Finely runs intake and the platform.',
     path: '/careers/case-help',
+    faqs: [
+      { q: 'Is this a job offer?', a: 'It is a case-desk partnership with scoped access — not a job-board listing with guaranteed hours.' },
+      { q: 'Is court content legal advice?', a: 'No. The desk is educational. Licensed counsel handles court matters.' },
+    ],
   });
 
   const [role, setRole] = useState<ProgramApplicationKind>('paralegal');
@@ -205,10 +209,11 @@ export default function CaseHelpCareersPage() {
   return (
     <PageShell
       title="Case desk careers"
-      subtitle="Paralegal, attorney/counsel, and consultant roles working assigned partner debt and litigation matters."
+      subtitle="Paralegal, attorney, and consultant roles on assigned partner debt and litigation matters."
       hideHero
+      contentWidth="full"
     >
-      <div className={`${FINELY_OS_PAGE} max-w-5xl mx-auto space-y-0`}>
+      <div className={`${FINELY_OS_PAGE} fc-viewport-floor space-y-0`}>
         <div className="px-1 py-3 space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <a href="/" className={FINELY_OS_BACK_LINK}>
@@ -289,8 +294,8 @@ export default function CaseHelpCareersPage() {
               <p className={DOSSIER_KICKER}>Choose your file</p>
               <h2 className={DOSSIER_TITLE}>Three ways to serve partners.</h2>
               <p className={DOSSIER_BODY}>
-                Educational platform roles · not an offer of employment · attorney applicants must be licensed where they
-                practice.
+                These are scoped case-desk roles, not a job-board listing with guaranteed hours. Attorneys must be
+                licensed where they practice.
               </p>
             </div>
 
@@ -385,7 +390,7 @@ export default function CaseHelpCareersPage() {
           className={`mt-6 rounded-3xl border border-white/10 px-5 sm:px-8 py-12 ${finelyOsLandingContrastSection('fc-band-ember')}`}
           data-fc-contrast-band="1"
         >
-          <div className="max-w-5xl mx-auto grid gap-9 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
+          <div className="w-full max-w-none grid gap-9 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
             <div className="space-y-6">
               <div className="space-y-3">
                 <p className={`${SERIF} text-[11px] font-black uppercase tracking-[0.28em] text-emerald-300`}>
@@ -414,7 +419,7 @@ export default function CaseHelpCareersPage() {
 
         {/* Benefits · access · capabilities — serif definition columns on parchment */}
         <section className={`mt-6 rounded-3xl px-5 sm:px-8 py-12 ${finelyOsLandingWealthyIvorySection()}`}>
-          <div className="max-w-5xl mx-auto space-y-8">
+          <div className="w-full max-w-none space-y-8">
             <div className="max-w-2xl space-y-3">
               <p className={DOSSIER_KICKER}>What the role gives you</p>
               <h2 className={DOSSIER_TITLE}>Benefits, inside access, unique authority.</h2>

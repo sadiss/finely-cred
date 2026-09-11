@@ -47,9 +47,9 @@ function statusTone(status: ComplianceReviewRecord['status']): 'ok' | 'warn' | '
 function buildRecordReasons(record: ComplianceReviewRecord, overdue: boolean): string[] {
   const reasons: string[] = [];
   if (record.status === 'draft') reasons.push('Draft — review has not started yet.');
-  if (record.status === 'needs_review') reasons.push('Flagged for review — resolve before this route merges.');
+  if (record.status === 'needs_review') reasons.push('Flagged for review — resolve before this page goes live.');
   if (record.status === 'blocked') reasons.push('Blocked — do not publish until re-reviewed and approved.');
-  if (!record.sourceRepoRefs.length) reasons.push('No source doctrine repo reference recorded.');
+  if (!record.sourceRepoRefs.length) reasons.push('No source reference recorded.');
   if (overdue) reasons.push('Re-verification window has lapsed — treat as unpublishable until re-approved.');
   return reasons;
 }
@@ -199,7 +199,7 @@ export default function AdminComplianceReviewProductSurface({ role, pageId }: Wo
       pageId={pageId}
       eyebrow="Delivery"
       title="Compliance review"
-      description="Approve doctrine-derived public content before its routes ship."
+      description="Approve public articles and landing pages before they go live."
       accent={accent}
       surfaceMode={navItem?.surfaceMode ?? 'light'}
       archetype={archetype}
@@ -255,7 +255,7 @@ export default function AdminComplianceReviewProductSurface({ role, pageId }: Wo
         },
       ]}
       metricTitle="Review gate"
-      metricDescription="Control room grid filters the queue — pick a record to approve or block."
+      metricDescription="Filter the queue, then approve or block a record."
     >
       <div className={FINELY_OS_PAGE} data-surface-layout="control-room">
         <div className="grid gap-6 lg:grid-cols-12 items-start">
@@ -264,7 +264,7 @@ export default function AdminComplianceReviewProductSurface({ role, pageId }: Wo
               <div>
                 <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
                   <ShieldCheck size={18} />
-                  <span>Doctrine coverage grid</span>
+                  <span>Content coverage</span>
                 </div>
                 <p className={`mt-2 text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
                   General articles re-verify every {RE_VERIFICATION_CADENCE_MONTHS.public_article} months; state pages every{' '}
@@ -392,7 +392,7 @@ export default function AdminComplianceReviewProductSurface({ role, pageId }: Wo
                     <input
                       value={newSourceRefs}
                       onChange={(e) => setNewSourceRefs(e.target.value)}
-                      placeholder="Source doctrine repo(s), comma separated"
+                      placeholder="Source references, comma separated"
                       className={FINELY_OS_ENTITY_INPUT}
                     />
                     <div className="flex gap-2">
@@ -488,9 +488,7 @@ export default function AdminComplianceReviewProductSurface({ role, pageId }: Wo
                         </ul>
                       </div>
                     ) : (
-                      <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-base font-bold text-emerald-100">
-                        No blockers recorded — ready for approval.
-                      </div>
+                      <FinelyOsAlertBanner tone="success" message="No blockers recorded — ready for approval." />
                     )}
 
                     {selected.reviewNotes ? (
@@ -528,16 +526,16 @@ export default function AdminComplianceReviewProductSurface({ role, pageId }: Wo
             <div className={`${finelyOsCatalogCard('rose')} p-5 lg:p-6 space-y-4`} data-fc-accent="rose">
               <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
                 <ShieldAlert size={16} />
-                <span>Alert rail</span>
+                <span>Alerts</span>
               </div>
 
               {pendingCount > 0 ? (
                 <FinelyOsAlertBanner
                   tone="warning"
-                  message={`${pendingCount} record${pendingCount === 1 ? '' : 's'} still need approval before routes merge.`}
+                  message={`${pendingCount} record${pendingCount === 1 ? '' : 's'} still need approval before those pages go live.`}
                 />
               ) : (
-                <FinelyOsAlertBanner tone="success" message="All doctrine-derived routes are approved." />
+                <FinelyOsAlertBanner tone="success" message="All reviewed pages are approved." />
               )}
 
               {overdueCount > 0 ? (

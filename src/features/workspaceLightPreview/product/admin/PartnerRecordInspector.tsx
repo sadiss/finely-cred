@@ -6,11 +6,10 @@
  * No classic PartnerDetailPage embed.
  */
 import React, { Suspense, useCallback, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   ChevronLeft,
   ExternalLink,
-  KeyRound,
   LayoutDashboard,
   Mail,
   MessageSquare,
@@ -27,6 +26,7 @@ import { AdminPartnerViewAsButton } from '../../../../components/admin/AdminPart
 import { PartnerDashboardProductSurface } from '../../surfaces/PartnerDashboardProductSurface';
 import { ProductDashboardSkeleton } from '../components/ProductUi';
 import type { WorkspaceProductSurfaceProps } from '../workspaceProductSurfaceRegistry';
+import { AdminPartnerFulfillmentSurface } from './AdminPartnerFulfillmentSurface';
 
 const PartnerAccountProductSurface = React.lazy(() => import('../partner/PartnerAccountProductSurface'));
 const PartnerReportsProductSurface = React.lazy(() => import('../partner/PartnerReportsProductSurface'));
@@ -139,44 +139,44 @@ export default function PartnerRecordInspector({
   partner,
   dataMode,
   onClose,
-  onOpenSecondaryDrawer,
+  onOpenSecondaryDrawer: _onOpenSecondaryDrawer,
   onStatusChange,
   statusSaving,
   onOpenCareTeam,
   onOpenPortalAccess,
   onOpenSendInvite,
-  onOpenGrantAccess,
+  onOpenGrantAccess: _onOpenGrantAccess,
   statusChip,
   breach,
   missingReport,
   careOwnerName,
 }: PartnerRecordInspectorProps) {
-  const [searchParams, setSearchParams] = useSearchParams();
-  /** Default is partner-facing new UI — never the old admin file embed. */
+  const navigate = useNavigate();
+  const { pathname, search } = useLocation();
+  const searchParams = useMemo(() => new URLSearchParams(search), [search]);
+  /** Default is the admin credit file. Partner portal preview is opt-in. */
   const lens: PartnerInspectorLens =
-    searchParams.get('view') === 'admin' ? 'admin-file' : 'partner-view';
+    searchParams.get('view') === 'partner' ? 'partner-view' : 'admin-file';
   const activeTab = resolveInspectorTab(searchParams.get('tab'));
+
+  const writeQuery = useCallback(
+    (mutate: (params: URLSearchParams) => void) => {
+      const params = new URLSearchParams(searchParams);
+      mutate(params);
+      navigate(`${pathname}?${params.toString()}`, { replace: true });
+    },
+    [navigate, pathname, searchParams],
+  );
 
   const setLens = useCallback(
     (next: PartnerInspectorLens) => {
-      const params = new URLSearchParams(searchParams);
-      if (next === 'admin-file') params.set('view', 'admin');
-      else params.delete('view');
-      if (next === 'partner-view') params.set('tab', 'overview');
-      setSearchParams(params, { replace: true });
+      writeQuery((params) => {
+        if (next === 'admin-file') params.set('view', 'admin');
+        else params.set('view', 'partner');
+        if (next === 'partner-view') params.set('tab', 'overview');
+      });
     },
-    [searchParams, setSearchParams],
-  );
-
-  const setTab = useCallback(
-    (tabId: PartnerInspectorTabId) => {
-      const params = new URLSearchParams(searchParams);
-      params.set('tab', tabId);
-      if (tabId === 'overview') params.delete('view');
-      else params.set('view', 'admin');
-      setSearchParams(params, { replace: true });
-    },
-    [searchParams, setSearchParams],
+    [writeQuery],
   );
 
   const displayName = partner.profile?.fullName?.trim() || partner.profile?.email?.trim() || 'Partner';
@@ -191,7 +191,7 @@ export default function PartnerRecordInspector({
     [displayName],
   );
 
-  const bodyTab: PartnerInspectorTabId = lens === 'partner-view' ? 'overview' : activeTab;
+  const bodyTab: PartnerInspectorTabId = activeTab;
 
   return (
     <aside
@@ -288,25 +288,25 @@ export default function PartnerRecordInspector({
         <button
           type="button"
           role="tab"
-          aria-selected={lens === 'partner-view'}
-          className={`fc-wlp-partner-lens-btn ${lens === 'partner-view' ? 'is-active accent-violet' : ''}`}
-          onClick={() => setLens('partner-view')}
-        >
-          <LayoutDashboard size={15} /> Partner view
-        </button>
-        <button
-          type="button"
-          role="tab"
           aria-selected={lens === 'admin-file'}
           className={`fc-wlp-partner-lens-btn ${lens === 'admin-file' ? 'is-active accent-emerald' : ''}`}
           onClick={() => setLens('admin-file')}
         >
           <ShieldCheck size={15} /> Admin file
         </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={lens === 'partner-view'}
+          className={`fc-wlp-partner-lens-btn ${lens === 'partner-view' ? 'is-active accent-violet' : ''}`}
+          onClick={() => setLens('partner-view')}
+        >
+          <LayoutDashboard size={15} /> View as partner
+        </button>
       </div>
 
-      {lens === 'admin-file' ? (
-        <div className="fc-wlp-partner-workflow-tabs" role="tablist" aria-label="Partner file workflows">
+      {lens === 'partner-view' ? (
+        <div className="fc-wlp-partner-workflow-tabs" role="tablist" aria-label="Partner portal preview">
           {PARTNER_INSPECTOR_TABS.map((tab) => (
             <button
               key={tab.id}
@@ -316,7 +316,12 @@ export default function PartnerRecordInspector({
               className={`fc-wlp-partner-workflow-tab accent-${tab.accent} ${
                 activeTab === tab.id ? 'is-active' : ''
               }`}
-              onClick={() => setTab(tab.id)}
+              onClick={() => {
+                writeQuery((params) => {
+                  params.set('view', 'partner');
+                  params.set('tab', tab.id);
+                });
+              }}
             >
               {tab.label}
             </button>
@@ -355,47 +360,37 @@ export default function PartnerRecordInspector({
         >
           <Sparkles size={14} /> Ask Finely
         </button>
-        <button type="button" className="fc-wlp-partner-quick-action accent-emerald" onClick={() => setTab('notes')}>
-          Notes
+        <button
+          type="button"
+          className="fc-wlp-partner-quick-action accent-rose"
+          onClick={() => onOpenCareTeam?.()}
+          disabled={!onOpenCareTeam}
+        >
+          <UserCheck size={14} /> Care team
         </button>
-        <button type="button" className="fc-wlp-partner-quick-action accent-rose" onClick={() => setTab('letters')}>
-          Letters
+        <button
+          type="button"
+          className="fc-wlp-partner-quick-action accent-emerald"
+          onClick={() => (onOpenSendInvite ?? onOpenPortalAccess)?.()}
+          disabled={!onOpenSendInvite && !onOpenPortalAccess}
+        >
+          <Mail size={14} /> Send invite
         </button>
-        {onOpenCareTeam ? (
-          <button type="button" className="fc-wlp-partner-quick-action accent-sky" onClick={onOpenCareTeam}>
-            <UserCheck size={14} /> Care team
-          </button>
-        ) : null}
-        {onOpenSendInvite ? (
-          <button type="button" className="fc-wlp-partner-quick-action accent-emerald" onClick={onOpenSendInvite}>
-            <Mail size={14} /> Send invite
-          </button>
-        ) : onOpenPortalAccess ? (
-          <button type="button" className="fc-wlp-partner-quick-action accent-emerald" onClick={onOpenPortalAccess}>
-            <Mail size={14} /> Send invite
-          </button>
-        ) : null}
-        {onOpenGrantAccess ? (
-          <button type="button" className="fc-wlp-partner-quick-action accent-violet" onClick={onOpenGrantAccess}>
-            <KeyRound size={14} /> Grant access
-          </button>
-        ) : onOpenPortalAccess ? (
-          <button type="button" className="fc-wlp-partner-quick-action accent-violet" onClick={onOpenPortalAccess}>
-            <KeyRound size={14} /> Grant access
-          </button>
-        ) : null}
-        {missingReport ? (
-          <button type="button" className="fc-wlp-partner-quick-action accent-emerald" onClick={() => setTab('reports')}>
-            Upload report
-          </button>
-        ) : null}
       </div>
 
       <div className="fc-wlp-partner-view-embed" data-fc-partner-portal="1" data-partner-id={partner.id} data-bed="dark">
         <Suspense fallback={<ProductDashboardSkeleton label="Loading partner workspace" />}>
-          <PartnerSessionOverrideProvider partner={partner}>
-            <InspectorTabBody tab={bodyTab} partnerId={partner.id} dataMode={dataMode} />
-          </PartnerSessionOverrideProvider>
+          {lens === 'admin-file' ? (
+            <AdminPartnerFulfillmentSurface
+              partner={partner}
+              dataMode={dataMode}
+              missingReport={Boolean(missingReport)}
+            />
+          ) : (
+            <PartnerSessionOverrideProvider partner={partner}>
+              <InspectorTabBody tab={bodyTab} partnerId={partner.id} dataMode={dataMode} />
+            </PartnerSessionOverrideProvider>
+          )}
         </Suspense>
       </div>
 

@@ -1,6 +1,6 @@
 export type ChatLocale = 'en' | 'es' | 'ht' | 'fr' | 'pt' | 'zh' | 'vi' | 'ar';
 
-export const CHAT_LOCALE_ORDER: ChatLocale[] = ['en', 'es', 'ht', 'fr', 'pt', 'zh', 'vi', 'ar'];
+export const CHAT_LOCALE_ORDER: ChatLocale[] = ['en', 'es', 'ht', 'fr', 'pt'];
 
 export const CHAT_LOCALE_LABELS: Record<ChatLocale, string> = {
   en: 'English',
@@ -11,6 +11,17 @@ export const CHAT_LOCALE_LABELS: Record<ChatLocale, string> = {
   zh: '中文',
   vi: 'Tiếng Việt',
   ar: 'العربية',
+};
+
+export const CHAT_LOCALE_FACE_LABELS: Record<ChatLocale, string> = {
+  en: 'EN',
+  es: 'ES',
+  ht: 'Kreyòl',
+  fr: 'FR',
+  pt: 'PT',
+  zh: '中文',
+  vi: 'VI',
+  ar: 'AR',
 };
 
 type Strings = {
@@ -42,29 +53,29 @@ type Strings = {
 const STRINGS: Record<ChatLocale, Strings> = {
   en: {
     chatWith: 'Chat with',
-    aiGuide: 'AI guide · live support on shift',
-    liveSpecialist: 'Live support specialist when ready',
-    pickLane: 'Pick your lane',
+    aiGuide: 'AI guide, with live support on shift',
+    liveSpecialist: 'A live support specialist when you are ready',
+    pickLane: 'Choose a path',
     you: 'You',
     typing: 'is typing…',
-    sendPlaceholder: 'Type your message…',
+    sendPlaceholder: 'Ask about restore, debt paper, or funding…',
     language: 'Language',
     bookSession: 'Book a session',
     appointmentSet: 'Your session request is in — we will confirm by email.',
     needPartnerForStaff:
       'To message a specific team member directly, create a free partner account. Otherwise I can book you a call with them.',
     welcomeGeneric:
-      "Hi — I'm your Finely Cred guide. Pick a lane or tell me what you need — I'll connect you with whoever is on support shift.",
+      'Hello — thank you for writing. If you have a credit report, a collector letter, or a company file, start there. I will stay with you.',
     trustedLinks: 'Helpful links',
     hearWelcome: 'Hear welcome',
     close: 'Close',
     yourOptions: 'Your options',
     openOptions: 'Options',
     closeOptions: 'Close options',
-    pickLaneToStart: 'Pick your lane to start',
+    pickLaneToStart: 'Choose a path to begin',
     suggestedReplies: 'Suggested replies',
     popularTopics: 'Popular topics',
-    easyReadMode: 'Easy read mode (short sentences)',
+    easyReadMode: 'Easy read (shorter sentences)',
     pageHelp: 'Help on this page',
   },
   es: {
@@ -81,7 +92,7 @@ const STRINGS: Record<ChatLocale, Strings> = {
     needPartnerForStaff:
       'Para escribir directamente a un miembro del equipo, crea una cuenta de socio gratis. Si no, puedo reservarte una llamada.',
     welcomeGeneric:
-      'Hola — soy tu guía de Finely Cred. Elige un camino o cuéntame qué necesitas — te conectaré con quien esté de turno.',
+      'Hola — ¿qué tienes delante? Un informe, una carta de cobro, o el archivo de una empresa. Empiezo ahí.',
     trustedLinks: 'Enlaces útiles',
     hearWelcome: 'Escuchar bienvenida',
     close: 'Cerrar',
@@ -108,7 +119,7 @@ const STRINGS: Record<ChatLocale, Strings> = {
     needPartnerForStaff:
       'Pou pale dirèkteman ak yon manm ekip, kreye yon kont patnè gratis. Sinon m ka pran randevou pou ou pale avèk yo.',
     welcomeGeneric:
-      'Bonjou — m se gid Finely Cred ou. Chwazi yon wout oswa di m sa w bezwen — m ap konekte w ak moun ki sou sèvis sipò jodi a.',
+      'Bonjou. Mèsi paske w ekri. Si w gen yon rapò kredi, yon lèt kolektè, oswa yon dosye konpayi, kòmanse la. M ap rete avè w.',
     trustedLinks: 'Lyen itil',
     hearWelcome: 'Tande mesaj byenveni',
     close: 'Fèmen',
@@ -135,7 +146,7 @@ const STRINGS: Record<ChatLocale, Strings> = {
     needPartnerForStaff:
       "Pour contacter un membre précis de l'équipe, créez un compte partenaire gratuit. Sinon je peux réserver un appel.",
     welcomeGeneric:
-      'Bonjour — je suis votre guide Finely Cred. Choisissez un parcours ou dites-moi votre besoin — je vous connecte au support en service.',
+      'Bonjour — qu’avez-vous sous les yeux ? Un rapport, une lettre de recouvrement, ou le dossier d’une entreprise. On commence là.',
     trustedLinks: 'Liens utiles',
     hearWelcome: 'Écouter le message',
     close: 'Fermer',
@@ -162,7 +173,7 @@ const STRINGS: Record<ChatLocale, Strings> = {
     needPartnerForStaff:
       'Para falar diretamente com um membro da equipe, crie uma conta parceira gratuita. Caso contrário, posso agendar uma ligação.',
     welcomeGeneric:
-      'Olá — sou seu guia Finely Cred. Escolha um caminho ou diga o que precisa — vou conectar você com quem está de plantão.',
+      'Olá — o que está na sua frente? Um relatório, uma carta de cobrança, ou o arquivo de uma empresa. Começo por aí.',
     trustedLinks: 'Links úteis',
     hearWelcome: 'Ouvir boas-vindas',
     close: 'Fechar',
@@ -266,13 +277,7 @@ export function detectLocaleFromText(text: string): ChatLocale | null {
   const frHints = ['bonjour', 'merci', 'comment', 'crédit', 'aide', 'rendez-vous', 'français', 'parlez'];
   const esHints = ['hola', 'gracias', 'cómo', 'como', 'crédito', 'credito', 'ayuda', 'español', 'espanol', 'necesito', 'quiero'];
   const ptHints = ['olá', 'ola', 'obrigado', 'crédito', 'credito', 'ajuda', 'português', 'portugues', 'preciso'];
-  const zhHints = ['你好', '谢谢', '信用', '帮助', '怎么', '需要'];
-  const viHints = ['xin chào', 'xin chao', 'cảm ơn', 'cam on', 'tín dụng', 'tin dung', 'giúp', 'giup'];
-  const arHints = ['مرحب', 'شكر', 'ائتمان', 'مساعدة', 'كيف', 'أحتاج'];
   if (htHints.some((h) => s.includes(h))) return 'ht';
-  if (arHints.some((h) => s.includes(h))) return 'ar';
-  if (zhHints.some((h) => s.includes(h))) return 'zh';
-  if (viHints.some((h) => s.includes(h))) return 'vi';
   if (esHints.some((h) => s.includes(h))) return 'es';
   if (ptHints.some((h) => s.includes(h))) return 'pt';
   if (frHints.some((h) => s.includes(h))) return 'fr';
@@ -296,7 +301,7 @@ export function localeInstruction(locale: ChatLocale): string {
     case 'ar':
       return 'Respond in Modern Standard Arabic unless the visitor switches language.';
     default:
-      return 'Respond in English unless the visitor writes in another supported language — then match their language. Supported: English, Spanish, Haitian Creole, French, Portuguese, Chinese, Vietnamese, Arabic.';
+      return 'Respond in English unless the visitor writes in another supported language — then match their language. Supported: English, Spanish, Haitian Creole, French, Portuguese.';
   }
 }
 

@@ -1097,9 +1097,9 @@ const EXTENDED_FREE_GUIDES_RAW: FreeGuide[] = [
         ],
       },
       {
-        heading: '1. Validation-first doctrine (never pay as default)',
+        heading: '1. Validate first (never pay as default)',
         bullets: [
-          'Finely Cred doctrine: challenge inaccurate reporting and unvalidated debts — do not default to paying charge-offs, collections, or settlements as step one.',
+          'Finely Cred playbook: challenge inaccurate reporting and unvalidated debts — do not default to paying charge-offs, collections, or settlements as step one.',
           'Within 30 days of a collector’s first written communication, send a validation request (certified mail).',
           'Collector must cease collection until it validates — demand itemization, signed agreement if claimed, and chain of assignment.',
           'If validation is insufficient, escalate with affidavit of dispute and CFPB/state AG pattern documentation as facts support.',
@@ -1465,7 +1465,7 @@ const EXTENDED_FREE_GUIDES_RAW: FreeGuide[] = [
       {
         heading: 'Collector payment traps that re-age files',
         bullets: [
-          'Finely Cred doctrine: validate and dispute inaccurate reporting before you pay as the default path.',
+          'Finely Cred playbook: validate and dispute inaccurate reporting before you pay as the default path.',
           'If you do pay or settle later, get written terms on how dates and status will report — and keep the agreement in your vault.',
           'A partial payment can restart collection activity optics even when it should not reset DOFD — document everything.',
           'Never rely on a phone promise that “paying will delete the account.”',
@@ -2229,7 +2229,7 @@ const EXTENDED_FREE_GUIDES_RAW: FreeGuide[] = [
     desc: 'Partner primer on settlement vs pay-for-delete, 1099-C income risk, settled-for-less remarks, funding optics, and scam red flags — before you pay a collector.',
     sections: [
       {
-        heading: 'Finely Cred doctrine before you settle',
+        heading: 'Finely Cred playbook before you settle',
         bullets: [
           'KEY: Settlement is a later tool — validate, get written reporting terms, and budget for 1099-C risk before you pay.',
           'Challenge inaccurate reporting and unvalidated debts first — do not default to settlement as step one.',

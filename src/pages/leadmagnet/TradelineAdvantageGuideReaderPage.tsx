@@ -22,6 +22,8 @@ import {
   TL_MARKETPLACE_PATH,
 } from './tradelineAdvantageGuideContent';
 import GuideReaderShell from './GuideReaderShell';
+import { LeadMagnetPreviewBanner } from '../../components/leadmagnet/LeadMagnetPreviewBanner';
+import { clampLeadMagnetChapter, useLeadMagnetGuideGate } from '../../lib/useLeadMagnetGuideGate';
 import './tradelineAdvantageGuideReader.css';
 import './guideReaderShell.css';
 
@@ -31,6 +33,7 @@ export default function TradelineAdvantageGuideReaderPage() {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const [walletOpen, setWalletOpen] = useState(false);
+  const { unlocked, previewLocked } = useLeadMagnetGuideGate('tradeline_insider');
 
   const initialIdx = useMemo(() => {
     const q = params.get('chapter') ?? '';
@@ -43,8 +46,8 @@ export default function TradelineAdvantageGuideReaderPage() {
   const [idx, setIdx] = useState(initialIdx);
 
   useEffect(() => {
-    setIdx(initialIdx);
-  }, [initialIdx]);
+    setIdx(previewLocked ? 0 : initialIdx);
+  }, [initialIdx, previewLocked]);
 
   const chapter = TL_GUIDE_CHAPTERS[idx] ?? TL_GUIDE_CHAPTERS[0]!;
   const totalMinutes = useMemo(() => guideReadMinutes(TL_GUIDE_CHAPTERS), []);
@@ -68,12 +71,12 @@ export default function TradelineAdvantageGuideReaderPage() {
 
   const goChapter = useCallback(
     (next: number) => {
-      const clamped = Math.max(0, Math.min(TOTAL - 1, next));
+      const clamped = clampLeadMagnetChapter(next, TOTAL, unlocked);
       setIdx(clamped);
       setParams({ chapter: TL_GUIDE_CHAPTERS[clamped]!.id }, { replace: true });
       setWalletOpen(false);
     },
-    [setParams],
+    [setParams, unlocked],
   );
 
   return (
@@ -82,6 +85,14 @@ export default function TradelineAdvantageGuideReaderPage() {
       chapters={shellChapters}
       chapterIndex={idx}
       onChapterChange={goChapter}
+      previewLocked={previewLocked}
+      previewUnlockHref={`${TL_GUIDE_LANDING_PATH}#download`}
+      previewBanner={
+        <LeadMagnetPreviewBanner
+          unlockHref={`${TL_GUIDE_LANDING_PATH}#download`}
+          pagesLabel="the full tradeline guide"
+        />
+      }
       tocOpen={walletOpen}
       onTocOpenChange={setWalletOpen}
       tocToggleLabel="Wallet"

@@ -194,35 +194,8 @@
 
 .fc-wlp-admin-stage-meta span { color: rgba(255, 255, 255, 0.88); }
 
-/* People-tone heroes render a mid-tone bed in the copy column — lift copy onto ivory glass */
-.fc-wlp-admin-stage-hero[data-tone='people'] .fc-wlp-admin-stage-hero-copy {
-  border-radius: 22px;
-  background: rgba(255, 255, 255, 0.94);
-  padding: clamp(20px, 2.5vw, 28px);
-  box-shadow: 0 24px 48px -36px rgba(3, 8, 16, 0.65);
-}
-
-.fc-wlp-admin-stage-hero[data-tone='people'] .fc-wlp-admin-stage-eyebrow {
-  color: #064e3b;
-  border-color: rgba(6, 78, 59, 0.28);
-  background: rgba(236, 253, 245, 0.95);
-}
-
-.fc-wlp-admin-stage-hero[data-tone='people'] .fc-wlp-admin-stage-title {
-  color: #0a1628;
-}
-
-.fc-wlp-admin-stage-hero[data-tone='people'] .fc-wlp-admin-stage-description {
-  color: #152235;
-}
-
-.fc-wlp-admin-stage-hero[data-tone='people'] .fc-wlp-admin-stage-meta strong {
-  color: #0a1628;
-}
-
-.fc-wlp-admin-stage-hero[data-tone='people'] .fc-wlp-admin-stage-meta span {
-  color: #435063;
-}
+/* People-tone keeps the dark atmospheric stage. Ivory copy glass made mint accents
+   disappear (Staff “living company floor”) and washed the first box. */
 
 .fc-wlp-admin-stage-hero[data-tone='pipeline'] .fc-wlp-admin-stage-eyebrow {
   color: #fff;
@@ -303,7 +276,7 @@
 .fc-wlp-admin-stage-nav-track {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: 11px;
+  gap: 20px;
 }
 
 .fc-wlp-admin-stage-nav-card {
@@ -424,12 +397,18 @@
   padding: clamp(20px, 2.5vw, 28px);
 }
 
+.fc-wlp-admin-stage-section:has(.fc-work-board-scroll),
+.fc-wlp-admin-stage-section:has(.fc-wlp-crm-pipeline-container) {
+  overflow-x: auto;
+  overflow-y: visible;
+  scrollbar-gutter: stable;
+}
+
 .fc-wlp-admin-stage-section[data-tone='light'] {
-  border: 1px solid rgba(28, 42, 61, 0.12);
-  background: rgba(255, 255, 255, 0.82);
-  box-shadow:
-    0 24px 50px -42px rgba(7, 18, 33, 0.55),
-    inset 0 1px 0 #fff;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  padding-inline: 0;
 }
 
 .fc-wlp-admin-stage-section[data-tone='dark'] {

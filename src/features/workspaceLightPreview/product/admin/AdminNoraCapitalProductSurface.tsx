@@ -507,7 +507,7 @@ export default function AdminNoraCapitalProductSurface({ role, pageId }: Workspa
                 <input value={path} onChange={(e) => setPath(e.target.value)} className={FINELY_OS_ENTITY_INPUT} />
               </label>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-5">
                 <label className="block">
                   <div className={FINELY_OS_ENTITY_LABEL}>Method</div>
                   <select

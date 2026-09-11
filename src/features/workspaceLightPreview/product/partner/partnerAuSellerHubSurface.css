@@ -9,7 +9,7 @@
 .fc-au-ledger-board {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 12px;
+  gap: 20px;
   overflow-x: auto;
   padding-bottom: 6px;
 }

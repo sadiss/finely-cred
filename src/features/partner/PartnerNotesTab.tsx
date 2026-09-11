@@ -403,7 +403,7 @@ export function PartnerNotesTab({
       <div className={`${finelyOsCatalogCard('sky')} space-y-4`}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className={FINELY_OS_ENTITY_SUBLABEL}>Saved notes command deck</p>
+            <p className={FINELY_OS_ENTITY_SUBLABEL}>Saved notes desk</p>
             <p className={`${FINELY_OS_ENTITY_BODY} text-sm`}>Organized cards, not a long wall. Filter, pin, share, or delete quickly.</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">

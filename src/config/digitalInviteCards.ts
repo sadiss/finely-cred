@@ -138,14 +138,14 @@ export const DIGITAL_INVITE_CARDS: Record<DigitalInviteCardRole, DigitalInviteCa
   },
   tradelines: {
     role: 'tradelines',
-    title: 'Tradeline Marketplace',
+    title: 'Tradelines',
     destPath: '/tradelines',
     offerTag: 'au_tradelines',
     bonus: {
       id: 'priority_au_matching',
-      label: 'Priority AU matching',
+      label: 'Open-seat matching',
       description:
-        'You unlocked priority authorized-user matching by starting through this invite card — your profile is matched against available seasoned lines first.',
+        'This invite puts them in line for the next open seat when a line is on the floor.',
     },
   },
 };

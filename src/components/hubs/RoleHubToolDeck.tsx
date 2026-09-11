@@ -46,7 +46,7 @@ export function RoleHubToolDeck({
         <p className={FINELY_OS_ENTITY_SUBLABEL}>{title}</p>
         <p className={`mt-1 text-base ${FINELY_OS_ENTITY_BODY}`}>{subtitle}</p>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
         {tools.map((tool) => {
           const Icon = tool.icon;
           const accent = tool.accent ?? 'violet';

@@ -1,0 +1,168 @@
+/* Data Feeds — newsroom assignment board (not a connector grid). */
+
+.fc-data-feeds {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+  gap: 28px;
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .fc-data-feeds {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fc-data-feeds-pulse {
+  position: relative;
+  overflow: hidden;
+  padding: 32px 36px;
+  border-radius: 8px 8px 28px 8px;
+  background:
+    radial-gradient(120% 140% at 100% 0%, rgba(56, 189, 248, 0.22), transparent 42%),
+    linear-gradient(160deg, #071018 0%, #0b1220 55%, #1e1b4b 100%);
+  border: 1px solid rgba(56, 189, 248, 0.28);
+}
+
+.fc-data-feeds-pulse::after {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #34d399;
+  top: 28px;
+  right: 28px;
+  box-shadow: 0 0 0 8px rgba(52, 211, 153, 0.18);
+}
+
+.fc-data-feeds-pulse-kicker {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #7dd3fc;
+}
+
+.fc-data-feeds-pulse-title {
+  margin: 10px 0 8px;
+  font-size: 2.25rem;
+  line-height: 1.1;
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+.fc-data-feeds-pulse-body {
+  max-width: 42rem;
+  font-size: 1rem;
+  line-height: 1.65;
+  color: rgba(226, 232, 240, 0.82);
+}
+
+.fc-data-feeds-columns {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 22px;
+}
+
+@media (max-width: 900px) {
+  .fc-data-feeds-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fc-data-feeds-col {
+  min-width: 0;
+  padding: 8px 0 0;
+  border-top: 3px solid currentColor;
+}
+
+.fc-data-feeds-col[data-topic='marketing'] {
+  color: #34d399;
+}
+
+.fc-data-feeds-col[data-topic='credit'] {
+  color: #a78bfa;
+}
+
+.fc-data-feeds-col[data-topic='debt'] {
+  color: #fb7185;
+}
+
+.fc-data-feeds-col-label {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.fc-data-feeds-ticket {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  margin-bottom: 12px;
+  padding: 18px 16px;
+  border-radius: 4px 18px 4px 18px;
+  background: rgba(15, 23, 42, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: inherit;
+}
+
+.fc-data-feeds-ticket[data-live='false'] {
+  opacity: 0.72;
+}
+
+.fc-data-feeds-ticket-source {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.fc-data-feeds-ticket-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.35;
+  color: #f8fafc;
+}
+
+.fc-data-feeds-ticket-detail {
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: rgba(226, 232, 240, 0.72);
+}
+
+.fc-data-feeds-rail {
+  position: sticky;
+  top: 88px;
+  padding: 24px 22px;
+  border-radius: 28px 8px 28px 8px;
+  background:
+    radial-gradient(80% 80% at 0% 0%, rgba(244, 114, 182, 0.16), transparent 50%),
+    #0b1020;
+  border: 1px solid rgba(244, 114, 182, 0.28);
+}
+
+.fc-data-feeds-rail-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.fc-data-feeds-rail-item {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.fc-data-feeds-rail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}

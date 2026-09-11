@@ -88,7 +88,7 @@ export default function AdminCmsPage({ embedded = false }: AdminEmbeddablePagePr
               description="Audit what partners see (DIY vs DFY, categories, rails)."
               icon={Layout}
               accent="sky"
-              onClick={() => navigate('/pricing')}
+              onClick={() => navigate('/pricing/personal-credit-restore')}
             />
           </div>
         </FinelyOsGlassPanel>

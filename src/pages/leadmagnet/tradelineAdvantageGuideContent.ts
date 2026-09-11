@@ -14,10 +14,10 @@ export const TL_BOOKING_PATH = '/enlightenment-session';
 export const TL_GUIDE_META: GuideMeta = {
   title: 'The Tradeline Advantage',
   shortTitle: 'Tradeline Advantage',
-  tagline: 'Limits · Age · Utilization · Honest sequencing',
+  tagline: 'Limits, age, utilization, and honest sequencing',
   description:
-    'A free in-app guide to tradelines without the hype: what a tradeline actually is, authorized user versus primary, what AU can and cannot do, how underwriters read a line, utilization timing, compliance red flags, and where tradelines fit in a real plan.',
-  compliance: 'Educational only · results vary · no guaranteed score outcomes',
+    'A free in-app guide to tradelines without the hype: what a tradeline actually is, authorized user versus primary, what an authorized-user line can and cannot do, how underwriters read a line, utilization timing, and where tradelines fit in a real plan.',
+  compliance: 'Results vary · not legal advice · funding subject to underwriting',
   edition: 'Finely Cred edition',
   landingPath: TL_GUIDE_LANDING_PATH,
   readPath: TL_GUIDE_READ_PATH,

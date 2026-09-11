@@ -11,7 +11,7 @@ export function PublicLegalFooter({ className = '' }: Props) {
   const linkClass = 'hover:text-white transition-colors';
   return (
     <nav
-      className={`flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-white/30 ${className}`.trim()}
+      className={`fc-public-legal-footer flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs ${className}`.trim()}
       aria-label="Legal links"
     >
       <Link to={PUBLIC_HOS_NAV.path} className={linkClass}>

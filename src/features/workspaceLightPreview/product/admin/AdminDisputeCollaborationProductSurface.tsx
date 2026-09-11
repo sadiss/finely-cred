@@ -236,7 +236,7 @@ export default function AdminDisputeCollaborationProductSurface({ role, pageId }
 
         {/* Queue + inspector */}
         <div className="fc-admin-dispute-collab-layout">
-          <aside className={`fc-admin-dispute-collab-queue ${finelyOsCatalogCard('emerald')} p-5 lg:p-6`} data-fc-accent="emerald">
+          <aside className={`fc-admin-dispute-collab-queue ${finelyOsCatalogCard('emerald')} p-6 lg:p-8`} data-fc-accent="emerald">
             <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
               <Gavel size={16} />
               <span>Thread queue</span>

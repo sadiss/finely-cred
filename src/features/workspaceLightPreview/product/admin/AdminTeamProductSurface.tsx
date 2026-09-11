@@ -251,7 +251,7 @@ export default function AdminTeamProductSurface({ role, pageId }: WorkspaceProdu
         { label: 'Active', value: String(activeCount), hint: `${invitedCount} invited`, accent: 'sky', onClick: () => setDeckMode('roster') },
         { label: 'Members', value: String(members.length), hint: 'In this tenant', accent: 'rose', onClick: () => setDeckMode('roster') },
       ]}
-      metricTitle="Team command deck"
+      metricTitle="Team overview"
       metricDescription="Pick a tenant, invite by email, then edit roles and permissions in the roster."
     >
       <div className={FINELY_OS_PAGE} data-surface-layout="command-deck">
@@ -260,7 +260,7 @@ export default function AdminTeamProductSurface({ role, pageId }: WorkspaceProdu
           <div className="flex flex-wrap items-start justify-between gap-6">
             <div className="max-w-3xl">
               <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
-                <Shield size={16} /> Roles command deck
+                <Shield size={16} /> Roles and permissions
               </div>
               <h2 className="mt-3 text-3xl font-extrabold lg:text-4xl">
                 {activeDeck.label}: {activeDeck.desc}
@@ -468,7 +468,7 @@ export default function AdminTeamProductSurface({ role, pageId }: WorkspaceProdu
                       </button>
                     </div>
 
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
                       <div>
                         <div className={FINELY_OS_ENTITY_SUBLABEL}>Role</div>
                         <select

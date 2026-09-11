@@ -13,6 +13,7 @@ const DEPARTMENT_EMOJI: Record<StaffDepartment, string> = {
   growth_sessions: '🤝',
   marketing: '📣',
   internal_ops: '🛡️',
+  haitian_community: '🌿',
 };
 
 function roleForPersona(personaId: string): VideoParticipantRole {
@@ -66,6 +67,7 @@ export function departmentLabel(dept: StaffDepartment): string {
     growth_sessions: 'Sales & sessions',
     marketing: 'Marketing',
     internal_ops: 'Internal ops',
+    haitian_community: 'Haitian community',
   };
   return labels[dept] ?? dept;
 }

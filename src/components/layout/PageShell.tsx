@@ -49,7 +49,6 @@ export function PageShell({
   laneHero?: React.ReactNode;
 }) {
   const ivorySurface = surface === 'ivory';
-  const fullWidthContent = contentWidth === 'full';
   const location = useLocation();
   const navigate = useNavigate();
   const auth = useAuth();
@@ -216,10 +215,13 @@ export function PageShell({
       pathname === '/start-here' ||
       pathname.startsWith('/start-here/'));
   const topPad = useLargeTopPad
-    ? showWayfinder
-      ? 'pt-52'
-      : 'pt-28'
+    ? 'pt-28'
     : 'pt-[max(0.75rem,env(safe-area-inset-top))]';
+  const launchHelpStrip = hideLaunchHelpStrip ? null : (
+    <div className="relative z-0 isolate mt-4 mb-6" data-fc-ask-finely-slot="1">
+      <FinelyLaunchHelpStrip tone={ivorySurface ? 'ivory' : 'dark'} />
+    </div>
+  );
   const shellTopPad = laneHero ? 'pt-0' : topPad;
   const isAdmin = pathname.startsWith('/admin') || wlPreviewAdmin;
   const isPortal = pathname.startsWith('/portal') || wlPreviewPortal;
@@ -235,6 +237,8 @@ export function PageShell({
     pathname.startsWith('/seller') ||
     pathname.startsWith('/account');
   const useAppTopChrome = isAppRoute;
+  /** Public marketing pages default to homepage-width (no 1560 box). App rails stay boxed. */
+  const fullWidthContent = contentWidth === 'full' || (!isAppRoute && !isWorkspaceLightPreview);
 
   const appSurface = isPortal
     ? 'portal'
@@ -448,6 +452,13 @@ export function PageShell({
           ? 'fc-landing-wealthy-ivory text-[#0a1628]'
           : 'bg-fc-deep text-white'
       }`}
+      style={
+        isAdmin
+          ? ({
+              ['--fc-admin-rail-w' as string]: adminRailExpanded ? '17rem' : '5.5rem',
+            } as React.CSSProperties)
+          : undefined
+      }
     >
       {debugUi ? (
         <div
@@ -589,7 +600,7 @@ export function PageShell({
         {isPortal && <PortalCommandPaletteHost />}
 
         {isAdmin ? (
-          <div className={`grid gap-8 ${adminRailExpanded ? 'lg:grid-cols-[17rem_1fr]' : 'lg:grid-cols-[5.5rem_1fr]'}`}>
+          <div className={`grid gap-8 ${adminRailExpanded ? 'lg:grid-cols-[17rem_1fr]' : 'lg:grid-cols-[5.5rem_1fr]'} lg:min-h-screen`}>
             <AdminNavRail
               expanded={adminRailExpanded}
               onToggleExpanded={() => {
@@ -645,7 +656,7 @@ export function PageShell({
                   data-fc-route-pathname={pathname}
                   className={`${ivorySurface ? 'fc-light-readable' : 'fc-light-black-scope'} fc-senior-simple min-w-0 overflow-x-clip`}
                 >
-                  {hideLaunchHelpStrip ? null : <FinelyLaunchHelpStrip />}
+                  {launchHelpStrip}
                   {children}
                 </div>
               </div>
@@ -713,14 +724,14 @@ export function PageShell({
                 data-fc-route-pathname={pathname}
                 className={`${ivorySurface ? 'fc-light-readable' : 'fc-light-black-scope'} fc-senior-simple min-w-0 overflow-x-clip`}
               >
-                {hideLaunchHelpStrip ? null : <FinelyLaunchHelpStrip />}
+                {launchHelpStrip}
                 {children}
               </div>
             </div>
           </>
         )}
       </div>
-      {!isAppRoute ? <PublicLegalFooter className="pb-8 px-6" /> : null}
+      {!isAppRoute ? <PublicLegalFooter className="px-6" /> : null}
     </div>
   );
 }

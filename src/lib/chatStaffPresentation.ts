@@ -11,6 +11,7 @@ import {
 } from '../data/staffRoster';
 import { staffMemberFullName, type StaffMember } from '../domain/staffMember';
 import { resolveStaffPortraitUrl } from './staffPortrait';
+import type { ChatLocale } from './publicChatI18n';
 import { CO_OWNER_IDENTITY } from '../domain/coOwnerPersona';
 import {
   PERSONA_PRESENTATION_STYLES,
@@ -57,12 +58,16 @@ function resolveStaffForContext(args: {
   }
 
   let personaId = args.personaId;
+  let lane = args.lane;
+  if (personaId === 'haitian_companion' && !lane) {
+    lane = 'haitian';
+  }
   if (!personaId) {
-    personaId = args.lane ? portalPersonaForLane(args.lane).id : personaOnDutyAt(args.date).id;
+    personaId = lane ? portalPersonaForLane(lane).id : personaOnDutyAt(args.date).id;
   }
   const persona = getPortalStaffPersona(personaId);
   const staff =
-    (args.lane ? resolveStaffOnDutyForLane(args.lane, args.date) : null) ??
+    (lane ? resolveStaffOnDutyForLane(lane, args.date) : null) ??
     resolveStaffOnDuty(personaId, args.date) ??
     firstActiveRosterMember();
 
@@ -95,14 +100,13 @@ function buildPresentation(
 export function buildAiDisclosureWelcome(
   presentation: Pick<PublicChatPersonaPresentation, 'firstName' | 'title' | 'welcome'>,
   audience: ChatStaffAudience,
+  personaId?: AgentPersonaId,
+  locale?: ChatLocale,
 ): string {
-  const pronoun = 'they';
-  const disclosure = `You're chatting with Finely's AI, standing in for ${presentation.firstName}, ${presentation.title} — ${pronoun}'ll take over live when you're ready.`;
-  const tail =
-    audience === 'partner'
-      ? 'Ask anything about your portal, disputes, documents, or funding — or tap a suggestion below.'
-      : 'Pick a lane or tell me what you need — restore, business credit, debt help, or a free session.';
-  return `${disclosure}\n\n${presentation.welcome}\n\n${tail}`;
+  if (personaId === 'haitian_companion' && locale === 'ht') {
+    return `Bonjou. Mwen se ${presentation.firstName}. Nou ede Ayisyen ki viv Ozetazini ak dosye kredi ak lèt kolektè. Lè w pare, di m sa ki rive nan lapòs la.`;
+  }
+  return `Hello — I am ${presentation.firstName}. I help with credit reports, collector letters, and the next step. When you are ready, tell me what arrived.`;
 }
 
 export function buildAiAssistSystemPrompt(args: {
@@ -117,7 +121,8 @@ export function buildAiAssistSystemPrompt(args: {
   const audienceLabel = args.audience === 'partner' ? 'partner' : 'guest';
   return [
     `You are Finely Cred's AI assistant, speaking in ${args.presentation.firstName}'s voice as ${args.presentation.title}.`,
-    `You are NOT ${liveName} — you are AI assisting on ${liveName}'s behalf until they can take over live. Do not pretend to be human.`,
+    `You are NOT ${liveName} — you are AI assisting on ${liveName}'s behalf until they can take over live. Do not pretend to be human. Still talk like ${args.presentation.firstName} at a desk, not like a brochure or a shared FAQ.`,
+    `Answer the question first in 2–4 sentences. If they ask how to find a score, send them to AnnualCreditReport.com. Never dump numbered SOP steps for a definition (FCRA, FDCPA, PAYDEX). If you do not know, say so — do not fill with restore speech.`,
     `Tone: ${args.persona.toneTags.join(', ') || 'warm, clear, educational'}.`,
     args.personalityHint ? `Personality: ${args.personalityHint}` : null,
     args.staff?.bioLine ? `Role focus: ${args.staff.bioLine}` : null,
@@ -141,6 +146,7 @@ export function resolveChatStaffPresentation(args?: {
   date?: Date;
   staffMemberId?: string | null;
   audience?: ChatStaffAudience;
+  locale?: ChatLocale;
 }): ChatStaffPresentation {
   ensureStaffRosterSeeded();
   const date = args?.date ?? new Date();
@@ -166,7 +172,7 @@ export function resolveChatStaffPresentation(args?: {
     persona,
     personaId,
     personalityHint,
-    welcomeWithAiDisclosure: buildAiDisclosureWelcome(presentation, audience),
+    welcomeWithAiDisclosure: buildAiDisclosureWelcome(presentation, audience, personaId, args?.locale),
     aiAssistBadgeLabel: 'AI assist',
   };
 }

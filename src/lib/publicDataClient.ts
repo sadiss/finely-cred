@@ -293,3 +293,92 @@ export async function searchCourtListenerOpinions(args: {
     ...(args.court ? { court: args.court } : {}),
   });
 }
+
+export type PublicNewsHit = {
+  title: string;
+  url?: string;
+  date?: string;
+  source?: string;
+  snippet?: string;
+};
+
+export type PublicNewsHits = { hits: PublicNewsHit[] };
+
+export type FederalRegisterSearchResponse = {
+  count?: number;
+  results?: Array<{
+    title?: string;
+    html_url?: string;
+    publication_date?: string;
+    type?: string;
+    abstract?: string;
+    agencies?: Array<{ name?: string }>;
+  }>;
+};
+
+export async function searchFederalRegister(args?: {
+  term?: string;
+  agency?: string;
+  type?: string;
+  perPage?: number;
+}): Promise<PublicDataResult<FederalRegisterSearchResponse>> {
+  return invokePublicData<FederalRegisterSearchResponse>('federal_register', 'search', {
+    ...(args?.term ? { term: args.term } : {}),
+    ...(args?.agency ? { agency: args.agency } : {}),
+    ...(args?.type ? { type: args.type } : {}),
+    ...(args?.perPage ? { per_page: args.perPage } : {}),
+  });
+}
+
+export async function searchGdeltArticles(args?: {
+  query?: string;
+  timespan?: string;
+}): Promise<PublicDataResult<PublicNewsHits>> {
+  return invokePublicData<PublicNewsHits>('gdelt', 'search', {
+    ...(args?.query ? { query: args.query } : {}),
+    ...(args?.timespan ? { timespan: args.timespan } : {}),
+  });
+}
+
+export type FredObservations = {
+  seriesId: string;
+  observations: Array<{ date: string; value: string }>;
+};
+
+export async function fetchFredSeries(args?: {
+  seriesId?: string;
+  limit?: number;
+}): Promise<PublicDataResult<FredObservations>> {
+  return invokePublicData<FredObservations>('fred', 'observations', {
+    series_id: args?.seriesId ?? 'REVOLSL',
+    ...(args?.limit ? { limit: args.limit } : {}),
+  });
+}
+
+export async function searchCongressBills(args?: {
+  query?: string;
+}): Promise<PublicDataResult<PublicNewsHits>> {
+  return invokePublicData<PublicNewsHits>('congress', 'search', {
+    ...(args?.query ? { query: args.query } : {}),
+  });
+}
+
+export async function searchGuardianArticles(args?: {
+  query?: string;
+}): Promise<PublicDataResult<PublicNewsHits>> {
+  return invokePublicData<PublicNewsHits>('guardian', 'search', {
+    ...(args?.query ? { query: args.query } : {}),
+  });
+}
+
+export async function searchBraveWeb(args: {
+  query: string;
+}): Promise<PublicDataResult<PublicNewsHits>> {
+  return invokePublicData<PublicNewsHits>('brave_search', 'search', { query: args.query });
+}
+
+export async function searchGoogleCse(args: {
+  query: string;
+}): Promise<PublicDataResult<PublicNewsHits>> {
+  return invokePublicData<PublicNewsHits>('google_cse', 'search', { query: args.query });
+}

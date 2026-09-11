@@ -5,6 +5,7 @@ import { getLeadCaptureById } from '../data/leadsRepo';
 import { getCommsTemplate, addCommsSend, hasRecentLeadCommsSend } from '../data/commsRepo';
 import { FUNNEL_SESSION_CONFIRMATION_TEMPLATE_ID } from '../data/commsFunnelSessionSeed';
 import { sendEmail } from './commsDeliveryClient';
+import { htmlFromPlainEmail } from '../comms/prebuiltHtmlEmailLayout';
 import { buildMarketingEmailFooter } from './commsUnsubscribeFooter';
 import { buildEnlightenmentSessionUrl } from './funnelPublicLinks';
 import { isFeatureEnabled } from '../data/settingsRepo';
@@ -90,7 +91,13 @@ export async function sendFunnelSessionConfirmationEmail(
   }
 
   try {
-    await sendEmail({ toEmail: email, toName: args.fullName, subject, text });
+    await sendEmail({
+      toEmail: email,
+      toName: args.fullName,
+      subject,
+      text,
+      html: htmlFromPlainEmail({ headline: subject, text: bodyCore, email }),
+    });
     addCommsSend({
       id: newId('send'),
       templateId: FUNNEL_SESSION_CONFIRMATION_TEMPLATE_ID,

@@ -302,7 +302,7 @@ export default function AdminResourcesProductSurface({ role, pageId, dataMode }:
                 </span>
                 <span className={`text-sm font-bold ${FINELY_OS_ENTITY_SUBLABEL}`}>{snapshot?.guides ?? 0} published guides</span>
               </div>
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
                 {ALL_FREE_GUIDES.slice(0, 4).map((guide, idx) => {
                   const tileAccent = MOSAIC_ACCENTS[(idx + 1) % MOSAIC_ACCENTS.length];
                   return (
@@ -329,7 +329,7 @@ export default function AdminResourcesProductSurface({ role, pageId, dataMode }:
                 </span>
                 <span className={`text-sm font-bold ${FINELY_OS_ENTITY_SUBLABEL}`}>{snapshot?.templates ?? 0} template bases</span>
               </div>
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
                 {TEMPLATE_BASES.slice(0, 4).map((tpl, idx) => {
                   const tileAccent = MOSAIC_ACCENTS[(idx + 2) % MOSAIC_ACCENTS.length];
                   return (

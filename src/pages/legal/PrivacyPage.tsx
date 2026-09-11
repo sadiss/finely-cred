@@ -1,122 +1,87 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
-import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubLayout';
-import {
-  FINELY_OS_BACK_LINK,
-  FINELY_OS_ENTITY_BODY,
-  finelyOsCatalogCard,
-  FINELY_OS_ENTITY_SUBLABEL,
-  FINELY_OS_ENTITY_VALUE,
-  FINELY_OS_PAGE,
-} from '../../features/os/finelyOsLightUi';
 import { MarketingStaffChatStrip } from '../../components/marketing/MarketingStaffChatStrip';
+import './legalStudio.css';
 
 const LAST_UPDATED_ISO = '2026-02-05';
+const ARTICLES = [
+  {
+    accent: 'sky' as const,
+    title: '1. Information we collect',
+    body: 'We collect what you give us — name, email, phone, and mailing address when a file needs it. If you upload a credit report, identification, a bureau letter, or supporting evidence, we keep those documents in your account so you can return to them. We also collect basic device and usage data (browser, timestamps, approximate network information) to keep the platform secure and performing.',
+  },
+  {
+    accent: 'violet' as const,
+    title: '2. How we use it',
+    body: 'We use this information to run the service, to reach you about your file, to meet the law, and to protect the platform. We do not sell personal information to third parties for marketing. If you operate as an agency on Finely Cred, you are responsible for the partner consents required to store or process that partner’s information here.',
+  },
+  {
+    accent: 'emerald' as const,
+    title: '3. Data security',
+    body: 'We use industry-standard controls: access permissions, HTTPS in transit, and encryption or short-lived links where they fit the workflow. You remain responsible for the strength of your login and the devices you use to open a partner file.',
+  },
+  {
+    accent: 'rose' as const,
+    title: '4. Retention',
+    body: 'We keep information for as long as the service, the law, a dispute, or our agreements require. You may request deletion of an account and its associated data, subject to those same obligations.',
+  },
+  {
+    accent: 'sky' as const,
+    title: '5. Cookies and tracking',
+    body: 'We may use cookies and similar tools for sessions, preferences, and analytics. Your browser settings can limit cookies.',
+  },
+  {
+    accent: 'violet' as const,
+    title: '6. Your rights',
+    body: 'Depending on where you live, you may have the right to access, correct, delete, or port your data, or to opt out of certain uses. Write us to exercise those rights. California residents may also have rights under the CCPA.',
+  },
+  {
+    accent: 'emerald' as const,
+    title: '7. Contact',
+    body: 'Send privacy questions or requests through the Contact page or the address in the site footer.',
+  },
+];
 
 export default function PrivacyPage() {
-  const navigate = useNavigate();
   usePublicSeoMeta({
-    title: 'Privacy policy',
-    description: 'How Finely Cred collects, uses, and protects your personal information.',
+    title: 'Privacy policy · How Finely Cred handles your information',
+    description:
+      'How Finely Cred collects, uses, protects, and retains personal information for partners and guests. We do not sell personal information for marketing.',
     path: '/privacy',
   });
+
   return (
-    <PageShell
-      badge="Legal"
-      title="Privacy Policy"
-      subtitle="How we collect, use, and protect your information."
-    >
-      <div className={FINELY_OS_PAGE}>
-        <FinelyUnifiedHubLayout
-          eyebrow="Legal"
-          title="Privacy Policy"
-          subtitle={`Last updated: ${new Date(LAST_UPDATED_ISO).toLocaleDateString()}`}
-          accent="rose"
-          tabs={[{ id: 'privacy', label: 'Privacy' }]}
-          activeTab="privacy"
-          secondaryAction={{ label: 'Terms of service', onClick: () => navigate('/terms') }}
-        >
-        <div className={`${finelyOsCatalogCard('violet')} space-y-6`}>
-          <section className={`space-y-3 ${FINELY_OS_ENTITY_BODY}`}>
-            <h2 className={`${FINELY_OS_ENTITY_VALUE} text-base`}>1. Information We Collect</h2>
+    <PageShell hideHero hideLaunchHelpStrip surface="ivory" contentWidth="full" title="Privacy policy">
+      <div data-fc-legal-studio="1">
+        <div className="lg-wrap">
+          <header className="lg-hero" data-accent="sky">
+            <p className="lg-kicker">Legal</p>
+            <h1>Privacy policy</h1>
             <p>
-              We collect information you provide, such as your name, email, phone number, and address (where applicable). If you
-              upload documents (for example: credit reports, IDs, bureau letters, or supporting evidence), we store those documents
-              in a secure account context so you can access them later. We also collect basic usage and device data (e.g., browser type,
-              timestamps, and approximate network information) to maintain security and improve performance.
+              Last updated {new Date(LAST_UPDATED_ISO).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}.
+              This page explains what we collect, why we keep it, and how you can ask for it back.
             </p>
-          </section>
-
-          <section className={`space-y-3 ${FINELY_OS_ENTITY_BODY}`}>
-            <h2 className={`${FINELY_OS_ENTITY_VALUE} text-base`}>2. How We Use It</h2>
-            <p>
-              We use your information to provide and improve our services, to communicate with you, to comply with law, and to
-              protect our rights. We do not sell your personal information to third parties for marketing.
-            </p>
-            <p>
-              If you are an agency user, you are responsible for obtaining any partner consents required to input, store, or process
-              partner information within the platform.
-            </p>
-          </section>
-
-          <section id="data-security" className={`space-y-3 ${FINELY_OS_ENTITY_BODY}`}>
-            <h2 className={`${FINELY_OS_ENTITY_VALUE} text-base`}>3. Data Security</h2>
-            <p>
-              We use industry-standard measures to protect your data, including access controls and secure transport (HTTPS). We
-              restrict access to partner files based on account permissions. Sensitive information may be stored or transmitted
-              using encryption and short-lived access links where appropriate.
-            </p>
-            <p>
-              You are responsible for keeping your login credentials secure and for protecting the devices you use to access the platform.
-            </p>
-          </section>
-
-          <section className={`space-y-3 ${FINELY_OS_ENTITY_BODY}`}>
-            <h2 className={`${FINELY_OS_ENTITY_VALUE} text-base`}>4. Data Retention</h2>
-            <p>
-              We retain your information for as long as necessary to provide the services, comply with legal obligations, resolve disputes,
-              and enforce our agreements. You may request deletion of your account and associated data subject to applicable law and recordkeeping
-              requirements.
-            </p>
-          </section>
-
-          <section className={`space-y-3 ${FINELY_OS_ENTITY_BODY}`}>
-            <h2 className={`${FINELY_OS_ENTITY_VALUE} text-base`}>5. Cookies and Tracking</h2>
-            <p>
-              We may use cookies and similar technologies for session management, preferences, and analytics. You can adjust
-              browser settings to limit cookies.
-            </p>
-          </section>
-
-          <section className={`space-y-3 ${FINELY_OS_ENTITY_BODY}`}>
-            <h2 className={`${FINELY_OS_ENTITY_VALUE} text-base`}>6. Your Rights (e.g. CCPA)</h2>
-            <p>
-              Depending on your location, you may have rights to access, correct, delete, or port your data, or to opt out of
-              certain uses. Contact us to exercise these rights.
-            </p>
-          </section>
-
-          <section id="contact" className={`space-y-3 ${FINELY_OS_ENTITY_BODY}`}>
-            <h2 className={`${FINELY_OS_ENTITY_VALUE} text-base`}>7. Contact</h2>
-            <p>
-              Privacy-related requests or questions may be sent to the contact information on our Contact page or in the
-              platform footer.
-            </p>
-          </section>
+            <Link className="lg-link" to="/terms">
+              Read the terms of service
+            </Link>
+          </header>
+          {ARTICLES.map((article) => (
+            <article key={article.title} className="lg-article" data-fc-accent={article.accent}>
+              <h2>{article.title}</h2>
+              <p>{article.body}</p>
+            </article>
+          ))}
         </div>
-        </FinelyUnifiedHubLayout>
-
         <MarketingStaffChatStrip
           roleId="support_specialist"
           goal="not_sure"
           roleLabel="partner success specialist"
-          subline="Privacy questions or data requests? Chat with our on-duty support specialist."
+          subline="Privacy questions or a data request? Ask the specialist on duty."
           buttonTone="secondary"
         />
-
         <FinelyOsPageFooter />
       </div>
     </PageShell>

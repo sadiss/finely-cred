@@ -354,14 +354,14 @@ export default function PartnerProjectsProductSurface({ role, pageId, partnerId,
           <div className="min-w-0 space-y-4">
             {partner && !demoMode ? (
               <>
-                <div className={`${finelyOsCatalogCard('sky')} p-6 lg:p-8`} data-fc-accent="sky">
+                <div>
                   <div className={FINELY_OS_ENTITY_SUBLABEL}>Workspace</div>
                   <div className={`text-3xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>
                     {selectedProjectId
                       ? projects.find((p) => p.id === selectedProjectId)?.title ?? 'Project'
                       : hubTab === 'tasks'
                         ? 'Your task board'
-                        : 'Project journey'}
+                        : 'Project pipeline'}
                   </div>
                   <p className={`mt-2 text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
                     {hubTab === 'projects' ? 'Stages show where each project sits today.' : 'Drag cards or open a task for details.'}
@@ -372,7 +372,7 @@ export default function PartnerProjectsProductSurface({ role, pageId, partnerId,
                   <div className="space-y-3">
                     <div className={FINELY_OS_VIEW_TABS}>
                       <button type="button" onClick={() => setProjectView('journey')} className={tabClass(projectView === 'journey', 'emerald')}>
-                        Journey board
+                        Pipeline
                       </button>
                       <button type="button" onClick={() => setProjectView('calendar')} className={tabClass(projectView === 'calendar', 'sky')}>
                         <CalendarDays size={14} /> Calendar
@@ -411,7 +411,7 @@ export default function PartnerProjectsProductSurface({ role, pageId, partnerId,
                     </div>
                   </div>
                 ) : (
-                  <div className={`${finelyOsCatalogCard('emerald')} p-6 lg:p-8 space-y-4`} data-fc-accent="emerald">
+                  <div className="space-y-4">
                     <WorkBoardShell
                       view={taskView}
                       onViewChange={setTaskView}
@@ -482,7 +482,7 @@ export default function PartnerProjectsProductSurface({ role, pageId, partnerId,
           </div>
         </div>
 
-        <aside className={`${finelyOsCatalogCard('rose')} p-6 lg:p-8 space-y-3`} data-fc-accent="rose">
+        <aside className="space-y-3">
           <div className="fc-wlp-eyebrow">What to do next</div>
           <h2 className="text-2xl font-extrabold">Finish first, then expand</h2>
           <p className={`text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>Due work stays short and ordered — completed milestones move into history.</p>

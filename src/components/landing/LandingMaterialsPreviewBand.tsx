@@ -1,10 +1,8 @@
-/** Homepage — compact e-guide + one-sheet preview band after free guide teaser. */
+/** Homepage — partner one-sheet preview band. Free guide lives in its own section — not here. */
 import React from 'react';
 import { ArrowRight, FileText, Layers } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Reveal } from '../ui';
-import { FreeGuideFunnelStyles } from '../leadmagnet/FreeGuideFunnelStyles';
-import { LeadMagnetEbook } from '../leadmagnet/LeadMagnetHeroMockup';
 import { PERSONAL_CREDIT_BUILD_SHEET } from '../../resources/buildPersonalCreditBuildSheetPdf';
 import {
   finelyOsCatalogCard,
@@ -27,7 +25,7 @@ const ONE_SHEETS: OneSheetPreview[] = [
     id: 'fundability_roadmap',
     title: 'Business Credit Fundability Roadmap',
     desc:
-      'Six pillars, stage gates, and scorecard mapping — the readiness map partners share before picking a tier or quoting capital.',
+      'Six pillars and stage gates so you can see readiness before you pick a tier or talk about capital.',
     path: '/resources/business-credit-one-sheets',
     badge: '1-page',
     accent: 'sky',
@@ -41,6 +39,15 @@ const ONE_SHEETS: OneSheetPreview[] = [
     badge: PERSONAL_CREDIT_BUILD_SHEET.sheetLabel,
     accent: 'violet',
     lines: ['Five-rung instrument ladder', 'Utilization & statement timing', '12-month build calendar'],
+  },
+  {
+    id: 'au_teen',
+    title: 'AU & Teen Credit',
+    desc: 'Issuer ages, what actually reports, and the parent checklist — a short sheet before you add an authorized user.',
+    path: '/resources/au-teen-credit-sheet',
+    badge: '2-sheet',
+    accent: 'emerald',
+    lines: ['Issuer age rules', 'What actually reports', 'Parent checklist'],
   },
 ];
 
@@ -95,9 +102,9 @@ export function LandingMaterialsPreviewBand() {
     <section
       className={`py-10 sm:py-14 ${finelyOsLandingContrastSection('fc-band-dark')}`}
       data-fc-contrast-band="1"
-      aria-label="Partner guides and one-sheets preview"
+      aria-label="Partner one-sheets preview"
     >
-      <div className="container mx-auto max-w-6xl px-4 sm:px-6">
+      <div className="fc-viewport-floor">
         <Reveal>
           <div className="mb-8 text-center sm:text-left">
             <p className="mb-2 text-[10px] font-black uppercase tracking-[0.28em] text-sky-300/90">
@@ -105,42 +112,18 @@ export function LandingMaterialsPreviewBand() {
               Partner materials
             </p>
             <h2 className="text-2xl font-semibold leading-tight text-white sm:text-3xl">
-              Free e-guide + <span className="text-sky-300">one-sheet previews</span>
+              Partner <span className="text-sky-300">one-sheets</span>
             </h2>
             <p className="mt-2 max-w-2xl text-sm text-white/55 sm:text-base">
-              Skim the dispute letter guide, a business credit one-sheet, and the personal build blueprint before you
-              book — partner-ready talking points, not generic fluff.
+              Short PDFs you can send before a session: business fundability, personal credit building, and
+              authorized-user rules.
             </p>
           </div>
         </Reveal>
 
         <div className="grid gap-4 md:grid-cols-3">
-          <Reveal delay={80}>
-            <button
-              type="button"
-              onClick={() => navigate('/free-guide')}
-              className={`${finelyOsCatalogCard('emerald')} group !p-4 text-left transition-all hover:brightness-110`}
-              data-fc-accent="emerald"
-            >
-              <span className="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-300/90">E-guide</span>
-              <h3 className="mt-1.5 text-base font-semibold leading-snug sm:text-lg">
-                Credit Dispute Letter Guide
-              </h3>
-              <p className="mt-1.5 text-xs leading-relaxed opacity-70 sm:text-sm">
-                FCRA rights, bureau mailing kit, and a 15-day DIY portal trial — instant PDF to your inbox.
-              </p>
-              <div className="fg-funnel my-4 flex justify-center">
-                <FreeGuideFunnelStyles />
-                <LeadMagnetEbook compact />
-              </div>
-              <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wide text-emerald-200 group-hover:gap-2 transition-all">
-                Open free guide <ArrowRight className="h-3.5 w-3.5" />
-              </span>
-            </button>
-          </Reveal>
-
           {ONE_SHEETS.map((sheet, i) => (
-            <Reveal key={sheet.id} delay={120 + i * 60}>
+            <Reveal key={sheet.id} delay={80 + i * 60}>
               <button
                 type="button"
                 onClick={() => navigate(sheet.path)}

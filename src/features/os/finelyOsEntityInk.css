@@ -76,10 +76,12 @@ html[data-fc-theme='light'] .fc-premium-chart-card,
 html[data-fc-theme='light'] .fc-admin-ink-panel,
 html[data-fc-theme='light'] .fc-restore-solutions-hero,
 html[data-fc-theme='light'] .fc-wlp-command,
+html[data-fc-theme='light'] .fc-wlp-admin-stage-hero,
+html[data-fc-theme='light'] .fc-wlp-admin-stage-section[data-tone='dark'],
 html[data-fc-theme='light'] .fc-wlp .fc-accent-card:not([data-fc-kpi-surface='light']):not(.fc-wlp-kpi):not(.fc-wlp-metric):not(.fc-wlp-signal):not([class*='fc-admin-solid']),
 html[data-fc-theme='light'] .fc-admin-workspace .fc-accent-card:not([data-fc-kpi-surface='light']):not(.fc-wlp-signal):not([class*='fc-admin-solid']),
 html[data-fc-theme='light'] .fc-luxury-glass:not([data-fc-kpi-surface='light']):not(.fc-wlp-signal),
-html[data-fc-theme='light'] .fc-wlp-panel[data-accent]:not([data-accent='graphite']) {
+html[data-fc-theme='light'] .fc-wlp-panel[data-accent] {
   --fc-os-entity-ink: #f8faf9;
   --fc-os-entity-body: rgba(255, 255, 255, 0.85);
   --fc-os-entity-muted: rgba(255, 255, 255, 0.75);
@@ -105,4 +107,38 @@ html[data-fc-theme='dark'] [data-bed='light']:not(.fc-accent-card):not(.fc-luxur
   --fc-os-entity-link-hover: #0c4a6e;
   --fc-os-entity-empty-border: rgba(10, 22, 40, 0.12);
   --fc-os-entity-empty-bg: rgba(10, 22, 40, 0.035);
+}
+
+/* Pale public catalog / hub cards — light theme already lightened them; frost would be white-on-pale. */
+html[data-fc-theme='light'] [data-fc-public-shell='1'] .fc-unified-hub-shell,
+html[data-fc-theme='light'] [data-fc-pageshell-root='1'] .fc-unified-hub-shell,
+html[data-fc-theme='light'] [data-fc-public-shell='1'] .fc-accent-card.fc-luxury-glass,
+html[data-fc-theme='light'] [data-fc-pageshell-root='1'] .fc-accent-card.fc-luxury-glass,
+html[data-fc-theme='light'] [data-fc-shell-surface='ivory'] .fc-luxury-glass:not([data-fc-keep-ink='light']) {
+  --fc-os-entity-ink: #0a1628;
+  --fc-os-entity-body: rgba(10, 22, 40, 0.85);
+  --fc-os-entity-muted: rgba(10, 22, 40, 0.55);
+  --fc-os-entity-faint: rgba(10, 22, 40, 0.78);
+  --fc-os-entity-chip: rgba(10, 22, 40, 0.76);
+  --fc-os-entity-label: #6d28d9;
+  --fc-os-entity-link: #0369a1;
+  --fc-os-entity-link-hover: #0c4a6e;
+  --fc-os-entity-empty-border: rgba(10, 22, 40, 0.12);
+  --fc-os-entity-empty-bg: rgba(10, 22, 40, 0.035);
+}
+
+/* Dark contrast-band tiles and keep-light islands stay frost. */
+html[data-fc-theme='light'] [data-fc-contrast-band='1'] .fc-luxury-glass,
+html[data-fc-theme='light'] [data-fc-contrast-band='1'] .fc-accent-card,
+html[data-fc-theme='light'] [data-fc-keep-ink='light'] {
+  --fc-os-entity-ink: #f8faf9;
+  --fc-os-entity-body: rgba(255, 255, 255, 0.85);
+  --fc-os-entity-muted: rgba(255, 255, 255, 0.75);
+  --fc-os-entity-faint: rgba(255, 255, 255, 0.55);
+  --fc-os-entity-chip: rgba(255, 255, 255, 0.7);
+  --fc-os-entity-label: #c4b5fd;
+  --fc-os-entity-link: #7dd3fc;
+  --fc-os-entity-link-hover: #e0f2fe;
+  --fc-os-entity-empty-border: rgba(255, 255, 255, 0.12);
+  --fc-os-entity-empty-bg: rgba(255, 255, 255, 0.03);
 }

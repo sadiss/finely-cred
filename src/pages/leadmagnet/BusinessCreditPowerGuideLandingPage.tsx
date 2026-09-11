@@ -23,6 +23,7 @@ import {
 import { LeadMagnetCobrandFooterMarks } from '../../components/brand/LeadMagnetCobrand';
 import { LeadMagnetFunnelHeroVideo } from '../../components/leadmagnet/LeadMagnetFunnelHeroVideo';
 import { getLeadMagnetVisualTheme } from '../../components/leadmagnet/leadMagnetVisualThemes';
+import { getLeadMagnetPremiumProfile } from '../../components/leadmagnet/leadMagnetPremiumProfiles';
 import { BUSINESS_FUNNEL } from '../../domain/leadMagnetFunnels';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
 import { PremiumLeadMagnetCaptureForm } from '../../components/leadmagnet/PremiumLeadMagnetCaptureForm';
@@ -39,6 +40,7 @@ import {
 import '../../components/leadmagnet/premiumLeadMagnetShared.css';
 import '../../components/leadmagnet/leadMagnetLuxuryStage.css';
 import './businessCreditPowerGuideLanding.css';
+import '../../components/leadmagnet/leadMagnetConvert.css';
 
 const BUSINESS_THEME = getLeadMagnetVisualTheme(BUSINESS_FUNNEL);
 
@@ -198,10 +200,11 @@ function InsideItem({
 
 export default function BusinessCreditPowerGuideLandingPage() {
   usePublicSeoMeta({
-    title: 'Business Credit Power Guide — Free E-Guide',
+    title: 'Business Credit Power Guide — free e-guide',
     description:
-      'Fundability sequencing for partners: entity pillars, stage gates, vendor depth, and OS scorecard habits — premium business credit education from Finely Cred. Results vary · funding subject to underwriting.',
+      'Fundability sequencing for partners: entity pillars, stage gates, vendor depth, and a readiness scorecard. Results vary · not legal advice · funding subject to underwriting.',
     path: BUSINESS_FUNNEL.path,
+    faqs: getLeadMagnetPremiumProfile(BUSINESS_FUNNEL)?.faqs,
   });
 
   useEffect(() => {
@@ -233,7 +236,7 @@ export default function BusinessCreditPowerGuideLandingPage() {
     },
     {
       icon: ShieldCheck,
-      title: 'Funding Readiness & OS Scorecard',
+      title: 'Funding readiness scorecard',
       desc: 'Blockers, capital-pack optics, and how partners track fundability before they apply.',
     },
     {
@@ -276,28 +279,17 @@ export default function BusinessCreditPowerGuideLandingPage() {
   ];
 
   return (
-    <main className="bcpg-page lm-lux-theme--lime min-h-screen overflow-x-hidden bg-[#030504] text-white selection:bg-[#34d399]/25">
-      {/* Dark base + luminous green bottom glow + gold accents */}
-      <div className="pointer-events-none fixed inset-0 z-0">
-        <div className="absolute inset-0 bg-[#030504]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-12%,rgba(149,224,0,0.16),transparent_55%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_55%_40%_at_100%_8%,rgba(212,164,71,0.16),transparent)]" />
-        <div className="absolute inset-x-0 bottom-0 h-[58vh] bg-[radial-gradient(ellipse_95%_75%_at_50%_100%,rgba(149,224,0,0.22),transparent_62%)]" />
-        <div className="absolute inset-x-0 bottom-0 h-[35vh] bg-[radial-gradient(ellipse_70%_55%_at_30%_100%,rgba(212,164,71,0.12),transparent_70%)]" />
-      </div>
+    <main className="bcpg-page lm-convert-page lm-lux-theme--lime min-h-screen overflow-x-hidden bg-[#f4f7fb] text-[#0a1628] selection:bg-[#34d399]/25">
+      <div className="pointer-events-none fixed inset-0 z-0 lm-convert-atmosphere" />
       <div className="lm-lux-grain lm-lux-grain--fixed pointer-events-none" aria-hidden />
 
       {/* Site nav owns branding — no duplicate cobrand strip */}
       <section className="relative z-10 overflow-x-hidden pt-20 md:pt-24">
-        <div className="absolute inset-0 bg-[#030504]" />
+        <div className="absolute inset-0 bg-white/92" />
         <div
-          className="absolute inset-0 bg-cover bg-[center_55%] opacity-[0.22] saturate-[1.02] brightness-[0.7]"
+          className="absolute inset-0 bg-cover bg-[center_55%] opacity-[0.06] saturate-[1.02]"
           style={{ backgroundImage: `url('${HERO_BG}')` }}
         />
-        {/* Heavy tint — mute sky; keep faint tower glow only */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#030504] via-[#030504]/94 to-[#030504]/82" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#030504] via-[#030504]/55 to-[#030504]/78" />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_70%_55%,rgba(212,164,71,0.06),transparent_48%)]" />
         <div className="bcpg-hero-orb" aria-hidden />
         <div className="bcpg-hero-orb bcpg-hero-orb--gold" aria-hidden />
         <div className="lm-lux-vignette" aria-hidden />
@@ -305,11 +297,11 @@ export default function BusinessCreditPowerGuideLandingPage() {
         <div className="lm-lux-beam lm-lux-beam--right right-[4%] top-[12%]" aria-hidden />
         <div className="absolute bottom-0 left-0 right-0 lm-lux-rule" />
 
-        <div className="relative z-[2] mx-auto max-w-[88rem] px-5 pb-16 pt-10 md:px-10">
+        <div className="relative z-[2] fc-viewport-floor pb-16 pt-10">
           <div className="bcpg-hero-split">
             <div className="bcpg-hero-copy">
               <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-[#34d399]">Free E-Guide</p>
-              <h1 className="bcpg-serif bcpg-hero-title lm-lux-display mt-4 text-white">
+              <h1 className="bcpg-serif bcpg-hero-title lm-lux-display mt-4 text-[#0a1628]">
                 {headlineOverride ? (
                   <LandingTypewriterTitle
                     as="span"
@@ -341,11 +333,11 @@ export default function BusinessCreditPowerGuideLandingPage() {
                 )}
               </h1>
               <div className="lm-lux-rule--short lm-lux-rule--draw mt-5" aria-hidden />
-              <p className="lm-lux-lede mt-6 max-w-md text-white/82">
+              <p className="lm-lux-lede mt-6 max-w-md text-[#0a1628]/80">
                 Fundability sequencing — entity pillars, stage gates, and vendor depth — so partners ask for capital in the right order.
               </p>
-              <p className="mt-5 max-w-md text-sm leading-relaxed text-white/65">
-                Entity truth before vendor volume · stage gates · scorecard habit — not spray-and-pray apps.
+              <p className="mt-5 max-w-md text-sm leading-relaxed text-[#0a1628]/65">
+                Entity truth before vendor volume. Stage gates before applications. A scorecard habit instead of a weekend spree.
               </p>
               <div className="mt-7 flex flex-wrap items-center gap-3">
                 <button
@@ -356,23 +348,23 @@ export default function BusinessCreditPowerGuideLandingPage() {
                   <span className="relative z-10">Download Free Guide</span>
                 </button>
                 <Link
-                  to={BC_GUIDE_READ_PATH}
+                  to={`${BC_GUIDE_READ_PATH}?preview=1`}
                   className="inline-flex h-12 items-center justify-center gap-2 rounded-lg border border-[#a78bfa]/45 bg-[#a78bfa]/10 px-5 text-[11px] font-black uppercase tracking-[0.14em] text-[#c4b5fd] transition hover:border-[#a78bfa]/75 hover:bg-[#a78bfa]/16"
                 >
-                  <BookOpenText size={15} /> Read free — no signup
+                  <BookOpenText size={15} /> See preview
                 </Link>
-                <a href="#bcpg-preview" className="text-[11px] font-bold uppercase tracking-[0.14em] text-white/50 hover:text-[#34d399]">
+                <a href="#bcpg-preview" className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#0a1628]/50 hover:text-[#059669]">
                   Preview ↓
                 </a>
                 <Link
                   to={BUSINESS_FUNNEL.bookingPath ?? '/enlightenment-session'}
-                  className="text-[11px] font-bold uppercase tracking-[0.14em] text-white/50 hover:text-[#a78bfa]"
+                  className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#0a1628]/50 hover:text-[#7c3aed]"
                 >
                   Book a session →
                 </Link>
                 <a
                   href={SUPPORT_TEL_HREF}
-                  className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-white/50 hover:text-[#34d399]"
+                  className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-[#0a1628]/50 hover:text-[#059669]"
                 >
                   <Phone size={13} /> Call {SUPPORT_PHONE_DISPLAY}
                 </a>
@@ -407,7 +399,7 @@ export default function BusinessCreditPowerGuideLandingPage() {
 
       {/* Trust — hierarchy: big number lead, then supporting signals */}
       <section className="bcpg-trust relative z-10">
-        <div className="mx-auto flex max-w-[88rem] flex-col divide-y divide-white/[0.06] md:flex-row md:divide-x md:divide-y-0">
+        <div className="fc-viewport-floor flex flex-col divide-y divide-white/[0.06] md:flex-row md:divide-x md:divide-y-0">
           <div className="bcpg-trust-item bcpg-trust-item--primary md:flex-[1.35]">
             <Users size={36} strokeWidth={1.25} className="relative text-[#34d399]" />
             <div className="relative">
@@ -430,50 +422,63 @@ export default function BusinessCreditPowerGuideLandingPage() {
             </div>
           </div>
         </div>
-        <p className="bcpg-compliance mx-auto max-w-[88rem] px-5 pb-4 text-center md:px-10 md:text-right">
+        <p className="bcpg-compliance fc-viewport-floor pb-4 text-center md:text-right">
           Results vary · not legal advice · funding subject to underwriting
         </p>
       </section>
 
       {/* Page index — the full guide is readable in-app before any signup */}
       <section id="read-online" className="relative z-10 border-t border-[#a78bfa]/18 py-9 md:py-12">
-        <div className="mx-auto max-w-[88rem] px-5 md:px-10">
+        <div className="fc-viewport-floor">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div className="max-w-2xl">
               <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-[#34d399]">
-                Read it now · no signup
+                Cover + page 1 preview
               </p>
               <h2 className="bcpg-serif mt-3 text-3xl text-white md:text-4xl">{BC_GUIDE_META.title}</h2>
               <p className="mt-3 text-sm leading-relaxed text-white/60">
-                {BC_GUIDE_CHAPTERS.length} pages in the browser — fundability doctrine, entity truth, the three
-                business files, the vendor tier ladder, bank rating, the capital stack, and a 12-month build calendar.
+                See the first page preview. The remaining pages unlock after you enter your details.
               </p>
             </div>
             <Link
-              to={BC_GUIDE_READ_PATH}
+              to={`${BC_GUIDE_READ_PATH}?preview=1`}
               className="bcpg-cta inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-lg px-7 text-[11px] font-black uppercase tracking-[0.16em] text-black"
             >
-              <BookOpenText size={15} /> Open Page 01
+              <BookOpenText size={15} /> See preview
             </Link>
           </div>
 
           <div className="mt-7 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-            {BC_GUIDE_CHAPTERS.map((ch) => (
-              <Link
-                key={ch.id}
-                to={`${BC_GUIDE_READ_PATH}?chapter=${ch.id}`}
-                className="bcpg-kpi-card group flex items-start gap-3.5 rounded-2xl p-6 lg:p-8 text-left transition hover:-translate-y-1"
-              >
-                <span className="mt-0.5 shrink-0 font-mono text-sm font-bold text-[#34d399]">{ch.number}</span>
-                <span className="min-w-0">
-                  <span className="bcpg-serif block text-lg leading-snug text-white">{ch.title}</span>
-                  <span className="mt-1 block text-[12.5px] leading-relaxed text-white/55">{ch.teaser}</span>
-                  <span className="mt-1.5 block text-[10px] font-black uppercase tracking-[0.16em] text-[#a78bfa]">
-                    {ch.readMinutes} min · {ch.kicker}
+            {BC_GUIDE_CHAPTERS.map((ch, i) =>
+              i === 0 ? (
+                <Link
+                  key={ch.id}
+                  to={`${BC_GUIDE_READ_PATH}?preview=1`}
+                  className="bcpg-kpi-card group flex items-start gap-3.5 rounded-2xl p-6 lg:p-8 text-left transition hover:-translate-y-1"
+                >
+                  <span className="mt-0.5 shrink-0 font-mono text-sm font-bold text-[#34d399]">{ch.number}</span>
+                  <span className="min-w-0">
+                    <span className="block text-[10px] font-black uppercase tracking-[0.16em] text-[#34d399]">Preview</span>
+                    <span className="bcpg-serif mt-1 block text-lg leading-snug text-white">{ch.title}</span>
+                    <span className="mt-1 block text-[12.5px] leading-relaxed text-white/55">{ch.teaser}</span>
                   </span>
-                </span>
-              </Link>
-            ))}
+                </Link>
+              ) : (
+                <div
+                  key={ch.id}
+                  className="bcpg-kpi-card flex items-start gap-3.5 rounded-2xl p-6 lg:p-8 text-left opacity-70"
+                >
+                  <span className="mt-0.5 shrink-0 font-mono text-sm font-bold text-[#34d399]">{ch.number}</span>
+                  <span className="min-w-0">
+                    <span className="block text-[10px] font-black uppercase tracking-[0.16em] text-white/40">
+                      Unlocks after signup
+                    </span>
+                    <span className="bcpg-serif mt-1 block text-lg leading-snug text-white">{ch.title}</span>
+                    <span className="mt-1 block text-[12.5px] leading-relaxed text-white/55">{ch.teaser}</span>
+                  </span>
+                </div>
+              ),
+            )}
           </div>
           <p className="bcpg-compliance mt-4">{BC_GUIDE_META.compliance}</p>
         </div>
@@ -481,7 +486,7 @@ export default function BusinessCreditPowerGuideLandingPage() {
 
       {/* SEO depth — collapsed so ATF stays short hero → preview → capture */}
       <section className="relative z-10 border-t border-[#a78bfa]/18 py-8 md:py-10">
-        <div className="mx-auto max-w-[88rem] space-y-3 px-5 md:px-10">
+        <div className="fc-viewport-floor space-y-3">
           <details id="guide" className="lm-seo-depth">
             <summary>
               <span>What&apos;s inside the Power Guide</span>
@@ -491,7 +496,7 @@ export default function BusinessCreditPowerGuideLandingPage() {
               <p className="mb-4 max-w-3xl text-sm text-white/55">
                 A premium fundability roadmap — pillars, stage gates, blockers, and scorecard habits — without hype or fake guarantees.
               </p>
-              <div className="mx-auto max-w-5xl columns-1 md:columns-2 md:gap-x-16">
+              <div className="columns-1 md:columns-2 md:gap-x-16">
                 {inside.map((item, i) => (
                   <div key={item.title} className={cn(i > 0 && 'break-inside-avoid')}>
                     {i > 0 ? <div className="bcpg-gold-line my-0 hidden md:block" /> : null}
@@ -598,7 +603,7 @@ export default function BusinessCreditPowerGuideLandingPage() {
       <section className="relative z-10 overflow-hidden border-t border-[#a78bfa]/24 py-14 md:py-16">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_0%_50%,rgba(149,224,0,0.16),transparent)]" />
         <div className="absolute inset-x-0 bottom-0 h-40 bg-[radial-gradient(ellipse_90%_90%_at_50%_100%,rgba(149,224,0,0.18),transparent)]" />
-        <div className="relative mx-auto flex max-w-[88rem] flex-col items-center gap-8 px-5 md:px-10 lg:flex-row lg:justify-between">
+        <div className="relative fc-viewport-floor flex flex-col items-center gap-8 lg:flex-row lg:justify-between">
           <div className="max-w-xl text-center lg:text-left">
             <ShieldCheck size={36} className="mx-auto text-[#a78bfa] lg:mx-0" strokeWidth={1.25} />
             <LandingTypewriterTitle
@@ -622,7 +627,7 @@ export default function BusinessCreditPowerGuideLandingPage() {
       </section>
 
       <footer className="bcpg-footer relative z-10 py-9">
-        <div className="mx-auto flex max-w-[88rem] flex-col items-center gap-7 px-5 md:flex-row md:items-center md:justify-between md:px-10">
+        <div className="fc-viewport-floor flex flex-col items-center gap-7 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-wrap items-center justify-center gap-6 text-xs text-white/45 md:justify-start">
             <a href="/privacy" className="transition hover:text-[#34d399]">Privacy Policy</a>
             <a href="/terms" className="transition hover:text-[#34d399]">Terms of Use</a>

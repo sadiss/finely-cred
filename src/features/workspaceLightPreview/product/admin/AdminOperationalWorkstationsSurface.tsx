@@ -89,8 +89,6 @@ import { listAllSlaBreaches } from '../../../work/sla/listSlaBreaches';
 import { unreadCount } from '../../../../data/notificationsRepo';
 import { FinelyOsPaginatedStack } from '../../../os/FinelyOsPaginatedStack';
 import { openProductCopilot } from '../components/ProductCopilotPanel';
-import AdminCrmRecordPage from '../../../../pages/admin/AdminCrmRecordPage';
-import AdminCaseDetailPage from '../../../../pages/admin/AdminCaseDetailPage';
 import './adminOperationalWorkstations.css';
 import './adminInboxProductSurface.css';
 
@@ -131,7 +129,7 @@ function WorkflowDailyBriefingStrip({ tasks }: { tasks: TaskItem[] }) {
         <p>{briefing.summary}</p>
       </header>
       <div className="fc-wlp-op-daily-focus-grid">
-        {briefing.items.slice(0, 6).map((item, index) => {
+        {briefing.items.slice(0, 3).map((item, index) => {
           const accent = (['rose', 'violet', 'sky', 'emerald'] as const)[index % 4];
           return (
             <button
@@ -210,6 +208,19 @@ function isDueTodayTask(task: TaskItem): boolean {
   );
 }
 
+function isDueTomorrowTask(task: TaskItem): boolean {
+  if (!task.dueAt) return false;
+  if (task.status === 'completed' || task.status === 'cancelled') return false;
+  const due = new Date(task.dueAt);
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  return (
+    due.getFullYear() === tomorrow.getFullYear() &&
+    due.getMonth() === tomorrow.getMonth() &&
+    due.getDate() === tomorrow.getDate()
+  );
+}
+
 function priorityWeight(p?: string) {
   if (p === 'urgent') return 4;
   if (p === 'high') return 3;
@@ -228,14 +239,16 @@ function compareWorkflowTasks(a: TaskItem, b: TaskItem): number {
   return (a.createdAt || '').localeCompare(b.createdAt || '');
 }
 
-type WorkflowRiverLane = 'overdue' | 'due_today' | 'unassigned';
+type WorkflowRiverLane = 'overdue' | 'due_today' | 'due_tomorrow' | 'unassigned' | 'upcoming';
 
-/** One lane per task: overdue beats due-today beats unassigned. */
+/** One lane per task: overdue → today → tomorrow → unassigned → upcoming. */
 function assignWorkflowRiverLane(task: TaskItem): WorkflowRiverLane | null {
   if (isOverdueTask(task)) return 'overdue';
   if (isDueTodayTask(task)) return 'due_today';
+  if (isDueTomorrowTask(task)) return 'due_tomorrow';
   if (!(task.assigneeUserIds ?? []).length) return 'unassigned';
-  return null;
+  if (task.dueAt) return 'upcoming';
+  return 'unassigned';
 }
 
 function membershipDisplayLabel(member: Pick<Membership, 'email' | 'userId'>): string {
@@ -247,6 +260,43 @@ function membershipDisplayLabel(member: Pick<Membership, 'email' | 'userId'>): s
 
 function partnerDisplayLabel(partners: Partner[], partnerId: string): string {
   return partners.find((partner) => partner.id === partnerId)?.profile?.fullName || partnerId;
+}
+
+export function WorkstationSheet({
+  title,
+  eyebrow,
+  onClose,
+  children,
+  ariaLabel,
+}: {
+  title: string;
+  eyebrow: string;
+  onClose: () => void;
+  children: React.ReactNode;
+  ariaLabel: string;
+}) {
+  return (
+    <div
+      className="fc-wlp-local-modal-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-label={ariaLabel}
+      onClick={onClose}
+    >
+      <div className="fc-wlp-local-modal fc-wlp-wide-drawer" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-4">
+          <div>
+            <p className="text-sm uppercase tracking-wider font-extrabold text-sky-300 m-0">{eyebrow}</p>
+            <h3 className="text-2xl font-extrabold text-white m-0 mt-1">{title}</h3>
+          </div>
+          <button type="button" className="fc-wlp-btn-secondary" onClick={onClose} aria-label={`Close ${ariaLabel}`}>
+            <X size={16} /> Close
+          </button>
+        </div>
+        <div className="fc-wlp-workstation-sheet-body">{children}</div>
+      </div>
+    </div>
+  );
 }
 
 // Demo Fixtures for rich preview when dataMode === 'demo'
@@ -320,6 +370,21 @@ const DEMO_CRM_RECORDS: CrmRecord[] = [
     timeline: [{ id: 't5', kind: 'converted', label: 'Converted to active partner file', createdAt: new Date().toISOString() }],
     createdAt: new Date(Date.now() - 5 * 86400000).toISOString(),
     updatedAt: new Date(Date.now() - 5 * 86400000).toISOString(),
+  },
+  {
+    id: 'demo_crm_6',
+    kind: 'inbound_lead',
+    target: 'clients',
+    stage: 'new',
+    source: 'chat',
+    score: 88,
+    tags: ['haitian-community', 'offer:haitian_credit_kit'],
+    contact: { fullName: 'Nadège Baptiste', email: 'nadege.baptiste@example.com', phone: '(555) 718-4420' },
+    packageInterest: 'Haitian community · credit kit',
+    dealValueCents: 199000,
+    timeline: [{ id: 't6', kind: 'capture', label: 'Captured via chat — Haitian credit kit', createdAt: new Date().toISOString() }],
+    createdAt: new Date(Date.now() - 3600000).toISOString(),
+    updatedAt: new Date(Date.now() - 3600000).toISOString(),
   },
 ];
 
@@ -558,6 +623,7 @@ function CrmWorkstation({ pageId, entityId, dataMode }: WorkspaceProductSurfaceP
   const [searchQuery, setSearchQuery] = useState('');
   const [stageFilter, setStageFilter] = useState<'all' | CrmRecordStage>('all');
   const [sourceFilter, setSourceFilter] = useState<'all' | string>('all');
+  const [haitianOnly, setHaitianOnly] = useState(false);
 
   // Drag and drop state
   const [draggedRecordId, setDraggedRecordId] = useState<string | null>(null);
@@ -583,7 +649,6 @@ function CrmWorkstation({ pageId, entityId, dataMode }: WorkspaceProductSurfaceP
   useEffect(() => {
     if (isDemo) {
       setRecords(DEMO_CRM_RECORDS);
-      setSelectedRecordId(DEMO_CRM_RECORDS[0].id);
       setTrashRecords([]);
       setDemoTrashedRecords([]);
       return;
@@ -592,7 +657,6 @@ function CrmWorkstation({ pageId, entityId, dataMode }: WorkspaceProductSurfaceP
       const live = listCrmRecords();
       if (live.length > 0) {
         setRecords(live);
-        setSelectedRecordId(live[0].id);
       } else {
         setRecords([]);
         setSelectedRecordId(null);
@@ -621,11 +685,12 @@ function CrmWorkstation({ pageId, entityId, dataMode }: WorkspaceProductSurfaceP
   };
 
   const closeRecordInspector = () => {
+    setSelectedRecordId(null);
     navigate(crmHubHref(pathname));
   };
 
   const selectedRecord = useMemo(
-    () => records.find((r) => r.id === selectedRecordId) ?? records[0] ?? null,
+    () => records.find((r) => r.id === selectedRecordId) ?? null,
     [records, selectedRecordId],
   );
 
@@ -639,8 +704,16 @@ function CrmWorkstation({ pageId, entityId, dataMode }: WorkspaceProductSurfaceP
     return records.filter((r) => {
       if (stageFilter !== 'all' && r.stage !== stageFilter) return false;
       if (sourceFilter !== 'all' && r.source !== sourceFilter) return false;
+      if (haitianOnly && !(r.tags ?? []).some((tag) => tag.includes('haitian'))) return false;
       if (q) {
-        const hay = [crmRecordDisplayName(r), r.contact.email, r.contact.company, r.contact.phone, ...(r.tags ?? [])]
+        const hay = [
+          crmRecordDisplayName(r),
+          r.contact.email,
+          r.contact.company,
+          r.contact.phone,
+          r.packageInterest,
+          ...(r.tags ?? []),
+        ]
           .filter(Boolean)
           .join(' ')
           .toLowerCase();
@@ -648,14 +721,17 @@ function CrmWorkstation({ pageId, entityId, dataMode }: WorkspaceProductSurfaceP
       }
       return true;
     });
-  }, [records, searchQuery, stageFilter, sourceFilter]);
+  }, [records, searchQuery, stageFilter, sourceFilter, haitianOnly]);
 
-  const hasActiveFilters = Boolean(searchQuery.trim()) || stageFilter !== 'all' || sourceFilter !== 'all';
+  const hasActiveFilters =
+    Boolean(searchQuery.trim()) || stageFilter !== 'all' || sourceFilter !== 'all' || haitianOnly;
   const clearFilters = () => {
     setSearchQuery('');
     setStageFilter('all');
     setSourceFilter('all');
+    setHaitianOnly(false);
   };
+  const haitianLeadCount = records.filter((r) => (r.tags ?? []).some((tag) => tag.includes('haitian'))).length;
 
   const handleStageChange = (recordId: string, newStage: CrmRecordStage) => {
     setActionError(null);
@@ -732,7 +808,7 @@ function CrmWorkstation({ pageId, entityId, dataMode }: WorkspaceProductSurfaceP
           id: `demo_trash_${targetId}`,
           leadId: sourceId,
           deletedAt,
-          reason: 'Trashed from CRM Operational Workstation',
+          reason: 'Trashed from CRM room',
           deletedBy: 'admin',
           originalStage: leadToDelete.stage,
           restoreHint: 'Restore to the prior CRM stage',
@@ -743,7 +819,7 @@ function CrmWorkstation({ pageId, entityId, dataMode }: WorkspaceProductSurfaceP
       try {
         trashLead({
           leadId: sourceId,
-          reason: 'Trashed from CRM Operational Workstation',
+          reason: 'Trashed from CRM room',
           originalStage: leadToDelete.stage,
         });
         setCrmRecordStage(targetId, 'disqualified');
@@ -856,7 +932,7 @@ function CrmWorkstation({ pageId, entityId, dataMode }: WorkspaceProductSurfaceP
         tags: ['new-lead', 'local-entry'],
         contact: { fullName: newLeadName, email: newLeadEmail || 'lead@example.com', phone: newLeadPhone || '(555) 000-0000' },
         dealValueCents: 249000,
-        timeline: [{ id: `t_${Date.now()}`, kind: 'capture', label: 'Inbound lead added via CRM Workstation', createdAt: new Date().toISOString() }],
+        timeline: [{ id: `t_${Date.now()}`, kind: 'capture', label: 'Inbound lead added via CRM', createdAt: new Date().toISOString() }],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -989,7 +1065,7 @@ function CrmWorkstation({ pageId, entityId, dataMode }: WorkspaceProductSurfaceP
     },
     {
       id: 'converted',
-      label: 'Converted Files',
+      label: 'Converted files',
       value: records.filter((r) => isClosedStage(r.stage) && r.stage === 'converted').length,
       detail: 'Became active partner files',
       icon: Sparkles,
@@ -1003,13 +1079,13 @@ function CrmWorkstation({ pageId, entityId, dataMode }: WorkspaceProductSurfaceP
       <AdminStageHero
         tone="pipeline"
         accent="sky"
-        eyebrow="Lead Operations · CRM Workstation"
+        eyebrow="Growth · Leads & CRM"
         title={
           <>
             Lead <span className="text-sky-400">pipeline</span>
           </>
         }
-        description="Track every lead by stage, then open the file that needs a next touch."
+        description="See who wrote in — chat, Haitian community, or a form — and open the next file that needs a touch."
         status={`${records.length} records tracked · ${dataMode} data`}
         freshness={formatFreshness(records[0]?.updatedAt)}
         icon={Target}
@@ -1018,7 +1094,7 @@ function CrmWorkstation({ pageId, entityId, dataMode }: WorkspaceProductSurfaceP
         }
         secondaryAction={
           <button type="button" className="fc-wlp-btn-secondary" onClick={() => setActiveRoom('conversion')}>
-            <Users size={15} /> Partner Conversions Desk
+            <Users size={15} /> Partner conversions
           </button>
         }
       />
@@ -1070,7 +1146,7 @@ function CrmWorkstation({ pageId, entityId, dataMode }: WorkspaceProductSurfaceP
                     ? 'Partner Conversions Desk'
                     : activeRoom === 'trash'
                       ? 'Lead Trash'
-                      : 'Full-Width Stage Canvas'}
+                      : 'Lead pipeline'}
               </h2>
               <p>
                 {activeRoom === 'sources'
@@ -1090,10 +1166,22 @@ function CrmWorkstation({ pageId, entityId, dataMode }: WorkspaceProductSurfaceP
                     type="search"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search name, email, company…"
+                    placeholder="Search name, email, Haitian community…"
                     aria-label="Search leads"
                   />
                 </div>
+                <button
+                  type="button"
+                  className="fc-wlp-btn-secondary"
+                  aria-pressed={haitianOnly}
+                  onClick={() => {
+                    setHaitianOnly((on) => !on);
+                    setActiveRoom('pipeline');
+                  }}
+                >
+                  <MessageSquare size={14} aria-hidden />
+                  Haitian community{haitianLeadCount ? ` · ${haitianLeadCount}` : ''}
+                </button>
                 <select
                   className="fc-wlp-op-toolbar-select"
                   value={stageFilter}
@@ -1317,7 +1405,11 @@ function CrmWorkstation({ pageId, entityId, dataMode }: WorkspaceProductSurfaceP
                         <div className="fc-wlp-crm-card-tags">
                           {(record.tags ?? []).slice(0, 2).map((tag) => (
                             <span key={tag} className="fc-wlp-crm-card-tag">
-                              {tag}
+                              {tag === 'haitian-community'
+                                ? 'Haitian community'
+                                : tag === 'offer:haitian_credit_kit'
+                                  ? 'Credit kit'
+                                  : tag.replace(/^offer:/, '')}
                             </span>
                           ))}
                         </div>
@@ -1364,9 +1456,20 @@ function CrmWorkstation({ pageId, entityId, dataMode }: WorkspaceProductSurfaceP
             ))}
           </div>
 
-          {/* Persistent Detail Inspector */}
-          {selectedRecord ? (
-            <div className="fc-wlp-op-inspector-panel">
+
+        </div>
+        )}
+        </div>
+      </div>
+
+      {selectedRecord ? (
+        <WorkstationSheet
+          title={crmRecordDisplayName(selectedRecord)}
+          eyebrow="Lead"
+          ariaLabel="Lead inspector"
+          onClose={closeRecordInspector}
+        >
+          <div className="fc-wlp-op-inspector-panel">
               <div className="fc-wlp-op-inspector-header">
                 <div>
                   <span className="fc-wlp-op-inspector-eyebrow">
@@ -1525,13 +1628,6 @@ function CrmWorkstation({ pageId, entityId, dataMode }: WorkspaceProductSurfaceP
                   <button
                     type="button"
                     className="fc-wlp-op-btn-secondary"
-                    onClick={() => openRecordInspector(selectedRecord.id)}
-                  >
-                    <Sparkles size={14} /> Open enhanced record
-                  </button>
-                  <button
-                    type="button"
-                    className="fc-wlp-op-btn-secondary"
                     onClick={() => handleStageChange(selectedRecord.id, 'outreach_sent')}
                   >
                     <Mail size={14} /> Send Follow-up Touch
@@ -1546,45 +1642,7 @@ function CrmWorkstation({ pageId, entityId, dataMode }: WorkspaceProductSurfaceP
                 </div>
               </div>
             </div>
-          ) : null}
-        </div>
-        )}
-        </div>
-      </div>
-
-      {openRecordId ? (
-        <div
-          className="fc-wlp-local-modal-overlay"
-          role="dialog"
-          aria-modal="true"
-          aria-label="CRM record inspector"
-          onClick={closeRecordInspector}
-        >
-          <div
-            className="fc-wlp-local-modal fc-wlp-wide-drawer fc-wlp-crm-record-sheet"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-3">
-              <div>
-                <p className="text-[11px] uppercase tracking-wider font-bold text-sky-300 m-0">Enhanced CRM inspector</p>
-                <h3 className="text-lg font-extrabold text-white m-0 mt-1">
-                  {selectedRecord ? crmRecordDisplayName(selectedRecord) : 'CRM record'}
-                </h3>
-              </div>
-              <button
-                type="button"
-                className="fc-wlp-btn-secondary !py-1.5 !px-2.5 !text-xs"
-                onClick={closeRecordInspector}
-                aria-label="Close CRM record inspector"
-              >
-                <X size={14} /> Close
-              </button>
-            </div>
-            <div className="max-h-[75vh] overflow-y-auto pr-1">
-              <AdminCrmRecordPage embedded recordId={openRecordId} />
-            </div>
-          </div>
-        </div>
+        </WorkstationSheet>
       ) : null}
 
       {/* Empty Trash Confirmation Modal */}
@@ -1726,7 +1784,7 @@ function CrmWorkstation({ pageId, entityId, dataMode }: WorkspaceProductSurfaceP
       ) : null}
 
       <AdminContextCommand
-        title="Pipeline Operating Standard"
+        title="How this pipeline works"
         description="Leads advance based on verified touches, proposals, and partner conversion milestones."
         steps={[
           'Drag lead cards between stages or use keyboard controls.',
@@ -1734,8 +1792,8 @@ function CrmWorkstation({ pageId, entityId, dataMode }: WorkspaceProductSurfaceP
           'Convert qualified leads directly into active partner files.',
         ]}
         prompt="Which lead source or stage requires touch first?"
-        contextLabel="CRM Pipeline Workstation"
-        onWatch={() => openProductCopilot({ prompt: 'Guide me through CRM lead conversion', contextLabel: 'CRM Workstation' })}
+        contextLabel="Leads & CRM"
+        onWatch={() => openProductCopilot({ prompt: 'Guide me through CRM lead conversion', contextLabel: 'Leads & CRM' })}
       />
     </AdminStageShell>
   );
@@ -1780,7 +1838,6 @@ function WorkflowWorkstation({ role, pageId, dataMode, surfaceVariant = 'workflo
   useEffect(() => {
     if (isDemo) {
       setTasks(DEMO_TASKS);
-      setSelectedTaskId(DEMO_TASKS[0].id);
       setMembers(DEMO_TEAM_MEMBERS);
       setPartners(DEMO_PARTNERS);
       return;
@@ -1789,7 +1846,6 @@ function WorkflowWorkstation({ role, pageId, dataMode, surfaceVariant = 'workflo
       const live = listTasks();
       if (live.length > 0) {
         setTasks(live);
-        setSelectedTaskId(live[0].id);
       } else {
         setTasks([]);
         setSelectedTaskId(null);
@@ -1809,7 +1865,7 @@ function WorkflowWorkstation({ role, pageId, dataMode, surfaceVariant = 'workflo
   }, [isDemo]);
 
   const selectedTask = useMemo(
-    () => tasks.find((t) => t.id === selectedTaskId) ?? tasks[0] ?? null,
+    () => tasks.find((t) => t.id === selectedTaskId) ?? null,
     [tasks, selectedTaskId],
   );
 
@@ -1968,7 +2024,9 @@ function WorkflowWorkstation({ role, pageId, dataMode, surfaceVariant = 'workflo
     const buckets: Record<WorkflowRiverLane, TaskItem[]> = {
       overdue: [],
       due_today: [],
+      due_tomorrow: [],
       unassigned: [],
+      upcoming: [],
     };
     for (const task of tasks) {
       const lane = assignWorkflowRiverLane(task);
@@ -1997,7 +2055,9 @@ function WorkflowWorkstation({ role, pageId, dataMode, surfaceVariant = 'workflo
     const buckets: Record<WorkflowRiverLane, TaskItem[]> = {
       overdue: [],
       due_today: [],
+      due_tomorrow: [],
       unassigned: [],
+      upcoming: [],
     };
     const sorted = [...visibleTasks].sort(compareWorkflowTasks);
     for (const task of sorted) {
@@ -2036,6 +2096,86 @@ function WorkflowWorkstation({ role, pageId, dataMode, surfaceVariant = 'workflo
     />
   );
 
+  const scrollToDayRoom = (roomId: string) => {
+    setActiveRoom(roomId);
+    window.requestAnimationFrame(() => {
+      document.getElementById(`fc-day-room-${roomId}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  };
+
+  const renderStackedDayRooms = () => (
+    <div className="fc-wlp-workflow-river-container">
+      <div className="fc-wlp-workflow-lane" data-lane="overdue" id="fc-day-room-overdue">
+        <div className="fc-wlp-workflow-lane-head">
+          <span className="fc-wlp-workflow-lane-title text-rose-700">
+            <Clock3 size={16} /> Past SLA ({riverLaneBuckets.overdue.length})
+          </span>
+        </div>
+        <div className="fc-wlp-workflow-river-list fc-wlp-list-chamber">
+          {renderTaskStack(
+            riverLaneBuckets.overdue,
+            'No overdue SLA breaches right now — triage due-today or unassigned rooms next.',
+          )}
+        </div>
+      </div>
+
+      <div className="fc-wlp-workflow-lane" data-lane="today" id="fc-day-room-today">
+        <div className="fc-wlp-workflow-lane-head">
+          <span className="fc-wlp-workflow-lane-title text-sky-800">
+            <CheckCircle2 size={16} /> Due today ({riverLaneBuckets.due_today.length})
+          </span>
+        </div>
+        <div className="fc-wlp-workflow-river-list fc-wlp-list-chamber">
+          {renderTaskStack(
+            riverLaneBuckets.due_today,
+            'No tasks due today — check past SLA or assign unowned work.',
+          )}
+        </div>
+      </div>
+
+      <div className="fc-wlp-workflow-lane" data-lane="tomorrow" id="fc-day-room-tomorrow">
+        <div className="fc-wlp-workflow-lane-head">
+          <span className="fc-wlp-workflow-lane-title text-emerald-700">
+            <CalendarClock size={16} /> Due tomorrow ({riverLaneBuckets.due_tomorrow.length})
+          </span>
+        </div>
+        <div className="fc-wlp-workflow-river-list fc-wlp-list-chamber">
+          {renderTaskStack(
+            riverLaneBuckets.due_tomorrow,
+            'Nothing due tomorrow — assigned later work lands in Upcoming.',
+          )}
+        </div>
+      </div>
+
+      <div className="fc-wlp-workflow-lane" data-lane="unassigned" id="fc-day-room-unassigned">
+        <div className="fc-wlp-workflow-lane-head">
+          <span className="fc-wlp-workflow-lane-title text-violet-700">
+            <Users size={16} /> Unassigned ({riverLaneBuckets.unassigned.length})
+          </span>
+        </div>
+        <div className="fc-wlp-workflow-river-list fc-wlp-list-chamber">
+          {renderTaskStack(
+            riverLaneBuckets.unassigned,
+            'All active tasks have assigned owners — drag from another room if reassignment is needed.',
+          )}
+        </div>
+      </div>
+
+      {riverLaneBuckets.upcoming.length ? (
+        <div className="fc-wlp-workflow-lane" data-lane="upcoming" id="fc-day-room-upcoming">
+          <div className="fc-wlp-workflow-lane-head">
+            <span className="fc-wlp-workflow-lane-title text-sky-800">
+              <Activity size={16} /> Upcoming ({riverLaneBuckets.upcoming.length})
+            </span>
+          </div>
+          <div className="fc-wlp-workflow-river-list fc-wlp-list-chamber">
+            {renderTaskStack(riverLaneBuckets.upcoming, 'No later assigned work.')}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+
   const hasActiveFilters =
     Boolean(searchQuery.trim()) || statusFilter !== 'all' || priorityFilter !== 'all' || assigneeFilter !== 'all';
   const clearFilters = () => {
@@ -2046,8 +2186,9 @@ function WorkflowWorkstation({ role, pageId, dataMode, surfaceVariant = 'workflo
   };
 
   const navItems: AdminStageNavItem[] = [
-    { id: 'river', label: 'Work river', description: 'Ranked by due time', icon: Activity, accent: 'rose' },
-    { id: 'overdue', label: 'Past due', description: 'Missed the target time', icon: Clock3, accent: 'rose', badge: riverLaneCounts.overdue.length || undefined },
+    { id: 'overdue', label: 'Past SLA', description: 'Missed the target time', icon: Clock3, accent: 'rose', badge: riverLaneCounts.overdue.length || undefined },
+    { id: 'today', label: 'Due today', description: 'Same-day completion targets', icon: CheckCircle2, accent: 'sky', badge: riverLaneCounts.due_today.length || undefined },
+    { id: 'tomorrow', label: 'Due tomorrow', description: 'Next-day assigned work', icon: CalendarClock, accent: 'emerald', badge: riverLaneCounts.due_tomorrow.length || undefined },
     { id: 'unassigned', label: 'Unassigned', description: 'Needs a team owner', icon: Users, accent: 'violet', badge: riverLaneCounts.unassigned.length || undefined },
   ];
 
@@ -2060,7 +2201,7 @@ function WorkflowWorkstation({ role, pageId, dataMode, surfaceVariant = 'workflo
       icon: Inbox,
       accent: 'violet',
       featured: true,
-      onClick: () => setActiveRoom('river'),
+      onClick: () => scrollToDayRoom('overdue'),
     },
     {
       id: 'overdue',
@@ -2069,7 +2210,7 @@ function WorkflowWorkstation({ role, pageId, dataMode, surfaceVariant = 'workflo
       detail: 'Past target completion time',
       icon: Clock3,
       accent: 'rose',
-      onClick: () => setActiveRoom('overdue'),
+      onClick: () => scrollToDayRoom('overdue'),
     },
     {
       id: 'today',
@@ -2078,7 +2219,7 @@ function WorkflowWorkstation({ role, pageId, dataMode, surfaceVariant = 'workflo
       detail: 'Same-day completion targets',
       icon: CheckCircle2,
       accent: 'sky',
-      onClick: () => setActiveRoom('river'),
+      onClick: () => scrollToDayRoom('today'),
     },
     {
       id: 'unassigned',
@@ -2087,7 +2228,7 @@ function WorkflowWorkstation({ role, pageId, dataMode, surfaceVariant = 'workflo
       detail: 'Awaiting team assignment',
       icon: Users,
       accent: 'emerald',
-      onClick: () => setActiveRoom('unassigned'),
+      onClick: () => scrollToDayRoom('unassigned'),
     },
   ];
 
@@ -2241,7 +2382,7 @@ function WorkflowWorkstation({ role, pageId, dataMode, surfaceVariant = 'workflo
               value: String(tasks.filter((t) => t.status !== 'completed').length),
               hint: 'Open operational tasks',
               accent: 'violet',
-              onClick: () => setActiveRoom('river'),
+              onClick: () => scrollToDayRoom('today'),
             },
             {
               label: 'SLA breaches',
@@ -2255,7 +2396,7 @@ function WorkflowWorkstation({ role, pageId, dataMode, surfaceVariant = 'workflo
               value: String(riverLaneCounts.due_today.length),
               hint: 'Same-day completion targets',
               accent: 'sky',
-              onClick: () => setActiveRoom('river'),
+              onClick: () => scrollToDayRoom('today'),
             },
             {
               label: 'Unassigned',
@@ -2277,7 +2418,7 @@ function WorkflowWorkstation({ role, pageId, dataMode, surfaceVariant = 'workflo
                 className="fc-admin-inbox-runway-node"
                 data-accent="rose"
                 data-active={activeRoom === 'overdue' ? 'true' : undefined}
-                onClick={() => setActiveRoom('overdue')}
+                onClick={() => scrollToDayRoom('overdue')}
               >
                 <span className="fc-admin-inbox-runway-label">
                   <Clock3 size={15} /> Past SLA
@@ -2290,7 +2431,7 @@ function WorkflowWorkstation({ role, pageId, dataMode, surfaceVariant = 'workflo
                 className="fc-admin-inbox-runway-node"
                 data-accent="sky"
                 data-active={activeRoom === 'river' ? 'true' : undefined}
-                onClick={() => setActiveRoom('river')}
+                onClick={() => scrollToDayRoom('today')}
               >
                 <span className="fc-admin-inbox-runway-label">
                   <CheckCircle2 size={15} /> Due today
@@ -2303,7 +2444,7 @@ function WorkflowWorkstation({ role, pageId, dataMode, surfaceVariant = 'workflo
                 className="fc-admin-inbox-runway-node"
                 data-accent="violet"
                 data-active={activeRoom === 'unassigned' ? 'true' : undefined}
-                onClick={() => setActiveRoom('unassigned')}
+                onClick={() => scrollToDayRoom('unassigned')}
               >
                 <span className="fc-admin-inbox-runway-label">
                   <Users size={15} /> Unassigned
@@ -2318,7 +2459,7 @@ function WorkflowWorkstation({ role, pageId, dataMode, surfaceVariant = 'workflo
                 <div className="fc-admin-inbox-roster-head">
                   <span className={`text-sm font-extrabold uppercase tracking-wide text-violet-600 ${FINELY_OS_ENTITY_BODY}`}>Team roster</span>
                   <h2>Drag a task onto a teammate to assign</h2>
-                  <p>Or use Assignees in the inspector when a task is selected.</p>
+                  <p>Open a task to assign owners, or drag onto a teammate.</p>
                 </div>
                 <div className="fc-admin-inbox-roster-strip">
                   <button
@@ -2376,7 +2517,7 @@ function WorkflowWorkstation({ role, pageId, dataMode, surfaceVariant = 'workflo
                           className="fc-admin-inbox-lane-pill"
                           data-accent={item.accent}
                           data-active={activeRoom === item.id ? 'true' : undefined}
-                          onClick={() => setActiveRoom(item.id)}
+                          onClick={() => scrollToDayRoom(item.id)}
                         >
                           <Icon size={14} />
                           {item.label}
@@ -2446,18 +2587,10 @@ function WorkflowWorkstation({ role, pageId, dataMode, surfaceVariant = 'workflo
                 </div>
 
                 <div className="fc-admin-inbox-queue-list">
-                  {renderTaskStack(inboxQueueTasks, inboxQueueEmpty)}
+                  {renderStackedDayRooms()}
                 </div>
               </aside>
 
-              <main className="fc-admin-inbox-detail-stage">
-                {taskInspectorPanel ?? (
-                  <div className="fc-admin-inbox-detail-empty">
-                    <h3>Select a task</h3>
-                    <p>Pick a queue item to inspect checklist steps, assignees, and SLA status.</p>
-                  </div>
-                )}
-              </main>
             </section>
           </div>
 
@@ -2466,6 +2599,16 @@ function WorkflowWorkstation({ role, pageId, dataMode, surfaceVariant = 'workflo
           </p>
         </ProductHubScaffold>
         {createTaskModal}
+        {selectedTask ? (
+          <WorkstationSheet
+            title={selectedTask.title}
+            eyebrow="Task"
+            ariaLabel="Task inspector"
+            onClose={() => setSelectedTaskId(null)}
+          >
+            {taskInspectorPanel}
+          </WorkstationSheet>
+        ) : null}
       </>
     );
   }
@@ -2476,13 +2619,13 @@ function WorkflowWorkstation({ role, pageId, dataMode, surfaceVariant = 'workflo
       <AdminStageHero
         tone="control"
         accent="rose"
-        eyebrow="Service Operations · Workflow Workstation"
+        eyebrow="Delivery · Work queue"
         title={
           <>
-            Ranked <span className="text-rose-400">work river</span>
+            Work <span className="text-rose-400">queue</span>
           </>
         }
-        description="Prioritized service channels with live SLA clocks, partner links, and real-time task triage."
+        description="Tasks ranked by service clock, with partner links and owners ready to assign."
         status={`${tasks.length} tasks in river · ${dataMode} data`}
         freshness={formatFreshness(tasks[0]?.updatedAt)}
         icon={Inbox}
@@ -2490,7 +2633,7 @@ function WorkflowWorkstation({ role, pageId, dataMode, surfaceVariant = 'workflo
           <ProductPagePrimaryAction label="Create Task" onClick={() => setIsCreatingTask(true)} />
         }
         secondaryAction={
-          <button type="button" className="fc-wlp-btn-secondary" onClick={() => setActiveRoom('overdue')}>
+          <button type="button" className="fc-wlp-btn-secondary" onClick={() => scrollToDayRoom('overdue')}>
             <Clock3 size={15} /> SLA Breaches Queue
           </button>
         }
@@ -2506,7 +2649,7 @@ function WorkflowWorkstation({ role, pageId, dataMode, surfaceVariant = 'workflo
             <div>
               <span>Team Roster</span>
               <h2>Drag a task onto a teammate to assign</h2>
-              <p>Or use the Assignees control inside the inspector — keyboard and touch friendly.</p>
+              <p>Open a task to assign owners, or drag onto a teammate.</p>
             </div>
           </div>
           <div className="fc-wlp-op-roster-strip">
@@ -2560,7 +2703,7 @@ function WorkflowWorkstation({ role, pageId, dataMode, surfaceVariant = 'workflo
                   className="fc-wlp-workflow-queue-rail-btn"
                   data-active={activeRoom === item.id ? 'true' : undefined}
                   data-accent={item.accent}
-                  onClick={() => setActiveRoom(item.id)}
+                  onClick={() => scrollToDayRoom(item.id)}
                 >
                   <Icon size={15} aria-hidden />
                   {item.label}
@@ -2627,75 +2770,13 @@ function WorkflowWorkstation({ role, pageId, dataMode, surfaceVariant = 'workflo
           </div>
 
           <div className="fc-wlp-workflow-queue-body">
-            {activeRoom === 'overdue' || activeRoom === 'unassigned' ? (
-              <div className="fc-wlp-workflow-river-list">
-                {renderTaskStack(
-                  activeRoom === 'overdue' ? riverLaneBuckets.overdue : riverLaneBuckets.unassigned,
-                  activeRoom === 'overdue'
-                    ? 'No overdue SLA breaches right now — clear filters or check back later.'
-                    : 'No unassigned triage items — assign owners from overdue or due-today lanes first.',
-                )}
-              </div>
-            ) : (
-              <div className="fc-wlp-workflow-river-container">
-                <div className="fc-wlp-workflow-lane" data-lane="overdue">
-                  <div className="fc-wlp-workflow-lane-head">
-                    <span className="fc-wlp-workflow-lane-title text-rose-400">
-                      <Clock3 size={16} /> Past SLA / Overdue ({riverLaneBuckets.overdue.length})
-                    </span>
-                  </div>
-                  <div className="fc-wlp-workflow-river-list">
-                    {renderTaskStack(
-                      riverLaneBuckets.overdue,
-                      'No overdue SLA breaches right now — triage due-today or unassigned lanes next.',
-                    )}
-                  </div>
-                </div>
-
-                <div className="fc-wlp-workflow-lane" data-lane="today">
-                  <div className="fc-wlp-workflow-lane-head">
-                    <span className="fc-wlp-workflow-lane-title text-sky-400">
-                      <CheckCircle2 size={16} /> Due Today ({riverLaneBuckets.due_today.length})
-                    </span>
-                  </div>
-                  <div className="fc-wlp-workflow-river-list">
-                    {renderTaskStack(
-                      riverLaneBuckets.due_today,
-                      'No tasks due today — check overdue breaches or assign unowned work.',
-                    )}
-                  </div>
-                </div>
-
-                <div className="fc-wlp-workflow-lane" data-lane="unassigned">
-                  <div className="fc-wlp-workflow-lane-head">
-                    <span className="fc-wlp-workflow-lane-title text-violet-400">
-                      <Users size={16} /> Unassigned Triage ({riverLaneBuckets.unassigned.length})
-                    </span>
-                  </div>
-                  <div className="fc-wlp-workflow-river-list">
-                    {renderTaskStack(
-                      riverLaneBuckets.unassigned,
-                      'All active tasks have assigned owners — drag from another lane if reassignment is needed.',
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
+            {renderStackedDayRooms()}
           </div>
-        </div>
-
-        <div className="fc-wlp-workflow-detail-pane">
-          {taskInspectorPanel ?? (
-            <div className="fc-wlp-workflow-detail-empty">
-              <h3>Select a task</h3>
-              <p>Pick a queue item to inspect checklist steps, assignees, and SLA status.</p>
-            </div>
-          )}
         </div>
       </div>
 
       <AdminContextCommand
-        title="Workflow Operating Standard"
+        title="How this queue works"
         description="Tasks are ranked by service clock risk and partner impact. Overdue items clear before opening low-risk work."
         steps={[
           'Clear past-target SLA breach tasks first.',
@@ -2703,11 +2784,21 @@ function WorkflowWorkstation({ role, pageId, dataMode, surfaceVariant = 'workflo
           'Complete fulfillment checklist steps before closing task.',
         ]}
         prompt="Which task in the river should I assign or complete next?"
-        contextLabel="Workflow River Workstation"
-        onWatch={() => openProductCopilot({ prompt: 'How do I manage service clock SLA breaches?', contextLabel: 'Workflow Workstation' })}
+        contextLabel="Work queue"
+        onWatch={() => openProductCopilot({ prompt: 'How do I manage service clock SLA breaches?', contextLabel: 'Work queue' })}
       />
     </AdminStageShell>
     {createTaskModal}
+    {selectedTask ? (
+      <WorkstationSheet
+        title={selectedTask.title}
+        eyebrow="Task"
+        ariaLabel="Task inspector"
+        onClose={() => setSelectedTaskId(null)}
+      >
+        {taskInspectorPanel}
+      </WorkstationSheet>
+    ) : null}
     </>
   );
 }
@@ -2754,7 +2845,7 @@ function TaskCard({
       </div>
       <div className={isInboxCard ? 'fc-admin-inbox-task-title' : 'fc-wlp-workflow-item-title'}>{task.title}</div>
       <div className={isInboxCard ? 'fc-admin-inbox-task-partner' : 'fc-wlp-workflow-item-partner'}>
-        Partner: <strong className={isInboxCard ? 'text-slate-900' : 'text-slate-200'}>{partnerName}</strong>
+        Partner: <strong className="fc-wlp-workflow-item-partner-name">{partnerName}</strong>
         {assigneeCount > 0 ? (
           <span className="ml-2 text-emerald-600">· {assigneeCount} assigned</span>
         ) : (
@@ -2950,14 +3041,12 @@ function CasesWorkstation({ pageId, entityId, dataMode }: WorkspaceProductSurfac
   useEffect(() => {
     if (isDemo) {
       setCases(DEMO_CASES);
-      setSelectedCaseId(DEMO_CASES[0].id);
       setPartners(DEMO_PARTNERS);
     } else {
       try {
         const live = listCases();
         if (live.length > 0) {
           setCases(live);
-          setSelectedCaseId(live[0].id);
         } else {
           setCases([]);
           setSelectedCaseId(null);
@@ -2982,11 +3071,12 @@ function CasesWorkstation({ pageId, entityId, dataMode }: WorkspaceProductSurfac
   };
 
   const closeCaseInspector = () => {
+    setSelectedCaseId(null);
     navigate(casesHubHref(pathname));
   };
 
   const selectedCase = useMemo(
-    () => cases.find((c) => c.id === selectedCaseId) ?? cases[0] ?? null,
+    () => cases.find((c) => c.id === selectedCaseId) ?? null,
     [cases, selectedCaseId],
   );
 
@@ -3307,13 +3397,13 @@ function CasesWorkstation({ pageId, entityId, dataMode }: WorkspaceProductSurfac
       <AdminStageHero
         tone="docket"
         accent="rose"
-        eyebrow="Case Studio · Docket Workstation"
+        eyebrow="Delivery · Cases"
         title={
           <>
-            Dark <span className="text-rose-400">Evidence-First Docket</span>
+            Case <span className="text-rose-400">docket</span>
           </>
         }
-        description="Timeline spine connecting bureau rounds, factual dispute items, and evidence exhibits."
+        description="Bureau rounds, factual findings, and evidence exhibits on one timeline."
         status={`${cases.length} cases on docket · ${dataMode} data`}
         freshness={formatFreshness(cases[0]?.updatedAt)}
         icon={Gavel}
@@ -3480,9 +3570,19 @@ function CasesWorkstation({ pageId, entityId, dataMode }: WorkspaceProductSurfac
             })}
           </div>
 
-          {/* Persistent Case Inspector */}
-          {selectedCase ? (
-            <div className="fc-wlp-op-inspector-panel">
+
+        </div>
+      </div>
+      )}
+
+      {selectedCase ? (
+        <WorkstationSheet
+          title={selectedCase.title}
+          eyebrow="Case"
+          ariaLabel="Case inspector"
+          onClose={closeCaseInspector}
+        >
+          <div className="fc-wlp-op-inspector-panel">
               <div className="fc-wlp-op-inspector-header">
                 <div>
                   <span className="fc-wlp-op-inspector-eyebrow text-rose-400">
@@ -3630,14 +3730,6 @@ function CasesWorkstation({ pageId, entityId, dataMode }: WorkspaceProductSurfac
                   <button
                     type="button"
                     className="fc-wlp-op-btn-secondary"
-                    onClick={() => openCaseInspector(selectedCase.id)}
-                    title="Opens the enhanced case inspector over the docket. Legacy full-page case detail is not the default."
-                  >
-                    <FileCheck2 size={14} /> Open enhanced case file
-                  </button>
-                  <button
-                    type="button"
-                    className="fc-wlp-op-btn-secondary"
                     onClick={() => navigate(adminWorkspacePath(pathname, 'mail', `?partnerId=${encodeURIComponent(selectedCase.partnerId)}`))}
                   >
                     <Link2 size={14} /> Hand Off to Letters
@@ -3685,44 +3777,7 @@ function CasesWorkstation({ pageId, entityId, dataMode }: WorkspaceProductSurfac
                 </div>
               </div>
             </div>
-          ) : null}
-        </div>
-      </div>
-      )}
-
-      {openCaseId ? (
-        <div
-          className="fc-wlp-local-modal-overlay"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Case file inspector"
-          onClick={closeCaseInspector}
-        >
-          <div
-            className="fc-wlp-local-modal fc-wlp-wide-drawer fc-wlp-case-record-sheet"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-3">
-              <div>
-                <p className="text-[11px] uppercase tracking-wider font-bold text-rose-300 m-0">Enhanced case inspector</p>
-                <h3 className="text-lg font-extrabold text-white m-0 mt-1">
-                  {selectedCase?.title ?? 'Case file'}
-                </h3>
-              </div>
-              <button
-                type="button"
-                className="fc-wlp-btn-secondary !py-1.5 !px-2.5 !text-xs"
-                onClick={closeCaseInspector}
-                aria-label="Close case inspector"
-              >
-                <X size={14} /> Close
-              </button>
-            </div>
-            <div className="max-h-[75vh] overflow-y-auto pr-1">
-              <AdminCaseDetailPage embedded caseId={openCaseId} />
-            </div>
-          </div>
-        </div>
+        </WorkstationSheet>
       ) : null}
 
       {/* Local Modal for Case Creation */}
@@ -3810,7 +3865,7 @@ function CasesWorkstation({ pageId, entityId, dataMode }: WorkspaceProductSurfac
       ) : null}
 
       <AdminContextCommand
-        title="Case Studio Operating Standard"
+        title="How cases move"
         description="Cases require factual findings and evidence exhibits. Responses log against 30-day bureau response windows."
         steps={[
           'Verify dispute items against source credit reports.',
@@ -3818,8 +3873,8 @@ function CasesWorkstation({ pageId, entityId, dataMode }: WorkspaceProductSurfac
           'Track 30-day response deadline after mailing round.',
         ]}
         prompt="Which case on the docket requires evidence review next?"
-        contextLabel="Case Studio Workstation"
-        onWatch={() => openProductCopilot({ prompt: 'How do I attach evidence to a bureau dispute case?', contextLabel: 'Case Studio' })}
+        contextLabel="Cases"
+        onWatch={() => openProductCopilot({ prompt: 'How do I attach evidence to a bureau dispute case?', contextLabel: 'Cases' })}
       />
     </AdminStageShell>
   );

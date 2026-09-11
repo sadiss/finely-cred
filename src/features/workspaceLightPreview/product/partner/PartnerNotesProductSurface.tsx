@@ -60,7 +60,7 @@ export default function PartnerNotesProductSurface({ partnerId }: WorkspaceProdu
   const pinnedCount = manualNotes.filter((n) => n.pinned).length;
 
   return (
-    <div className={`${FINELY_OS_PAGE} space-y-5`} data-surface-layout="notes-workbench">
+    <div className={`${FINELY_OS_PAGE} space-y-5`} data-surface-layout="compose-studio">
       <header className={`${finelyOsCatalogCard('violet')} flex flex-wrap items-center justify-between gap-4 p-6 lg:p-8`} data-fc-accent="violet">
         <div className="flex items-start gap-4 min-w-0">
           <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-500/20 text-violet-200 shrink-0">
@@ -70,7 +70,7 @@ export default function PartnerNotesProductSurface({ partnerId }: WorkspaceProdu
             <p className={FINELY_OS_ENTITY_SUBLABEL}>Partner notes</p>
             <h1 className={`text-3xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{partner.profile.fullName || 'Partner file'}</h1>
             <p className={`mt-2 text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
-              Queue on the left, compose in the center, full note detail on the right.
+              Write a note, then open any card for the full text.
             </p>
           </div>
         </div>
@@ -91,7 +91,7 @@ export default function PartnerNotesProductSurface({ partnerId }: WorkspaceProdu
       </header>
 
       <PartnerNotesTab
-        layout="workbench"
+        layout="stacked"
         systemNotes={systemNotes}
         manualNotes={manualNotes}
         notesDraft={notesDraft}

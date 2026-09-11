@@ -22,7 +22,7 @@ const CARDS: Array<{
   {
     title: 'DIY',
     range: 'Tools + templates',
-    note: 'Move fast with letter kits, dispute workflows, and portal access — built for disciplined partners.',
+    note: 'Move with letter kits, dispute workflows, and portal access — built for partners who want to drive the work.',
     Icon: Zap,
     featured: false,
     points: ['Letter kits & guides', 'Self-paced portal tools'],
@@ -30,7 +30,7 @@ const CARDS: Array<{
   {
     title: 'Done-For-You',
     range: 'Execution + support',
-    note: 'We build the packets, strategy, and tracking — so you stay in command without the busywork.',
+    note: 'We build the packets, the strategy, and the tracking so you stay in command without the busywork.',
     Icon: Shield,
     featured: true,
     points: ['Strategy + dispute packets', 'Round tracking & responses', 'Dedicated specialist support'],
@@ -122,7 +122,7 @@ export function LandingSolutionsSnapshotSection({ onViewPricing }: Props) {
     >
       <LandingSellAtmosphere tone="platinum" />
 
-      <div className="container mx-auto px-4 sm:px-6 max-w-6xl relative z-10">
+      <div className="fc-viewport-floor relative z-10">
         <div className="text-center mb-12 max-w-3xl mx-auto">
           <Reveal>
             <p className="fc-sell-kicker mb-5">Solutions</p>
@@ -138,8 +138,8 @@ export function LandingSolutionsSnapshotSection({ onViewPricing }: Props) {
               <DiyDfySwitcher />
             </div>
             <p className="mt-5 text-base sm:text-lg leading-relaxed text-[#0c1228]/70">
-              Personal restore, business credit, debt strategy, tradelines, and wealth builder — one clear path to
-              pricing.
+              Personal restore, business credit, debt strategy, tradelines, and wealth builder. Choose do-it-yourself
+              tools or a done-for-you desk, then open the package that fits the file.
             </p>
           </Reveal>
         </div>
@@ -182,10 +182,10 @@ export function LandingSolutionsSnapshotSection({ onViewPricing }: Props) {
             </button>
             <button
               type="button"
-              onClick={() => navigate('/free-guide')}
-              className="text-sm font-bold text-[#0c1228]/55 hover:text-[#8a6a24] transition-colors underline-offset-4 hover:underline"
+              onClick={() => navigate('/resources/one-sheets')}
+              className="text-sm font-bold text-[#0c1228]/55 hover:text-emerald-700 transition-colors underline-offset-4 hover:underline"
             >
-              Or start with the free guide
+              Or browse partner one-sheets
             </button>
             <p className="fc-sell-compliance mt-2">Results vary · not legal advice · funding subject to underwriting</p>
           </div>

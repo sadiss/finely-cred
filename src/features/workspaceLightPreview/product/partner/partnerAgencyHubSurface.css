@@ -41,7 +41,7 @@
 .fc-agency-hero-signals {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 18px;
   align-items: flex-start;
 }
 
@@ -82,7 +82,7 @@
 .fc-agency-command-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 12px;
+  gap: 20px;
 }
 
 .fc-agency-command-tile {

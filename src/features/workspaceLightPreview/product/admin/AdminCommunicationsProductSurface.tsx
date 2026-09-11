@@ -440,7 +440,7 @@ export default function AdminCommunicationsProductSurface({ role, pageId, dataMo
             </p>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-5 sm:grid-cols-2">
             {channelTiles.map((tile) => {
               const Icon = tile.icon;
               const selected = selectedChannel === tile.id;
@@ -450,7 +450,7 @@ export default function AdminCommunicationsProductSurface({ role, pageId, dataMo
                   key={tile.id}
                   type="button"
                   data-selected={selected ? 'true' : undefined}
-                  className={`text-left ${finelyOsCatalogCard(tile.accent)} p-4 lg:p-5 transition-all ${
+                  className={`text-left ${finelyOsCatalogCard(tile.accent)} p-6 lg:p-8 transition-all ${
                     selected ? 'ring-2 ring-white/30' : ''
                   }`}
                   data-fc-accent={tile.accent}
@@ -495,7 +495,7 @@ export default function AdminCommunicationsProductSurface({ role, pageId, dataMo
           </div>
 
           {selectedChannel === 'studio' ? (
-            <div className={`${finelyOsCatalogCard('sky')} p-4 lg:p-5 overflow-hidden`} data-fc-accent="sky">
+            <div className={`${finelyOsCatalogCard('sky')} p-6 lg:p-8 overflow-hidden`} data-fc-accent="sky">
               <CommsStudioDepartmentPage />
             </div>
           ) : null}
@@ -563,7 +563,7 @@ export default function AdminCommunicationsProductSurface({ role, pageId, dataMo
 
           {selectedChannel === 'inbox' || selectedChannel === 'needs_reply' || selectedChannel === 'chat' ? (
             <div className="grid gap-4 lg:grid-cols-5 items-start">
-              <div className={`lg:col-span-2 ${finelyOsCatalogCard('sky')} p-4 space-y-3`} data-fc-accent="sky">
+              <div className={`lg:col-span-2 ${finelyOsCatalogCard('sky')} p-6 lg:p-8 space-y-3`} data-fc-accent="sky">
                 <div className="flex items-center justify-between">
                   <strong className="text-sm font-extrabold">
                     {selectedChannel === 'needs_reply' ? 'Waiting on team' : 'Partner threads'}

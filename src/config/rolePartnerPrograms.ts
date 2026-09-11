@@ -36,11 +36,11 @@ export const ROLE_GUIDE_CTAS: Record<RolePageId, RoleGuideCta> = {
     path: '/real-estate-guide',
     readPath: '/real-estate-guide/read',
     readLabel: 'Read every chapter free',
-    blurb: 'Operator handbook for agents — WIIFM, scripts, Fannie AU/DTI, and the seven readiness levers Finely runs.',
+    blurb: 'A handbook for agents: what you gain, question scripts, Fannie authorized-user and DTI notes, and the seven readiness levers Finely runs.',
     inside: [
-      'You refer · Finely runs credit · what’s in it for the agent',
-      'Question scripts + seven readiness levers with real Finely routes',
-      'Fannie AU/DTI summaries and lender rapid-rescore prep — no approval promises',
+      'You refer. Finely Cred runs the credit work. Here is what the agent keeps.',
+      'Question scripts and seven readiness levers with real Finely routes',
+      'Fannie authorized-user and DTI summaries, plus lender rescore prep',
     ],
   },
   case_help: {
@@ -50,11 +50,11 @@ export const ROLE_GUIDE_CTAS: Record<RolePageId, RoleGuideCta> = {
     readPath: '/case-desk-guide/read',
     readLabel: 'Read the operator handbook',
     blurb:
-      'Operator handbook for assigned matters — packet anatomy, scope, validation-first, and the complaint ladder. Debt & summons guide stays the prerequisite.',
+      'A handbook for assigned matters: how a packet is built, what stays in scope, validation first, and when to escalate. Read the debt and summons guide first.',
     inside: [
-      'Packet anatomy and validation / court / escalation track separation',
-      'Scope discipline — per-partner, logged, revocable access',
-      'When to escalate + CFPB / AG / FTC / BBB complaint ladder',
+      'How a packet is built, and how validation, court, and escalation stay separate',
+      'Access is per partner, logged, and can be revoked',
+      'When to escalate, plus the CFPB, attorney general, FTC, and BBB ladder',
     ],
   },
   cs: {
@@ -151,7 +151,7 @@ export const ROLE_WORK_SPLIT: Record<RolePageId, RoleWorkSplit> = {
     ],
   },
   cs: {
-    headline: 'You run partner files. Finely supplies the engine, method, and back office.',
+    headline: 'You run partner files. Finely Cred supplies the method and the back office.',
     youDo: [
       'Own your partner relationships from consult through restore milestones',
       'Pull reports, pick items, and send findings-based letters from the studio',
@@ -159,7 +159,7 @@ export const ROLE_WORK_SPLIT: Record<RolePageId, RoleWorkSplit> = {
     ],
     finelyRuns: [
       'Education, certification path, and the dispute method itself',
-      'Full Finely OS: CRM, letter studio, evidence vault, comms, payouts',
+      'CRM, letter studio, evidence vault, messaging, and payouts',
       'Escalation support and compliance guardrails on every letter track',
     ],
     notYourJob: [
@@ -169,15 +169,15 @@ export const ROLE_WORK_SPLIT: Record<RolePageId, RoleWorkSplit> = {
     ],
   },
   agency: {
-    headline: 'Your brand and your team out front. Finely is the operating system behind it.',
+    headline: 'Your brand and your team out front. Finely Cred runs the workspace behind them.',
     youDo: [
       'Own the brand, the partner relationships, and the team you hire',
-      'Route partners into your tenant and manage seat capacity',
+      'Route partners into your workspace and manage seat capacity',
       'Set your service mix across restore, build, funding, and AU lanes',
     ],
     finelyRuns: [
-      'Tenant provisioning, white-label branding, and seat controls',
-      'Dispute OS, letter studio, evidence vault, and audit trails',
+      'Workspace setup, white-label branding, and seat controls',
+      'Letter studio, evidence vault, dispute tracks, and audit trails',
       'Method updates, training path, and admin oversight tooling',
     ],
     notYourJob: [

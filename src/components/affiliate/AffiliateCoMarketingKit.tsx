@@ -55,7 +55,7 @@ export function AffiliateCoMarketingKit() {
       { label: 'Free dispute guide', url: buildPromotedUrl({ ...common, path: '/free-guide?guide=credit-dispute-letter-guide', promoType: 'guide', promoAsset: 'credit-dispute-letter-guide' }) },
       { label: 'Resources library', url: buildPromotedUrl({ ...common, path: '/resources', promoType: 'guide', promoAsset: 'resources' }) },
       { label: 'Bookstore / ebooks', url: buildPromotedUrl({ ...common, path: '/bookstore', promoType: 'ebook', promoAsset: 'bookstore' }) },
-      { label: 'Pricing', url: buildPromotedUrl({ ...common, path: '/pricing', promoType: 'service', promoAsset: 'pricing' }) },
+      { label: 'Restore programs', url: buildPromotedUrl({ ...common, path: '/pricing/personal-credit-restore', promoType: 'service', promoAsset: 'pricing' }) },
       { label: 'Strategy call', url: buildPromotedUrl({ ...common, path: '/enlightenment-session', promoType: 'service', promoAsset: 'enlightenment-session' }) },
       { label: 'Affiliate signup', url: buildPromotedUrl({ ...common, path: AF.publicPath, promoType: 'signup', promoAsset: 'affiliate' }) },
     ];

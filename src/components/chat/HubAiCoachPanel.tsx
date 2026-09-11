@@ -63,6 +63,7 @@ import {
   finelyPublicAnswer,
   shouldUseFinelyPublicAnswer,
 } from '../../lib/finelyBrain/finelyPublicAnswer';
+import { humanSpokenReply } from '../../lib/finelyBrain/humanCreditTalk';
 import { resolveWorkspaceProductPath } from '../../features/workspaceLightPreview/product/workspaceProductNav';
 import {
   CHAT_LOCALE_LABELS,
@@ -432,6 +433,22 @@ export function HubAiCoachPanel({
           },
         ]);
         setFollowUps(fallback.followUps);
+        return;
+      }
+
+      const spokenDoor = responseLocale === 'en' ? humanSpokenReply(trimmed) : null;
+      if (spokenDoor) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: newMsgId(),
+            role: 'assistant',
+            content: spokenDoor,
+            ts: new Date().toISOString(),
+            source: 'knowledge_local',
+          },
+        ]);
+        setFollowUps([]);
         return;
       }
 

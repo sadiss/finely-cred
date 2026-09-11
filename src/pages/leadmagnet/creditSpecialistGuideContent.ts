@@ -52,9 +52,9 @@ export type CreditSpecialistGuideChapter = {
 export const CS_GUIDE_META = {
   title: 'The Credit Specialist Playbook',
   shortTitle: 'Specialist Playbook',
-  tagline: 'Personal credit · Business credit · Debt strategy · Opportunity everywhere',
+  tagline: 'Personal credit, business credit, debt strategy, and a clear specialist path',
   description:
-    'A free in-app guide for Credit Specialists: personal and business credit, debt challenge insight, court/summons education, funding and tradeline opportunity framing, and specialist income growth with Finely Cred.',
+    'A free in-app guide for Credit Specialists: personal and business credit, debt education, court and summons insight, and a compliant path to grow a practice with Finely Cred. Results vary · not legal advice · funding subject to underwriting.',
   compliance: 'Results vary · not legal advice · funding subject to underwriting',
   edition: 'Finely Cred edition',
   valueLabel: '$297+',
@@ -78,7 +78,7 @@ const CS_GUIDE_CHAPTER_INPUTS: CreditSpecialistChapterInput[] = [
         paragraphs: [
           'This is a field manual for Credit Specialists — people who help partners restore personal files, sequence business credit, respond to debt pressure, and unlock funding opportunity without hype.',
           'You will not find miracle guarantees. You will find frameworks Finely Cred trains specialists to use: factual findings, evidence discipline, fundability stage gates, and compliant opportunity framing.',
-          'Open any page from the landing preview. Read freely in the in-app reader. Join the program later when you want the full operating stack — reading never requires signup.',
+          'Open the landing preview to read page one. Enter your details to unlock the full operating stack. Join the program when you are ready to work the system with partners.',
         ],
       },
       {
@@ -328,21 +328,21 @@ const CS_GUIDE_CHAPTER_INPUTS: CreditSpecialistChapterInput[] = [
   },
   {
     id: 'debt-strategy',
-    title: 'Debt: Challenge & Eradicate Pressure',
-    subtitle: 'Validation, documentation, and calm response under collection heat',
+    title: 'Debt: Validate, Then Decide',
+    subtitle: 'Validation, documentation, and a calm response when collections arrive',
     kicker: 'Debt lane',
-    teaser: 'Turn chaos into a paper trail — validation first, emotion second, outcomes never promised.',
+    teaser: 'Turn a messy inbox into a paper trail — validation first, emotion second, outcomes never promised.',
     accent: 'rose',
     sections: [
       {
         heading: 'Pressure is a process problem',
         paragraphs: [
           'Collections thrive on confusion. Specialists restore control by organizing accounts, capturing every notice, and teaching partners to respond with documentation — not panic payments or silence.',
-          '“Eradicate pressure” in Finely language means reducing chaos and correcting inaccurate reporting — never a guaranteed wipe of lawful obligations.',
+          'In Finely language, reducing pressure means calming the chaos and correcting inaccurate reporting — never a guaranteed wipe of lawful obligations.',
         ],
       },
       {
-        heading: 'Validation-first doctrine (educational)',
+        heading: 'Validate first (educational)',
         bullets: [
           'Identify who is contacting the partner: original creditor, collector, or buyer.',
           'Request validation / verification where applicable — keep certified mail receipts.',
@@ -367,7 +367,7 @@ const CS_GUIDE_CHAPTER_INPUTS: CreditSpecialistChapterInput[] = [
         callout: 'Not legal advice. Statutes and remedies vary. Educate and organize — do not practice law.',
       },
       {
-        heading: 'Eradication framing that stays compliant',
+        heading: 'Pressure language that stays compliant',
         paragraphs: [
           'Talk about reducing pressure, correcting inaccurate reporting, and rebuilding optionality — never “wipe any debt guaranteed.” Partners deserve honesty; underwriters and regulators notice the difference.',
         ],
@@ -377,9 +377,9 @@ const CS_GUIDE_CHAPTER_INPUTS: CreditSpecialistChapterInput[] = [
   {
     id: 'court-summons',
     title: 'Court & Summons Insight',
-    subtitle: 'Deadlines, documentation, and a winning educational posture',
+    subtitle: 'Deadlines, documentation, and an educational posture that stays honest',
     kicker: 'Court education',
-    teaser: 'Summons panic is common. Calm calendars, evidence folders, and counsel when needed are the antidote.',
+    teaser: 'A summons needs a calendar, an evidence folder, and licensed counsel when the file requires it.',
     accent: 'gold',
     sections: [
       {
@@ -655,6 +655,55 @@ const CS_GUIDE_CHAPTER_INPUTS: CreditSpecialistChapterInput[] = [
           'Keep reading as long as you want — signup is optional and separate from this e-guide and the 2-sheet playbook.',
         ],
         callout: 'Application is not a job offer. Income varies. Educational positioning required. Results vary · not legal advice · funding subject to underwriting.',
+      },
+    ],
+  },
+  {
+    id: 'haitian-companion',
+    title: 'Sitting with a Haitian-American partner',
+    subtitle: 'Credit help for Haitian Americans — sit together, one next step',
+    kicker: 'Haitian community',
+    teaser: 'One page for specialists and family helpers: Pale Kreyòl, one kit, one next step.',
+    accent: 'rose',
+    sections: [
+      {
+        heading: 'What this desk is',
+        paragraphs: [
+          'Haitian community is for Haitian-American partners and guests in the U.S. — Miami, Brooklyn, Boston, Houston, Atlanta, Washington DC, Chicago, Philadelphia, Jacksonville, and New Jersey. It is not a Haiti-in-Haiti product.',
+          'Sit with the person. Open the letter they received. Pale Kreyòl when they want to talk. Then take one next step: a kit, restore, or debt.',
+        ],
+        callout: 'Open /haitian. Press Pale Kreyòl only when they ask to speak Kreyòl. Do not invent a French default.',
+      },
+      {
+        heading: 'How to sit through one English step',
+        bullets: [
+          'Open Haitian community together. Hear Tande l if spoken Kreyòl is stronger than written Kreyòl.',
+          'Open the letter or bureau page they received.',
+          'Do one next step (restore, debt, build, or business). Stop when that step is done.',
+          'Download the helper kit from /free-kreyol-guide if they need paper for church or family.',
+          'Book a session when the paper is a summons, foreclosure, or more than one account.',
+        ],
+        checklist: {
+          label: 'Do not promise',
+          items: [
+            'Do not promise a deletion, a score, or a court outcome.',
+            'Do not treat Kreyòl as broken French, and do not switch the desk to Français.',
+            'Do not mock sòl / tontine. U.S. bureau credit is a different system — say that once, then move on.',
+            'Do not use occult, costume, flag-as-wallpaper, or poverty-story language. Dignity and work only.',
+          ],
+        },
+      },
+      {
+        heading: 'Where to send them',
+        resources: [
+          { label: 'Haitian community', href: '/haitian', note: 'Credit help · Pale Kreyòl' },
+          { label: 'Credit kits', href: '/haitian', note: 'Haitian community' },
+          { label: 'Miami city page', href: '/credit/miami-fl', note: 'English local page' },
+          { label: 'New York city page', href: '/credit/new-york-ny', note: 'Brooklyn / Kings — English' },
+          { label: 'Boston city page', href: '/credit/boston-ma', note: 'Boston / Brockton — English' },
+          { label: 'Credit specialist program', href: '/credit-specialist', note: 'Join path if you deliver files' },
+        ],
+        callout: 'Results vary · not legal advice · funding subject to underwriting · Rezilta yo varye',
       },
     ],
   },

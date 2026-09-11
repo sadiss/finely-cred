@@ -117,7 +117,7 @@ export function RepossessionCenterView({
       layout={deskLayout ? 'runway' : 'shell'}
       icon={Car}
       eyebrow={isCredit ? 'Bureau cleanup' : 'Collateral defense'}
-      title={isCredit ? 'Repossession credit letters' : 'Repossession command center'}
+      title={isCredit ? 'Repossession credit letters' : 'Repossession desk'}
       subtitle={
         isCredit
           ? 'Powerful FCRA § 611 / Metro 2 disputes to Experian, Equifax, TransUnion, and specialty CRAs — repo status, deficiency reporting, and furnisher accuracy.'

@@ -1,4 +1,5 @@
 import type { MetaThreadMessage } from '../domain/metaIntegration';
+import type { SocialPlatform } from '../domain/socialContentSop';
 import { emitPlatformEvent } from '../domain/platformEvents';
 import { FINELY_TENANT_ID } from '../domain/tenants';
 import { loadJson, saveJson } from './localJsonStore';
@@ -41,7 +42,7 @@ export type SocialScheduledPost = {
   scheduledAt: string;
   status: 'queued' | 'published' | 'failed' | 'needs_review';
   pageId?: string;
-  platforms?: Array<'facebook' | 'instagram' | 'threads' | 'linkedin'>;
+  platforms?: SocialPlatform[];
   sopTemplateId?: string;
   assignedStaffId?: string;
   posterType?: 'ai_agent' | 'human_executive';

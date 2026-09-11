@@ -10,7 +10,7 @@ export const CS = {
   hubPath: '/credit-specialist/hub',
   /** Legacy alias — redirects to hubPath */
   hubPathLegacy: '/agent/hub',
-  publicPath: '/credit-specialists',
+  publicPath: '/credit-specialist',
   publicPathLegacy: '/agents',
   /** Deep pricing / offer hub (tiers, 3-lead gate, 30-day free leads). */
   pricingPath: '/credit-specialist',

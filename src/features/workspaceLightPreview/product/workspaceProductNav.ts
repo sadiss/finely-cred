@@ -32,6 +32,7 @@ import {
   Inbox,
   KeySquare,
   Landmark,
+  Languages,
   LayoutDashboard,
   LayoutTemplate,
   LibraryBig,
@@ -50,6 +51,7 @@ import {
   PhoneCall,
   Plug,
   Radar,
+  Radio,
   Repeat,
   Route,
   ScrollText,
@@ -61,6 +63,7 @@ import {
   Sparkles,
   SquareStack,
   Star,
+  Sun,
   Store,
   Target,
   TrendingUp,
@@ -100,6 +103,7 @@ export type PartnerServiceLineId =
   | 'tradelines'
   | 'funding'
   | 'debt'
+  | 'haitian'
   | 'programs';
 
 export type PartnerServiceLine = {
@@ -121,7 +125,7 @@ export const PARTNER_SERVICE_LINES: PartnerServiceLine[] = [
   {
     id: 'workspace',
     label: 'Workspace',
-    description: 'Home, messages, documents, and everything shared across your services.',
+    description: 'Open home, messages, documents, and the tools shared across every service.',
     icon: LayoutDashboard,
     accent: 'graphite',
     entitlementAnyOf: [],
@@ -132,7 +136,7 @@ export const PARTNER_SERVICE_LINES: PartnerServiceLine[] = [
   {
     id: 'restore',
     label: 'Personal Credit Restore',
-    description: 'Reports, findings, disputes, and the letters that move them.',
+    description: 'Review bureau reports, record findings, and send the letters that move each dispute.',
     icon: ShieldCheck,
     accent: 'emerald',
     entitlementAnyOf: [ENTITLEMENT_KEYS.disputes, ENTITLEMENT_KEYS.letters],
@@ -143,7 +147,7 @@ export const PARTNER_SERVICE_LINES: PartnerServiceLine[] = [
   {
     id: 'build',
     label: 'Personal Credit Build',
-    description: 'Build positive history, optimize utilization, and grow a thin file.',
+    description: 'Add positive history, keep utilization in range, and grow a thin file with a sequenced plan.',
     icon: TrendingUp,
     accent: 'violet',
     entitlementAnyOf: [
@@ -159,7 +163,7 @@ export const PARTNER_SERVICE_LINES: PartnerServiceLine[] = [
   {
     id: 'business',
     label: 'Business Credit',
-    description: 'Entity fundability, vendor tiers, business bureaus, and disputes.',
+    description: 'Build fundability on the entity, sequence vendors, and track business bureau scores.',
     icon: Building2,
     accent: 'sky',
     entitlementAnyOf: [ENTITLEMENT_KEYS.businessBuild],
@@ -170,7 +174,7 @@ export const PARTNER_SERVICE_LINES: PartnerServiceLine[] = [
   {
     id: 'tradelines',
     label: 'Tradelines & AUs',
-    description: 'Authorized user placements, primary tradelines, and order tracking.',
+    description: 'Request authorized-user placements, follow primary tradelines, and track posting dates.',
     icon: Store,
     accent: 'violet',
     entitlementAnyOf: [ENTITLEMENT_KEYS.auSeller],
@@ -181,7 +185,7 @@ export const PARTNER_SERVICE_LINES: PartnerServiceLine[] = [
   {
     id: 'funding',
     label: 'Funding Readiness',
-    description: 'Capital target, lender alignment, blockers, and wealth paths.',
+    description: 'Set a capital target, see lender fit, and clear blockers before you apply.',
     icon: Target,
     accent: 'sky',
     entitlementAnyOf: [],
@@ -192,7 +196,7 @@ export const PARTNER_SERVICE_LINES: PartnerServiceLine[] = [
   {
     id: 'debt',
     label: 'Debt & Court',
-    description: 'Validation, summons response, escalations, and court workflow.',
+    description: 'Validate collection claims, meet court deadlines, and escalate when a collector will not prove the debt.',
     icon: Gavel,
     accent: 'rose',
     entitlementAnyOf: [ENTITLEMENT_KEYS.debt, ENTITLEMENT_KEYS.escalations],
@@ -201,9 +205,20 @@ export const PARTNER_SERVICE_LINES: PartnerServiceLine[] = [
     upsellPath: '/debt-summons-help',
   },
   {
+    id: 'haitian',
+    label: 'Haitian community',
+    description: 'Credit help for Haitian Americans in Kreyòl and English, with kits and Pale Kreyòl.',
+    icon: Languages,
+    accent: 'emerald',
+    entitlementAnyOf: [],
+    landingPath: '/portal/haitian',
+    upsellHeadline: '',
+    upsellPath: '',
+  },
+  {
     id: 'programs',
     label: 'Programs & careers',
-    description: 'Specialist, affiliate, agency, case desk, real estate, and HOS member hubs.',
+    description: 'Open the specialist, affiliate, agency, case desk, real estate, and Head of Society hubs.',
     icon: Handshake,
     accent: 'violet',
     entitlementAnyOf: [],
@@ -244,49 +259,49 @@ export const ADMIN_SERVICE_LINES: AdminServiceLine[] = [
   {
     id: 'command',
     label: 'Command',
-    description: 'Today’s priorities, your queue, and everything waiting on a decision.',
+    description: 'See today’s priorities, your queue, and the decisions waiting on you.',
     icon: LayoutDashboard,
     accent: 'violet',
   },
   {
     id: 'delivery',
     label: 'Partner delivery',
-    description: 'Partner files, cases, disputes, letters, and the service clock.',
+    description: 'Work partner files, cases, disputes, and letters against the service clock.',
     icon: ShieldCheck,
     accent: 'emerald',
   },
   {
     id: 'growth',
     label: 'Growth',
-    description: 'Leads, CRM, campaigns, funnels, and acquisition experiments.',
+    description: 'Qualify leads, run campaigns, and measure how new partners find Finely Cred.',
     icon: TrendingUp,
     accent: 'sky',
   },
   {
     id: 'studio',
     label: 'Content studio',
-    description: 'Courses, media, voice, tours, guides, and everything published.',
+    description: 'Publish courses, media, voice, tours, and the guides partners open in the portal.',
     icon: Clapperboard,
     accent: 'rose',
   },
   {
     id: 'finance',
     label: 'Finance',
-    description: 'Revenue, billing, products, vendors, and capital allocation.',
+    description: 'Track revenue, billing, products, vendors, and how capital is allocated.',
     icon: Coins,
     accent: 'emerald',
   },
   {
     id: 'team',
     label: 'Team',
-    description: 'Staff, roles, capacity, coaching, and access control.',
+    description: 'Manage staff, roles, capacity, coaching, and who can reach each room.',
     icon: Users,
     accent: 'violet',
   },
   {
     id: 'platform',
     label: 'Platform',
-    description: 'Settings, analytics, integrations, automation, and system health.',
+    description: 'Configure settings, analytics, integrations, automation, and system health.',
     icon: Settings,
     accent: 'graphite',
   },
@@ -314,6 +329,8 @@ export type WorkspaceProductNavItem = {
   surfaceMode: WorkspaceProductSurfaceMode;
   /** Which service/operating line this destination belongs to. */
   service: WorkspaceProductServiceId;
+  /** Growth All tools: daily rooms stay visible; specialist rooms collapse. */
+  navTier?: 'daily' | 'specialist';
 };
 
 function admin(
@@ -326,6 +343,7 @@ function admin(
   service: AdminServiceLineId,
   group: WorkspaceProductNavItem['group'] = 'primary',
   surfaceMode: WorkspaceProductSurfaceMode = 'light',
+  navTier?: WorkspaceProductNavItem['navTier'],
 ): WorkspaceProductNavItem {
   const path = `/preview/workspace-light/admin/${id}`;
   return {
@@ -341,6 +359,7 @@ function admin(
     group,
     surfaceMode,
     service,
+    navTier,
   };
 }
 
@@ -374,17 +393,18 @@ function partner(
 
 export const ADMIN_PRODUCT_NAV: WorkspaceProductNavItem[] = [
   // ---- Command: what needs a decision today. These are the top-bar destinations.
-  admin('dashboard', 'Command center', '/admin', LayoutDashboard, 'violet', 'Today’s priorities, service risk, and platform movement.', 'command'),
-  admin('partners', 'Partners', '/admin/partners', Users, 'emerald', 'Partner profiles, progress, reports, and next actions.', 'delivery'),
-  admin('workflow', 'Work queue', '/admin/workflow', Inbox, 'rose', 'Owned work, due dates, blockers, and service clocks.', 'command', 'primary', 'studio'),
-  admin('crm', 'Leads & CRM', '/admin/crm', Target, 'sky', 'Qualified leads, outreach, and relationship pipeline.', 'growth'),
-  admin('communications', 'Communications', '/admin/comms', Mail, 'violet', 'Partner conversations, meetings, and response queues.', 'delivery', 'primary', 'studio'),
-  admin('marketing', 'Marketing', '/admin/marketing', Megaphone, 'emerald', 'Campaign work, content, and conversion signals.', 'growth', 'primary', 'studio'),
-  admin('cases', 'Cases', '/admin/cases', Gavel, 'rose', 'Open cases, dispute rounds, evidence, and outcomes.', 'delivery', 'primary', 'studio'),
-  admin('projects', 'Projects', '/admin/projects', BriefcaseBusiness, 'emerald', 'Delivery projects, stages, and owners.', 'delivery'),
-  admin('my-tasks', 'My tasks', '/admin/my-tasks', ListChecks, 'violet', 'Your personal queue, including voice-captured tasks.', 'command'),
-  admin('staff', 'Staff', '/admin/staff', BriefcaseBusiness, 'sky', 'Team capacity, assignments, coaching, and quality.', 'team'),
-  admin('analytics', 'Analytics', '/admin/analytics', BarChart3, 'emerald', 'Service trends, outcomes, and operating health.', 'platform', 'primary', 'studio'),
+  admin('dashboard', 'Command center', '/admin', LayoutDashboard, 'violet', 'See today’s priorities, service risk, and how the platform is moving.', 'command'),
+  admin('today', 'Today', '/admin/today', Sun, 'sky', 'Review overnight activity and approve the next draft. Staff stay in their lane.', 'command', 'primary'),
+  admin('partners', 'Partners', '/admin/partners', Users, 'emerald', 'Open partner profiles, progress, reports, and the next action on each file.', 'delivery'),
+  admin('workflow', 'Work queue', '/admin/workflow', Inbox, 'rose', 'See owned work, due dates, blockers, and service clocks.', 'command', 'primary', 'studio'),
+  admin('crm', 'Leads & CRM', '/admin/crm', Target, 'sky', 'Qualify leads, run outreach, and move relationships through the pipeline.', 'growth'),
+  admin('communications', 'Communications', '/admin/comms', Mail, 'violet', 'Answer partner conversations, meetings, and response queues.', 'delivery', 'primary', 'studio'),
+  admin('marketing', 'Marketing', '/admin/marketing', Megaphone, 'emerald', 'Turn channels on, publish posts, and open the guides that feed them.', 'growth', 'primary', 'studio', 'daily'),
+  admin('cases', 'Cases', '/admin/cases', Gavel, 'rose', 'Work open cases, dispute rounds, evidence, and outcomes.', 'delivery', 'primary', 'studio'),
+  admin('projects', 'Projects', '/admin/projects', BriefcaseBusiness, 'emerald', 'Track delivery projects, stages, and owners.', 'delivery'),
+  admin('my-tasks', 'My tasks', '/admin/my-tasks', ListChecks, 'violet', 'Your personal queue, including tasks you captured by voice.', 'command'),
+  admin('staff', 'Staff', '/admin/staff', BriefcaseBusiness, 'sky', 'See team capacity, assignments, coaching, and quality.', 'team'),
+  admin('analytics', 'Analytics', '/admin/analytics', BarChart3, 'emerald', 'Review service trends, outcomes, and operating health.', 'platform', 'primary', 'studio'),
 
   // ---- Command (secondary)
   admin('tasks', 'All tasks', '/admin/tasks', ClipboardCheck, 'emerald', 'Every task across the platform, by owner and due date.', 'command', 'secondary'),
@@ -411,18 +431,18 @@ export const ADMIN_PRODUCT_NAV: WorkspaceProductNavItem[] = [
   admin('crm-routing', 'Lead routing', '/admin/crm/routing', Route, 'violet', 'Rules that decide who owns an inbound lead.', 'growth', 'secondary'),
   admin('crm-sequences', 'Sequences', '/admin/crm/sequences', Repeat, 'sky', 'Automated outreach sequences and follow-up cadences.', 'growth', 'secondary'),
   admin('leads', 'Leads', '/admin/leads', Target, 'rose', 'Raw inbound lead flow and qualification state.', 'growth', 'secondary'),
-  admin('leads-os', 'Leads OS', '/admin/leads-os', Radar, 'emerald', 'Operating view of lead sources, quality, and velocity.', 'growth', 'secondary', 'studio'),
+  admin('leads-os', 'Lead operations', '/admin/leads-os', Radar, 'emerald', 'See lead sources, quality, and how quickly they move.', 'growth', 'secondary', 'studio'),
   admin('lead-acquisition', 'Lead acquisition', '/admin/lead-acquisition', Network, 'violet', 'Channel spend, sourcing, and acquisition economics.', 'growth', 'secondary', 'studio'),
   admin('lead-intel', 'Lead intel', '/admin/lead-intel', FileSearch, 'sky', 'Enrichment and research on inbound prospects.', 'growth', 'secondary'),
-  admin('lead-magnets', 'Lead magnets', '/admin/lead-magnets', Sparkles, 'emerald', 'Guides and funnels that capture new partners.', 'growth', 'secondary'),
-  admin('marketing-desk', 'Marketing desk', '/admin/marketing-desk', Newspaper, 'violet', 'Day-to-day campaign execution desk.', 'growth', 'secondary', 'studio'),
+  admin('lead-magnets', 'Lead magnets', '/admin/lead-magnets', Sparkles, 'emerald', 'Guides and funnels that capture new partners.', 'growth', 'secondary', 'light', 'daily'),
+  admin('marketing-desk', 'Marketing desk', '/admin/marketing-desk', Newspaper, 'violet', 'Day-to-day campaign execution desk.', 'growth', 'secondary', 'studio', 'daily'),
   admin('cmo', 'Marketing director', '/admin/cmo', Crown, 'rose', 'Strategy view of positioning, spend, and pipeline.', 'growth', 'secondary', 'studio'),
-  admin('growth-command', 'Growth command', '/admin/growth-command', TrendingUp, 'emerald', 'Growth targets, experiments, and weekly movement.', 'growth', 'secondary', 'studio'),
+  admin('growth-command', 'Growth overview', '/admin/growth-command', TrendingUp, 'emerald', 'See growth targets, experiments, and weekly movement.', 'growth', 'secondary', 'studio'),
   admin('growth-agents', 'Growth agents', '/admin/growth-agents', Bot, 'violet', 'Automated growth workers and their assignments.', 'growth', 'secondary', 'studio'),
   admin('growth-automation', 'Growth automation', '/admin/growth-automation', Workflow, 'sky', 'Triggered growth workflows and lifecycle automation.', 'growth', 'secondary'),
   admin('funnel-experiments', 'Funnel experiments', '/admin/funnel-experiments', GitBranch, 'rose', 'A/B tests and conversion experiments in flight.', 'growth', 'secondary', 'studio'),
-  admin('geo-war-room', 'Geo war room', '/admin/geo-war-room', Map, 'emerald', 'Market-by-market performance and expansion targets.', 'growth', 'secondary', 'studio'),
-  admin('social-hub', 'Social hub', '/admin/social-hub', Globe2, 'violet', 'Social publishing, scheduling, and engagement.', 'growth', 'secondary', 'studio'),
+  admin('geo-war-room', 'City markets', '/admin/geo-war-room', Map, 'emerald', 'See market-by-market performance and expansion targets.', 'growth', 'secondary', 'studio'),
+  admin('social-hub', 'Social hub', '/admin/social-hub', Globe2, 'violet', 'Social publishing, scheduling, and engagement.', 'growth', 'secondary', 'studio', 'daily'),
   admin('signup-ops', 'Signup ops', '/admin/signup-ops', UserPlus, 'sky', 'Registration funnel health and activation drop-off.', 'growth', 'secondary'),
   admin('testimonials', 'Testimonials', '/admin/testimonials', Star, 'emerald', 'Partner wins, approvals, and published proof.', 'growth', 'secondary'),
 
@@ -430,7 +450,7 @@ export const ADMIN_PRODUCT_NAV: WorkspaceProductNavItem[] = [
   admin('content-studio', 'Content studio', '/admin/content-studio', Palette, 'violet', 'Long-form content production and publishing pipeline.', 'studio', 'secondary', 'studio'),
   admin('media-studio', 'Media studio', '/admin/media-studio', Clapperboard, 'rose', 'Video, image, and creative asset production.', 'studio', 'secondary', 'studio'),
   admin('voice-studio', 'Voice studio', '/admin/voice-studio', Mic, 'emerald', 'Voice scripts, narration, and audio asset generation.', 'studio', 'secondary', 'studio'),
-  admin('tour-studio', 'Tour studio', '/admin/tour-studio', Video, 'sky', 'Build the in-app “Watch how” product tours.', 'studio', 'secondary', 'studio'),
+  admin('tour-studio', 'Tour studio', '/admin/tour-studio', Video, 'sky', 'Build the in-app Watch how tours partners see inside the product.', 'studio', 'secondary', 'studio'),
   admin('courses', 'Courses', '/admin/courses', GraduationCap, 'violet', 'Course catalog, lessons, and partner progress.', 'studio', 'secondary'),
   admin('bookstore', 'Bookstore', '/admin/bookstore', BookMarked, 'emerald', 'Digital books, bundles, and purchase catalog.', 'studio', 'secondary'),
   admin('resources', 'Resources', '/admin/resources', BookOpen, 'sky', 'Guides, templates, and the partner resource library.', 'studio', 'secondary'),
@@ -447,10 +467,11 @@ export const ADMIN_PRODUCT_NAV: WorkspaceProductNavItem[] = [
   admin('au-sellers', 'AU sellers', '/admin/au-sellers', Store, 'violet', 'Authorized user seller accounts, inventory, and payouts.', 'finance', 'secondary'),
 
   // ---- Team
+  admin('haitian', 'Haitian community', '/admin/haitian', Languages, 'emerald', 'Download Haitian community service and outreach kits for leads, and see the cities we serve.', 'team', 'primary'),
   admin('agent-staff', 'Specialists', '/admin/agent-staff', UserCog, 'emerald', 'Credit specialist roster, personas, and assignments.', 'team', 'secondary'),
-  admin('staff-command-center', 'Staff command', '/admin/staff-command-center', Users, 'violet', 'Live staffing view, shifts, and coverage.', 'team', 'secondary', 'studio'),
+  admin('staff-command-center', 'Staff coverage', '/admin/staff-command-center', Users, 'violet', 'See live staffing, shifts, and coverage.', 'team', 'secondary', 'studio'),
   admin('team', 'Roles', '/admin/team', KeySquare, 'sky', 'Role definitions and what each role can reach.', 'team', 'secondary'),
-  admin('synthetic-staff', 'AI staff', '/admin/synthetic-staff', Bot, 'rose', 'AI workers, their prompts, and supervision.', 'team', 'secondary', 'studio'),
+  admin('synthetic-staff', 'AI staff', '/admin/synthetic-staff', Bot, 'rose', 'Supervise AI staff, their prompts, and their assignments.', 'team', 'secondary', 'studio'),
   admin('access', 'Access center', '/admin/access', Shield, 'emerald', 'Permissions, approvals, and account access review.', 'team', 'secondary'),
   admin('hos-program', 'Head of Society', '/head-of-society', Crown, 'violet', 'HOS program landing, invite keys, and member portal.', 'team', 'secondary'),
 
@@ -458,6 +479,7 @@ export const ADMIN_PRODUCT_NAV: WorkspaceProductNavItem[] = [
   admin('settings', 'Settings', '/admin/settings', Settings, 'graphite', 'Platform, tenant, security, and workflow controls.', 'platform', 'secondary'),
   admin('monitoring', 'Monitoring', '/admin/monitoring', Monitor, 'sky', 'Uptime, error rates, and background job health.', 'platform', 'secondary', 'studio'),
   admin('integrations', 'Integrations', '/admin/integrations', Plug, 'violet', 'Connected services, API keys, and sync status.', 'platform', 'secondary'),
+  admin('data-feeds', 'Data feeds', '/admin/data-feeds', Radio, 'sky', 'Live government and news feeds that become today’s marketing actions.', 'growth', 'secondary', 'studio', 'daily'),
   admin('automations', 'Automations', '/admin/automations', Workflow, 'emerald', 'Platform-wide triggers, rules, and scheduled jobs.', 'platform', 'secondary', 'studio'),
   admin('tenants', 'Tenants', '/admin/tenants', Building2, 'rose', 'Multi-tenant configuration and white-label setup.', 'platform', 'secondary'),
   admin('vault', 'Secret vault', '/admin/vault', Vault, 'rose', 'Credentials and sensitive configuration.', 'platform', 'primary'),
@@ -468,73 +490,76 @@ export const ADMIN_PRODUCT_NAV: WorkspaceProductNavItem[] = [
 
 export const PARTNER_PRODUCT_NAV: WorkspaceProductNavItem[] = [
   // Workspace — shared across every service line.
-  partner('dashboard', 'Home', '/portal/dashboard', LayoutDashboard, 'emerald', 'Your next step, progress, readiness, and workspace tools.', 'workspace'),
-  partner('messages', 'Messages', '/portal/messages', MessageSquare, 'violet', 'Your specialist, Ask Finely, meetings, and updates.', 'workspace', 'primary', 'studio'),
-  partner('documents', 'Documents', '/portal/documents', FolderOpen, 'sky', 'Your own uploads — ID, proof of address, statements, and letters.', 'workspace', 'secondary'),
-  partner('projects', 'Projects', '/portal/projects', BriefcaseBusiness, 'violet', 'Active work, due dates, and completed milestones.', 'workspace', 'secondary'),
-  partner('my-tasks', 'My tasks', '/portal/my-tasks', ListChecks, 'emerald', 'Your personal to-do queue, including voice-captured tasks.', 'workspace', 'secondary'),
-  partner('work', 'Work', '/portal/work', Workflow, 'rose', 'Combined view of everything in motion across your services.', 'workspace', 'secondary', 'studio'),
-  partner('calendar', 'Calendar', '/portal/calendar', Calendar, 'emerald', 'Sessions, due dates, and upcoming milestones.', 'workspace', 'secondary'),
-  partner('notifications', 'Notifications', '/portal/notifications', Bell, 'violet', 'Updates, approvals needed, and status changes.', 'workspace', 'secondary'),
-  partner('billing', 'Billing & plan', '/portal/billing', Wallet, 'sky', 'Your plan, invoices, payment method, and what each service unlocks.', 'workspace', 'secondary'),
-  partner('account', 'Account', '/account/settings', Settings, 'violet', 'Profile picture, mailing address, notifications, and preferences.', 'workspace', 'secondary'),
+  partner('dashboard', 'Home', '/portal/dashboard', LayoutDashboard, 'emerald', 'See your next step, your progress, and the tools for this week.', 'workspace'),
+  partner('messages', 'Messages', '/portal/messages', MessageSquare, 'violet', 'Message your specialist, Ask Finely, and see meetings and updates.', 'workspace', 'primary', 'studio'),
+  partner('documents', 'Documents', '/portal/documents', FolderOpen, 'sky', 'Upload ID, proof of address, statements, and letters.', 'workspace', 'secondary'),
+  partner('projects', 'Projects', '/portal/projects', BriefcaseBusiness, 'violet', 'See active work, due dates, and completed milestones.', 'workspace', 'secondary'),
+  partner('my-tasks', 'My tasks', '/portal/my-tasks', ListChecks, 'emerald', 'Your personal to-do list, including tasks you captured by voice.', 'workspace', 'secondary'),
+  partner('work', 'Work', '/portal/work', Workflow, 'rose', 'See everything in motion across your services in one place.', 'workspace', 'secondary', 'studio'),
+  partner('calendar', 'Calendar', '/portal/calendar', Calendar, 'emerald', 'See sessions, due dates, and upcoming milestones.', 'workspace', 'secondary'),
+  partner('notifications', 'Notifications', '/portal/notifications', Bell, 'violet', 'See updates, approvals you need to make, and status changes.', 'workspace', 'secondary'),
+  partner('billing', 'Billing & plan', '/portal/billing', Wallet, 'sky', 'See your plan, invoices, payment method, and what each service unlocks.', 'workspace', 'secondary'),
+  partner('account', 'Account', '/account/settings', Settings, 'violet', 'Update your profile picture, mailing address, notifications, and preferences.', 'workspace', 'secondary'),
 
   // Personal Credit Restore.
   // Reports, Evidence, and Documents are deliberately THREE destinations. They were briefly
   // merged, which made Reports look like an evidence page and hid the Analysis Vault entirely.
   // Credit reports are bureau data; evidence is the proof that backs a dispute; documents are
   // the partner's own files. Different jobs, different pages.
-  partner('checklist', 'Restore workspace', '/portal/checklist', ListChecks, 'emerald', 'Your complete restore sequence, instructions, tools, and next required step.', 'restore', 'primary', 'studio'),
-  partner('reports', 'Credit reports', '/portal/reports', FileText, 'sky', 'Bureau reports, findings, tradelines, and score movement.', 'restore', 'primary', 'studio'),
-  partner('evidence', 'Evidence vault', '/portal/evidence', Vault, 'emerald', 'Source exhibits and proof that back every dispute reason.', 'restore', 'primary', 'studio'),
-  partner('analysis', 'Strategy reports', '/portal/analysis', FileText, 'violet', 'Saved credit-analysis PDFs generated from your bureau reports.', 'restore', 'secondary', 'studio'),
-  partner('disputes', 'Disputes', '/portal/disputes', Gavel, 'rose', 'Rounds, factual findings, statuses, and outcomes.', 'restore'),
-  partner('letters', 'Credit letters', '/portal/letters', Mail, 'violet', 'Choose a letter track, build and edit it, review evidence, approve, download, and mail.', 'restore', 'primary', 'studio'),
-  partner('letters-vault', 'Letters vault', '/portal/letters/vault', Album, 'sky', 'Saved and sent letters, PDFs, mailing proof, response windows, and history.', 'restore', 'secondary', 'studio'),
-  partner('identity', 'Identity theft', '/portal/identity-theft', ShieldAlert, 'rose', 'Freezes, FTC reports, and recovery steps for stolen identity.', 'restore', 'secondary'),
+  partner('checklist', 'Restore workspace', '/portal/checklist', ListChecks, 'emerald', 'Follow your restore sequence, with instructions and the next required step.', 'restore', 'primary', 'studio'),
+  partner('reports', 'Credit reports', '/portal/reports', FileText, 'sky', 'Review bureau reports, findings, tradelines, and score movement.', 'restore', 'primary', 'studio'),
+  partner('evidence', 'Evidence vault', '/portal/evidence', Vault, 'emerald', 'Keep the source exhibits and proof that back every dispute reason.', 'restore', 'primary', 'studio'),
+  partner('analysis', 'Strategy reports', '/portal/analysis', FileText, 'violet', 'Open saved credit-analysis PDFs generated from your bureau reports.', 'restore', 'secondary', 'studio'),
+  partner('disputes', 'Disputes', '/portal/disputes', Gavel, 'rose', 'Track rounds, factual findings, statuses, and outcomes.', 'restore'),
+  partner('letters', 'Credit letters', '/portal/letters', Mail, 'violet', 'Choose a letter track, edit it, review evidence, then approve, download, and mail.', 'restore', 'primary', 'studio'),
+  partner('letters-vault', 'Letters vault', '/portal/letters/vault', Album, 'sky', 'See saved and sent letters, mailing proof, response windows, and history.', 'restore', 'secondary', 'studio'),
+  partner('identity', 'Identity theft', '/portal/identity-theft', ShieldAlert, 'rose', 'File freezes, FTC reports, and recovery steps for stolen identity.', 'restore', 'secondary'),
   partner('templates', 'Template library', '/portal/templates', LayoutTemplate, 'violet', 'Reusable letter and document templates you can start from.', 'restore', 'secondary'),
 
   // Personal Credit Build.
-  partner('build', 'Credit building', '/portal/build', TrendingUp, 'violet', 'Sequenced building bundles, utilization, and positive reporting.', 'build', 'secondary'),
-  partner('courses', 'Courses', '/portal/courses', GraduationCap, 'sky', 'Structured courses with lessons and progress tracking.', 'build', 'secondary'),
-  partner('education', 'Education', '/portal/education', BookOpen, 'emerald', 'Credit education, explainers, and plain-English fundamentals.', 'build', 'secondary'),
-  partner('training', 'Training academy', '/portal/training/academy', GraduationCap, 'violet', 'Deeper certification-style training tracks.', 'build', 'secondary'),
-  partner('library', 'Library', '/portal/library', LibraryBig, 'rose', 'Books, guides, and bundles available to you.', 'build', 'secondary'),
+  partner('build', 'Credit building', '/portal/build', TrendingUp, 'violet', 'Follow sequenced building bundles, keep utilization in range, and add positive reporting.', 'build', 'secondary'),
+  partner('courses', 'Courses', '/portal/courses', GraduationCap, 'sky', 'Take structured courses with lessons and progress tracking.', 'build', 'secondary'),
+  partner('education', 'Education', '/portal/education', BookOpen, 'emerald', 'Learn credit fundamentals in plain English.', 'build', 'secondary'),
+  partner('news', 'Credit news', '/portal/news', Newspaper, 'sky', 'See what changed this week and the one action that helps your file.', 'restore', 'primary'),
+  partner('haitian', 'Haitian community', '/portal/haitian', Languages, 'emerald', 'Credit help in Kreyòl and English, with kits and Pale Kreyòl.', 'haitian'),
+  partner('maintenance', 'Credit maintenance', '/portal/maintenance', Repeat, 'violet', 'Upload a new report for a check-in. We do not pull a live bureau score.', 'restore', 'secondary'),
+  partner('training', 'Training academy', '/portal/training/academy', GraduationCap, 'violet', 'Follow deeper certification-style training tracks.', 'build', 'secondary'),
+  partner('library', 'Library', '/portal/library', LibraryBig, 'rose', 'Open books, guides, and bundles available to you.', 'build', 'secondary'),
 
   // Business Credit.
-  partner('business', 'Business credit', '/business/dashboard', Building2, 'violet', 'Entity fundability, tiers, and business credit progress.', 'business', 'secondary'),
-  partner('business-profile', 'Business profile', '/business/profile', Landmark, 'emerald', 'Entity details, fundability matrix, and compliance gaps.', 'business', 'secondary'),
-  partner('business-vendors', 'Vendor tiers', '/business/vendors', Store, 'violet', 'Vendor sequencing, net-30 accounts, and reporting status.', 'business', 'secondary'),
+  partner('business', 'Business credit', '/business/dashboard', Building2, 'violet', 'Track entity fundability, vendor tiers, and business credit progress.', 'business', 'secondary'),
+  partner('business-profile', 'Business profile', '/business/profile', Landmark, 'emerald', 'Review entity details, the fundability matrix, and compliance gaps.', 'business', 'secondary'),
+  partner('business-vendors', 'Vendor tiers', '/business/vendors', Store, 'violet', 'Sequence vendors, open net-30 accounts, and track reporting status.', 'business', 'secondary'),
   partner('business-bureaus', 'Business bureaus', '/business/bureaus', BarChart3, 'sky', 'D&B, Experian Business, and Equifax Business scores and tracking.', 'business', 'secondary'),
-  partner('business-disputes', 'Business disputes', '/business/disputes', Gavel, 'rose', 'Negative items, evidence, letters, and bureau dispute rounds.', 'business', 'secondary'),
-  partner('business-documents', 'Business documents', '/business/documents', FileCheck2, 'emerald', 'Entity, banking, and compliance artifacts for fundability.', 'business', 'secondary'),
-  partner('billion-path', 'Billion Path', '/business/billion-path', Crown, 'violet', 'Entities, documents, relationships, and capital readiness sequencing.', 'funding', 'secondary'),
+  partner('business-disputes', 'Business disputes', '/business/disputes', Gavel, 'rose', 'Challenge negative items with evidence, letters, and bureau dispute rounds.', 'business', 'secondary'),
+  partner('business-documents', 'Business documents', '/business/documents', FileCheck2, 'emerald', 'Store entity, banking, and compliance files needed for fundability.', 'business', 'secondary'),
+  partner('billion-path', 'Billion Path', '/business/billion-path', Crown, 'violet', 'Sequence entities, documents, relationships, and capital readiness.', 'funding', 'secondary'),
 
   // Tradelines and AUs.
-  partner('tradelines', 'Tradelines', '/portal/tradelines', CreditCard, 'rose', 'Authorized user and primary tradeline programs.', 'tradelines', 'secondary'),
+  partner('tradelines', 'Tradelines', '/portal/tradelines', CreditCard, 'rose', 'Browse authorized-user and primary tradeline programs.', 'tradelines', 'secondary'),
   partner('au-marketplace', 'AU marketplace', '/au/marketplace', Store, 'sky', 'Browse available authorized user placements.', 'tradelines', 'secondary'),
-  partner('au-orders', 'AU orders', '/au/orders', Inbox, 'emerald', 'Placement status, posting dates, and order history.', 'tradelines', 'secondary'),
+  partner('au-orders', 'AU orders', '/au/orders', Inbox, 'emerald', 'See placement status, posting dates, and order history.', 'tradelines', 'secondary'),
   partner('au-request', 'Request a placement', '/au/request', UserPlus, 'violet', 'Ask for a specific authorized user placement.', 'tradelines', 'secondary'),
   partner('au-seller', 'Seller dashboard', '/seller/dashboard', Store, 'emerald', 'If you sell placements: inventory, orders, and payouts.', 'tradelines', 'secondary', 'studio'),
   partner('au-seller-cards', 'Seller cards', '/seller/listings', CreditCard, 'sky', 'Cards you have listed and their placement capacity.', 'tradelines', 'secondary'),
 
   // Funding readiness.
-  partner('readiness', 'Goals & readiness', '/portal/wealth-paths', Target, 'sky', 'Capital target, blockers, and lender alignment.', 'funding', 'secondary'),
+  partner('readiness', 'Goals & readiness', '/portal/wealth-paths', Target, 'sky', 'Set your capital target, see blockers, and check lender alignment.', 'funding', 'secondary'),
   partner('lender-logic', 'Lender logic', '/business/lender-logic', Landmark, 'emerald', 'Which lenders fit your profile today, and what still blocks approval.', 'funding', 'secondary'),
 
   // Debt and court.
-  partner('debt', 'Debt & court', '/portal/debt', ShieldCheck, 'rose', 'Validation, deadlines, court workflow, and resources.', 'debt', 'secondary', 'studio'),
-  partner('bankruptcy', 'Bankruptcy', '/portal/bankruptcy', Gavel, 'violet', 'Filing tracks, exemptions, and post-filing credit rebuild.', 'debt', 'secondary'),
-  partner('escalations', 'Escalations', '/portal/escalations', Megaphone, 'rose', 'CFPB, FTC, BBB, and attorney general complaints.', 'debt', 'secondary'),
+  partner('debt', 'Debt & court', '/portal/debt', ShieldCheck, 'rose', 'Validate debts, meet court deadlines, and follow each case through the court workflow.', 'debt', 'secondary', 'studio'),
+  partner('bankruptcy', 'Bankruptcy', '/portal/bankruptcy', Gavel, 'violet', 'Understand filing tracks, exemptions, and the credit rebuild that follows.', 'debt', 'secondary'),
+  partner('escalations', 'Escalations', '/portal/escalations', Megaphone, 'rose', 'File CFPB, FTC, BBB, and attorney general complaints.', 'debt', 'secondary'),
   partner('barter', 'Barter & trade', '/portal/barter', Currency, 'emerald', 'Trade services and offset costs through the barter program.', 'debt', 'secondary'),
 
   // Programs & careers — role hubs (admin role preview + All tools).
-  partner('specialist-hub', 'Credit Specialist', CS.hubPath, UserCog, 'rose', 'Assigned partners, tasks, revenue split, and certification steps.', 'programs', 'secondary'),
-  partner('affiliate-hub', 'Affiliate', AF.hubPath, Share2, 'violet', 'Referral links, conversions, and commission ledger.', 'programs', 'secondary'),
-  partner('agency-hub', 'Agency', AGENCY.hubPath, Building2, 'sky', 'Agency tenant workspace — partners, letters, team, and payouts.', 'programs', 'secondary'),
-  partner('case-help-hub', 'Case Help', CASE_HELP.hubPath, Gavel, 'rose', 'Assigned matters desk — debt, letters, and educational packets.', 'programs', 'secondary'),
-  partner('real-estate-hub', 'Real estate', RE.hubPath, Home, 'emerald', 'RE-tagged affiliate hub — playbook, handoffs, and score CTA.', 'programs', 'secondary'),
-  partner('hos-hub', 'Head of Society', '/portal/hos', Cross, 'rose', 'HOS member portal — dispute slots, business starter, and growth paths.', 'programs', 'secondary'),
+  partner('specialist-hub', 'Credit Specialist', CS.hubPath, UserCog, 'rose', 'See assigned partners, tasks, your revenue split, and certification steps.', 'programs', 'secondary'),
+  partner('affiliate-hub', 'Affiliate', AF.hubPath, Share2, 'violet', 'Track referral links, conversions, and your commission ledger.', 'programs', 'secondary'),
+  partner('agency-hub', 'Agency', AGENCY.hubPath, Building2, 'sky', 'Your agency workspace for partners, letters, team seats, and payouts.', 'programs', 'secondary'),
+  partner('case-help-hub', 'Case Help', CASE_HELP.hubPath, Gavel, 'rose', 'Work assigned matters for debt, letters, and educational packets.', 'programs', 'secondary'),
+  partner('real-estate-hub', 'Real estate', RE.hubPath, Home, 'emerald', 'Real-estate affiliate playbook, handoffs, and the next score step.', 'programs', 'secondary'),
+  partner('hos-hub', 'Head of Society', '/portal/hos', Cross, 'rose', 'Head of Society member portal for dispute slots, business starter, and growth paths.', 'programs', 'secondary'),
 ];
 
 export function getWorkspaceProductNav(role: WorkspaceProductRole) {
@@ -562,10 +587,11 @@ export type WorkspaceProductNavGroup = {
  */
 export function getWorkspaceProductNavByService(
   role: WorkspaceProductRole,
-  group: WorkspaceProductNavItem['group'],
+  group: WorkspaceProductNavItem['group'] | WorkspaceProductNavItem['group'][],
   hasKey?: (key: string) => boolean,
 ): WorkspaceProductNavGroup[] {
-  const items = getWorkspaceProductNav(role).filter((item) => item.group === group);
+  const groups = Array.isArray(group) ? group : [group];
+  const items = getWorkspaceProductNav(role).filter((item) => groups.includes(item.group));
 
   if (role === 'admin') {
     return ADMIN_SERVICE_LINES.map((line) => ({

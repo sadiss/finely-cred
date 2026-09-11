@@ -117,7 +117,7 @@ export function ForeclosureCenterView({
       layout={deskLayout ? 'mosaic' : 'shell'}
       icon={Home}
       eyebrow={isCredit ? 'Bureau cleanup' : 'Mortgage defense'}
-      title={isCredit ? 'Foreclosure credit letters' : 'Foreclosure command center'}
+      title={isCredit ? 'Foreclosure credit letters' : 'Foreclosure desk'}
       subtitle={
         isCredit
           ? 'Powerful FCRA § 611 / Metro 2 disputes to Experian, Equifax, TransUnion, and specialty CRAs — foreclosure tradeline, public-record, and furnisher reporting accuracy.'

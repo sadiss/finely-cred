@@ -10,7 +10,7 @@ import { CARD_CONFIGS, Button, Reveal, FlashyIcon, AnimatedCounter, LoopingTypin
 import { loadSettings, getPricingControls, isFeatureEnabled } from '../../data/settingsRepo';
 import { listApprovedMarketplaceListingsAsync, type ApprovedMarketplaceListing } from '../../data/auSellerRepo';
 import { getActiveTenant, getActiveTenantId } from '../../tenancy/activeTenant';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthProvider';
 import { finelyOsCatalogCard, finelyOsLandingContrastSection, finelyOsLightMeshSection, finelyOsLandingPlatinumSection, type FinelyOsPublicAccent } from '../../features/os/finelyOsLightUi';
 import { FinelyOsComplianceStrip } from '../../features/os/FinelyOsComplianceStrip';
@@ -385,7 +385,7 @@ export function HeroSection({ onGetStarted }: HeroSectionProps) {
   const heroKicker = (tenant.settings.content?.landingHeroKicker || 'Private Wealth · Credit Division').trim();
   const heroSubtitle = (
     tenant.settings.content?.landingHeroSubtitle ||
-    'Institutional-grade credit architecture for personal, business, debt resolution, tradelines, and capital readiness — concierge execution or self-guided DIY access.'
+    'Personal restore, business credit, debt paper, and tradelines — work the file yourself, or let the desk run it with you.'
   ).trim();
 
   // The card fan is designed on a fixed 600×560 stage. We scale that whole stage
@@ -432,9 +432,9 @@ export function HeroSection({ onGetStarted }: HeroSectionProps) {
                 <span className="block mt-2 finely-gold-foil-text font-normal min-h-[1.35em]">
                   <LoopingTypingHeader
                     phrases={[
-                      'Private Wealth Credit Architecture',
-                      'Institutional Credit Solutions',
-                      'Capital Readiness Concierge',
+                      'Personal credit restore',
+                      'Business credit that funds',
+                      'Debt paper, handled',
                     ]}
                   />
                 </span>
@@ -475,8 +475,8 @@ export function HeroSection({ onGetStarted }: HeroSectionProps) {
                 <Button variant="platinum" onClick={() => navigate('/enlightenment-session')} size="lg">
                   Book a strategy call
                 </Button>
-                <Button variant="platinum" onClick={() => navigate('/pricing')} size="md">
-                  See pricing
+                <Button variant="platinum" onClick={() => navigate('/pricing/personal-credit-restore')} size="md">
+                  See restore programs
                 </Button>
                 <button
                   type="button"
@@ -547,10 +547,10 @@ export function HeroSection({ onGetStarted }: HeroSectionProps) {
 /** Wealth ribbon — sits directly under hero on home page. */
 export function WealthInstitutionalRibbon() {
   const pillars: Array<{ icon: typeof Building2; title: string; desc: string; accent: 'emerald' | 'violet' | 'sky' | 'rose' }> = [
-    { icon: Building2, title: 'Institutional', desc: 'Bank-grade dispute & funding workflows', accent: 'emerald' },
-    { icon: DollarSign, title: 'Capital Ready', desc: 'Score, structure, and lender sequencing', accent: 'violet' },
-    { icon: Shield, title: 'Protected', desc: 'Encrypted vault + compliance guardrails', accent: 'sky' },
-    { icon: Sparkles, title: 'Concierge', desc: 'Done-for-you or self-guided DIY paths', accent: 'rose' },
+    { icon: Building2, title: 'Personal restore', desc: 'Dispute the fields that do not match the proof.', accent: 'emerald' },
+    { icon: DollarSign, title: 'Business credit', desc: 'EIN file, vendor terms, then funding — in that order.', accent: 'violet' },
+    { icon: Shield, title: 'Debt paper', desc: 'Ask the collector to prove it before you pay it.', accent: 'sky' },
+    { icon: Sparkles, title: 'Your desk', desc: 'Work it yourself, or we run the file with you.', accent: 'rose' },
   ];
   return (
     <div className="finely-wealth-ribbon py-8 sm:py-10">
@@ -585,34 +585,31 @@ const TICKER_CODE_ACCENTS = [
 ] as const;
 
 export function ViolationLiveFeed() {
-  const violations = [
-    { code: "FCRA § 604", msg: "UNAUTHORIZED INQUIRY SUPPRESSION ACTIVE", status: "CLEARED" },
-    { code: "FDCPA § 807", msg: "MISLEADING REPRESENTATION DETECTED", status: "ENFORCING" },
-    { code: "15 U.S.C. § 1681i", msg: "DEROGATORY ITEM VACATED", status: "SUCCESS" },
-    { code: "CFPB REG", msg: "COMPLIANCE VIOLATION LOGGED", status: "ACTIVE" },
+  const items = [
+    { code: 'FCRA § 611', msg: 'Bureau reinvestigation rights', to: '/resources/law' },
+    { code: 'Reg F / FDCPA', msg: 'Validation notice rules', to: '/resources/law' },
+    { code: 'CFPB filings', msg: 'Public complaint board', to: '/resources/complaints' },
+    { code: 'Federal Register', msg: 'Rules published this week', to: '/resources/rules-this-week' },
   ];
 
   return (
     <div className="fc-violation-ticker w-full">
       <div className="container mx-auto px-4 py-1.5 flex flex-wrap items-center justify-center gap-2 text-[10px] text-white/50 uppercase tracking-wider">
-        <span className="text-[#e0b24a]">Live statute feed</span>
+        <span className="text-emerald-300">Statute feed</span>
         <span className="text-white/25">·</span>
-        <span>Illustrative examples only · not live enforcement</span>
+        <span>Educational links · not live enforcement</span>
       </div>
       <div className="py-3.5 overflow-hidden">
       <div className="flex items-center whitespace-nowrap animate-marquee-alternate">
-        {[...violations, ...violations].map((v, i) => (
-          <div key={i} className="flex items-center gap-6 px-8">
+        {[...items, ...items].map((v, i) => (
+          <Link key={`${v.to}-${i}`} to={v.to} className="flex items-center gap-6 px-8 hover:opacity-90">
             <span className={`px-3 py-1 text-[10px] font-bold rounded border ${TICKER_CODE_ACCENTS[i % TICKER_CODE_ACCENTS.length].chip}`}>
               {v.code}
             </span>
             <span className="text-xs text-white/70 uppercase tracking-wider">{v.msg}</span>
-            <span className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              <span className="text-[10px] text-emerald-400 font-semibold">{v.status}</span>
-            </span>
-            <span className="text-[#e0b24a]/40">|</span>
-          </div>
+            <span className="text-[10px] font-semibold text-sky-300">Read</span>
+            <span className="text-white/25">|</span>
+          </Link>
         ))}
       </div>
       </div>
@@ -626,24 +623,24 @@ export function ViolationLiveFeed() {
 export function QualifyFundingSection() {
   const navigate = useNavigate();
   const pillars: Array<{ label: string; desc: string; accent: 'rose' | 'emerald' | 'sky'; icon: typeof ArrowRight }> = [
-    { label: 'Debt strategy', desc: 'Organize collections and payoff sequencing', accent: 'rose', icon: DollarSign },
-    { label: 'Credit restore', desc: 'Disputes, evidence, and bureau follow-through', accent: 'emerald', icon: CreditCard },
-    { label: 'Funding prep', desc: 'Profile structure when lenders are watching', accent: 'sky', icon: Building2 },
+    { label: 'Collections first', desc: 'Ask the collector to prove it before you pay.', accent: 'rose', icon: DollarSign },
+    { label: 'Personal restore', desc: 'Dispute the fields that do not match the proof.', accent: 'emerald', icon: CreditCard },
+    { label: 'When you apply', desc: 'The file lenders actually buy — after the fields are clean.', accent: 'sky', icon: Building2 },
   ];
   return (
     <section className={`py-24 ${finelyOsLandingContrastSection('fc-band-violet')}`} data-fc-contrast-band="1">
-      <div className="container mx-auto px-6 max-w-5xl">
+      <div className="fc-viewport-floor">
         <div className="relative text-center">
           <Reveal>
             <p className="text-xs font-bold tracking-[0.3em] text-emerald-300 uppercase mb-4">Fundability First</p>
             <h2 className="text-3xl lg:text-5xl font-light text-white mb-6">
-              A Clear Path to <span className="text-emerald-400 font-medium">Capital Readiness</span>
+              A clear path before <span className="text-emerald-400 font-medium">you apply</span>
             </h2>
           </Reveal>
           <Reveal delay={150}>
             <p className="text-lg text-white/60 leading-relaxed mb-10 max-w-2xl mx-auto">
-              Clean reporting, disciplined utilization, and strategic sequencing — not hype. We map debt strategy,
-              credit restoration, and funding prep into one workflow you can actually follow.
+              Clean the file, handle the collector paper, then get ready for funding. One next step at a time — not a
+              pile of jargon.
             </p>
           </Reveal>
           <Reveal delay={300}>
@@ -669,8 +666,8 @@ export function QualifyFundingSection() {
               <Button variant="platinum" size="lg" onClick={() => navigate('/pricing/wealth-builder')}>
                 Wealth builder paths
               </Button>
-              <Button variant="platinum" size="lg" onClick={() => navigate('/pricing')}>
-                See all pricing
+              <Button variant="platinum" size="lg" onClick={() => navigate('/pricing/personal-credit-restore')}>
+                See restore programs
               </Button>
             </div>
           </Reveal>
@@ -711,7 +708,7 @@ export function ServicesSection({ onNavigate }: { onNavigate: (page: string) => 
 
   return (
     <section className={`py-24 ${finelyOsLightMeshSection('fc-band-dark')} border-b border-white/5`}>
-      <div className="container mx-auto px-6 max-w-6xl">
+      <div className="fc-viewport-floor">
         <div className="text-center mb-16">
           <Reveal>
             <p className="text-xs font-bold tracking-[0.3em] text-sky-400 uppercase mb-4">Our Services</p>
@@ -759,7 +756,7 @@ export function TradelineDualSection({
 }) {
   return (
     <section className={`py-24 ${finelyOsLightMeshSection('fc-band-azure')}`}>
-      <div className="container mx-auto px-6 max-w-7xl">
+      <div className="fc-viewport-floor">
         <div className="text-center mb-16">
           <Reveal>
             <p className="text-xs font-bold tracking-[0.3em] text-violet-400 uppercase mb-4">Premium Tradelines</p>
@@ -905,14 +902,14 @@ export function TradelineDualSection({
 // ============================================================================
 export function WhatMakesDifferentSection() {
   const items = [
-    { icon: Target, title: 'Solution Driven', desc: 'Coverage for any credit situation — practical paths for every economic status.', accent: 'emerald' as const },
-    { icon: Award, title: 'Unique Services', desc: 'Products and workflows you will not find in generic DIY dispute kits.', accent: 'sky' as const },
-    { icon: Heart, title: 'Truly Care', desc: 'Personal success, sustainable pace, and mental well-being built into the journey.', accent: 'fuchsia' as const },
+    { icon: Target, title: 'A path for the file in front of you', desc: 'Practical work for restore, debt paper, business credit, and funding — matched to the household, not a slogan.', accent: 'emerald' as const },
+    { icon: Award, title: 'Work you will not find in a generic kit', desc: 'Letter studio, evidence vault, and done-for-you execution that a downloaded template cannot replace.', accent: 'sky' as const },
+    { icon: Heart, title: 'A pace you can keep', desc: 'Rounds, deadlines, and next steps sized so a real household can finish the work.', accent: 'fuchsia' as const },
   ];
 
   return (
     <section className={`py-20 sm:py-24 ${finelyOsLightMeshSection('fc-band-azure')} border-b border-white/5`}>
-      <div className="container mx-auto px-6 max-w-6xl">
+      <div className="fc-viewport-floor">
         <div className="text-center max-w-2xl mx-auto mb-14">
           <Reveal>
             <p className="text-xs font-bold tracking-[0.3em] text-emerald-400 uppercase mb-4">Why Choose Us</p>
@@ -920,7 +917,8 @@ export function WhatMakesDifferentSection() {
               What Makes Us <span className="text-emerald-400 font-medium">Different</span>
             </h2>
             <p className="mt-4 text-white/50 text-sm sm:text-base leading-relaxed">
-              Three pillars — compact, clear, and built for real restoration outcomes.
+              Three habits that stay on the file: a practical path, work you cannot download as a kit, and a pace a real
+              household can keep.
             </p>
           </Reveal>
         </div>
@@ -960,7 +958,7 @@ export function BusinessCreditSection() {
 
   return (
     <section className={`py-24 ${finelyOsLightMeshSection('fc-band-violet')}`}>
-      <div className="container mx-auto px-6 max-w-6xl">
+      <div className="fc-viewport-floor">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           <Reveal>
             <div className="space-y-6">
@@ -1063,10 +1061,10 @@ export function MasteryOSSection() {
   ];
 
   const phoneStories = [
-    { icon: 'trending', title: 'Restore path', line: 'Round 1 letters ready · score climb tracked', value: 'Start free', time: 'now' },
-    { icon: 'check', title: 'Dispute kit', line: 'Bureau angles + mailing workflow unlocked', value: 'Free guide', time: 'today' },
-    { icon: 'shield', title: 'Debt & summons', line: 'Validation clocks + response playbook', value: 'Get guide', time: 'today' },
-    { icon: 'dollar', title: 'Funding path', line: 'Business credit readiness sequenced', value: 'See path', time: 'next' },
+    { icon: 'trending', title: 'Restore path', line: 'Round-one letters are ready, and score movement is tracked.', value: 'Start free', time: 'now' },
+    { icon: 'check', title: 'Dispute kit', line: 'Bureau findings and a mailing workflow you can run this week.', value: 'Free guide', time: 'today' },
+    { icon: 'shield', title: 'Debt & summons', line: 'Validation clocks and a response playbook for the paper in front of you.', value: 'Get guide', time: 'today' },
+    { icon: 'dollar', title: 'Funding path', line: 'Business credit readiness, sequenced for a real underwrite.', value: 'See path', time: 'next' },
   ];
 
   useEffect(() => {
@@ -1096,7 +1094,7 @@ export function MasteryOSSection() {
     <section className={`py-16 sm:py-24 lg:py-32 relative overflow-hidden ${finelyOsLightMeshSection('fc-band-violet')} border-y border-white/5`}>
       <div className="absolute inset-0 bg-[radial-gradient(900px_360px_at_12%_0%,rgba(139,92,246,0.12)_0%,transparent_58%),radial-gradient(700px_280px_at_88%_20%,rgba(56,189,248,0.08)_0%,transparent_55%)] pointer-events-none" />
 
-      <div className="container mx-auto px-4 sm:px-6 max-w-7xl relative z-10">
+      <div className="fc-viewport-floor relative z-10">
         <div className="text-center mb-16">
           <Reveal>
             <p className="text-xs font-bold tracking-[0.3em] text-violet-400 uppercase mb-4">
@@ -1106,8 +1104,8 @@ export function MasteryOSSection() {
               Restore, dispute, defend, <span className="text-violet-400">fund &amp; fund</span>
             </h2>
             <p className="text-white/55 max-w-2xl mx-auto">
-              Tablet + phone preview of the partner path — clear next steps for personal restore, debt &amp; summons,
-              and funding readiness. Results vary · not legal advice.
+              See the partner path the way a file actually moves: restore the personal report, handle debt paper, then
+              get ready for funding.
             </p>
           </Reveal>
         </div>
@@ -1898,12 +1896,13 @@ export function TestimonialDossier({
   resultValue?: string;
   amount?: string;
   accent?: FinelyOsPublicAccent;
-  variant?: 'catalog' | 'champagne';
-  metal?: 'silver' | 'gold' | 'bronze';
+  variant?: 'catalog' | 'champagne' | 'obsidian';
+  metal?: 'silver' | 'gold' | 'bronze' | 'obsidian';
 }) {
   const value = resultValue ?? amount;
   const label = resultLabel ?? (amount ? 'Funded' : undefined);
   const champagne = variant === 'champagne';
+  const obsidian = variant === 'obsidian' || metal === 'obsidian';
   const featured = metal === 'silver';
 
   if (champagne) {
@@ -1948,48 +1947,50 @@ export function TestimonialDossier({
   }
 
   return (
-    <div
-      className={`fc-testimonial-dossier card-lift h-full min-h-0 sm:min-h-[300px] !p-4 sm:!p-6 flex flex-col min-w-0 max-w-full overflow-hidden ${finelyOsCatalogCard(accent)}`}
+    <article
+      className={`fc-testimonial-dossier fc-success-plaque card-lift h-full min-h-0 sm:min-h-[300px] flex flex-col min-w-0 max-w-full ${
+        accent === 'violet' ? 'fc-success-plaque--cut' : accent === 'sky' ? 'fc-success-plaque--ticket' : 'fc-success-plaque--rail'
+      }${obsidian ? ' fc-success-plaque--obsidian' : ''}`}
       data-fc-accent={accent}
     >
-      {value && (
-        <div className="mb-6 p-4 rounded-2xl min-w-0 bg-black/[0.04] border border-black/10">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 min-w-0">
-              <CheckCircle2 size={16} className="shrink-0 text-emerald-700" />
-              <span className="text-xs font-semibold uppercase truncate text-emerald-800">{label || 'Result'}</span>
-            </div>
-            <span className="text-xl font-bold shrink-0 text-emerald-800">{value}</span>
-          </div>
+      {value ? (
+        <div className="fc-success-plaque__result">
+          <span>{label || 'Result'}</span>
+          <strong>{value}</strong>
         </div>
-      )}
+      ) : null}
 
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-4 min-w-0 w-full">
-        <div className="w-10 h-10 shrink-0 rounded-full flex items-center justify-center bg-black/[0.04] border border-black/10">
-          <Star size={16} className="text-sky-500" />
+        <div className="fc-success-plaque__crest" aria-hidden>
+          {partnerInitials(name)}
         </div>
         <div className="min-w-0 flex-1 w-full">
-          <p className="text-sm font-semibold break-words">{name}</p>
-          <div className="flex gap-0.5 mt-1">
+          <p className={`text-base font-extrabold break-words ${obsidian ? 'text-white' : 'text-[#0c1228]'}`}>{name}</p>
+          <div className="flex gap-0.5 mt-1" aria-label="5 star review">
             {[...Array(5)].map((_, i) => (
-              <Star key={i} size={10} className="text-sky-500 fill-sky-400" />
+              <Star
+                key={i}
+                size={11}
+                className={obsidian ? 'text-emerald-300 fill-emerald-400' : 'text-emerald-600 fill-emerald-500'}
+              />
             ))}
           </div>
-          {service ? (
-            <span className="inline-block mt-2 text-[9px] px-2 py-1 rounded-full uppercase tracking-widest font-bold border border-black/10 bg-white/60 opacity-80">
-              {service}
-            </span>
-          ) : null}
+          {service ? <span className="fc-success-plaque__service">{service}</span> : null}
         </div>
-        <Verified size={16} className="shrink-0 self-start sm:self-center text-emerald-800" />
+        <Verified
+          size={16}
+          className={`shrink-0 self-start sm:self-center ${obsidian ? 'text-emerald-300' : 'text-emerald-700'}`}
+        />
       </div>
 
-      <p className="text-sm leading-relaxed italic mb-4 break-words opacity-80">"{review}"</p>
+      <p className={`text-sm leading-relaxed mb-4 break-words ${obsidian ? 'text-white/72' : 'text-[#0c1228]/75'}`}>
+        “{review}”
+      </p>
 
-      <div className="mt-auto px-3 py-1.5 rounded-full inline-block max-w-full bg-black/[0.04] border border-black/10">
-        <span className="text-[10px] font-bold uppercase tracking-wider truncate block opacity-85">{milestone}</span>
+      <div className="fc-success-plaque__milestone mt-auto">
+        <span>{milestone}</span>
       </div>
-    </div>
+    </article>
   );
 }
 
@@ -2016,7 +2017,7 @@ export function HomeHeroProofStrip({ className = '' }: { className?: string }) {
 
   return (
     <section className={`py-5 sm:py-6 ${className}`} data-fc-hero-proof-strip="1">
-      <div className="container mx-auto px-4 sm:px-6 max-w-6xl">
+      <div className="fc-viewport-floor">
         <div
           className={`flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-6 !p-4 sm:!p-5 ${finelyOsCatalogCard('emerald')}`}
           data-fc-accent="emerald"
@@ -2098,28 +2099,29 @@ export function ProvenResultsStrip({
           return (
             <div
               key={cs.id}
-              className={`flex flex-col min-w-0 ${champagne ? 'fc-sell-dossier-plaque' : `${finelyOsCatalogCard(accent)} !p-5`}`}
+              className={`flex flex-col min-w-0 ${
+                champagne
+                  ? 'fc-sell-dossier-plaque'
+                  : `fc-success-plaque ${accent === 'violet' ? 'fc-success-plaque--cut' : accent === 'sky' ? 'fc-success-plaque--ticket' : accent === 'rose' ? 'fc-success-plaque--ticket' : 'fc-success-plaque--rail'} !min-h-0 !p-5`
+              }`}
               data-fc-accent={champagne ? undefined : accent}
             >
               {stat ? (
-                <div className="mb-3 rounded-2xl border border-white/15 bg-black/20 px-3 py-2.5">
-                  <span className="block text-[9px] font-black uppercase tracking-[0.2em] text-white/70">{stat.label}</span>
-                  <span className="block mt-0.5 text-2xl font-extrabold leading-tight text-white">{stat.value}</span>
+                <div className="fc-success-plaque__result mb-3">
+                  <span>{stat.label}</span>
+                  <strong>{stat.value}</strong>
                 </div>
               ) : null}
               <div className="flex items-center justify-between gap-2 mb-2 min-w-0">
-                <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full truncate border border-white/20 bg-white/10 text-white/80">
+                <span className="fc-success-plaque__service">
                   {CASE_STUDY_CATEGORY_LABELS[cs.category] ?? 'Case study'}
                 </span>
               </div>
-              <p className="text-sm font-extrabold mb-1 truncate text-white">{cs.partnerAlias}</p>
-              <p className="text-xs leading-relaxed mb-3 text-white/70">{cs.summary}</p>
+              <p className="text-sm font-extrabold mb-1 truncate text-[#0c1228]">{cs.partnerAlias}</p>
+              <p className="text-xs leading-relaxed mb-3 text-[#0c1228]/70">{cs.summary}</p>
               <div className="mt-auto flex flex-wrap gap-1.5">
                 {cs.statutoryBasis.slice(0, 2).map((basis) => (
-                  <span
-                    key={basis}
-                    className="text-[9px] px-2 py-0.5 rounded-full border border-white/15 bg-black/20 text-white/65"
-                  >
+                  <span key={basis} className="fc-success-plaque__milestone">
                     {basis.split('(')[0].trim()}
                   </span>
                 ))}
@@ -2152,7 +2154,7 @@ export function AffiliateSection({ onVisitAffiliate }: { onVisitAffiliate?: () =
       {/* Soft platinum glow (line-free) */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.08),transparent_58%)] opacity-70" />
       
-      <div className="container mx-auto px-6 max-w-4xl text-center relative z-10">
+      <div className="fc-viewport-floor text-center relative z-10">
         <Reveal>
           {/* Platinum badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6 border border-white/20"
@@ -2292,7 +2294,7 @@ export function Footer({ onNavigate }: { onNavigate: (page: string) => void }) {
 
   return (
     <footer className={`pt-16 pb-28 md:pb-20 ${finelyOsLandingContrastSection('fc-band-dark')}`} data-fc-contrast-band="1">
-      <div className="container mx-auto px-6 max-w-6xl">
+      <div className="fc-viewport-floor">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 mb-12">
           {/* Brand */}
           <div className="space-y-4">

@@ -244,6 +244,47 @@ function roleTrackModules(role: TrainingRoleId): TrainingModule[] {
         certification: { id: 'cert_agent_apprentice', title: 'Specialist Apprentice', badge: '⭐' },
       },
       {
+        id: 'agent_haitian_desk',
+        trackId: `track_${role}`,
+        title: 'Haitian community desk',
+        description: 'Sit-together script for Haitian-American partners. One next step.',
+        roles: [role],
+        lessons: [
+          lesson(
+            'agent_l_haitian_two_voice',
+            'Two-voice method',
+            ['Keep the English letter visible', 'Say the Kreyòl meaning', 'Name the English words again'],
+            20,
+            {
+              hubPath: '/portal/haitian',
+              resourcePath: '/haitian',
+            },
+          ),
+          lesson(
+            'agent_l_haitian_helper',
+            'Ede yon moun — weekend session',
+            ['Sit together', 'One tap next', 'Never translate the portal or promise a score'],
+            20,
+            {
+              hubPath: '/admin/haitian',
+              resourcePath: '/free-kreyol-guide',
+              quiz: [
+                {
+                  question: 'What stays in English on Haitian community letters?',
+                  options: [
+                    'The whole portal chrome',
+                    'The letter, bureau word, and form field',
+                    'Only the staff names',
+                    'Nothing — translate everything',
+                  ],
+                  correctIndex: 1,
+                },
+              ],
+            },
+          ),
+        ],
+      },
+      {
         id: 'agent_specialty_depth',
         trackId: `track_${role}`,
         title: 'Specialty depth modules',
@@ -431,7 +472,7 @@ export const TRAINING_ROLE_TRACKS: TrainingTrack[] = [
     subtitle: 'Run customer files, revenue share, white-label',
     accent: 'amber',
     hubPath: '/credit-specialist/hub',
-    moduleIds: ['agent_file_ops', 'agent_specialty_depth'],
+    moduleIds: ['agent_file_ops', 'agent_haitian_desk', 'agent_specialty_depth'],
   },
   {
     id: 'track_au_seller',

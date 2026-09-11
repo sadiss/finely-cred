@@ -15,6 +15,7 @@ import {
 import { LeadMagnetCobrandFooterMarks } from '../../components/brand/LeadMagnetCobrand';
 import { LeadMagnetFunnelHeroVideo } from '../../components/leadmagnet/LeadMagnetFunnelHeroVideo';
 import { getLeadMagnetVisualTheme } from '../../components/leadmagnet/leadMagnetVisualThemes';
+import { getLeadMagnetPremiumProfile } from '../../components/leadmagnet/leadMagnetPremiumProfiles';
 import { TRADELINE_FUNNEL } from '../../domain/leadMagnetFunnels';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
 import { LEAD_MAGNET_TRIAL_DAYS } from '../../lib/leadMagnetTrial';
@@ -22,6 +23,7 @@ import { PremiumLeadMagnetCaptureForm } from '../../components/leadmagnet/Premiu
 import { TL_GUIDE_CHAPTERS, TL_GUIDE_META, TL_GUIDE_READ_PATH } from './tradelineAdvantageGuideContent';
 import '../../components/leadmagnet/premiumLeadMagnetShared.css';
 import './tradelineAdvantageLanding.css';
+import '../../components/leadmagnet/leadMagnetConvert.css';
 
 const TRADELINE_THEME = getLeadMagnetVisualTheme(TRADELINE_FUNNEL);
 const GUIDE_MOCKUP_SRC = '/images/lead-magnets/tradeline-advantage-mockup.png';
@@ -234,10 +236,11 @@ function Testimonial({
 
 export default function TradelineAdvantageLandingPage() {
   usePublicSeoMeta({
-    title: 'The Trade Lines Advantage — Free Strategic Guide',
+    title: 'The Tradeline Advantage — free strategic guide',
     description:
-      'Master tradelines, strengthen credit positioning, and unlock greater funding with Finely Cred’s premium strategic guide.',
+      'Authorized-user and primary tradelines explained: timing, inquiry discipline, and fit inside a restore plan. Results vary · not legal advice · funding subject to underwriting.',
     path: TRADELINE_FUNNEL.path,
+    faqs: getLeadMagnetPremiumProfile(TRADELINE_FUNNEL)?.faqs,
   });
 
   const scrollToDownload = () => document.getElementById('download')?.scrollIntoView({ behavior: 'smooth' });
@@ -271,7 +274,7 @@ export default function TradelineAdvantageLandingPage() {
   ];
 
   return (
-    <main className="tla-page min-h-screen overflow-hidden bg-[#0e0614] text-white selection:bg-[#7b3f8f]/35 selection:text-white">
+    <main className="tla-page lm-convert-page min-h-screen overflow-hidden selection:bg-[#7b3f8f]/35">
       <style>{`
         .fc-premium-noise {
           background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,.13) 1px, transparent 0);
@@ -296,7 +299,7 @@ export default function TradelineAdvantageLandingPage() {
 
           <div className="tla-hero-copy relative z-20 order-1 pt-6 lg:order-2 lg:pt-14">
             <h1 className="tla-hero-title tla-serif mt-2 text-white">
-              <span className="tla-hero-title-line tla-hero-title-line--emerald">The Trade Lines</span>
+              <span className="tla-hero-title-line tla-hero-title-line--emerald">The Tradeline</span>
               <span className="tla-hero-title-line tla-hero-title-line--gold">Advantage</span>
             </h1>
             <div className="tla-hero-title-rule" aria-hidden />
@@ -308,17 +311,17 @@ export default function TradelineAdvantageLandingPage() {
 
             <div className="tla-hero-form mt-7 max-w-xl rounded-[1.35rem] p-5 md:p-6">
               <h2 className="mb-3 text-lg font-black uppercase tracking-[0.08em] text-white md:text-xl">
-                Get Your <span className="text-[#c4b5fd]">Free</span> Guide Now
+                Download the <span className="text-[#c4b5fd]">free</span> tradeline guide
               </h2>
               <PremiumLeadMagnetCaptureForm
                 funnelConfig={TRADELINE_FUNNEL}
                 accentClass="focus:border-[#c4b5fd] focus:ring-[#a78bfa]/15"
               />
               <Link
-                to={TL_GUIDE_READ_PATH}
+                to={`${TL_GUIDE_READ_PATH}?preview=1`}
                 className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#a78bfa]/45 bg-[#a78bfa]/10 px-4 py-2.5 text-[11px] font-black uppercase tracking-[0.14em] text-[#c4b5fd] transition hover:border-[#c4b5fd]/70 hover:bg-[#a78bfa]/16"
               >
-                <BookOpen size={14} /> Read all {TL_GUIDE_CHAPTERS.length} pages free — no signup
+                <BookOpen size={14} /> See preview
               </Link>
               <div className="mt-3 flex flex-wrap gap-4">
                 <a href="#tla-preview" className="lm-secondary-book-link !mt-0">
@@ -351,50 +354,58 @@ export default function TradelineAdvantageLandingPage() {
         </div>
       </section>
 
-      {/* Page index — the whole guide is readable in-app before any signup */}
-      <section id="read-online" className="relative z-10 border-b border-[#5c2d54]/35 py-9 md:py-12">
-        <div className="mx-auto max-w-7xl px-5 md:px-8">
+      <section id="preview" className="relative z-10 border-b border-[#5c2d54]/35 py-9 md:py-12">
+        <div className="mx-auto w-full max-w-none px-5 md:px-10 xl:px-16">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div className="max-w-2xl">
-              <SectionKicker>Read it now · no signup</SectionKicker>
+              <SectionKicker>Cover + page 1 preview</SectionKicker>
               <h2 className="tla-serif mt-4 text-3xl font-black leading-tight tracking-[-0.035em] md:text-4xl">
                 {TL_GUIDE_META.title}
               </h2>
               <p className="mt-3 text-sm leading-relaxed text-white/62">
-                {TL_GUIDE_CHAPTERS.length} pages in the browser — what a tradeline actually is, AU versus primary,
-                what AU can and cannot do, underwriter-grade evaluation, utilization timing, compliance red flags, and
-                a 90-day calendar.
+                See the first page preview. The remaining {TL_GUIDE_CHAPTERS.length - 1} pages unlock after you enter
+                your details.
               </p>
             </div>
-            <Link to={`${TL_GUIDE_READ_PATH}?chapter=what-is-a-tradeline`} className="shrink-0">
+            <Link to={`${TL_GUIDE_READ_PATH}?preview=1`} className="shrink-0">
               <GoldButton className="!h-12">
-                <BookOpen size={15} /> Open Page 01
+                <BookOpen size={15} /> See preview
               </GoldButton>
             </Link>
           </div>
 
           <div className="mt-7 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
-            {TL_GUIDE_CHAPTERS.map((ch) => (
-              <Link
-                key={ch.id}
-                to={`${TL_GUIDE_READ_PATH}?chapter=${ch.id}`}
-                className="group rounded-[1.1rem] border border-white/10 bg-white/[0.035] p-4 text-left backdrop-blur-xl transition hover:-translate-y-1 hover:border-[#a78bfa]/45"
-              >
-                <div className="font-mono text-xs font-bold tracking-[0.18em] text-[#c4b5fd]">{ch.number}</div>
-                <div className="mt-2 text-sm font-bold leading-snug text-white">{ch.title}</div>
-                <p className="mt-1.5 text-[12.5px] leading-relaxed text-white/55">{ch.teaser}</p>
-                <div className="mt-2 text-[10px] font-black uppercase tracking-[0.16em] text-[#8bafe8]">
-                  {ch.readMinutes} min · {ch.kicker}
+            {TL_GUIDE_CHAPTERS.map((ch, i) =>
+              i === 0 ? (
+                <Link
+                  key={ch.id}
+                  to={`${TL_GUIDE_READ_PATH}?preview=1`}
+                  className="group rounded-[1.1rem] border border-white/10 bg-white/[0.035] p-4 text-left backdrop-blur-xl transition hover:-translate-y-1 hover:border-[#a78bfa]/45"
+                >
+                  <div className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-300">Preview</div>
+                  <div className="mt-2 font-mono text-xs font-bold tracking-[0.18em] text-[#c4b5fd]">{ch.number}</div>
+                  <div className="mt-2 text-sm font-bold leading-snug text-white">{ch.title}</div>
+                  <p className="mt-1.5 text-[12.5px] leading-relaxed text-white/55">{ch.teaser}</p>
+                </Link>
+              ) : (
+                <div
+                  key={ch.id}
+                  className="rounded-[1.1rem] border border-white/10 bg-white/[0.035] p-4 text-left opacity-70"
+                >
+                  <div className="text-[10px] font-black uppercase tracking-[0.16em] text-white/40">Unlocks after signup</div>
+                  <div className="mt-2 font-mono text-xs font-bold tracking-[0.18em] text-[#c4b5fd]">{ch.number}</div>
+                  <div className="mt-2 text-sm font-bold leading-snug text-white">{ch.title}</div>
+                  <p className="mt-1.5 text-[12.5px] leading-relaxed text-white/55">{ch.teaser}</p>
                 </div>
-              </Link>
-            ))}
+              ),
+            )}
           </div>
           <p className="mt-4 text-[11px] text-white/40">{TL_GUIDE_META.compliance}</p>
         </div>
       </section>
 
       <section className="relative z-10 border-y border-[#5c2d54]/35 bg-[#120818]/40 py-8 md:py-10">
-        <div className="mx-auto max-w-7xl space-y-3 px-5 md:px-8">
+        <div className="fc-viewport-floor space-y-3">
           <details id="free-toolkit" className="lm-seo-depth">
             <summary>
               <span>Complete tradeline kit (free)</span>
@@ -468,7 +479,7 @@ export default function TradelineAdvantageLandingPage() {
       </section>
 
       <section id="download" className="relative z-10 border-t border-[#5c2d54]/40 px-5 pb-12 md:px-8">
-        <div className="tla-download-panel mx-auto max-w-7xl overflow-visible rounded-[1.65rem]">
+        <div className="tla-download-panel fc-viewport-floor overflow-visible rounded-[1.65rem]">
           <div className="grid gap-0 overflow-hidden rounded-[1.65rem] lg:grid-cols-[0.92fr_1.08fr]">
             <div className="relative flex min-h-[280px] flex-col items-center justify-center overflow-visible p-6 md:p-8">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(13,92,74,0.18),transparent_42%),radial-gradient(circle_at_75%_55%,rgba(92,45,84,0.2),transparent_40%)]" />
@@ -476,7 +487,7 @@ export default function TradelineAdvantageLandingPage() {
             </div>
             <div className="p-8 md:p-10">
               <h3 className="text-2xl font-black uppercase tracking-[0.07em] text-[#c4b5fd]">
-                Get Instant Access to Your Free Guide
+                Download the free tradeline guide
               </h3>
               <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/58">
                 Understand tradelines with structure — then decide if they belong in your plan.
@@ -493,7 +504,7 @@ export default function TradelineAdvantageLandingPage() {
       </section>
 
       <footer className="relative z-10 border-t border-white/10 px-5 py-8 md:px-8">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 text-xs text-white/42 md:flex-row">
+        <div className="fc-viewport-floor flex flex-col items-center justify-between gap-6 text-xs text-white/42 md:flex-row">
           <LeadMagnetCobrandFooterMarks />
           <div className="flex flex-wrap items-center justify-center gap-6">
             <a href="/privacy" className="hover:text-white">

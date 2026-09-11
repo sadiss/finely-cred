@@ -150,7 +150,7 @@ export function buildAdminWorkspaceIntelligence(model: AdminCommandCenterModel) 
         : 'No urgent service risk detected',
     explanation:
       firstPriority?.description ??
-      'The command center found no blocked or needs-action items in the current model.',
+      'The dashboard found no blocked or needs-action items in the current model.',
     confidence: confidenceFromEvidence(atRiskHealth.length + urgentPriorities.length),
     status: atRiskHealth.length || urgentPriorities.length ? 'needs_action' : 'ready',
     route: firstPriority?.route ?? '/preview/workspace-light/admin/workflow',

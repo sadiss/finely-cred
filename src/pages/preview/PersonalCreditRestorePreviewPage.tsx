@@ -1,27 +1,23 @@
-import React, { useMemo, useState, type CSSProperties, type ReactNode } from 'react';
-import { ArrowRight, Check, ExternalLink, Info, Sparkles } from 'lucide-react';
+import React, { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
+import { ArrowRight, Info } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
 import { finelyCtaNavigate } from '../../lib/finelyCtaIntent';
+import { openPublicChat } from '../../lib/publicChatEvents';
 import { reconcileCtaBridgeConversion } from '../../lib/funnelCtaBridge';
 import { resolvePackageSelectPath } from '../../lib/packageCheckoutRouting';
 import { formatPrice, getPackageById, personalCreditPackages, type PricingPackage } from '../../config/pricingCatalog';
-import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
-import { DedicatedSheetLinkStrip } from '../../components/resources/DedicatedSheetLinkStrip';
 import { ServicePackageDetailModal } from '../../components/pricing/ServicePackageDetailModal';
-import { FinelyLaunchHelpStrip, type FinelyLaunchPrompt } from '../../components/tours/FinelyLaunchHelpStrip';
 import { usePreviewReveal } from '../../features/personalCredit/preview/usePreviewReveal';
 import '../../features/personalCredit/preview/personalCreditRestorePreview.css';
 import '../../features/personalCredit/preview/personalCreditRestorePreview.anim.css';
 
 const LIVE_PATH = '/pricing/personal-credit-restore';
-const PREVIEW_PATH = '/preview/personal-credit-restore';
 
 type RestorePath = 'dfy' | 'diy';
 
-/** Full DFY restore ladder — includes Supreme/Premier/Dynasty (catalog isPublic:false but still sold). */
 const DFY_RESTORE_LADDER_IDS = [
   'personal_restore_starter',
   'personal_restore',
@@ -34,53 +30,116 @@ const DFY_RESTORE_LADDER_IDS = [
 
 const DFY_FEATURED_IDS = ['personal_restore', 'personal_platinum', 'personal_restore_starter'] as const;
 
-const HERO_STATS = [
-  { value: '3', title: 'Bureaus', detail: 'Equifax · Experian · TransUnion' },
-  { value: '45d', title: 'First review', detail: 'Typical window after intake' },
-  { value: '7', title: 'DFY tiers', detail: 'Starter through Dynasty' },
+const LETTER_LINES = {
+  eq: 'As you can see here on Equifax, this collection is reporting with no matching account on the file.',
+  ex: 'As you can see here on Experian, this balance does not match the other two bureau reads.',
+  tu: 'As you can see here on TransUnion, this item appears only on this bureau.',
+} as const;
+
+const BUREAU_REVEAL = [
+  {
+    key: 'eq',
+    accent: 'emerald' as const,
+    name: 'Equifax',
+    title: 'What we document',
+    body: 'Tradelines, collections, and addresses as they appear on Equifax. Screenshots stay in the vault with the letter they support.',
+  },
+  {
+    key: 'ex',
+    accent: 'violet' as const,
+    name: 'Experian',
+    title: 'Where the files diverge',
+    body: 'Experian often disagrees with the other two bureaus. We treat that variance as evidence, not a mystery score.',
+  },
+  {
+    key: 'tu',
+    accent: 'sky' as const,
+    name: 'TransUnion',
+    title: 'The same item, a third read',
+    body: 'A TransUnion-only collection still receives its own reason and its own mail record. One letter does not cover three bureaus.',
+  },
+] as const;
+
+const PROOF = [
+  {
+    accent: 'emerald' as const,
+    label: 'Documented path',
+    value: '3 bureaus',
+    body: 'Every dispute names what appears on the screenshot — never a generic “please verify.”',
+  },
+  {
+    accent: 'violet' as const,
+    label: 'First review',
+    value: '45 days',
+    body: 'A typical first-review window after intake. Bureau and furnisher timing still varies.',
+  },
+  {
+    accent: 'sky' as const,
+    label: 'Done-for-you ladder',
+    value: '7 tiers',
+    body: 'Starter through Dynasty, plus a written Custom scope when the file is past a public price.',
+  },
 ];
 
-const TRUST = [
-  { value: '700+', label: 'Score path partners target' },
-  { value: '45 days', label: 'First review window' },
-  { value: '3 bureaus', label: 'Full file coverage' },
-  { value: 'One OS', label: 'Letters, vault, disputes, tracking' },
-];
-
-const JOURNEY = ['Stabilize', 'Dispute', 'Monitor', 'Build', 'Fund-ready'];
-
-const PROCESS = [
-  { step: 1, title: 'Upload & analyze', body: 'Import bureau reports. We map tradelines and targets.' },
-  { step: 2, title: 'Strategy & letters', body: 'Factual dispute reasons tied to your file — not generic language.' },
-  { step: 3, title: 'Send & track', body: 'Mail, deadlines, and bureau responses in one workspace.' },
-  { step: 4, title: 'Escalate', body: 'Follow-up rounds when furnishers stall — fully documented.' },
-];
-
-const PLATFORM = [
-  { title: 'Report upload + parsing', body: 'HTML/PDF intake with tradeline targeting.' },
-  { title: 'Evidence vault', body: 'Proof packs labeled for each dispute round.' },
-  { title: 'Dispute center', body: 'Status by bureau, item, and deadline.' },
-  { title: 'Letter studio', body: 'Print-ready letters saved to your vault.' },
-  { title: 'Ask Finely', body: 'Education-first guidance from your file signals.' },
-  { title: 'Milestones', body: 'Stabilize → dispute → monitor → fund-ready.' },
-];
+const RUNWAY_PHASES = [
+  {
+    key: 'stabilize',
+    label: 'Stabilize',
+    stage: '01 · Upload',
+    accent: 'emerald' as const,
+    title: 'Upload and analyze',
+    body: 'Import the bureau reports. We map tradelines, collections, and the targets that matter on your file.',
+    tools: ['Report upload + parsing', 'Tradeline targeting', 'Identity + address docs'],
+  },
+  {
+    key: 'dispute',
+    label: 'Dispute',
+    stage: '02 · Letters',
+    accent: 'violet' as const,
+    title: 'Strategy and letters',
+    body: 'Factual dispute reasons tied to what appears on your bureau file — not generic language.',
+    tools: ['Letter studio', 'Factual reason builder', 'Evidence vault'],
+  },
+  {
+    key: 'monitor',
+    label: 'Monitor',
+    stage: '03 · Track',
+    accent: 'sky' as const,
+    title: 'Send and track',
+    body: 'Mail, deadlines, and bureau responses live in one workspace, with every round documented.',
+    tools: ['Dispute center', 'Deadline tracking', 'Bureau response log'],
+  },
+  {
+    key: 'build',
+    label: 'Build',
+    stage: '04 · Next',
+    accent: 'rose' as const,
+    title: 'Escalate and get fund-ready',
+    body: 'Follow-up rounds when furnishers stall, then strengthen utilization and readiness for funding.',
+    tools: ['Escalation packets', 'Milestones', 'Specialist guidance'],
+  },
+] as const;
 
 const FAQ = [
   {
-    q: 'Done-for-you vs do-it-yourself — which should I pick?',
-    a: 'Choose done-for-you if you want our team to run disputes, tracking, and escalation. Choose DIY if you prefer templates, letter packs, and platform tools while you drive the workflow.',
+    q: 'Done-for-you or do-it-yourself — which should I pick?',
+    a: 'Choose done-for-you if you want our team to run disputes, tracking, and escalation. Choose do-it-yourself if you prefer templates, letter packs, and platform tools while you drive the workflow.',
   },
   {
     q: 'What are the done-for-you restore tiers?',
     a: 'Starter ($750), Pro ($1,500), Elite ($3,000), Supreme ($5,000), Premier ($7,000), and Dynasty ($10,000). Files that require work beyond Dynasty move to a written Custom scope after intake instead of an artificial public price ceiling.',
   },
   {
-    q: 'How fast will I see results?',
-    a: 'Bureau and furnisher response times vary. Many partners see movement in the first review window; outcomes are never guaranteed.',
+    q: 'How fast will I see movement?',
+    a: 'Bureau and furnisher response times vary. Many partners see movement in the first review window after intake.',
   },
   {
     q: 'Is this legal advice?',
-    a: 'No. Finely Cred provides an educational dispute workflow and document tools. Results vary · not legal advice · funding subject to underwriting.',
+    a: 'No. Finely Cred provides an educational dispute workflow and document tools. A licensed attorney handles legal advice when you need one.',
+  },
+  {
+    q: 'I already paid another company — do I start over?',
+    a: 'No. If Round 1 already went out, we open the next round and inherit the letters you already mailed. We do not pretend you never started.',
   },
 ];
 
@@ -126,46 +185,28 @@ function Reveal({
   );
 }
 
-function PreviewBanner() {
-  return (
-    <div className="pc-prev-banner" role="note">
-      <div className="pc-prev-banner__inner">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="pc-prev-banner__badge">
-            <Sparkles size={11} aria-hidden /> Preview
-          </span>
-          <span className="pc-prev-banner__note">New restore page — will replace the live page when approved.</span>
-        </div>
-        <Link to={LIVE_PATH} className="pc-prev-banner__link">
-          Current live page <ExternalLink size={12} aria-hidden />
-        </Link>
-      </div>
-    </div>
-  );
-}
+type MosaicAccent = 'sky' | 'emerald' | 'violet' | 'rose';
 
-type TierAccent = 'sky' | 'emerald' | 'violet' | 'navy' | 'rose' | 'fuchsia';
-
-const DFY_ACCENT: Record<string, TierAccent> = {
+const DFY_ACCENT: Record<string, MosaicAccent> = {
   personal_restore_starter: 'sky',
   personal_restore: 'emerald',
   personal_platinum: 'violet',
   personal_restore_5000: 'rose',
-  personal_restore_7000: 'emerald',
-  personal_restore_10000: 'violet',
-  personal_restore_custom: 'navy',
+  personal_restore_7000: 'sky',
+  personal_restore_10000: 'emerald',
+  personal_restore_custom: 'violet',
 };
 
-const DIY_ACCENT: Record<string, TierAccent> = {
+const DIY_ACCENT: Record<string, MosaicAccent> = {
   personal_free: 'sky',
   personal_starter: 'emerald',
 };
 
-function tierAccent(pkg: PricingPackage): TierAccent {
+function tierAccent(pkg: PricingPackage): MosaicAccent {
   if (DFY_ACCENT[pkg.id]) return DFY_ACCENT[pkg.id];
   if (DIY_ACCENT[pkg.id]) return DIY_ACCENT[pkg.id];
   if (pkg.id.startsWith('letters_pack_')) return 'violet';
-  return 'navy';
+  return 'sky';
 }
 
 function tierShortName(pkg: PricingPackage): string {
@@ -183,111 +224,136 @@ function tierShortName(pkg: PricingPackage): string {
 }
 
 const TIER_FIT: Record<string, string> = {
-  personal_restore_starter: 'Lighter files that need a documented first restore sequence.',
-  personal_restore: 'Multi-account files that need recurring rounds and active tracking.',
-  personal_platinum: 'Complex files that need deeper strategy and a longer support window.',
-  personal_restore_5000: 'Higher-complexity files that need stronger QA and escalation preparation.',
-  personal_restore_7000: 'Broad files that need enterprise-level cadence, monitoring, and documentation.',
+  personal_restore_starter: 'A lighter file that needs a documented first restore sequence.',
+  personal_restore: 'A multi-account file that needs recurring rounds and active tracking.',
+  personal_platinum: 'A complex file that needs deeper strategy and a longer support window.',
+  personal_restore_5000: 'A higher-complexity file that needs stronger quality review and escalation preparation.',
+  personal_restore_7000: 'A broad file that needs enterprise cadence, monitoring, and documentation.',
   personal_restore_10000: 'The highest fixed tier for maximum support, sequencing, and priority handling.',
   personal_restore_custom: 'Work beyond the fixed ladder, scoped around file depth and approved deliverables.',
 };
 
 const CUSTOM_SCOPE = [
-  { title: 'File architecture', body: 'Tradelines, collections, bureau variance, and evidence load mapped first.' },
-  { title: 'Execution depth', body: 'Rounds, QA cadence, documentation, and escalation readiness written into scope.' },
-  { title: 'Support window', body: 'Timeline and specialist touchpoints sized to the actual file—not a generic tier.' },
-  { title: 'Approved terms', body: 'Pricing and payment timing confirmed only after deliverables are documented.' },
+  { title: 'File architecture', body: 'Tradelines, collections, bureau variance, and evidence load are mapped first.' },
+  { title: 'Execution depth', body: 'Rounds, quality cadence, documentation, and escalation readiness are written into scope.' },
+  { title: 'Support window', body: 'Timeline and specialist touchpoints are sized to the actual file, not a generic tier.' },
+  { title: 'Approved terms', body: 'Pricing and payment timing are confirmed only after deliverables are documented.' },
 ] as const;
 
-function PreviewTierCard({
+function tierObject(pkg: PricingPackage): { className: string; label: string } | null {
+  if (pkg.id === 'personal_restore_starter') return { className: 'pc-prev-tier-card__object--letter', label: 'Letter' };
+  if (pkg.id === 'personal_restore') return { className: 'pc-prev-tier-card__object--vault', label: 'Vault' };
+  if (pkg.id === 'personal_platinum') return { className: 'pc-prev-tier-card__object--runway', label: 'Runway' };
+  return null;
+}
+
+function FeaturedTicket({
   pkg,
   featured,
-  variant = 'main',
   onSelect,
-  onIncludes,
 }: {
   pkg: PricingPackage;
   featured?: boolean;
-  variant?: 'preview' | 'main';
   onSelect: () => void;
-  onIncludes?: () => void;
 }) {
   const accent = tierAccent(pkg);
+  const object = tierObject(pkg);
   const badge = featured ? 'Most picked' : pkg.badge;
-  const isMain = variant === 'main';
-  const highlightLimit = isMain ? pkg.highlights?.length ?? 0 : 3;
-  const fit = TIER_FIT[pkg.id];
 
   return (
     <article
-      className={`pc-prev-tier-card pc-prev-tier-card--${accent} pc-prev-tier-card--${variant} ${
-        featured ? 'pc-prev-tier-card--featured' : ''
-      }`}
+      className={`pc-prev-price pc-prev-ticket${featured ? ' pc-prev-ticket--featured' : ''}`}
+      data-fc-accent={accent}
     >
-      {badge ? <span className="pc-prev-tier-card__badge">{badge}</span> : null}
-      <div className="pc-prev-tier-card__price">{priceLabel(pkg)}</div>
-      <h3 className="pc-prev-tier-card__name">{isMain ? pkg.name : tierShortName(pkg)}</h3>
-      <p className="pc-prev-tier-card__tagline">{pkg.tagline}</p>
-      {isMain && fit ? (
-        <div className="pc-prev-tier-card__fit">
-          <span>Best fit</span>
-          <p>{fit}</p>
-        </div>
-      ) : null}
-      {highlightLimit > 0 ? (
-        <ul className="pc-prev-tier-card__services">
-          {(pkg.highlights ?? []).slice(0, highlightLimit).map((item) => (
-            <li key={item}>{item}</li>
-          ))}
-        </ul>
-      ) : null}
-      <div className="pc-prev-tier-card__actions">
-        <button type="button" className="pc-prev-tier-card__cta" onClick={onSelect}>
-          Choose this tier <ArrowRight size={isMain ? 16 : 14} aria-hidden />
-        </button>
-        {isMain && onIncludes ? (
-          <button type="button" className="pc-prev-tier-card__cta-secondary" onClick={onIncludes}>
-            <Info size={14} aria-hidden />
-            What&apos;s included
-          </button>
-        ) : null}
-      </div>
+      {object ? <div className={`pc-prev-tier-card__object ${object.className}`}>{object.label}</div> : null}
+      {badge ? <span className="pc-prev-ticket__badge">{badge}</span> : null}
+      <div className="pc-prev-ticket__price">{priceLabel(pkg)}</div>
+      <h3 className="pc-prev-ticket__name">{tierShortName(pkg)}</h3>
+      <p className="pc-prev-ticket__tagline">{pkg.tagline}</p>
+      <ul className="pc-prev-ticket__list">
+        {(pkg.highlights ?? []).slice(0, 3).map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+      <button type="button" className="pc-prev-btn-primary" onClick={onSelect}>
+        Choose {tierShortName(pkg)} <ArrowRight size={15} aria-hidden />
+      </button>
     </article>
   );
 }
 
-function PreviewTierGrid({
+function CompareWorkbench({
   packages,
-  featuredId,
-  variant = 'main',
+  selectedId,
+  onPick,
   onCheckout,
-  onViewDetails,
+  onIncludes,
 }: {
   packages: PricingPackage[];
-  featuredId?: string;
-  variant?: 'preview' | 'main';
+  selectedId: string;
+  onPick: (id: string) => void;
   onCheckout: (pkg: PricingPackage) => void;
-  onViewDetails?: (pkg: PricingPackage) => void;
+  onIncludes: (pkg: PricingPackage) => void;
 }) {
-  const priced = packages.filter((p) => !p.isCustomQuote);
+  const priced = packages.filter((pkg) => !pkg.isCustomQuote);
+  const selected = priced.find((pkg) => pkg.id === selectedId) ?? priced[0];
+  if (!selected) return null;
+  const selectedIndex = Math.max(0, priced.findIndex((pkg) => pkg.id === selected.id));
+  const accent = (['sky', 'emerald', 'violet', 'rose'] as const)[selectedIndex % 4];
+  const fit = TIER_FIT[selected.id];
 
   return (
-    <div className={`pc-prev-tier-grid pc-prev-tier-grid--${variant}`}>
-      {priced.map((pkg) => (
-        <PreviewTierCard
-          key={pkg.id}
-          pkg={pkg}
-          variant={variant}
-          featured={pkg.id === featuredId}
-          onSelect={() => onCheckout(pkg)}
-          onIncludes={variant === 'main' && onViewDetails ? () => onViewDetails(pkg) : undefined}
-        />
-      ))}
+    <div className="pc-prev-compare">
+      <div className="pc-prev-compare__nav" role="listbox" aria-label="Restore tiers">
+        {priced.map((pkg, index) => {
+          const rowAccent = (['sky', 'emerald', 'violet', 'rose'] as const)[index % 4];
+          const active = pkg.id === selected.id;
+          return (
+            <button
+              key={pkg.id}
+              type="button"
+              role="option"
+              aria-selected={active}
+              className="pc-mosaic pc-prev-compare__row"
+              data-fc-accent={rowAccent}
+              onClick={() => onPick(pkg.id)}
+            >
+              <strong>{tierShortName(pkg)}</strong>
+              <span>{priceLabel(pkg)}</span>
+            </button>
+          );
+        })}
+      </div>
+      <article className="pc-mosaic pc-prev-compare__detail" data-fc-accent={accent}>
+        <span className="pc-prev-compare__kicker">Selected tier</span>
+        <div className="pc-prev-compare__price">{priceLabel(selected)}</div>
+        <h3>{selected.name}</h3>
+        <p>{selected.tagline}</p>
+        {fit ? (
+          <div className="pc-prev-compare__fit">
+            <span>Best fit</span>
+            <p>{fit}</p>
+          </div>
+        ) : null}
+        <ul>
+          {(selected.highlights ?? []).slice(0, 5).map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+        <div className="pc-prev-compare__actions">
+          <button type="button" className="pc-prev-btn-primary" onClick={() => onCheckout(selected)}>
+            Choose this tier <ArrowRight size={15} aria-hidden />
+          </button>
+          <button type="button" className="pc-prev-btn-secondary" onClick={() => onIncludes(selected)}>
+            <Info size={14} aria-hidden /> What&apos;s included
+          </button>
+        </div>
+      </article>
     </div>
   );
 }
 
-function CustomQuoteRow({
+function CustomQuoteBand({
   pkg,
   onStart,
   onIncludes,
@@ -297,55 +363,52 @@ function CustomQuoteRow({
   onIncludes: () => void;
 }) {
   return (
-    <div className="pc-prev-custom-row">
-      <div className="pc-prev-custom-row__main">
-        <span className="pc-prev-custom-row__badge">Custom quote</span>
-        <div className="pc-prev-custom-row__copy">
-          <h3 className="pc-prev-custom-row__title">{pkg.name}</h3>
-          <p className="pc-prev-custom-row__tagline">
-            Beyond Dynasty, there is no artificial public ceiling. We review the file, document the deliverables,
-            then scope the engagement around the work actually required.
-          </p>
-        </div>
-        <div className="pc-prev-custom-row__price">Custom engagement · scoped after intake</div>
-        <div className="pc-prev-custom-scope">
-          {CUSTOM_SCOPE.map((item) => (
-            <div key={item.title} className="pc-prev-custom-scope__item">
-              <strong>{item.title}</strong>
-              <span>{item.body}</span>
-            </div>
-          ))}
-        </div>
-        <p className="pc-prev-custom-row__terms">
-          Written scope required · service timing and payment terms depend on approved deliverables
+    <section className="pc-prev-custom-band" aria-labelledby="pc-prev-custom-title">
+      <article className="pc-mosaic pc-prev-custom-card" data-fc-accent="violet">
+        <span className="pc-prev-custom-card__badge">Custom quote</span>
+        <h3 id="pc-prev-custom-title">{pkg.name}</h3>
+        <p>
+          Beyond Dynasty, there is no artificial public ceiling. We review the file, document the deliverables, and
+          then scope the engagement around the work actually required.
         </p>
-      </div>
-      <div className="pc-prev-custom-row__choices">
-        <button type="button" className="pc-prev-custom-choice pc-prev-custom-choice--primary" onClick={onStart}>
-          Start custom intake <ArrowRight size={15} aria-hidden />
-          <span>Map the file before pricing</span>
-        </button>
-        <button type="button" className="pc-prev-custom-choice pc-prev-custom-choice--ghost" onClick={onIncludes}>
-          <Info size={15} aria-hidden />
-          What&apos;s included
-          <span>Scope, deliverables & compare</span>
-        </button>
-      </div>
-    </div>
+        <strong className="pc-prev-custom-card__price">Custom engagement, scoped after intake</strong>
+        <div className="pc-prev-custom-card__scope">
+          {CUSTOM_SCOPE.map((item, index) => {
+            const accent = (['emerald', 'violet', 'sky', 'rose'] as const)[index];
+            return (
+              <div key={item.title} className="pc-mosaic pc-prev-custom-card__item" data-fc-accent={accent}>
+                <strong>{item.title}</strong>
+                <span>{item.body}</span>
+              </div>
+            );
+          })}
+        </div>
+        <p className="pc-prev-compliance">A written scope is required. Payment terms follow approved deliverables.</p>
+        <div className="pc-prev-custom-card__actions">
+          <button type="button" className="pc-prev-btn-primary" onClick={onStart}>
+            Start custom intake <ArrowRight size={15} aria-hidden />
+          </button>
+          <button type="button" className="pc-prev-btn-secondary" onClick={onIncludes}>
+            <Info size={14} aria-hidden /> What&apos;s included
+          </button>
+        </div>
+      </article>
+    </section>
   );
 }
 
 export default function PersonalCreditRestorePreviewPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const isPreviewMode = location.pathname === PREVIEW_PATH;
   const auth = useAuth();
   const [path, setPath] = useState<RestorePath>('dfy');
+  const [bureauKey, setBureauKey] = useState<(typeof BUREAU_REVEAL)[number]['key']>('eq');
+  const [beatKey, setBeatKey] = useState<(typeof RUNWAY_PHASES)[number]['key']>('stabilize');
   const [detailPkg, setDetailPkg] = useState<PricingPackage | null>(null);
+  const [selectedCompareId, setSelectedCompareId] = useState('personal_restore');
   const pathPackages = useMemo(() => filterPackages(path), [path]);
   const dfyTiers = useMemo(
-    () =>
-      DFY_RESTORE_LADDER_IDS.map((id) => getPackageById(id)).filter(Boolean) as PricingPackage[],
+    () => DFY_RESTORE_LADDER_IDS.map((id) => getPackageById(id)).filter(Boolean) as PricingPackage[],
     [],
   );
   const featuredPackages = useMemo(() => {
@@ -354,47 +417,12 @@ export default function PersonalCreditRestorePreviewPage() {
     }
     return pathPackages.slice(0, 3);
   }, [path, pathPackages]);
-  const restoreGuidancePrompts = useMemo<readonly FinelyLaunchPrompt[]>(
-    () => [
-      {
-        label: 'What should I do first?',
-        prompt: 'On this personal credit restore page, what should I do first with a new file?',
-        hint:
-          'Pull current reports from all three bureaus. Then gather your ID, proof of address, and statements before choosing any dispute target.',
-      },
-      {
-        label: path === 'dfy' ? 'Is done-for-you right?' : 'Can I do this myself?',
-        prompt:
-          path === 'dfy'
-            ? 'How do I know whether done-for-you personal credit restore is right for my file?'
-            : 'How do I know whether the do-it-yourself personal credit tools are right for my file?',
-        hint:
-          path === 'dfy'
-            ? 'Done-for-you fits when you want the team to organize evidence, run letters, track replies, and manage follow-up rounds.'
-            : 'DIY fits when you can gather evidence, review every letter, meet mailing deadlines, and log each bureau response yourself.',
-      },
-      {
-        label: 'Evidence checklist',
-        prompt: 'What evidence should I gather before starting a personal credit dispute?',
-        hint:
-          'Match every factual issue to a bureau screenshot or statement. Keep identity documents in Documents and dispute exhibits in Evidence Vault.',
-      },
-      {
-        label: 'What happens after a reply?',
-        prompt: 'What should I do after a credit bureau or furnisher replies to a dispute?',
-        hint:
-          'Log the actual outcome, preserve the response, and let the evidence determine whether to close the item, correct your record, or prepare a documented follow-up.',
-      },
-    ],
-    [path],
-  );
 
   usePublicSeoMeta({
-    title: isPreviewMode ? 'Preview · Personal credit restore' : 'Personal credit restore',
-    description: isPreviewMode
-      ? 'Premium personal credit restoration — all tiers, clear path, Finely Cred OS.'
-      : 'DIY and done-for-you personal credit restore with dispute automation.',
-    path: isPreviewMode ? PREVIEW_PATH : location.pathname === '/personal-credit' ? '/personal-credit' : LIVE_PATH,
+    title: 'Personal credit restore | Finely Cred',
+    description:
+      'We read Equifax, Experian, and TransUnion screenshots, write factual dispute reasons, and keep every letter and reply in one vault. Done-for-you from Starter through Dynasty.',
+    path: location.pathname === '/personal-credit' ? '/personal-credit' : LIVE_PATH,
   });
 
   const goCheckout = (pkgId: string, rail?: 'stripe' | 'in_house') => {
@@ -413,6 +441,7 @@ export default function PersonalCreditRestorePreviewPage() {
 
   const startFree = () => finelyCtaNavigate(navigate, 'personal_free_guide', { isAuthed: Boolean(auth.user) });
   const bookSession = () => finelyCtaNavigate(navigate, 'consultation', { consultationLane: 'Personal Credit' });
+  const scrollPackages = () => document.getElementById('pc-prev-packages')?.scrollIntoView({ behavior: 'smooth' });
 
   const displayPackages = path === 'dfy' ? dfyTiers : pathPackages;
   const customTier = useMemo(
@@ -420,6 +449,13 @@ export default function PersonalCreditRestorePreviewPage() {
     [displayPackages],
   );
   const featuredId = path === 'dfy' ? 'personal_restore' : 'personal_starter';
+  const bureau = BUREAU_REVEAL.find((item) => item.key === bureauKey) ?? BUREAU_REVEAL[0];
+  const beat = RUNWAY_PHASES.find((item) => item.key === beatKey) ?? RUNWAY_PHASES[0];
+  const letterPress = usePreviewReveal<HTMLDivElement>(0.22);
+
+  useEffect(() => {
+    setSelectedCompareId(featuredId);
+  }, [featuredId]);
 
   const checkoutPackage = (pkg: PricingPackage) =>
     goCheckout(
@@ -429,72 +465,74 @@ export default function PersonalCreditRestorePreviewPage() {
 
   return (
     <>
-      {isPreviewMode ? <PreviewBanner /> : null}
       <PageShell
         hideHero
         hideLaunchHelpStrip
-        surface="default"
+        surface="ivory"
         contentWidth="full"
-        badge={isPreviewMode ? 'Preview' : undefined}
-        title="Personal credit restore"
-        subtitle={isPreviewMode ? 'Premium restore preview' : undefined}
+        title="Finely Cred · Personal credit restore"
       >
         <div className="pc-prev-shell" data-fc-pc-restore-preview="1">
           <header className="pc-prev-hero">
-            <div className="pc-prev-hero__aurora" aria-hidden />
-            <div className="pc-prev-hero__mesh" aria-hidden />
-            <div className="pc-prev-hero__beam" aria-hidden />
             <div className="pc-prev-inner pc-prev-hero__inner">
-              <div className="pc-prev-hero__grid">
-                <div className="pc-prev-hero__copy">
-                  <p className="pc-prev-eyebrow">Personal credit restoration</p>
-                  <h1 className="pc-prev-hero__title">
-                    Restore your credit with <span>a clear, documented path.</span>
-                  </h1>
-                  <p className="pc-prev-hero__lede">
-                    Done-for-you disputes, three-bureau coverage, and every round tracked in the Finely Cred OS — from
-                    Starter through Dynasty, plus written Custom scopes for work beyond the fixed ladder.
-                  </p>
-                  <div className="pc-prev-hero__actions">
-                    <button type="button" className="pc-prev-btn-primary" onClick={startFree}>
-                      Start free guide <ArrowRight size={15} aria-hidden />
-                    </button>
-                    <button type="button" className="pc-prev-btn-secondary" onClick={bookSession}>
-                      Book a session
-                    </button>
-                    <button
-                      type="button"
-                      className="pc-prev-btn-ghost"
-                      onClick={() => document.getElementById('pc-prev-packages')?.scrollIntoView({ behavior: 'smooth' })}
-                    >
-                      Compare tiers
-                    </button>
-                  </div>
-                  <p className="pc-prev-compliance">Results vary · not legal advice · funding subject to underwriting</p>
+              <div className="pc-prev-hero__copy">
+                <p className="pc-prev-eyebrow">Equifax · Experian · TransUnion</p>
+                <h1 className="pc-prev-hero__title">
+                  <span className="pc-prev-hero__brand">Finely Cred</span>
+                  Personal credit restore
+                </h1>
+                <p className="pc-prev-hero__sub">
+                  Restore the file lenders <span>actually read.</span>
+                </p>
+                <p className="pc-prev-hero__lede">
+                  Personal credit is the file attached to a Social Security number. We dispute what the bureau
+                  screenshots actually show, keep letters and evidence in one vault, and track every reply.
+                  Done-for-you runs from Starter through Dynasty.
+                </p>
+                <div className="pc-prev-hero__actions">
+                  <button type="button" className="pc-prev-btn-primary" onClick={scrollPackages}>
+                    See packages <ArrowRight size={15} aria-hidden />
+                  </button>
+                  <button type="button" className="pc-prev-btn-secondary" onClick={bookSession}>
+                    Book a session
+                  </button>
+                  <button type="button" className="pc-prev-btn-ghost" onClick={startFree}>
+                    Free restore guide
+                  </button>
                 </div>
-                <aside className="pc-prev-hero-glance" aria-label="At a glance">
-                  <p className="pc-prev-hero-glance__label">At a glance</p>
-                  <div className="pc-prev-hero-glance__grid">
-                    {HERO_STATS.map((s) => (
-                      <div key={s.title} className="pc-prev-hero-glance__cell">
-                        <strong>{s.value}</strong>
-                        <span className="pc-prev-hero-glance__title">{s.title}</span>
-                        <span className="pc-prev-hero-glance__detail">{s.detail}</span>
-                      </div>
-                    ))}
+              </div>
+              <div
+                ref={letterPress.ref}
+                className={`pc-letter-press${letterPress.visible ? ' is-on' : ''}`}
+                aria-label={`Sample ${bureau.name} dispute reason`}
+              >
+                <div className="pc-letter-press__env">
+                  <div className="pc-letter-press__flap" aria-hidden />
+                  <div className="pc-letter-press__seal" aria-hidden />
+                  <div className="pc-letter-press__sheet">
+                    <span className="pc-letter-press__label">Sample dispute reason</span>
+                    <em>{bureau.name}</em>
+                    <p>{LETTER_LINES[bureauKey]}</p>
                   </div>
-                </aside>
+                </div>
+                <p className="pc-letter-press__caption">
+                  Written from the {bureau.name} file — not a generic “please verify.”
+                </p>
+                <p className="pc-letter-press__insight">
+                  The software reads the bureau screenshot. The letter names what you can see.
+                </p>
               </div>
             </div>
           </header>
 
           <div className="pc-prev-inner">
-            <div className="pc-prev-trust-strip" aria-label="Trust metrics">
-              {TRUST.map((t) => (
-                <div key={t.label} className="pc-prev-trust-cell">
-                  <strong>{t.value}</strong>
-                  <span>{t.label}</span>
-                </div>
+            <div className="pc-prev-proof" aria-label="Restore proof">
+              {PROOF.map((item) => (
+                <article key={item.label} className="pc-mosaic pc-prev-proof__plaque" data-fc-accent={item.accent}>
+                  <span>{item.label}</span>
+                  <strong>{item.value}</strong>
+                  <p>{item.body}</p>
+                </article>
               ))}
             </div>
           </div>
@@ -502,83 +540,151 @@ export default function PersonalCreditRestorePreviewPage() {
           <section className="pc-prev-section pc-prev-section--tight">
             <div className="pc-prev-inner">
               <Reveal>
-                <FinelyLaunchHelpStrip
-                  tone="ivory"
-                  className="pc-prev-guidance"
-                  prompts={restoreGuidancePrompts}
-                  description="Hover a question for an immediate next-step hint, or click it to ask Finely for guidance on this page."
-                />
+                <p className="pc-prev-kicker">The bureau file</p>
+                <h2 className="pc-prev-h2">We dispute the reason you can see.</h2>
+                <p className="pc-prev-lede">
+                  The system reads each bureau screenshot and writes a factual line for that file — Equifax, Experian,
+                  or TransUnion — instead of a generic please-verify letter.
+                </p>
               </Reveal>
+              <div className="pc-prev-bureau-stage">
+                <div className="pc-prev-bureau-stage__tabs" role="tablist" aria-label="Bureau files">
+                  {BUREAU_REVEAL.map((item) => (
+                    <button
+                      key={item.key}
+                      type="button"
+                      role="tab"
+                      aria-selected={bureauKey === item.key}
+                      className="pc-mosaic pc-prev-bureau-stage__tab"
+                      data-fc-accent={item.accent}
+                      onClick={() => setBureauKey(item.key)}
+                    >
+                      {item.name}
+                    </button>
+                  ))}
+                </div>
+                <article
+                  className="pc-mosaic pc-prev-bureau-stage__panel"
+                  data-fc-accent={bureau.accent}
+                  role="tabpanel"
+                >
+                  <span>{bureau.name}</span>
+                  <h3>{bureau.title}</h3>
+                  <p>{bureau.body}</p>
+                </article>
+              </div>
+            </div>
+          </section>
+
+          <section className="pc-prev-section pc-prev-section--tight">
+            <div className="pc-prev-inner">
+              <div className="pc-prev-transfer">
+                <p className="pc-prev-kicker">Already in motion</p>
+                <h2 className="pc-prev-h2">Already in a dispute? We start at your next round.</h2>
+                <p className="pc-prev-lede">
+                  If another company already mailed Round 1, bring those letters. We pick up the file you have and open
+                  the next round. We do not pretend you never started.
+                </p>
+                <div className="pc-prev-transfer__grid">
+                  <article className="pc-mosaic pc-prev-transfer__card" data-fc-accent="emerald">
+                    <strong>Start at the next round</strong>
+                    <p>If Round 1 already went out, we open Round 2 on that same matter.</p>
+                  </article>
+                  <article className="pc-mosaic pc-prev-transfer__card" data-fc-accent="violet">
+                    <strong>Protect the bureau read</strong>
+                    <p>We do not send a fresh first letter that the bureau treats as an entirely new file.</p>
+                  </article>
+                  <article className="pc-mosaic pc-prev-transfer__card" data-fc-accent="sky">
+                    <strong>Keep the timeline you earned</strong>
+                    <p>Dates, replies, and evidence stay on the record you already have.</p>
+                  </article>
+                </div>
+                <button
+                  type="button"
+                  className="pc-prev-btn-primary"
+                  onClick={() =>
+                    openPublicChat({
+                      goal: 'personal',
+                      personaId: 'dispute_coach',
+                      initialDraft: 'I already disputed with another company. I want to start at the next round.',
+                    })
+                  }
+                >
+                  Tell us where you are <ArrowRight size={15} aria-hidden />
+                </button>
+              </div>
             </div>
           </section>
 
           <section className="pc-prev-section">
-            <div className="pc-prev-inner pc-prev-split">
-              <Reveal delayMs={0}>
-                <p className="pc-prev-kicker">The problem</p>
-                <h2 className="pc-prev-h2">Errors on your file cost you every approval.</h2>
+            <div className="pc-prev-inner">
+              <Reveal>
+                <p className="pc-prev-kicker">Restore runway</p>
+                <h2 className="pc-prev-h2">Four beats on one personal file.</h2>
                 <p className="pc-prev-lede">
-                  Inaccurate tradelines, duplicate reporting, and weak dispute language block cards, auto, housing, and
-                  funding — until you run a disciplined restore process.
+                  Upload the reports, dispute what they show, track every reply, then escalate when a furnisher stalls.
+                  Open a beat to see the work.
                 </p>
               </Reveal>
-              <Reveal delayMs={80}>
-                <p className="pc-prev-kicker">The outcome</p>
-                <h2 className="pc-prev-h2">One workspace. Every round documented.</h2>
-                <ul className="pc-prev-checklist">
-                  {[
-                    'Factual reasons tied to what is on your bureau file',
-                    'Evidence vault, letters, and dispute tracking in one OS',
-                    'Seven DFY tiers from Starter through Dynasty — or DIY tools on the same platform',
-                  ].map((item) => (
-                    <li key={item}>
-                      <Check size={16} className="pc-prev-check-icon" aria-hidden />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </Reveal>
-            </div>
-          </section>
-
-          <section className="pc-prev-section pc-prev-section--band">
-            <div className="pc-prev-inner pc-prev-center">
-              <Reveal>
-                <p className="pc-prev-kicker">How it works</p>
-                <h2 className="pc-prev-h2">Four steps from intake to fund-ready</h2>
-                <p className="pc-prev-lede">Evidence-first disputes — disciplined, documented, bureau-aware.</p>
-              </Reveal>
-              <div className="pc-prev-journey" aria-hidden>
-                {JOURNEY.map((label, i) => (
-                  <div key={label} className={`pc-prev-journey__seg ${i <= 2 ? 'pc-prev-journey__seg--active' : ''}`}>
-                    <div className="pc-prev-journey__dot" />
-                    <span className="pc-prev-journey__label">{label}</span>
-                  </div>
+              <div className="pc-prev-beats" role="tablist" aria-label="Restore phases">
+                {RUNWAY_PHASES.map((item) => (
+                  <button
+                    key={item.key}
+                    type="button"
+                    role="tab"
+                    aria-selected={beatKey === item.key}
+                    className="pc-mosaic pc-prev-beats__tile"
+                    data-fc-accent={item.accent}
+                    onClick={() => setBeatKey(item.key)}
+                  >
+                    <strong>
+                      {item.label}
+                    </strong>
+                    <span>{item.stage}</span>
+                  </button>
                 ))}
               </div>
-              <Reveal delayMs={100}>
-                <div className="pc-prev-process">
-                  {PROCESS.map((s) => (
-                    <div key={s.step} className="pc-prev-process-step">
-                      <span className="pc-prev-process-num">{s.step}</span>
-                      <h3>{s.title}</h3>
-                      <p>{s.body}</p>
-                    </div>
+              <article className="pc-mosaic pc-prev-beats__stage" data-fc-accent={beat.accent} role="tabpanel">
+                <p className="pc-prev-beats__index">{beat.stage}</p>
+                <h3>{beat.title}</h3>
+                <p>{beat.body}</p>
+                <ul>
+                  {beat.tools.map((tool) => (
+                    <li key={tool}>{tool}</li>
                   ))}
-                </div>
-              </Reveal>
+                </ul>
+                {beat.key === 'stabilize' ? (
+                  <div className="pc-prev-beats__cta">
+                    <p>Drop the bureau file in chat. We read it and return a short snapshot. The full credit analysis opens with a free partner account.</p>
+                    <button
+                      type="button"
+                      className="pc-prev-btn-primary"
+                      onClick={() =>
+                        openPublicChat({
+                          goal: 'personal',
+                          personaId: 'dispute_coach',
+                          intent: 'upload_report',
+                          initialDraft: 'I want to upload my credit report for a quick read.',
+                        })
+                      }
+                    >
+                      Upload your report <ArrowRight size={15} aria-hidden />
+                    </button>
+                  </div>
+                ) : null}
+              </article>
             </div>
           </section>
 
-          <section className="pc-prev-section" id="pc-prev-packages">
+          <section className="pc-prev-section pc-prev-section--prices" id="pc-prev-packages">
             <div className="pc-prev-inner">
               <Reveal>
                 <p className="pc-prev-kicker">Packages</p>
-                <h2 className="pc-prev-h2">Every tier. One page.</h2>
+                <h2 className="pc-prev-h2">Choose the depth the file actually needs.</h2>
                 <p className="pc-prev-lede">
                   {path === 'dfy'
-                    ? 'Full restore ladder — Starter ($750) through Dynasty ($10,000), plus written Custom scopes beyond the fixed tiers.'
-                    : 'Free tier, Credit Starter, and every specialty letter pack.'}
+                    ? 'Letter, Vault, and Runway are the three most-chosen starts. Open the ladder below to compare every done-for-you price.'
+                    : 'Free tools, Credit Starter, and letter packs if you want to drive the disputes yourself.'}
                 </p>
               </Reveal>
 
@@ -595,7 +701,7 @@ export default function PersonalCreditRestorePreviewPage() {
                   onClick={() => setPath('dfy')}
                 >
                   <strong>Done for you</strong>
-                  <span>We dispute, track, and escalate</span>
+                  <span>We dispute, track, and escalate.</span>
                 </button>
                 <button
                   type="button"
@@ -605,20 +711,23 @@ export default function PersonalCreditRestorePreviewPage() {
                   onClick={() => setPath('diy')}
                 >
                   <strong>Do it yourself</strong>
-                  <span>Templates, tools, and letter packs</span>
+                  <span>Templates, tools, and letter packs.</span>
                 </button>
               </div>
 
               <Reveal delayMs={20}>
                 <div className="pc-prev-tier-preview">
                   <p className="pc-prev-tier-preview__label">Quick tier preview</p>
-                  <PreviewTierGrid
-                    key={`${path}-featured`}
-                    variant="preview"
-                    packages={featuredPackages}
-                    featuredId={featuredId}
-                    onCheckout={checkoutPackage}
-                  />
+                  <div className="pc-prev-ticket-grid">
+                    {featuredPackages.map((pkg) => (
+                      <FeaturedTicket
+                        key={pkg.id}
+                        pkg={pkg}
+                        featured={pkg.id === featuredId}
+                        onSelect={() => checkoutPackage(pkg)}
+                      />
+                    ))}
+                  </div>
                 </div>
               </Reveal>
 
@@ -626,60 +735,44 @@ export default function PersonalCreditRestorePreviewPage() {
                 <div className="pc-prev-tier-compare">
                   <div className="pc-prev-tier-compare__head">
                     <h2 className="pc-prev-tier-compare__title">
-                      {path === 'dfy' ? 'Compare all done-for-you tiers' : 'Compare DIY tools & letter packs'}
+                      {path === 'dfy' ? 'Compare all done-for-you tiers' : 'Compare do-it-yourself tools and letter packs'}
                     </h2>
                     <p className="pc-prev-tier-compare__lede">
                       {path === 'dfy'
-                        ? 'Starter · Pro · Elite · Supreme · Premier · Dynasty · Custom — every DFY price.'
-                        : 'Free tier, Credit Starter, and every letter pack — full pricing below.'}
+                        ? 'Select a tier on the left. The inspector shows who it is for and what you purchase.'
+                        : 'Select a tool or letter pack. Pricing and scope stay on the right.'}
                     </p>
                   </div>
-                  <PreviewTierGrid
-                    key={`${path}-compare`}
-                    variant="main"
+                  <CompareWorkbench
                     packages={displayPackages}
-                    featuredId={featuredId}
+                    selectedId={selectedCompareId}
+                    onPick={setSelectedCompareId}
                     onCheckout={checkoutPackage}
-                    onViewDetails={setDetailPkg}
+                    onIncludes={setDetailPkg}
                   />
-                  {customTier ? (
-                    <CustomQuoteRow
-                      pkg={customTier}
-                      onStart={() => checkoutPackage(customTier)}
-                      onIncludes={() => setDetailPkg(customTier)}
-                    />
-                  ) : null}
                   <div className="pc-prev-tier-compare__foot">
-                    <button type="button" className="pc-prev-catalog__link" onClick={() => navigate('/pricing')}>
-                      Full pricing catalog →
+                    <button type="button" className="pc-prev-catalog__link" onClick={() => navigate('/pricing/personal-credit-building')}>
+                      Personal building programs →
                     </button>
                   </div>
                 </div>
               </Reveal>
 
-              <p className="pc-prev-convert-note">
-                Not sure which tier fits? <button type="button" onClick={bookSession}>Book a session</button> — we
-                will match your file to Starter, Pro, Elite, Supreme, Premier, Dynasty, or Custom.
-              </p>
-            </div>
-          </section>
+              {customTier ? (
+                <CustomQuoteBand
+                  pkg={customTier}
+                  onStart={() => checkoutPackage(customTier)}
+                  onIncludes={() => setDetailPkg(customTier)}
+                />
+              ) : null}
 
-          <section className="pc-prev-section pc-prev-section--band">
-            <div className="pc-prev-inner">
-              <Reveal>
-                <div className="pc-prev-platform">
-                  <h2>The Finely Cred OS behind every tier</h2>
-                  <p>Uploads, evidence, disputes, letters, and tracking — not a static brochure.</p>
-                  <div className="pc-prev-platform-grid">
-                    {PLATFORM.map((t) => (
-                      <div key={t.title} className="pc-prev-platform-tile">
-                        <strong>{t.title}</strong>
-                        <span>{t.body}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </Reveal>
+              <p className="pc-prev-convert-note">
+                Not sure which tier fits?{' '}
+                <button type="button" onClick={bookSession}>
+                  Book a session
+                </button>{' '}
+                — we will match your file to Starter, Pro, Elite, Supreme, Premier, Dynasty, or Custom.
+              </p>
             </div>
           </section>
 
@@ -702,37 +795,37 @@ export default function PersonalCreditRestorePreviewPage() {
 
           <section className="pc-prev-section pc-prev-section--tight">
             <div className="pc-prev-inner">
-              <Reveal>
-                <div className="pc-prev-final">
-                  <h2>Ready to restore your file?</h2>
-                  <p>Start with the free guide, compare all seven DFY tiers plus Custom, or book a session for a specialist read.</p>
-                  <div className="pc-prev-final__actions">
-                    <button type="button" className="pc-prev-btn-primary" onClick={startFree}>
-                      Start free guide <ArrowRight size={15} aria-hidden />
-                    </button>
-                    <button type="button" className="pc-prev-btn-secondary" onClick={bookSession}>
-                      Book a session
-                    </button>
-                    <button
-                      type="button"
-                      className="pc-prev-btn-secondary"
-                      onClick={() => document.getElementById('pc-prev-packages')?.scrollIntoView({ behavior: 'smooth' })}
-                    >
-                      Compare packages
-                    </button>
-                  </div>
+              <div className="pc-mosaic pc-prev-final" data-fc-accent="violet">
+                <h2>Ready to restore your file?</h2>
+                <p>
+                  Start with the free guide, compare the restore ladder, or book a session. Credit building is a
+                  different product — utilization and tradelines after the file is clean.
+                </p>
+                <div className="pc-prev-final__actions">
+                  <button type="button" className="pc-prev-btn-primary" onClick={startFree}>
+                    Start free guide <ArrowRight size={15} aria-hidden />
+                  </button>
+                  <button type="button" className="pc-prev-btn-secondary" onClick={bookSession}>
+                    Book a session
+                  </button>
                 </div>
-              </Reveal>
-
-              <div className="pc-prev-footer-gap">
-                <DedicatedSheetLinkStrip
-                  surface="ivoryWealthy"
-                  only={['restore', 'build']}
-                  heading="Prefer to start on your own? Take the sheets."
-                  subline="Free PDFs · honest page counts · no signup"
-                />
-                <FinelyOsPageFooter />
               </div>
+              <div className="pc-prev-exits">
+                <Link className="pc-mosaic pc-prev-exit" data-fc-accent="rose" to="/resources/personal-credit-restore-sheet">
+                  <strong>Personal credit restore</strong>
+                  <span>A free restore sheet: the process, the page counts, and no signup required.</span>
+                </Link>
+                <Link className="pc-mosaic pc-prev-exit" data-fc-accent="sky" to="/build-my-credit">
+                  <strong>Personal credit build</strong>
+                  <span>Utilization and tradelines after the file is clean.</span>
+                </Link>
+                <button type="button" className="pc-mosaic pc-prev-exit" data-fc-accent="emerald" onClick={bookSession}>
+                  <strong>Book a session</strong>
+                  <span>Match Starter through Dynasty — or Custom — to the actual file.</span>
+                </button>
+              </div>
+              <p className="pc-prev-compliance">Results vary · not legal advice · funding subject to underwriting</p>
+              <div className="pc-prev-page-end" />
             </div>
           </section>
         </div>

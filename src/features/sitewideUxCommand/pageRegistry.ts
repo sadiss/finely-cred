@@ -136,7 +136,7 @@ export const SITEWIDE_PAGE_AUDIT: SitewidePageAuditRecord[] = [
   {
     "id": "pages_PersonalCreditPage",
     "path": "src/pages/PersonalCreditPage.tsx",
-    "route": "/services/personal-credit-restore",
+    "route": "/pricing/personal-credit-restore",
     "zone": "public",
     "priority": "critical",
     "currentIssue": "long_list_or_side_by_side_risk",

@@ -25,10 +25,9 @@ export const AF = {
  * — no invented numbers.
  */
 export const AFFILIATE_STACKING_NOTE =
-  `Base % and Denefit share always stack — never either/or. Every path earns ` +
-  `${AF.defaultCommissionPct}% on package sales, and the ${AF.defaultDenefitsSharePct}% Denefit share layers on ` +
-  `top automatically the moment a referral chooses in-house financing — no matter which path you're on. ` +
-  `Paths change your toolkit, priority, and specialization, not whether payouts stack.`;
+  `Every path earns ${AF.defaultCommissionPct}% on package sales. When that same referral uses in-house financing, ` +
+  `the ${AF.defaultDenefitsSharePct}% financing share adds on top — it never replaces the package share. ` +
+  `The path you pick changes your toolkit and priority, not whether those two shares add together.`;
 
 export type AffiliatePathId = 'referrer' | 'recurring_partner' | 'denefit_stream';
 

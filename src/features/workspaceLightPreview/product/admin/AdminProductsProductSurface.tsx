@@ -92,7 +92,7 @@ export default function AdminProductsProductSurface({ role, pageId }: WorkspaceP
       surfaceMode={navItem?.surfaceMode ?? 'light'}
       archetype={archetype}
       icon={navItem?.icon}
-      primaryAction={<ProductPagePrimaryAction label="View public pricing" onClick={() => navigate('/pricing')} />}
+      primaryAction={<ProductPagePrimaryAction label="View public pricing" onClick={() => navigate('/pricing/personal-credit-restore')} />}
       metrics={[
         { label: 'Packages', value: String(packages.length), hint: 'In catalog', accent: 'emerald' },
         { label: 'Public', value: String(publicCount), hint: 'On pricing page', accent: 'violet' },
@@ -262,7 +262,7 @@ export default function AdminProductsProductSurface({ role, pageId }: WorkspaceP
                   ) : null}
 
                   <div className="flex flex-wrap gap-2 pt-2">
-                    <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => navigate('/pricing')}>
+                    <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => navigate('/pricing/personal-credit-restore')}>
                       Preview on site <ArrowRight size={14} />
                     </button>
                     <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/billing')}>

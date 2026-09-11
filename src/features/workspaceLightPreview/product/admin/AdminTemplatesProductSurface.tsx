@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Download, Eye, FileText, LayoutTemplate, Pencil, Search, Star } from 'lucide-react';
+import { Download, Eye, FileText, LayoutTemplate, Pencil, Search, Star, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { TemplateCategory, TemplateTone, TemplateVariantRecipe } from '../../../../domain/templates';
 import { TEMPLATE_BASES } from '../../../../templates';
@@ -425,7 +425,7 @@ export default function AdminTemplatesProductSurface({ role, pageId }: Workspace
       pageId={pageId}
       eyebrow="Studio"
       title="Templates"
-      description="Generator-first letters: bases, variants, partner context, and export to PDF or Word."
+      description="Pick a letter, set partner context, then export to PDF or Word."
       accent={accent}
       surfaceMode={navItem?.surfaceMode ?? 'light'}
       archetype={archetype}
@@ -447,7 +447,7 @@ export default function AdminTemplatesProductSurface({ role, pageId }: Workspace
         { label: 'Partners', value: String(partners.length), hint: 'For context', accent: 'rose', onClick: () => setRailSection('configure') },
       ]}
       metricTitle="Template studio"
-      metricDescription="Pick a template in the rail, configure partner context, then edit and export in the studio."
+      metricDescription="Bases, generated variations, starred templates, and partners for context."
     >
       {editorOpen ? (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
@@ -502,32 +502,32 @@ export default function AdminTemplatesProductSurface({ role, pageId }: Workspace
         </div>
       ) : null}
 
-      <div className={`grid lg:grid-cols-12 gap-6 items-start ${FINELY_OS_PAGE}`} data-surface-layout="compose-studio">
-        {/* Template rail */}
-        <aside className="lg:col-span-4 space-y-4">
-          <div className={`${finelyOsCatalogCard('emerald')} p-5 lg:p-6 space-y-4`} data-fc-accent="emerald">
-            <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
-              <LayoutTemplate size={16} /> Template rail
-            </div>
-            <div className={FINELY_OS_VIEW_TABS}>
-              {RAIL_SECTIONS.map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setRailSection(tab.id)}
-                  className={finelyOsViewTab(railSection === tab.id, tab.accent === 'emerald' ? 'emerald' : tab.accent === 'violet' ? 'violet' : 'rose')}
-                >
-                  {tab.icon} {tab.label}
-                </button>
-              ))}
-            </div>
-          </div>
+      <div className={`${FINELY_OS_PAGE} space-y-6`} data-surface-layout="catalog-mosaic">
+        <div className="grid sm:grid-cols-3 gap-4">
+          {RAIL_SECTIONS.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setRailSection(tab.id)}
+              className={`${finelyOsCatalogCard(tab.accent)} p-6 lg:p-8 text-left space-y-2`}
+              data-fc-accent={tab.accent}
+              data-active={railSection === tab.id ? 'true' : undefined}
+            >
+              <span className="inline-flex items-center gap-2 text-lg font-extrabold">
+                {tab.icon} {tab.label}
+              </span>
+              <p className={`text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
+                {tab.id === 'library' ? `${baseCount} bases` : tab.id === 'configure' ? 'Partner context' : 'Saved letters'}
+              </p>
+            </button>
+          ))}
+        </div>
 
-          {railSection === 'library' ? (
-            <div className={`${finelyOsCatalogCard('violet')} p-5 lg:p-6 space-y-4`} data-fc-accent="violet">
+        {railSection !== 'saved' ? (
+          <div className="space-y-4">
               <div>
-                <h2 className="text-2xl font-extrabold">Library</h2>
-                <p className={`mt-2 text-sm font-bold ${FINELY_OS_ENTITY_BODY}`}>
+                <h2 className="text-3xl font-extrabold">Library</h2>
+                <p className={`mt-2 text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
                   <strong>{baseCount}</strong> bases · <strong>{generatedCount.toLocaleString()}</strong> variations
                 </p>
                 <label className={`mt-3 inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} normal-case tracking-normal`}>
@@ -602,73 +602,96 @@ export default function AdminTemplatesProductSurface({ role, pageId }: Workspace
                       ))}
                   </div>
                   <div className={`text-sm font-bold ${FINELY_OS_ENTITY_BODY}`}>
-                    {visibleOutputRows.length} cards (cap {outputLimit})
+                    {visibleOutputRows.length} showing (cap {outputLimit})
                   </div>
                 </div>
               ) : null}
 
-              <div className="max-h-[420px] overflow-y-auto">
-                {libraryView === 'outputs' ? (
-                  <FinelyOsCatalogBrowser
-                    items={outputCatalogItems}
-                    pageSize={8}
-                    searchPlaceholder="Search generated outputs…"
-                    emptyMessage="No outputs match — adjust cap or filters."
-                    onItemClick={(id) => {
-                      const row = outputRowById.get(id);
-                      if (row) selectOutputRow(row);
-                    }}
-                    initialView="grid"
-                    renderTrailing={(item) => {
-                      const row = outputRowById.get(item.id);
-                      if (!row) return null;
-                      const active = row.baseId === selectedBaseId && row.variantId === variantId && row.tone === tone && row.version === version;
-                      return active ? <span className="text-xs font-bold uppercase text-violet-300">Selected</span> : null;
-                    }}
-                  />
-                ) : (
-                  <FinelyOsCatalogBrowser
-                    items={baseCatalogItems}
-                    pageSize={8}
-                    searchPlaceholder="Search template bases…"
-                    emptyMessage="No bases match your filters."
-                    onItemClick={(id) => {
-                      setSelectedBaseId(id);
-                      setVersion(1);
-                      setRailSection('configure');
-                    }}
-                    initialView="grid"
-                    renderTrailing={(item) =>
-                      item.id === selectedBaseId ? (
-                        <span className="text-xs font-bold uppercase text-violet-300">Selected</span>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleFavoriteTemplate(item.id);
-                            setFavVersion((v) => v + 1);
-                          }}
-                          className={`text-xs font-bold ${FINELY_OS_ENTITY_SUBLABEL} normal-case tracking-normal hover:text-violet-300 transition-colors`}
-                        >
-                          {favorites.has(item.id) ? 'Unfavorite' : 'Favorite'}
-                        </button>
-                      )
-                    }
-                  />
-                )}
+              {libraryView === 'outputs' ? (
+                <FinelyOsCatalogBrowser
+                  items={outputCatalogItems}
+                  pageSize={12}
+                  searchPlaceholder="Search generated outputs…"
+                  emptyMessage="No outputs match — adjust cap or filters."
+                  onItemClick={(id) => {
+                    const row = outputRowById.get(id);
+                    if (row) selectOutputRow(row);
+                  }}
+                  initialView="grid"
+                  renderTrailing={(item) => {
+                    const row = outputRowById.get(item.id);
+                    if (!row) return null;
+                    const active = row.baseId === selectedBaseId && row.variantId === variantId && row.tone === tone && row.version === version;
+                    return active ? <span className="text-xs font-bold uppercase text-violet-300">Selected</span> : null;
+                  }}
+                />
+              ) : (
+                <FinelyOsCatalogBrowser
+                  items={baseCatalogItems}
+                  pageSize={12}
+                  searchPlaceholder="Search template bases…"
+                  emptyMessage="No bases match your filters."
+                  onItemClick={(id) => {
+                    setSelectedBaseId(id);
+                    setVersion(1);
+                    setRailSection('configure');
+                  }}
+                  initialView="grid"
+                  renderTrailing={(item) =>
+                    item.id === selectedBaseId ? (
+                      <span className="text-xs font-bold uppercase text-violet-300">Selected</span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleFavoriteTemplate(item.id);
+                          setFavVersion((v) => v + 1);
+                        }}
+                        className={`text-xs font-bold ${FINELY_OS_ENTITY_SUBLABEL} normal-case tracking-normal hover:text-violet-300 transition-colors`}
+                      >
+                        {favorites.has(item.id) ? 'Unfavorite' : 'Favorite'}
+                      </button>
+                    )
+                  }
+                />
+              )}
+          </div>
+        ) : (
+          <div className="grid gap-6 lg:grid-cols-2">
+            <section className={`${finelyOsCatalogCard('rose')} p-6 lg:p-8 space-y-4`} data-fc-accent="rose">
+              <h2 className="text-2xl font-extrabold">Templates vault</h2>
+              <p className={`text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>Saved and edited HTML templates.</p>
+              <TemplatesVaultPanel key={`tplv:${tenantId}:${vaultRefresh}`} tenantId={tenantId} variant="admin" allowCreate allowEdit />
+            </section>
+            <section className={`${finelyOsCatalogCard('violet')} p-6 lg:p-8`} data-fc-accent="violet">
+              <AnalysisReportBuilderPanel partners={partners} defaultPartnerId={partnerId} />
+            </section>
+          </div>
+        )}
+      </div>
+
+      {railSection === 'configure' ? (
+        <div
+          className="fc-wlp-local-modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Configure letter"
+          onClick={() => setRailSection('library')}
+        >
+          <div className="fc-wlp-local-modal fc-wlp-wide-drawer" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[11px] uppercase tracking-wider font-bold text-sky-300 m-0">Configure letter</p>
+                <h3 className="text-lg font-extrabold text-white m-0 mt-1">{base?.title ?? 'Select a template'}</h3>
+                <p className="text-sm font-bold text-white/70 m-0 mt-1">{base?.description ?? ''}</p>
               </div>
+              <button type="button" className="fc-wlp-btn-secondary !py-1.5 !px-2.5 !text-xs" onClick={() => setRailSection('library')} aria-label="Close configure">
+                <X size={14} /> Close
+              </button>
             </div>
-          ) : null}
 
-          {railSection === 'configure' ? (
-            <div className={`${finelyOsCatalogCard('sky')} p-5 lg:p-6 space-y-4`} data-fc-accent="sky">
-              <h2 className="text-2xl font-extrabold">Configure letter</h2>
-              <div className={`${finelyOsCatalogCard('violet')} p-4`} data-fc-accent="violet">
-                <div className={`text-base font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{base?.title ?? 'Select a template from Library'}</div>
-                <div className={`mt-1 text-sm font-semibold ${FINELY_OS_ENTITY_BODY}`}>{base?.description ?? ''}</div>
-              </div>
-
+            <div className="grid gap-4 lg:grid-cols-2">
               <div>
                 <label className={`block ${FINELY_OS_ENTITY_LABEL} mb-1`}>Partner</label>
                 <select value={partnerId} onChange={(e) => setPartnerId(e.target.value)} className={FINELY_OS_ENTITY_SELECT}>
@@ -682,7 +705,6 @@ export default function AdminTemplatesProductSurface({ role, pageId }: Workspace
                   updated: {partner ? fmtWhen(partner.updatedAt) : '—'}
                 </div>
               </div>
-
               <div>
                 <label className={`block ${FINELY_OS_ENTITY_LABEL} mb-1`}>Jurisdiction state</label>
                 <input
@@ -693,49 +715,45 @@ export default function AdminTemplatesProductSurface({ role, pageId }: Workspace
                   maxLength={2}
                 />
               </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className={`block ${FINELY_OS_ENTITY_LABEL} mb-1`}>Variant</label>
-                  <select value={variantId} onChange={(e) => setVariantId(e.target.value)} className={FINELY_OS_ENTITY_SELECT}>
-                    {TEMPLATE_VARIANTS.map((v) => (
-                      <option key={v.id} value={v.id}>
-                        {v.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className={`block ${FINELY_OS_ENTITY_LABEL} mb-1`}>Tone</label>
-                  <select value={tone} onChange={(e) => setTone(e.target.value as TemplateTone)} className={FINELY_OS_ENTITY_SELECT}>
-                    {TEMPLATE_TONES.map((t) => (
-                      <option key={t.id} value={t.id}>
-                        {t.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className={`block ${FINELY_OS_ENTITY_LABEL} mb-1`}>Copy version</label>
-                  <input
-                    type="number"
-                    min={1}
-                    max={Math.max(1, base?.versions ?? 1)}
-                    value={version}
-                    onChange={(e) => setVersion(Math.max(1, Math.min(99, parseInt(e.target.value || '1', 10))))}
-                    className={FINELY_OS_ENTITY_SELECT}
-                  />
-                </div>
-                <div>
-                  <label className={`block ${FINELY_OS_ENTITY_LABEL} mb-1`}>Bureau (optional)</label>
-                  <select value={bureau} onChange={(e) => setBureau(e.target.value as 'EXP' | 'EQF' | 'TUC')} className={FINELY_OS_ENTITY_SELECT}>
-                    <option value="EXP">Experian (EXP)</option>
-                    <option value="EQF">Equifax (EQF)</option>
-                    <option value="TUC">TransUnion (TUC)</option>
-                  </select>
-                </div>
+              <div>
+                <label className={`block ${FINELY_OS_ENTITY_LABEL} mb-1`}>Variant</label>
+                <select value={variantId} onChange={(e) => setVariantId(e.target.value)} className={FINELY_OS_ENTITY_SELECT}>
+                  {TEMPLATE_VARIANTS.map((v) => (
+                    <option key={v.id} value={v.id}>
+                      {v.label}
+                    </option>
+                  ))}
+                </select>
               </div>
-
+              <div>
+                <label className={`block ${FINELY_OS_ENTITY_LABEL} mb-1`}>Tone</label>
+                <select value={tone} onChange={(e) => setTone(e.target.value as TemplateTone)} className={FINELY_OS_ENTITY_SELECT}>
+                  {TEMPLATE_TONES.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className={`block ${FINELY_OS_ENTITY_LABEL} mb-1`}>Copy version</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={Math.max(1, base?.versions ?? 1)}
+                  value={version}
+                  onChange={(e) => setVersion(Math.max(1, Math.min(99, parseInt(e.target.value || '1', 10))))}
+                  className={FINELY_OS_ENTITY_SELECT}
+                />
+              </div>
+              <div>
+                <label className={`block ${FINELY_OS_ENTITY_LABEL} mb-1`}>Bureau (optional)</label>
+                <select value={bureau} onChange={(e) => setBureau(e.target.value as 'EXP' | 'EQF' | 'TUC')} className={FINELY_OS_ENTITY_SELECT}>
+                  <option value="EXP">Experian (EXP)</option>
+                  <option value="EQF">Equifax (EQF)</option>
+                  <option value="TUC">TransUnion (TUC)</option>
+                </select>
+              </div>
               <div>
                 <label className={`block ${FINELY_OS_ENTITY_LABEL} mb-1`}>Creditor / furnisher (optional)</label>
                 <input value={creditorName} onChange={(e) => setCreditorName(e.target.value)} placeholder="e.g. ABC Collections" className={FINELY_OS_ENTITY_INPUT} />
@@ -745,111 +763,66 @@ export default function AdminTemplatesProductSurface({ role, pageId }: Workspace
                 <input value={accountRef} onChange={(e) => setAccountRef(e.target.value)} placeholder="last4 / case # / ref" className={FINELY_OS_ENTITY_INPUT} />
               </div>
             </div>
-          ) : null}
 
-          {railSection === 'saved' ? (
-            <div className="space-y-4">
-              <section className={`${finelyOsCatalogCard('rose')} p-5 lg:p-6 space-y-4`} data-fc-accent="rose">
-                <h2 className="text-2xl font-extrabold">Templates vault</h2>
-                <p className={`text-sm font-bold ${FINELY_OS_ENTITY_BODY}`}>Saved and edited HTML templates.</p>
-                <TemplatesVaultPanel key={`tplv:${tenantId}:${vaultRefresh}`} tenantId={tenantId} variant="admin" allowCreate allowEdit />
-              </section>
-              <section className={`${finelyOsCatalogCard('violet')} p-5 lg:p-6`} data-fc-accent="violet">
-                <AnalysisReportBuilderPanel partners={partners} defaultPartnerId={partnerId} />
-              </section>
-            </div>
-          ) : null}
-        </aside>
-
-        {/* Compose studio — big editor + live preview */}
-        <section className={`lg:col-span-8 ${finelyOsCatalogCard('violet')} p-6 lg:p-8 space-y-6`} data-fc-accent="violet">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
-                <Pencil size={16} /> Letter studio
+            <div className="flex flex-wrap items-center gap-2">
+              <div className={FINELY_OS_VIEW_TABS}>
+                <button type="button" onClick={() => setWorkspaceTab('builder')} className={finelyOsViewTab(workspaceTab === 'builder', 'emerald')}>
+                  <Pencil size={12} /> Editor
+                </button>
+                <button type="button" onClick={() => setWorkspaceTab('preview')} className={finelyOsViewTab(workspaceTab === 'preview', 'sky')}>
+                  <Eye size={12} /> Preview
+                </button>
               </div>
-              <h2 className="mt-2 text-3xl font-extrabold">{rendered?.title ?? 'Select a template'}</h2>
-              <p className={`mt-2 text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
-                {rendered
-                  ? `${rendered.variantId} · v${rendered.version} · ${rendered.tone}`
-                  : 'Choose a base in the rail and configure partner context.'}
-              </p>
-            </div>
-            <div className={FINELY_OS_VIEW_TABS}>
-              <button type="button" onClick={() => setWorkspaceTab('builder')} className={finelyOsViewTab(workspaceTab === 'builder', 'emerald')}>
-                <Pencil size={12} /> Editor
+              <button
+                type="button"
+                onClick={() => void downloadPdf(editorHtml.trim() ? editorHtml : undefined)}
+                disabled={!rendered}
+                className={`${FINELY_OS_PRIMARY_BTN} disabled:opacity-60 disabled:cursor-not-allowed`}
+              >
+                <Download size={14} /> Download PDF
               </button>
-              <button type="button" onClick={() => setWorkspaceTab('preview')} className={finelyOsViewTab(workspaceTab === 'preview', 'sky')}>
-                <Eye size={12} /> Preview
+              <button
+                type="button"
+                onClick={() => downloadWordHtml(editorHtml.trim() || undefined)}
+                disabled={!rendered}
+                className={`${FINELY_OS_SECONDARY_BTN} disabled:opacity-60 disabled:cursor-not-allowed`}
+              >
+                <Download size={14} /> Download Word
+              </button>
+              <button
+                type="button"
+                onClick={() => void saveToVault()}
+                disabled={!rendered || !partner}
+                className={`${FINELY_OS_SUCCESS_BTN} disabled:opacity-60 disabled:cursor-not-allowed`}
+              >
+                <Star size={14} /> Save to partner vault
+              </button>
+              <button type="button" onClick={() => void saveEditedToTemplatesVault()} disabled={!rendered} className={`${FINELY_OS_SECONDARY_BTN} disabled:opacity-60`}>
+                <Star size={14} /> Save to templates vault
+              </button>
+              <button type="button" onClick={openInlineEditor} disabled={!rendered} className={`${FINELY_OS_SECONDARY_BTN} disabled:opacity-60 disabled:cursor-not-allowed`}>
+                <Eye size={14} /> Full screen
               </button>
             </div>
-          </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={() => void downloadPdf(editorHtml.trim() ? editorHtml : undefined)}
-              disabled={!rendered}
-              className={`${FINELY_OS_PRIMARY_BTN} disabled:opacity-60 disabled:cursor-not-allowed`}
-            >
-              <Download size={14} /> Download PDF
-            </button>
-            <button
-              type="button"
-              onClick={() => downloadWordHtml(editorHtml.trim() || undefined)}
-              disabled={!rendered}
-              className={`${FINELY_OS_SECONDARY_BTN} disabled:opacity-60 disabled:cursor-not-allowed`}
-            >
-              <Download size={14} /> Download Word
-            </button>
-            <button
-              type="button"
-              onClick={() => void saveToVault()}
-              disabled={!rendered || !partner}
-              className={`${FINELY_OS_SUCCESS_BTN} disabled:opacity-60 disabled:cursor-not-allowed`}
-            >
-              <Star size={14} /> Save to partner vault
-            </button>
-            <button type="button" onClick={() => void saveEditedToTemplatesVault()} disabled={!rendered} className={`${FINELY_OS_SECONDARY_BTN} disabled:opacity-60`}>
-              <Star size={14} /> Save to templates vault
-            </button>
-            <button type="button" onClick={openInlineEditor} disabled={!rendered} className={`${FINELY_OS_SECONDARY_BTN} disabled:opacity-60 disabled:cursor-not-allowed`}>
-              <Eye size={14} /> Full screen
-            </button>
-          </div>
-
-          {!rendered ? (
-            <p className={`text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>Select a template and partner in the rail to start editing.</p>
-          ) : workspaceTab === 'preview' ? (
-            <div className="p-6 lg:p-8 bg-white rounded-2xl border border-slate-200">
-              <iframe title="Template preview" srcDoc={previewSrcDoc} className="w-full h-[720px] rounded-xl border border-slate-200 bg-white shadow-inner" />
-            </div>
-          ) : (
-            <div className="grid xl:grid-cols-2 gap-6">
-              <div className={`${finelyOsCatalogCard('emerald')} p-6 lg:p-8`} data-fc-accent="emerald">
-                <div className={FINELY_OS_ENTITY_SUBLABEL}>Edit</div>
-                <div className="mt-3">
-                  <RichTextEditor
-                    valueHtml={editorHtml}
-                    onChangeHtml={setEditorHtml}
-                    placeholder="Build your letter here — changes sync to preview…"
-                    minHeightPx={480}
-                  />
-                </div>
+            {!rendered ? (
+              <p className={`text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>Select a template and partner to start editing.</p>
+            ) : workspaceTab === 'preview' ? (
+              <iframe title="Template preview" srcDoc={previewSrcDoc} className="w-full h-[480px] rounded-xl border border-white/10 bg-white" />
+            ) : (
+              <div>
+                <RichTextEditor
+                  valueHtml={editorHtml}
+                  onChangeHtml={setEditorHtml}
+                  placeholder="Build your letter here — changes sync to preview…"
+                  minHeightPx={360}
+                />
                 {editorSavedMsg ? <span className="mt-3 block text-emerald-300 text-sm font-bold">{editorSavedMsg}</span> : null}
               </div>
-              <div className={`${finelyOsCatalogCard('sky')} p-6 lg:p-8 bg-white`} data-fc-accent="sky">
-                <div className={FINELY_OS_ENTITY_SUBLABEL}>Live preview</div>
-                {previewSrcDoc ? (
-                  <iframe title="Live letter preview" srcDoc={previewSrcDoc} className="mt-3 w-full h-[480px] rounded-xl border border-slate-200 bg-white" />
-                ) : (
-                  <p className={`mt-3 text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>Generate a template to preview.</p>
-                )}
-              </div>
-            </div>
-          )}
-        </section>
-      </div>
+            )}
+          </div>
+        </div>
+      ) : null}
 
       <p className="fc-wlp-section-description fc-wlp-compliance-line mt-6">
         Results vary · not legal advice · funding subject to underwriting

@@ -195,13 +195,13 @@ export default function AdminAuSellersProductSurface({ role, pageId }: Workspace
       pageId={pageId}
       eyebrow="Authorized user supply"
       title="Review sellers, verify status, and approve listings with proof."
-      description="Command deck with verification and listing approval lanes — inspect and act below."
+      description="Supply desk with verification and listing approval lanes — inspect and act below."
       accent={accent}
       surfaceMode={navItem?.surfaceMode ?? 'light'}
       archetype={archetype}
       icon={PageIcon}
       metrics={metrics}
-      metricTitle="Supply command deck"
+      metricTitle="Supply desk"
       metricDescription="Pending verification and listing review counts drive the lanes below."
       primaryAction={<ProductPagePrimaryAction label="Add seller" onClick={openAddSeller} />}
       secondaryAction={

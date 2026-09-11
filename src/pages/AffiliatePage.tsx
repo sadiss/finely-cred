@@ -7,7 +7,6 @@ import { CareerTierChooser, type CareerChoiceOption } from '../components/career
 import { CareerPackagePanel } from '../components/careers/CareerPackagePanel';
 import { CareerChoiceApply } from '../components/careers/CareerChoiceApply';
 import { CareerTierStickySummary } from '../components/careers/CareerTierStickySummary';
-import { careerAccentText } from '../components/careers/careerUi';
 import { createProgramApplication } from '../data/programApplicationsRepo';
 import { submitLeadCapture } from '../data/leadsRepo';
 import { addLeadNote, addLeadTags } from '../data/leadOpsRepo';
@@ -46,7 +45,7 @@ export default function AffiliatePage() {
   const navigate = useNavigate();
   usePublicSeoMeta({
     title: 'Affiliate program',
-    description: 'Earn payouts referring partners to Finely Cred restore, funding, and specialist programs.',
+    description: 'Share your link and earn on Finely Cred restore, funding, and specialist packages — plus a financing share when a referral uses a payment plan.',
     path: AF.publicPath,
   });
 
@@ -132,10 +131,10 @@ export default function AffiliatePage() {
   };
 
   return (
-    <PageShell badge="Public" title={AF.programName} subtitle="Model payouts, share your link, and grow residual income." hideHero>
-      <div className={`${FINELY_OS_PAGE} max-w-5xl mx-auto pb-20`}>
+    <PageShell badge="Public" title={AF.programName} subtitle="Share your link, earn on every package, and add a financing share when a referral uses a payment plan." hideHero contentWidth="full">
+      <div className={`${FINELY_OS_PAGE} fc-viewport-floor pb-20`}>
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <BackToSiteButton variant="ghost" label="Back to home" />
+          <BackToSiteButton variant="ghost" label="Back to home" className="!border-white/20 !bg-black/50 !text-white hover:!bg-black/70" />
           <div className="flex flex-wrap items-center gap-3">
             <CareerOtherTracksLink currentId="affiliates" />
             <button type="button" onClick={() => navigate(AF.hubPath)} className={FINELY_OS_PRIMARY_BTN}>
@@ -161,7 +160,7 @@ export default function AffiliatePage() {
 
         {/* The universal payout rule — same for every path, stated once, unmistakably additive */}
         <section className="rounded-2xl border-2 border-rose-200 bg-rose-50 px-6 py-4 sm:px-8 sm:py-5">
-          <p className="text-[11px] font-black uppercase tracking-[0.24em] text-rose-700">Not percentage OR profit share — it stacks</p>
+          <p className="text-[11px] font-black uppercase tracking-[0.24em] text-rose-700">Package share and financing share add together</p>
           <p className="mt-1.5 text-sm sm:text-[15px] leading-relaxed text-slate-700">{AFFILIATE_STACKING_NOTE}</p>
         </section>
 
@@ -169,7 +168,7 @@ export default function AffiliatePage() {
         <section className="rounded-3xl border-2 border-slate-200 bg-slate-50 p-6 sm:p-8">
           <CareerTierChooser
             title="Choose your path"
-            subtitle="Referrer, recurring partner, or Denefit-focused partner — every path earns package % plus Denefit stacking. Picking a path unlocks the toolkit, priority, and bonuses built for how you'll promote."
+            subtitle="Referrer, recurring partner, or financing-focused partner — every path earns the package share plus a financing share when that referral uses a payment plan. The path you pick unlocks the toolkit and bonuses that match how you promote."
             options={pathOptions}
             selectedId={selectedPathId}
             onSelect={setSelectedPathId}
@@ -181,10 +180,10 @@ export default function AffiliatePage() {
         {selectedPath ? (
           <section className="space-y-3">
             <div className="max-w-2xl space-y-1.5">
-              <p className={`text-[11px] font-black uppercase tracking-[0.24em] ${careerAccentText(selectedPath.accent)}`}>
+              <p className="text-[11px] font-black uppercase tracking-[0.24em] text-white/70">
                 {selectedPath.ladderLabel} · What you get
               </p>
-              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">{selectedPath.payoutLabel}</h2>
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">{selectedPath.payoutLabel}</h2>
             </div>
             <CareerPackagePanel blocks={selectedPath.blocks} accent={selectedPath.accent} />
           </section>
@@ -288,7 +287,7 @@ export default function AffiliatePage() {
 
         <DigitalInviteShareBand role="affiliate" />
 
-        <p className="text-xs text-slate-400">Results vary · not legal advice · affiliates are independent partners, not employees.</p>
+        <p className="text-xs text-white/70">Results vary · not legal advice · affiliates are independent partners, not employees.</p>
 
         <MarketingStaffChatStrip
           roleId="affiliate_specialist"

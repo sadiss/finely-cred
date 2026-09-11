@@ -68,17 +68,17 @@ const SHEETS: BusinessCreditOneSheetSpec[] = [
   {
     id: 'fundability_roadmap',
     title: 'Business Credit Fundability Roadmap',
-    eyebrow: 'START HERE · TRUE FUNDABILITY · NOT A PRICE SHEET',
+    eyebrow: 'START HERE · FUNDABILITY MAP',
     summary:
-      'What “fundable” actually means for a commercial file: six pillars, stage gates, blockers vs green lights, and how the Business Credit OS scorecard maps to the build — so partners stop confusing sticker tiers with readiness.',
+      'What “fundable” means on a commercial file: the pillars, the stage gates, and the blockers specialists watch before anyone chases a named card. Read this before you pick a tier.',
     whoFor:
-      'Every partner before choosing a tier — founders, operators, and advisors who need a shared definition of fundability (entity truth through capital packaging) before quoting hours or chasing named products.',
+      'Every partner before choosing a tier — founders, operators, and advisors who need a shared definition of fundability before quoting hours or chasing named products.',
     includes: [
       'Six pillars: entity truth, commercial identity, reporting vendors, payment optics, docs/packaging, scorecard readiness',
       'Stage gates: what “fundable” looks like week-by-week (W1–2 → W12+)',
       'Common blockers vs green lights partners and specialists watch together',
       'How Business Credit OS scorecard weights map to the roadmap',
-      'CTA path: 3-sheet Process Brief → tier sheets → work-calibrated quote',
+      'Next path: process brief, then tier sheets, then a quote matched to the file',
       'Compliance framing: educational sequencing — underwriting still decides',
     ],
     effort: 'Read in 5–7 minutes · share before anyone applies or picks a tier',
@@ -88,7 +88,7 @@ const SHEETS: BusinessCreditOneSheetSpec[] = [
       'Stage gates stop leapfrogging into named-card chaos',
       'Pairs with the 3-sheet Process Brief (how) and Tier Ladder (pricing outlook)',
     ],
-    cta: 'Next: download the 3-sheet Process Brief, then Tier Ladder & Capital Outlook + your tier sheet — quote at /pricing/business-credit. Book a session with this roadmap in hand.',
+    cta: 'Next, download the process brief, then the Tier Ladder and the sheet that matches your destination. Request a quote on the business credit page, or book a session with this roadmap in hand.',
     accent: [0.1, 0.42, 0.48],
     bodyExtra: [
       'This sheet is the readiness map. Tier Ladder is program fee · vendor outlay · potential capital.',
@@ -99,27 +99,27 @@ const SHEETS: BusinessCreditOneSheetSpec[] = [
   {
     id: 'overview',
     title: 'Tier Ladder & Capital Outlook',
-    eyebrow: 'PRICING LADDER · PROGRAM · OUTLAY · POTENTIAL',
+    eyebrow: 'PROGRAM FEE · VENDOR OUTLAY · POTENTIAL',
     summary:
-      'Side-by-side capital outlook across Foundation → Builder → Elite → Empire: Finely Cred program fee, estimated partner vendor outlay, and approximate potential business-credit capital band — so decision-makers compare intensity and cash posture before quoting.',
+      'A side-by-side capital outlook across Foundation, Builder, Elite, and Empire: program fee, estimated vendor outlay, and the potential business-credit band — so you compare intensity with eyes open.',
     whoFor:
-      'Partners comparing tier stickers with eyes open — co-founders, ops leads, and advisors who need program fee vs vendor outlay vs potential capital on one page before a work-calibrated quote.',
+      'Partners comparing tiers — co-founders, operators, and advisors who need program fee, vendor outlay, and potential capital on one page before they request a quote.',
     includes: [
       'Four-tier capital cards: Foundation → Builder → Elite → Empire',
       'Program fee · est. vendor outlay · potential BC capital per tier',
       'Destination fit + delivery mode + specialist hour bands',
       'Maturity note: 3+ year files often need more research hours',
       'How this pairs with the Fundability Roadmap (readiness ≠ price)',
-      'Next: pick a tier sheet, then run the work-calibrated quote',
+      'Next: pick a tier sheet, then request a quote matched to the file',
     ],
     effort: 'Read in 3–4 minutes · bring to pricing and Book a session',
     proofPoints: [
       'Pricing clarity without fake approval promises',
       'Outlay and potential bands are outlooks — results vary',
       'Pick intensity by destination after the Fundability Roadmap',
-      'Same stickers as /pricing/business-credit — no mystery fifth tier',
+      'Same four stickers as business credit pricing — no mystery fifth tier',
     ],
-    cta: 'After the Fundability Roadmap: download your tier sheet, then open /pricing/business-credit for a work-calibrated quote — bring this ladder to Book a session.',
+    cta: 'After the Fundability Roadmap, download your tier sheet, then open business credit pricing for a quote. Bring this ladder to a session.',
     accent: [0.72, 0.45, 0.12],
     bodyExtra: [
       'This is a capital outlook ladder — not the fundability sequence.',
@@ -130,7 +130,7 @@ const SHEETS: BusinessCreditOneSheetSpec[] = [
   {
     id: 'foundation',
     title: 'Business Foundation',
-    eyebrow: 'HYBRID · $2,997 · ENTITY → FIRST REPORTABLES',
+    eyebrow: 'FOUNDATION · $2,997 · FIRST REPORTING VENDORS',
     summary:
       'The identity layer every fundable file stands on: entity truth, bureau alignment, and the first reporting net-30 vendors in order — so partners become commercially identifiable before chasing revolving products that reject thin files.',
     whoFor:
@@ -150,7 +150,7 @@ const SHEETS: BusinessCreditOneSheetSpec[] = [
       'First reporting footprint compounds — random apps usually do not',
       'Scorecard shows green lights (or blockers) instead of “vibes”',
     ],
-    cta: 'Ready for Foundation? Quote at /pricing/business-credit — or chat with a Funding Strategist if entity docs or SOS status are incomplete.',
+    cta: 'Ready for Foundation? Request a quote on the business credit page, or chat with a funding strategist if entity documents or SOS status are still incomplete.',
     accent: [0.12, 0.48, 0.42],
     priceLine: formatPrice(299700),
     ...tierCapitalLines('foundation'),
@@ -164,7 +164,7 @@ const SHEETS: BusinessCreditOneSheetSpec[] = [
   {
     id: 'builder',
     title: 'Business Builder',
-    eyebrow: 'MOST POPULAR · $5,997 · DFY SEQUENCING',
+    eyebrow: 'MOST POPULAR · $5,997 · DONE-FOR-YOU SEQUENCING',
     summary:
       'The execution tier: done-for-you vendor sequencing and trade depth so the commercial file looks fundable — specialist cycles, monitoring cadence, and funding-readiness docs. Most partners land here when they want progress, not another DIY checklist.',
     whoFor:
@@ -184,7 +184,7 @@ const SHEETS: BusinessCreditOneSheetSpec[] = [
       'Packaging starts before revolving capital — underwriters hate scramble kits',
       'Works for early operators and for aged files that need structured cleanup',
     ],
-    cta: 'Choose Builder for specialist sequencing. Quote at /pricing/business-credit — move to Elite only when named issuers become the destination.',
+    cta: 'Choose Builder for specialist sequencing. Request a quote on the business credit page, and move to Elite only when named issuers become the destination.',
     accent: [0.85, 0.55, 0.15],
     priceLine: formatPrice(599700),
     ...tierCapitalLines('builder'),
@@ -200,12 +200,12 @@ const SHEETS: BusinessCreditOneSheetSpec[] = [
     title: 'Business Elite',
     eyebrow: 'WHITE-GLOVE · $12,997 · NAMED PRODUCT PATH',
     summary:
-      'White-glove intensity for partners who care about specific cards or lenders — process tracking, lender-ready packaging, and priority ops. Approvals remain underwriting’s call; Elite sells packaging discipline and scarce specialist hours, never fake promises.',
+      'White-glove intensity for partners who care about specific cards or lenders — process tracking, lender-ready packaging, and priority operations. Elite sells packaging discipline and scarce specialist hours; underwriting still decides approvals.',
     whoFor:
       'Partners targeting named issuers/products (Amex Business, Chase Ink, and similar paths), or who need a dedicated strategist cadence and lender-ready packaging discipline when the file must look institutional before applications.',
     includes: [
       'Everything in Builder — sequencing depth already compounding',
-      'Named card / lender product ladder with status tracking only (never a promise)',
+      'Named card and lender product ladder with status tracking — underwriting still decides',
       'Dedicated funding strategist cadence — not a ticket queue',
       'Lender-ready packaging: docs, story, banking optics, ownership clarity',
       'Priority ops queue inside Business Credit OS + 12-month OS access',
@@ -213,12 +213,12 @@ const SHEETS: BusinessCreditOneSheetSpec[] = [
     ],
     effort: '~25–45 specialist hours · DFY white-glove · partner decision speed matters',
     proofPoints: [
-      'Named-product ladder is process — never sold as guaranteed approval',
+      'Named-product ladder is process tracking — underwriting still decides approvals',
       'Packaging mirrors what underwriters actually request (and reject)',
       'Priority queue keeps scarce specialist hours on your file',
       'Pairs with Named Cards & Products Path one-sheet for issuer clarity',
     ],
-    cta: 'If named products are the destination, quote Elite at /pricing/business-credit and download the Named Cards sheet — list target issuers before kickoff.',
+    cta: 'If named products are the destination, request an Elite quote on the business credit page and download the named-cards sheet. List target issuers before kickoff.',
     accent: [0.72, 0.58, 0.28],
     priceLine: formatPrice(1299700),
     ...tierCapitalLines('elite'),
@@ -252,7 +252,7 @@ const SHEETS: BusinessCreditOneSheetSpec[] = [
       'War-room keeps capital packaging and vendor work in one weekly loop',
       'Custom scope exists when complexity exceeds the $24,997 band',
     ],
-    cta: 'Empire is invite-level intensity. Start with a work-calibrated quote at /pricing/business-credit and a Funding Strategist review — bring entity maps and capital targets.',
+    cta: 'Empire is invite-level intensity. Start with a quote on the business credit page and a funding strategist review. Bring entity maps and capital targets.',
     accent: [0.55, 0.12, 0.22],
     priceLine: formatPrice(2499700),
     ...tierCapitalLines('empire'),
@@ -270,18 +270,18 @@ const SHEETS: BusinessCreditOneSheetSpec[] = [
     summary:
       'One grid to choose: Foundation, Builder, Elite, and Empire — program fee, est. outlay, potential BC capital, delivery mode, hours, and destination fit. Built to share with co-founders so everyone picks from the same map.',
     whoFor:
-      'Partners and advisors choosing a tier after the Fundability Roadmap and Tier Ladder, or reviewing options beside the work-calibrated quote — especially when decision-makers disagree on intensity.',
+      'Partners and advisors choosing a tier after the Fundability Roadmap and Tier Ladder, or reviewing options beside the quote — especially when decision-makers disagree on intensity.',
     includes: businessCreditPackages.map(
       (p) => `${p.name} — ${formatPrice(p.priceAmount)} — ${p.tagline}`,
     ),
-    effort: 'Use with the quote tool at /pricing/business-credit · 2-minute decision aid',
+    effort: 'Use with the quote tool on the business credit page · a two-minute decision aid',
     proofPoints: [
       'Same four stickers as pricing — no hidden fifth “mystery” tier',
       'Maturity uplift called out: 3+ year files often need more research hours',
       'Named products naturally point toward Elite / Empire intensity',
       'Shareable with co-founders so the room decides from one grid',
     ],
-    cta: 'Circle one tier, then run the work-calibrated quote — or download that tier’s Partner One-Sheet for includes and homework expectations.',
+    cta: 'Circle one tier, then request a quote — or download that tier’s partner one-sheet for includes and homework expectations.',
     accent: [0.2, 0.35, 0.65],
     bodyExtra: [
       'Read Fundability Roadmap first — readiness is not the same as sticker tier.',
@@ -293,11 +293,11 @@ const SHEETS: BusinessCreditOneSheetSpec[] = [
   {
     id: 'named_cards',
     title: 'Named Cards & Products Path',
-    eyebrow: 'PROCESS TRACKER · NEVER A GUARANTEE',
+    eyebrow: 'NAMED PRODUCTS · PROCESS TRACKER',
     summary:
-      'How Finely Cred tracks the specific cards or lenders you asked for — ladder steps, document checklist, and status in Business Credit OS — without promising approvals. Process transparency is the product; underwriting is the gate.',
+      'How Finely Cred tracks the specific cards or lenders you asked for — ladder steps, a document checklist, and status in the business credit workspace. Process transparency is the product; underwriting is the gate.',
     whoFor:
-      'Partners who already know which issuers or products they want pursued, and want operational tracking plus packaging support instead of vague “we will try” promises. Best paired with Elite or Empire specialist cadence.',
+      'Partners who already know which issuers or products they want pursued, and want operational tracking plus packaging support. Best paired with Elite or Empire specialist cadence.',
     includes: [
       'Capture target issuers/products (e.g. Amex Business, Chase Ink, capital products)',
       'Custom ladder steps + document checklist per target before any hard pull',
@@ -308,12 +308,12 @@ const SHEETS: BusinessCreditOneSheetSpec[] = [
     ],
     effort: 'Operational tracking + packaging support — underwriting decides outcomes',
     proofPoints: [
-      'Approvals are never promised — process transparency is the product',
+      'Process transparency is the product — underwriting still decides approvals',
       'Stops silent “we applied somewhere” chaos with a visible status board',
       'Document checklist reduces stalled applications and missing-doc loops',
       'Pairs with Elite / Empire specialist cadence for highest intensity',
     ],
-    cta: 'List target issuers, download Elite or Empire next, then quote at /pricing/business-credit — freeze/alert timing matters if personal guarantees apply.',
+    cta: 'List target issuers, download Elite or Empire next, then request a quote on the business credit page. Freeze and alert timing matters if personal guarantees apply.',
     accent: [0.65, 0.2, 0.55],
     bodyExtra: [
       'Named products sit inside Business Credit packaging (Elite / Empire) — still not guaranteed.',

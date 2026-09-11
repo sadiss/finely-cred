@@ -624,7 +624,7 @@ export function buildAdminNoticedItems(input: AdminSignalInput): FinelyNoticedIt
     items.push({
       id: 'validation-clocks',
       tone: 'warn',
-      text: `${input.validationClocks} validation or summons clock${input.validationClocks === 1 ? '' : 's'} need action — validation-first doctrine.`,
+      text: `${input.validationClocks} validation or summons clock${input.validationClocks === 1 ? '' : 's'} need action — validate before you pay.`,
       actionLabel: 'View clocks',
       to: '/admin/workflow',
     });
@@ -941,7 +941,7 @@ export function buildAgencyHubNoticedItems(input: AgencyHubSignalInput): FinelyN
       tone: 'success',
       text: 'Workspace is live. Route the next partner file and keep letters moving.',
       actionLabel: 'Partner files',
-      to: '/admin/partners',
+      to: '/agency/partners',
     },
   ];
 }

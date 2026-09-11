@@ -157,9 +157,9 @@ export function RuthRoom() {
         </div>
       ) : null}
 
-      <div className={`${finelyOsCatalogCardCompact('amber')} space-y-2`} data-fc-accent="amber">
+      <div className="space-y-3">
         <div className={FINELY_OS_ENTITY_SUBLABEL}>Action chips</div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-3">
           <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={bookTop}>
             Book session (top)
           </button>

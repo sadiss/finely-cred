@@ -13,7 +13,7 @@
 .fc-wlp .fc-wlp-arch-metrics-jewel {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 12px;
+  gap: 20px;
   align-items: start;
 }
 

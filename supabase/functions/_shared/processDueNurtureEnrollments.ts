@@ -115,6 +115,7 @@ export async function processDueNurtureEnrollments(args: {
             toName: String(context.fullName ?? context.name ?? '').trim() || undefined,
             subject: copy.subject,
             text: copy.text,
+            html: copy.html,
           });
           if (sent.ok) {
             emailsSent += 1;

@@ -310,7 +310,7 @@ export default function PartnerLettersProductSurface({
         pageId="letters"
         eyebrow="Credit letters"
         title="Build bureau dispute letters"
-        description="Pick tradelines, attach screenshot proof, edit the paper, and save PDFs to your Letters vault."
+        description="Choose tradelines, attach screenshot proof, edit the letter, and save a PDF to your Letters vault."
         status="Demo desk · sample letter workflow"
         freshness="demo snapshot"
         accent={accent}
@@ -360,7 +360,7 @@ export default function PartnerLettersProductSurface({
         pageId="letters"
         eyebrow="Credit letters"
         title="Build bureau dispute letters"
-        description="Pick tradelines, attach screenshot proof, edit the paper, and save PDFs to your Letters vault."
+        description="Choose tradelines, attach screenshot proof, edit the letter, and save a PDF to your Letters vault."
         status={`${stats.letters} saved letter${stats.letters === 1 ? '' : 's'} · ${isDemo ? 'demo data' : 'live data'}`}
         freshness={isDemo ? 'demo snapshot' : 'just now'}
         accent={accent}

@@ -30,7 +30,7 @@ export default function OwnersGuidePage() {
       subtitle="What your partner account includes — portal tools, Communication Hub, Work OS, education, and how each route connects. Admin-only sections appear for Finely staff."
       back={{ to: backTo, label: backLabel }}
     >
-      <div className={`${FINELY_OS_PAGE} max-w-6xl`}>
+      <div className={`${FINELY_OS_PAGE} w-full max-w-none`}>
         <button type="button" onClick={() => navigate(backTo)} className={`${FINELY_OS_BACK_LINK} md:hidden`}>
           <ArrowLeft size={16} /> {isAdmin ? 'Dashboard' : 'Portal'}
         </button>

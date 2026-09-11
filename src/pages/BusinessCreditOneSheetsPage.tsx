@@ -43,9 +43,9 @@ export default function BusinessCreditOneSheetsPage() {
   const [err, setErr] = useState<string | null>(null);
 
   usePublicSeoMeta({
-    title: 'Business Credit Partner One-Sheets',
+    title: 'Business credit partner one-sheets | Finely Cred',
     description:
-      'The 3-sheet Business Credit Process Brief plus premium single-page partner one-sheets — Fundability Roadmap, Tier Ladder & Capital Outlook, Foundation, Builder, Elite, Empire, comparison, and named-cards path. Download PDFs and get a work-calibrated quote.',
+      'Download the business credit process brief, Fundability Roadmap, Tier Ladder, and destination sheets for Foundation, Builder, Elite, Empire, comparison, and named products. Then request a quote matched to the file.',
     path: '/resources/business-credit-one-sheets',
   });
 
@@ -78,22 +78,22 @@ export default function BusinessCreditOneSheetsPage() {
   return (
     <PageShell
       badge="Partner resources"
-      title="Business Credit Partner One-Sheets"
-      subtitle="Start with the 3-sheet Process Brief, then the Fundability Roadmap one-sheet (pillars + stage gates). Use Tier Ladder for capital outlook, then download your tier sheet and get a work-calibrated quote."
+      title="Business credit partner one-sheets"
+      subtitle="Start with the process brief, then the Fundability Roadmap. Use the Tier Ladder for capital outlook, download the sheet that matches your destination, and request a quote matched to the file."
     >
       <div className={`${FINELY_OS_PAGE} fc-senior-simple`}>
         <FinelyUnifiedHubLayout
           eyebrow="Partner one-sheets"
-          title="Business Credit Partner One-Sheets"
-          subtitle="Process Brief → Fundability Roadmap → Tier Ladder → destination sheet. Results vary · not guaranteed · business credit only · funding subject to underwriting · not legal advice."
+          title="Business credit partner one-sheets"
+          subtitle="Read the process brief, then the Fundability Roadmap, then the Tier Ladder. Download the destination sheet that matches the file and request a quote."
           accent="emerald"
           kpis={[
-            { label: 'Process brief', value: '3-sheet', hint: 'How we build', accent: 'emerald' },
-            { label: 'One-sheets', value: String(sheets.length), hint: 'Single-page layouts', accent: 'violet' },
-            { label: 'Next step', value: 'Quote', hint: 'Work-calibrated', accent: 'violet' },
+            { label: 'Process brief', value: '3 pages', hint: 'How the file is built', accent: 'emerald' },
+            { label: 'One-sheets', value: String(sheets.length), hint: 'Single-page desk copies', accent: 'violet' },
+            { label: 'Next step', value: 'Quote', hint: 'Matched to the file', accent: 'sky' },
           ]}
           primaryAction={{
-            label: 'Get Business Credit quote',
+            label: 'Get a business credit quote',
             onClick: () => navigate('/pricing/business-credit'),
           }}
           secondaryAction={{
@@ -102,9 +102,9 @@ export default function BusinessCreditOneSheetsPage() {
           }}
           detailSlot={
             <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
-              Download the Process Brief and Fundability Roadmap first, then Tier Ladder & Capital Outlook for fee /
-              outlay / potential. Pick the tier sheet that matches your destination and open pricing for a
-              work-calibrated quote.
+              Download the process brief and Fundability Roadmap first, then the Tier Ladder for program fee, vendor
+              outlay, and potential capital. Pick the tier sheet that matches your destination and open pricing for a
+              quote.
             </p>
           }
         >
@@ -121,8 +121,8 @@ export default function BusinessCreditOneSheetsPage() {
                 <h2 className={`mt-1 ${FINELY_OS_ENTITY_VALUE}`}>{brief.title}</h2>
                 <p className={`mt-1.5 text-sm ${FINELY_OS_ENTITY_BODY}`}>{brief.summary}</p>
                 <p className="mt-2 text-xs text-emerald-100/65">
-                  Read this before one-sheets — sequence first, then Fundability Roadmap, then pick the destination that
-                  matches your file.
+                  Read this before the destination sheets. Sequence first, then the Fundability Roadmap, then pick the
+                  ticket that matches your file.
                 </p>
               </div>
               <div className="flex shrink-0 flex-col items-end gap-1.5">
@@ -168,16 +168,16 @@ export default function BusinessCreditOneSheetsPage() {
                 onClick={() => navigate('/pricing/business-credit')}
                 className={`${FINELY_OS_SECONDARY_BTN} inline-flex items-center gap-2`}
               >
-                Get work-calibrated quote <ArrowRight size={14} />
+                Get a business credit quote <ArrowRight size={14} />
               </button>
               <span className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
-                Then Fundability Roadmap → Tier Ladder → destination sheets
+                Next: Fundability Roadmap, then the Tier Ladder, then the destination sheets.
               </span>
             </div>
           </article>
 
           <div className={`mb-3 ${FINELY_OS_ENTITY_SUBLABEL}`}>
-            Fundability Roadmap · Tier Ladder · destination sheets
+            Fundability Roadmap, Tier Ladder, and destination sheets
           </div>
 
           <div className="grid gap-4 lg:grid-cols-2">
@@ -282,8 +282,7 @@ export default function BusinessCreditOneSheetsPage() {
           </div>
 
           <p className={`mt-6 ${FINELY_OS_COMPLIANCE_FOOTNOTE}`}>
-            Results vary · not guaranteed · business credit only · funding subject to underwriting · outlay varies by
-            vendors. Named-card and lender outcomes are never guaranteed.
+            Results vary · not legal advice · funding subject to underwriting
           </p>
         </FinelyUnifiedHubLayout>
 
@@ -291,7 +290,7 @@ export default function BusinessCreditOneSheetsPage() {
           roleId="funding_strategist"
           goal="business"
           roleLabel="funding strategist"
-          subline="Questions about which Business Credit tier or one-sheet fits your file? Chat before you quote."
+          subline="Questions about which business credit tier or one-sheet fits your file? Chat before you request a quote."
         />
         <FinelyOsPageFooter />
       </div>

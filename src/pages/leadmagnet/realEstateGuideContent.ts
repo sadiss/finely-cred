@@ -48,9 +48,9 @@ export type RealEstateGuideChapter = {
 export const RE_GUIDE_META = {
   title: 'Real Estate Operator Guide',
   shortTitle: 'RE Operator Guide',
-  tagline: 'You refer · Finely runs the credit work · you keep the closing',
+  tagline: 'You refer. Finely runs the credit work. You keep the closing.',
   description:
-    'Free operator handbook for real estate affiliates: WIIFM, question scripts, Fannie AU/DTI summaries, seven readiness levers, and lender rescore prep — without promising approvals.',
+    'A free operator handbook for real estate affiliates: what you gain, question scripts, Fannie authorized-user and DTI summaries, seven readiness levers, and lender rescore prep — without promising approvals.',
   compliance: REAL_ESTATE_COMPLIANCE_FOOTNOTES[0]!,
   edition: 'Finely Cred edition',
   valueLabel: 'Free',

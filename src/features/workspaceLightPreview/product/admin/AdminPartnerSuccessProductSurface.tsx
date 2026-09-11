@@ -109,8 +109,7 @@ export default function AdminPartnerSuccessProductSurface({ role, pageId }: Work
     >
       {notice ? <div className={FINELY_OS_NOTICE_SUCCESS}>{notice}</div> : null}
 
-      {/* Journey runway — horizontal spine with stage nodes */}
-      <section className={`${finelyOsCatalogCard('violet')} p-6 lg:p-8`} data-fc-accent="violet">
+      <section>
         <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
           <Star size={16} />
           <span>Success journey runway</span>

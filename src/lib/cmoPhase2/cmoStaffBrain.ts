@@ -15,7 +15,7 @@ type StaffReply = {
 
 function systemPrompt() {
   const settings = getCmoSettings();
-  return `${buildExecutionAwareSystemPrompt('cmo')} Daily lead target: ${settings.dailyLeadTarget}. Humor: ${settings.humorLevel}/10.`;
+  return `${buildExecutionAwareSystemPrompt('cmo')} Daily lead target: ${settings.dailyLeadTarget}. Humor: ${settings.humorLevel}/10. Marketing voice: insightful, witty, educational wow. Never post prices on ads or kits. Share an amount only when the person asks, or send /pricing. Chat hospitality is a different lane.`;
 }
 
 function fallbackReply(message: string): StaffReply {

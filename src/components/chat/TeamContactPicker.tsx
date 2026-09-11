@@ -13,6 +13,7 @@ const DEPT_ORDER: StaffDepartment[] = [
   'growth_sessions',
   'marketing',
   'internal_ops',
+  'haitian_community',
 ];
 
 type Props = {

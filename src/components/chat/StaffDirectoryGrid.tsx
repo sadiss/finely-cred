@@ -38,6 +38,7 @@ const DEPT_ORDER: StaffDepartment[] = [
   'funding',
   'debt_resolution',
   'internal_ops',
+  'haitian_community',
 ];
 
 export function StaffDirectoryGrid({

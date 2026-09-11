@@ -31,7 +31,7 @@ export function LeadMagnetMediaStage({
   onGoForm,
 }: Props) {
   return (
-    <section className="container mx-auto max-w-6xl px-4 sm:px-6 lm-showcase-section">
+    <section className="fc-viewport-floor lm-showcase-section">
       <div className="lm-flyer-tagline-bar">{taglineBar}</div>
 
       <div className="lm-flyer-stage">

@@ -56,8 +56,8 @@ const HERO_CHAPTER_RAIL = [
   .filter((p): p is NonNullable<typeof p> => Boolean(p));
 
 const HERO_PROOF = [
-  'Live Letter Studio + dispute workflow',
-  'FCRA timing and bureau response tracker',
+  'Live Letter Studio and a dispute workflow',
+  'FCRA timing and a bureau response tracker',
   'Portal preview with no credit card',
 ] as const;
 
@@ -100,7 +100,7 @@ const OFFER_PILLARS = [
   },
   {
     icon: LayoutDashboard,
-    title: 'Live portal — not PDF-only',
+    title: 'A live portal with the PDF',
     desc: `${LEAD_MAGNET_TRIAL_DAYS}-day preview for uploads, Letter Studio, deadlines, and round tracking.`,
   },
   {
@@ -225,15 +225,16 @@ export function CreditGuidePremiumLanding({
               )}
             </h1>
             <p className="cgp-hero-lede mt-5">
-              {guide.desc} Read free in your browser, or sign up for the PDF kit and portal preview — no credit card.
+              {guide.desc} See the first-page preview now. The full guide and PDF kit unlock after you enter your
+              details — no credit card.
             </p>
 
             <div className="cgp-hero-actions justify-center lg:justify-start">
               <a href="#fg-capture" className="cgp-cta">
                 Sign up free <ArrowRight className="h-4 w-4" />
               </a>
-              <Link to={DISPUTE_LETTER_GUIDE_READ_PATH} className="cgp-cta cgp-cta--ghost">
-                <BookOpen className="h-4 w-4" /> Read free — no signup
+              <Link to={`${DISPUTE_LETTER_GUIDE_READ_PATH}?preview=1`} className="cgp-cta cgp-cta--ghost">
+                <BookOpen className="h-4 w-4" /> See preview
               </Link>
             </div>
 
@@ -249,7 +250,10 @@ export function CreditGuidePremiumLanding({
           </div>
 
           <div className="cgp-hero-media mx-auto lg:ml-auto">
-            <div className="cgp-hero-book-stage">
+            <div className="cgp-hero-book-stage relative">
+              <p className="absolute left-3 top-3 z-[2] rounded-full border border-emerald-600/25 bg-white/90 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-emerald-800">
+                Cover preview
+              </p>
               <LeadMagnetEbook />
             </div>
           </div>
@@ -313,13 +317,13 @@ export function CreditGuidePremiumLanding({
       <section id="fg-preview" className="cgp-band cgp-band--ivory cgp-band--glow relative z-10 scroll-mt-16 py-14 md:py-16">
         <div className="mx-auto max-w-[94rem] px-5 md:px-8">
           <div className="mb-8 mx-auto max-w-3xl text-center">
-            <WealthKicker>See the converting preview</WealthKicker>
+            <WealthKicker>See the partner preview</WealthKicker>
             <h2 className="cgp-serif mt-4 text-3xl font-black leading-tight tracking-[-0.03em] text-[#0b1220] md:text-5xl">
-              Tablet + glowing phone — <span className="text-[#1aad4b]">Sign up free</span>, Round 1 letters, score climb
+              The restore path, <span className="text-[#1aad4b]">round-one letters</span>, and a score sequence
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-[#0b1220]/65 sm:text-base">
-              Side-by-side partner preview of the full credit path: restore workflow, dispute Round 1, and the one-tap
-              signup that unlocks it — free, no card.
+              A side-by-side preview of the credit path: restore workflow, first-round letters, and the signup that
+              unlocks the kit — free, no card.
             </p>
           </div>
           <div className="cgp-preview-stage mx-auto">
@@ -336,7 +340,7 @@ export function CreditGuidePremiumLanding({
 
       {/* Issue picker */}
       <section className="cgp-band relative z-10 py-10 md:py-12">
-        <div className="mx-auto max-w-7xl px-5 md:px-8">
+        <div className="fc-viewport-floor">
           <WealthKicker>Start with your biggest blocker</WealthKicker>
           <h2 className="cgp-serif mt-4 text-3xl font-black tracking-[-0.03em] text-[#0b1220] md:text-4xl">
             What needs to be disputed <span className="text-[#1aad4b]">first?</span>
@@ -379,41 +383,50 @@ export function CreditGuidePremiumLanding({
         </div>
       </section>
 
-      {/* Read free — keep path */}
       <section id="fg-read-free" className="cgp-band cgp-band--ivory relative z-10 py-10 md:py-12 scroll-mt-16">
-        <div className="mx-auto max-w-7xl px-5 md:px-8">
+        <div className="mx-auto w-full max-w-none px-5 md:px-10 xl:px-16">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div className="max-w-2xl">
-              <WealthKicker>Read it free · no email</WealthKicker>
+              <WealthKicker>Cover + page 1 preview</WealthKicker>
               <h2 className="cgp-serif mt-4 text-3xl font-black tracking-[-0.03em] text-[#0a1628] md:text-4xl">
-                {DISPUTE_LETTER_GUIDE_PROGRAMMATIC_PAGES.length} pages, open in your browser
+                {DISPUTE_LETTER_GUIDE_PROGRAMMATIC_PAGES.length} pages — first page is the preview
               </h2>
               <p className="mt-3 text-sm leading-relaxed text-[#0a1628]/65">
-                Open any chapter below. Capture is optional if you want the PDF kit and portal preview.
+                See the first page now. The rest of the guide unlocks after you enter your details.
               </p>
             </div>
-            <Link to={DISPUTE_LETTER_GUIDE_READ_PATH} className="cgp-cta shrink-0">
-              <BookOpen className="h-4 w-4" /> Open the reader
+            <Link to={`${DISPUTE_LETTER_GUIDE_READ_PATH}?preview=1`} className="cgp-cta shrink-0">
+              <BookOpen className="h-4 w-4" /> See preview
             </Link>
           </div>
           <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {HERO_CHAPTER_RAIL.map((chapter) => (
-              <Link
-                key={chapter.id}
-                to={`${DISPUTE_LETTER_GUIDE_READ_PATH}?chapter=${chapter.id}`}
-                className="cgp-card group px-4 py-3.5 transition hover:-translate-y-0.5"
-              >
-                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#c4803d]">
-                  {chapter.kicker ?? 'Page'}
-                </p>
-                <p className="mt-1 text-sm font-bold leading-snug text-[#0a1628] group-hover:text-[#000c3c]">
-                  {chapter.title}
-                </p>
-                {chapter.subtitle ? (
-                  <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-[#0a1628]/50">{chapter.subtitle}</p>
-                ) : null}
-              </Link>
-            ))}
+            {HERO_CHAPTER_RAIL.map((chapter, i) =>
+              i === 0 ? (
+                <Link
+                  key={chapter.id}
+                  to={`${DISPUTE_LETTER_GUIDE_READ_PATH}?preview=1`}
+                  className="cgp-card group px-4 py-3.5 transition hover:-translate-y-0.5"
+                >
+                  <p className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-700">Preview</p>
+                  <p className="mt-1 text-sm font-bold leading-snug text-[#0a1628] group-hover:text-[#000c3c]">
+                    {chapter.title}
+                  </p>
+                  {chapter.subtitle ? (
+                    <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-[#0a1628]/50">{chapter.subtitle}</p>
+                  ) : null}
+                </Link>
+              ) : (
+                <div key={chapter.id} className="cgp-card px-4 py-3.5 opacity-70">
+                  <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#0a1628]/40">
+                    Unlocks after signup
+                  </p>
+                  <p className="mt-1 text-sm font-bold leading-snug text-[#0a1628]">{chapter.title}</p>
+                  {chapter.subtitle ? (
+                    <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-[#0a1628]/50">{chapter.subtitle}</p>
+                  ) : null}
+                </div>
+              ),
+            )}
           </div>
           <p className="cgp-compliance mt-4">Educational only · not legal advice · results vary</p>
         </div>
@@ -421,7 +434,7 @@ export function CreditGuidePremiumLanding({
 
       {/* Pillars */}
       <section className="cgp-band relative z-10 py-10">
-        <div className="mx-auto grid max-w-7xl gap-4 px-5 md:grid-cols-3 md:px-8">
+        <div className="fc-viewport-floor grid gap-4 md:grid-cols-3">
           {OFFER_PILLARS.map(({ icon: Icon, title, desc }) => (
             <div key={title} className="cgp-card p-5 sm:p-6">
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-[#1aad4b]/30 bg-[#1aad4b]/10 text-[#0f7a35]">
@@ -436,7 +449,7 @@ export function CreditGuidePremiumLanding({
 
       {/* Path */}
       <section className="cgp-band relative z-10 border-t border-[#1aad4b]/12 py-10 md:py-12">
-        <div className="mx-auto max-w-7xl px-5 md:px-8">
+        <div className="fc-viewport-floor">
           <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
             <div>
               <WealthKicker>Why partners claim it</WealthKicker>
@@ -469,15 +482,15 @@ export function CreditGuidePremiumLanding({
 
       {/* Materials — one glossy composition */}
       <section id="fg-materials" className="cgp-band cgp-band--ivory relative z-10 scroll-mt-16 py-12 md:py-14">
-        <div className="mx-auto max-w-7xl px-5 md:px-8">
+        <div className="fc-viewport-floor">
           <div className="mb-8 mx-auto max-w-2xl text-center">
             <WealthKicker>Inside the free kit</WealthKicker>
             <h2 className="cgp-serif mt-4 text-3xl font-black tracking-[-0.03em] text-[#0b1220] md:text-4xl">
-              Glossy pages. Real guide. <span className="text-[#1aad4b]">Phone preview of the ebook.</span>
+              The guide, the chapters, and a <span className="text-[#1aad4b]">phone-ready preview.</span>
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-[#0b1220]/60">
-              One professional materials stage — brochure spreads, the standalone book, and the guide on a phone screen
-              as part of the same mockup.
+              Brochure spreads, the standalone book, and the guide on a phone — one materials stage so you can see what
+              you are claiming.
             </p>
           </div>
           <FreeGuideMaterialsShowcase />
@@ -491,8 +504,8 @@ export function CreditGuidePremiumLanding({
             <a href="#fg-capture" className="cgp-cta">
               Sign up free <ArrowRight className="h-4 w-4" />
             </a>
-            <Link to={DISPUTE_LETTER_GUIDE_READ_PATH} className="cgp-cta cgp-cta--ghost">
-              <BookOpen className="h-4 w-4" /> Read free first
+            <Link to={`${DISPUTE_LETTER_GUIDE_READ_PATH}?preview=1`} className="cgp-cta cgp-cta--ghost">
+              <BookOpen className="h-4 w-4" /> See preview
             </Link>
           </div>
         </div>
@@ -500,7 +513,7 @@ export function CreditGuidePremiumLanding({
 
       {/* Objections */}
       <section className="cgp-band relative z-10 py-10">
-        <div className="mx-auto grid max-w-7xl gap-4 px-5 md:grid-cols-3 md:px-8">
+        <div className="fc-viewport-floor grid gap-4 md:grid-cols-3">
           {OBJECTION_HANDLERS.map((item) => (
             <div key={item.title} className="cgp-card p-5 sm:p-6">
               <ShieldCheck className="mb-4 h-6 w-6 text-[#1aad4b]" />
@@ -513,7 +526,7 @@ export function CreditGuidePremiumLanding({
 
       {/* Value stack + capture CTA */}
       <main id="fg-value" className="cgp-band relative z-10 scroll-mt-16 pb-16 pt-4">
-        <div className="mx-auto max-w-6xl px-5 md:px-8">
+        <div className="fc-viewport-floor">
           <div className="mx-auto mb-8 max-w-2xl text-center">
             <h2 className="cgp-serif text-3xl font-black text-[#0b1220] md:text-4xl">
               What you get <span className="text-[#1aad4b]">free today</span>
@@ -606,7 +619,7 @@ export function CreditGuidePremiumDownload({
 
   return (
     <main className="cgp-page lm-lux-theme--navy min-h-screen bg-[#000c3c] px-4 py-12 sm:py-16">
-      <div className="mx-auto grid max-w-5xl items-start gap-6 lg:grid-cols-2 lg:gap-10">
+      <div className="grid w-full max-w-none items-start gap-6 lg:grid-cols-2 lg:gap-10">
         <DisputeLetterGuidePreview className="w-full" />
         <div className="cgp-download-card rounded-2xl p-6 text-center sm:rounded-[2rem] sm:p-10">
           {generating ? (

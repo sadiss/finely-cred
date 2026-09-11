@@ -23,6 +23,8 @@ import {
   type CreditSpecialistGuideChapter,
 } from './creditSpecialistGuideContent';
 import GuideReaderShell from './GuideReaderShell';
+import { LeadMagnetPreviewBanner } from '../../components/leadmagnet/LeadMagnetPreviewBanner';
+import { clampLeadMagnetChapter, useLeadMagnetGuideGate } from '../../lib/useLeadMagnetGuideGate';
 import './creditSpecialistGuideLanding.css';
 import './creditSpecialistBinder.css';
 import './guideReaderShell.css';
@@ -118,6 +120,7 @@ export default function CreditSpecialistGuideReaderPage() {
   const [params, setParams] = useSearchParams();
   const [tocOpen, setTocOpen] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const { unlocked, previewLocked } = useLeadMagnetGuideGate('credit_specialist_guide');
 
   const initialIdx = useMemo(() => {
     const q = params.get('chapter') ?? '';
@@ -130,8 +133,8 @@ export default function CreditSpecialistGuideReaderPage() {
   const [chapterIdx, setChapterIdx] = useState(initialIdx);
 
   useEffect(() => {
-    setChapterIdx(initialIdx);
-  }, [initialIdx]);
+    setChapterIdx(previewLocked ? 0 : initialIdx);
+  }, [initialIdx, previewLocked]);
 
   const chapter = CS_GUIDE_CHAPTERS[chapterIdx] ?? CS_GUIDE_CHAPTERS[0]!;
 
@@ -153,7 +156,7 @@ export default function CreditSpecialistGuideReaderPage() {
   });
 
   const goChapter = (idx: number) => {
-    const next = Math.max(0, Math.min(CS_GUIDE_CHAPTERS.length - 1, idx));
+    const next = clampLeadMagnetChapter(idx, CS_GUIDE_CHAPTERS.length, unlocked);
     setChapterIdx(next);
     const id = CS_GUIDE_CHAPTERS[next]!.id;
     setParams({ chapter: id }, { replace: true });
@@ -175,6 +178,14 @@ export default function CreditSpecialistGuideReaderPage() {
       chapters={shellChapters}
       chapterIndex={chapterIdx}
       onChapterChange={goChapter}
+      previewLocked={previewLocked}
+      previewUnlockHref={`${CS_GUIDE_PATH}#download`}
+      previewBanner={
+        <LeadMagnetPreviewBanner
+          unlockHref={`${CS_GUIDE_PATH}#download`}
+          pagesLabel="the full specialist guide"
+        />
+      }
       tocOpen={tocOpen}
       onTocOpenChange={setTocOpen}
       tocLabel="Table of contents"
@@ -183,7 +194,7 @@ export default function CreditSpecialistGuideReaderPage() {
       tocClassName="csg-toc rounded-2xl p-4"
       tocFooter={<p className="csg-compliance mt-4">{CS_GUIDE_META.compliance}</p>}
       storageKey="finely.guideReader.creditSpecialist"
-      maxWidthClassName="max-w-[88rem]"
+      maxWidthClassName="max-w-none"
       headerClassName="csg-reader-nav"
       progressTrackClassName="csg-progress"
       atmosphere={
@@ -225,11 +236,13 @@ export default function CreditSpecialistGuideReaderPage() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <div className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#34d399]">
-                <Sparkles size={14} /> Keep reading freely
+                <Sparkles size={14} /> {previewLocked ? 'Page 1 preview' : 'Full guide unlocked'}
               </div>
               <p className="mt-2 text-sm text-white/60">
-                This e-guide is separate from signup. Take the 2-sheet playbook anytime — join only when you want the
-                program at <span className="text-[#c4b5fd]">{CS_JOIN_PATH}</span>
+                {previewLocked
+                  ? 'Later pages unlock after you leave your details on the landing page. Join stays separate.'
+                  : 'Take the 2-sheet playbook anytime. Join only when you want the program.'}{' '}
+                <span className="text-[#c4b5fd]">{CS_JOIN_PATH}</span>
               </p>
               <p className="csg-compliance mt-2">{CS_GUIDE_META.compliance}</p>
             </div>

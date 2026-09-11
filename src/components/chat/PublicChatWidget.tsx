@@ -28,15 +28,22 @@ import {
   type ChatLocale,
 } from '../../lib/publicChatI18n';
 import type { AgentPersonaId } from '../../domain/agentPersonas';
-import { getAgentPersona } from '../../domain/agentPersonas';
-import { OPEN_PUBLIC_CHAT_EVENT, type PublicChatGoal } from '../../lib/publicChatEvents';
+import { OPEN_PUBLIC_CHAT_EVENT, type OpenPublicChatDetail, type PublicChatGoal } from '../../lib/publicChatEvents';
+import {
+  consultationLaneForGoal,
+  inferPublicChatGoalFromPath,
+  publicRoleForPath,
+  type OperatorChip,
+} from '../../lib/publicChatOperator';
+import { finelyCtaNavigate, resolveFinelyCtaPath } from '../../lib/finelyCtaIntent';
+import { parseHtmlReportWithCache, parsePdfReportWithCache } from '../../lib/reportParsePipeline';
+import { newId as newEntityId } from '../../utils/ids';
+import { haitianLaneFromPath, isHaitianDeskPath } from '../../lib/haitianCompanionDesk';
 import { emitPlatformEvent } from '../../domain/platformEvents';
 import { resolveToolPath, toolsForPersona } from '../../lib/agentPersonaTools';
 import type { AiGatewayMessage } from '../../lib/aiClient';
-import { getPublicChatPersonaPresentation } from './publicChatPersonaUi';
 import {
   buildAiAssistSystemPrompt,
-  refreshChatStaffPresentation,
   resolveChatStaffPresentation,
 } from '../../lib/chatStaffPresentation';
 import { buildWarmUnclassifiedReply, isUnclassifiableChatMessage } from '../../lib/chatMessageFallback';
@@ -57,6 +64,7 @@ import {
   finelyPublicAnswer,
   shouldUseFinelyPublicAnswer,
 } from '../../lib/finelyBrain/finelyPublicAnswer';
+import { humanSpokenReply } from '../../lib/finelyBrain/humanCreditTalk';
 import { recordFinelyPublicAnswerRoute } from '../../lib/finelyBrain/finelyPublicAnswerMetrics';
 import { recordKnowledgeFeedback } from '../../data/knowledgeFeedbackRepo';
 import {
@@ -81,47 +89,14 @@ type ChatMsg = {
   kbQuery?: string;
   feedbackGiven?: 'up' | 'down';
   attachments?: PublicChatDocAnalysis[];
+  chips?: OperatorChip[];
+  card?: { title: string; href?: string; image?: string; kind: 'guide' | 'page' };
 };
 
-type Goal = 'personal' | 'business' | 'tradelines' | 'debt' | 'not_sure';
+type Goal = PublicChatGoal;
 
 const LIVE_AGENT_PATTERN =
   /\b(live\s+(agent|person|human|rep|specialist)|real\s+(person|human|agent)|speak\s+(with|to)\s+(a\s+)?(human|person|agent|someone|live)|talk\s+to\s+(a\s+)?(human|real|live)|connect\s+me\s+(to|with)\s+(a\s+)?(human|person|live))/i;
-
-const LANE_OPTIONS = [
-  {
-    id: 'personal' as const,
-    emoji: '✨',
-    label: 'Personal restore',
-    roleHint: 'Credit Restoration',
-    card: 'border-emerald-400/50 bg-emerald-600/35 hover:bg-emerald-500/45',
-    sub: 'text-emerald-100/90',
-  },
-  {
-    id: 'business' as const,
-    emoji: '🚀',
-    label: 'Business credit',
-    roleHint: 'Funding Strategist',
-    card: 'border-sky-400/50 bg-sky-600/30 hover:bg-sky-500/40',
-    sub: 'text-sky-100/90',
-  },
-  {
-    id: 'tradelines' as const,
-    emoji: '💳',
-    label: 'Tradelines',
-    roleHint: 'Funding Strategist',
-    card: 'border-violet-400/50 bg-violet-600/30 hover:bg-violet-500/40',
-    sub: 'text-violet-100/90',
-  },
-  {
-    id: 'debt' as const,
-    emoji: '🛡️',
-    label: 'Debt help',
-    roleHint: 'Debt Resolution',
-    card: 'border-rose-400/50 bg-rose-600/30 hover:bg-rose-500/40',
-    sub: 'text-rose-100/90',
-  },
-] as const;
 
 const QUICK_TOPICS = [
   { emoji: '📋', label: 'How disputes work', prompt: 'How do credit disputes work step by step?' },
@@ -140,6 +115,46 @@ function sanitize(s: string) {
   return (s || '').trim();
 }
 
+const PUBLIC_CHAT_SESSION_KEY = 'finely.publicChat.v2';
+
+type PublicChatSessionState = {
+  messages: ChatMsg[];
+  aiHistory: AiGatewayMessage[];
+  goal: Goal | null;
+  personaOverrideId?: AgentPersonaId;
+  handoffComplete: boolean;
+  open?: boolean;
+  staffMemberId?: string;
+};
+
+function threadHasVisitor(msgs: ChatMsg[]) {
+  return msgs.some((m) => m.role === 'user');
+}
+
+function loadPublicChatSession(): PublicChatSessionState | null {
+  try {
+    const raw = sessionStorage.getItem(PUBLIC_CHAT_SESSION_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as PublicChatSessionState;
+    if (!Array.isArray(parsed.messages)) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function savePublicChatSession(state: PublicChatSessionState) {
+  try {
+    sessionStorage.setItem(PUBLIC_CHAT_SESSION_KEY, JSON.stringify(state));
+  } catch {
+    /* ignore quota */
+  }
+}
+
+function stripServiceChips(msgs: ChatMsg[]): ChatMsg[] {
+  return msgs.map((m) => (m.chips?.length ? { ...m, chips: undefined } : m));
+}
+
 function personalizeAgentWelcome(welcome: string, fullName?: string): string {
   const first = fullName?.trim().split(/\s+/)[0];
   if (!first || first.length < 2) return welcome;
@@ -150,6 +165,7 @@ function personalizeAgentWelcome(welcome: string, fullName?: string): string {
 function resolvePersona(goal: Goal | null, overrideId?: AgentPersonaId): AgentPersona {
   if (overrideId) return getEffectiveAgentPersona(overrideId) ?? personaOnDutyAt();
   if (!goal) return personaOnDutyAt();
+  if (goal === 'haitian') return getEffectiveAgentPersona('haitian_companion') ?? publicChatPersonaForGoal('haitian');
   const label =
     goal === 'personal'
       ? 'Personal credit restore'
@@ -157,21 +173,57 @@ function resolvePersona(goal: Goal | null, overrideId?: AgentPersonaId): AgentPe
         ? 'Business credit'
         : goal === 'tradelines'
           ? 'Authorized user tradelines'
+          : goal === 'building'
+            ? 'Credit building'
           : goal === 'debt'
             ? 'Debt / summons'
             : 'Exploring options';
   return publicChatPersonaForGoal(label);
 }
 
+function ChatLocaleFaceRow({
+  locale,
+  onPick,
+}: {
+  locale: ChatLocale;
+  onPick: (next: ChatLocale) => void;
+}) {
+  return (
+    <div className="flex flex-nowrap items-center gap-1.5 overflow-x-auto" role="group" aria-label="Chat language">
+      {CHAT_LOCALE_ORDER.map((loc) => (
+        <button
+          key={loc}
+          type="button"
+          onClick={() => onPick(loc)}
+          title={CHAT_LOCALE_LABELS[loc]}
+          aria-label={CHAT_LOCALE_LABELS[loc]}
+          aria-pressed={locale === loc}
+          className={`shrink-0 whitespace-nowrap px-2.5 py-1 rounded-full border text-[11px] font-black ${
+            locale === loc
+              ? 'border-emerald-300/50 bg-emerald-500/25 text-emerald-50'
+              : 'border-white/20 bg-white/5 text-white/75 hover:border-white/35'
+          }`}
+        >
+          {CHAT_LOCALE_LABELS[loc]}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolean }) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { user } = useAuth();
-  const [open, setOpen] = useState(defaultOpen);
+  const [sessionBoot] = useState(() => (typeof window === 'undefined' ? null : loadPublicChatSession()));
+  const [open, setOpen] = useState(() => sessionBoot?.open ?? defaultOpen);
+  const [lockedStaffId, setLockedStaffId] = useState<string | undefined>(() => sessionBoot?.staffMemberId);
+  const lockedStaffIdRef = useRef(lockedStaffId);
+  lockedStaffIdRef.current = lockedStaffId;
   const [busy, setBusy] = useState(false);
 
-  const [goal, setGoal] = useState<Goal | null>(null);
-  const [personaOverrideId, setPersonaOverrideId] = useState<AgentPersonaId | undefined>();
+  const [goal, setGoal] = useState<Goal | null>(() => sessionBoot?.goal ?? null);
+  const [personaOverrideId, setPersonaOverrideId] = useState<AgentPersonaId | undefined>(() => sessionBoot?.personaOverrideId);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -185,14 +237,14 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
   const [draft, setDraft] = useState('');
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [emojiOpen, setEmojiOpen] = useState(false);
-  const [easyReadMode, setEasyReadMode] = useState(true);
+  const [easyReadMode, setEasyReadMode] = useState(false);
   const [pendingAttachments, setPendingAttachments] = useState<PublicChatDocAnalysis[]>([]);
   const [attachmentBusy, setAttachmentBusy] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [followUps, setFollowUps] = useState<string[]>([]);
-  const [aiHistory, setAiHistory] = useState<AiGatewayMessage[]>([]);
-  const [handoffComplete, setHandoffComplete] = useState(false);
+  const [aiHistory, setAiHistory] = useState<AiGatewayMessage[]>(() => sessionBoot?.aiHistory ?? []);
+  const [handoffComplete, setHandoffComplete] = useState(() => sessionBoot?.handoffComplete ?? false);
   const [handoffPhase, setHandoffPhase] = useState<'idle' | 'connecting' | 'connected'>('idle');
   const handoffTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -222,21 +274,36 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
     };
   }, []);
 
-  useEffect(() => {
-    if (!open) return;
-    refreshDutyFace({ forcePolicy: true });
-  }, [open]);
-
+  const haitianSurface = isHaitianDeskPath(pathname);
   const persona = useMemo(() => resolvePersona(goal, personaOverrideId), [goal, personaOverrideId]);
   const audience = user ? 'partner' : 'guest';
   const chatStaff = useMemo(() => {
     void dutyTick;
+    const haitianLane = haitianLaneFromPath(pathname) || (locale === 'ht' ? 'haitian' : undefined);
     return resolveChatStaffPresentation({
-      personaId: goal ? persona.id : undefined,
+      staffMemberId: lockedStaffId,
+      personaId: lockedStaffId
+        ? undefined
+        : haitianSurface || locale === 'ht'
+          ? 'haitian_companion'
+          : goal
+            ? persona.id
+            : undefined,
+      lane: haitianLane,
       audience,
+      locale,
     });
-  }, [persona.id, goal, dutyTick, audience]);
+  }, [lockedStaffId, persona.id, goal, dutyTick, audience, pathname, locale, haitianSurface]);
   const presentation = chatStaff.presentation;
+
+  useEffect(() => {
+    if (!open) return;
+    if (presentation.staffMemberId) {
+      setLockedStaffId((prev) => prev ?? presentation.staffMemberId);
+    }
+  }, [open, presentation.staffMemberId]);
+
+  const publicRole = publicRoleForPath(pathname, goal);
   const aiAssistBadgeLabel = chatStaff.aiAssistBadgeLabel;
   const launcherShiftMeta = useMemo(() => {
     void dutyTick;
@@ -253,10 +320,14 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
     if (goal === 'business') return 'Business credit';
     if (goal === 'tradelines') return 'Authorized user tradelines';
     if (goal === 'debt') return 'Debt / summons';
+    if (goal === 'haitian') return 'Haitian community';
+    if (goal === 'building') return 'Credit building';
     return 'Exploring options';
   }, [goal]);
 
-  const [messages, setMessages] = useState<ChatMsg[]>([]);
+  const [messages, setMessages] = useState<ChatMsg[]>(() => stripServiceChips(sessionBoot?.messages ?? []));
+  const messagesRef = useRef(messages);
+  messagesRef.current = messages;
 
   const scrollerRef = useRef<HTMLDivElement | null>(null);
 
@@ -268,41 +339,81 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
     }
   }, [presentation.avatarUrl]);
 
-  const seedWelcome = (p: AgentPersona, name?: string) => {
-    const staffBundle = resolveChatStaffPresentation({ personaId: p.id, audience });
-    setMessages([
-      {
-        id: newId(),
-        role: 'bot',
-        text: personalizeAgentWelcome(staffBundle.welcomeWithAiDisclosure, name ?? fullName),
-        personaId: staffBundle.personaId,
-      },
-    ]);
+  const faceForSession = (personaId?: AgentPersonaId) =>
+    resolveChatStaffPresentation({
+      staffMemberId: lockedStaffIdRef.current ?? presentation.staffMemberId,
+      personaId: lockedStaffIdRef.current
+        ? undefined
+        : personaId === 'haitian_companion' || haitianSurface || locale === 'ht'
+          ? 'haitian_companion'
+          : personaId,
+      lane: haitianLaneFromPath(pathname) || (locale === 'ht' || haitianSurface ? 'haitian' : undefined),
+      audience,
+      locale,
+    });
+
+  const seedWelcome = (_p: AgentPersona, name?: string, mode: 'replace' | 'append' = 'replace') => {
+    const staffBundle = faceForSession(_p.id);
+    if (staffBundle.presentation.staffMemberId) {
+      setLockedStaffId((prev) => prev ?? staffBundle.presentation.staffMemberId);
+    }
+    if (mode === 'append') return;
+    const next: ChatMsg = {
+      id: newId(),
+      role: 'bot',
+      text: personalizeAgentWelcome(staffBundle.welcomeWithAiDisclosure, name ?? fullName),
+      personaId: staffBundle.personaId,
+      chips: undefined,
+    };
+    setMessages([next]);
   };
 
-  const beginHandoff = (p: AgentPersona, opts?: { immediate?: boolean }) => {
+  const beginHandoff = (_p: AgentPersona, opts?: { immediate?: boolean; resetThread?: boolean }) => {
     if (handoffTimerRef.current) clearTimeout(handoffTimerRef.current);
-    setHandoffPhase('connecting');
-    const finish = () => {
-      setHandoffPhase('connected');
-      setHandoffComplete(true);
-      seedWelcome(p);
-    };
-    if (opts?.immediate) finish();
-    else handoffTimerRef.current = setTimeout(finish, 1400 + Math.floor(Math.random() * 900));
+    setHandoffPhase('connected');
+    setHandoffComplete(true);
+    if (opts?.resetThread && !threadHasVisitor(messagesRef.current)) {
+      seedWelcome(_p, undefined, 'replace');
+    }
   };
 
   useEffect(() => {
-    const staffBundle = refreshChatStaffPresentation({ audience });
-    setMessages([
-      {
-        id: 'm0',
-        role: 'bot',
-        text: personalizeAgentWelcome(staffBundle.welcomeWithAiDisclosure, fullName),
-        personaId: staffBundle.personaId,
-      },
-    ]);
-  }, [locale, dutyTick, audience, fullName]);
+    savePublicChatSession({
+      messages: stripServiceChips(messages),
+      aiHistory,
+      goal,
+      personaOverrideId,
+      handoffComplete,
+      open,
+      staffMemberId: lockedStaffId,
+    });
+  }, [messages, aiHistory, goal, personaOverrideId, handoffComplete, open, lockedStaffId]);
+
+  useEffect(() => {
+    const staffBundle = faceForSession(
+      haitianSurface || locale === 'ht' ? 'haitian_companion' : persona.id,
+    );
+    setMessages((prev) => {
+      if (threadHasVisitor(prev) || prev.length > 1) {
+        return prev;
+      }
+      if (open && prev.length) {
+        const welcome = personalizeAgentWelcome(staffBundle.welcomeWithAiDisclosure, fullName);
+        if (prev[0]?.role === 'bot' && prev[0].text !== welcome) {
+          return [{ ...prev[0], text: welcome, personaId: staffBundle.personaId, chips: undefined }];
+        }
+        return prev.map((msg, index) => (index === 0 ? { ...msg, chips: undefined } : msg));
+      }
+      return [
+        {
+          id: prev[0]?.id ?? 'm0',
+          role: 'bot',
+          text: personalizeAgentWelcome(staffBundle.welcomeWithAiDisclosure, fullName),
+          personaId: staffBundle.personaId,
+        },
+      ];
+    });
+  }, [locale, audience, fullName, pathname, haitianSurface, open, goal, presentation.firstName]);
 
   useEffect(() => {
     return () => {
@@ -324,22 +435,40 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
 
   useEffect(() => {
     const handler = (e: Event) => {
-      const detail = (e as CustomEvent).detail as { goal?: PublicChatGoal; leadId?: string; personaId?: AgentPersonaId };
-      refreshDutyFace({ forcePolicy: true });
+      const detail = (e as CustomEvent<OpenPublicChatDetail>).detail ?? {};
+      if (presentation.staffMemberId) {
+        setLockedStaffId((prev) => prev ?? presentation.staffMemberId);
+      }
       setOpen(true);
-      if (detail.personaId) setPersonaOverrideId(detail.personaId);
-      if (detail.goal) {
+      if (detail.locale) setLocale(detail.locale);
+      if (detail.initialDraft) setDraft(detail.initialDraft);
+      const haitianOpen =
+        detail.goal === 'haitian' ||
+        detail.personaId === 'haitian_companion' ||
+        detail.locale === 'ht';
+      if (haitianOpen) {
+        setGoal('haitian');
+        if (detail.locale) setLocale(detail.locale);
+        setHandoffComplete(true);
+        setHandoffPhase('connected');
+      } else if (detail.goal) {
         setGoal(detail.goal);
-        const p = resolvePersona(detail.goal, detail.personaId);
-        pushBot(
-          `Got it — let me check who's on duty for ${p.displayTitle.toLowerCase()}. One moment while I connect you…`,
-          chatStaff.personaId,
-        );
-        window.setTimeout(() => beginHandoff(p), 700);
+        setHandoffComplete(true);
+        setHandoffPhase('connected');
+        if (detail.intent === 'upload_report') {
+          window.setTimeout(() => fileInputRef.current?.click(), 400);
+        }
       } else if (detail.personaId) {
-        const p = getAgentPersona(detail.personaId) ?? personaOnDutyAt();
-        pushBot(`I'll connect you with our ${p.displayTitle.toLowerCase()} team — checking availability now…`, chatStaff.personaId);
-        window.setTimeout(() => beginHandoff(p), 700);
+        setHandoffComplete(true);
+        setHandoffPhase('connected');
+      } else {
+        const inferred = inferPublicChatGoalFromPath(window.location.pathname);
+        if (inferred) setGoal(inferred);
+        setHandoffComplete(true);
+        setHandoffPhase('connected');
+      }
+      if (detail.intent === 'upload_report' && !detail.goal) {
+        window.setTimeout(() => fileInputRef.current?.click(), 400);
       }
       if (detail.leadId) {
         setLeadId(detail.leadId);
@@ -407,6 +536,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
       const picked = Array.from(files).slice(0, slots);
       const partner = user?.email ? await findPartnerByEmail(user.email) : null;
       const analyzed: PublicChatDocAnalysis[] = [];
+      let guestParseTeaser = false;
       for (const file of picked) {
         let analysis = analyzePublicChatDocumentHeuristic(file);
         if (partner) {
@@ -414,13 +544,55 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
           analysis = persisted.analysis;
         }
         analyzed.push(analysis);
+        if (!partner && (analysis.docType === 'credit_report' || /\.(pdf|html?)$/i.test(file.name))) {
+          try {
+            const reportId = newEntityId('guest');
+            const isHtml = /\.html?$/i.test(file.name);
+            const parsed = isHtml
+              ? (await parseHtmlReportWithCache({ reportId, html: await file.text() })).parsed
+              : (await parsePdfReportWithCache({ reportId, file })).parsed;
+            if (parsed) {
+              const accounts = parsed.tradelines?.length ?? 0;
+              const collections = (parsed.tradelines ?? []).filter((row) =>
+                /collect|charge.?off|derog/i.test(`${row.accountType ?? ''} ${row.accountStatus ?? ''}`),
+              ).length;
+              guestParseTeaser = true;
+              const trialHref = resolveFinelyCtaPath('personal_free_trial', { isAuthed: false });
+              setMessages((prev) => [
+                ...prev,
+                {
+                  id: newId(),
+                  role: 'bot',
+                  text: [
+                    'I read this file.',
+                    `Bureau source: ${parsed.provider === 'unknown' ? 'the export you uploaded' : parsed.provider}.`,
+                    `Accounts found: ${accounts}.`,
+                    collections ? `Collections / negatives counted: ${collections}.` : null,
+                    'This is a snapshot — not a full credit analysis.',
+                    'A free partner account unlocks the full credit analysis (scores, targets, letter plan).',
+                  ]
+                    .filter(Boolean)
+                    .join('\n'),
+                  personaId: chatStaff.personaId,
+                  card: { title: 'Start free trial', href: trialHref, kind: 'page' },
+                },
+              ]);
+            }
+          } catch {
+            /* keep heuristic reply */
+          }
+        }
       }
       setPendingAttachments((prev) => [...prev, ...analyzed].slice(0, MAX_CHAT_ATTACHMENTS));
-      pushBot(
-        analyzed.map((a, i) => formatPublicChatDocReply(a, i, analyzed.length)).join('\n\n') +
-          (partner ? '' : '\n\n💡 Log in or sign up free to save uploads to your profile automatically.'),
-        chatStaff.personaId,
-      );
+      if (!guestParseTeaser) {
+        pushBot(
+          analyzed.map((a, i) => formatPublicChatDocReply(a, i, analyzed.length)).join('\n\n') +
+            (partner
+              ? ''
+              : '\n\nCreate a free partner account to save this file and run the full credit analysis.'),
+          chatStaff.personaId,
+        );
+      }
     } finally {
       setAttachmentBusy(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -429,15 +601,27 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
 
   const requestLiveAgent = () => {
     if (!user) {
-      pushBot(
-        'Direct messages with our live team require a free partner account. Create one or log in — then we can connect you with a specialist in the Communication Hub.',
-        chatStaff.personaId,
-      );
+      const trialHref = resolveFinelyCtaPath('personal_free_trial', { isAuthed: false });
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: newId(),
+          role: 'bot',
+          text: 'A live specialist can join after you create a free partner account. I can also put you on a session now.',
+          personaId: chatStaff.personaId,
+          card: { title: 'Start free trial', href: trialHref, kind: 'page' },
+        },
+      ]);
+      return;
+    }
+    if (launcherShiftMeta && !launcherShiftMeta.onShift) {
+      pushBot('We are after hours. I can put you on a session instead.', chatStaff.personaId);
+      finelyCtaNavigate(navigate, 'consultation', { consultationLane: consultationLaneForGoal(goal ?? inferPublicChatGoalFromPath(pathname)) });
       return;
     }
     if (!handoffComplete) {
       if (!goal) {
-        pushBot('Pick your lane above first — then I can connect you with a live specialist.', chatStaff.personaId);
+        pushBot('Tell me what you need — restore, business credit, tradelines, or debt — and I will take it from there.', chatStaff.personaId);
         return;
       }
       beginHandoff(resolvePersona(goal, personaOverrideId));
@@ -486,7 +670,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
       setTypingLabel(`${presentation.firstName} ${t(activeLocale, 'typing')}`);
       const delayMs = humanReplyDelayMs({ userMessage: trimmed });
       await new Promise((r) => window.setTimeout(r, delayMs));
-      const staffBundle = resolveChatStaffPresentation({ personaId: persona.id, audience });
+      const staffBundle = faceForSession(persona.id);
       const fallback = buildWarmUnclassifiedReply({
         presentation: staffBundle.presentation,
         audience,
@@ -494,6 +678,23 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
       });
       pushBot(fallback.reply, staffBundle.personaId, 'knowledge_local');
       setFollowUps(fallback.followUps);
+      setTypingLabel(null);
+      setBusy(false);
+      return;
+    }
+
+    const spokenDoor = !attachments?.length ? humanSpokenReply(trimmed) : null;
+    if (spokenDoor) {
+      setBusy(true);
+      setTypingLabel(`${presentation.firstName} ${t(activeLocale, 'typing')}`);
+      const delayMs = humanReplyDelayMs({ userMessage: trimmed });
+      await new Promise((r) => window.setTimeout(r, delayMs));
+      pushBot(spokenDoor, chatStaff.personaId, 'knowledge_local');
+      setAiHistory((prev) => [
+        ...prev,
+        { role: 'user', content: trimmed },
+        { role: 'assistant', content: spokenDoor },
+      ]);
       setTypingLabel(null);
       setBusy(false);
       return;
@@ -512,10 +713,10 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
           seniorMode: easyReadMode,
         });
         recordFinelyPublicAnswerRoute('canned');
-        const kbRefs = result.citations.slice(0, 2).map((c) => c.title);
+        const kbRefs = audience === 'partner' ? result.citations.slice(0, 2).map((c) => c.title) : [];
         const kbChunkIds = result.citations.map((c) => c.id);
         pushBot(
-          enrichPublicChatReply(result.reply, goal),
+          result.topic === 'term_explain' ? result.reply : enrichPublicChatReply(result.reply, goal),
           chatStaff.personaId,
           'knowledge_local',
           kbRefs.length ? kbRefs : undefined,
@@ -536,7 +737,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
 
     const classified = classifyMessageIntent(trimmed);
     let activePersona = personaOverride ?? persona;
-    const staffBundle = resolveChatStaffPresentation({ personaId: activePersona.id, audience });
+    const staffBundle = faceForSession(activePersona.id);
     const activePersonaId = staffBundle.personaId;
 
     if (shouldUseAppointmentSetter(chatIntent) && handoffComplete) {
@@ -548,8 +749,6 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
       const routed = getEffectiveAgentPersona(classified.suggestedPersonaId);
       if (routed) {
         activePersona = routed;
-        setPersonaOverrideId(routed.id);
-        beginHandoff(routed);
       }
       if (classified.intent === 'complaint') {
         emitPlatformEvent({
@@ -566,16 +765,9 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
         });
       }
     } else if (!handoffComplete && classified.confidence >= 0.55 && classified.suggestedPersonaId) {
-      const routed = getEffectiveAgentPersona(classified.suggestedPersonaId);
-      if (routed) {
-        pushBot(
-          `Sounds like ${routed.displayTitle.toLowerCase()} is the right lane — connecting you now…`,
-          chatStaff.personaId,
-        );
-        setGoal((prev) => prev ?? 'not_sure');
-        window.setTimeout(() => beginHandoff(routed), 600);
-        return;
-      }
+      setGoal((prev) => prev ?? 'not_sure');
+      setHandoffComplete(true);
+      setHandoffPhase('connected');
     }
 
     const tone = inferUserTone(aiText);
@@ -590,7 +782,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
     await new Promise((r) => window.setTimeout(r, delayMs));
 
     try {
-      const replyStaffBundle = resolveChatStaffPresentation({ personaId: activePersona.id, audience });
+      const replyStaffBundle = faceForSession(activePersona.id);
       const addendum = buildConversationalSystemAddendum({
         locale: activeLocale,
         tone,
@@ -601,6 +793,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
         origin: typeof window !== 'undefined' ? window.location.origin : '',
         userMessage: `${aiText}${attachmentBlock}`,
         easyReadMode,
+        pathname,
       });
 
       const systemPromptBase = buildAiAssistSystemPrompt({
@@ -636,7 +829,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
         replyText = `${replyText}\n\n${t(activeLocale, 'trustedLinks')}:\n${linkLines.join('\n')}`;
       }
 
-      const kbRefs = result.knowledgeUsed.slice(0, 2).map((c) => c.article.title);
+      const kbRefs = audience === 'partner' ? result.knowledgeUsed.slice(0, 2).map((c) => c.article.title) : [];
       const kbChunkIds = result.knowledgeUsed.map((c) => c.article.id);
       pushBot(
         replyText,
@@ -700,22 +893,13 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
     });
     const kbChunkIds = result.citations.map((c) => c.id);
     pushBot(
-      enrichPublicChatReply(result.reply, goal),
+      result.topic === 'term_explain' ? result.reply : enrichPublicChatReply(result.reply, goal),
       chatStaff.personaId,
       'knowledge_local',
       undefined,
       kbChunkIds.length ? kbChunkIds : undefined,
       prompt,
     );
-  };
-
-  const pickGoal = (g: Goal) => {
-    setOptionsOpen(false);
-    setGoal(g);
-    const p = resolvePersona(g);
-    setPersonaOverrideId(undefined);
-    pushBot(`Perfect — I'll connect you with our ${p.displayTitle.toLowerCase()} team. Checking who's available…`, chatStaff.personaId);
-    window.setTimeout(() => beginHandoff(p), 600);
   };
 
   const canSubmit = goal && sanitize(fullName) && sanitize(email) && sanitize(phone) && consent;
@@ -725,30 +909,35 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
     setBusy(true);
     try {
       const interest = goalLabel ?? 'General';
+      const haitianLead = goal === 'haitian';
       const res = await submitLeadCapture({
         source: 'chat',
-        offer: 'free_1h_consult',
+        offer: haitianLead ? 'haitian_credit_kit' : 'free_1h_consult',
         interest,
         fullName: sanitize(fullName),
         email: sanitize(email),
         phone: sanitize(phone),
         consentToContact: Boolean(consent),
         funnelPath:
-          goal === 'debt'
-            ? '/free-debt-guide'
-            : goal === 'business'
-              ? '/free-business-guide'
-              : goal === 'tradelines'
-                ? '/free-tradeline-guide'
-                : '/free-guide',
+          haitianLead
+            ? '/free-kreyol-guide'
+            : goal === 'debt'
+              ? '/free-debt-guide'
+              : goal === 'business'
+                ? '/free-business-guide'
+                : goal === 'tradelines'
+                  ? '/free-tradeline-guide'
+                  : '/free-guide',
         funnelId:
-          goal === 'debt'
-            ? 'debt_freedom'
-            : goal === 'business'
-              ? 'business_credit'
-              : goal === 'tradelines'
-                ? 'tradeline_insider'
-                : 'credit_dispute',
+          haitianLead
+            ? 'haitian_credit_kit'
+            : goal === 'debt'
+              ? 'debt_freedom'
+              : goal === 'business'
+                ? 'business_credit'
+                : goal === 'tradelines'
+                  ? 'tradeline_insider'
+                  : 'credit_dispute',
       });
       setSubmitted({ remote: res.remote, ref: res.lead.id });
       setLeadId(res.lead.id);
@@ -773,14 +962,9 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
       ? '/free-debt-guide'
       : goal === 'business'
         ? '/free-business-guide'
-        : goal === 'tradelines'
+        : goal === 'tradelines' || goal === 'building'
           ? '/free-tradeline-guide'
           : '/free-guide';
-
-  const resolveMsgPresentation = (personaId?: AgentPersonaId) => {
-    if (!personaId) return presentation;
-    return resolveChatStaffPresentation({ personaId, audience }).presentation;
-  };
 
   return (
     <div className="finely-public-chat-widget" data-fc-public-chat-widget="1" data-fc-obsidian-chat="1">
@@ -788,7 +972,11 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
         <button
           type="button"
           onClick={() => {
-            refreshDutyFace({ forcePolicy: true });
+            if (presentation.staffMemberId) {
+              setLockedStaffId((prev) => prev ?? presentation.staffMemberId);
+            }
+            const inferred = inferPublicChatGoalFromPath(pathname);
+            if (inferred) setGoal(inferred);
             setOpen(true);
           }}
           className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))] z-[120] inline-flex items-center gap-3 rounded-2xl border border-emerald-400/40 bg-gradient-to-br from-emerald-600/90 via-teal-700/85 to-cyan-900/80 backdrop-blur-xl pl-2 pr-4 py-2 shadow-[0_12px_40px_-8px_rgba(16,185,129,0.55),0_0_0_1px_rgba(139,92,246,0.25)] hover:shadow-[0_20px_50px_-12px_rgba(16,185,129,0.55),0_0_24px_-4px_rgba(45,212,191,0.35)] transition-all max-w-[calc(100vw-2rem)] ring-1 ring-violet-400/20"
@@ -802,7 +990,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
           />
           <div className="text-left min-w-0">
             <div className="text-xs font-black uppercase tracking-[0.28em] text-emerald-300/90">
-              Chat with {presentation.firstName}
+              {t(locale, 'chatWith')} {presentation.firstName}
             </div>
             <div className="text-xs text-white/80 truncate">On duty · {aiAssistBadgeLabel}</div>
           </div>
@@ -810,8 +998,8 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
       )}
 
       {open && (
-        <div className="fixed inset-0 sm:inset-auto sm:bottom-4 sm:right-4 z-[120] sm:w-[min(420px,calc(100vw-1.5rem))] sm:max-h-[calc(100vh-1.25rem)] flex flex-col">
-          <div className="relative flex flex-col min-h-0 h-full sm:h-[min(760px,calc(100vh-1.25rem))] sm:rounded-3xl border border-white/[0.08] fc-comms-solid-shell fc-public-chat-panel shadow-[0_24px_80px_-20px_rgba(0,0,0,0.85)] overflow-hidden ring-1 ring-white/5">
+        <div className="fixed inset-0 sm:inset-auto sm:bottom-4 sm:right-4 z-[120] sm:w-[min(520px,calc(100vw-1.5rem))] sm:max-h-[calc(100vh-1.5rem)] flex flex-col">
+          <div className="relative flex flex-col min-h-0 h-full sm:h-[min(540px,calc(100vh-1.5rem))] sm:rounded-3xl border border-white/[0.08] fc-comms-solid-shell fc-public-chat-panel shadow-[0_24px_80px_-20px_rgba(0,0,0,0.85)] overflow-hidden ring-1 ring-white/5">
             <div
               aria-hidden
               className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_20%_-10%,rgba(16,185,129,0.12),transparent_55%),radial-gradient(ellipse_60%_40%_at_90%_20%,rgba(45,212,191,0.08),transparent_50%),radial-gradient(ellipse_50%_35%_at_70%_100%,rgba(139,92,246,0.07),transparent_45%)]"
@@ -837,16 +1025,14 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                             {aiAssistBadgeLabel}
                           </span>
                         </div>
-                        <div className={`text-xs font-medium ${presentation.accentText} truncate`}>{presentation.title}</div>
-                        <p className="text-xs text-white/55 mt-1 leading-snug">{presentation.tagline}</p>
+                        <div className={`text-xs font-medium ${presentation.accentText} truncate`}>{publicRole}</div>
                       </>
                     ) : handoffPhase === 'connecting' ? (
                       <>
                         <span className="font-bold text-white text-base">{presentation.firstName}</span>
                         <div className="text-xs font-medium text-emerald-200/80 mt-0.5">
-                          Connecting you with {presentation.title}…
+                          Connecting you…
                         </div>
-                        <p className="text-xs text-white/55 mt-1 leading-snug">{presentation.tagline}</p>
                       </>
                     ) : (
                       <>
@@ -866,12 +1052,8 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                           </span>
                         </div>
                         <div className={`text-xs font-medium ${presentation.accentText} truncate mt-0.5`}>
-                          {presentation.title}
-                          {launcherShiftMeta?.summary ? (
-                            <span className="text-white/45"> · {launcherShiftMeta.summary}</span>
-                          ) : null}
+                          {publicRole}
                         </div>
-                        <p className="text-xs text-white/45 mt-1 leading-snug">{presentation.tagline}</p>
                       </>
                     )}
                   </div>
@@ -882,8 +1064,11 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                   className={FINELY_OS_SECONDARY_BTN}
                   aria-label={t(locale, 'close')}
                 >
-                  <X size={16} />
+                  <span aria-hidden>❌</span>
                 </button>
+              </div>
+              <div className="mt-3">
+                <ChatLocaleFaceRow locale={locale} onPick={setLocale} />
               </div>
             </div>
 
@@ -899,7 +1084,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                       {presentation.firstName} is coming online…
                     </p>
                     <p className="text-xs text-sky-100/70 mt-0.5">
-                      Connecting you with {presentation.title}
+                      Connecting you with {publicRole}
                     </p>
                   </div>
                   <Loader2 size={18} className="text-sky-200 animate-spin shrink-0 ml-auto" />
@@ -934,32 +1119,35 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                   );
                 }
 
-                const msgPersona = resolveMsgPresentation(m.personaId);
                 return (
                   <div key={m.id} className="flex justify-start gap-2.5 pr-6">
-                    <PublicChatStaffAvatar presentation={msgPersona} size="sm" />
+                    <PublicChatStaffAvatar presentation={presentation} size="sm" />
                     <div className="min-w-0 max-w-[88%] space-y-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-xs font-bold text-white/85">{msgPersona.firstName}</span>
-                        <span className="text-xs text-white/45">· {msgPersona.title}</span>
-                        <span className="text-xs uppercase tracking-wider rounded px-1.5 py-0.5 border text-violet-100 border-violet-400/35 bg-violet-500/15">
-                          {aiAssistBadgeLabel}
-                        </span>
-                      </div>
                       <div className="rounded-2xl rounded-bl-md px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap text-slate-900 bg-white border border-slate-200/90 shadow-sm">
                         {m.text}
                       </div>
+                      {m.card ? (
+                        <button
+                          type="button"
+                          className="mt-1 w-full overflow-hidden rounded-xl border border-emerald-300/30 bg-emerald-500/10 text-left"
+                          onClick={() => {
+                            if (m.card?.href) navigate(m.card.href);
+                          }}
+                        >
+                          {m.card.image ? (
+                            <img src={m.card.image} alt="" className="h-20 w-full object-cover object-top" />
+                          ) : null}
+                          <span className="block px-3 py-2 text-xs font-black uppercase tracking-wider text-emerald-50">
+                            {m.card.title}
+                          </span>
+                        </button>
+                      ) : null}
                       <div className="flex flex-wrap items-center gap-2 px-0.5">
-                        {m.source ? (
+                        {audience === 'partner' && m.source ? (
                           <span className="text-xs text-white/40">
                             {m.source === 'gateway' ? 'Live reply' : 'Knowledge base'}
                           </span>
                         ) : null}
-                        {m.kbRefs?.map((ref) => (
-                          <span key={ref} className="text-xs px-1.5 py-0.5 rounded-full bg-violet-500/15 text-violet-100 border border-violet-300/20">
-                            KB · {ref}
-                          </span>
-                        ))}
                       </div>
                       {m.kbChunkIds?.length ? (
                         <div className="flex items-center gap-1.5 px-0.5">
@@ -1012,6 +1200,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
               ) : null}
             </div>
 
+            {/* Do not put Personal restore / Business / Tradelines / Debt chips on this composer. */}
             <div className="relative shrink-0 px-3 pt-2.5 pb-2 border-t border-white/[0.08] bg-[#070d0b]/95 space-y-2">
               {pendingAttachments.length ? (
                 <div className="flex flex-wrap gap-1.5">
@@ -1020,22 +1209,6 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                       {a.emoji} {a.label}
                       <button type="button" className="opacity-70 hover:opacity-100" onClick={() => setPendingAttachments((prev) => prev.filter((x) => x.id !== a.id))} aria-label="Remove attachment">×</button>
                     </span>
-                  ))}
-                </div>
-              ) : null}
-
-              {!goal && !handoffComplete ? (
-                <div className="flex gap-1 overflow-x-auto pb-0.5">
-                  {LANE_OPTIONS.map((x) => (
-                    <button
-                      key={x.id}
-                      data-testid={`public-chat-lane-chip-${x.id}`}
-                      type="button"
-                      onClick={() => pickGoal(x.id)}
-                      className={`shrink-0 px-2.5 py-1 rounded-full border text-[11px] font-bold ${x.card}`}
-                    >
-                      {x.emoji} {x.label}
-                    </button>
                   ))}
                 </div>
               ) : null}
@@ -1120,6 +1293,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
               {emojiOpen ? (
                 <FinelyPremiumEmojiPicker
                   className="mt-1 !max-h-40"
+                  onClose={() => setEmojiOpen(false)}
                   onPick={(emoji) => {
                     insertEmojiAtCursor(emoji);
                     setEmojiOpen(false);
@@ -1150,39 +1324,6 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                     </button>
                   </div>
                   <div className="px-3 sm:px-4 py-3 space-y-3 pb-6">
-                    {!goal && !handoffComplete ? (
-                      <div className="rounded-2xl border border-emerald-400/20 bg-emerald-950/40 p-3">
-                        <div className={`${FINELY_OS_ENTITY_SUBLABEL} mb-2 text-emerald-200/90`}>{t(locale, 'pickLaneToStart')}</div>
-                        <div className="grid grid-cols-2 gap-2">
-                          {LANE_OPTIONS.map((x) => (
-                            <button
-                              data-testid={`public-chat-lane-${x.id}`}
-                              key={x.id}
-                              type="button"
-                              onClick={() => {
-                                setOptionsOpen(false);
-                                pickGoal(x.id);
-                              }}
-                              className={`px-2.5 py-2.5 rounded-xl border text-left transition-all ${x.card}`}
-                            >
-                              <div className="text-xs font-black uppercase tracking-widest text-white/90">{x.emoji} {x.label}</div>
-                              <div className={`text-xs mt-0.5 ${x.sub}`}>{x.roleHint}</div>
-                            </button>
-                          ))}
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setOptionsOpen(false);
-                            pickGoal('not_sure');
-                          }}
-                          className="mt-2 w-full px-3 py-2 rounded-xl border border-dashed border-rose-400/35 bg-rose-500/15 text-xs font-black uppercase tracking-widest text-rose-100 hover:bg-rose-500/25"
-                        >
-                          Not sure — Welcome Concierge
-                        </button>
-                      </div>
-                    ) : null}
-
                     {followUps.length > 0 ? (
                       <div className="rounded-2xl border border-teal-400/25 bg-teal-950/30 p-3">
                         <div className={`${FINELY_OS_ENTITY_SUBLABEL} mb-2 text-teal-200/90`}>{t(locale, 'suggestedReplies')}</div>
@@ -1221,27 +1362,6 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                       >
                         {t(locale, 'pageHelp')}
                       </button>
-                    </div>
-
-                    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3">
-                      <div className={`${FINELY_OS_ENTITY_SUBLABEL} mb-2`}>{t(locale, 'language')}</div>
-                      <div className="grid grid-cols-4 gap-1.5">
-                        {CHAT_LOCALE_ORDER.map((loc) => (
-                          <button
-                            key={loc}
-                            type="button"
-                            onClick={() => setLocale(loc)}
-                            className={`w-full py-1.5 rounded-lg text-xs font-semibold border transition-colors text-center ${
-                              locale === loc
-                                ? 'border-emerald-400/50 bg-emerald-500/20 text-emerald-100'
-                                : 'border-white/12 bg-white/[0.04] text-white/55 hover:border-white/25 hover:text-white/80'
-                            }`}
-                            aria-pressed={locale === loc}
-                          >
-                            {CHAT_LOCALE_LABELS[loc]}
-                          </button>
-                        ))}
-                      </div>
                     </div>
 
                     <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3">

@@ -1,0 +1,158 @@
+/* Admin credit file — command floor inside the partner sheet. */
+
+.fc-admin-credit-floor {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 0.25rem 0 0.5rem;
+}
+
+.fc-admin-credit-floor__kicker {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #7dd3fc;
+}
+
+.fc-admin-credit-floor__title {
+  margin: 0;
+  font-size: clamp(1.85rem, 3vw, 2.35rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #f8fafc;
+}
+
+.fc-admin-credit-floor__lede {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.5;
+  color: rgba(226, 232, 240, 0.86);
+}
+
+.fc-admin-credit-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.85rem;
+}
+
+.fc-admin-service-strip {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.fc-admin-room-strip {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.fc-admin-room-strip[data-cols='6'] {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.fc-admin-room-strip[data-cols='4'] {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 1100px) {
+  .fc-admin-room-strip[data-cols='6'] {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .fc-admin-room-strip[data-cols='4'] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .fc-admin-service-strip {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .fc-admin-room-strip[data-cols='6'],
+  .fc-admin-room-strip[data-cols='4'] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.fc-admin-credit-strip__btn {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  text-align: left;
+  min-height: 5.5rem;
+  padding: 1rem 1.1rem;
+  border-radius: 1.05rem;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(8, 14, 24, 0.55);
+  color: #f8fafc;
+  cursor: pointer;
+}
+
+.fc-admin-credit-strip__btn strong {
+  display: block;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.fc-admin-credit-strip__btn em {
+  display: block;
+  margin-top: 0.2rem;
+  font-style: normal;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: rgba(226, 232, 240, 0.78);
+}
+
+.fc-admin-credit-strip__btn[data-fc-accent='emerald'] { border-color: rgba(52, 211, 153, 0.45); }
+.fc-admin-credit-strip__btn[data-fc-accent='sky'] { border-color: rgba(56, 189, 248, 0.45); }
+.fc-admin-credit-strip__btn[data-fc-accent='violet'] { border-color: rgba(167, 139, 250, 0.45); }
+.fc-admin-credit-strip__btn[data-fc-accent='rose'] { border-color: rgba(251, 113, 133, 0.45); }
+
+.fc-admin-credit-strip__btn[data-active='true'][data-fc-accent='emerald'] {
+  background: rgba(4, 120, 87, 0.28);
+}
+.fc-admin-credit-strip__btn[data-active='true'][data-fc-accent='sky'] {
+  background: rgba(3, 105, 161, 0.28);
+}
+.fc-admin-credit-strip__btn[data-active='true'][data-fc-accent='violet'] {
+  background: rgba(109, 40, 217, 0.28);
+}
+.fc-admin-credit-strip__btn[data-active='true'][data-fc-accent='rose'] {
+  background: rgba(190, 18, 60, 0.28);
+}
+
+.fc-admin-credit-room {
+  min-height: 22rem;
+  padding: 1.25rem;
+  border-radius: 1.15rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(8, 14, 24, 0.42);
+}
+
+html[data-fc-theme='light'] .fc-admin-credit-floor__kicker {
+  color: #0369a1;
+}
+
+html[data-fc-theme='light'] .fc-admin-credit-floor__title {
+  color: #0a1628;
+}
+
+html[data-fc-theme='light'] .fc-admin-credit-floor__lede,
+html[data-fc-theme='light'] .fc-admin-credit-strip__btn em {
+  color: #435063;
+}
+
+html[data-fc-theme='light'] .fc-admin-credit-strip__btn {
+  background: #fff;
+  color: #0a1628;
+  border-color: rgba(10, 22, 40, 0.14);
+}
+
+html[data-fc-theme='light'] .fc-admin-credit-room {
+  background: #fff;
+  border-color: rgba(10, 22, 40, 0.12);
+}

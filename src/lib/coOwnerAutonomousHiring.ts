@@ -30,6 +30,7 @@ function departmentForRole(roleId: AgentPersonaId): StaffMember['department'] {
     support_specialist: 'partner_success',
     ops_copilot: 'internal_ops',
     compliance_agent: 'internal_ops',
+    haitian_companion: 'haitian_community',
   };
   return map[roleId] ?? 'partner_success';
 }

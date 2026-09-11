@@ -23,6 +23,8 @@ import {
   BC_ONE_SHEETS_PATH,
 } from './businessCreditPowerGuideContent';
 import GuideReaderShell from './GuideReaderShell';
+import { LeadMagnetPreviewBanner } from '../../components/leadmagnet/LeadMagnetPreviewBanner';
+import { clampLeadMagnetChapter, useLeadMagnetGuideGate } from '../../lib/useLeadMagnetGuideGate';
 import './businessCreditPowerGuideReader.css';
 import './guideReaderShell.css';
 
@@ -32,6 +34,7 @@ export default function BusinessCreditPowerGuideReaderPage() {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const [railOpen, setRailOpen] = useState(false);
+  const { unlocked, previewLocked } = useLeadMagnetGuideGate('business_credit');
 
   const initialIdx = useMemo(() => {
     const q = params.get('chapter') ?? '';
@@ -44,8 +47,8 @@ export default function BusinessCreditPowerGuideReaderPage() {
   const [idx, setIdx] = useState(initialIdx);
 
   useEffect(() => {
-    setIdx(initialIdx);
-  }, [initialIdx]);
+    setIdx(previewLocked ? 0 : initialIdx);
+  }, [initialIdx, previewLocked]);
 
   const chapter = BC_GUIDE_CHAPTERS[idx] ?? BC_GUIDE_CHAPTERS[0]!;
   const totalMinutes = useMemo(() => guideReadMinutes(BC_GUIDE_CHAPTERS), []);
@@ -69,12 +72,12 @@ export default function BusinessCreditPowerGuideReaderPage() {
 
   const goChapter = useCallback(
     (next: number) => {
-      const clamped = Math.max(0, Math.min(TOTAL - 1, next));
+      const clamped = clampLeadMagnetChapter(next, TOTAL, unlocked);
       setIdx(clamped);
       setParams({ chapter: BC_GUIDE_CHAPTERS[clamped]!.id }, { replace: true });
       setRailOpen(false);
     },
-    [setParams],
+    [setParams, unlocked],
   );
 
   return (
@@ -83,12 +86,20 @@ export default function BusinessCreditPowerGuideReaderPage() {
       chapters={shellChapters}
       chapterIndex={idx}
       onChapterChange={goChapter}
+      previewLocked={previewLocked}
+      previewUnlockHref={`${BC_GUIDE_LANDING_PATH}#download`}
+      previewBanner={
+        <LeadMagnetPreviewBanner
+          unlockHref={`${BC_GUIDE_LANDING_PATH}#download`}
+          pagesLabel="the full business credit guide"
+        />
+      }
       tocOpen={railOpen}
       onTocOpenChange={setRailOpen}
       tocToggleLabel="Pages"
       tocPosition="right"
       storageKey="finely.guideReader.businessCredit"
-      maxWidthClassName="max-w-[92rem]"
+      maxWidthClassName="max-w-none"
       gridClassName="lg:grid-cols-[minmax(0,1fr)_286px]"
       headerClassName="bcg-bar"
       progressTrackClassName="bcg-bar-track"
@@ -122,13 +133,14 @@ export default function BusinessCreditPowerGuideReaderPage() {
       beforeGrid={
         <nav
           aria-label="Page stepper"
-          className="relative z-10 mx-auto mt-5 max-w-[92rem] overflow-x-auto px-4 pb-1 md:px-8"
+          className="relative z-10 fc-viewport-floor mt-5 overflow-x-auto pb-1"
         >
           <ol className="flex min-w-max items-center gap-1.5">
             {BC_GUIDE_CHAPTERS.map((ch, i) => (
               <li key={ch.id}>
                 <button
                   type="button"
+                  disabled={previewLocked && i > 0}
                   onClick={() => goChapter(i)}
                   className={cx(
                     'bcg-mono inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] transition',

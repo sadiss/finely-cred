@@ -19,6 +19,8 @@ import {
   type ScoreBoostSection,
 } from '../../resources/scoreRoadmapContent';
 import GuideReaderShell from './GuideReaderShell';
+import { LeadMagnetPreviewBanner } from '../../components/leadmagnet/LeadMagnetPreviewBanner';
+import { clampLeadMagnetChapter, useLeadMagnetGuideGate } from '../../lib/useLeadMagnetGuideGate';
 import './scoreBoostGuideReader.css';
 import './guideReaderShell.css';
 
@@ -166,6 +168,7 @@ export default function ScoreBoostGuideReaderPage() {
   const [params, setParams] = useSearchParams();
   const [indexOpen, setIndexOpen] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const { unlocked, previewLocked } = useLeadMagnetGuideGate('score_roadmap');
 
   const initialIdx = useMemo(() => {
     const q = (params.get('chapter') ?? '').trim();
@@ -179,8 +182,8 @@ export default function ScoreBoostGuideReaderPage() {
   const [idx, setIdx] = useState(initialIdx);
 
   useEffect(() => {
-    setIdx(initialIdx);
-  }, [initialIdx]);
+    setIdx(previewLocked ? 0 : initialIdx);
+  }, [initialIdx, previewLocked]);
 
   const chapter = CHAPTERS[idx] ?? CHAPTERS[0]!;
   const linear = ((idx + 1) / CHAPTERS.length) * 100;
@@ -198,7 +201,7 @@ export default function ScoreBoostGuideReaderPage() {
   );
 
   usePublicSeoMeta({
-    title: `${chapter.title} — Boost Your Credit Score in 72 Hours`,
+    title: `${chapter.title} — A 72-Hour Credit Score Roadmap`,
     description:
       chapter.subtitle ??
       'The free Finely Cred score roadmap: utilization, reporting dates, negative triage, inquiry budgeting, and fundability timing.',
@@ -207,12 +210,12 @@ export default function ScoreBoostGuideReaderPage() {
 
   const goChapter = useCallback(
     (next: number) => {
-      const clamped = Math.max(0, Math.min(CHAPTERS.length - 1, next));
+      const clamped = clampLeadMagnetChapter(next, CHAPTERS.length, unlocked);
       setIdx(clamped);
       setParams({ chapter: CHAPTERS[clamped]!.id }, { replace: true });
       setIndexOpen(false);
     },
-    [setParams],
+    [setParams, unlocked],
   );
 
   const onDownload = async () => {
@@ -230,6 +233,14 @@ export default function ScoreBoostGuideReaderPage() {
       chapters={shellChapters}
       chapterIndex={idx}
       onChapterChange={goChapter}
+      previewLocked={previewLocked}
+      previewUnlockHref={`${LANDING_PATH}#download`}
+      previewBanner={
+        <LeadMagnetPreviewBanner
+          unlockHref={`${LANDING_PATH}#download`}
+          pagesLabel="the full score roadmap"
+        />
+      }
       tocOpen={indexOpen}
       onTocOpenChange={setIndexOpen}
       tocToggleLabel="Steps"

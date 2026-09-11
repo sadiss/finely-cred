@@ -1134,9 +1134,9 @@ export const wealthBuilderPackages: PricingPackage[] = [
     id: 'wealth_builder_diy',
     category: 'wealth_builder',
     name: 'Wealth Builder DIY',
-    tagline: 'Blueprints, systems, and execution checklists',
+    tagline: 'The map before the larger ask',
     description:
-      'A guided program to transition from credit repair into business credit, funding readiness, and wealth fundamentals.',
+      'A self-paced program that takes a partner from a stable personal file into entity hygiene, funding readiness, and the first wealth fundamentals.',
     highlights: [
       'Business credit foundations roadmap',
       'Funding readiness scorecard + checklist',
@@ -1156,9 +1156,9 @@ export const wealthBuilderPackages: PricingPackage[] = [
     id: 'wealth_builder_starter',
     category: 'wealth_builder',
     name: 'Advanced Wealth Builder — Starter',
-    tagline: '$100K–$150K funding pathway',
+    tagline: 'Guided path toward a $100K–$150K company ask',
     description:
-      'A done-for-you guided build designed to transition from credit stability into business structure, funding readiness, and disciplined execution.',
+      'Done-for-you support to stand up the entity, sequence business credit, and keep a weekly cadence while the file learns to carry a mid-five-figure ask.',
     highlights: [
       'Guided execution window (DFY-supported)',
       'Guidance on registering a Corp/LLC',
@@ -1180,9 +1180,9 @@ export const wealthBuilderPackages: PricingPackage[] = [
     id: 'wealth_builder_growth',
     category: 'wealth_builder',
     name: 'Advanced Wealth Builder — Growth',
-    tagline: '$150K–$250K funding pathway (accelerated)',
+    tagline: 'Accelerated path toward a $150K–$250K company ask',
     description:
-      'A mid-tier DFY option that bridges the gap: deeper guidance, stronger execution support, and earlier access to premium lanes.',
+      'A mid-tier done-for-you build with deeper execution support and earlier access to premium Wealth Paths when the company file can carry it.',
     highlights: [
       'Expanded execution window',
       'Business structure + compliance guidance',
@@ -1209,9 +1209,9 @@ export const wealthBuilderPackages: PricingPackage[] = [
     id: 'wealth_builder_pro',
     category: 'wealth_builder',
     name: 'Advanced Wealth Builder — Pro',
-    tagline: '$150K–$250K funding pathway',
+    tagline: 'Higher-touch path toward a $150K–$250K company ask',
     description:
-      'A higher-touch DFY program with deeper implementation support and expanded Wealth Paths unlocks.',
+      'A closer done-for-you program: entity work, business-credit sequencing, and lender packaging on a milestone calendar.',
     highlights: [
       'Register a Corp/LLC for you (as applicable)',
       'Build business credit sequencing (DFY supported)',
@@ -1239,9 +1239,9 @@ export const wealthBuilderPackages: PricingPackage[] = [
     id: 'wealth_builder_prime',
     category: 'wealth_builder',
     name: 'Advanced Wealth Builder — Prime',
-    tagline: '$250K–$350K funding pathway',
+    tagline: 'Priority path toward a $250K–$350K company ask',
     description:
-      'A high-tier DFY program designed for larger funding targets with deeper operational support and premium Wealth Paths.',
+      'A high-tier done-for-you program for larger asks — deeper operational support, priority reporting, and premium Wealth Paths.',
     highlights: [
       'Deeper DFY execution support',
       'Priority reporting dashboards',
@@ -1270,9 +1270,9 @@ export const wealthBuilderPackages: PricingPackage[] = [
     id: 'wealth_builder_elite',
     category: 'wealth_builder',
     name: 'Advanced Wealth Builder — Elite',
-    tagline: '$250K–$350K funding pathway',
+    tagline: 'Extended path toward a $250K–$350K company ask',
     description:
-      'Enterprise DFY execution with extended support windows, deeper strategy, and premium Wealth Paths.',
+      'An extended done-for-you window with priority reporting, deeper structure guidance, and premium Wealth Paths across more than one lane.',
     highlights: [
       'Extended execution window',
       'Priority execution + reporting dashboards',
@@ -1300,9 +1300,9 @@ export const wealthBuilderPackages: PricingPackage[] = [
     id: 'wealth_builder_superior',
     category: 'wealth_builder',
     name: 'Advanced Wealth Builder — Superior',
-    tagline: '$400K+ funding pathway (flagship)',
+    tagline: 'Flagship path toward a $400K+ company ask',
     description:
-      'Flagship program with premium Wealth Paths unlocks and a connected pathway to Nora Capital Group (API-connected when configured).',
+      'The flagship done-for-you program: full Wealth Paths, trust and corporate structure guidance, and a connected Nora Capital Group path when that integration is live.',
     highlights: [
       'Flagship DFY execution team',
       'Premium Wealth Paths (all lanes)',
@@ -1390,9 +1390,9 @@ export const bundlePackages: PricingPackage[] = [
     id: 'bundle_personal_debt',
     category: 'bundle',
     name: 'Clean Slate Bundle',
-    tagline: 'Credit repair + debt defense',
+    tagline: 'Restore the bureau file and the collector packet together',
     description:
-      'Credit Restore plus Debt Full Resolution — tackle both sides of your credit picture.',
+      'Personal restore plus full debt resolution — one program when the same life is sitting on both desks.',
     highlights: [
       'Full Credit Restore package',
       'Full Debt Resolution package',
@@ -2235,14 +2235,20 @@ export const categoryLabels: Record<PricingCategory, string> = {
  * Category descriptions for UI
  */
 export const categoryDescriptions: Record<PricingCategory, string> = {
-  personal_credit: 'Repair, restore, and rebuild your personal credit score.',
+  personal_credit:
+    'Dispute what does not belong on the Equifax, Experian, and TransUnion files, then keep the profile lenders actually read.',
   business_credit:
-    'Work-calibrated business credit builds — Foundation through Empire — sequenced for startups and established operators. Results vary · funding subject to underwriting.',
-  debt_legal: 'Validation, challenge packets, and credit cleanup workflows for debt + collections.',
-  wealth_builder: 'Transition from credit repair into wealth fundamentals and capital-readiness planning.',
-  privacy_id: 'Protect your identity and manage your data footprint.',
-  bundle: 'Save with our most popular combinations.',
+    'Build the EIN file — vendors, commercial bureaus, and a company ask that does not lean on the owner’s Social Security number.',
+  debt_legal:
+    'Collections, validation, and court paper — organized as a packet with a date, not a pile of envelopes.',
+  wealth_builder:
+    'Once the credit file is stable, sequence capital, savings, and the next ask so the household is not starting from zero every year.',
+  privacy_id:
+    'Freeze, lock, and opt out so a stolen name cannot open a new account while you are still reading the letter.',
+  bundle:
+    'Restore, debt, business, and authorized-user work on one ticket when the file needs more than one desk.',
   tradeline_promo:
-    'Build credit fast with tradeline packages that report to Equifax.',
-  agency: 'One-time workspace buy-in plus ongoing payout tiers for credit repair agencies.',
+    'Authorized-user placements that report when inventory is available — a thickness tool, not a magic score.',
+  agency:
+    'A branded workspace, seats, and payout tiers for operators who run partner files under their own name.',
 };

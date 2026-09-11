@@ -116,14 +116,14 @@ export function WorkKanbanBoard({
             <div className="text-[10px] uppercase tracking-widest text-white/40 font-mono">{items.length}</div>
           </div>
 
-          <div className="mt-3">
+          <div className="fc-work-lane-body mt-3">
             {items.length === 0 ? (
               <div className="text-white/40 text-sm">—</div>
             ) : (
               <FinelyOsPaginatedStack
                 items={items}
                 pageSize={8}
-                itemSpacingClassName="space-y-2"
+                itemSpacingClassName="space-y-5"
                 emptyMessage="—"
                 renderItem={(it) => <KanbanCard key={it.id} it={it} accent={accent} />}
               />

@@ -55,7 +55,6 @@ const STAFF_PORTRAIT_CATALOG_BASE: Record<string, StaffPortraitSource> = {
   'staff-nora-finch': { portraitIndex: 74, warmShift: 2, saturation: 0.9 },
   'staff-quinn-hayes': { portraitIndex: 38, warmShift: 1, saturation: 0.9 },
   'staff-leo-vance': { portraitIndex: 95, warmShift: 0, saturation: 0.92 },
-  'staff-aia-guide': { portraitIndex: 22, warmShift: 2, saturation: 0.92 },
   'staff-naomi-fairchild': { portraitIndex: 6, warmShift: 2, saturation: 0.9 },
   'staff-david-okonkwo': { portraitIndex: 8, warmShift: 1, saturation: 0.91 },
   'staff-marcus-sterling-exec': { portraitIndex: 13, warmShift: 2, saturation: 0.92 },
@@ -66,6 +65,12 @@ const STAFF_PORTRAIT_CATALOG_BASE: Record<string, StaffPortraitSource> = {
   'staff-cameron-blake': { portraitIndex: 27, warmShift: 1, saturation: 0.92 },
   'staff-elise-hart': { portraitIndex: 53, warmShift: 4, saturation: 0.89 },
   'staff-drew-sinclair': { portraitIndex: 98, warmShift: 0, saturation: 0.93 },
+  'staff-marie-claire-baptiste': { portraitIndex: 4, warmShift: 2, saturation: 0.9 },
+  'staff-nadege-pierre': { portraitIndex: 19, warmShift: 3, saturation: 0.88 },
+  'staff-farah-jean-louis': { portraitIndex: 33, warmShift: 2, saturation: 0.89 },
+  'staff-jean-marc-toussaint': { portraitIndex: 5, warmShift: 1, saturation: 0.91 },
+  'staff-samuel-augustin': { portraitIndex: 9, warmShift: 2, saturation: 0.9 },
+  'staff-patrick-saint-louis': { portraitIndex: 20, warmShift: 1, saturation: 0.92 },
 };
 
 /** Human executives on partner roster + ownership chain. */

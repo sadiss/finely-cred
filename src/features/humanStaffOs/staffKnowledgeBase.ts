@@ -169,6 +169,51 @@ export const HUMAN_STAFF_KNOWLEDGE_BASE: HumanStaffKnowledgeCard[] = [
     ],
     handoffTriggers: ['external_message_requested', 'credit_claim_detected', 'sms_send_requested', 'high_risk_offer'],
   },
+  {
+    id: 'haitian-companion-desk',
+    title: 'Haitian Companion Desk — two-voice law',
+    departmentId: 'partner_growth',
+    agentIds: ['partner_recruiter', 'affiliate_wrangler', 'liora_lifecycle'],
+    level: 'expert',
+    summary:
+      'Haitian community is credit help for Haitian Americans. Six bilingual Haitian-named companions own /haitian. Chat stays English until they tap Pale Kreyòl.',
+    rules: [
+      'Keep the English artifact visible. Explain it in Kreyòl. Name the English words they will see again.',
+      'Do not clone English guides into Kreyòl. Point to /free-kreyol-guide for the four kits.',
+      'Kreyòl Ayisyen first. Never treat it as broken French. Never default to French.',
+      'Never mention vodou, witchcraft, zombies, loa, or occult imagery. Never mock sòl.',
+      'Route ht locale and /haitian /kreyol visitors to haitian_companion staff — not a random English face with a subtitle.',
+      'Helpers (family or specialists) get one English next step they can sit through together.',
+    ],
+    examples: [
+      'Guest writes Bonjou → stay in Kreyòl, show the English collection line, teach the word collection.',
+      'Specialist asks how to help Manman → open Haitian community, play Hear it, then one next step.',
+      'Unsafe: a carnival flag hero, a vodou joke, or a full translated dispute guide.',
+    ],
+    handoffTriggers: ['haitian_desk', 'kreyol', 'creole', 'ayisyen', 'helper_kit'],
+  },
+  {
+    id: 'copy-voice-hospitality',
+    title: 'Visitor copy — hospitality with a next step',
+    departmentId: 'compliance',
+    agentIds: ['velvet_hammer', 'liora_lifecycle', 'cmo_prime', 'partner_recruiter'],
+    level: 'expert',
+    summary:
+      'Guest-facing English and Kreyòl greet by name, give context, then invite. Never “What do you need?” Never paste trainer scripts as titles.',
+    rules: [
+      'Greet by name. Say what this desk is for. Then invite. Direct is fine. A command with no context is rude.',
+      'Never open public chat with “What do you need?”, “What do you need today?”, or “Kisa w bezwen?”',
+      'Never put agent briefing on screen: “Chita. Pale Kreyòl. Yon etap.”, sit-together instructions, two-voice lectures.',
+      'Kreyòl is 1979 IPN and spoken. Pale Kreyòl is an invitation, not an order to sit down.',
+      'Do not drop English product names or the word underwriting into a Kreyòl sentence.',
+    ],
+    examples: [
+      'Good chat: Hello — I am Marie-Claire. I help with credit reports and collector letters. When you are ready, tell me what arrived.',
+      'Good Kreyòl: Bonjou. Mwen se Marie-Claire. Nou ede Ayisyen ki viv Ozetazini ak dosye kredi. Lè w pare, di m sa ki rive nan lapòs la.',
+      'Unsafe: What do you need? / Chita. Pale Kreyòl. Yon etap.',
+    ],
+    handoffTriggers: ['copy', 'welcome', 'what do you need', 'kisa w bezwen', 'title', 'subtitle'],
+  },
 ];
 
 export function getKnowledgeForAgent(agentId: string): HumanStaffKnowledgeCard[] {

@@ -11,6 +11,7 @@ import {
   Shield,
   Sparkles,
   Wallet,
+  X,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../../auth/AuthProvider';
@@ -226,6 +227,7 @@ export default function PartnerBillingProductSurface({ role, pageId, partnerId, 
   const [spine, setSpine] = useState<BillingSpine>('flow');
   const [planCategory, setPlanCategory] = useState<PricingCategory>('personal_credit');
   const [partnerValues, setPartnerValues] = useState<Record<string, unknown>>({});
+  const [ledgerModal, setLedgerModal] = useState<LedgerRow | null>(null);
 
   useEffect(() => {
     if (isDemo) return;
@@ -307,44 +309,47 @@ export default function PartnerBillingProductSurface({ role, pageId, partnerId, 
   );
 
   const renderPlansPanel = (ownedPackageIds: Set<string>) => (
-    <div className={`${finelyOsCatalogCard('violet')} p-6 lg:p-8 space-y-6`} data-fc-accent="violet">
-      <div>
-        <p className={FINELY_OS_ENTITY_SUBLABEL}>Plan catalog</p>
-        <h2 className={`text-3xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>Pick a service</h2>
-        <p className={`mt-2 text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
-          Every plan lists exactly which modules it unlocks — nothing stays hidden after checkout.
-        </p>
-      </div>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className={FINELY_OS_VIEW_TABS}>
-          {(
-            [
-              { id: 'personal_credit' as const, label: 'Personal' },
-              { id: 'business_credit' as const, label: 'Business' },
-              { id: 'debt_legal' as const, label: 'Debt & legal' },
-            ] as const
-          ).map((c) => (
-            <button key={c.id} type="button" onClick={() => setPlanCategory(c.id)} className={finelyOsViewTab(planCategory === c.id, 'emerald')}>
-              {c.label}
-              {c.id === recommendedCategory ? <span className="ml-1 text-violet-600">★</span> : null}
-            </button>
-          ))}
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className={FINELY_OS_ENTITY_SUBLABEL}>Plan catalog</p>
+          <h2 className={`text-3xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>Pick a service</h2>
+          <p className={`mt-2 text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
+            Every plan lists exactly which modules it unlocks — nothing stays hidden after checkout.
+          </p>
         </div>
-        <button type="button" onClick={() => navigate(mapPortalHref('/portal/checkout'))} className={FINELY_OS_SECONDARY_BTN}>
-          Open checkout <ArrowRight size={14} />
-        </button>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className={FINELY_OS_VIEW_TABS}>
+            {(
+              [
+                { id: 'personal_credit' as const, label: 'Personal' },
+                { id: 'business_credit' as const, label: 'Business' },
+                { id: 'debt_legal' as const, label: 'Debt & legal' },
+              ] as const
+            ).map((c) => (
+              <button key={c.id} type="button" onClick={() => setPlanCategory(c.id)} className={finelyOsViewTab(planCategory === c.id, 'emerald')}>
+                {c.label}
+                {c.id === recommendedCategory ? <span className="ml-1 text-violet-600">★</span> : null}
+              </button>
+            ))}
+          </div>
+          <button type="button" onClick={() => navigate(mapPortalHref('/portal/checkout'))} className={FINELY_OS_SECONDARY_BTN}>
+            Open checkout <ArrowRight size={14} />
+          </button>
+        </div>
       </div>
       <FinelyOsPaginatedStack
         key={planCategory}
         items={packagesByCategory}
         pageSize={6}
-        itemSpacingClassName="grid md:grid-cols-2 gap-4"
+        itemSpacingClassName="grid md:grid-cols-2 xl:grid-cols-3 gap-4"
         emptyMessage="No packages in this category."
         renderItem={(pkg: PricingPackage, idx) => {
           const owned = ownedPackageIds.has(pkg.id);
           const priceLine = pkg.priceAmount <= 0 ? 'Free' : `${formatPrice(pkg.priceAmount)}${pkg.interval === 'month' ? ' / month' : ''}`;
+          const cardAccent = (['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4];
           return (
-            <div key={pkg.id} className={`${finelyOsCatalogCard((['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4])} p-6 space-y-3`} data-fc-accent={(['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4]}>
+            <div key={pkg.id} className={`${finelyOsCatalogCard(cardAccent)} p-6 lg:p-8 space-y-3`} data-fc-accent={cardAccent}>
               <div className={`text-xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{pkg.name}</div>
               <div className={FINELY_OS_ENTITY_SUBLABEL}>{pkg.delivery}</div>
               <div className="text-lg font-extrabold text-violet-700">{priceLine}</div>
@@ -353,7 +358,7 @@ export default function PartnerBillingProductSurface({ role, pageId, partnerId, 
                 <button type="button" onClick={() => navigate(mapPortalHref(`/portal/checkout?package=${encodeURIComponent(pkg.id)}`))} className={owned ? FINELY_OS_SECONDARY_BTN : FINELY_OS_SUCCESS_BTN}>
                   {owned ? 'View plan' : 'Select'} <ArrowRight size={14} />
                 </button>
-                <button type="button" onClick={() => navigate('/pricing')} className={FINELY_OS_SECONDARY_BTN}>
+                <button type="button" onClick={() => navigate('/pricing/personal-credit-restore')} className={FINELY_OS_SECONDARY_BTN}>
                   Compare
                 </button>
               </div>
@@ -365,7 +370,7 @@ export default function PartnerBillingProductSurface({ role, pageId, partnerId, 
   );
 
   const renderAccessPanel = (activeKeys: Set<string>) => (
-    <div className={`${finelyOsCatalogCard('emerald')} p-6 lg:p-8 space-y-5`} data-fc-accent="emerald">
+    <div className="space-y-5">
       <div>
         <p className={FINELY_OS_ENTITY_SUBLABEL}>Module access</p>
         <h2 className={`text-3xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>What your plan unlocks</h2>
@@ -376,7 +381,7 @@ export default function PartnerBillingProductSurface({ role, pageId, partnerId, 
           const active = activeKeys.has(module.key);
           const cardAccent = (['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4];
           return (
-            <div key={module.key} className={`rounded-2xl border p-5 space-y-3 ${active ? ACTIVE_ENTITLEMENT_CARD : finelyOsCatalogCard(cardAccent)}`} data-fc-accent={cardAccent}>
+            <div key={module.key} className={`p-6 lg:p-8 space-y-3 ${active ? ACTIVE_ENTITLEMENT_CARD : finelyOsCatalogCard(cardAccent)}`} data-fc-accent={cardAccent}>
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <div className={FINELY_OS_ENTITY_VALUE}>{module.title}</div>
@@ -426,62 +431,53 @@ export default function PartnerBillingProductSurface({ role, pageId, partnerId, 
           </div>
         ) : null}
 
-        <div className="fc-wlp-billing-ledger" data-fc-accent="sky">
-          <div className="fc-wlp-billing-ledger-summary">
-            <div>
-              <strong>{agreements.filter((a) => a.status === 'active').length}</strong>
-              <em>Active plans</em>
+        <div className="fc-wlp-billing-status-grid" aria-label="Ledger snapshot">
+          {(
+            [
+              { value: String(agreements.filter((a) => a.status === 'active').length), label: 'Active plans', accent: 'emerald' as const },
+              { value: String(activeKeys.size), label: 'Modules', accent: 'violet' as const },
+              { value: String(openInvoices.length), label: 'Open invoices', accent: 'sky' as const },
+              { value: billingAccount?.status ?? 'new', label: 'Billing account', accent: 'rose' as const },
+            ] as const
+          ).map((tile) => (
+            <div key={tile.label} className={`fc-wlp-billing-status-tile ${finelyOsCatalogCard(tile.accent)}`} data-fc-accent={tile.accent}>
+              <strong>{tile.value}</strong>
+              <em>{tile.label}</em>
             </div>
-            <div>
-              <strong>{activeKeys.size}</strong>
-              <em>Modules</em>
-            </div>
-            <div>
-              <strong>{openInvoices.length}</strong>
-              <em>Open invoices</em>
-            </div>
-            <div>
-              <strong>{billingAccount?.status ?? 'new'}</strong>
-              <em>Billing account</em>
-            </div>
-          </div>
-
-          {rows.length === 0 ? (
-            <div className="p-8">
-              <ProductEmptyState
-                title="No billing records yet"
-                description="Pick a plan to create your first agreement and unlock portal modules."
-                action={
-                  <button type="button" className="fc-wlp-btn-primary" onClick={() => setSpine('plans')}>
-                    Browse plans
-                  </button>
-                }
-              />
-            </div>
-          ) : (
-            <>
-              <div className="fc-wlp-billing-ledger-head">
-                <span>Entry</span>
-                <span>Amount</span>
-                <span>Status</span>
-                <span>Action</span>
-              </div>
-              {rows.map((row) => (
-                <button key={row.id} type="button" className="fc-wlp-billing-ledger-row" data-past-due={row.pastDue ? 'true' : undefined} onClick={row.onOpen}>
-                  <div>
-                    <strong>{row.title}</strong>
-                    <span>{row.detail}</span>
-                  </div>
-                  <div className={`font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{row.amount}</div>
-                  <div>{row.status}</div>
-                  <span className={FINELY_OS_SECONDARY_BTN}>Open</span>
-                </button>
-              ))}
-            </>
-          )}
+          ))}
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-2">
+        {rows.length === 0 ? (
+          <ProductEmptyState
+            title="No billing records yet"
+            description="Pick a plan to create your first agreement and unlock portal modules."
+            action={
+              <button type="button" className="fc-wlp-btn-primary" onClick={() => setSpine('plans')}>
+                Browse plans
+              </button>
+            }
+          />
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {rows.map((row) => (
+              <button
+                key={row.id}
+                type="button"
+                className={`${finelyOsCatalogCard(row.accent)} p-6 lg:p-8 text-left space-y-2`}
+                data-fc-accent={row.accent}
+                data-past-due={row.pastDue ? 'true' : undefined}
+                onClick={() => setLedgerModal(row)}
+              >
+                <p className={FINELY_OS_ENTITY_SUBLABEL}>{row.status}</p>
+                <strong className={`block text-2xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{row.amount}</strong>
+                <em className={`block not-italic text-lg font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{row.title}</em>
+                <span className={`block text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>{row.detail}</span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        <div className={`grid gap-4 ${partnerFieldDefs.length && partnerFieldLayout ? 'lg:grid-cols-3' : 'lg:grid-cols-2'}`}>
           <div className={`${finelyOsCatalogCard('violet')} p-6 lg:p-8 space-y-3`} data-fc-accent="violet">
             <Wallet size={22} className="text-violet-500" />
             <h3 className={`text-2xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>Payment rails</h3>
@@ -512,11 +508,11 @@ export default function PartnerBillingProductSurface({ role, pageId, partnerId, 
           <div className={`${finelyOsCatalogCard('emerald')} p-6 lg:p-8 space-y-3`} data-fc-accent="emerald">
             <Shield size={20} className="text-emerald-500" />
             <div className={FINELY_OS_ENTITY_SUBLABEL}>Compliance & consent</div>
-            <div className="grid gap-2 max-h-[220px] overflow-y-auto pr-1">
-              {CONSENT_ITEMS.slice(0, 4).map((item, idx) => {
+            <div className="grid gap-3">
+              {CONSENT_ITEMS.slice(0, 4).map((item) => {
                 const acceptedAt = (activePartner.consents as Record<string, string | undefined>)?.[item.key];
                 return (
-                  <label key={item.key} className={`flex items-start gap-2 ${finelyOsCatalogCard((['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4])} p-3 cursor-pointer`}>
+                  <label key={item.key} className="flex items-start gap-3 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={Boolean(acceptedAt)}
@@ -530,7 +526,7 @@ export default function PartnerBillingProductSurface({ role, pageId, partnerId, 
                       }}
                       className="mt-1"
                     />
-                    <span className={`text-sm font-bold ${FINELY_OS_ENTITY_BODY}`}>{item.label}</span>
+                    <span className={`text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>{item.label}</span>
                   </label>
                 );
               })}
@@ -539,29 +535,29 @@ export default function PartnerBillingProductSurface({ role, pageId, partnerId, 
               All consents <ArrowRight size={14} />
             </button>
           </div>
-        </div>
 
-        {partnerFieldDefs.length && partnerFieldLayout ? (
-          <details className={`${finelyOsCatalogCard('sky')} p-6 lg:p-8`} data-fc-accent="sky">
-            <summary className={`cursor-pointer text-xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>Enterprise profile fields</summary>
-            <div className="mt-5">
-              <FieldLayoutRenderer
-                layout={partnerFieldLayout}
-                definitions={partnerFieldDefs}
-                values={partnerValues}
-                surface="ivory"
-                onChangeValue={(key, next, persist) => {
-                  if (!activePartner) return;
-                  setPartnerValues((prev) => {
-                    const merged = { ...(prev || {}), [key]: next };
-                    if (persist) upsertCustomFieldValues('partners', activePartner.id, merged, tenantId);
-                    return merged;
-                  });
-                }}
-              />
-            </div>
-          </details>
-        ) : null}
+          {partnerFieldDefs.length && partnerFieldLayout ? (
+            <details className={`${finelyOsCatalogCard('sky')} p-6 lg:p-8`} data-fc-accent="sky">
+              <summary className={`cursor-pointer text-xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>Enterprise profile fields</summary>
+              <div className="mt-5">
+                <FieldLayoutRenderer
+                  layout={partnerFieldLayout}
+                  definitions={partnerFieldDefs}
+                  values={partnerValues}
+                  surface="ivory"
+                  onChangeValue={(key, next, persist) => {
+                    if (!activePartner) return;
+                    setPartnerValues((prev) => {
+                      const merged = { ...(prev || {}), [key]: next };
+                      if (persist) upsertCustomFieldValues('partners', activePartner.id, merged, tenantId);
+                      return merged;
+                    });
+                  }}
+                />
+              </div>
+            </details>
+          ) : null}
+        </div>
       </div>
     );
   };
@@ -712,18 +708,14 @@ export default function PartnerBillingProductSurface({ role, pageId, partnerId, 
             {spine === 'flow' ? renderFlowLedger(agreements, entitlements, invoices, activePartner) : null}
             {spine === 'plans' ? renderPlansPanel(ownedPackageIds) : null}
             {spine === 'access' ? renderAccessPanel(activeKeys) : null}
-            {spine === 'invoices' && partnerId ? (
-              <div className={`${finelyOsCatalogCard('rose')} p-6 lg:p-8`} data-fc-accent="rose">
-                <InvoiceCenterPanel partnerId={partnerId} isAdmin={isAdmin} />
-              </div>
-            ) : null}
+            {spine === 'invoices' && partnerId ? <InvoiceCenterPanel partnerId={partnerId} isAdmin={isAdmin} /> : null}
           </div>
 
           <div className="flex flex-wrap items-center justify-between gap-3">
             <button type="button" onClick={() => navigate(livePath)} className={FINELY_OS_SECONDARY_BTN}>
               Manage billing profile <ArrowRight size={14} />
             </button>
-            <button type="button" onClick={() => navigate('/pricing')} className={FINELY_OS_SECONDARY_BTN}>
+            <button type="button" onClick={() => navigate('/pricing/personal-credit-restore')} className={FINELY_OS_SECONDARY_BTN}>
               Compare pricing
             </button>
           </div>
@@ -738,7 +730,7 @@ export default function PartnerBillingProductSurface({ role, pageId, partnerId, 
         role={role}
         eyebrow={demoSpec?.eyebrow ?? 'Billing & plan'}
         title={demoSpec?.title ?? 'See what you pay for and what it unlocks.'}
-        description={demoSpec?.description ?? 'Alert rail, plan summary tiles, and billing sections in one control room.'}
+        description={demoSpec?.description ?? 'See charges, unlocked modules, invoices, and consents on one screen.'}
         status={`${demoSpec?.status ?? 'Active · Personal Restore'} · demo data`}
         freshness="demo snapshot"
         accent={accent}
@@ -797,7 +789,7 @@ export default function PartnerBillingProductSurface({ role, pageId, partnerId, 
         role={role}
         eyebrow="Billing & plan"
         title="See what you pay for and what it unlocks."
-        description="Alert rail, plan summary tiles, and billing sections in one control room."
+        description="See charges, unlocked modules, invoices, and consents on one screen."
         status="Could not load your billing"
         freshness="just now"
         accent={accent}
@@ -852,7 +844,7 @@ export default function PartnerBillingProductSurface({ role, pageId, partnerId, 
       metricsVariant="jewel"
       primaryAction={<ProductPagePrimaryAction label="Manage plan" onClick={() => navigate(livePath)} />}
       secondaryAction={
-        <button type="button" className="fc-wlp-btn-secondary" onClick={() => navigate('/pricing')}>
+        <button type="button" className="fc-wlp-btn-secondary" onClick={() => navigate('/pricing/personal-credit-restore')}>
           Compare pricing
         </button>
       }
@@ -862,6 +854,39 @@ export default function PartnerBillingProductSurface({ role, pageId, partnerId, 
     >
       {renderBillingControlRoom(agreements, entitlements, invoices, loadedPartner)}
       <p className="fc-wlp-section-description fc-wlp-compliance-line">Results vary · not legal advice · funding subject to underwriting</p>
+      {ledgerModal ? (
+        <div
+          className="fc-wlp-local-modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Ledger entry"
+          onClick={() => setLedgerModal(null)}
+        >
+          <div className="fc-wlp-local-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[11px] uppercase tracking-wider font-bold text-sky-300 m-0">{ledgerModal.status}</p>
+                <h3 className="text-lg font-extrabold text-white m-0 mt-1">{ledgerModal.title}</h3>
+              </div>
+              <button type="button" className="fc-wlp-btn-secondary !py-1.5 !px-2.5 !text-xs" onClick={() => setLedgerModal(null)} aria-label="Close ledger entry">
+                <X size={14} /> Close
+              </button>
+            </div>
+            <p className="text-3xl font-extrabold text-white m-0">{ledgerModal.amount}</p>
+            <p className="text-base font-bold text-white/80 m-0">{ledgerModal.detail}</p>
+            <button
+              type="button"
+              className={FINELY_OS_PRIMARY_BTN}
+              onClick={() => {
+                ledgerModal.onOpen();
+                setLedgerModal(null);
+              }}
+            >
+              Open <ArrowRight size={14} />
+            </button>
+          </div>
+        </div>
+      ) : null}
     </ProductHubScaffold>
   );
 }

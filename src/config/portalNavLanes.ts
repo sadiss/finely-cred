@@ -56,7 +56,7 @@ export const PORTAL_PRIMARY_LINKS: PortalNavLinkDef[] = [
 export const PORTAL_LETTER_FLOW_LINKS: { path: string; label: string }[] = [
   { path: '/portal/letters', label: 'Credit Letters' },
   { path: '/portal/debt', label: 'Debt Letters' },
-  { path: '/portal/debt?tab=litigation', label: 'Litigation Command' },
+  { path: '/portal/debt?tab=litigation', label: 'Court defense' },
   { path: '/portal/letters/vault', label: 'Letters Vault' },
   { path: '/portal/disputes', label: 'Dispute Center' },
 ];
@@ -92,13 +92,13 @@ export const PORTAL_NAV_LANES: PortalNavLaneDef[] = [
   },
   {
     id: 'letters',
-    label: 'Letter workstations',
+    label: 'Letters',
     hint: 'Credit letters vs debt letters',
     accent: 'amber',
     links: [
       { path: '/portal/letters', label: 'Credit Letters', icon: Gavel },
       { path: '/portal/debt', label: 'Debt Letters', icon: Scale },
-      { path: '/portal/debt?tab=litigation', label: 'Litigation Command', icon: Gavel },
+      { path: '/portal/debt?tab=litigation', label: 'Court defense', icon: Gavel },
       { path: '/portal/letters/vault', label: 'Letters Vault', icon: FolderOpen },
       { path: '/portal/templates', label: 'Letter templates', icon: BookOpen },
       { path: '/portal/bankruptcy', label: 'Bankruptcy', icon: Landmark },
@@ -126,7 +126,7 @@ export const PORTAL_NAV_LANES: PortalNavLaneDef[] = [
       { path: '/portal/education', label: 'Education', icon: BookOpen },
       { path: '/portal/courses', label: 'Courses', icon: BookOpen },
       { path: '/portal/build', label: 'Credit Building', icon: TrendingUp },
-      { path: '/business/dashboard', label: 'Business Credit OS', icon: Building2 },
+      { path: '/business/dashboard', label: 'Business Credit', icon: Building2 },
       { path: '/portal/barter', label: 'Barter Exchange', icon: Handshake },
       { path: '/portal/billing', label: 'Billing', icon: CreditCard },
       { path: '/portal/checkout', label: 'Checkout', icon: CreditCard },

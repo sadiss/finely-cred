@@ -2,6 +2,7 @@ import type { AgentPersonaId } from '../domain/agentPersonas';
 import { portalPersonaForLane } from './agentPersonasRepo';
 import type { StaffMember, StaffShiftBlock } from '../domain/staffMember';
 import { shiftBlockMatches } from '../domain/staffMember';
+import { pickHaitianCompanionOnDuty } from './haitianCompanionDuty';
 import { listStaffByRole, loadStaffRoster } from './staffRoster';
 import { resolveStaffIdForBankruptcyScenario } from './staffBankruptcyScenarioCoaches';
 import { resolveStaffIdForLaneFocus } from './staffLaneFocusCoaches';
@@ -21,6 +22,9 @@ function laneHash(lane: string): number {
 function staffMatchesLane(staff: StaffMember, lane: string): boolean {
   const l = lane.toLowerCase();
   const text = `${staff.displayTitle ?? ''} ${staff.bioLine} ${staff.firstName}`.toLowerCase();
+  if (l.includes('haitian') || l.includes('kreyol') || l.includes('kreyòl') || l.includes('creole') || l.includes('ayisyen')) {
+    return staff.department === 'haitian_community';
+  }
   if (l.includes('bankruptcy') || l.includes('discharge')) {
     return text.includes('bankruptcy') || text.includes('discharge') || text.includes('chapter');
   }
@@ -60,6 +64,9 @@ function roleForLane(lane?: string): AgentPersonaId {
  */
 export function resolveStaffOnDutyForLane(lane?: string, date = new Date()): StaffMember | null {
   const l = (lane || 'general').trim().toLowerCase() || 'general';
+  if (l.includes('haitian') || l.includes('kreyol') || l.includes('kreyòl') || l.includes('creole') || l.includes('ayisyen')) {
+    return pickHaitianCompanionOnDuty(loadStaffRoster(), date);
+  }
   const roleId = roleForLane(l);
   let pool = listStaffByRole(roleId).filter((s) => s.active);
   const specialized = pool.filter((s) => staffMatchesLane(s, l));

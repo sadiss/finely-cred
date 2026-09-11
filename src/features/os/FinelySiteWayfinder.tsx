@@ -35,22 +35,24 @@ export function FinelySiteWayfinder() {
   const tab = searchParams.get('tab');
   const onSolutions =
     path.startsWith('/pricing') || path.startsWith('/services') || path.startsWith('/start-here');
-  const onPersonalRestoreHero = path.includes('/personal-credit-restore');
+  const onDedicatedServiceFloor = /^\/(pricing|services)\/[^/]+/.test(path);
 
   const activeLane = useMemo(
     () => SITE_WAYFINDER_LANES.find((lane) => laneActive(path, lane.path, tab)) ?? null,
     [path, tab],
   );
 
-  /* Restore: hero lives in-page (PricingServicePage Solutions band) — no duplicate black header. */
-  if (onPersonalRestoreHero) {
+  /* Dedicated service floors own the first viewport — same as restore. */
+  if (onDedicatedServiceFloor) {
     return null;
   }
 
   return (
     <div
-      className={`fc-wayfinder sticky z-40 border-b backdrop-blur-xl ${onSolutions ? 'fc-wayfinder--solutions' : ''}`}
-      style={{ top: 'calc(env(safe-area-inset-top, 0px) + 4.25rem)' }}
+      className={`fc-wayfinder border-b backdrop-blur-xl ${
+        onSolutions ? 'fc-wayfinder--solutions relative z-[45]' : 'sticky z-[45]'
+      }`}
+      style={onSolutions ? undefined : { top: 'calc(env(safe-area-inset-top, 0px) + 4.25rem)' }}
     >
       <div className="fc-container py-3">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
@@ -75,10 +77,10 @@ export function FinelySiteWayfinder() {
           </div>
           <button
             type="button"
-            onClick={() => navigate('/pricing')}
+            onClick={() => navigate('/pricing/personal-credit-restore')}
             className="fc-wayfinder-secondary inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all"
           >
-            All packages <ArrowRight size={14} />
+            Restore programs <ArrowRight size={14} />
           </button>
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">

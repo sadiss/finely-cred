@@ -12,7 +12,6 @@ import { CareerTierStickySummary } from '../components/careers/CareerTierStickyS
 import { CreditSpecialistGuideActions } from '../components/creditSpecialist/CreditSpecialistGuideActions';
 import { CreditSpecialistGuideBookMockup } from '../components/creditSpecialist/CreditSpecialistGuideBookMockup';
 import { DedicatedSheetLinkStrip } from '../components/resources/DedicatedSheetLinkStrip';
-import { BackToSiteButton } from '../components/navigation/BackToSiteButton';
 import {
   CS_OFFER,
   CS_OFFER_ENTRY_RULES,
@@ -31,8 +30,7 @@ import {
 import { CS_GUIDE_META, CS_GUIDE_READ_PATH } from './leadmagnet/creditSpecialistGuideContent';
 import { FinelyOsPageFooter } from '../features/os/FinelyOsPageFooter';
 import { usePublicSeoMeta } from '../hooks/usePublicSeoMeta';
-import { LandingTypewriterTitle } from '../components/landing/LandingTypewriterTitle';
-import { FINELY_OS_COMPLIANCE_FOOTNOTE, FINELY_OS_PAGE } from '../features/os/finelyOsLightUi';
+import { FINELY_OS_PAGE } from '../features/os/finelyOsLightUi';
 
 const ROLE = 'cs' as const;
 
@@ -100,12 +98,27 @@ export default function CreditSpecialistPricingPage() {
   ];
 
   return (
-    <PageShell badge="Public" title={`${CS.singular} pricing`} subtitle={workSplit.headline} hideHero>
-      <div className={FINELY_OS_PAGE}>
+    <PageShell
+      badge="Public"
+      title={`${CS.singular} pricing`}
+      subtitle={workSplit.headline}
+      hideHero
+      contentWidth="full"
+    >
+      <div className={`${FINELY_OS_PAGE} fc-viewport-floor`} data-fc-cs-careers="1">
         {/* Header — Back · Home · Other careers */}
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <BackToSiteButton variant="ghost" label="Back to home" />
-          <CareerOtherTracksLink currentId="credit_specialists" />
+          <button
+            type="button"
+            onClick={() => navigate('/')}
+            className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-black/50 px-4 py-2.5 text-sm font-semibold text-white"
+          >
+            Back to home
+          </button>
+          <CareerOtherTracksLink
+            currentId="credit_specialists"
+            className="text-white/75 underline decoration-white/30 underline-offset-4 hover:text-white hover:decoration-white/60"
+          />
         </div>
 
         {/* Hero — brand, one sell sentence, proof chips, guide book + folio + Read/Download */}
@@ -115,30 +128,26 @@ export default function CreditSpecialistPricingPage() {
               <p className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-700">
                 Finely Cred · {CS.programName}
               </p>
-              <LandingTypewriterTitle
-                as="h1"
-                text="Credit Specialist: you run the files, we supply the method."
-                className="text-4xl sm:text-5xl font-bold tracking-tight text-slate-900 leading-[1.05]"
-                highlight="we supply the method."
-                highlightClassName="text-emerald-700 font-semibold"
-                speedMs={30}
-              />
+              <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-slate-900 leading-[1.05]">
+                Credit Specialist: you run the files,{' '}
+                <span className="text-emerald-700 font-semibold">we supply the method.</span>
+              </h1>
               <p className="max-w-xl text-base sm:text-lg leading-relaxed text-slate-600">
                 Bring <strong className="text-slate-900">{CS_OFFER.minLeadsRequired} partner leads</strong> in{' '}
                 <strong className="text-slate-900">{CS_OFFER.freeLeadsWindowDays} days</strong> and unlock the full
-                dispute method, letter studio, evidence vault, and OS access on transparent revenue share — no
-                platform fee.
+                dispute method, letter studio, evidence vault, and specialist workspace on transparent revenue share —
+                no platform fee.
               </p>
 
               <div className="grid grid-cols-3 gap-2.5 max-w-lg">
                 {[
                   { n: String(CS_OFFER.minLeadsRequired), label: 'Leads' },
-                  { n: String(CS_OFFER.freeLeadsWindowDays), label: 'Days free' },
+                  { n: String(CS_OFFER.freeLeadsWindowDays), label: 'Days to source' },
                   { n: '$0', label: 'Platform fee' },
                 ].map((x) => (
                   <div key={x.label} className="rounded-2xl border border-emerald-200/50 bg-emerald-50 px-3 py-3.5 text-center">
                     <div className="text-2xl sm:text-3xl font-black tabular-nums text-emerald-700">{x.n}</div>
-                    <div className="mt-1 text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">{x.label}</div>
+                    <div className="mt-1 text-[10px] font-black uppercase tracking-[0.16em] text-slate-600">{x.label}</div>
                   </div>
                 ))}
               </div>
@@ -169,14 +178,14 @@ export default function CreditSpecialistPricingPage() {
                   edition={CS_GUIDE_META.edition}
                   tagline={CS_GUIDE_META.tagline}
                   valueLabel={CS_GUIDE_META.valueLabel}
-                  onOpen={() => navigate(CS_GUIDE_READ_PATH)}
+                  onOpen={() => navigate(`${CS_GUIDE_READ_PATH}?preview=1`)}
                   tall
                 />
               }
               folioTitle={CS_GUIDE_META.twoSheetLabel}
               folioPageLabels={['Sheet 1 — The offer', 'Sheet 2 — Operate']}
               actions={<CreditSpecialistGuideActions tone="onLight" size="lg" />}
-              helperText="No signup required to read. The 2-sheet PDF covers the offer and your weekly operating rhythm."
+              helperText="No signup required to read. The two-sheet PDF covers the offer and your weekly operating rhythm."
             />
           </div>
         </section>
@@ -184,8 +193,10 @@ export default function CreditSpecialistPricingPage() {
         {/* Who does the work — white/slate cards, no purple */}
         <section className="space-y-4">
           <div className="max-w-2xl space-y-2">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-700">Who does the work</p>
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">{workSplit.headline}</h2>
+            <p className="text-xs font-black uppercase tracking-[0.2em]" style={{ color: '#86efac' }}>
+              Who does the work
+            </p>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">{workSplit.headline}</h2>
           </div>
           <div className="grid gap-3 sm:grid-cols-3">
             <div className="rounded-2xl border-2 border-slate-200 bg-white p-5">
@@ -230,10 +241,10 @@ export default function CreditSpecialistPricingPage() {
         {/* Choose your tier — large price cards, the primary decision on this page */}
         <section id="choose-tier" className="scroll-mt-24 space-y-4">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">Choose your tier</h2>
-            <p className="mt-2 max-w-2xl text-sm sm:text-base leading-relaxed text-slate-600">
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">Choose your tier</h2>
+            <p className="mt-2 max-w-2xl text-sm sm:text-base leading-relaxed text-white/80">
               Every tier includes the {CS_OFFER.minLeadsRequired}-lead minimum and {CS_OFFER.freeLeadsWindowDays}-day
-              free-leads window. Pick where you're starting — you can graduate later.
+              free-leads window. Pick where you are starting. You can move up later.
             </p>
           </div>
           <CareerPriceCardGrid
@@ -249,13 +260,14 @@ export default function CreditSpecialistPricingPage() {
 
         {/* What you get — for the selected tier */}
         <section className="space-y-3">
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">{selectedTier.name}</p>
-          <CareerPackagePanel
-            heading="Here's what this tier includes"
-            subheading={selectedTier.tagline}
-            blocks={packageBlocks}
-            accent={selectedAccent}
-          />
+          <div className="max-w-2xl space-y-1.5">
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-white/50">{selectedTier.name}</p>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+              Here's what this tier includes
+            </h2>
+            <p className="text-sm sm:text-base leading-relaxed text-white/80">{selectedTier.tagline}</p>
+          </div>
+          <CareerPackagePanel blocks={packageBlocks} accent={selectedAccent} />
           {selectedTier.support.length ? (
             <div className="rounded-2xl border-2 border-slate-200 bg-white p-5">
               <p className="text-xs font-black uppercase tracking-wider text-slate-500">Support</p>
@@ -318,7 +330,7 @@ export default function CreditSpecialistPricingPage() {
           </div>
         </section>
 
-        <p className={`${FINELY_OS_COMPLIANCE_FOOTNOTE} pb-16`}>
+        <p className="mx-auto max-w-3xl pb-16 text-center text-xs leading-relaxed text-white/70 sm:text-sm">
           {CS_OFFER.complianceFootnote} · {ROLE_COMPLIANCE_FOOTNOTES[ROLE]}
         </p>
 

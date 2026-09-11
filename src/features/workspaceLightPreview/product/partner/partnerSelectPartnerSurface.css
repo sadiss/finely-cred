@@ -14,7 +14,7 @@
 
 .fc-partner-picker-bento {
   display: grid;
-  gap: 14px;
+  gap: 20px;
   grid-template-columns: repeat(12, minmax(0, 1fr));
 }
 

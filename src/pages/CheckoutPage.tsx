@@ -34,7 +34,9 @@ type CartItem = {
   price?: string;
   date?: string;
   basePriceCents?: number;
+  priceCents?: number;
   finalPriceCents?: number;
+  kind?: string;
 };
 
 function itemLabel(i: CartItem) {
@@ -84,7 +86,12 @@ export default function CheckoutPage({
   const normalizedCart = useMemo(() => {
     return cart.map((raw) => {
       const item = raw as CartItem;
-      const base = typeof item.basePriceCents === 'number' ? item.basePriceCents : null;
+      const base =
+        typeof item.basePriceCents === 'number'
+          ? item.basePriceCents
+          : typeof item.priceCents === 'number'
+            ? item.priceCents
+            : null;
       if (!base) return item;
       const final = recompute(base);
       return {
@@ -111,7 +118,7 @@ export default function CheckoutPage({
     <PageShell
       badge="Public"
       title="Checkout"
-      subtitle="Review your secured assets. For AU inventory, you can proceed to checkout or request a match if you’re unsure."
+      subtitle="Review reserved seats. Continue to intake, or book a session if you still need a match."
     >
       <div className={FINELY_OS_PAGE}>
         <FinelyUnifiedHubLayout
@@ -130,13 +137,13 @@ export default function CheckoutPage({
         >
         {cart.length === 0 ? (
           <div className={`${FINELY_OS_LUXURY_EMPTY} space-y-4`}>
-            <p>Your cart is empty. Browse the AU Marketplace inventory to secure a seat.</p>
+            <p>Your cart is empty. Open the seat floor to reserve a live line, or book a fit session.</p>
             <div className="flex flex-wrap gap-3 justify-center">
               <button type="button" onClick={() => navigate('/tradelines?focus=au')} className={FINELY_OS_PRIMARY_BTN}>
                 Browse AU inventory <ArrowRight size={16} />
               </button>
-              <button type="button" onClick={() => navigate('/consultation?lane=Authorized%20Users%20(AU)')} className={FINELY_OS_SECONDARY_BTN}>
-                Get matched <ArrowRight size={16} />
+              <button type="button" onClick={() => navigate('/consultation?lane=Tradelines')} className={FINELY_OS_SECONDARY_BTN}>
+                Book a fit session <ArrowRight size={16} />
               </button>
             </div>
           </div>
@@ -184,8 +191,8 @@ export default function CheckoutPage({
                   <button type="button" onClick={() => navigate(resolveFinelyCtaPath('au_buyer_intake'))} className={`justify-center ${FINELY_OS_SUCCESS_BTN}`}>
                     Continue AU request <ArrowRight size={16} />
                   </button>
-                  <button type="button" onClick={() => navigate('/consultation?lane=Authorized%20Users%20(AU)')} className={`justify-center ${FINELY_OS_SECONDARY_BTN}`}>
-                    Not sure? Get matched <ArrowRight size={16} />
+                  <button type="button" onClick={() => navigate('/consultation?lane=Tradelines')} className={`justify-center ${FINELY_OS_SECONDARY_BTN}`}>
+                    Book a fit session <ArrowRight size={16} />
                   </button>
                 </div>
               </div>

@@ -8,6 +8,7 @@ import {
   Rocket,
   Server,
   ShieldAlert,
+  X,
   Zap,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -116,6 +117,7 @@ export default function AdminMonitoringProductSurface({ role, pageId }: Workspac
   const [events, setEvents] = useState<EdgeEvent[]>([]);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<EdgeEvent | null>(null);
 
   const nsParam = useMemo(() => (namespace === '(all)' ? '' : namespace), [namespace]);
   const errorCount = events.filter((e) => e.level === 'error').length;
@@ -209,20 +211,18 @@ export default function AdminMonitoringProductSurface({ role, pageId }: Workspac
 
     if (deckMode === 'launch') {
       return (
-        <div className="space-y-6">
+        <div className="grid gap-6 lg:grid-cols-2">
           <div className={`${finelyOsCatalogCard('violet')} p-6 lg:p-8 space-y-4`} data-fc-accent="violet">
             <h3 className="text-2xl font-extrabold">Launch plan closure</h3>
             <AdminLaunchPlanClosurePanel />
           </div>
-          <div className="grid gap-6 lg:grid-cols-2">
-            <div className={`${finelyOsCatalogCard('emerald')} p-6 lg:p-8 space-y-4`} data-fc-accent="emerald">
-              <h3 className="text-2xl font-extrabold">Go-live command</h3>
-              <AdminGoLiveCommandPanel />
-            </div>
-            <div className={`${finelyOsCatalogCard('sky')} p-6 lg:p-8 space-y-4`} data-fc-accent="sky">
-              <h3 className="text-2xl font-extrabold">Launch checklist</h3>
-              <AdminLaunchChecklistPanel />
-            </div>
+          <div className={`${finelyOsCatalogCard('emerald')} p-6 lg:p-8 space-y-4`} data-fc-accent="emerald">
+            <h3 className="text-2xl font-extrabold">Go-live command</h3>
+            <AdminGoLiveCommandPanel />
+          </div>
+          <div className={`${finelyOsCatalogCard('sky')} p-6 lg:p-8 space-y-4`} data-fc-accent="sky">
+            <h3 className="text-2xl font-extrabold">Launch checklist</h3>
+            <AdminLaunchChecklistPanel />
           </div>
         </div>
       );
@@ -285,7 +285,7 @@ export default function AdminMonitoringProductSurface({ role, pageId }: Workspac
           </div>
         ) : null}
 
-        <div className={`${finelyOsCatalogCard('violet')} p-6 lg:p-8 space-y-4`} data-fc-accent="violet">
+        <div className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h3 className="text-2xl font-extrabold">Edge event stream</h3>
@@ -339,52 +339,45 @@ export default function AdminMonitoringProductSurface({ role, pageId }: Workspac
             </div>
           ) : null}
 
-          <div className="overflow-hidden rounded-xl border border-black/[0.06]">
-            <div
-              className={`grid grid-cols-12 gap-2 px-3 py-2 ${FINELY_OS_ENTITY_SUBLABEL} text-[10px] uppercase tracking-widest border-b border-black/[0.06] bg-black/[0.02]`}
-            >
-              <div className="col-span-3">Time</div>
-              <div className="col-span-2">NS</div>
-              <div className="col-span-1">Lvl</div>
-              <div className="col-span-6">Event</div>
-            </div>
-            {events.length === 0 ? (
-              <FinelyOsEmptyState
-                icon={Activity}
-                title="No edge events yet"
-                description="Trigger email, SMS, Stripe, or webhook flows — events appear here for debugging."
-                primaryAction={
-                  isSupabaseConfigured
-                    ? { label: 'Refresh stream', onClick: load }
-                    : { label: 'Open settings', onClick: () => navigate('/admin/settings') }
-                }
-                secondaryAction={{ label: 'Billing events', onClick: () => navigate('/admin/billing') }}
-                className="m-3"
-              />
-            ) : (
-              <FinelyOsPaginatedStack
-                items={events}
-                pageSize={8}
-                emptyMessage="No events on this page."
-                itemSpacingClassName="divide-y divide-black/[0.06]"
-                renderItem={(ev) => (
-                  <div key={ev.id} className={`grid grid-cols-12 gap-2 px-3 py-2.5 text-xs ${FINELY_OS_ENTITY_BODY}`}>
-                    <div className={`col-span-3 font-mono text-[10px] ${FINELY_OS_ENTITY_SUBLABEL}`}>{ev.at}</div>
-                    <div className={`col-span-2 font-mono text-[10px] ${FINELY_OS_ENTITY_VALUE}`}>{ev.namespace}</div>
-                    <div className="col-span-1">
+          {events.length === 0 ? (
+            <FinelyOsEmptyState
+              icon={Activity}
+              title="No edge events yet"
+              description="Trigger email, SMS, Stripe, or webhook flows — events appear here for debugging."
+              primaryAction={
+                isSupabaseConfigured
+                  ? { label: 'Refresh stream', onClick: load }
+                  : { label: 'Open settings', onClick: () => navigate('/admin/settings') }
+              }
+              secondaryAction={{ label: 'Billing events', onClick: () => navigate('/admin/billing') }}
+            />
+          ) : (
+            <FinelyOsPaginatedStack
+              items={events}
+              pageSize={8}
+              emptyMessage="No events on this page."
+              itemSpacingClassName="grid sm:grid-cols-2 gap-4"
+              renderItem={(ev, idx) => {
+                const family = (['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4];
+                return (
+                  <button
+                    key={ev.id}
+                    type="button"
+                    className={`${finelyOsCatalogCard(family)} p-5 lg:p-6 text-left space-y-2`}
+                    data-fc-accent={family}
+                    onClick={() => setSelectedEvent(ev)}
+                  >
+                    <div className="flex items-center justify-between gap-2">
                       <span className={levelChip(ev.level)}>{ev.level}</span>
+                      <span className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono`}>{ev.namespace}</span>
                     </div>
-                    <div className="col-span-6">
-                      <div className={`font-bold ${FINELY_OS_ENTITY_VALUE}`}>{ev.event}</div>
-                      <pre className={`mt-1 whitespace-pre-wrap break-words text-[10px] ${FINELY_OS_ENTITY_BODY}`}>
-                        {fmtJson(ev.meta)}
-                      </pre>
-                    </div>
-                  </div>
-                )}
-              />
-            )}
-          </div>
+                    <div className={`text-lg font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{ev.event}</div>
+                    <div className={`text-sm font-bold ${FINELY_OS_ENTITY_BODY}`}>{ev.at}</div>
+                  </button>
+                );
+              }}
+            />
+          )}
         </div>
       </div>
     );
@@ -396,14 +389,14 @@ export default function AdminMonitoringProductSurface({ role, pageId }: Workspac
       pageId={pageId}
       eyebrow="Platform"
       title="Monitoring"
-      description="Health command deck — ops pulse, launch gates, platform checks, and live edge telemetry."
+      description="Watch ops health, launch gates, platform checks, and live edge events."
       accent={accent}
       surfaceMode={navItem?.surfaceMode ?? 'studio'}
       archetype={archetype}
       icon={PageIcon}
       metrics={metrics}
-      metricTitle="Health command deck"
-      metricDescription="Tap a signal to focus the deck. Pick a mode to open its health panels."
+      metricTitle="Platform health"
+      metricDescription="Stream errors, namespace, Supabase, and refresh limit."
       primaryAction={<ProductPagePrimaryAction label="Refresh stream" onClick={load} />}
       secondaryAction={
         <button type="button" className="fc-wlp-btn-secondary" onClick={() => navigate('/admin/integrations')}>
@@ -412,56 +405,40 @@ export default function AdminMonitoringProductSurface({ role, pageId }: Workspac
       }
     >
       <div className={FINELY_OS_PAGE} data-surface-layout="command-deck">
-        <section
-          className={`${finelyOsCatalogCard('sky')} p-6 lg:p-10 grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:items-end`}
-          data-fc-accent="sky"
-        >
-          <div>
-            <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
-              <Activity size={16} /> Platform health pulse
-            </div>
-            <div className="mt-4 flex flex-wrap items-end gap-4">
-              <span className="text-6xl font-extrabold leading-none">{healthScore}%</span>
-              <span className="pb-2 text-xl font-extrabold opacity-90">health score</span>
-            </div>
-            <p className={`mt-4 max-w-2xl text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
-              {errorCount > 0
-                ? `${errorCount} error${errorCount === 1 ? '' : 's'} in the edge stream — open Live stream to debug.`
-                : warnCount > 0
-                  ? `${warnCount} warning${warnCount === 1 ? '' : 's'} in the stream — review before launch.`
-                  : isSupabaseConfigured
-                    ? 'Edge functions reachable — pick a deck mode below.'
-                    : 'Supabase offline — configure env keys in settings.'}
-            </p>
+        <section className={`${finelyOsCatalogCard('sky')} p-6 lg:p-10`} data-fc-accent="sky">
+          <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
+            <Activity size={16} /> Platform health
+          </div>
+          <div className="mt-4 flex flex-wrap items-end gap-4">
+            <span className="text-6xl font-extrabold leading-none">{healthScore}%</span>
+            <span className="pb-2 text-xl font-extrabold opacity-90">health score</span>
+          </div>
+          <p className={`mt-4 max-w-2xl text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
+            {errorCount > 0
+              ? `${errorCount} error${errorCount === 1 ? '' : 's'} in the edge stream — open Live stream to debug.`
+              : warnCount > 0
+                ? `${warnCount} warning${warnCount === 1 ? '' : 's'} in the stream — review before launch.`
+                : isSupabaseConfigured
+                  ? 'Edge functions reachable — pick a view below.'
+                  : 'Supabase offline — configure env keys in settings.'}
+          </p>
+          <div className="mt-5 flex flex-wrap gap-2">
             <button
               type="button"
               onClick={() => {
                 setDeckMode('stream');
                 load();
               }}
-              className={`${FINELY_OS_PRIMARY_BTN} mt-5`}
+              className={FINELY_OS_PRIMARY_BTN}
             >
               Open live stream <ArrowRight size={14} />
             </button>
-          </div>
-
-          <div className="grid grid-cols-3 gap-3">
-            {[
-              { label: 'Errors', value: errorCount, family: 'rose' as const },
-              { label: 'Warnings', value: warnCount, family: 'violet' as const },
-              { label: 'Events', value: events.length, family: 'emerald' as const },
-            ].map((tile) => (
-              <div
-                key={tile.label}
-                className={`${finelyOsCatalogCard(tile.family)} p-4 text-center`}
-                data-fc-accent={tile.family}
-              >
-                <div className={`text-[10px] font-black uppercase tracking-widest ${FINELY_OS_ENTITY_SUBLABEL}`}>
-                  {tile.label}
-                </div>
-                <div className={`mt-2 text-3xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{tile.value}</div>
-              </div>
-            ))}
+            <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/integrations')}>
+              Integrations
+            </button>
+            <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/settings')}>
+              System settings
+            </button>
           </div>
         </section>
 
@@ -500,59 +477,42 @@ export default function AdminMonitoringProductSurface({ role, pageId }: Workspac
           })}
         </div>
 
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.65fr)_minmax(280px,1fr)] xl:items-start">
-          <div className="space-y-4 min-w-0">
-            <div className={`${finelyOsCatalogCard(activeDeck.accent)} p-5 lg:p-6`} data-fc-accent={activeDeck.accent}>
-              <div className="flex items-center gap-3">
-                <ActiveIcon size={22} />
-                <div>
-                  <p className={FINELY_OS_ENTITY_SUBLABEL}>Deck mode</p>
-                  <h2 className={`text-2xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{activeDeck.label}</h2>
-                  <p className={`text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>{activeDeck.desc}</p>
-                </div>
-              </div>
+        <div className="space-y-4 min-w-0">
+          <div className="flex items-center gap-3">
+            <ActiveIcon size={22} />
+            <div>
+              <p className={FINELY_OS_ENTITY_SUBLABEL}>{activeDeck.label}</p>
+              <p className={`text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>{activeDeck.desc}</p>
             </div>
-            {renderDeckContent()}
           </div>
-
-          <aside className="space-y-4">
-            <div className={`${finelyOsCatalogCard('rose')} p-6 lg:p-8 space-y-4`} data-fc-accent="rose">
-              <h3 className="text-xl font-extrabold">Signal rail</h3>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between gap-2">
-                  <span className={`text-sm font-bold ${FINELY_OS_ENTITY_BODY}`}>Supabase</span>
-                  <span className={finelyOsStatusChip(isSupabaseConfigured ? 'ok' : 'blocked')}>
-                    {isSupabaseConfigured ? 'Live' : 'Offline'}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between gap-2">
-                  <span className={`text-sm font-bold ${FINELY_OS_ENTITY_BODY}`}>Stream errors</span>
-                  <span className={finelyOsStatusChip(errorCount > 0 ? 'blocked' : 'ok')}>{errorCount}</span>
-                </div>
-                <div className="flex items-center justify-between gap-2">
-                  <span className={`text-sm font-bold ${FINELY_OS_ENTITY_BODY}`}>Warnings</span>
-                  <span className={finelyOsStatusChip(warnCount > 0 ? 'warn' : 'ok')}>{warnCount}</span>
-                </div>
-              </div>
-              {(errorCount > 0 || warnCount > 0) && (
-                <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => setDeckMode('stream')}>
-                  Debug stream
-                </button>
-              )}
-            </div>
-
-            <div className={`${finelyOsCatalogCard('violet')} p-6 lg:p-8 space-y-3`} data-fc-accent="violet">
-              <p className={FINELY_OS_ENTITY_SUBLABEL}>Quick links</p>
-              <button type="button" className={`${FINELY_OS_SECONDARY_BTN} w-full justify-center`} onClick={() => navigate('/admin/integrations')}>
-                Integrations
-              </button>
-              <button type="button" className={`${FINELY_OS_SECONDARY_BTN} w-full justify-center`} onClick={() => navigate('/admin/settings')}>
-                System settings
-              </button>
-            </div>
-          </aside>
+          {renderDeckContent()}
         </div>
       </div>
+
+      {selectedEvent ? (
+        <div
+          className="fc-wlp-local-modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Edge event"
+          onClick={() => setSelectedEvent(null)}
+        >
+          <div className="fc-wlp-local-modal fc-wlp-wide-drawer" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[11px] uppercase tracking-wider font-bold text-sky-300 m-0">{selectedEvent.namespace}</p>
+                <h3 className="text-lg font-extrabold text-white m-0 mt-1">{selectedEvent.event}</h3>
+              </div>
+              <button type="button" className="fc-wlp-btn-secondary !py-1.5 !px-2.5 !text-xs" onClick={() => setSelectedEvent(null)} aria-label="Close event">
+                <X size={14} /> Close
+              </button>
+            </div>
+            <span className={levelChip(selectedEvent.level)}>{selectedEvent.level}</span>
+            <p className="text-sm font-bold text-white/70 m-0">{selectedEvent.at}</p>
+            <pre className="whitespace-pre-wrap break-words text-sm font-mono text-white/85 m-0">{fmtJson(selectedEvent.meta)}</pre>
+          </div>
+        </div>
+      ) : null}
 
       <p className="fc-wlp-section-description fc-wlp-compliance-line mt-6">
         Results vary · not legal advice · funding subject to underwriting

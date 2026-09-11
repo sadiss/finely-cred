@@ -263,7 +263,7 @@ function ProductReportSourceVerificationStage({
       <div className={`${finelyOsCatalogCard('sky')} !p-4 space-y-2`}>
         <div className="flex flex-wrap items-center gap-2">
           <ShieldCheck size={16} className="text-sky-300" />
-          <span className={FINELY_OS_ENTITY_SUBLABEL}>Source verification workstation</span>
+          <span className={FINELY_OS_ENTITY_SUBLABEL}>Source verification tools</span>
         </div>
         <p className={FINELY_OS_ENTITY_BODY}>
           Pick an account, crop the matching region from your protected report, and save a source-faithful exhibit. Parsed

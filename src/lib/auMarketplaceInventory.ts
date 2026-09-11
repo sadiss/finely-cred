@@ -43,11 +43,11 @@ export function finishForBank(bank: string, seed = ''): AuCardFinish {
   const b = String(bank || '').toLowerCase();
   if (b.includes('american express') || b.includes('amex') || b.includes('platinum')) return 'platinum';
   if (b.includes('chase') || b.includes('sapphire')) return 'sapphire';
-  if (b.includes('td')) return 'emerald';
+  if (b.includes('td')) return 'sapphire';
   if (b.includes('citi') || b.includes('discover') || b.includes('gold')) return 'gold';
   if (b.includes('wells') || b.includes('capital one')) return 'titanium';
   if (b.includes('navy') || b.includes('barclay') || b.includes('black')) return 'obsidian';
-  if (b.includes('bank of america') || b.includes('bofa') || b.includes('boa')) return 'gold';
+  if (b.includes('bank of america') || b.includes('bofa') || b.includes('boa')) return 'platinum';
   return FINISHES[hashStr(`${bank}|${seed}`) % FINISHES.length];
 }
 

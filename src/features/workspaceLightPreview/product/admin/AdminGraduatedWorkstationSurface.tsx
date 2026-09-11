@@ -20,7 +20,7 @@ export default function AdminGraduatedWorkstationSurface(props: WorkspaceProduct
   const nav = getWorkspaceProductNavItem('admin', props.pageId);
   const archetype = getWorkspaceProductArchetype('admin', props.pageId);
   const line = nav ? getAdminServiceLine(nav.service as AdminServiceLineId) : null;
-  const title = nav?.label ?? 'Admin workstation';
+  const title = nav?.label ?? 'Admin tools';
   const description = nav?.description ?? 'Your next step is on this page.';
 
   return (

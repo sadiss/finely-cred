@@ -25,6 +25,7 @@ import { FINELY_TENANT_ID } from '../../../../domain/tenants';
 import { BusinessReadinessChecklist } from '../../../../components/business/BusinessReadinessChecklist';
 import { BusinessFundabilityScorecard } from '../../../../components/business/BusinessFundabilityScorecard';
 import { hasEntitlement } from '../../../../data/billingRepo';
+import { useStaffEntitlementBypass } from '../../../../components/billing/EntitlementGate';
 import { getPartnerSync } from '../../../../data/partnersRepo';
 import type { Partner } from '../../../../domain/partners';
 import type { WorkspaceProductSurfaceProps } from '../workspaceProductSurfaceRegistry';
@@ -107,6 +108,7 @@ type LoadState =
 export default function PartnerBusinessProfileProductSurface({ role, pageId, partnerId, dataMode }: WorkspaceProductSurfaceProps) {
   const navigate = useNavigate();
   const mapPortalHref = usePartnerProductPathResolver();
+  const staffBypass = useStaffEntitlementBypass();
   const { partner: sessionPartner } = usePartnerSession();
   const navItem = getWorkspaceProductNavItem('partner', pageId);
   const PageIcon = navItem?.icon ?? Building2;
@@ -166,7 +168,7 @@ export default function PartnerBusinessProfileProductSurface({ role, pageId, par
     let cancelled = false;
     setState({ status: 'loading' });
     try {
-      if (!partnerOwnsBusinessLine(partnerId!)) {
+      if (!staffBypass && !partnerOwnsBusinessLine(partnerId!)) {
         if (!cancelled) setState({ status: 'locked' });
         return;
       }
@@ -180,7 +182,7 @@ export default function PartnerBusinessProfileProductSurface({ role, pageId, par
     return () => {
       cancelled = true;
     };
-  }, [isDemo, partnerId, retryToken]);
+  }, [isDemo, partnerId, retryToken, staffBypass]);
 
   const demoSpec = useMemo(() => getWorkspaceProductPageSpec('partner', pageId), [pageId]);
 

@@ -165,7 +165,7 @@ export default function PartnerDeveloperQaProductSurface({ role, pageId }: Works
       >
         <ProductEmptyState
           title="Sign in to open the QA bench"
-          description="Use your developer allowlist email to access the launch command center."
+          description="Use your developer allowlist email to access the launch desk."
           action={
             <button type="button" className="fc-wlp-btn-primary" onClick={() => navigate('/login')}>
               Sign in

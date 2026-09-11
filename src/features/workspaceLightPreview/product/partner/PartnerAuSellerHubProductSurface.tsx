@@ -378,7 +378,7 @@ export default function PartnerAuSellerHubProductSurface({ role, pageId, partner
         <FinelyOsPaginatedStack
           items={[...AU_SELLER_OFFERINGS]}
           pageSize={4}
-          itemSpacingClassName="grid md:grid-cols-2 gap-3"
+          itemSpacingClassName="grid md:grid-cols-2 gap-5"
           renderItem={(item, idx) => (
             <div
               key={item.title}

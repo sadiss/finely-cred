@@ -1,6 +1,14 @@
 import { useEffect } from 'react';
 import { usePageMeta } from './usePageMeta';
-import { buildAudioObjectSchema, buildOrganizationSchema, buildWebPageSchema, injectJsonLd } from '../lib/seoSchema';
+import {
+  buildAudioObjectSchema,
+  buildFaqPageSchema,
+  buildHowToSchema,
+  buildLocalBusinessSchema,
+  buildOrganizationSchema,
+  buildWebPageSchema,
+  injectJsonLd,
+} from '../lib/seoSchema';
 
 /** Title, description, and JSON-LD for public marketing routes (Phase 35). */
 export function usePublicSeoMeta(args: {
@@ -8,6 +16,9 @@ export function usePublicSeoMeta(args: {
   description: string;
   path: string;
   audio?: { name: string; description: string; contentUrl?: string; durationSec?: number };
+  faqs?: Array<{ q: string; a: string }>;
+  howTo?: { name: string; description: string; steps: string[] };
+  local?: { city: string; state: string };
 }) {
   usePageMeta(args.title, args.description);
 
@@ -54,9 +65,41 @@ export function usePublicSeoMeta(args: {
         }),
       );
     }
+    if (args.faqs?.length) {
+      injectJsonLd('fc-faq-schema', buildFaqPageSchema({ questions: args.faqs }));
+    }
+    if (args.howTo) {
+      injectJsonLd('fc-howto-schema', buildHowToSchema(args.howTo));
+    }
+    if (args.local) {
+      injectJsonLd(
+        'fc-local-schema',
+        buildLocalBusinessSchema({
+          origin,
+          city: args.local.city,
+          state: args.local.state,
+          description: args.description,
+        }),
+      );
+    }
     return () => {
       document.getElementById('fc-webpage-schema')?.remove();
       document.getElementById('fc-audio-schema')?.remove();
+      document.getElementById('fc-faq-schema')?.remove();
+      document.getElementById('fc-howto-schema')?.remove();
+      document.getElementById('fc-local-schema')?.remove();
     };
-  }, [args.title, args.description, args.path, args.audio?.name, args.audio?.description, args.audio?.contentUrl, args.audio?.durationSec]);
+  }, [
+    args.title,
+    args.description,
+    args.path,
+    args.audio?.name,
+    args.audio?.description,
+    args.audio?.contentUrl,
+    args.audio?.durationSec,
+    args.faqs,
+    args.howTo,
+    args.local?.city,
+    args.local?.state,
+  ]);
 }

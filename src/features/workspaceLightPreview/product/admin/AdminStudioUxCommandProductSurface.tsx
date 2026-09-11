@@ -124,8 +124,8 @@ export default function AdminStudioUxCommandProductSurface({ role, pageId }: Wor
         { label: 'Media', value: 'Video', hint: 'Prompt-first', accent: 'sky' },
         { label: 'Automation', value: 'Blueprints', hint: 'Scenario grid', accent: 'rose' },
       ]}
-      metricTitle="Command deck"
-      metricDescription="Hero action launches the active tool; strip switches without leaving the deck."
+      metricTitle="Overview"
+      metricDescription="Hero action launches the active tool; strip switches without leaving the overview."
       primaryAction={<ProductPagePrimaryAction label={activeTool.heroLabel} onClick={runHeroAction} />}
       secondaryAction={
         <button type="button" className="fc-wlp-btn-secondary" onClick={() => setTool('overview')}>

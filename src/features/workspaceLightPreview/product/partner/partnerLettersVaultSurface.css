@@ -18,7 +18,7 @@
 .fc-wlp-letters-mail-pipeline {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+  gap: 20px;
   position: relative;
 }
 

@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { CheckCircle2, Filter, Search, Users, Clapperboard } from 'lucide-react';
+import { CheckCircle2, Filter, Search, Users, Clapperboard, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { contentStudioUrlForStaff, isCreativeStaffId } from '../studioCommandOs/contentStudioHandoff';
 import type { StaffDepartmentId } from './types';
@@ -11,17 +11,11 @@ import { StaffAvatar, StaffStatusPill } from './StaffAvatar';
 import { StaffKindBadge, isHumanStaffKind } from './StaffKindBadge';
 import { formatStaffCommandDutyLine } from '../../lib/staffCommandShift';
 import { StaffProfilePanel } from './StaffProfilePanel';
-import {
-  STAFF_CMD_BODY,
-  STAFF_CMD_EYEBROW,
-  staffCmdHighlightPanel,
-  STAFF_CMD_PANEL,
-  STAFF_CMD_TITLE,
-  staffCmdCardBorder,
-  staffCmdSelected,
-} from './staffCommandUi';
+import { staffCmdSelected } from './staffCommandUi';
 
 export type StaffKindFilter = 'all' | 'ai_staff' | 'human';
+
+const ROSTER_ACCENTS = ['emerald', 'violet', 'sky', 'rose'] as const;
 
 export function StaffDirectoryPanel({
   selectedIds,
@@ -72,147 +66,140 @@ export function StaffDirectoryPanel({
   }
 
   return (
-    <div className="space-y-6">
-      <div className={STAFF_CMD_PANEL}>
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <div className={`inline-flex items-center gap-2 ${STAFF_CMD_EYEBROW}`}>
-              <Users size={16} /> Staff roster
-            </div>
-            <h2 className={`mt-2 ${STAFF_CMD_TITLE}`}>Company roster — AI operators & human team</h2>
-            <p className={`mt-2 max-w-3xl text-sm ${STAFF_CMD_BODY}`}>
-              <span className="text-violet-200 font-semibold">AI operators</span> run growth systems.{' '}
-              <span className="text-rose-200 font-semibold">Human team</span> slots are real hires. Partner-facing humans live under the Partner team tab.
-            </p>
+    <div className="fc-wlp-staff-roster">
+      <div className="fc-wlp-staff-roster-toolbar">
+        <div className="fc-wlp-staff-roster-toolbar-copy">
+          <div className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.18em] text-white/55">
+            <Users size={14} /> Company roster
           </div>
-          <div className={`${staffCmdHighlightPanel()} p-3 text-xs`}>
-            Selected: <span className="font-black">{selectedIds.length}/3</span>
-          </div>
+          <p className="mt-1 text-sm font-semibold text-white/70">
+            Selected {selectedIds.length}/3 · open a card for the full profile
+          </p>
         </div>
-
-        <div className="mt-4 space-y-3">
-          <div className="rounded-2xl border border-white/10 bg-black/20 px-3 py-2 flex items-center gap-2">
-            <Search size={16} className="text-white/35 shrink-0" />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search by name, title, department, personality…"
-              className="w-full bg-transparent py-2 text-sm text-white/80 outline-none placeholder:text-white/30"
-            />
-          </div>
-          {onKindFilterChange ? (
-            <div className="flex flex-wrap gap-2">
-              {(['all', 'ai_staff', 'human'] as StaffKindFilter[]).map((k) => (
-                <button
-                  key={k}
-                  type="button"
-                  onClick={() => onKindFilterChange(k)}
-                  className={`rounded-xl border px-3 py-2 text-[10px] font-black uppercase tracking-widest ${staffCmdSelected(kindFilter === k)}`}
-                >
-                  {k === 'all' ? 'All company' : k === 'ai_staff' ? 'AI operators' : 'Human team'}
-                </button>
-              ))}
-            </div>
-          ) : null}
-          <div className="flex flex-wrap gap-3">
-            <div className="flex-1 min-w-[200px] rounded-2xl border border-white/10 bg-black/20 px-3 py-2 flex items-center gap-2">
-              <Filter size={16} className="text-white/35 shrink-0" />
-              <select
-                value={departmentId}
-                onChange={(e) => setDepartmentId(e.target.value as StaffDepartmentId | 'all')}
-                className="w-full bg-transparent py-2 text-sm text-white/80 outline-none"
+        <div className="fc-wlp-staff-roster-search">
+          <Search size={16} />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search name, title, department…"
+            aria-label="Search roster"
+          />
+        </div>
+        {onKindFilterChange ? (
+          <div className="flex flex-wrap gap-2">
+            {(['all', 'ai_staff', 'human'] as StaffKindFilter[]).map((k) => (
+              <button
+                key={k}
+                type="button"
+                onClick={() => onKindFilterChange(k)}
+                className={`rounded-xl border px-3 py-2 text-[10px] font-black uppercase tracking-widest ${staffCmdSelected(kindFilter === k)}`}
               >
-                <option value="all">All departments</option>
-                {STAFF_DEPARTMENTS.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <label className="rounded-2xl border border-white/10 bg-black/20 px-4 py-2 flex items-center gap-3 text-sm text-white/70">
-              <input type="checkbox" checked={showFuture} onChange={(e) => setShowFuture(e.target.checked)} />
-              Show future hires
-            </label>
+                {k === 'all' ? 'All company' : k === 'ai_staff' ? 'AI operators' : 'Human team'}
+              </button>
+            ))}
           </div>
-        </div>
-
-        <div className="mt-5 space-y-4">
-          {staff.map((x) => {
-            const selected = selectedIds.includes(x.id);
-            const showingProfile = profileId === x.id;
-            return (
-              <div key={x.id} className="space-y-3">
-                <div
-                  className={`rounded-2xl border p-4 transition-all ${staffCmdCardBorder(x, selected)}`}
-                >
-                  <div className="flex flex-wrap items-start gap-4">
-                    <StaffAvatar staff={x} active={selected} size="lg" />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div>
-                          <div className="text-xl font-bold text-white">{staffFullName(x)}</div>
-                          <div className="mt-1 text-sm font-semibold text-violet-200/90">{x.title}</div>
-                          <div className="mt-1 text-[11px] text-white/40">{x.departmentId.replace(/_/g, ' ')}</div>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setProfileId(showingProfile ? null : x.id)}
-                            className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-white/70 hover:bg-white/[0.08]"
-                          >
-                            {showingProfile ? 'Close profile' : 'Edit profile'}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => toggleStaff(x.id)}
-                            className={`rounded-xl border px-3 py-1.5 text-[10px] font-black uppercase tracking-widest ${
-                              selected
-                                ? 'border-violet-400/40 bg-violet-500/15 text-violet-100'
-                                : 'border-white/10 bg-black/20 text-white/65 hover:border-violet-400/30'
-                            }`}
-                          >
-                            {selected ? 'Selected' : 'Select for mission'}
-                          </button>
-                          {isCreativeStaffId(x.id) ? (
-                            <button
-                              type="button"
-                              onClick={() => navigate(contentStudioUrlForStaff(x.id, x.id === 'shorts_factory' ? 'video' : 'intake'))}
-                              className="inline-flex items-center gap-1.5 rounded-xl border border-sky-400/35 bg-sky-500/12 px-3 py-1.5 text-xs font-black uppercase tracking-widest text-sky-100 hover:bg-sky-500/18"
-                            >
-                              <Clapperboard size={12} /> Content Studio
-                            </button>
-                          ) : null}
-                          {selected ? <CheckCircle2 size={20} className="text-violet-300" /> : null}
-                        </div>
-                      </div>
-                      <div className="mt-3 flex flex-wrap gap-1.5">
-                        <StaffStatusPill status={x.status} />
-                        <StaffKindBadge kind={x.kind} />
-                      </div>
-                      <p className="mt-2 text-[10px] text-white/45 leading-snug">{formatStaffCommandDutyLine(x.shift)}</p>
-                      <p className="mt-3 text-sm text-white/65">{x.personality.bio}</p>
-                      <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                        <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                          <div className="text-[9px] uppercase tracking-widest text-white/35 font-black">Voice</div>
-                          <div className="mt-1 text-xs text-white/60">{x.personality.voice}</div>
-                        </div>
-                        <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                          <div className="text-[9px] uppercase tracking-widest text-white/35 font-black">Owns</div>
-                          <div className="mt-1 text-xs text-white/60 line-clamp-2">{x.responsibilities.slice(0, 2).join(' • ')}</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                {showingProfile && profileStaff ? (
-                  <StaffProfilePanel staff={profileStaff} onSaved={refreshRoster} />
-                ) : null}
-              </div>
-            );
-          })}
+        ) : null}
+        <div className="flex flex-wrap gap-3">
+          <label className="fc-wlp-staff-roster-filter">
+            <Filter size={14} />
+            <select
+              value={departmentId}
+              onChange={(e) => setDepartmentId(e.target.value as StaffDepartmentId | 'all')}
+            >
+              <option value="all">All departments</option>
+              {STAFF_DEPARTMENTS.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="fc-wlp-staff-roster-check">
+            <input type="checkbox" checked={showFuture} onChange={(e) => setShowFuture(e.target.checked)} />
+            Future hires
+          </label>
         </div>
       </div>
+
+      <div className="fc-wlp-staff-roster-grid">
+        {staff.map((x, index) => {
+          const selected = selectedIds.includes(x.id);
+          const accent = ROSTER_ACCENTS[index % ROSTER_ACCENTS.length];
+          return (
+            <button
+              key={x.id}
+              type="button"
+              className="fc-wlp-staff-roster-card"
+              data-accent={accent}
+              data-selected={selected ? 'true' : undefined}
+              onClick={() => setProfileId(x.id)}
+            >
+              <StaffAvatar staff={x} active={selected} size="md" />
+              <strong>{staffFullName(x)}</strong>
+              <em>{x.title}</em>
+              <div className="fc-wlp-staff-roster-card-meta">
+                <StaffStatusPill status={x.status} />
+                <StaffKindBadge kind={x.kind} />
+              </div>
+              <span>{formatStaffCommandDutyLine(x.shift)}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {profileStaff ? (
+        <div
+          className="fc-wlp-local-modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${staffFullName(profileStaff)} profile`}
+          onClick={() => setProfileId(null)}
+        >
+          <div className="fc-wlp-local-modal fc-wlp-wide-drawer" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="m-0 text-[11px] font-black uppercase tracking-widest text-emerald-300">Staff profile</p>
+                <h3 className="m-0 mt-1 text-xl font-extrabold text-white">{staffFullName(profileStaff)}</h3>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => toggleStaff(profileStaff.id)}
+                  className="rounded-xl border border-white/15 bg-white/[0.06] px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-white/80"
+                >
+                  {selectedIds.includes(profileStaff.id) ? (
+                    <span className="inline-flex items-center gap-1">
+                      <CheckCircle2 size={12} /> Selected
+                    </span>
+                  ) : (
+                    'Select for mission'
+                  )}
+                </button>
+                {isCreativeStaffId(profileStaff.id) ? (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      navigate(contentStudioUrlForStaff(profileStaff.id, profileStaff.id === 'shorts_factory' ? 'video' : 'intake'))
+                    }
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-sky-400/35 bg-sky-500/12 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-sky-100"
+                  >
+                    <Clapperboard size={12} /> Content Studio
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  className="fc-wlp-btn-secondary !py-1.5 !px-2.5 !text-xs"
+                  onClick={() => setProfileId(null)}
+                  aria-label="Close profile"
+                >
+                  <X size={14} /> Close
+                </button>
+              </div>
+            </div>
+            <StaffProfilePanel staff={profileStaff} onSaved={refreshRoster} />
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

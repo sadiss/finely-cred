@@ -633,11 +633,11 @@ export default function AdminAccessProductSurface({ role, pageId }: WorkspacePro
           </aside>
 
           <div className="min-w-0">
-            <div className="fc-admin-access-inspector-bed">
+            <div>
               <div className="flex flex-wrap items-center gap-3 mb-6">
                 <ActiveIcon size={22} />
                 <div>
-                  <p className={FINELY_OS_ENTITY_SUBLABEL}>Inspector</p>
+                  <p className={FINELY_OS_ENTITY_SUBLABEL}>Zone</p>
                   <h2 className={`text-2xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{activeZone.label}</h2>
                   <p className={`text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>{activeZone.purpose}</p>
                 </div>
@@ -661,8 +661,7 @@ export default function AdminAccessProductSurface({ role, pageId }: WorkspacePro
                       key={alert.title}
                       type="button"
                       onClick={alert.action}
-                      className={`w-full text-left p-4 rounded-xl ${finelyOsCatalogCard('sky')}`}
-                      data-fc-accent="sky"
+                      className="fc-admin-access-alert-item w-full text-left"
                     >
                       <span className={finelyOsStatusChip(alert.tone)}>{alert.title}</span>
                     </button>

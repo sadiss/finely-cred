@@ -95,7 +95,7 @@ export function WorkspaceProductModuleSurface({
     return (
       <ProductEmptyState
         title="This product page is not configured"
-        description="Return to the command center and choose another workspace destination."
+        description="Return to the dashboard and choose another workspace destination."
         action={
           <button
             type="button"

@@ -13,7 +13,7 @@ export function TrackedLinksReportPanel() {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <div className="inline-flex items-center gap-2 text-amber-300 text-[10px] uppercase tracking-widest font-black"><BarChart3 size={16} /> Link, funnel, and attribution reporting</div>
-          <h2 className="mt-2 text-2xl font-black text-white">Know exactly what the swarm produced</h2>
+          <h2 className="mt-2 text-2xl font-black text-white">Know exactly what discovery produced</h2>
           <p className="mt-2 max-w-3xl text-sm text-white/60">Every action recommendation gets a short link. Every lead capture should pass slug/source/city/funnel back into reporting.</p>
         </div>
         <button type="button" onClick={() => setVersion((v) => v + 1)} className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-[10px] font-black uppercase tracking-widest text-white/70 hover:bg-white/[0.08]"><RefreshCw size={14} /> Refresh</button>

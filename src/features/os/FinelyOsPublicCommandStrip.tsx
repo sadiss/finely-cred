@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { ArrowRight, BookOpen, Calendar, ChevronDown, DollarSign, Users } from 'lucide-react';
+import { ArrowRight, BookOpen, Calendar, ChevronDown, DollarSign, Languages, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthProvider';
+import { isAdminEmail } from '../../auth/admin';
+import { resolveHaitianCommunityHref } from '../../lib/haitianCompanionDesk';
 import { FlashyIcon } from '../../components/ui';
 import { FinelyOsPaginatedStack } from './FinelyOsPaginatedStack';
 import { finelyCtaNavigate } from '../../lib/finelyCtaIntent';
@@ -38,7 +40,7 @@ const PRIMARY_TILES: Tile[] = [
     id: 'pricing',
     label: 'See pricing',
     hint: 'Personal restore, business credit, and debt paths',
-    path: '/pricing',
+    path: '/pricing/personal-credit-restore',
     accent: 'violet',
     icon: DollarSign,
   },
@@ -49,6 +51,14 @@ const PRIMARY_TILES: Tile[] = [
     path: '/enlightenment-session',
     accent: 'sky',
     icon: Calendar,
+  },
+  {
+    id: 'haitian',
+    label: 'Haitian community',
+    hint: 'Credit help for Haitian Americans',
+    path: '/haitian',
+    accent: 'fuchsia',
+    icon: Languages,
   },
   {
     id: 'specialists',
@@ -66,7 +76,7 @@ const FUNNEL_TILES: Tile[] = [
   { id: 'tradeline', label: 'Tradeline guide', hint: 'Authorized-user education', path: '/free-tradeline-guide', accent: 'emerald', icon: BookOpen },
   { id: 'score', label: 'Score roadmap', hint: 'Five-step recovery sequence', path: '/free-score-roadmap', accent: 'sky', icon: BookOpen },
   { id: 'agency', label: 'Agency kit', hint: 'White-label partner resources', path: '/free-agency-guide', accent: 'rose', icon: BookOpen },
-  { id: 'specialist', label: 'Specialist join', hint: 'Join the specialist network', path: '/credit-specialist', accent: 'violet', icon: Users },
+  { id: 'specialist', label: 'Specialist join', hint: 'Join the specialist network', path: '/credit-specialist/join', accent: 'violet', icon: Users },
   { id: 'affiliate', label: 'Affiliate toolkit', hint: 'Referral and promo templates', path: '/affiliate-toolkit', accent: 'fuchsia', icon: Users },
 ];
 
@@ -74,7 +84,13 @@ export function FinelyOsPublicCommandStrip() {
   const navigate = useNavigate();
   const auth = useAuth();
   const [showMore, setShowMore] = useState(false);
-  const resolveTilePath = (path: string) => path;
+  const resolveTilePath = (path: string) =>
+    path === '/haitian' || path === '/kreyol'
+      ? resolveHaitianCommunityHref({
+          isAdmin: isAdminEmail(auth.user?.email),
+          isAuthed: Boolean(auth.user),
+        })
+      : path;
 
   return (
     <section className={`relative z-10 -mt-2 pb-10 ${finelyOsLandingContrastSection('fc-band-emerald')}`} data-fc-contrast-band="1">
@@ -114,7 +130,7 @@ export function FinelyOsPublicCommandStrip() {
           <div className="space-y-4">
             <FinelyOsPaginatedStack
               items={PRIMARY_TILES}
-              pageSize={4}
+              pageSize={6}
               itemSpacingClassName="grid sm:grid-cols-2 gap-4"
               renderItem={(t) => (
                 <button

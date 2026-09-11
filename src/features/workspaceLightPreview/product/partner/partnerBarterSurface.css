@@ -16,23 +16,22 @@
 }
 
 .fc-barter-workbench-grid {
-  display: grid;
-  grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
+  display: flex;
+  flex-direction: column;
   gap: 22px;
-  align-items: start;
   min-height: 360px;
 }
 
-@media (max-width: 900px) {
-  .fc-barter-workbench-grid {
-    grid-template-columns: 1fr;
-  }
+.fc-barter-lane-rail {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
 }
 
-.fc-barter-lane-rail {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+@media (max-width: 900px) {
+  .fc-barter-lane-rail {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .fc-barter-lane-tile {
@@ -49,7 +48,7 @@
 }
 
 .fc-barter-lane-tile:hover {
-  transform: translateX(3px);
+  transform: translateY(-2px);
 }
 
 .fc-barter-lane-tile[data-active='true'] {

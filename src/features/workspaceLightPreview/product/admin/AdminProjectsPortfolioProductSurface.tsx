@@ -172,21 +172,21 @@ export default function AdminProjectsPortfolioProductSurface({ role, pageId }: W
       eyebrow={isAnalytics ? 'Portfolio analytics' : 'Delivery portfolio'}
       title={
         isAnalytics
-          ? 'Cross-portfolio delivery outcomes — spot risk before it stalls.'
-          : 'Active projects at a glance — one next move, not a spreadsheet.'
+          ? 'Delivery outcomes across the portfolio. Spot risk before work stalls.'
+          : 'Active projects at a glance. Start with the next move.'
       }
       description={
         isAnalytics
-          ? 'Portfolio pulse, SLA signals, and weekly digest in one command deck.'
-          : 'Portfolio hero up top, spotlight the riskiest work, jump straight into a project workspace.'
+          ? 'Review portfolio health, SLA signals, and the weekly digest.'
+          : 'See the riskiest work first, then open a project.'
       }
       accent={accent}
       surfaceMode={navItem?.surfaceMode ?? 'studio'}
       archetype={archetype}
       icon={PageIcon}
       metrics={metrics}
-      metricTitle="Portfolio command deck"
-      metricDescription="Hero shows portfolio pulse; spotlight or weekly digest below."
+      metricTitle="Portfolio overview"
+      metricDescription="Portfolio health is above. Open the spotlight or weekly digest next."
       primaryAction={<ProductPagePrimaryAction label={primaryLabel} onClick={() => navigate(primaryPath)} />}
       secondaryAction={
         <button type="button" className="fc-wlp-btn-secondary" onClick={() => navigate('/admin/projects')}>

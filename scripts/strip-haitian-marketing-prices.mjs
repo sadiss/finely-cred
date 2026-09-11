@@ -1,0 +1,23 @@
+import fs from 'fs';
+
+const p = 'src/lib/haitianPieceSpec.ts';
+let s = fs.readFileSync(p, 'utf8');
+s = s.replace(/ctaPath: '\/pricing[^']*'/g, "ctaPath: '/haitian'");
+s = s.replace(/Kòmanse depi \$297[^']*/g, 'Pale Kreyòl lè w pare.');
+s = s.replace(/Validasyon depi \$297\. /g, '');
+s = s.replace(/Biwo dèt n ap mennen depi \$997\. /g, 'Biwo dèt n ap mennen. ');
+s = s.replace(/Netwaye depi \$400\. /g, '');
+s = s.replace(/Nivo biznis depi \$2,997\. /g, '');
+s = s.replace(/The free portal lets you upload\. The \$297 path is guided DIY\. The \$750 path is the restore desk\./g, 'The free portal lets you upload. DIY means you mail. The restore desk means we sit with the file.');
+s = s.replace(/Portal gratis la kite w voye rapò a\. \$297 se gid\. \$750 se biwo restore\./g, 'Portal gratis la kite w voye rapò a. DIY vle di ou voye. Biwo restore vle di nou chita ak dosye a.');
+s = s.replace(/Start restore yourself — \$297 path/g, 'Start restore yourself — you mail, we guide');
+s = s.replace(/Kòmanse dosye pèsonèl ou menm — \$297/g, 'Kòmanse dosye pèsonèl ou menm — ou voye, nou gide');
+s = s.replace(/purpose: 'Foundation \$2,997\. Builder \$5,997\. Elite \$12,997\.'/, "purpose: 'Entity first. Vendors that report. Then a company ask — not a promised score.'");
+s = s.replace(/purposeHt: 'Fondasyon \$2,997\. Builder \$5,997\. Elite \$12,997\.'/, "purposeHt: 'Dabò konpayi an. Machann ki rapòte. Apre sa yon demann — pa yon nòt yo pwomèt.'");
+s = s.replace(/emailLedeEn: 'Foundation, Builder, Elite\. Start at \$2,997\.'/, "emailLedeEn: 'Foundation, Builder, Elite — entity first, then vendors that report.'");
+s = s.replace(/emailLedeHt: 'Foundation, Builder, Elite\. Kòmanse \$2,997\.'/, "emailLedeHt: 'Foundation, Builder, Elite — dabò konpayi an, apre sa machann ki rapòte.'");
+s = s.replace(/kòmanse depi \$297 si w vle biwo dèt la\./g, 'Pale Kreyòl si w vle biwo dèt la.');
+s = s.replace(/Kòmanse depi \$297\. /g, '');
+s = s.replace(/ \$[0-9,]+/g, '');
+fs.writeFileSync(p, s);
+console.log('second pass done');

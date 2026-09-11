@@ -45,17 +45,17 @@ const PILLARS = [
   {
     icon: Handshake,
     title: 'You refer',
-    desc: 'Spot the blocked buyer or seller, hand a tracked link, stay on milestones.',
+    desc: 'Spot the blocked buyer or seller, hand a tracked link, and stay on the milestones.',
   },
   {
     icon: Scale,
     title: 'Finely runs credit',
-    desc: 'Disputes, AU optics, paydown proof — specialists operate the file.',
+    desc: 'Disputes, authorized-user optics, and paydown proof — specialists operate the file.',
   },
   {
     icon: Building2,
     title: 'You keep the closing',
-    desc: 'Contracts get a real lane instead of “come back next year.”',
+    desc: 'The contract gets a real lane instead of “come back next year.”',
   },
 ];
 
@@ -63,7 +63,7 @@ export default function RealEstateGuideLandingPage() {
   const navigate = useNavigate();
 
   usePublicSeoMeta({
-    title: `${RE_GUIDE_META.title} — Free e-guide for agents & brokers`,
+    title: `${RE_GUIDE_META.title} — free e-guide for agents and brokers`,
     description: RE_GUIDE_META.description,
     path: RE_GUIDE_PATH,
   });
@@ -79,9 +79,9 @@ export default function RealEstateGuideLandingPage() {
       <div className="lm-lux-grain lm-lux-grain--fixed pointer-events-none" aria-hidden />
 
       <section className="relative z-10 pt-20 md:pt-24">
-        <div className="relative z-[2] mx-auto grid max-w-[88rem] items-center gap-8 px-5 pb-10 pt-6 md:px-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12 lg:pb-12 lg:pt-8">
+        <div className="relative z-[2] fc-viewport-floor grid items-center gap-8 pb-10 pt-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12 lg:pb-12 lg:pt-8">
           <div className="reg-fade-up">
-            <p className="reg-hero-kicker text-[11px] font-bold uppercase">Free e-guide · no signup to read</p>
+            <p className="reg-hero-kicker text-[11px] font-bold uppercase">Operator guide · cover preview</p>
             <h1 className="reg-serif reg-hero-title mt-3 text-white">
               <LandingTypewriterTitle as="span" text="You refer." className="block" speedMs={40} delayMs={80} caret />
               <LandingTypewriterTitle
@@ -95,12 +95,13 @@ export default function RealEstateGuideLandingPage() {
             </h1>
             <div className="lm-lux-rule--short lm-lux-rule--draw mt-4" aria-hidden />
             <p className="reg-hero-lede mt-5 max-w-xl">
-              The Real Estate Operator Guide — WIIFM, question scripts, Fannie AU/DTI summaries, seven readiness levers,
-              and lender rescore prep. Read free in-app. Join the affiliation path when you are ready.
+              The Real Estate Operator Guide: what you gain, question scripts you can say out loud, Fannie authorized-user
+              and DTI summaries, seven readiness levers, and lender rescore prep. Open the cover preview, then join the
+              affiliation path when you are ready.
             </p>
             <div className="mt-7 flex flex-wrap items-center gap-3">
               <button type="button" className="reg-primary-btn" onClick={() => openGuide()}>
-                <BookOpen size={14} /> Read the Operator Guide <ArrowRight size={14} />
+                <BookOpen size={14} /> Open operator guide <ArrowRight size={14} />
               </button>
               <Link to={RE_CAREERS_PATH} className="reg-ghost-btn inline-flex h-11 items-center rounded-lg px-5 text-[11px] font-black uppercase tracking-[0.14em]">
                 Join real estate path
@@ -119,14 +120,14 @@ export default function RealEstateGuideLandingPage() {
           <div className="relative flex flex-col items-center reg-fade-up" style={{ animationDelay: '0.12s' }}>
             <GuideBookMockup tall onOpen={() => openGuide()} />
             <p className="mt-1 max-w-xs text-center text-sm text-white/50">
-              Book-first — click the cover to open the in-app reader. No unlock gate.
+              Cover preview — click to open the operator guide.
             </p>
           </div>
         </div>
       </section>
 
       <section id="pages" className="relative z-10 scroll-mt-28 border-y border-white/8 py-12 md:py-14">
-        <div className="mx-auto max-w-[88rem] px-5 md:px-10">
+        <div className="fc-viewport-floor">
           <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
             <div>
               <div className="reg-kicker">
@@ -170,9 +171,9 @@ export default function RealEstateGuideLandingPage() {
       </section>
 
       <section id="inside" className="relative z-10 py-12 md:py-14">
-        <div className="mx-auto max-w-[88rem] px-5 md:px-10">
+        <div className="fc-viewport-floor">
           <div className="reg-kicker">Inside the guide</div>
-          <h2 className="reg-serif mt-3 text-3xl font-semibold md:text-4xl">Clear WIIFM. Real scripts. Accurate underwriting language.</h2>
+          <h2 className="reg-serif mt-3 text-3xl font-semibold md:text-4xl">What you gain. Scripts you can say. Underwriting language that stays accurate.</h2>
           <div className="mt-8 grid gap-4 md:grid-cols-3">
             {PILLARS.map((p) => {
               const Icon = p.icon;
@@ -188,7 +189,7 @@ export default function RealEstateGuideLandingPage() {
             })}
           </div>
           <ul className="mt-8 max-w-2xl space-y-3">
-            <MiniCheck>Seven readiness levers with Finely routes — AU, DTI, util, inquiries, collections, disputes, rescore.</MiniCheck>
+            <MiniCheck>Seven readiness levers with Finely routes: authorized user, DTI, utilization, inquiries, collections, disputes, and rescore.</MiniCheck>
             <MiniCheck>Fannie B3-5.3 / B3-6 themes in plain English — AU may help optics; AU ≠ automatic DTI relief.</MiniCheck>
             <MiniCheck>Question-script chips you can say at the kitchen table without overpromising.</MiniCheck>
           </ul>
@@ -196,7 +197,7 @@ export default function RealEstateGuideLandingPage() {
       </section>
 
       <section className="relative z-10 border-t border-white/8 py-12 md:py-16">
-        <div className="mx-auto flex max-w-[88rem] flex-col items-start gap-6 px-5 md:flex-row md:items-center md:justify-between md:px-10">
+        <div className="fc-viewport-floor flex flex-col items-start gap-6 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="reg-serif text-3xl font-semibold md:text-4xl">Ready to operate?</h2>
             <p className="mt-2 max-w-xl text-sm text-white/55">

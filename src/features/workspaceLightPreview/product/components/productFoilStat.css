@@ -57,6 +57,22 @@
   color: rgba(255, 255, 255, 0.86);
 }
 
+html[data-fc-theme='dark'] :is(
+  .fc-wlp-metric[data-bed='light'],
+  .fc-wlp-action-mosaic-card[data-bed='light'],
+  .fc-wlp-signal
+) .fc-wlp-foil-stat__kicker {
+  color: #435063;
+}
+
+html[data-fc-theme='dark'] :is(
+  .fc-wlp-metric[data-bed='light'],
+  .fc-wlp-action-mosaic-card[data-bed='light'],
+  .fc-wlp-signal
+) .fc-wlp-foil-stat__caption {
+  color: rgba(10, 22, 40, 0.7);
+}
+
 @media (max-width: 375px) {
   .fc-wlp-foil-stat__value--lg {
     font-size: 2rem;

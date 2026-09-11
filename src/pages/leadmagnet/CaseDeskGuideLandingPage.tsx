@@ -26,14 +26,14 @@ export default function CaseDeskGuideLandingPage() {
   const navigate = useNavigate();
 
   usePublicSeoMeta({
-    title: `${CASE_DESK_GUIDE_META.title} — Free operator handbook`,
+    title: `${CASE_DESK_GUIDE_META.title} — free operator handbook`,
     description: CASE_DESK_GUIDE_META.description,
     path: CASE_DESK_GUIDE_PATH,
   });
 
   return (
     <main className={`${FINELY_OS_PAGE} min-h-screen bg-[#f3ecdb]`}>
-      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
+      <div className="fc-viewport-floor py-6">
         <div className="flex flex-wrap items-center justify-between gap-3 py-2">
           <Link to={CASE_DESK_CAREERS_PATH} className={FINELY_OS_BACK_LINK}>
             <ArrowLeft size={16} /> Case desk careers
@@ -78,7 +78,7 @@ export default function CaseDeskGuideLandingPage() {
                   className="inline-flex items-center gap-2 rounded-sm border-[3px] border-double border-stone-700/60 bg-[#f6f1e4] px-6 py-3 font-serif text-sm font-bold text-stone-900 shadow-[3px_3px_0_rgba(68,64,60,0.35)] hover:-translate-y-0.5"
                   onClick={() => navigate(CASE_DESK_GUIDE_READ_PATH)}
                 >
-                  <BookOpen size={15} /> Read every chapter free <ArrowRight size={14} />
+                  <BookOpen size={15} /> Open the operator guide <ArrowRight size={14} />
                 </button>
                 <button
                   type="button"
@@ -91,10 +91,10 @@ export default function CaseDeskGuideLandingPage() {
 
               <ul className="mt-8 space-y-3">
                 {[
-                  'Packet anatomy and track separation',
-                  'Scope discipline — per-partner, logged, revocable',
-                  'Validation-first doctrine and when to escalate',
-                  'Complaint ladder with CFPB, AG, FTC, BBB',
+                  'How a case packet is built and how tracks stay separate',
+                  'Scope discipline: per partner, logged, and revocable',
+                  'Validation first — and when to escalate with evidence',
+                  'A complaint ladder that includes CFPB, attorney general, FTC, and BBB',
                 ].map((line) => (
                   <li key={line} className={`flex items-start gap-3 ${SERIF} text-[15px] text-stone-700`}>
                     <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-700 text-[#faf6ea]">
@@ -140,7 +140,7 @@ export default function CaseDeskGuideLandingPage() {
                 </p>
                 <div className="mt-10 border-t border-stone-400/50 pt-4">
                   <p className={`${SERIF} text-[12px] font-bold uppercase tracking-[0.2em] text-stone-600`}>
-                    {CASE_DESK_GUIDE_CHAPTERS.length} chapters · free to read
+                    {CASE_DESK_GUIDE_CHAPTERS.length} chapters · operator handbook
                   </p>
                 </div>
               </div>

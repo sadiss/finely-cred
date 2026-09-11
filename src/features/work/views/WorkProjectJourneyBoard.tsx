@@ -52,7 +52,7 @@ export function WorkProjectCard({
   return (
     <div {...restDrag} className={`fc-work-card ${dragClass ?? ''}`.trim()} data-accent={cardAccent}>
       <div className="flex items-start gap-1">
-        <GripVertical size={14} className="text-white/45 shrink-0 mt-0.5" />
+        <GripVertical size={14} className="text-slate-400 shrink-0 mt-0.5" />
         <button type="button" onClick={onOpen} className="w-full text-left min-w-0">
         <div className="flex items-start justify-between gap-2">
           <span className={`inline-flex text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${lane.className}`}>
@@ -75,7 +75,7 @@ export function WorkProjectCard({
         </div>
         <div className={`text-[10px] leading-tight ${FINELY_OS_ENTITY_BODY}`}>
           <div>{stats.open} open · {stats.total} tasks</div>
-          <div className="text-white/40">Phase: {stageLabel}</div>
+          <div className={FINELY_OS_ENTITY_BODY}>Phase: {stageLabel}</div>
           {(stats.slaCount ?? 0) > 0 ? <div className="text-rose-300 font-semibold">{stats.slaCount} SLA</div> : null}
         </div>
       </div>
@@ -170,15 +170,15 @@ export function WorkProjectJourneyBoard({
           return (
             <div key={stage.id} className="fc-work-lane snap-start" data-accent={laneAccent}>
               <div className="mb-3 flex items-center justify-between">
-                <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-white">
+                <span className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wider ${FINELY_OS_ENTITY_VALUE}`}>
                   <span className={`h-2.5 w-2.5 rounded-full ${theme.dot}`} />
                   {stage.label}
                 </span>
-                <span className="text-xs font-semibold text-white/80 bg-white/10 px-2 py-0.5 rounded-full">{cards.length}</span>
+                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${FINELY_OS_ENTITY_BODY}`}>{cards.length}</span>
               </div>
-              <div {...dropProps} className={`space-y-2 min-h-[160px] rounded-xl ${dropProps.className ?? ''}`}>
+              <div {...dropProps} className={`fc-work-lane-body space-y-5 min-h-[160px] rounded-xl ${dropProps.className ?? ''}`}>
                 {cards.length === 0 ? (
-                  <div className="rounded-xl border border-dashed border-white/25 p-4 text-center text-xs text-white/70 m-1">Drop project here</div>
+                  <div className={`rounded-xl border border-dashed border-slate-300/70 p-4 text-center text-xs m-1 ${FINELY_OS_ENTITY_BODY}`}>Drop project here</div>
                 ) : (
                   cards.map((p) => {
                     const stat = taskStats.get(p.id) ?? { open: 0, total: 0 };

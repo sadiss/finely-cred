@@ -20,23 +20,17 @@ export function buildWarmUnclassifiedReply(args: {
   const sent = (args.sentContent || '').trim();
   const sawEmoji = sent && /[\p{Extended_Pictographic}\p{Emoji_Presentation}]/u.test(sent);
   const opener = sawEmoji
-    ? `Got your message${sent.length <= 4 ? ` (${sent})` : ''} — I'm here.`
+    ? `Got it${sent.length <= 4 ? ` (${sent})` : ''}.`
     : sent
-      ? `I saw what you sent — let me help you find the right next step.`
-      : `I'm here whenever you're ready.`;
-
-  const roleLine =
-    args.audience === 'partner'
-      ? `I'm Finely's AI standing in for ${firstName}, ${title}, in your portal.`
-      : `I'm Finely's AI standing in for ${firstName}, ${title}, on shift right now.`;
+      ? `${firstName} here — I did not catch a clear ask.`
+      : `${firstName} here.`;
 
   const reply = [
     opener,
-    roleLine,
-    'Pick a lane below or tell me what you want to work on — personal restore, business credit, disputes & letters, debt help, or booking a session.',
+    `I'm the AI sitting in for ${firstName} (${title}). Tell me what is in front of you — a report, a collector letter, or a company file.`,
     args.audience === 'partner'
-      ? 'Need a live person? Tap a routing chip or open Team chat — your specialist can take over.'
-      : 'Want a live Credit Specialist? Pick a lane above or ask to book a free session.',
+      ? 'If you want a live person, open Team chat and they can take over.'
+      : 'If you want a live Credit Specialist, ask to book a free session.',
   ].join('\n\n');
 
   const followUps =

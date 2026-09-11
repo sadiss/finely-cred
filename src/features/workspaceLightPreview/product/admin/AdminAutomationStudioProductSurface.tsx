@@ -33,7 +33,7 @@ const AutomationCatalogExplorer = React.lazy(() =>
 function TabFallback() {
   return (
     <div className={`${finelyOsCatalogCard('violet')} p-10 text-center`} data-fc-accent="violet">
-      <p className={`text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>Loading automation workroom…</p>
+      <p className={`text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>Loading automation studio…</p>
     </div>
   );
 }
@@ -167,7 +167,7 @@ export default function AdminAutomationStudioProductSurface({ role, pageId }: Wo
       pageId={pageId}
       eyebrow="Platform"
       title="Automation Studio"
-      description="Command deck — mosaic trigger tiles open the builder, catalog, and scenario workrooms."
+      description="Choose a trigger, then open the builder, catalog, or a scenario."
       status={`${enabledRules} enabled · ${rules.length} rules`}
       freshness="ready now"
       accent={accent}
@@ -176,8 +176,8 @@ export default function AdminAutomationStudioProductSurface({ role, pageId }: Wo
       icon={navItem?.icon ?? GitBranch}
       primaryAction={<ProductPagePrimaryAction label="Open builder" onClick={() => setStop('builder')} />}
       metrics={metrics}
-      metricTitle="Trigger command deck"
-      metricDescription="Three deck tiles — not a cloned calendar runway."
+      metricTitle="Automation triggers"
+      metricDescription="Open scenarios, the flow builder, or the trigger catalog."
     >
       <section className="fc-admin-auto-command" data-surface-layout="command-deck">
         <JamesHollowayAutomationHealthStrip />
@@ -193,7 +193,7 @@ export default function AdminAutomationStudioProductSurface({ role, pageId }: Wo
         <div className={`${finelyOsCatalogCard('violet')} p-6 lg:p-8`} data-fc-accent="violet">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <p className={FINELY_OS_ENTITY_SUBLABEL}>Trigger command deck</p>
+              <p className={FINELY_OS_ENTITY_SUBLABEL}>Live automations</p>
               <div className="mt-2 flex flex-wrap items-end gap-3">
                 <span className="text-5xl font-extrabold leading-none">{enabledRules}</span>
                 <span className="pb-1 text-xl font-extrabold">rules live</span>
@@ -201,7 +201,7 @@ export default function AdminAutomationStudioProductSurface({ role, pageId }: Wo
               <p className={`mt-3 max-w-2xl text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
                 {enabledRules > 0
                   ? `${liveTriggers} triggers wired · ${rules.length - enabledRules} paused`
-                  : 'Start with a scenario blueprint — pick a deck tile below.'}
+                  : 'Start with a scenario blueprint. Choose a section below.'}
               </p>
             </div>
             {rules.length > 0 && enabledRules < rules.length ? (
@@ -258,7 +258,7 @@ export default function AdminAutomationStudioProductSurface({ role, pageId }: Wo
           <div className="fc-admin-auto-workroom-head">
             <ActiveIcon size={26} />
             <div>
-              <p className={FINELY_OS_ENTITY_SUBLABEL}>Workroom</p>
+              <p className={FINELY_OS_ENTITY_SUBLABEL}>Now editing</p>
               <h2 className={`text-2xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{activeStop.label}</h2>
               <p className={`text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>{activeStop.title}</p>
             </div>

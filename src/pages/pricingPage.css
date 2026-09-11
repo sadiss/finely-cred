@@ -1,0 +1,333 @@
+/* Pricing / Services — catalog mosaic (distinct from homepage skyline) */
+
+[data-fc-pricing-mosaic='1'] {
+  --pm-max: none;
+  --pm-gutter: clamp(1rem, 2.5vw, 2.75rem);
+}
+
+[data-fc-lane-hero-slot='1'] .pricing-mosaic-hero {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  border-radius: 0;
+  padding-top: calc(5.75rem + env(safe-area-inset-top, 0px));
+}
+
+[data-fc-shell-surface='ivory'] [data-fc-pricing-mosaic='1'] .pricing-mosaic-hero {
+  border: none;
+  border-radius: 0;
+  width: 100%;
+  min-height: clamp(420px, 50vw, 540px);
+  padding: clamp(2.25rem, 5vw, 3.75rem) clamp(1rem, 2.5vw, 2.75rem);
+    background:
+    radial-gradient(ellipse 80% 60% at 0% 0%, rgba(16, 185, 129, 0.55), transparent 52%),
+    radial-gradient(ellipse 70% 55% at 100% 20%, rgba(139, 92, 246, 0.5), transparent 50%),
+    radial-gradient(ellipse 50% 40% at 70% 100%, rgba(14, 165, 233, 0.36), transparent 48%),
+    linear-gradient(145deg, #d9f6ea 0%, #e4deff 55%, #eef4ff 100%);
+}
+
+[data-fc-shell-surface='ivory'] [data-fc-pricing-mosaic='1'] .pricing-mosaic-hero__title {
+  color: #0a1628;
+}
+
+[data-fc-shell-surface='ivory'] [data-fc-pricing-mosaic='1'] .pricing-mosaic-hero__title span {
+  color: #047857;
+}
+
+[data-fc-shell-surface='ivory'] [data-fc-pricing-mosaic='1'] .pricing-mosaic-hero__orb {
+  color: #0a1628;
+  border-width: 2px;
+}
+
+[data-fc-shell-surface='ivory'] [data-fc-pricing-mosaic='1'] .pricing-mosaic-hero__orb--emerald {
+  background: rgba(16, 185, 129, 0.32);
+  border-color: rgba(16, 185, 129, 0.5);
+  box-shadow: 0 0 48px rgba(16, 185, 129, 0.35);
+}
+
+[data-fc-shell-surface='ivory'] [data-fc-pricing-mosaic='1'] .pricing-mosaic-hero__orb--violet {
+  background: rgba(139, 92, 246, 0.32);
+  border-color: rgba(139, 92, 246, 0.5);
+  box-shadow: 0 0 48px rgba(139, 92, 246, 0.32);
+}
+
+[data-fc-shell-surface='ivory'] [data-fc-pricing-mosaic='1'] .pricing-mosaic-hero__orb--sky {
+  background: rgba(14, 165, 233, 0.28);
+  border-color: rgba(14, 165, 233, 0.48);
+  box-shadow: 0 0 48px rgba(14, 165, 233, 0.28);
+}
+
+[data-fc-shell-surface='ivory'] [data-fc-pricing-mosaic='1'] .pricing-mosaic-hero__orb--rose {
+  background: rgba(244, 63, 94, 0.26);
+  border-color: rgba(244, 63, 94, 0.45);
+  box-shadow: 0 0 48px rgba(244, 63, 94, 0.26);
+}
+
+[data-fc-shell-surface='ivory'] [data-fc-pricing-mosaic='1'] .pricing-mosaic-tab {
+  border-color: rgba(10, 22, 40, 0.1);
+  background: #ffffff;
+}
+
+/* Mosaic hero — hex orb constellation, not skyline */
+.pricing-mosaic-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background:
+    radial-gradient(ellipse 80% 60% at 12% 20%, rgba(52, 211, 153, 0.22), transparent 55%),
+    radial-gradient(ellipse 70% 55% at 88% 75%, rgba(139, 92, 246, 0.2), transparent 50%),
+    linear-gradient(145deg, #0a1628 0%, #0f1f35 45%, #121a2e 100%);
+  padding: clamp(2rem, 5vw, 3.25rem);
+  min-height: clamp(280px, 38vw, 380px);
+}
+
+.pricing-mosaic-hero__orbs {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.pricing-mosaic-hero__orb {
+  position: absolute;
+  border-radius: 1.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.75);
+  transform: rotate(var(--pm-orb-rot, -8deg));
+}
+
+.pricing-mosaic-hero__orb--emerald {
+  background: rgba(16, 185, 129, 0.18);
+  box-shadow: 0 0 40px rgba(52, 211, 153, 0.25);
+}
+
+.pricing-mosaic-hero__orb--violet {
+  background: rgba(139, 92, 246, 0.18);
+  box-shadow: 0 0 40px rgba(167, 139, 250, 0.22);
+}
+
+.pricing-mosaic-hero__orb--sky {
+  background: rgba(56, 189, 248, 0.16);
+  box-shadow: 0 0 40px rgba(56, 189, 248, 0.2);
+}
+
+.pricing-mosaic-hero__orb--rose {
+  background: rgba(244, 63, 94, 0.16);
+  box-shadow: 0 0 40px rgba(251, 113, 133, 0.2);
+}
+
+.pricing-mosaic-hero__orb:nth-child(1) {
+  width: 5.5rem;
+  height: 5.5rem;
+  top: 8%;
+  right: 6%;
+  --pm-orb-rot: 12deg;
+}
+
+.pricing-mosaic-hero__orb:nth-child(2) {
+  width: 4.25rem;
+  height: 4.25rem;
+  top: 42%;
+  right: 18%;
+  --pm-orb-rot: -6deg;
+}
+
+.pricing-mosaic-hero__orb:nth-child(3) {
+  width: 6rem;
+  height: 3.5rem;
+  bottom: 14%;
+  right: 8%;
+  --pm-orb-rot: 4deg;
+  border-radius: 0.85rem;
+}
+
+.pricing-mosaic-hero__orb:nth-child(4) {
+  width: 3.75rem;
+  height: 3.75rem;
+  top: 18%;
+  right: 28%;
+  --pm-orb-rot: -14deg;
+}
+
+.pricing-mosaic-hero__inner {
+  position: relative;
+  z-index: 2;
+  max-width: 36rem;
+}
+
+.pricing-mosaic-hero__title {
+  font-size: clamp(2rem, 4.5vw, 3rem);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  color: #fff;
+}
+
+.pricing-mosaic-hero__title span {
+  color: #6ee7b7;
+}
+
+/* Catalog stage — asymmetric mosaic grid */
+.pricing-mosaic-stage {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(1.25rem, 3vw, 2rem);
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .pricing-mosaic-stage {
+    grid-template-columns: minmax(220px, 0.32fr) minmax(0, 1fr);
+    gap: clamp(1.5rem, 3vw, 2.5rem);
+  }
+}
+
+/* Left rail — category mosaic tiles (varied heights) */
+.pricing-mosaic-rail {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.65rem;
+}
+
+@media (min-width: 1024px) {
+  .pricing-mosaic-rail {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+}
+
+.pricing-mosaic-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  text-align: left;
+  border-radius: 1rem;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  padding: 1rem 1.1rem;
+  font-weight: 700;
+  transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+  cursor: pointer;
+  min-height: 3.5rem;
+}
+
+.pricing-mosaic-tab:hover {
+  transform: translateY(-2px);
+}
+
+.pricing-mosaic-tab--active {
+  box-shadow: 0 12px 40px -16px rgba(0, 0, 0, 0.45);
+}
+
+.pricing-mosaic-tab--emerald.pricing-mosaic-tab--active {
+  border-color: rgba(52, 211, 153, 0.55);
+  background: rgba(16, 185, 129, 0.14);
+}
+
+.pricing-mosaic-tab--violet.pricing-mosaic-tab--active {
+  border-color: rgba(167, 139, 250, 0.55);
+  background: rgba(139, 92, 246, 0.14);
+}
+
+.pricing-mosaic-tab--sky.pricing-mosaic-tab--active {
+  border-color: rgba(56, 189, 248, 0.55);
+  background: rgba(56, 189, 248, 0.12);
+}
+
+.pricing-mosaic-tab--rose.pricing-mosaic-tab--active {
+  border-color: rgba(251, 113, 133, 0.55);
+  background: rgba(244, 63, 94, 0.12);
+}
+
+.pricing-mosaic-tab--tall {
+  min-height: 5.5rem;
+}
+
+@media (min-width: 1024px) {
+  .pricing-mosaic-tab--tall {
+    min-height: 6.25rem;
+  }
+}
+
+.pricing-mosaic-tab__icon {
+  opacity: 0.85;
+}
+
+.pricing-mosaic-tab__label {
+  font-size: 0.88rem;
+  line-height: 1.2;
+}
+
+/* Main stage — mosaic slots around catalog */
+.pricing-mosaic-main {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.pricing-mosaic-controls {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .pricing-mosaic-controls {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.pricing-mosaic-mode {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.pricing-mosaic-slot {
+  border-radius: 1.15rem;
+  padding: 1.25rem 1.35rem;
+}
+
+.pricing-mosaic-catalog-bed {
+  position: relative;
+  border-radius: 1.35rem;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  overflow: hidden;
+}
+
+.pricing-mosaic-catalog-bed::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(56, 189, 248, 0.12), transparent 42%),
+    radial-gradient(circle at 100% 100%, rgba(139, 92, 246, 0.1), transparent 40%);
+}
+
+.pricing-mosaic-catalog-bed > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Financing + payment strip — horizontal mosaic chips */
+.pricing-mosaic-notices {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 900px) {
+  .pricing-mosaic-notices {
+    grid-template-columns: 1.15fr 0.85fr;
+  }
+}

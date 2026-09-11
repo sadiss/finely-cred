@@ -12,6 +12,8 @@ import {
   type AgencyGuideSection,
 } from '../../resources/agencyGuideReaderContent';
 import GuideReaderShell from './GuideReaderShell';
+import { LeadMagnetPreviewBanner } from '../../components/leadmagnet/LeadMagnetPreviewBanner';
+import { clampLeadMagnetChapter, useLeadMagnetGuideGate } from '../../lib/useLeadMagnetGuideGate';
 import './agencyGuideReader.css';
 import './guideReaderShell.css';
 
@@ -123,6 +125,7 @@ export default function AgencyGuideReaderPage() {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const [indexOpen, setIndexOpen] = useState(false);
+  const { unlocked, previewLocked } = useLeadMagnetGuideGate('agency_white_label');
 
   const initialIdx = useMemo(() => {
     const q = (params.get('chapter') ?? '').trim();
@@ -132,8 +135,8 @@ export default function AgencyGuideReaderPage() {
   const [idx, setIdx] = useState(initialIdx);
 
   useEffect(() => {
-    setIdx(initialIdx);
-  }, [initialIdx]);
+    setIdx(previewLocked ? 0 : initialIdx);
+  }, [initialIdx, previewLocked]);
 
   const chapter = CHAPTERS[idx] ?? CHAPTERS[0]!;
 
@@ -156,12 +159,12 @@ export default function AgencyGuideReaderPage() {
 
   const goChapter = useCallback(
     (next: number) => {
-      const clamped = Math.max(0, Math.min(CHAPTERS.length - 1, next));
+      const clamped = clampLeadMagnetChapter(next, CHAPTERS.length, unlocked);
       setIdx(clamped);
       setParams({ chapter: CHAPTERS[clamped]!.id }, { replace: true });
       setIndexOpen(false);
     },
-    [setParams],
+    [setParams, unlocked],
   );
 
   return (
@@ -170,6 +173,14 @@ export default function AgencyGuideReaderPage() {
       chapters={shellChapters}
       chapterIndex={idx}
       onChapterChange={goChapter}
+      previewLocked={previewLocked}
+      previewUnlockHref={`${AGENCY_GUIDE_LANDING_PATH}#download`}
+      previewBanner={
+        <LeadMagnetPreviewBanner
+          unlockHref={`${AGENCY_GUIDE_LANDING_PATH}#download`}
+          pagesLabel="the full agency plan set"
+        />
+      }
       tocOpen={indexOpen}
       onTocOpenChange={setIndexOpen}
       tocToggleLabel="Sheets"

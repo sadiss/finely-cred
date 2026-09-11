@@ -142,7 +142,7 @@
 .fc-wlp-debt-workstation-rail {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
+  gap: 20px;
   min-width: 0;
 }
 
@@ -236,7 +236,7 @@
 .fc-wlp-debt-case-queue-row {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+  gap: 20px;
 }
 
 @media (max-width: 900px) {

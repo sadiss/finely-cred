@@ -278,7 +278,7 @@ export function PartnerCommandCenterProduct({
             description="Open a metric to go to the report, letter, document, or task behind it."
           />
           <ProductSignalRail
-            label="Credit workspace signals"
+            label="Credit workspace"
             items={signalItems}
           />
         </section>
@@ -287,7 +287,7 @@ export function PartnerCommandCenterProduct({
           <ProductSectionHeader
             eyebrow="Journey"
             title="Where you are and what comes next"
-            description="Completed steps stay visible, the current step is highlighted, and future work stays secondary."
+            description="See finished steps, the step you are on now, and what comes next."
           />
           <ProductProgressRail steps={model.journey} />
         </section>
@@ -297,7 +297,7 @@ export function PartnerCommandCenterProduct({
             <ProductSectionHeader
               eyebrow="Your next move"
               title="Your next step"
-              description="Start with the featured action. Other steps stay nearby until you need them."
+              description="Start with the featured action. Other steps stay available when you need them."
             />
             <div className="fc-wlp-grid-7-5">
               <ProductActionList items={actions} />
@@ -312,7 +312,7 @@ export function PartnerCommandCenterProduct({
 
           <section className="fc-wlp-section">
             <ProductSectionHeader
-              eyebrow="Readiness intelligence"
+              eyebrow="Lender readiness"
               title="Recommended lender paths"
               description="Recommendations explain the fit and open to supporting detail. They are not approvals or guarantees."
               action={
@@ -401,8 +401,8 @@ export function PartnerCommandCenterProduct({
         <section className="fc-wlp-section">
           <ProductSectionHeader
             eyebrow="Your workspace"
-            title="Open the right tool in one step"
-            description="Frequently used destinations stay visible. Everything else is searchable from the header."
+            title="Open a workspace tool"
+            description="Open reports, letters, documents, and other tools you use often."
           />
           <ProductWorkspaceDock
             items={PARTNER_WORKSPACE_DOCK.map((item, index) => ({

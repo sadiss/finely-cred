@@ -51,7 +51,16 @@ const PATH_ROUTES: Array<{ test: RegExp; category: KnowledgeCategory; sectionId:
   { test: /^\/admin\/(leads|crm|funnel)/, category: 'onboarding', sectionId: 'leads', label: 'Leads & CRM' },
   { test: /^\/admin\/(support|comms|inbox)/, category: 'portal', sectionId: 'comms', label: 'Partner conversations' },
   { test: /^\/admin\/(automations|ops-agent)/, category: 'portal', sectionId: 'platform_os', label: 'Automations' },
-  { test: /^\/admin\/(integrations|monitoring)/, category: 'portal', sectionId: 'platform_os', label: 'Integrations' },
+  { test: /^\/admin\/(integrations|monitoring|data-feeds|today)/, category: 'portal', sectionId: 'platform_os', label: 'Integrations' },
+  { test: /personal-credit-restore|\/personal-credit$/, category: 'disputes', sectionId: 'disputes', label: 'Personal credit restore' },
+  { test: /business-credit/, category: 'funding', sectionId: 'wealth', label: 'Business credit' },
+  { test: /debt-legal|\/free-debt/, category: 'debt', sectionId: 'debt', label: 'Debt and legal' },
+  { test: /credit-building|build-my-credit|personal-credit-building/, category: 'funding', sectionId: 'wealth', label: 'Credit building' },
+  { test: /^\/(haitian|kreyol)/, category: 'onboarding', sectionId: 'start', label: 'Haitian community' },
+  { test: /^\/portal\/haitian/, category: 'onboarding', sectionId: 'start', label: 'Haitian community' },
+  { test: /^\/admin\/haitian/, category: 'onboarding', sectionId: 'start', label: 'Haitian community' },
+  { test: /^\/portal\/news/, category: 'portal', sectionId: 'credit', label: 'Credit news' },
+  { test: /^\/free-kreyol-guide/, category: 'onboarding', sectionId: 'start', label: 'Credit kits' },
   { test: /^\/(free-guide|free-debt-guide|free-business-guide|free-tradeline-guide|resources)/, category: 'onboarding', sectionId: 'leads', label: 'Lead magnets' },
   { test: /^\/(help-center|start-here)/, category: 'onboarding', sectionId: 'start', label: 'Help & start' },
   { test: /^\/(tradelines|enlightenment-session)/, category: 'funding', sectionId: 'wealth', label: 'Tradelines & sessions' },
@@ -87,13 +96,15 @@ export function contextHelpForPath(pathname: string): {
   };
 }
 
-export function routeKnowledgeForPath(pathname: string, query?: string) {
+export function routeKnowledgeForPath(pathname: string, query?: string, personaId?: AgentPersonaId) {
   const ctx = contextHelpForPath(pathname);
   const q = (query ?? ctx.label).trim();
   return routeKnowledgeForQuery({
     query: q,
     surface: pathname.startsWith('/admin') ? 'lead_intel' : 'public_homepage',
+    personaId,
     limit: 4,
+    contextRoute: pathname,
   });
 }
 

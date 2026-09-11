@@ -349,7 +349,7 @@ export default function AdminOpsAgentPage({ embedded = false }: AdminEmbeddableP
           'Run a strict launch-readiness audit: identify what is missing, broken, inconsistent, or confusing. Give a punchlist ordered by impact.',
       },
       {
-        label: 'Validation doctrine',
+        label: 'Validation playbook',
         prompt:
           'Summarize our validation-first debt strategy for partners — challenge before pay, affidavits for summons, law per negative.',
       },
@@ -585,7 +585,7 @@ export default function AdminOpsAgentPage({ embedded = false }: AdminEmbeddableP
                 <FinelyOsAIChatPanel
                   icon={Crown}
                   title={CO_OWNER_IDENTITY.name}
-                  subtitle={`Ask ${CO_OWNER_IDENTITY.name} anything — business, credit doctrine, automations, or human/psychology coaching.`}
+                  subtitle={`Ask ${CO_OWNER_IDENTITY.name} anything — business, credit rules, automations, or human/psychology coaching.`}
                   messages={history}
                   draft={draft}
                   onDraftChange={setDraft}

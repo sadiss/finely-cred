@@ -1010,3 +1010,198 @@
     animation: none !important;
   }
 }
+
+/* Brand success plaques — saturated rails on light platinum, no gold/champagne */
+.fc-sell--brand .fc-sell-atmosphere__base--platinum {
+  background:
+    radial-gradient(ellipse 66% 60% at 50% 52%, rgba(8, 10, 14, 0.18) 0%, rgba(8, 10, 14, 0.06) 52%, transparent 84%),
+    radial-gradient(ellipse 64% 50% at 14% 2%, rgba(16, 185, 129, 0.22), transparent 62%),
+    radial-gradient(ellipse 56% 46% at 90% 96%, rgba(139, 92, 246, 0.16), transparent 60%),
+    linear-gradient(168deg, #f4f7fb 0%, #eef3f8 48%, #f7f9fc 100%);
+}
+
+.fc-success-plaque {
+  position: relative;
+  overflow: hidden;
+  padding: 1.5rem 1.65rem;
+  background: #fff;
+  color: #0c1228;
+  box-shadow: 0 18px 36px -28px rgba(12, 18, 40, 0.45);
+}
+
+.fc-success-plaque--rail {
+  border: 2px solid rgba(16, 185, 129, 0.42);
+  border-radius: 1.25rem;
+  box-shadow: 0 18px 40px -24px rgba(16, 185, 129, 0.55);
+}
+.fc-success-plaque--rail::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  background: #10b981;
+}
+
+.fc-success-plaque--cut {
+  border: 2px solid rgba(139, 92, 246, 0.42);
+  border-radius: 1.35rem 0.35rem 1.35rem 0.35rem;
+  box-shadow: 0 18px 40px -24px rgba(139, 92, 246, 0.5);
+}
+.fc-success-plaque--cut::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background: #8b5cf6;
+}
+
+.fc-success-plaque--ticket {
+  border: 2px dashed rgba(14, 165, 233, 0.5);
+  border-radius: 1.1rem;
+  box-shadow: 0 18px 40px -24px rgba(14, 165, 233, 0.5);
+}
+.fc-success-plaque--ticket::before {
+  content: '';
+  position: absolute;
+  right: -10px;
+  top: 22px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #eef3f8;
+  box-shadow: inset 0 0 0 2px rgba(14, 165, 233, 0.35);
+}
+
+.fc-success-plaque[data-fc-accent='rose'] {
+  border-color: rgba(244, 63, 94, 0.42);
+  box-shadow: 0 18px 40px -24px rgba(244, 63, 94, 0.45);
+}
+.fc-success-plaque[data-fc-accent='rose']::before {
+  background: #f43f5e;
+}
+
+.fc-success-plaque__result {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  padding: 0.85rem 1rem;
+  border-radius: 1rem;
+  background: rgba(16, 185, 129, 0.1);
+}
+.fc-success-plaque[data-fc-accent='violet'] .fc-success-plaque__result {
+  background: rgba(139, 92, 246, 0.1);
+}
+.fc-success-plaque[data-fc-accent='sky'] .fc-success-plaque__result {
+  background: rgba(14, 165, 233, 0.1);
+}
+.fc-success-plaque[data-fc-accent='rose'] .fc-success-plaque__result {
+  background: rgba(244, 63, 94, 0.1);
+}
+.fc-success-plaque__result span {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #0c1228;
+  opacity: 0.62;
+}
+.fc-success-plaque__result strong {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #047857;
+}
+.fc-success-plaque[data-fc-accent='violet'] .fc-success-plaque__result strong { color: #6d28d9; }
+.fc-success-plaque[data-fc-accent='sky'] .fc-success-plaque__result strong { color: #0369a1; }
+.fc-success-plaque[data-fc-accent='rose'] .fc-success-plaque__result strong { color: #be123c; }
+
+.fc-success-plaque__crest {
+  display: flex;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #0c1228;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.fc-success-plaque__service {
+  display: inline-block;
+  margin-top: 0.45rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid rgba(12, 18, 40, 0.12);
+  background: rgba(12, 18, 40, 0.04);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #0c1228;
+}
+
+.fc-success-plaque__milestone {
+  display: inline-flex;
+  max-width: 100%;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(12, 18, 40, 0.05);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #0c1228;
+}
+
+.fc-success-plaque--obsidian {
+  background: linear-gradient(156deg, #1c2129 0%, #0b0d12 42%, #252a33 68%, #08090c 100%);
+  color: #f4f7fb;
+  box-shadow: 0 22px 48px -26px rgba(0, 0, 0, 0.72);
+}
+
+.fc-success-plaque--obsidian.fc-success-plaque--ticket::before {
+  background: #0b0d12;
+  box-shadow: inset 0 0 0 2px rgba(56, 189, 248, 0.45);
+}
+
+.fc-success-plaque--obsidian .fc-success-plaque__result {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.fc-success-plaque--obsidian .fc-success-plaque__result span {
+  color: rgba(244, 247, 251, 0.62);
+}
+
+.fc-success-plaque--obsidian[data-fc-accent='emerald'] .fc-success-plaque__result strong {
+  color: #6ee7b7;
+}
+
+.fc-success-plaque--obsidian[data-fc-accent='violet'] .fc-success-plaque__result strong {
+  color: #c4b5fd;
+}
+
+.fc-success-plaque--obsidian[data-fc-accent='sky'] .fc-success-plaque__result strong {
+  color: #7dd3fc;
+}
+
+.fc-success-plaque--obsidian .fc-success-plaque__crest {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.fc-success-plaque--obsidian .fc-success-plaque__service,
+.fc-success-plaque--obsidian .fc-success-plaque__milestone {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(244, 247, 251, 0.82);
+}

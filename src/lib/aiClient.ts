@@ -3,8 +3,9 @@ import { addAuditEvent } from '../data/auditRepo';
 import { isFeatureEnabled } from '../data/settingsRepo';
 import { buildAgentCallTrace, type AgentCallTraceContext } from './agentCallTrace';
 import { recordAgentCallTrace } from '../data/agentCallTraceRepo';
+import { resolveAiProviderHint } from './aiTaskRouting';
 
-export type AiProviderHint = 'openai' | 'gemini' | 'anthropic';
+export type AiProviderHint = 'openai' | 'gemini' | 'anthropic' | 'groq';
 export type AiResponseFormat = 'text' | 'json';
 
 export type AiGatewayMessage = { role: 'system' | 'user' | 'assistant'; content: string };
@@ -47,7 +48,7 @@ export async function callAiGateway(args: {
       messages: args.messages,
       images: args.images ?? undefined,
       context: args.context ?? undefined,
-      providerHint: args.providerHint ?? undefined,
+      providerHint: resolveAiProviderHint(args.taskType, args.providerHint),
       responseFormat: args.responseFormat ?? 'text',
       tools: args.tools ?? undefined,
     },

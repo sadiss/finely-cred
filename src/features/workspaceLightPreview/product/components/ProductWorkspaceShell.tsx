@@ -42,6 +42,7 @@ const PARTNER_TOP_NAV_IDS = [
   'disputes',
   'letters',
   'debt',
+  'haitian',
 ] as const;
 
 const PARTNER_MOBILE_NAV_IDS = ['dashboard', 'checklist', 'reports', 'letters', 'messages'] as const;
@@ -161,7 +162,11 @@ export function ProductWorkspaceShell({
       dataMode === 'real' && partnerId && role === 'partner'
         ? (key: string) => hasEntitlement(partnerId, key)
         : undefined;
-    return getWorkspaceProductNavByService(role, 'secondary', hasKey);
+    const secondary = getWorkspaceProductNavByService(role, 'secondary', hasKey);
+    const haitian = getWorkspaceProductNavByService(role, 'primary', hasKey).filter(
+      (group) => group.line.id === 'haitian',
+    );
+    return secondary.some((group) => group.line.id === 'haitian') ? secondary : [...secondary, ...haitian];
   }, [role, dataMode, partnerId]);
 
   /**
@@ -298,6 +303,7 @@ export function ProductWorkspaceShell({
   return (
     <div
       className="fc-wlp"
+      data-fc-app-surface={role === 'admin' ? 'admin' : 'portal'}
       style={presentationMode ? ({ '--wlp-review-h': '0px' } as React.CSSProperties) : undefined}
     >
       {role === 'admin' ? (
@@ -308,12 +314,17 @@ export function ProductWorkspaceShell({
                 to={navigationMode === 'live' ? '/admin' : '/preview/workspace-light'}
                 className="fc-wlp-rail-brand"
               >
-                <FinelyCredLogo variant="mark" size="sm" tone="gold" className="fc-wlp-rail-logo" />
+                <FinelyCredLogo variant="mark" size="sm" tone="emerald" className="fc-wlp-rail-logo" />
                 <span className="fc-wlp-rail-brand-copy">
                   <span className="fc-wlp-rail-brand-name">Finely Cred</span>
-                  <span className="fc-wlp-rail-brand-role">Admin workspace</span>
+                  <span className="fc-wlp-rail-brand-role">Operations desk</span>
                 </span>
               </Link>
+              <div className="fc-wlp-rail-dept">
+                <span className="fc-wlp-rail-dept-dot" aria-hidden />
+                <span className="fc-wlp-rail-dept-kicker">Operations</span>
+                <span className="fc-wlp-rail-dept-live">Live</span>
+              </div>
               <nav className="fc-wlp-rail-nav">
                 <div className="fc-wlp-rail-label">Workspace</div>
                 {primary.map((item) => {
@@ -385,7 +396,7 @@ export function ProductWorkspaceShell({
                 <FinelyCredLogo variant="full" size="sm" tone="emerald" alignLeft className="fc-wlp-partner-logo" />
                 <span className="fc-wlp-partner-brand-copy">
                   <strong>Partner portal</strong>
-                  <span>Your credit command center</span>
+                  <span>Your credit workspace</span>
                 </span>
               </Link>
               <div className="fc-wlp-utility-spacer" />
@@ -510,10 +521,22 @@ export function ProductWorkspaceShell({
                   {unlocked ? line.description : upsellHeadline}
                 </p>
                 <div className="fc-wlp-list">
-                  {items.map((item) => (
+                  {(line.id === 'growth' ? items.filter((item) => item.navTier === 'daily') : items).map((item) => (
                     <ToolRow key={item.id} item={item} onClick={() => go(item)} locked={!unlocked} />
                   ))}
                 </div>
+                {line.id === 'growth' && items.some((item) => item.navTier !== 'daily') ? (
+                  <details className="fc-wlp-all-tools-more">
+                    <summary>More rooms</summary>
+                    <div className="fc-wlp-list" style={{ marginTop: 8 }}>
+                      {items
+                        .filter((item) => item.navTier !== 'daily')
+                        .map((item) => (
+                          <ToolRow key={`more-${item.id}`} item={item} onClick={() => go(item)} locked={!unlocked} />
+                        ))}
+                    </div>
+                  </details>
+                ) : null}
                 {!unlocked && upsellPath ? (
                   <button
                     type="button"
@@ -535,7 +558,7 @@ export function ProductWorkspaceShell({
       <ProductDrawer
         open={mobileNavOpen}
         title={role === 'admin' ? 'Admin navigation' : 'Partner navigation'}
-        subtitle={role === 'admin' ? 'Open a primary workspace.' : 'Open a core workstation or browse every tool.'}
+        subtitle={role === 'admin' ? 'Open a primary workspace.' : 'Open a core room or browse every tool.'}
         onClose={() => setMobileNavOpen(false)}
       >
         <div className="fc-wlp-list">

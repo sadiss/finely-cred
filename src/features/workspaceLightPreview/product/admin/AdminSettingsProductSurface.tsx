@@ -400,7 +400,7 @@ export default function AdminSettingsProductSurface({ role, pageId, dataMode }: 
           </aside>
 
           <div className="fc-admin-settings-inspector">
-            <div className="fc-admin-settings-inspector-bed">
+            <div>
               <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
                 <div className="flex flex-wrap items-center gap-3">
                   <selectedFamily.icon size={22} className="shrink-0 opacity-90" />

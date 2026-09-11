@@ -133,7 +133,7 @@ export default function PartnerVideoCallProductSurface(_props: WorkspaceProductS
           <section className="fc-video-call-lobby" data-surface-layout="command-deck">
             <div className={`fc-video-call-lobby-hero space-y-5`}>
               <div className="inline-flex items-center gap-2 text-sky-300 text-sm font-extrabold uppercase tracking-widest">
-                <Zap size={16} /> Command deck
+                <Zap size={16} /> Call desk
               </div>
               <h2 className={`text-3xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>Start an instant video session</h2>
               <p className={`text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
@@ -206,7 +206,7 @@ export default function PartnerVideoCallProductSurface(_props: WorkspaceProductS
         role="partner"
         eyebrow={instantCall ? 'Live call' : 'Scheduled fallback'}
         title={title}
-        description="Command deck — mic, camera, screen share, invite link, and end call controls."
+        description="Call desk — mic, camera, screen share, invite link, and end call controls."
         accent="sky"
         surfaceMode="studio"
         archetype="focus"

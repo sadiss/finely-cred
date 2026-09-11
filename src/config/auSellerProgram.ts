@@ -81,7 +81,7 @@ export const AU_SELLER_OFFERINGS = [
   {
     title: 'Payout visibility',
     description: 'See pending and completed payouts tied to fulfilled AU placements.',
-    included: ['Payout history', 'Contract-linked earnings', 'Admin AU seller oversight'],
+    included: ['Payout history', 'Contract-linked earnings', 'Oversight so listings stay within marketplace rules'],
   },
   {
     title: 'Compliance & education',

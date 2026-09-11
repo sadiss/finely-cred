@@ -39,6 +39,7 @@ import { ensureMarketingPipelineProject } from './marketingDeskProjects';
 import { getMarketingMorningBrief } from './marketingDeskMorningBrief';
 import { getMarketingLanePerformanceChips } from './marketingDeskLanePerformance';
 import { getRuthWeeklyLaneTip } from './marketingDeskRuthLaneTip';
+import { MarketingGoLiveStrip } from './MarketingGoLiveStrip';
 
 export function MarketingDeskHome({
   onOpenHelper,
@@ -160,6 +161,8 @@ export function MarketingDeskHome({
           Open Caleb desk <ArrowRight size={14} />
         </button>
       </div>
+
+      <MarketingGoLiveStrip />
 
       <FinelyMarketingWowStrip compact title="Organic wow angles" subtitle="" className="p-6" />
 
@@ -302,7 +305,7 @@ export function MarketingDeskHome({
       </div>
 
       {/* 5. My work */}
-      <section className={`${finelyOsCatalogCard('emerald')} space-y-4`} data-fc-accent="emerald">
+      <section className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <div className={FINELY_OS_ENTITY_SUBLABEL}>Today’s to-dos</div>
@@ -321,8 +324,7 @@ export function MarketingDeskHome({
             <button
               key={t.id}
               type="button"
-              className={`${finelyOsCatalogCard('violet')} w-full text-left`}
-              data-fc-accent="violet"
+              className="w-full rounded-xl border border-white/12 bg-white/[0.04] px-4 py-3 text-left"
               onClick={() => navigate(deepLinkForMarketingTask(t))}
             >
               <div className="font-semibold text-white text-sm truncate">{t.title}</div>

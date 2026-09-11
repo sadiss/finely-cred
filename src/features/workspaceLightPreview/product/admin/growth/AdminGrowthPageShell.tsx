@@ -75,7 +75,7 @@ export function AdminGrowthPageShell({
         eyebrow="Growth operations"
         title={definition.title}
         description={definition.purposeLine}
-        status="Live growth workstation"
+        status="Live growth room"
         freshness="just now"
         icon={Icon}
         primaryAction={

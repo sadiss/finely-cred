@@ -1,0 +1,51 @@
+/** First 20 unique city SEO pages — not doorway clones. */
+
+export type CityCreditPage = {
+  slug: string;
+  city: string;
+  state: string;
+  metro: string;
+  angle: string;
+  localFact: string;
+  nextStep: string;
+  layout: 'harbor' | 'grid' | 'split' | 'spine';
+};
+
+export const CITY_CREDIT_PAGES: CityCreditPage[] = [
+  { slug: 'new-york-ny', city: 'New York', state: 'NY', metro: 'New York, NY', angle: 'New York files pick up more collections than a smaller city', localFact: 'Five boroughs mean more furnishers, more address history, and more chances a file is simply wrong.', nextStep: 'Upload a report and we map which items are actually yours.', layout: 'harbor' },
+  { slug: 'los-angeles-ca', city: 'Los Angeles', state: 'CA', metro: 'Los Angeles, CA', angle: 'Los Angeles files often mix auto, medical, and old addresses', localFact: 'LA files often carry auto, medical, and old address stacks across a huge county.', nextStep: 'Start the free guide, then book a session if the file is messy.', layout: 'grid' },
+  { slug: 'chicago-il', city: 'Chicago', state: 'IL', metro: 'Chicago, IL', angle: 'Chicago files often carry city and utility items beside bank cards', localFact: 'Cook County partners often see city, utility, and medical items sitting next to bank cards.', nextStep: 'Pull a fresh report and mark what you still recognize.', layout: 'split' },
+  { slug: 'houston-tx', city: 'Houston', state: 'TX', metro: 'Houston, TX', angle: 'Houston utilization often moves with energy-cycle paydays', localFact: 'Energy-cycle income can push utilization around statement dates even when you are current.', nextStep: 'Check statement dates before you dispute anything.', layout: 'spine' },
+  { slug: 'phoenix-az', city: 'Phoenix', state: 'AZ', metro: 'Phoenix, AZ', angle: 'Phoenix files are often thin because the history still lives in another state', localFact: 'Newer residents often have short local history and leftover accounts from another state.', nextStep: 'Confirm every address on the file matches where you actually lived.', layout: 'harbor' },
+  { slug: 'philadelphia-pa', city: 'Philadelphia', state: 'PA', metro: 'Philadelphia, PA', angle: 'Philadelphia files often have age on the good lines and clutter on the old ones', localFact: 'Longer file age helps — if the old items are accurate and still yours.', nextStep: 'Age the good lines. Challenge only what the screenshots show.', layout: 'grid' },
+  { slug: 'san-antonio-tx', city: 'San Antonio', state: 'TX', metro: 'San Antonio, TX', angle: 'San Antonio files often keep every duty station the furnishers never cleaned up', localFact: 'PCS moves leave address and inquiry trails that furnishers mix up.', nextStep: 'List every duty station year so we can match the file.', layout: 'split' },
+  { slug: 'san-diego-ca', city: 'San Diego', state: 'CA', metro: 'San Diego, CA', angle: 'San Diego rent can look like new debt when it is only a statement-date spike', localFact: 'High rent metros often show utilization spikes that are timing, not new debt.', nextStep: 'Map statement close dates before you add another card.', layout: 'spine' },
+  { slug: 'dallas-tx', city: 'Dallas', state: 'TX', metro: 'Dallas, TX', angle: 'Dallas partners often run the business on a personal card', localFact: 'DFW partners often mix entity spend onto personal cards.', nextStep: 'Separate EIN banking before you apply for more credit.', layout: 'harbor' },
+  { slug: 'san-jose-ca', city: 'San Jose', state: 'CA', metro: 'San Jose, CA', angle: 'San Jose income can be strong while the file still looks thin', localFact: 'Strong income with a short or frozen file still looks thin to some models.', nextStep: 'Stabilize reporting before you chase a new limit.', layout: 'grid' },
+  { slug: 'austin-tx', city: 'Austin', state: 'TX', metro: 'Austin, TX', angle: 'Austin moves create duplicate addresses faster than the bureaus can keep up', localFact: 'Rapid moves inside Travis County create duplicate addresses on bureau files.', nextStep: 'Clean the address block first — disputes on the wrong person waste a round.', layout: 'split' },
+  { slug: 'jacksonville-fl', city: 'Jacksonville', state: 'FL', metro: 'Jacksonville, FL', angle: 'Jacksonville files often include insurance and auto items with a short clock', localFact: 'Northeast Florida files often include insurance and auto items with short DOFD windows.', nextStep: 'Photograph every bureau screen before you write a letter.', layout: 'spine' },
+  { slug: 'fort-worth-tx', city: 'Fort Worth', state: 'TX', metro: 'Fort Worth, TX', angle: 'Fort Worth history sometimes prints under a Dallas furnisher address', localFact: 'Dallas–Fort Worth history sometimes lands on the wrong metro furnisher address.', nextStep: 'Match creditor addresses to what the report actually prints.', layout: 'harbor' },
+  { slug: 'columbus-oh', city: 'Columbus', state: 'OH', metro: 'Columbus, OH', angle: 'Columbus files often pair campus accounts with hospital billing', localFact: 'Central Ohio files often pair campus accounts with hospital billing.', nextStep: 'Validation first on collections — not a generic delete request.', layout: 'grid' },
+  { slug: 'charlotte-nc', city: 'Charlotte', state: 'NC', metro: 'Charlotte, NC', angle: 'Charlotte shopping the same month can stack hard pulls you did not need', localFact: 'A banking city means more hard pulls if you shop products the same month.', nextStep: 'Pause new applications until the current file is accurate.', layout: 'split' },
+  { slug: 'san-francisco-ca', city: 'San Francisco', state: 'CA', metro: 'San Francisco, CA', angle: 'San Francisco limits look large until one statement prints most of them used', localFact: 'Bay Area limits look large until one statement date prints 80% used.', nextStep: 'Time payments to the date the issuer reports, not the due date.', layout: 'spine' },
+  { slug: 'indianapolis-in', city: 'Indianapolis', state: 'IN', metro: 'Indianapolis, IN', angle: 'Indianapolis files often live or die on the auto installment', localFact: 'Midwest auto lending shows up as both installment strength and late-pay risk.', nextStep: 'Confirm the account is yours, then decide dispute versus pay.', layout: 'harbor' },
+  { slug: 'seattle-wa', city: 'Seattle', state: 'WA', metro: 'Seattle, WA', angle: 'Seattle partners often arrive with a strong job and a short local file', localFact: 'Relocated partners often have a strong job and a short local file.', nextStep: 'Upload all three bureaus — one is usually cleaner than the others.', layout: 'grid' },
+  { slug: 'denver-co', city: 'Denver', state: 'CO', metro: 'Denver, CO', angle: 'Denver growth often means too many new cards in one short window', localFact: 'Front Range growth means a lot of new cards opened in a short window.', nextStep: 'Stop opening products until utilization is intentional.', layout: 'split' },
+  { slug: 'washington-dc', city: 'Washington', state: 'DC', metro: 'Washington, DC', angle: 'Washington files often carry three-state address stacks on one person', localFact: 'DC–MD–VA moves create three-state address stacks on one person.', nextStep: 'Audit addresses and names before the first dispute round.', layout: 'spine' },
+  { slug: 'atlanta-ga', city: 'Atlanta', state: 'GA', metro: 'Atlanta, GA', angle: 'Atlanta files often mix bank cards with older collections from moves across Georgia', localFact: 'Atlanta partners often carry bank cards, medical, and older collection placements from moves across Georgia.', nextStep: 'Match every collection to the original creditor before you write.', layout: 'harbor' },
+  { slug: 'detroit-mi', city: 'Detroit', state: 'MI', metro: 'Detroit, MI', angle: 'Detroit files often pair a strong auto installment with insurance and city items', localFact: 'Metro Detroit files often pair auto installment strength with insurance and municipal items.', nextStep: 'Confirm the auto account is yours, then decide dispute versus pay.', layout: 'grid' },
+  { slug: 'miami-fl', city: 'Miami', state: 'FL', metro: 'Miami, FL', angle: 'Miami files often mix HOA, condo, and international addresses that furnishers confuse', localFact: 'South Florida files mix HOA, condo, and international address stacks that furnishers confuse.', nextStep: 'List every address year so the file can be matched to you.', layout: 'split' },
+  { slug: 'boston-ma', city: 'Boston', state: 'MA', metro: 'Boston, MA', angle: 'Boston files often sit student loans next to old hospital billing', localFact: 'Greater Boston files often pair campus accounts with hospital billing across three states.', nextStep: 'Separate student from medical before the first dispute round.', layout: 'spine' },
+  { slug: 'baltimore-md', city: 'Baltimore', state: 'MD', metro: 'Baltimore, MD', angle: 'Baltimore files often pick up utility and collector placements from short corridor moves', localFact: 'Baltimore–DC corridor files pick up utility, medical, and collector placements from short moves.', nextStep: 'Photograph every bureau screen before you write.', layout: 'harbor' },
+  { slug: 'nashville-tn', city: 'Nashville', state: 'TN', metro: 'Nashville, TN', angle: 'Nashville cash flow can spike utilization the same month new cards open', localFact: 'Music-city cash flow can spike utilization the same month new cards open.', nextStep: 'Map statement dates before you add another product.', layout: 'grid' },
+  { slug: 'las-vegas-nv', city: 'Las Vegas', state: 'NV', metro: 'Las Vegas, NV', angle: 'Las Vegas tip income often prints as a utilization swing, not new debt', localFact: 'Shift work and tip income often print as utilization swings, not new debt.', nextStep: 'Check what the issuer reports, not only the due date.', layout: 'split' },
+  { slug: 'portland-or', city: 'Portland', state: 'OR', metro: 'Portland, OR', angle: 'Portland newcomers often keep leftover accounts and addresses from another state', localFact: 'New Oregon residents often keep leftover accounts and addresses from another state.', nextStep: 'Confirm every address on the file matches where you lived.', layout: 'spine' },
+];
+
+export function getCityCreditPage(slug: string): CityCreditPage | undefined {
+  return CITY_CREDIT_PAGES.find((c) => c.slug === slug);
+}
+
+export function cityCreditPath(slug: string): string {
+  return `/credit/${slug}`;
+}

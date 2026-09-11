@@ -26,7 +26,7 @@ const BENEFITS = [
   { Icon: Users, title: 'Marketplace placement', text: 'Your slots reach partners already browsing AU profiles.' },
   { Icon: Wallet, title: 'Payouts per placement', text: 'Track earnings tied to fulfilled contracts in your seller hub.' },
   { Icon: RefreshCw, title: '60-day listing seasons', text: 'Rotate cards each season to protect issuer risk and stay fresh.' },
-  { Icon: ShieldCheck, title: 'Compliance-first education', text: 'Marketplace rules, rotation guidance, and AU specialty training.' },
+  { Icon: ShieldCheck, title: 'Rules and seller training', text: 'Marketplace rules, rotation guidance, and authorized-user specialty training.' },
 ] as const;
 
 const LAW_MARKETPLACE = [
@@ -35,7 +35,7 @@ const LAW_MARKETPLACE = [
     text: 'When a partner is added as an authorized user on your revolving account, the issuer may report that tradeline on their credit file — age, limit, and payment history can appear as profile signals inside a broader restore plan.',
   },
   {
-    kicker: 'What allows marketplace selling',
+    kicker: 'Who may list on the marketplace',
     text: 'Cardholders who own verified, seasoned inventory may list AU slots on Finely\'s marketplace. We verify seller profiles, publish listings, run buyer intake, and route qualified orders — you fulfill placements under our marketplace rules.',
   },
   {
@@ -78,7 +78,7 @@ export function LandingAuthorizedUserSection() {
     >
       <LandingSellAtmosphere tone="emerald" />
 
-      <div className="container mx-auto px-4 sm:px-6 max-w-6xl relative z-10">
+      <div className="fc-viewport-floor relative z-10">
         <div className="text-center mb-12">
           <Reveal>
             <p className="fc-sell-kicker mb-5">Authorized User program</p>
@@ -159,7 +159,7 @@ export function LandingAuthorizedUserSection() {
           </Reveal>
 
           <Reveal delay={160}>
-            <div className="grid gap-4 lg:grid-cols-[1fr_minmax(240px,280px)_1fr] lg:items-stretch max-w-5xl mx-auto">
+            <div className="grid w-full max-w-none gap-4 lg:grid-cols-[1fr_minmax(240px,280px)_1fr] lg:items-stretch">
               {/* Left — why AUs matter */}
               <div className="relative overflow-hidden rounded-[1.25rem] border border-emerald-400/30 bg-gradient-to-br from-emerald-950/50 via-black/40 to-black/60 p-5 sm:p-6 flex flex-col justify-between">
                 <div>

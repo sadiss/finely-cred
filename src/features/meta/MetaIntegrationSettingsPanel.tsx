@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Facebook, Instagram, Link2, RefreshCw } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { FinelyOsGlassPanel } from '../os/FinelyOsGlassPanel';
 import { loadMetaIntegrationConfig, saveMetaIntegrationConfig } from '../../data/metaIntegrationRepo';
+import { startMetaPageOAuth } from '../../lib/metaOAuthUrls';
 import { DEFAULT_META_INTEGRATION, type MetaIntegrationConfig } from '../../domain/metaIntegration';
 import {
   FINELY_OS_ENTITY_BODY,
@@ -15,6 +17,7 @@ import {
 } from '../os/finelyOsLightUi';
 
 export function MetaIntegrationSettingsPanel() {
+  const navigate = useNavigate();
   const [cfg, setCfg] = useState<MetaIntegrationConfig>(() => loadMetaIntegrationConfig());
   const [appId, setAppId] = useState(cfg.appId ?? '');
 
@@ -24,16 +27,11 @@ export function MetaIntegrationSettingsPanel() {
   };
 
   const connect = () => {
-    const next = { ...cfg, status: 'connecting' as const, appId: appId.trim() || undefined };
+    const next = { ...cfg, appId: appId.trim() || undefined };
     persist(next);
-    setTimeout(() => {
-      persist({
-        ...next,
-        status: 'connected' as const,
-        connectedPages: [{ pageId: 'demo_page', pageName: 'Finely Cred (demo)', igUsername: 'finelycred' }],
-        webhookVerified: false,
-      });
-    }, 800);
+    if (!startMetaPageOAuth(appId, next)) {
+      navigate('/admin/social-hub?tab=settings');
+    }
   };
 
   return (
@@ -50,7 +48,7 @@ export function MetaIntegrationSettingsPanel() {
       </div>
 
       <p className={`${FINELY_OS_ENTITY_BODY} mb-4`}>
-        Demo mode until OAuth is deployed. Configure App ID here; live OAuth uses the `meta-oauth` edge function and `meta-webhook` for Lead Ads.
+        Connect a Facebook Page through Social Hub (real OAuth). Messenger replies from Ask Finely come in a later pass.
       </p>
 
       <label className={`block ${FINELY_OS_ENTITY_LABEL}`}>Meta App ID</label>
@@ -63,7 +61,7 @@ export function MetaIntegrationSettingsPanel() {
 
       <div className="flex flex-wrap gap-2">
         <button type="button" onClick={connect} className={FINELY_OS_PRIMARY_BTN}>
-          <Link2 size={14} /> Connect Page + IG (demo)
+          <Link2 size={14} /> Connect Facebook Page
         </button>
         <button
           type="button"

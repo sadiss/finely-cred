@@ -311,7 +311,7 @@ export default function AdminVaultProductSurface({ role, pageId }: WorkspaceProd
       pageId={pageId}
       eyebrow="Platform"
       title="Secret vault"
-      description="Sensitive files and URLs in a catalog mosaic — inspect, upload, and control access."
+      description="Store sensitive files and URLs, then control who can open them."
       accent={accent}
       surfaceMode={navItem?.surfaceMode ?? 'light'}
       archetype={archetype}
@@ -337,7 +337,7 @@ export default function AdminVaultProductSurface({ role, pageId }: WorkspaceProd
         { label: 'Access on', value: String(accessOnCount), hint: `${accessMembers.length} members`, accent: 'emerald', onClick: () => setZone('access') },
       ]}
       metricTitle="Vault snapshot"
-      metricDescription="Browse the secrets mosaic, run intel ops, or revoke access immediately."
+      metricDescription="Items, files, saved URLs, and who has vault access."
     >
       <input
         id="fc-vault-upload-input"
@@ -348,8 +348,7 @@ export default function AdminVaultProductSurface({ role, pageId }: WorkspaceProd
       />
 
       <div className={FINELY_OS_PAGE} data-surface-layout="catalog-mosaic">
-        {/* Tenant status band */}
-        <div className={`${finelyOsCatalogCard('violet')} p-6 lg:p-8`} data-fc-accent="violet">
+        <div>
           <div className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono normal-case tracking-normal`}>
             tenant: {tenant?.name ?? tenantId}
           </div>
@@ -357,44 +356,37 @@ export default function AdminVaultProductSurface({ role, pageId }: WorkspaceProd
           {err ? <div className={`mt-3 ${FINELY_OS_NOTICE_ERROR}`}>{err}</div> : null}
         </div>
 
-        {/* Zone mosaic selector */}
-        <div className={`${finelyOsCatalogCard('sky')} p-6 lg:p-8 space-y-5`} data-fc-accent="sky">
-          <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
-            <Vault size={16} />
-            <span>Vault zones</span>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-3">
-            {MOSAIC_ZONES.map((tile, idx) => {
-              const tileAccent = MOSAIC_ACCENTS[idx % MOSAIC_ACCENTS.length];
-              const active = zone === tile.id;
-              return (
-                <button
-                  key={tile.id}
-                  type="button"
-                  onClick={() => setZone(tile.id)}
-                  className={`${finelyOsCatalogCard(tileAccent)} p-6 lg:p-7 text-left min-h-[160px] flex flex-col gap-3 transition hover:shadow-lg ${
-                    active ? 'ring-2 ring-white/25' : ''
-                  }`}
-                  data-fc-accent={tileAccent}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-black/[0.06]">{tile.icon}</span>
-                    <span className={`text-2xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>
-                      {tile.id === 'archive' ? items.length : tile.id === 'access' ? accessOnCount : 'ML'}
-                    </span>
-                  </div>
-                  <div>
-                    <div className="text-xl font-extrabold">{tile.title}</div>
-                    <p className={`mt-1 text-sm font-semibold ${FINELY_OS_ENTITY_BODY}`}>{tile.detail}</p>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
+        <div className="grid gap-4 sm:grid-cols-3">
+          {MOSAIC_ZONES.map((tile, idx) => {
+            const tileAccent = MOSAIC_ACCENTS[idx % MOSAIC_ACCENTS.length];
+            const active = zone === tile.id;
+            return (
+              <button
+                key={tile.id}
+                type="button"
+                onClick={() => setZone(tile.id)}
+                className={`${finelyOsCatalogCard(tileAccent)} p-6 lg:p-7 text-left min-h-[160px] flex flex-col gap-3 transition hover:shadow-lg ${
+                  active ? 'ring-2 ring-white/25' : ''
+                }`}
+                data-fc-accent={tileAccent}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-black/[0.06]">{tile.icon}</span>
+                  <span className={`text-2xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>
+                    {tile.id === 'archive' ? items.length : tile.id === 'access' ? accessOnCount : 'ML'}
+                  </span>
+                </div>
+                <div>
+                  <div className="text-xl font-extrabold">{tile.title}</div>
+                  <p className={`mt-1 text-sm font-semibold ${FINELY_OS_ENTITY_BODY}`}>{tile.detail}</p>
+                </div>
+              </button>
+            );
+          })}
         </div>
 
         {zone === 'ops' ? (
-          <section className={`${finelyOsCatalogCard('violet')} p-6 lg:p-8 space-y-6`} data-fc-accent="violet">
+          <section className="space-y-6">
             <div>
               <h2 className="text-3xl font-extrabold">Intel operations</h2>
               <p className={`mt-2 max-w-3xl text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
@@ -421,17 +413,19 @@ export default function AdminVaultProductSurface({ role, pageId }: WorkspaceProd
         ) : null}
 
         {zone === 'archive' ? (
-          <div className="grid lg:grid-cols-12 gap-6 items-start">
-            {/* Catalog mosaic */}
-            <section className={`lg:col-span-7 ${finelyOsCatalogCard('rose')} p-6 lg:p-8 space-y-5`} data-fc-accent="rose">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <h2 className="text-3xl font-extrabold">Secrets mosaic</h2>
-                <label className={`${FINELY_OS_PRIMARY_BTN} cursor-pointer`}>
-                  <Upload size={14} /> Upload
-                  <input type="file" multiple className="hidden" onChange={(e) => void uploadFiles(e.target.files)} />
-                </label>
+          <div className="space-y-6">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <h2 className="text-3xl font-extrabold">Secrets</h2>
+                <p className={`mt-2 text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>Upload a file or save a URL. Click a tile to inspect.</p>
               </div>
+              <label className={`${FINELY_OS_PRIMARY_BTN} cursor-pointer`}>
+                <Upload size={14} /> Upload
+                <input type="file" multiple className="hidden" onChange={(e) => void uploadFiles(e.target.files)} />
+              </label>
+            </div>
 
+            <div className="grid gap-4 lg:grid-cols-2">
               <div className="flex items-center gap-2 rounded-xl border border-white/10 px-4 py-3">
                 <Search size={16} className="text-violet-400 shrink-0" />
                 <input
@@ -441,108 +435,62 @@ export default function AdminVaultProductSurface({ role, pageId }: WorkspaceProd
                   placeholder="Search vault…"
                 />
               </div>
-
-              {items.length === 0 ? (
-                <p className={`text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>No items yet. Upload a file or save a URL in the inspector.</p>
-              ) : (
-                <FinelyOsPaginatedStack
-                  items={items}
-                  pageSize={12}
-                  itemSpacingClassName="grid sm:grid-cols-2 gap-4"
-                  emptyMessage="No items yet."
-                  renderItem={(i, idx) => {
-                    const tileAccent = MOSAIC_ACCENTS[idx % MOSAIC_ACCENTS.length];
-                    const active = i.id === selected?.id;
-                    return (
-                      <button
-                        key={i.id}
-                        type="button"
-                        onClick={() => setSelectedId(i.id)}
-                        className={`${finelyOsCatalogCard(tileAccent)} p-5 lg:p-6 text-left transition hover:shadow-lg ${
-                          active ? 'ring-2 ring-white/30' : ''
-                        }`}
-                        data-fc-accent={tileAccent}
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-black/[0.06]">
-                            {i.type === 'file' ? <FileText size={18} /> : <LinkIcon size={18} />}
-                          </span>
-                          <span className={`text-xs font-bold uppercase ${FINELY_OS_ENTITY_SUBLABEL}`}>
-                            {SECRET_VAULT_MEDIA_LABELS[i.mediaKind] ?? i.type}
-                          </span>
-                        </div>
-                        <div className={`mt-3 text-lg font-extrabold truncate ${FINELY_OS_ENTITY_VALUE}`}>{i.title}</div>
-                        <div className={`mt-1 text-sm font-semibold ${FINELY_OS_ENTITY_BODY}`}>{fmtWhen(i.createdAt)}</div>
-                        {i.type === 'file' ? (
-                          <div className={`mt-2 text-sm font-mono ${FINELY_OS_ENTITY_SUBLABEL} normal-case tracking-normal`}>{fmtBytes(i.sizeBytes)}</div>
-                        ) : null}
-                      </button>
-                    );
-                  }}
-                />
-              )}
-            </section>
-
-            {/* Inspector rail */}
-            <div className="lg:col-span-5 space-y-6">
-              <section className={`${finelyOsCatalogCard('sky')} p-6 lg:p-8 space-y-4`} data-fc-accent="sky">
-                <h2 className="text-2xl font-extrabold">Save URL</h2>
-                <div className="grid gap-3">
+              <div className={`${finelyOsCatalogCard('sky')} p-5 lg:p-6 space-y-3`} data-fc-accent="sky">
+                <h3 className="text-xl font-extrabold">Save URL</h3>
+                <div className="grid gap-3 sm:grid-cols-2">
                   <input value={urlTitle} onChange={(e) => setUrlTitle(e.target.value)} className={FINELY_OS_ENTITY_INPUT} placeholder="Title (optional)" />
                   <input value={urlValue} onChange={(e) => setUrlValue(e.target.value)} className={FINELY_OS_ENTITY_INPUT} placeholder="https://…" />
                 </div>
                 <button type="button" onClick={addUrl} disabled={!urlValue.trim()} className={FINELY_OS_SUCCESS_BTN}>
                   <LinkIcon size={14} /> Save URL
                 </button>
-              </section>
-
-              <section className={`${finelyOsCatalogCard('emerald')} p-6 lg:p-8 space-y-4`} data-fc-accent="emerald">
-                <div className="flex items-center justify-between gap-3">
-                  <h2 className="text-2xl font-extrabold">Inspector</h2>
-                  {selected ? <div className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono normal-case tracking-normal`}>{selected.id}</div> : null}
-                </div>
-                {!selected ? (
-                  <p className={`text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>Select a secret from the mosaic.</p>
-                ) : (
-                  <>
-                    <div className="grid gap-4">
-                      <div className={`${finelyOsCatalogCard('violet')} fc-surface-harmony p-5`} data-fc-accent="violet">
-                        <div className={FINELY_OS_ENTITY_SUBLABEL}>Type</div>
-                        <div className={`mt-1 text-xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{selected.type}</div>
-                        <div className={`mt-1 ${FINELY_OS_ENTITY_BODY} text-sm font-semibold`}>Created: {fmtWhen(selected.createdAt)}</div>
-                      </div>
-                      <div className={`${finelyOsCatalogCard('sky')} fc-surface-harmony p-5`} data-fc-accent="sky">
-                        <div className={FINELY_OS_ENTITY_SUBLABEL}>Size</div>
-                        <div className={`mt-1 text-xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{fmtBytes(selected.sizeBytes)}</div>
-                        <div className={`mt-1 ${FINELY_OS_ENTITY_BODY} text-sm font-mono truncate`}>{selected.mimeType ?? '—'}</div>
-                      </div>
-                    </div>
-                    {selected.notes ? <div className={`${FINELY_OS_ENTITY_BODY} whitespace-pre-wrap text-base font-semibold`}>{selected.notes}</div> : null}
-                    {selected.type === 'url' && selected.sourceUrl ? (
-                      <div className={`${FINELY_OS_ENTITY_BODY} font-mono break-all text-sm`}>{selected.sourceUrl}</div>
-                    ) : null}
-                    <div className="flex flex-wrap gap-2">
-                      <button type="button" onClick={() => void openItem(selected)} className={FINELY_OS_PRIMARY_BTN}>
-                        <ExternalLink size={14} /> Open
-                      </button>
-                      {selected.type === 'file' ? (
-                        <button type="button" onClick={() => void downloadItem(selected)} className={FINELY_OS_SECONDARY_BTN}>
-                          <Download size={14} /> Download
-                        </button>
-                      ) : null}
-                      <button type="button" disabled={busy} onClick={() => void removeItem(selected)} className={FINELY_OS_DANGER_BTN}>
-                        <Trash2 size={14} /> Delete
-                      </button>
-                    </div>
-                  </>
-                )}
-              </section>
+              </div>
             </div>
+
+            {items.length === 0 ? (
+              <p className={`text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>No items yet. Upload a file or save a URL.</p>
+            ) : (
+              <FinelyOsPaginatedStack
+                items={items}
+                pageSize={12}
+                itemSpacingClassName="grid sm:grid-cols-2 xl:grid-cols-3 gap-4"
+                emptyMessage="No items yet."
+                renderItem={(i, idx) => {
+                  const tileAccent = MOSAIC_ACCENTS[idx % MOSAIC_ACCENTS.length];
+                  const active = i.id === selected?.id;
+                  return (
+                    <button
+                      key={i.id}
+                      type="button"
+                      onClick={() => setSelectedId(i.id)}
+                      className={`${finelyOsCatalogCard(tileAccent)} p-5 lg:p-6 text-left transition hover:shadow-lg ${
+                        active ? 'ring-2 ring-white/30' : ''
+                      }`}
+                      data-fc-accent={tileAccent}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-black/[0.06]">
+                          {i.type === 'file' ? <FileText size={18} /> : <LinkIcon size={18} />}
+                        </span>
+                        <span className={`text-xs font-bold uppercase ${FINELY_OS_ENTITY_SUBLABEL}`}>
+                          {SECRET_VAULT_MEDIA_LABELS[i.mediaKind] ?? i.type}
+                        </span>
+                      </div>
+                      <div className={`mt-3 text-lg font-extrabold truncate ${FINELY_OS_ENTITY_VALUE}`}>{i.title}</div>
+                      <div className={`mt-1 text-sm font-semibold ${FINELY_OS_ENTITY_BODY}`}>{fmtWhen(i.createdAt)}</div>
+                      {i.type === 'file' ? (
+                        <div className={`mt-2 text-sm font-mono ${FINELY_OS_ENTITY_SUBLABEL} normal-case tracking-normal`}>{fmtBytes(i.sizeBytes)}</div>
+                      ) : null}
+                    </button>
+                  );
+                }}
+              />
+            )}
           </div>
         ) : null}
 
         {zone === 'access' ? (
-          <section className={`${finelyOsCatalogCard('emerald')} p-6 lg:p-8 space-y-4`} data-fc-accent="emerald">
+          <section className="space-y-4">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <h2 className="text-3xl font-extrabold">Access control</h2>
@@ -557,12 +505,13 @@ export default function AdminVaultProductSurface({ role, pageId }: WorkspaceProd
                 items={accessMembers}
                 pageSize={10}
                 emptyMessage="No team members."
+                itemSpacingClassName="grid sm:grid-cols-2 gap-4"
                 renderItem={(m, idx) => {
                   const isCore = m.role === 'platform_admin' || m.role === 'tenant_owner';
                   const has = canAccessVault(m);
                   const rowAccent = MOSAIC_ACCENTS[idx % MOSAIC_ACCENTS.length];
                   return (
-                    <div key={m.id} className={`${finelyOsCatalogCard(rowAccent)} fc-surface-harmony flex items-center justify-between gap-3 p-5 lg:p-6`} data-fc-accent={rowAccent}>
+                    <div key={m.id} className={`${finelyOsCatalogCard(rowAccent)} flex items-center justify-between gap-3 p-5 lg:p-6`} data-fc-accent={rowAccent}>
                       <div className="min-w-0">
                         <div className={`text-lg font-extrabold truncate ${FINELY_OS_ENTITY_VALUE}`}>{m.email}</div>
                         <div className={`mt-1 ${FINELY_OS_ENTITY_SUBLABEL} font-mono truncate normal-case tracking-normal`}>
@@ -586,6 +535,48 @@ export default function AdminVaultProductSurface({ role, pageId }: WorkspaceProd
               />
             )}
           </section>
+        ) : null}
+
+        {zone === 'archive' && selectedId && selected ? (
+          <div
+            className="fc-wlp-local-modal-overlay"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Vault item"
+            onClick={() => setSelectedId(null)}
+          >
+            <div className="fc-wlp-local-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[11px] uppercase tracking-wider font-bold text-sky-300 m-0">{selected.type}</p>
+                  <h3 className="text-lg font-extrabold text-white m-0 mt-1">{selected.title}</h3>
+                </div>
+                <button type="button" className="fc-wlp-btn-secondary !py-1.5 !px-2.5 !text-xs" onClick={() => setSelectedId(null)} aria-label="Close inspector">
+                  Close
+                </button>
+              </div>
+              <p className="text-sm font-bold text-white/70 m-0">Created: {fmtWhen(selected.createdAt)}</p>
+              <p className="text-base font-extrabold text-white m-0">{fmtBytes(selected.sizeBytes)}</p>
+              {selected.mimeType ? <p className="text-sm font-mono text-white/70 m-0">{selected.mimeType}</p> : null}
+              {selected.notes ? <p className="text-base font-semibold text-white/85 whitespace-pre-wrap m-0">{selected.notes}</p> : null}
+              {selected.type === 'url' && selected.sourceUrl ? (
+                <p className="text-sm font-mono break-all text-white/80 m-0">{selected.sourceUrl}</p>
+              ) : null}
+              <div className="flex flex-wrap gap-2">
+                <button type="button" onClick={() => void openItem(selected)} className={FINELY_OS_PRIMARY_BTN}>
+                  <ExternalLink size={14} /> Open
+                </button>
+                {selected.type === 'file' ? (
+                  <button type="button" onClick={() => void downloadItem(selected)} className={FINELY_OS_SECONDARY_BTN}>
+                    <Download size={14} /> Download
+                  </button>
+                ) : null}
+                <button type="button" disabled={busy} onClick={() => void removeItem(selected)} className={FINELY_OS_DANGER_BTN}>
+                  <Trash2 size={14} /> Delete
+                </button>
+              </div>
+            </div>
+          </div>
         ) : null}
       </div>
 

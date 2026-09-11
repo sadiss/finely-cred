@@ -1,3 +1,4 @@
+import { CITY_CREDIT_PAGES } from '../../config/cityCreditPages';
 import { PUBLIC_SEO_CATALOG, type PublicSeoRoute } from '../../data/publicSeoCatalog';
 
 export type SeoAuditIssueCode =
@@ -76,8 +77,64 @@ export function auditPublicSeoRoute(route: PublicSeoRoute): SeoAuditRouteResult 
   };
 }
 
+function thinCityIssues(): Map<string, SeoAuditIssue[]> {
+  const byPath = new Map<string, SeoAuditIssue[]>();
+  const seenAngle = new Set<string>();
+  const seenFact = new Set<string>();
+  for (const city of CITY_CREDIT_PAGES) {
+    const path = `/credit/${city.slug}`;
+    const issues: SeoAuditIssue[] = [];
+    if (city.angle.trim().length < 18) {
+      issues.push({ code: 'title_short', message: `${city.city} angle is thin — write a unique local hook.`, severity: 'warn' });
+    }
+    if (city.localFact.trim().length < 40) {
+      issues.push({
+        code: 'description_short',
+        message: `${city.city} local fact is thin — add a unique metro detail.`,
+        severity: 'warn',
+      });
+    }
+    const angleKey = city.angle.trim().toLowerCase();
+    const factKey = city.localFact.trim().toLowerCase();
+    if (seenAngle.has(angleKey)) {
+      issues.push({ code: 'description_short', message: `${city.city} reuses another metro’s angle.`, severity: 'warn' });
+    }
+    if (seenFact.has(factKey)) {
+      issues.push({ code: 'description_short', message: `${city.city} reuses another metro’s local fact.`, severity: 'warn' });
+    }
+    seenAngle.add(angleKey);
+    seenFact.add(factKey);
+    if (!PUBLIC_SEO_CATALOG.some((r) => r.path === path)) {
+      issues.push({
+        code: 'missing_schema',
+        message: `${city.city} is missing from the public SEO catalog.`,
+        severity: 'warn',
+      });
+    }
+    if (issues.length) byPath.set(path, issues);
+  }
+  return byPath;
+}
+
 export function auditPublicSeoCatalog(): SeoAuditRouteResult[] {
-  return PUBLIC_SEO_CATALOG.map(auditPublicSeoRoute);
+  const thin = thinCityIssues();
+  const rows = PUBLIC_SEO_CATALOG.map((route) => {
+    const base = auditPublicSeoRoute(route);
+    const extra = thin.get(route.path);
+    return extra?.length ? { ...base, issues: [...base.issues, ...extra] } : base;
+  });
+  for (const [path, issues] of thin) {
+    if (rows.some((r) => r.path === path)) continue;
+    const city = CITY_CREDIT_PAGES.find((c) => `/credit/${c.slug}` === path);
+    rows.push({
+      path,
+      title: city ? `Credit restore in ${city.city}` : path,
+      description: city?.localFact || '',
+      hasSchema: false,
+      issues,
+    });
+  }
+  return rows;
 }
 
 export function flattenSeoAuditIssues(

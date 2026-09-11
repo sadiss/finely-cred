@@ -46,6 +46,7 @@ import {
   resolveFrequencyCapKey,
 } from '../../data/commsSuppressionRepo';
 import { sendEmail, sendSms } from '../../lib/commsDeliveryClient';
+import { htmlFromPlainEmail } from '../../comms/prebuiltHtmlEmailLayout';
 import { isFeatureEnabled } from '../../data/settingsRepo';
 import { logAgentAction } from '../../lib/agentAuditLog';
 
@@ -153,7 +154,13 @@ async function sendGraphEmail(record: CrmRecord, subject: string, body: string, 
   if (isOverFrequencyCap(frequencyCapKey)) return 'Email deferred — frequency cap';
   if (!isFeatureEnabled('commsDelivery')) return 'Email queued (comms delivery flag off)';
   try {
-    await sendEmail({ toEmail: email, toName: record.contact.fullName, subject, text: body });
+    await sendEmail({
+      toEmail: email,
+      toName: record.contact.fullName,
+      subject,
+      text: body,
+      html: htmlFromPlainEmail({ headline: subject, text: body, email }),
+    });
     recordSendForFrequencyCap(frequencyCapKey);
     logAgentAction({
       agentId: AGENT_ID,

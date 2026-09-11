@@ -68,6 +68,14 @@ export type GuideReaderShellProps = {
   storageKey?: string;
   /** Light parchment skins (Case Desk) need dark Flip/Scroll chrome. */
   chromeTone?: 'dark' | 'light';
+
+  /** When true, only chapter 0 is readable. Later pages stay locked until signup. */
+  previewLocked?: boolean;
+  /** Capture form on the landing — used by locked TOC rows and the preview banner. */
+  previewUnlockHref?: string;
+  /** Next / later TOC rows ask for details instead of silently disabling. */
+  onLockedAdvance?: () => void;
+  previewBanner?: React.ReactNode;
 };
 
 function cn(...classes: Array<string | false | null | undefined>) {
@@ -158,7 +166,7 @@ export default function GuideReaderShell({
   beforeGrid,
   afterArticle,
   renderChapter,
-  maxWidthClassName = 'max-w-[92rem]',
+  maxWidthClassName = 'max-w-none',
   gridClassName,
   articleWrapClassName,
   showFlipControls = true,
@@ -166,6 +174,9 @@ export default function GuideReaderShell({
   defaultMode = 'scroll',
   storageKey,
   chromeTone = 'dark',
+  previewLocked = false,
+  onLockedAdvance,
+  previewBanner,
 }: GuideReaderShellProps) {
   const reducedMotion = usePrefersReducedMotion();
   const isLgUp = useIsLgUp();
@@ -182,8 +193,9 @@ export default function GuideReaderShell({
   const [flipSize, setFlipSize] = useState({ width: 720, height: 780 });
 
   const total = chapters.length;
-  const progress = total > 0 ? ((chapterIndex + 1) / total) * 100 : 0;
-  const chapter = chapters[chapterIndex] ?? chapters[0];
+  const safeIndex = previewLocked ? 0 : chapterIndex;
+  const progress = total > 0 ? ((safeIndex + 1) / total) * 100 : 0;
+  const chapter = chapters[safeIndex] ?? chapters[0];
 
   useEffect(() => {
     if (!flipAllowed && mode === 'flip') setMode('scroll');
@@ -228,11 +240,16 @@ export default function GuideReaderShell({
 
   const goChapter = useCallback(
     (next: number) => {
-      const clamped = Math.max(0, Math.min(total - 1, next));
+      if (previewLocked && next > 0) {
+        onLockedAdvance?.();
+        return;
+      }
+      const max = previewLocked ? 0 : total - 1;
+      const clamped = Math.max(0, Math.min(max, next));
       onChapterChange(clamped);
       onTocOpenChange(false);
     },
-    [onChapterChange, onTocOpenChange, total],
+    [onChapterChange, onLockedAdvance, onTocOpenChange, previewLocked, total],
   );
 
   useEffect(() => {
@@ -243,6 +260,10 @@ export default function GuideReaderShell({
       if (target?.isContentEditable) return;
       if (e.key === 'ArrowRight') {
         e.preventDefault();
+        if (previewLocked) {
+          onLockedAdvance?.();
+          return;
+        }
         if (effectiveMode === 'flip') flipRef.current?.flipNext();
         else goChapter(chapterIndex + 1);
       }
@@ -254,7 +275,7 @@ export default function GuideReaderShell({
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [chapterIndex, effectiveMode, enableKeyboard, goChapter]);
+  }, [chapterIndex, effectiveMode, enableKeyboard, goChapter, onLockedAdvance, previewLocked]);
 
   const setReaderMode = (next: GuideReaderMode) => {
     if (next === 'flip' && !flipAllowed) return;
@@ -301,15 +322,18 @@ export default function GuideReaderShell({
           ) : null}
           <nav className={cn('mt-4 max-h-[62vh] space-y-1 overflow-y-auto pr-1', tocNavClassName)} aria-label={tocLabel}>
             {chapters.map((ch, i) => {
-              const active = i === chapterIndex;
+              const active = i === safeIndex;
+              const locked = previewLocked && i > 0;
               return (
                 <button
                   key={ch.id}
                   type="button"
                   onClick={() => goChapter(i)}
+                  disabled={locked && !onLockedAdvance}
                   className={cn(
                     'grs-toc-item',
                     active && 'is-active',
+                    locked && 'opacity-50',
                     tocItemClassName?.(active, i),
                   )}
                   aria-current={active ? 'true' : undefined}
@@ -319,7 +343,11 @@ export default function GuideReaderShell({
                   </span>
                   <span className="min-w-0">
                     <span className="grs-toc-title">{ch.title}</span>
-                    {ch.teaser ? <span className="grs-toc-teaser">{ch.teaser}</span> : null}
+                    {locked ? (
+                      <span className="grs-toc-teaser">Enter details to unlock</span>
+                    ) : ch.teaser ? (
+                      <span className="grs-toc-teaser">{ch.teaser}</span>
+                    ) : null}
                   </span>
                 </button>
               );
@@ -342,41 +370,62 @@ export default function GuideReaderShell({
           aria-live="polite"
           aria-label={chapter ? `${chapter.number}. ${chapter.title}` : 'Guide chapter'}
         >
-          {renderChapter(chapterIndex)}
+          {renderChapter(safeIndex)}
         </div>
       ) : (
         <div ref={stageRef}>
           <p className="grs-sr-only" aria-live="polite">
-            Flip mode. Page {chapterIndex + 1} of {total}
+            Flip mode. Page {safeIndex + 1} of {previewLocked ? 1 : total}
             {chapter ? `: ${chapter.title}` : ''}. Use arrow keys or previous/next.
           </p>
           <GuideReaderFlipBook
             ref={flipRef}
-            pageIndex={chapterIndex}
+            pageIndex={safeIndex}
             onPageChange={goChapter}
             width={flipSize.width}
             height={flipSize.height}
           >
-            {chapters.map((_, i) => renderChapter(i))}
+            {(previewLocked ? chapters.slice(0, 1) : chapters).map((_, i) => renderChapter(i))}
           </GuideReaderFlipBook>
           {showFlipControls ? (
             <div className="grs-flip-controls">
               <button
                 type="button"
-                disabled={chapterIndex <= 0}
-                onClick={() => flipRef.current?.flipPrev() ?? goChapter(chapterIndex - 1)}
-                className="inline-flex h-11 items-center gap-2 rounded-lg border border-white/15 bg-white/[0.04] px-4 text-[10px] font-black uppercase tracking-[0.12em] text-white/75 transition hover:border-white/30 disabled:cursor-not-allowed disabled:opacity-35"
+                disabled={safeIndex <= 0}
+                onClick={() => flipRef.current?.flipPrev() ?? goChapter(safeIndex - 1)}
+                className={cn(
+                  'inline-flex h-11 items-center gap-2 rounded-lg px-4 text-[10px] font-black uppercase tracking-[0.12em] transition disabled:cursor-not-allowed disabled:opacity-35',
+                  chromeTone === 'light'
+                    ? 'border border-stone-400/55 bg-white/70 text-stone-700 hover:border-stone-700'
+                    : 'border border-white/15 bg-white/[0.04] text-white/75 hover:border-white/30',
+                )}
               >
                 <ChevronLeft size={16} /> Previous
               </button>
-              <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-white/45">
-                {chapterIndex + 1} / {total}
+              <span
+                className={cn(
+                  'text-[11px] font-bold uppercase tracking-[0.14em]',
+                  chromeTone === 'light' ? 'text-stone-600' : 'text-white/45',
+                )}
+              >
+                {safeIndex + 1} / {previewLocked ? 1 : total}
               </span>
               <button
                 type="button"
-                disabled={chapterIndex >= total - 1}
-                onClick={() => flipRef.current?.flipNext() ?? goChapter(chapterIndex + 1)}
-                className="inline-flex h-11 items-center gap-2 rounded-lg border border-emerald-300/40 bg-emerald-400/15 px-4 text-[10px] font-black uppercase tracking-[0.12em] text-emerald-100 transition hover:border-emerald-300/70 disabled:cursor-not-allowed disabled:opacity-35"
+                disabled={!previewLocked && safeIndex >= total - 1}
+                onClick={() => {
+                  if (previewLocked) {
+                    onLockedAdvance?.();
+                    return;
+                  }
+                  flipRef.current?.flipNext() ?? goChapter(safeIndex + 1);
+                }}
+                className={cn(
+                  'inline-flex h-11 items-center gap-2 rounded-lg px-4 text-[10px] font-black uppercase tracking-[0.12em] transition disabled:cursor-not-allowed disabled:opacity-35',
+                  chromeTone === 'light'
+                    ? 'border border-emerald-700/40 bg-emerald-50 text-emerald-800 hover:border-emerald-800'
+                    : 'border border-emerald-300/40 bg-emerald-400/15 text-emerald-100 hover:border-emerald-300/70',
+                )}
               >
                 Next <ChevronRight size={16} />
               </button>
@@ -464,6 +513,7 @@ export default function GuideReaderShell({
         </div>
       </header>
 
+      {previewLocked ? previewBanner : null}
       {beforeGrid}
 
       <div

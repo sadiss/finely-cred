@@ -34,7 +34,7 @@
 .fc-admin-cal-runway-track {
   display: flex;
   flex-wrap: nowrap;
-  gap: 10px;
+  gap: 18px;
   overflow-x: auto;
   padding-bottom: 4px;
   scrollbar-width: thin;

@@ -20,6 +20,7 @@ import {
   listBundleActivationsByPartner,
 } from '../../../../data/productsRepo';
 import { hasEntitlement } from '../../../../data/billingRepo';
+import { useStaffEntitlementBypass } from '../../../../components/billing/EntitlementGate';
 import { listTasksByPartner } from '../../../../data/tasksRepo';
 import { ENTITLEMENT_KEYS } from '../../../../billing/entitlements';
 import type { BundleActivation, BundleId } from '../../../../domain/products';
@@ -116,6 +117,7 @@ type LoadState =
 export default function PartnerBuildProductSurface({ role, pageId, partnerId, dataMode }: WorkspaceProductSurfaceProps) {
   const navigate = useNavigate();
   const mapPortalHref = usePartnerProductPathResolver();
+  const staffBypass = useStaffEntitlementBypass();
   const navItem = getWorkspaceProductNavItem('partner', pageId);
   const PageIcon = navItem?.icon ?? TrendingUp;
   const livePath = mapPortalHref(navItem?.legacyPath ?? '/portal/build');
@@ -134,7 +136,7 @@ export default function PartnerBuildProductSurface({ role, pageId, partnerId, da
   const reload = () => {
     if (isDemo || !partnerId) return;
     try {
-      if (!partnerOwnsBuildLine(partnerId)) {
+      if (!staffBypass && !partnerOwnsBuildLine(partnerId)) {
         setState({ status: 'locked' });
         return;
       }
@@ -151,7 +153,7 @@ export default function PartnerBuildProductSurface({ role, pageId, partnerId, da
     if (isDemo) return;
     setState({ status: 'loading' });
     reload();
-  }, [isDemo, partnerId, retryToken, version]);
+  }, [isDemo, partnerId, retryToken, version, staffBypass]);
 
   useEffect(() => {
     const onStore = () => setVersion((v) => v + 1);

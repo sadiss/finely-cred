@@ -1,5 +1,6 @@
 /** Edge-safe nurture email copy — mirrors src/lib/nurtureStepCopy.ts */
 import type { NurtureSequenceCatalog, NurtureStepCatalog } from './nurtureSequencesCatalog.ts';
+import { htmlFromPlainEmail } from './simpleLetterHtml.ts';
 
 function firstNameFrom(context: Record<string, unknown>) {
   const raw = String(context.fullName ?? context.name ?? '').trim();
@@ -33,7 +34,7 @@ export function buildNurtureStepEmail(args: {
   step: NurtureStepCatalog;
   sequence: NurtureSequenceCatalog;
   context: Record<string, unknown>;
-}): { subject: string; text: string } {
+}): { subject: string; text: string; html: string } {
   const firstName = firstNameFrom(args.context);
   const guideTitle = String(args.context.guideTitle ?? 'your free resource');
   const email = String(args.context.email ?? '').trim();
@@ -185,5 +186,9 @@ export function buildNurtureStepEmail(args: {
     }
   })();
 
-  return { subject: copy.subject, text: `${copy.text}${footer}` };
+  return {
+    subject: copy.subject,
+    text: `${copy.text}${footer}`,
+    html: htmlFromPlainEmail({ headline: copy.subject, text: copy.text, email: email || undefined }),
+  };
 }

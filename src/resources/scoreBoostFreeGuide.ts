@@ -20,7 +20,7 @@ export const SCORE_BOOST_FREE_GUIDE: FreeGuide = {
     {
       heading: 'What you can do next',
       bullets: [
-        'Open the in-app reader at /free-score-roadmap/read — no email required.',
+        'See the first-page preview at /free-score-roadmap/read?preview=1, then enter your details for the full roadmap.',
         'Download the printable roadmap after capture.',
         'Book a session when you want a specialist to sequence with you.',
       ],

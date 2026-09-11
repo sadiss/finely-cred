@@ -263,6 +263,7 @@ async function dispatchStep(args: {
       toEmail: email,
       subject: copy.subject,
       text: copy.text,
+      html: copy.html,
     });
     appendNurtureSendLog({
       sequenceId: args.sequence.id,

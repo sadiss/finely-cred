@@ -3,10 +3,12 @@ import type { Partner } from '../domain/partners';
 import { buildMessageContext } from '../comms/buildMessageContext';
 import { newId } from '../utils/ids';
 import { renderTextTemplate } from '../utils/textTemplate';
-import { addCommsSend } from '../data/commsRepo';
+import { addCommsSend, getCommsTemplate } from '../data/commsRepo';
+import { partnerPreferredVoice } from './haitianVoice';
 import { createThread, getOrCreateThreadBySubject, addThreadMessage } from '../data/supportRepo';
 import type { SupportTopic } from '../domain/support';
 import { sendEmail, sendSms } from './commsDeliveryClient';
+import { htmlFromPlainEmail } from '../comms/prebuiltHtmlEmailLayout';
 import { buildMarketingEmailFooter, buildMarketingEmailHtmlFooter } from './commsUnsubscribeFooter';
 
 function nowIso() {
@@ -79,6 +81,16 @@ export function sendPortalFromTemplate(args: {
   }
 }
 
+function resolveTemplateLocale(template: CommsTemplate, partner: Partner): CommsTemplate {
+  const voice = partnerPreferredVoice(partner);
+  if (voice === 'ht' && template.meta?.locale !== 'ht') {
+    const pairId = typeof template.meta?.pairId === 'string' ? template.meta.pairId : '';
+    const paired = pairId ? getCommsTemplate(pairId) : null;
+    if (paired?.meta?.locale === 'ht') return paired;
+  }
+  return template;
+}
+
 export async function sendEmailFromTemplate(args: {
   template: CommsTemplate;
   partner: Partner;
@@ -86,7 +98,7 @@ export async function sendEmailFromTemplate(args: {
   dryRun?: boolean;
   meta?: Record<string, any>;
 }): Promise<{ ok: boolean; log: CommsSendLog }> {
-  const tpl = args.template;
+  const tpl = resolveTemplateLocale(args.template, args.partner);
   const ctx = args.ctx ?? buildDefaultCommsContext({ partner: args.partner });
   const rendered = renderCommsTemplate({ template: tpl, ctx });
   const subject = (rendered.subject || tpl.name || 'Message').trim() || 'Message';
@@ -140,7 +152,7 @@ export async function sendEmailFromTemplate(args: {
       toName: args.partner.profile.fullName,
       subject,
       text: isHtml ? body.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim() : body,
-      html: isHtml ? body : undefined,
+      html: isHtml ? body : htmlFromPlainEmail({ headline: subject, text: body, email: toEmail }),
       emailDomainId,
     });
     const out = addCommsSend(base);

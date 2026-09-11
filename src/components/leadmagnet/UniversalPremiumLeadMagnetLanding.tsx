@@ -92,7 +92,7 @@ export function UniversalPremiumLeadMagnetLanding({
           <img src={heroImage} alt={theme.heroImageAlt} loading="eager" />
           <div className="lm-flyer-hero-band-overlay" />
         </div>
-        <div className="container mx-auto max-w-6xl px-4 sm:px-6 relative z-[2]">
+        <div className="fc-viewport-floor relative z-[2]">
           <div className="lm-flyer-hero-band-grid">
             <div className="lm-flyer-hero-copy">
               <p className="lm-flyer-category">{flyer.categoryLabel}</p>
@@ -119,7 +119,7 @@ export function UniversalPremiumLeadMagnetLanding({
                   {cta} <ArrowRight className="w-4 h-4" />
                 </button>
                 <a href="#fg-preview" className="lm-flyer-secondary-link">
-                  Preview the kit ↓
+                  {config.id === 'kreyol' ? 'Gade kit la ↓' : 'Preview the kit ↓'}
                 </a>
                 <Link to={bookingPath} className="lm-flyer-secondary-link inline-flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5" /> {joinOrBookLabel}
@@ -165,7 +165,7 @@ export function UniversalPremiumLeadMagnetLanding({
           </p>
         </div>
         <p className="mt-4 text-center text-sm text-white/45">
-          Prefer a human walkthrough?{' '}
+          {config.id === 'kreyol' ? 'Ou prefere yon moun ede w? ' : 'Prefer a human walkthrough? '}
           <Link to={bookingPath} className="font-semibold text-white/80 underline-offset-2 hover:underline">
             {joinOrBookLabel}
           </Link>
@@ -173,7 +173,7 @@ export function UniversalPremiumLeadMagnetLanding({
       </section>
 
       {/* 4. Secondary CTA banner */}
-      <section className="container mx-auto max-w-6xl px-4 sm:px-6 mt-8">
+      <section className="fc-viewport-floor mt-8">
         <div className="lm-cta-banner">
           <div>
             <h2 className="lm-cta-banner-headline">{flyer.ctaBannerLine}</h2>
@@ -197,7 +197,7 @@ export function UniversalPremiumLeadMagnetLanding({
       </section>
 
       {/* SEO / depth — collapsed by default so ATF stays clear */}
-      <section className="container mx-auto max-w-6xl px-4 sm:px-6 mt-8 space-y-3">
+      <section className="fc-viewport-floor mt-8 space-y-3">
         <SeoDepth title={flyer.processTitle}>
           <div className="lm-process-rail">
             {flyer.process.map((step, i) => (
@@ -250,7 +250,7 @@ export function UniversalPremiumLeadMagnetLanding({
           </div>
         </SeoDepth>
 
-        <SeoDepth title="Inside the kit">
+        <SeoDepth title={config.id === 'kreyol' ? 'Andedan kit la' : 'Inside the kit'}>
           <ul className="lm-kit-grid">
             {profile.chapters.map((ch, i) => (
               <li key={ch.title}>
@@ -264,7 +264,7 @@ export function UniversalPremiumLeadMagnetLanding({
           </ul>
         </SeoDepth>
 
-        <SeoDepth title="Choose your path">
+        <SeoDepth title={config.id === 'kreyol' ? 'Chwazi wout ou' : 'Choose your path'}>
           <div className="flex flex-wrap gap-2">
             {profile.tracks.map((t) => (
               <button
@@ -285,7 +285,7 @@ export function UniversalPremiumLeadMagnetLanding({
 
       {profile.faqs.length > 0 ? (
         <section className="container mx-auto max-w-3xl px-4 sm:px-6 mt-8">
-          <SeoDepth title="Questions">
+          <SeoDepth title={config.id === 'kreyol' ? 'Kesyon' : 'Questions'}>
             <div className="lm-faq-list">
               {profile.faqs.map((faq, i) => (
                 <div key={faq.q} className="lm-faq-item">
@@ -305,7 +305,7 @@ export function UniversalPremiumLeadMagnetLanding({
         </section>
       ) : null}
 
-      <footer className="container mx-auto max-w-6xl px-4 sm:px-6 mt-10 py-8 border-t border-white/10">
+      <footer className="fc-viewport-floor mt-10 py-8 border-t border-white/10">
         <div className="flex flex-col items-center justify-center gap-5 text-center">
           <LeadMagnetCobrandFooterMarks />
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">

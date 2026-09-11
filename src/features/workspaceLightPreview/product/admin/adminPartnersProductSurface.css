@@ -12,7 +12,7 @@
 .fc-partners-portfolio-lenses {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
+  gap: 20px;
 }
 
 @media (max-width: 960px) {
@@ -146,4 +146,23 @@
   background: linear-gradient(140deg, rgba(24, 38, 58, 0.85), rgba(16, 28, 44, 0.92));
   border: 1px solid rgba(167, 139, 250, 0.28);
   color: #f1f5f9;
+}
+
+/* Card → one wide sheet. Close returns to the roster. */
+[data-page-signature='partner-portfolio'][data-inspector='open'] .fc-partners-portfolio-lenses,
+[data-page-signature='partner-portfolio'][data-inspector='open'] .fc-partners-portfolio-mosaic-head,
+[data-page-signature='partner-portfolio'][data-inspector='open'] .fc-wlp-atlas-canvas {
+  display: none;
+}
+
+.fc-wlp-product-page:has([data-page-signature='partner-portfolio'][data-inspector='open']) > .fc-wlp-command,
+.fc-wlp-product-page:has([data-page-signature='partner-portfolio'][data-inspector='open']) > .fc-wlp-section {
+  display: none;
+}
+
+[data-page-signature='partner-portfolio'][data-inspector='open'] .fc-partners-portfolio-mosaic {
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }

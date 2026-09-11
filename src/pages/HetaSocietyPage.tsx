@@ -134,7 +134,7 @@ function HosAccessGate({
             <h2 className="text-2xl font-black text-white sm:text-3xl">Welcome to {HEAD_OF_SOCIETY_NAME}</h2>
             <p className="text-sm leading-relaxed text-white/65">
               Reference <span className="font-mono text-violet-200/90">{leadId}</span>. Create your login to open your HOS
-              command center — restore, build, and track up to {HETA_SOCIETY_DISPUTE_LIMIT} disputes.
+              workspace — restore, build, and track up to {HETA_SOCIETY_DISPUTE_LIMIT} disputes.
             </p>
             <Button variant="emerald" size="lg" className="w-full" onClick={() => navigate(loginPath)}>
               Create login & open portal <ArrowRight size={18} />
@@ -374,7 +374,7 @@ export default function HetaSocietyPage() {
   return (
     <div className="hos-landing min-h-screen text-white">
       <header className="hos-landing-nav">
-        <div className="container mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3.5 sm:px-6">
+        <div className="fc-viewport-floor flex flex-wrap items-center justify-between gap-3 py-3.5">
           <div className="flex items-center gap-3 min-w-0">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-violet-400/35 bg-black/40 text-violet-200">
               <Shield size={18} aria-hidden />
@@ -402,7 +402,7 @@ export default function HetaSocietyPage() {
         <div className="hos-flyer-shimmer opacity-40" aria-hidden />
         <div className="hos-landing-grain" aria-hidden />
 
-        <div className="container relative z-[2] mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 lg:py-20">
+        <div className="relative z-[2] fc-viewport-floor py-12 sm:py-16 lg:py-20">
           <div className="grid gap-12 lg:grid-cols-[1.02fr_0.98fr] lg:items-center lg:gap-10">
             <div className="min-w-0">
               <div className="mb-5 flex flex-wrap gap-2">
@@ -420,7 +420,7 @@ export default function HetaSocietyPage() {
               </h1>
 
               <p className="mt-6 max-w-xl text-base leading-relaxed text-white/62 sm:text-lg">
-                {HEAD_OF_SOCIETY_NAME} is not the general Finely portal — it is your dedicated command center to restore
+                {HEAD_OF_SOCIETY_NAME} is not the general Finely portal — it is your dedicated workspace to restore
                 personal credit, stand up business credit, and grow with discipline. Access by private key only.
               </p>
 
@@ -458,7 +458,7 @@ export default function HetaSocietyPage() {
       </section>
 
       {/* Pillars */}
-      <section className="container mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-16">
+      <section className="fc-viewport-floor py-14 sm:py-16">
         <div className="mb-10 max-w-2xl">
           <p className="text-[10px] font-black uppercase tracking-[0.22em] text-violet-200/75">What you command</p>
           <h2 className="mt-2 text-2xl font-black text-white sm:text-3xl">Restore. Build. Grow. On your terms.</h2>
@@ -483,7 +483,7 @@ export default function HetaSocietyPage() {
 
       {/* Benefits grid */}
       <section className="border-y border-white/[0.06] bg-white/[0.02] py-14 sm:py-16">
-        <div className="container mx-auto max-w-6xl px-4 sm:px-6">
+        <div className="fc-viewport-floor">
           <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.22em] text-violet-200/75">Membership includes</p>
@@ -505,7 +505,7 @@ export default function HetaSocietyPage() {
       </section>
 
       {/* Comparison */}
-      <section className="container mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-16">
+      <section className="fc-viewport-floor py-14 sm:py-16">
         <div className="mb-8 max-w-2xl">
           <p className="text-[10px] font-black uppercase tracking-[0.22em] text-violet-200/75">Choose your lane</p>
           <h2 className="mt-2 text-2xl font-black text-white sm:text-3xl">Free guide vs. full HOS membership</h2>
@@ -565,10 +565,10 @@ export default function HetaSocietyPage() {
       </section>
 
       {/* Member path */}
-      <section className="container mx-auto max-w-6xl px-4 pb-14 sm:px-6">
+      <section className="fc-viewport-floor pb-14">
         <div className="mb-8">
           <p className="text-[10px] font-black uppercase tracking-[0.22em] text-violet-200/75">Your path in</p>
-          <h2 className="mt-2 text-2xl font-black text-white">Four steps to your command center</h2>
+          <h2 className="mt-2 text-2xl font-black text-white">Four steps to your workspace</h2>
         </div>
         <div className="hos-landing-path">
           <div className="hos-landing-path-line" aria-hidden />
@@ -586,11 +586,11 @@ export default function HetaSocietyPage() {
 
       {/* Portal preview */}
       <section className="border-t border-white/[0.06] bg-gradient-to-b from-transparent to-black/40 py-14 sm:py-16">
-        <div className="container mx-auto max-w-6xl px-4 sm:px-6">
+        <div className="fc-viewport-floor">
           <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.22em] text-violet-200/75">Inside the portal</p>
-              <h2 className="mt-2 text-2xl font-black text-white sm:text-3xl">Your HOS command center</h2>
+              <h2 className="mt-2 text-2xl font-black text-white sm:text-3xl">Your HOS workspace</h2>
               <p className="mt-2 max-w-xl text-sm text-white/55">
                 Disputes, business build, and letter tools — one disciplined lane after you create login.
               </p>
@@ -633,7 +633,7 @@ export default function HetaSocietyPage() {
       </section>
 
       {/* Upload CTA */}
-      <section className="container mx-auto max-w-6xl px-4 pb-14 sm:px-6">
+      <section className="fc-viewport-floor pb-14">
         <div className="relative overflow-hidden rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/[0.1] to-black/40 p-6 sm:p-8">
           <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-emerald-500/15 blur-3xl" aria-hidden />
           <div className="relative flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
@@ -666,7 +666,7 @@ export default function HetaSocietyPage() {
       </section>
 
       {/* Careers */}
-      <section className="container mx-auto max-w-6xl px-4 pb-14 sm:px-6">
+      <section className="fc-viewport-floor pb-14">
         <div className="mb-8 flex items-center gap-3">
           <Users className="h-6 w-6 text-sky-300" />
           <div>
@@ -694,7 +694,7 @@ export default function HetaSocietyPage() {
       </section>
 
       {/* FAQ */}
-      <section className="container mx-auto max-w-6xl px-4 pb-16 sm:px-6">
+      <section className="fc-viewport-floor pb-16">
         <div className="mb-8">
           <p className="text-[10px] font-black uppercase tracking-[0.22em] text-violet-200/75">Questions</p>
           <h2 className="mt-2 text-2xl font-black text-white">HOS FAQ</h2>

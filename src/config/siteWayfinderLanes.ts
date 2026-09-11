@@ -86,7 +86,7 @@ export const PUBLIC_SOLUTIONS_SECTIONS: PublicNavSection[] = [
         id: 'personal-restore',
         label: 'Personal restore',
         path: '/pricing/personal-credit-restore',
-        hint: 'Disputes · deletions · restore sequencing',
+        hint: 'Dispute what the bureaus show, then sequence the next round.',
         badge: 'Popular',
         accent: 'emerald',
       },
@@ -94,21 +94,21 @@ export const PUBLIC_SOLUTIONS_SECTIONS: PublicNavSection[] = [
         id: 'personal-building',
         label: 'Personal building',
         path: '/pricing/personal-credit-building',
-        hint: 'Thin-file builds · utilization · maintenance',
+        hint: 'Thicken a thin file and hold a healthy utilization band.',
         accent: 'sky',
       },
       {
         id: 'business',
         label: 'Business credit',
         path: '/pricing/business-credit',
-        hint: 'Entity · vendors · fundability',
+        hint: 'Build the EIN file vendors and lenders underwrite.',
         accent: 'violet',
       },
       {
         id: 'debt',
         label: 'Debt & legal',
         path: '/pricing/debt-legal',
-        hint: 'Collections · validation · summons',
+        hint: 'Validate collections and organize court paper.',
         accent: 'fuchsia',
       },
     ],
@@ -121,42 +121,35 @@ export const PUBLIC_SOLUTIONS_SECTIONS: PublicNavSection[] = [
         id: 'wealth',
         label: 'Wealth builder',
         path: '/pricing/wealth-builder',
-        hint: 'Long-game credit & capital',
-        accent: 'amber',
+        hint: 'Credit, company file, and capital in sequence.',
+        accent: 'rose',
       },
       {
         id: 'tradelines',
         label: 'Tradelines',
         path: '/tradelines',
-        hint: 'AU inventory · check availability',
+        hint: 'Seasoned authorized-user seats when inventory is live.',
         accent: 'emerald',
       },
       {
         id: 'privacy',
         label: 'Privacy & ID',
         path: '/pricing/privacy-id',
-        hint: 'Freeze · lock · identity hygiene',
+        hint: 'Freeze, lock, and clean identity before the next ask.',
         accent: 'sky',
       },
       {
         id: 'bundles',
         label: 'Bundles',
         path: '/pricing/bundles',
-        hint: 'Combined programs',
+        hint: 'Restore, debt, and capital priced as one system.',
         accent: 'violet',
       },
       {
-        id: 'specialist',
-        label: 'Credit Specialist',
-        path: '/credit-specialist',
-        hint: 'Earn · serve · grow',
-        accent: 'amber',
-      },
-      {
-        id: 'all',
-        label: 'All solutions',
-        path: '/pricing',
-        hint: 'Full DIY + DFY catalog',
+        id: 'haitian',
+        label: 'Haitian community',
+        path: '/haitian',
+        hint: 'Credit help for Haitian Americans.',
         accent: 'emerald',
       },
     ],
@@ -194,6 +187,7 @@ export const PUBLIC_RESOURCES_SECTIONS: PublicNavSection[] = [
       { id: 'free-tradeline', label: 'Tradeline guide', path: '/free-tradeline-guide', accent: 'emerald' },
       { id: 'free-score', label: 'Score roadmap', path: '/free-score-roadmap', accent: 'sky' },
       { id: 'free-agency', label: 'Agency guide', path: '/free-agency-guide', accent: 'rose' },
+      { id: 'free-kreyol', label: 'Credit kits', path: '/free-kreyol-guide', hint: 'Haitian community · four kits', accent: 'emerald' },
     ],
   },
   {
@@ -284,6 +278,7 @@ export const PUBLIC_RESOURCES_SECTIONS: PublicNavSection[] = [
       { id: 'events', label: 'Events', path: '/events', hint: 'Live sessions', accent: 'sky' },
       { id: 'results', label: 'Case studies & results', path: '/results', hint: 'Real numbers by category', badge: 'Proof', accent: 'emerald' },
       { id: 'testimonials', label: 'Partner stories', path: '/testimonials', hint: 'Wins & walkthroughs', accent: 'emerald' },
+      { id: 'haitian', label: 'Haitian community', path: '/haitian', hint: 'Credit help for Haitian Americans', accent: 'emerald' },
       { id: 'start-here', label: 'Start here', path: '/start-here', hint: 'Pick your lane', accent: 'amber' },
       { id: 'resources-hub', label: 'Resource hub', path: '/resources', hint: 'Curated overview', accent: 'violet' },
     ],
@@ -318,6 +313,7 @@ const OTHER_FREE_GUIDE_PREFIXES = [
   '/free-tradeline-guide',
   '/free-score-roadmap',
   '/free-agency-guide',
+  '/free-kreyol-guide',
 ];
 
 export function matchSolutionsPath(p: string): boolean {
@@ -326,12 +322,14 @@ export function matchSolutionsPath(p: string): boolean {
     p.startsWith('/services') ||
     p.startsWith('/tradelines') ||
     p.startsWith('/personal-credit') ||
-    p.startsWith('/credit-specialist') ||
     p === '/fix-my-credit' ||
     p === '/build-my-credit' ||
     p === '/debt-summons-help' ||
     p === '/business-credit' ||
-    p === '/business-credit-solutions'
+    p === '/business-credit-solutions' ||
+    p === '/haitian' ||
+    p === '/kreyol' ||
+    p.startsWith('/haitian/')
   );
 }
 
@@ -347,7 +345,10 @@ export function matchResourcesPath(p: string): boolean {
     p.startsWith('/events') ||
     p.startsWith('/testimonials') ||
     p.startsWith('/results') ||
-    p === '/start-here'
+    p === '/start-here' ||
+    p === '/haitian' ||
+    p === '/kreyol' ||
+    p.startsWith('/haitian/')
   );
 }
 

@@ -54,6 +54,7 @@ import type { WorkspaceProductSurfaceProps } from '../workspaceProductSurfaceReg
 import { getWorkspaceProductArchetype } from '../workspaceProductArchetypes';
 import { getWorkspaceProductNavItem } from '../workspaceProductNav';
 import { ProductHubScaffold, ProductPagePrimaryAction } from '../components/ProductHubScaffold';
+import { SpecialistHaitianKitRoom } from './SpecialistHaitianKitRoom';
 import { openProductCopilot } from '../components/ProductCopilotPanel';
 import { ProductDashboardSkeleton, ProductEmptyState, type ProductMetric } from '../components/ProductUi';
 import { usePartnerProductPathResolver } from './usePartnerProductNavigation';
@@ -74,11 +75,12 @@ const METRICS_VARIANT = 'jewel' as const;
 const CS_PURPOSE =
   'Revenue-share partnership — train with Finely, grow leads, configure your workspace, and run assigned partner files on one stack.';
 
-type SpecialistToolId = 'partners' | 'letters' | 'growth' | 'training' | 'economics' | 'comms';
+type SpecialistToolId = 'partners' | 'letters' | 'growth' | 'training' | 'economics' | 'comms' | 'haitian';
 
 const TOOL_RAIL: Array<{ id: SpecialistToolId; label: string }> = [
   { id: 'partners', label: 'Partner files' },
   { id: 'letters', label: 'Letters' },
+  { id: 'haitian', label: 'Haitian community' },
   { id: 'growth', label: 'Growth' },
   { id: 'training', label: 'Training' },
   { id: 'economics', label: 'Economics' },
@@ -90,6 +92,8 @@ const TAB_QUERY_ALIASES: Record<string, SpecialistToolId> = {
   partners: 'partners',
   operate: 'partners',
   letters: 'letters',
+  haitian: 'haitian',
+  kreyol: 'haitian',
   growth: 'growth',
   training: 'training',
   setup: 'training',
@@ -286,6 +290,7 @@ export default function PartnerSpecialistHubProductSurface({ role, pageId, partn
     patchModel({ levers: { ...model.levers, [leverId as PlatformLeverId]: performer } });
   };
 
+
   const persist = async () => {
     if (!auth.user?.id) return;
     saveAgentOperatingModel(auth.user.id, model);
@@ -380,12 +385,17 @@ export default function PartnerSpecialistHubProductSurface({ role, pageId, partn
             ? 'Economics & payouts'
             : activeTool === 'comms'
               ? 'Partnership line'
-              : selectedPartnerId
+              : activeTool === 'haitian'
+                ? 'Haitian community kits'
+                : selectedPartnerId
                 ? caseload.find((c) => c.id === selectedPartnerId)?.profile.fullName || 'Partner file'
                 : 'Assigned partners';
 
   const renderInspector = () => {
     if (isDemo) {
+      if (activeTool === 'haitian') {
+        return <SpecialistHaitianKitRoom />;
+      }
       return (
         <ProductEmptyState
           title="Sign in to run your Credit Specialist hub"
@@ -467,7 +477,7 @@ export default function PartnerSpecialistHubProductSurface({ role, pageId, partn
                 Draft dispute letters, pull templates, and mail from the vault — one stack for every partner file you run.
               </p>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-5 sm:grid-cols-2">
               {LETTER_TOOLS.map((tool) => {
                 const Icon = tool.icon;
                 return (
@@ -515,11 +525,11 @@ export default function PartnerSpecialistHubProductSurface({ role, pageId, partn
             <AgentWhiteLabelSetup capacityTierId={model.capacityTierId} />
             <div className={`space-y-4 ${finelyOsCatalogCard('sky')}`} data-fc-accent="sky">
               <div className={`text-sm font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Upgrade path</div>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-5 sm:grid-cols-2">
                 <FinelyOsPaginatedStack
                   items={[...AGENCY_TIER_IDS]}
                   pageSize={6}
-                  itemSpacingClassName="grid sm:grid-cols-2 gap-3"
+                  itemSpacingClassName="grid sm:grid-cols-2 gap-5"
                   renderItem={(id) => {
                     const t = getAgencyTierById(id);
                     if (!t) return null;
@@ -593,6 +603,8 @@ export default function PartnerSpecialistHubProductSurface({ role, pageId, partn
             />
           )
         ) : null}
+
+        {activeTool === 'haitian' ? <SpecialistHaitianKitRoom /> : null}
       </div>
     );
   };
@@ -655,10 +667,10 @@ export default function PartnerSpecialistHubProductSurface({ role, pageId, partn
                 key={c.id}
                 type="button"
                 className="fc-cs-partner-nav-item"
-                data-active={selectedPartnerId === c.id && activeTool === 'partners' ? 'true' : undefined}
+                data-active={selectedPartnerId === c.id ? 'true' : undefined}
                 onClick={() => {
                   setSelectedPartnerId(c.id);
-                  setActiveTool('partners');
+                  if (activeTool !== 'haitian') setActiveTool('partners');
                 }}
               >
                 <span>{c.profile.fullName || c.profile.email}</span>

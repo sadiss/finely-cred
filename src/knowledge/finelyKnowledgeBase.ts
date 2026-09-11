@@ -186,7 +186,7 @@ export const FINELY_KNOWLEDGE_BASE: KnowledgeArticle[] = [
     tags: ['funding', 'utilization', 'dti', 'business credit', 'stacking'],
     content:
       'After restore stabilizes scores, funding readiness looks at utilization, inquiry age, mix, and DTI signals. Business credit lane builds vendor/trade lines separately. Wealth Builder packages cover capital readiness.',
-    links: [{ label: 'Pricing', path: '/pricing' }],
+    links: [{ label: 'Wealth builder', path: '/pricing/wealth-builder' }],
   },
   {
     id: 'diy-vs-dfy',
@@ -195,7 +195,7 @@ export const FINELY_KNOWLEDGE_BASE: KnowledgeArticle[] = [
     tags: ['diy', 'dfy', 'pricing', 'trial', 'portal'],
     content:
       'DIY: portal tools, templates, checklist, report upload. DFY: Finely executes dispute strategy and tracking. Free guide includes 15-day DIY portal trial (report upload, AI checklist, dashboard preview) — locks after 15 days unless you upgrade to DIY.',
-    links: [{ label: 'Pricing', path: '/pricing' }, { label: 'Free guide', path: '/free-guide' }],
+    links: [{ label: 'Restore programs', path: '/pricing/personal-credit-restore' }, { label: 'Free guide', path: '/free-guide' }],
   },
   {
     id: 'fcra-rights',
@@ -212,6 +212,31 @@ export const FINELY_KNOWLEDGE_BASE: KnowledgeArticle[] = [
     tags: ['equifax', 'experian', 'transunion', 'certified mail', 'address'],
     content:
       'Send disputes via certified mail with return receipt when possible. Include ID copy, SSN last-4 proof, report copy with items circled, and your letter. Keep tracking numbers in the vault and log send dates in Letter Studio.',
+  },
+  {
+    id: 'haitian-desk-two-voice',
+    title: 'Haitian community — credit help for Haitian Americans',
+    category: 'onboarding',
+    tags: ['haitian', 'kreyol', 'kreyòl', 'desk', 'companion', 'ayisyen'],
+    content:
+      'Haitian community is the product: credit help for Haitian Americans. Kreyòl is a language, not the product name. Public paths: /haitian and /kreyol. Partner: /portal/haitian. Admin: /admin/haitian. Kits: /free-kreyol-guide plus /what-is-credit, /letter-meaning, /helper, /community-flyer. Chat stays English until they tap Pale Kreyòl or the Kreyòl chip. Call logged-in people partners. Guests until they become partners. Results vary · not legal advice · funding subject to underwriting.',
+    links: [
+      { label: 'Haitian community', path: '/haitian' },
+      { label: 'Credit kits', path: '/free-kreyol-guide' },
+      { label: 'Partner desk', path: '/portal/haitian' },
+    ],
+  },
+  {
+    id: 'haitian-helper-playbook',
+    title: 'Ede yon moun — helper sit-together script',
+    category: 'onboarding',
+    tags: ['haitian', 'helper', 'ede', 'training', 'specialist', 'kreyol'],
+    content:
+      'Weekend trainers and family helpers sit together. Elder holds the phone. Open the letter they received. One next step: Pale Kreyòl, one kit, or book a session. Finish that step. Do not promise a score. U.S. hubs include Miami, Brooklyn, Boston, Houston, Atlanta, Washington DC, Chicago, Philadelphia, Jacksonville, and New Jersey.',
+    links: [
+      { label: 'Haitian community', path: '/haitian' },
+      { label: 'Credit specialist', path: '/credit-specialist' },
+    ],
   },
   {
     id: 'onboarding-session',
@@ -290,6 +315,24 @@ export const FINELY_KNOWLEDGE_BASE: KnowledgeArticle[] = [
     content:
       'Template Library uses a split Builder + Live Preview workspace: fonts, colors, images, tables, and attachments in the rich editor sync instantly to the print preview. Export PDF or Word from your edited version; save to Templates Vault.',
     links: [{ label: 'Admin templates', path: '/admin/templates' }],
+  },
+  {
+    id: 'copy-voice-hospitality',
+    title: 'Visitor copy — hospitality with a next step',
+    category: 'compliance',
+    tags: ['copy', 'voice', 'chat', 'welcome', 'kreyol', 'kreyòl', 'title', 'hospitality'],
+    content:
+      'Finely Cred visitor copy is American hospitality with one next step. Greet by name. Say what this desk is for. Then invite. Never open chat with “What do you need?” or “Kisa w bezwen?” Those lines are rude and context-free. Good English: “Hello — I am Marie-Claire. I help with credit reports, collector letters, and the next step. When you are ready, tell me what arrived.” Titles name the person and the situation. Subtitles give one sentence of context, then the action. Never paste agent briefing onto the page (“Chita. Pale Kreyòl. Yon etap.”, “sit together”, “two-voice”, “elder holds the phone”). Pale Kreyòl is an invitation to talk, not an order. Written Kreyòl is 1979 IPN (mwen, kreyòl, lèt, kredi), spoken diaspora register, never French, never English product names inside a Kreyòl sentence. Compliance: Results vary · not legal advice. Kreyòl funding line: Si w bezwen lajen, sa depann si yo apwouve w — never the English word underwriting inside Kreyòl. Public marketing says partner. Chat visitors are guests until they join.',
+    links: [{ label: 'Haitian community', path: '/haitian' }],
+  },
+  {
+    id: 'copy-voice-marketing',
+    title: 'Marketing copy — insight first, never a posted price',
+    category: 'compliance',
+    tags: ['copy', 'marketing', 'cmo', 'ads', 'kits', 'price', 'witty', 'haitian'],
+    content:
+      'Marketing, ads, kits, captions, and CMO copy teach something most people do not know. Voice is insightful, fun, and borderline comic — still compliance-safe. Do not post prices on flyers, PDFs, metro desks, or send-emails. Live amounts live on /pricing. Agents share a number only when the person asks. Example wow: paying a collection often does not delete it; a collector letter is a clock not a breakfast bill; PAYDEX is days-to-pay not FICO in a suit. Chat greetings stay hospitality. Never promise a score. Never legal advice. Public copy says partner. Guests in chat until they join.',
+    links: [{ label: 'Haitian community', path: '/haitian' }],
   },
   {
     id: 'resource-section-attachments',

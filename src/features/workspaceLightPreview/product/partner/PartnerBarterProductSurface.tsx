@@ -644,7 +644,7 @@ export default function PartnerBarterProductSurface({
   const activeZone = FLOOR_ZONES.find((z) => z.id === zone) ?? FLOOR_ZONES[0];
 
   const floorBody = (
-    <section className="fc-wlp-section fc-barter-workbench" data-surface-layout="split-workbench">
+    <section className="fc-wlp-section fc-barter-workbench" data-surface-layout="catalog-mosaic">
       {err ? <div className={FINELY_OS_NOTICE_ERROR}>{err}</div> : null}
 
       <div className={`fc-barter-alert-rail ${finelyOsCatalogCard('rose')} p-6 lg:p-8`} data-fc-accent="rose">

@@ -230,15 +230,15 @@ export default function AuRequestPage({ embedded = false }: PartnerEmbeddablePag
       embedded={embedded}
       kind="au-request-workstation"
       badge="AU"
-      title="AU Buyer Intake"
-      subtitle="Ask for a specific authorized user placement."
+      title="Seat intake"
+      subtitle="Confirm the reserved seat, then identity, terms, and documents."
     >
       <div className={FINELY_OS_PAGE}>
         <AuBuyerCommandStrip />
 
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <button type="button" onClick={() => navigate('/au/marketplace')} className={FINELY_OS_BACK_LINK}>
-            <ArrowLeft size={16} /> AU Marketplace
+          <button type="button" onClick={() => navigate('/tradelines?focus=au')} className={FINELY_OS_BACK_LINK}>
+            <ArrowLeft size={16} /> Back to seats
           </button>
           <div className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono`}>order: {order?.id ?? 'creating…'}</div>
         </div>
@@ -258,7 +258,7 @@ export default function AuRequestPage({ embedded = false }: PartnerEmbeddablePag
           tabs={STEPS.map((s) => ({ id: s, label: s.charAt(0).toUpperCase() + s.slice(1) }))}
           activeTab={step}
           onTabChange={(id) => setStep(id as Step)}
-          secondaryAction={{ label: 'Marketplace', onClick: () => navigate('/au/marketplace') }}
+          secondaryAction={{ label: 'Open seats', onClick: () => navigate('/tradelines?focus=au') }}
         >
 
         {step === 'eligibility' && order && (
@@ -494,6 +494,10 @@ export default function AuRequestPage({ embedded = false }: PartnerEmbeddablePag
                 <div className={FINELY_OS_ENTITY_BODY}>{order.evidence.length} uploaded</div>
               </div>
             </div>
+            <p className={FINELY_OS_ENTITY_BODY}>
+              After you submit, we review the file and documents. Payment instructions come after that review. The issuer
+              still posts on its own calendar — results vary.
+            </p>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <button type="button" onClick={() => setStep('docs')} className={FINELY_OS_SECONDARY_BTN}>
                 <ArrowLeft size={14} /> Back
@@ -511,7 +515,7 @@ export default function AuRequestPage({ embedded = false }: PartnerEmbeddablePag
           roleId="finely_advisor"
           goal="tradelines"
           roleLabel="AU intake specialist"
-          subline="Stuck on eligibility, documents, or terms? Chat while you complete your buyer request."
+          subline="Stuck on eligibility, documents, or terms? Chat while you finish seat intake."
           buttonTone="secondary"
         />
 

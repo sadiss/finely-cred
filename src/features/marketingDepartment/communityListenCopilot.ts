@@ -2,6 +2,7 @@
  * Community listen + reply-draft copilot — read-only Serper search, human posts ($0).
  */
 import { supabase, isSupabaseConfigured } from '../../lib/supabaseClient';
+import { searchFreeWebFirst } from '../../lib/freeSearchRouter';
 import { loadJson, saveJson } from '../../data/localJsonStore';
 import { getGrowthWeekFocus } from '../growthAgents/growthWeekFocus';
 import { createMarketingTask } from '../marketingDesk/marketingDeskTasks';
@@ -72,23 +73,32 @@ export async function runCommunityListenScan(opts?: {
   let added = 0;
 
   try {
-    const { data, error } = await supabase.functions.invoke('lead-intel', {
-      body: {
-        target: 'clients',
-        queries: [query],
-        location: city,
-        limit: 8,
-        enrich: false,
-        searchMode: 'search',
-        country: 'us',
-      },
-    });
+    const free = await searchFreeWebFirst(query);
+    let results: Array<{ title?: string; link?: string; snippet?: string }> = free.hits.map((h) => ({
+      title: h.title,
+      link: h.link,
+      snippet: h.snippet,
+    }));
 
-    if (error) {
-      return { ok: false, message: error.message || 'Search failed — check SERPER_API_KEY on edge.', added: 0 };
+    if (free.needsSerper) {
+      const { data, error } = await supabase.functions.invoke('lead-intel', {
+        body: {
+          target: 'clients',
+          queries: [query],
+          location: city,
+          limit: 8,
+          enrich: false,
+          searchMode: 'search',
+          country: 'us',
+        },
+      });
+
+      if (error) {
+        return { ok: false, message: error.message || 'Search failed — check SERPER_API_KEY on edge.', added: 0 };
+      }
+
+      results = (data?.results ?? []) as Array<{ title?: string; link?: string; snippet?: string }>;
     }
-
-    const results = (data?.results ?? []) as Array<{ title?: string; link?: string; snippet?: string }>;
     for (const hit of results.slice(0, 5)) {
       if (!hit.link || !hit.title) continue;
       const id = `cl_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;

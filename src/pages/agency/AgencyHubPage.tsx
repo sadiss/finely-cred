@@ -53,7 +53,7 @@ import {
 } from '../../features/os/finelyOsLightUi';
 
 const AGENCY_TOOL_DECK: RoleHubTool[] = [
-  { id: 'partners', label: 'Partners', detail: 'Route partner files', path: '/admin/partners', icon: Users, accent: 'emerald', badge: 'Primary' },
+  { id: 'partners', label: 'Partners', detail: 'Route partner files', path: AGENCY.tenantPartnersPath, icon: Users, accent: 'emerald', badge: 'Primary' },
   { id: 'letters', label: 'Letters', detail: 'Studio + vault', path: '/portal/letters', icon: FileText, accent: 'violet' },
   { id: 'team', label: 'Team seats', detail: 'Invite operators', path: '/admin/team', icon: Building2, accent: 'sky' },
   { id: 'payouts', label: 'Payouts', detail: 'Keep % center', path: `${AGENCY.hubPath}?tab=payouts`, icon: Wallet, accent: 'rose' },
@@ -111,7 +111,7 @@ export default function AgencyHubPage({ embedded = false }: PartnerEmbeddablePag
       {
         label: 'Open partner files',
         detail: 'Route restore, debt, and build lanes inside your agency tenant.',
-        to: '/admin/partners',
+        to: AGENCY.tenantPartnersPath,
       },
       {
         label: seatCount <= 1 ? 'Invite a team seat' : 'Review team seats',
@@ -174,7 +174,7 @@ export default function AgencyHubPage({ embedded = false }: PartnerEmbeddablePag
       subtitle={`${tenant?.name || 'Agency workspace'}${getUserDisplayName(auth.user) ? ` — ${getUserDisplayName(auth.user)}` : ''}`}
       back={{ to: '/dashboard', label: 'Dashboard' }}
     >
-      <div className={`${FINELY_OS_PAGE} max-w-5xl`}>
+      <div className={`${FINELY_OS_PAGE} w-full max-w-none`}>
         <FinelyNoticedStrip items={noticedItems} />
         <FinelyNowDoThisStrip
           items={nowDoItems}
@@ -191,7 +191,7 @@ export default function AgencyHubPage({ embedded = false }: PartnerEmbeddablePag
             { label: 'Role', value: roleLabel, accent: 'sky' },
             { label: 'WL', value: tenant?.settings?.features?.whiteLabel ? 'On' : 'Finely', accent: 'rose' },
           ]}
-          primaryAction={{ label: 'Partner files', onClick: () => navigate('/admin/partners') }}
+          primaryAction={{ label: 'Partner files', onClick: () => navigate(AGENCY.tenantPartnersPath) }}
           secondaryAction={{ label: 'Agency line', onClick: () => navigate(AGENCY.messagesDeepLink) }}
           launcherSlot={<PartnerHubLauncherGrid tiles={hubLauncherTiles} onOpen={hubLauncher.open} />}
         >
@@ -215,7 +215,7 @@ export default function AgencyHubPage({ embedded = false }: PartnerEmbeddablePag
               { id: 'team', label: 'Team', value: String(seatCount || 1), accent: 'sky', onClick: () => hubLauncher.open('team') },
               { id: 'payouts', label: 'Payouts', value: 'Open', accent: 'emerald', onClick: () => hubLauncher.open('payouts') },
             ]}
-            primaryAction={{ label: 'Open partners', onClick: () => navigate('/admin/partners') }}
+            primaryAction={{ label: 'Open partners', onClick: () => navigate(AGENCY.tenantPartnersPath) }}
             secondaryAction={{ label: 'White-label settings', onClick: () => navigate('/admin/access') }}
           />
           <RoleHubToolDeck tools={AGENCY_TOOL_DECK} title="Agency tools" subtitle="Partners → letters → seats → payouts." />
@@ -242,7 +242,7 @@ export default function AgencyHubPage({ embedded = false }: PartnerEmbeddablePag
           <RoleWorkflowPanel roleId="agency" compact />
           <div className="flex flex-wrap gap-2">
             {[
-              { label: 'Partners', path: '/admin/partners', icon: Users },
+              { label: 'Partners', path: AGENCY.tenantPartnersPath, icon: Users },
               { label: 'Letter studio', path: '/portal/letters', icon: FileText },
               { label: 'Team & roles', path: '/admin/team', icon: Building2 },
               { label: 'Messages', path: AGENCY.messagesDeepLink, icon: MessageSquare },
@@ -267,7 +267,7 @@ export default function AgencyHubPage({ embedded = false }: PartnerEmbeddablePag
             <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
               Manage partners inside your agency tenant — restore, debt, and build lanes share Finely OS tools.
             </p>
-            <button type="button" onClick={() => navigate('/admin/partners')} className={FINELY_OS_PRIMARY_BTN}>
+            <button type="button" onClick={() => navigate(AGENCY.tenantPartnersPath)} className={FINELY_OS_PRIMARY_BTN}>
               Open partner management
             </button>
           </div>

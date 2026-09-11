@@ -1,6 +1,6 @@
 /** Social content SOP templates — pillars, cadence, compliance guardrails. */
 
-export type SocialPlatform = 'facebook' | 'instagram' | 'threads' | 'linkedin';
+export type SocialPlatform = 'facebook' | 'instagram' | 'threads' | 'linkedin' | 'bluesky';
 
 export type SocialSopTemplate = {
   id: string;

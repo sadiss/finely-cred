@@ -15,6 +15,7 @@ import type { Affiliate } from '../../../domain/affiliate';
 import { runAgentBrainStep } from '../growthAgentBrain';
 import { createMarketingTask, findOpenMarketingTask } from '../../marketingDesk/marketingDeskTasks';
 import { sendEmail } from '../../../lib/commsDeliveryClient';
+import { htmlFromPlainEmail } from '../../../comms/prebuiltHtmlEmailLayout';
 import {
   checkSuppression,
   isOverFrequencyCap,
@@ -118,21 +119,24 @@ export async function runBenjaminPartnershipReview(): Promise<BenjaminPartnershi
         }
         const isPerformerCheckin = reason.includes('performer');
         try {
+          const subject = isPerformerCheckin
+            ? "You're one of our top affiliates — quick check-in"
+            : 'Checking in on your Finely Cred affiliate link';
+          const text = [
+            `Hi ${affiliate.fullName || 'there'},`,
+            '',
+            isPerformerCheckin
+              ? `Your referral code ${affiliate.referralCode} has driven real results — thank you. Anything we can do to make the next stretch easier?`
+              : `We noticed your referral code ${affiliate.referralCode} hasn't seen activity in a while. Let us know if you need fresh links or promo assets.`,
+            '',
+            'Reply any time — Benjamin, Partnerships',
+          ].join('\n');
           await sendEmail({
             toEmail: affiliate.email,
             toName: affiliate.fullName,
-            subject: isPerformerCheckin
-              ? "You're one of our top affiliates — quick check-in"
-              : 'Checking in on your Finely Cred affiliate link',
-            text: [
-              `Hi ${affiliate.fullName || 'there'},`,
-              '',
-              isPerformerCheckin
-                ? `Your referral code ${affiliate.referralCode} has driven real results — thank you. Anything we can do to make the next stretch easier?`
-                : `We noticed your referral code ${affiliate.referralCode} hasn't seen activity in a while. Let us know if you need fresh links or promo assets.`,
-              '',
-              'Reply any time — Benjamin, Partnerships',
-            ].join('\n'),
+            subject,
+            text,
+            html: htmlFromPlainEmail({ headline: subject, text, email: affiliate.email }),
           });
           recordSendForFrequencyCap(frequencyCapKey);
           processed++;

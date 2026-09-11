@@ -283,7 +283,7 @@ export default function AdminTourStudioProductSurface({ role, pageId }: Workspac
               <code className="opacity-80">public/tours/site-scan/</code>. With <code className="opacity-80">--video</code>, screen recordings land in{' '}
               <code className="opacity-80">public/tours/demos/{'{target-id}'}.mp4</code> for training and sales.
             </p>
-            <div className="grid md:grid-cols-2 gap-3">
+            <div className="grid md:grid-cols-2 gap-5">
               {SITE_SCAN_TARGETS.map((target) => (
                 <div key={target.id} className="rounded-xl border border-white/10 bg-black/20 p-4 space-y-2">
                   <div className={`${FINELY_OS_ENTITY_VALUE} font-semibold text-sm`}>{target.title}</div>

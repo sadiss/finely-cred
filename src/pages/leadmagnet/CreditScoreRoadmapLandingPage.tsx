@@ -15,6 +15,7 @@ import {
 import { LeadMagnetCobrandFooterMarks } from '../../components/brand/LeadMagnetCobrand';
 import { LeadMagnetFunnelHeroVideo } from '../../components/leadmagnet/LeadMagnetFunnelHeroVideo';
 import { getLeadMagnetVisualTheme } from '../../components/leadmagnet/leadMagnetVisualThemes';
+import { getLeadMagnetPremiumProfile } from '../../components/leadmagnet/leadMagnetPremiumProfiles';
 import { SCORE_ROADMAP_FUNNEL } from '../../domain/leadMagnetFunnels';
 import { SCORE_BOOST_CHAPTERS, SCORE_BOOST_READ_PATH } from '../../resources/scoreRoadmapContent';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
@@ -22,6 +23,7 @@ import { LEAD_MAGNET_TRIAL_DAYS } from '../../lib/leadMagnetTrial';
 import { PremiumLeadMagnetCaptureForm } from '../../components/leadmagnet/PremiumLeadMagnetCaptureForm';
 import '../../components/leadmagnet/premiumLeadMagnetShared.css';
 import './creditScoreRoadmapLanding.css';
+import '../../components/leadmagnet/leadMagnetConvert.css';
 
 const SCORE_THEME = getLeadMagnetVisualTheme(SCORE_ROADMAP_FUNNEL);
 const GUIDE_MOCKUP_SRC = '/images/lead-magnets/score-boost-72-guide-mockup.png';
@@ -226,10 +228,11 @@ function Testimonial({
 
 export default function CreditScoreRoadmapLandingPage() {
   usePublicSeoMeta({
-    title: 'Boost Your Credit Score in 72 Hours — Free Guide',
+    title: '72-hour credit score roadmap — free guide',
     description:
-      'A practical roadmap for quick-win credit actions, profile optimization, and stronger funding readiness from Finely Cred.',
+      'A sequenced 72-hour credit roadmap from Finely Cred: utilization first, high-impact negatives next, then mix and inquiry discipline. Results vary · not legal advice · funding subject to underwriting.',
     path: SCORE_ROADMAP_FUNNEL.path,
+    faqs: getLeadMagnetPremiumProfile(SCORE_ROADMAP_FUNNEL)?.faqs,
   });
 
   const scrollToDownload = () => document.getElementById('download')?.scrollIntoView({ behavior: 'smooth' });
@@ -259,7 +262,7 @@ export default function CreditScoreRoadmapLandingPage() {
   ];
 
   return (
-    <main className="csr-page min-h-screen overflow-hidden bg-[#020812] text-white selection:bg-[#a78bfa]/30 selection:text-white">
+    <main className="csr-page lm-convert-page min-h-screen overflow-hidden selection:bg-[#a78bfa]/30">
       <style>{`
         .fc-premium-noise {
           background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,.13) 1px, transparent 0);
@@ -278,16 +281,16 @@ export default function CreditScoreRoadmapLandingPage() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_12%,rgba(167,139,250,0.22),transparent_42%),radial-gradient(circle_at_50%_88%,rgba(45,138,103,0.12),transparent_38%)]" />
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#a78bfa]/75 to-transparent" />
 
-        <div className="relative z-10 mx-auto max-w-6xl px-5 pt-6 md:px-8 md:pt-10">
+        <div className="relative z-10 fc-viewport-floor pt-6 md:pt-10">
           <h1 className="csr-hero-title csr-serif text-white">
-            <span className="csr-hero-title-line">Boost Your</span>
-            <span className="csr-hero-title-line csr-hero-title-line--gold">Credit Score</span>
+            <span className="csr-hero-title-line">Sequence Your</span>
+            <span className="csr-hero-title-line csr-hero-title-line--gold">Credit File</span>
             <span className="csr-hero-title-line csr-hero-title-line--green">in 72 Hours</span>
           </h1>
           <div className="csr-hero-title-rule mx-auto" aria-hidden />
           <p className="mx-auto mt-6 max-w-2xl text-center text-lg leading-relaxed text-white/70 md:text-xl">
-            Not random disputing — a sequenced roadmap: utilization first, high-impact negatives next, then mix and
-            inquiry discipline.
+            A sequenced roadmap, not a weekend of random disputes: utilization first, high-impact negatives next, then
+            mix and inquiry discipline.
           </p>
 
           <div className="csr-hero-showcase csr-hero-showcase--slim">
@@ -299,15 +302,15 @@ export default function CreditScoreRoadmapLandingPage() {
           <div className="csr-hero-bottom mx-auto max-w-3xl">
             <div className="csr-hero-form rounded-[1.35rem] p-5 md:p-6">
               <h2 className="mb-3 text-center text-lg font-black uppercase tracking-[0.08em] text-white md:text-xl">
-                Get Your <span className="text-[#c4b5fd]">Free</span> Guide Now
+                Download the <span className="text-[#c4b5fd]">free</span> score roadmap
               </h2>
               <PremiumLeadMagnetCaptureForm
                 funnelConfig={SCORE_ROADMAP_FUNNEL}
                 accentClass="focus:border-[#c4b5fd] focus:ring-[#a78bfa]/15"
               />
               <div className="mt-3 flex flex-wrap items-center justify-center gap-4">
-                <Link to={SCORE_BOOST_READ_PATH} className="lm-secondary-book-link !mt-0">
-                  <BookOpen size={14} /> Read all {SCORE_BOOST_CHAPTERS.length} steps free
+                <Link to={`${SCORE_BOOST_READ_PATH}?preview=1`} className="lm-secondary-book-link !mt-0">
+                  <BookOpen size={14} /> See preview
                 </Link>
                 <a href="#csr-preview" className="lm-secondary-book-link !mt-0">
                   Watch preview ↓
@@ -321,10 +324,10 @@ export default function CreditScoreRoadmapLandingPage() {
                 {SCORE_BOOST_CHAPTERS.filter((c) => c.arc && c.arc <= 70)
                   .slice(0, 6)
                   .map((chapter) => (
-                    <Link key={chapter.id} to={`${SCORE_BOOST_READ_PATH}?chapter=${chapter.id}`} className="csr-sequence-chip">
+                    <span key={chapter.id} className="csr-sequence-chip">
                       <span className="csr-sequence-window">{chapter.window}</span>
                       <span className="csr-sequence-title">{chapter.title}</span>
-                    </Link>
+                    </span>
                   ))}
               </div>
               <p className="mt-3 text-center text-[11px] text-white/40">
@@ -339,16 +342,16 @@ export default function CreditScoreRoadmapLandingPage() {
         <div className="mx-auto max-w-4xl px-5 pb-6 text-center md:px-8">
           <SectionKicker>Exclusive video</SectionKicker>
           <h2 className="csr-serif mt-4 text-3xl font-black leading-tight tracking-[-0.035em] md:text-4xl">
-            See How the <span className="text-[#3db896]">72-Hour Sequence</span> Works
+            How the <span className="text-[#3db896]">72-hour sequence</span> works
           </h2>
         </div>
-        <div className="csr-video-stack mx-auto max-w-5xl px-5 pb-10 md:px-8">
+        <div className="csr-video-stack fc-viewport-floor pb-10">
           <VideoPreview onGoForm={scrollToDownload} />
         </div>
       </section>
 
       <section className="relative z-10 border-y border-[#a78bfa]/20 py-8 md:py-10">
-        <div className="mx-auto max-w-7xl space-y-3 px-5 md:px-8">
+        <div className="fc-viewport-floor space-y-3">
           <details className="lm-seo-depth">
             <summary>
               <span>72-hour sequence + what&apos;s included</span>
@@ -431,22 +434,22 @@ export default function CreditScoreRoadmapLandingPage() {
       </section>
 
       <section id="download" className="relative z-10 border-t border-[#a78bfa]/25 px-5 pb-12 md:px-8">
-        <div className="mx-auto max-w-7xl overflow-visible rounded-[1.65rem] border border-[#a78bfa]/45 bg-gradient-to-r from-[#061326] via-[#071b33] to-[#0a1f18] shadow-[0_34px_120px_rgba(0,0,0,0.55)]">
+        <div className="fc-viewport-floor overflow-visible rounded-[1.65rem] border border-[#a78bfa]/45 bg-gradient-to-r from-[#061326] via-[#071b33] to-[#0a1f18] shadow-[0_34px_120px_rgba(0,0,0,0.55)]">
           <div className="grid gap-0 overflow-hidden rounded-[1.65rem] lg:grid-cols-[0.92fr_1.08fr]">
             <div className="relative flex min-h-[320px] flex-col items-center justify-end overflow-visible p-6 pb-14 md:p-8 md:pb-16">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_60%,rgba(167,139,250,0.22),transparent_48%),radial-gradient(circle_at_50%_65%,rgba(45,138,103,0.12),transparent_42%)]" />
               <GuideMockup footer className="relative z-10" />
               <div className="relative z-10 mt-4 w-full max-w-xs rounded-xl border border-[#a78bfa]/35 bg-[#061326]/90 px-4 py-3 text-center backdrop-blur-sm">
                 <div className="text-[10px] font-black uppercase tracking-[0.18em] text-[#a78bfa]">Your roadmap to</div>
-                <div className="text-sm font-black uppercase tracking-[0.06em] text-[#3db896]">Score breakthrough starts now.</div>
+                <div className="text-sm font-black uppercase tracking-[0.06em] text-[#3db896]">A sequenced 72-hour plan.</div>
               </div>
             </div>
             <div className="p-8 md:p-10">
               <h3 className="text-2xl font-black uppercase tracking-[0.07em] text-[#c4b5fd]">
-                Get Instant Access to Your Free Guide
+                Download your free score roadmap
               </h3>
               <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/58">
-                Join people who are moving their scores with structure — not scattered tips.
+                Join partners who are sequencing the file with structure — not scattered tips.
               </p>
               <div className="mt-6">
                 <PremiumLeadMagnetCaptureForm
@@ -460,7 +463,7 @@ export default function CreditScoreRoadmapLandingPage() {
       </section>
 
       <footer className="relative z-10 border-t border-white/10 px-5 py-8 md:px-8">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 text-xs text-white/42 md:flex-row">
+        <div className="fc-viewport-floor flex flex-col items-center justify-between gap-6 text-xs text-white/42 md:flex-row">
           <LeadMagnetCobrandFooterMarks />
           <div className="flex flex-wrap items-center justify-center gap-6">
             <a href="/privacy" className="hover:text-white">

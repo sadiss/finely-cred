@@ -135,8 +135,8 @@ function buildDefaultExperiments(): FunnelExperiment[] {
       name: 'Free debt guide headline test',
       enabled: true,
       headlines: {
-        control: 'Annihilate Your Debt. Take Back Control.',
-        variant_a: 'Stop the Collection Calls — Starting Today',
+        control: 'Validate the claim. Own the timeline.',
+        variant_a: 'A written plan for collections and summons',
         variant_b: 'Your validation playbook is ready',
       },
       ctaLabels: {
@@ -183,9 +183,11 @@ function sanitizePublicExperimentCopy(exp: FunnelExperiment): FunnelExperiment {
   }
   if (exp.funnelId === 'debt_freedom') {
     const headlines = { ...(exp.headlines ?? {}) };
-    if ((headlines.variant_b || '').toLowerCase().includes('fight-back')) {
-      headlines.variant_b = 'Your validation playbook is ready';
-    }
+    const calm = 'Validate the claim. Own the timeline.';
+    const aggressive = /annihilat|take back control|fight-back/i;
+    (['control', 'variant_a', 'variant_b'] as const).forEach((key) => {
+      if (aggressive.test(headlines[key] || '')) headlines[key] = calm;
+    });
     return { ...exp, headlines };
   }
   return exp;

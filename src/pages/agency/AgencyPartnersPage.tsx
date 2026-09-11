@@ -42,10 +42,14 @@ const ROLE = 'agency' as const;
 export default function AgencyPartnersPage() {
   const navigate = useNavigate();
   usePublicSeoMeta({
-    title: 'Agency partners — your brand, Finely’s operating system',
+    title: 'Agency partners — your brand, Finely Cred underneath',
     description:
-      'Launch a branded credit services agency on Finely OS: white-label tenant, team seats, lead routing, compliance workflows, one-time buy-in, and capacity payout tiers.',
+      'Open a branded credit services company: your name, your team seats, your partner routing, and a white-label portal. Finely Cred runs the method and the workspace underneath.',
     path: AGENCY.publicPath,
+    faqs: [
+      { q: 'Is this a franchise?', a: 'No. You run a branded workspace on Finely Cred. Program terms apply. Results vary.' },
+      { q: 'Do I need a Finely account?', a: 'Yes. Create a workspace from agency signup after you pick a buy-in.' },
+    ],
   });
 
   const [cardEligibility, setCardEligibility] = useState(() => getDigitalInviteCardEligibilityForRole('agency'));
@@ -117,7 +121,7 @@ export default function AgencyPartnersPage() {
     if (wl) items.push({ title: 'White-label depth', body: wl });
     if (phase) items.push({ title: 'Training phase', body: phase });
     if (recommendedBuyIn) items.push({ title: 'Matching buy-in', body: `${recommendedBuyIn.name} activates this tier` });
-    items.push({ title: 'Finely account', body: 'Required to provision and own your tenant.' });
+    items.push({ title: 'Finely account', body: 'Required to open and own your workspace.' });
     return items;
   }, [selectedCapacity, recommendedBuyInId, buyInTiers]);
 
@@ -127,10 +131,11 @@ export default function AgencyPartnersPage() {
     <PageShell
       badge="Public"
       title={AGENCY.programName}
-      subtitle="Company-level partnership — your brand, your team, Finely powers the operating system."
+      subtitle="A company-level partnership: your brand, your team, and Finely Cred underneath."
       hideHero
+      contentWidth="full"
     >
-      <div className={`${FINELY_OS_PAGE} max-w-6xl mx-auto pb-20`}>
+      <div className={`${FINELY_OS_PAGE} fc-viewport-floor pb-20`}>
         {/* Header — Back · Home · single CS cross-link (no 6-track jumble) */}
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-4">
@@ -155,8 +160,8 @@ export default function AgencyPartnersPage() {
                 Own a branded credit services company.
               </h1>
               <p className="max-w-xl text-[15px] leading-relaxed text-slate-600">
-                Agency partner means you run a tenant: your brand, your team seats, your partner routing, and a
-                white-label portal. Your operators run the files; Finely runs the platform, the method, and the
+                Agency partner means you run a branded workspace: your name, your team seats, your partner routing, and a
+                white-label portal. Your operators run the files; Finely Cred runs the platform, the method, and the
                 compliance rails underneath.
               </p>
 
@@ -225,8 +230,8 @@ export default function AgencyPartnersPage() {
             <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-500">Build your plan</p>
             <h2 className="mt-1 text-2xl font-bold text-slate-900">Pick your buy-in.</h2>
             <p className="mt-1 max-w-2xl text-sm text-slate-500">
-              One-time buy-in, activates a matching capacity tier — seats, active partner files, white-label depth,
-              and your ongoing payout share while training vs when certified, all in one card.
+              A one-time buy-in activates a matching capacity tier: seats, active partner files, white-label depth,
+              and your payout share while you train versus after you certify — all on one card.
             </p>
           </div>
 
@@ -236,8 +241,8 @@ export default function AgencyPartnersPage() {
         {/* What you get for the selected tier */}
         <section className="space-y-3">
           <div className="max-w-2xl space-y-1.5">
-            <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-500">What you get</p>
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
+            <p className="text-[11px] font-black uppercase tracking-[0.24em] text-white/70">What you get</p>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
               {selectedCapacity ? `${selectedBuyIn?.name ?? ''} + ${selectedCapacity.name}` : 'Pick a plan above'}
             </h2>
           </div>
@@ -261,11 +266,11 @@ export default function AgencyPartnersPage() {
         {/* Upgrade dashboard mock — larger light console */}
         <section className="rounded-3xl border-2 border-slate-200 bg-white p-6 sm:p-10 space-y-6">
           <div>
-            <p className="text-[11px] font-black uppercase tracking-[0.24em] text-sky-700">This is your OS</p>
-            <h2 className="mt-1 text-2xl sm:text-3xl font-bold text-slate-900">Upgrade the console, upgrade the tier.</h2>
+            <p className="text-[11px] font-black uppercase tracking-[0.24em] text-sky-700">Your branded workspace</p>
+            <h2 className="mt-1 text-2xl sm:text-3xl font-bold text-slate-900">A larger buy-in unlocks more seats and a deeper white-label.</h2>
             <p className="mt-1 max-w-2xl text-sm text-slate-500">
-              Seats, lanes, and white-label depth all live in one tenant workspace — the same console you provision on
-              signup, sized to whichever tier you pick above.
+              Seats, service lanes, and white-label depth live in one workspace — the same console you open on signup,
+              sized to the tier you pick above.
             </p>
           </div>
           <AgencyLightConsoleMock />
@@ -273,13 +278,13 @@ export default function AgencyPartnersPage() {
 
         {/* Choice CTA */}
         <CareerChoiceApply
-          kicker="Provision your tenant"
+          kicker="Open your workspace"
           title="Create your agency workspace."
           selectedLabel={selectedCapacity ? `${selectedBuyIn?.name ?? ''} · ${selectedCapacity.name}` : 'No tier selected yet'}
-          description="Sign in or create a Finely account, then provision your tenant — agency name, tier, buy-in, and branding."
+          description="Sign in or create a Finely account, then open your workspace — agency name, tier, buy-in, and branding."
           ctaLabel="Open agency signup"
           onCtaClick={goToSignup}
-          loginNote="Requires a Finely login. If you only want to run your own partner files without a company tenant, use the Credit Specialist track instead."
+          loginNote="Requires a Finely login. If you only want to run your own partner files without a company workspace, use the Credit Specialist track instead."
           secondaryLabel="Solo specialist instead?"
           onSecondaryClick={() => navigate('/credit-specialist')}
           accent="emerald"
@@ -389,7 +394,7 @@ function AgencyLightConsoleMock() {
           <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
             <Rocket size={16} className="shrink-0 text-violet-600" />
             <p className="text-xs leading-relaxed text-slate-500">
-              Upgrade a tier and this console grows with you — more seats, more file capacity, deeper white-label.
+              Upgrade a tier and this workspace grows with you — more seats, more file capacity, a deeper white-label.
             </p>
           </div>
         </div>

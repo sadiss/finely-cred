@@ -21,6 +21,8 @@ import {
   type GeneratedGuideSection,
 } from '../../resources/disputeLetterGuideContent';
 import GuideReaderShell from './GuideReaderShell';
+import { LeadMagnetPreviewBanner } from '../../components/leadmagnet/LeadMagnetPreviewBanner';
+import { clampLeadMagnetChapter, useLeadMagnetGuideGate } from '../../lib/useLeadMagnetGuideGate';
 import './disputeGuideReader.css';
 import './guideReaderShell.css';
 
@@ -178,6 +180,7 @@ export default function DisputeGuideReaderPage() {
   const [params, setParams] = useSearchParams();
   const [indexOpen, setIndexOpen] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const { unlocked, previewLocked } = useLeadMagnetGuideGate('credit_dispute');
 
   const initialIdx = useMemo(() => {
     const q = (params.get('chapter') ?? '').trim();
@@ -191,8 +194,8 @@ export default function DisputeGuideReaderPage() {
   const [idx, setIdx] = useState(initialIdx);
 
   useEffect(() => {
-    setIdx(initialIdx);
-  }, [initialIdx]);
+    setIdx(previewLocked ? 0 : initialIdx);
+  }, [initialIdx, previewLocked]);
 
   const chapter = CHAPTERS[idx] ?? CHAPTERS[0]!;
 
@@ -208,21 +211,21 @@ export default function DisputeGuideReaderPage() {
   );
 
   usePublicSeoMeta({
-    title: `${chapter.title} — Free Credit Dispute Letter Guide`,
+    title: `${chapter.title} — Free credit dispute letter guide`,
     description:
       chapter.subtitle ??
-      'Read the free Finely Cred dispute letter guide for partners: FCRA rights, the 5-step framework, evidence standards, and certified mail workflow. Educational only · results vary.',
+      'Read the free Finely Cred dispute letter guide for partners: FCRA rights, the five-step framework, evidence standards, and a certified-mail workflow. Results vary · not legal advice · funding subject to underwriting.',
     path: DISPUTE_LETTER_GUIDE_READ_PATH,
   });
 
   const goChapter = useCallback(
     (next: number) => {
-      const clamped = Math.max(0, Math.min(CHAPTERS.length - 1, next));
+      const clamped = clampLeadMagnetChapter(next, CHAPTERS.length, unlocked);
       setIdx(clamped);
       setParams({ chapter: CHAPTERS[clamped]!.id }, { replace: true });
       setIndexOpen(false);
     },
-    [setParams],
+    [setParams, unlocked],
   );
 
   const onDownload = async () => {
@@ -240,6 +243,14 @@ export default function DisputeGuideReaderPage() {
       chapters={shellChapters}
       chapterIndex={idx}
       onChapterChange={goChapter}
+      previewLocked={previewLocked}
+      previewUnlockHref={`${LANDING_PATH}#download`}
+      previewBanner={
+        <LeadMagnetPreviewBanner
+          unlockHref={`${LANDING_PATH}#download`}
+          pagesLabel="the full dispute letter guide"
+        />
+      }
       tocOpen={indexOpen}
       onTocOpenChange={setIndexOpen}
       tocToggleLabel="Index"
@@ -250,7 +261,7 @@ export default function DisputeGuideReaderPage() {
       tocFooter={<p className="fdg-compliance mt-3 px-1 !text-white/35">{COMPLIANCE}</p>}
       storageKey="finely.guideReader.dispute"
       showFlipControls={false}
-      maxWidthClassName="max-w-[92rem]"
+      maxWidthClassName="max-w-none"
       headerClassName="fdg-docket-bar"
       progressTrackClassName="fdg-progress-track"
       progressFillClassName="fdg-progress-fill"

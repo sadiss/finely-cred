@@ -20,6 +20,11 @@ export type IntentClassification = {
 
 const RULES: Array<{ intent: MessageIntent; persona: AgentPersonaId; patterns: RegExp[] }> = [
   {
+    intent: 'support',
+    persona: 'haitian_companion',
+    patterns: [/krey[oò]l/i, /haitian/i, /ayisyen/i, /\bbonjou\b/i, /\bmwen\b/i, /\blèt\b/i, /\bkredi\b/i, /desk krey/i],
+  },
+  {
     intent: 'debt',
     persona: 'debt_strategist',
     patterns: [/debt/i, /collection/i, /summons/i, /fdcpa/i, /validation/i, /creditor call/i],

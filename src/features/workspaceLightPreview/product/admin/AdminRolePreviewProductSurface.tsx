@@ -1,21 +1,22 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ArrowRight,
-  BadgeCheck,
   ExternalLink,
   FileSignature,
   Shield,
   Users,
   Wallet,
+  X,
 } from 'lucide-react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useMappedAdminNavigate } from '../partner/usePartnerProductNavigation';
 import { HosAccessCodesAdminPanel } from '../../../../components/heta/HosAccessCodesAdminPanel';
 import {
-  FINELY_OS_BANNER,
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,
+  FINELY_OS_NOTICE_SUCCESS,
+  FINELY_OS_PAGE,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
   FINELY_OS_SUCCESS_BTN,
@@ -37,13 +38,14 @@ import {
   ROLE_PREVIEW_CONFIG,
   ROLE_PREVIEW_DETAIL_TABS,
   ROLE_PREVIEW_ORDER_LIST,
-  ROLE_PREVIEW_TAB_ACCENTS,
   rolePreviewLaunchCourse,
   rolePreviewProvisionHint,
   type RolePreviewDetailTab,
   type RolePreviewSurfaceRole,
 } from './rolePreviewSurfaceModel';
 import './adminRolePreviewProductSurface.css';
+
+const MOSAIC_ACCENTS = ['emerald', 'violet', 'sky', 'rose'] as const;
 
 export default function AdminRolePreviewProductSurface({ role, pageId }: WorkspaceProductSurfaceProps) {
   const navigate = useMappedAdminNavigate();
@@ -56,6 +58,7 @@ export default function AdminRolePreviewProductSurface({ role, pageId }: Workspa
 
   const roleKey: RolePreviewSurfaceRole = parseRolePreviewRole(params.get('role'));
   const [detailTab, setDetailTab] = useState<RolePreviewDetailTab>('experience');
+  const [inspectorOpen, setInspectorOpen] = useState(false);
 
   const config = ROLE_PREVIEW_CONFIG[roleKey];
   const capabilities = useMemo(() => capabilitiesForRole(roleKey as RoleCapabilityRole), [roleKey]);
@@ -74,14 +77,31 @@ export default function AdminRolePreviewProductSurface({ role, pageId }: Workspa
     if (nextRole !== 'admin') activateRolePreview(nextRole);
   };
 
+  const openRole = (nextRole: RolePreviewSurfaceRole, tab: RolePreviewDetailTab = 'experience') => {
+    goToRolePreview(nextRole);
+    setDetailTab(tab);
+    setInspectorOpen(true);
+  };
+
   const goToProvisioning = () => {
     if (config.addPath.startsWith('/admin/role-preview')) {
       const suffix = config.addPath.slice('/admin/role-preview'.length);
       navigate(`${location.pathname}${suffix}`);
+      setDetailTab('experience');
+      setInspectorOpen(true);
       return;
     }
     navigate(config.addPath);
   };
+
+  useEffect(() => {
+    if (!inspectorOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setInspectorOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [inspectorOpen]);
 
   const metrics: ProductMetric[] = [
     {
@@ -97,20 +117,27 @@ export default function AdminRolePreviewProductSurface({ role, pageId }: Workspa
       hint: config.title,
       accent: 'sky',
       icon: Icon,
+      onClick: () => setInspectorOpen(true),
     },
     {
       label: 'Routes',
       value: String(config.access.length),
       hint: 'Primary entry paths',
       accent: 'emerald',
-      onClick: () => setDetailTab('routes'),
+      onClick: () => {
+        setDetailTab('routes');
+        setInspectorOpen(true);
+      },
     },
     {
       label: 'Contracts',
       value: String(config.contracts.length),
       hint: 'Signing surfaces',
       accent: 'rose',
-      onClick: () => setDetailTab('contracts'),
+      onClick: () => {
+        setDetailTab('contracts');
+        setInspectorOpen(true);
+      },
     },
   ];
 
@@ -133,9 +160,9 @@ export default function AdminRolePreviewProductSurface({ role, pageId }: Workspa
 
     if (detailTab === 'routes') {
       return (
-        <ul className="space-y-2">
+        <ul className="grid gap-5 sm:grid-cols-2">
           {config.access.map((a) => (
-            <li key={a.path} className={`${finelyOsInlineListItem()} p-4`}>
+            <li key={a.path} className={`${finelyOsInlineListItem()} p-5`}>
               <button
                 type="button"
                 onClick={() => navigate(a.path)}
@@ -185,10 +212,7 @@ export default function AdminRolePreviewProductSurface({ role, pageId }: Workspa
 
     if (capabilities) {
       return (
-        <div className={`${finelyOsCatalogCard('sky')} p-6 lg:p-8 space-y-4`} data-fc-accent="sky">
-          <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
-            <BadgeCheck size={14} /> Role capability matrix
-          </div>
+        <div className="space-y-4">
           <div className={`text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
             <div>
               <span className={FINELY_OS_ENTITY_SUBLABEL}>Earn model: </span>
@@ -219,14 +243,14 @@ export default function AdminRolePreviewProductSurface({ role, pageId }: Workspa
       pageId={pageId}
       eyebrow="Platform"
       title="Role preview"
-      description="Split workbench — pick a lane on the mosaic, inspect routes and contracts, then provision access."
+      description="Inspect each product lane — routes, contracts, and access — before you provision it."
       accent={accent}
       surfaceMode={navItem?.surfaceMode ?? 'studio'}
       archetype={archetype}
       icon={navItem?.icon ?? Shield}
       metrics={metrics}
       metricTitle="Role access studio"
-      metricDescription="Each tile opens a lane inspector — not a cloned tab strip."
+      metricDescription="Open a role tile to review experience, routes, and contracts."
       primaryAction={<ProductPagePrimaryAction label={config.addLabel} onClick={goToProvisioning} />}
       secondaryAction={
         <button
@@ -241,76 +265,89 @@ export default function AdminRolePreviewProductSurface({ role, pageId }: Workspa
         </button>
       }
     >
-      <section className="fc-admin-role-workbench" data-surface-layout="split-workbench">
-        <div className={`${finelyOsCatalogCard('violet')} p-6 lg:p-8`} data-fc-accent="violet">
-          <div className="flex flex-wrap items-center gap-4 justify-between">
-            <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-violet-400/30 bg-violet-500/15">
-                <Icon size={28} />
+      <section className={FINELY_OS_PAGE} data-surface-layout="catalog-mosaic">
+        <nav className="fc-admin-role-mosaic" aria-label="Role lanes">
+          {ROLE_PREVIEW_ORDER_LIST.map((r, idx) => {
+            const tile = ROLE_PREVIEW_CONFIG[r];
+            const TileIcon = tile.icon;
+            const tileAccent = MOSAIC_ACCENTS[idx % MOSAIC_ACCENTS.length];
+            return (
+              <button
+                key={r}
+                type="button"
+                className={`${finelyOsCatalogCard(tileAccent)} fc-admin-role-mosaic-tile`}
+                data-fc-accent={tileAccent}
+                data-selected={roleKey === r ? 'true' : undefined}
+                onClick={() => openRole(r)}
+                aria-pressed={roleKey === r}
+              >
+                <span className="fc-admin-role-mosaic-tile-head">
+                  <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-black/[0.06]">
+                    <TileIcon size={22} />
+                  </span>
+                  {tile.shortLabel}
+                </span>
+                <span className="text-xl font-extrabold">{tile.title}</span>
+                <span className={`text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>{tile.access.length} routes</span>
+              </button>
+            );
+          })}
+        </nav>
+      </section>
+
+      {inspectorOpen ? (
+        <div
+          className="fc-wlp-local-modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${config.title} role inspector`}
+          onClick={() => setInspectorOpen(false)}
+        >
+          <div
+            className="fc-wlp-local-modal fc-wlp-wide-drawer p-6 lg:p-8 space-y-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="flex items-center gap-4 min-w-0">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-violet-400/30 bg-violet-500/15">
+                  <Icon size={28} />
+                </div>
+                <div className="min-w-0">
+                  <p className={FINELY_OS_ENTITY_SUBLABEL}>{config.shortLabel} lane</p>
+                  <h2 className={`text-3xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{config.title}</h2>
+                  <p className={`mt-1 text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
+                    Routes, contracts, payouts, and the capability matrix for this role.
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className={FINELY_OS_ENTITY_SUBLABEL}>{config.shortLabel} lane</p>
-                <h2 className="text-3xl font-extrabold">{config.title}</h2>
-                <p className={`mt-1 text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
-                  What this role experiences — routes, contracts, payouts, and capability matrix.
-                </p>
+              <div className="flex flex-wrap gap-2">
+                <button type="button" className={FINELY_OS_SUCCESS_BTN} onClick={goToProvisioning}>
+                  {config.addLabel} <ArrowRight size={14} />
+                </button>
+                <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => setInspectorOpen(false)} aria-label="Close role inspector">
+                  <X size={14} /> Close
+                </button>
               </div>
             </div>
-            <button type="button" className={FINELY_OS_SUCCESS_BTN} onClick={goToProvisioning}>
-              {config.addLabel} <ArrowRight size={14} />
-            </button>
-          </div>
-        </div>
 
-        <div className="fc-admin-role-layout">
-          <nav className="fc-admin-role-mosaic" aria-label="Role lanes">
-            {ROLE_PREVIEW_ORDER_LIST.map((r) => {
-              const tile = ROLE_PREVIEW_CONFIG[r];
-              const TileIcon = tile.icon;
-              const tabAccent = ROLE_PREVIEW_TAB_ACCENTS[r];
-              return (
+            <div className="fc-admin-role-detail-tabs" role="tablist" aria-label="Role detail">
+              {ROLE_PREVIEW_DETAIL_TABS.map((t) => (
                 <button
-                  key={r}
+                  key={t.id}
                   type="button"
-                  className={`${finelyOsCatalogCard(tabAccent)} fc-admin-role-mosaic-tile`}
-                  data-fc-accent={tabAccent}
-                  data-selected={roleKey === r ? 'true' : undefined}
-                  onClick={() => goToRolePreview(r)}
-                  aria-pressed={roleKey === r}
+                  role="tab"
+                  aria-selected={detailTab === t.id}
+                  className={finelyOsViewTab(detailTab === t.id, MOSAIC_ACCENTS[ROLE_PREVIEW_ORDER_LIST.indexOf(roleKey) % MOSAIC_ACCENTS.length])}
+                  onClick={() => setDetailTab(t.id)}
                 >
-                  <span className="fc-admin-role-mosaic-tile-head">
-                    <TileIcon size={16} />
-                    {tile.shortLabel}
-                  </span>
-                  <span className={`text-sm font-bold ${FINELY_OS_ENTITY_BODY}`}>{tile.title}</span>
+                  {t.label}
                 </button>
-              );
-            })}
-          </nav>
+              ))}
+            </div>
 
-          <div className="min-w-0 space-y-4">
-            <div className="fc-admin-role-inspector-bed">
-              <div className="fc-admin-role-detail-tabs" role="tablist" aria-label="Role detail">
-                {ROLE_PREVIEW_DETAIL_TABS.map((t) => (
-                  <button
-                    key={t.id}
-                    type="button"
-                    role="tab"
-                    aria-selected={detailTab === t.id}
-                    className={finelyOsViewTab(detailTab === t.id, ROLE_PREVIEW_TAB_ACCENTS[roleKey])}
-                    onClick={() => setDetailTab(t.id)}
-                  >
-                    {t.label}
-                  </button>
-                ))}
-              </div>
-              <div>
-                <p className={FINELY_OS_ENTITY_SUBLABEL}>Inspector</p>
-                <h3 className={`text-2xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>
-                  {ROLE_PREVIEW_DETAIL_TABS.find((t) => t.id === detailTab)?.label}
-                </h3>
-              </div>
-              <div className="mt-6">{renderDetailBody()}</div>
+            <div>
+              <p className={FINELY_OS_ENTITY_SUBLABEL}>{ROLE_PREVIEW_DETAIL_TABS.find((t) => t.id === detailTab)?.label}</p>
+              <div className="mt-4">{renderDetailBody()}</div>
             </div>
 
             {launchCourse ? (
@@ -328,46 +365,42 @@ export default function AdminRolePreviewProductSurface({ role, pageId }: Workspa
                 </div>
               </div>
             ) : null}
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className={`${finelyOsCatalogCard('rose')} p-6 lg:p-8 space-y-4`} data-fc-accent="rose">
+                <div className={FINELY_OS_ENTITY_SUBLABEL}>Provision this role</div>
+                <p className={`text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>{rolePreviewProvisionHint(roleKey)}</p>
+                <p className={`text-xs font-mono ${FINELY_OS_ENTITY_SUBLABEL} normal-case tracking-normal`}>
+                  Live lane: {rolePreviewEntry(roleKey).previewPath}
+                </p>
+                <button type="button" onClick={goToProvisioning} className={FINELY_OS_PRIMARY_BTN}>
+                  {config.addLabel} <ArrowRight size={14} />
+                </button>
+              </div>
+              <div className={`${finelyOsCatalogCard('sky')} p-6 lg:p-8 space-y-3`} data-fc-accent="sky">
+                <div className={FINELY_OS_ENTITY_SUBLABEL}>Quick open</div>
+                <button
+                  type="button"
+                  className={`${FINELY_OS_SECONDARY_BTN} w-full justify-center`}
+                  onClick={() => {
+                    const path = activateRolePreview(roleKey);
+                    rawNavigate(path);
+                  }}
+                >
+                  <ExternalLink size={14} /> Live preview
+                </button>
+                <button type="button" className={`${FINELY_OS_SECONDARY_BTN} w-full justify-center`} onClick={() => navigate('/admin/access')}>
+                  Control center
+                </button>
+              </div>
+            </div>
+
+            <div className={FINELY_OS_NOTICE_SUCCESS}>
+              Portal accounts are partners in every lane — never clients or customers in product copy.
+            </div>
           </div>
-
-          <aside className="fc-admin-role-provision-rail">
-            <div className={`${finelyOsCatalogCard('rose')} p-6 lg:p-8 space-y-4`} data-fc-accent="rose">
-              <div className={FINELY_OS_ENTITY_SUBLABEL}>Provision this role</div>
-              <p className={`text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>{rolePreviewProvisionHint(roleKey)}</p>
-              <p className={`text-xs font-mono ${FINELY_OS_ENTITY_SUBLABEL} normal-case tracking-normal`}>
-                Live lane: {rolePreviewEntry(roleKey).previewPath}
-              </p>
-              <button type="button" onClick={goToProvisioning} className={FINELY_OS_PRIMARY_BTN}>
-                {config.addLabel} <ArrowRight size={14} />
-              </button>
-            </div>
-
-            <div className={`${finelyOsCatalogCard('sky')} p-6 space-y-3`} data-fc-accent="sky">
-              <div className={FINELY_OS_ENTITY_SUBLABEL}>Quick open</div>
-              <button
-                type="button"
-                className={`${FINELY_OS_SECONDARY_BTN} w-full justify-center`}
-                onClick={() => {
-                  const path = activateRolePreview(roleKey);
-                  rawNavigate(path);
-                }}
-              >
-                <ExternalLink size={14} /> Live preview
-              </button>
-              <button type="button" className={`${FINELY_OS_SECONDARY_BTN} w-full justify-center`} onClick={() => navigate('/admin/access')}>
-                Control center
-              </button>
-            </div>
-
-            <div className={`${FINELY_OS_BANNER} p-5`}>
-              <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-emerald-500`}>Partner terminology</div>
-              <p className={`mt-1 text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
-                Portal users are partners in every lane — never clients or customers in product copy.
-              </p>
-            </div>
-          </aside>
         </div>
-      </section>
+      ) : null}
 
       <p className="fc-wlp-section-description fc-wlp-compliance-line mt-6">
         Results vary · not legal advice · funding subject to underwriting

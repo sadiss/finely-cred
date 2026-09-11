@@ -21,7 +21,7 @@
 .fc-admin-au-alert-rail {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 12px;
+  gap: 20px;
 }
 
 .fc-admin-au-alert-chip {
@@ -104,7 +104,7 @@
 
 .fc-admin-au-lane-scroll {
   display: flex;
-  gap: 12px;
+  gap: 20px;
   overflow-x: auto;
   padding-bottom: 6px;
   scroll-snap-type: x mandatory;

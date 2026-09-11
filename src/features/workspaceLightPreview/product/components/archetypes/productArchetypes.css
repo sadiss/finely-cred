@@ -139,7 +139,7 @@
 .fc-wlp-arch-metrics-instrument-row:not(:disabled):hover { transform: translateY(-1px); box-shadow: var(--wlp-shadow, none); }.fc-wlp-arch-metrics-instrument-label{ display: flex; align-items: center; gap: 8px; min-width: 0; font-size: var(--wlp-text-body); font-weight: 720; }
 .fc-wlp-arch-metrics-instrument-value { font-size: 1.125rem; font-weight: 800; }.fc-wlp-arch-metrics-instrument-hint{ min-width: 0; overflow: hidden; color: var(--wlp-faint, #55616f); font-size: var(--wlp-text-meta); text-overflow: ellipsis; white-space: nowrap; }
 
-.fc-wlp-arch-metrics-jewel { display: flex; flex-wrap: wrap; gap: 12px; }
+.fc-wlp-arch-metrics-jewel { display: flex; flex-wrap: wrap; gap: 20px; }
 .fc-wlp-arch-metrics-jewel-item { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 84px; border: 0; background: none; padding: 4px; text-align: center; }
 .fc-wlp-arch-metrics-jewel-item .fcm-jewel { --fcm-jewel-size: 40px; }
 .fc-wlp-arch-metrics-jewel-item .fcm-foil { font-size: 15px; font-weight: 800; }.fc-wlp-arch-metrics-jewel-item em{ font-size: var(--wlp-text-meta); font-style: normal; font-weight: 700; letter-spacing: 0.03em; color: var(--wlp-faint, #55616f); }
@@ -151,7 +151,7 @@
  * FOCUS — wide hero + narrow rail. Mobile: hero stays full-bleed, rail becomes a
  * horizontal scroll strip beneath it.
  * ============================================================================= */
-.fc-wlp-arch-focus { display: grid; grid-template-columns: minmax(0, 1fr) 288px; align-items: start; gap: 14px; }
+.fc-wlp-arch-focus { display: grid; grid-template-columns: minmax(0, 1fr) 288px; align-items: start; gap: 20px; }
 .fc-wlp-arch-focus-hero { position: relative; overflow: hidden; border-radius: var(--wlp-radius, 18px); padding: 16px; }
 .fc-wlp-arch-focus-hero-body { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 12px; }
 .fc-wlp-arch-focus-hero-icon { --fcm-jewel-size: 52px; flex: 0 0 auto; color: #fff; }
@@ -191,7 +191,7 @@
  * scroll-snap plus a stage-indicator dot row (never stacked).
  * ============================================================================= */
 .fc-wlp-arch-pipeline { display: flex; flex-direction: column; gap: 10px; }
-.fc-wlp-arch-pipeline-lanes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.fc-wlp-arch-pipeline-lanes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
 .fc-wlp-arch-pipeline-lane { display: flex; min-width: 0; flex-direction: column; gap: 8px; }
 .fc-wlp-arch-pipeline-lane-head { position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 6px; border-radius: 12px; padding: 9px 11px; }
 .fc-wlp-arch-pipeline-lane-head > * { position: relative; z-index: 1; }.fc-wlp-arch-pipeline-lane-label{ font-size: var(--wlp-text-meta); font-weight: 780; letter-spacing: -0.01em; }

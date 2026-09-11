@@ -198,7 +198,7 @@ export function ProductPanel({
       data-bed={bed}
       data-pbx-tier={emphasis}
     >
-      <ProductBoxSurface accent={fcmAccent} bed={bed} tier={emphasis} />
+      {emphasis === 'quiet' ? null : <ProductBoxSurface accent={fcmAccent} bed={bed} tier={emphasis} />}
       {title || subtitle || action ? (
         <div className="fc-wlp-panel-head">
           <div>

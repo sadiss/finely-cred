@@ -160,7 +160,7 @@
 
 .fc-wl-kpi-grid {
   display: grid;
-  gap: 0.65rem;
+  gap: 1.25rem;
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
@@ -415,7 +415,7 @@
 
 .fc-wl-module-grid {
   display: grid;
-  gap: 0.6rem;
+  gap: 1.25rem;
   grid-template-columns: repeat(1, minmax(0, 1fr));
 }
 

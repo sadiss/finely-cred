@@ -46,7 +46,7 @@ export default function PartnerRestoreProductSurface({ partnerId, dataMode }: Wo
     return (
       <ProductEmptyState
         title="Sign in to open Restore workspace"
-        description="Your restore sequence needs a partner profile — sign in to walk reports, evidence, disputes, letters, and vault in order."
+        description="Sign in to open reports, evidence, disputes, letters, and your vault in order."
         action={
           <button type="button" className="fc-wlp-btn-primary" onClick={() => navigate('/login')}>
             Sign in
@@ -60,7 +60,7 @@ export default function PartnerRestoreProductSurface({ partnerId, dataMode }: Wo
     return (
       <ProductEmptyState
         title="Partner profile not found"
-        description="Return to the command center and pick a partner context, or sign in with a partner account."
+        description="Return to Home and pick a partner file, or sign in with a partner account."
         action={
           <button
             type="button"

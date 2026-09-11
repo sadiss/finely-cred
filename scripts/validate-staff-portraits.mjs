@@ -14,7 +14,7 @@ const rosterSrc = fs.readFileSync(path.join(root, 'src/data/staffRoster.ts'), 'u
 
 const catalogEntries = [...catalogSrc.matchAll(/'(staff-[^']+)':\s*\{\s*portraitIndex:\s*(\d+)/g)];
 const genderEntries = [...rosterSrc.matchAll(
-  /m\('(staff-[^']+)',\s*'[^']*',\s*'[^']*',\s*'[^']*',\s*'[^']*',\s*'(feminine|masculine|neutral)'/g,
+  /m\(\s*'(staff-[^']+)',\s*'[^']*',\s*'[^']*',\s*'[^']*',\s*'[^']*',\s*'(feminine|masculine|neutral)'/g,
 )];
 
 const genderById = Object.fromEntries(genderEntries.map((m) => [m[1], m[2]]));

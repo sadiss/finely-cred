@@ -93,15 +93,15 @@ export function WorkTaskStatusBoard({
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: col.color }} />
-                    <span className="text-xs font-bold uppercase tracking-wider text-white">{col.label}</span>
+                    <span className={`text-xs font-bold uppercase tracking-wider ${FINELY_OS_ENTITY_VALUE}`}>{col.label}</span>
                   </div>
-                  <span className="text-xs font-semibold text-white/80 bg-white/10 px-2 py-0.5 rounded-full">{items.length}</span>
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${FINELY_OS_ENTITY_BODY}`}>{items.length}</span>
                 </div>
-                <div className="text-[10px] text-white/60 mt-0.5">{col.hint}</div>
+                <div className={`text-[10px] mt-0.5 ${FINELY_OS_ENTITY_BODY}`}>{col.hint}</div>
               </div>
-              <div {...dropProps} className={`space-y-2 min-h-[120px] rounded-xl ${dropProps.className ?? ''}`}>
+              <div {...dropProps} className={`fc-work-lane-body space-y-5 min-h-[120px] rounded-xl ${dropProps.className ?? ''}`}>
                 {items.length === 0 ? (
-                  <div className="rounded-xl border border-dashed border-white/25 p-4 text-center text-xs text-white/70 m-1">Drop task here</div>
+                  <div className={`rounded-xl border border-dashed border-slate-300/70 p-4 text-center text-xs m-1 ${FINELY_OS_ENTITY_BODY}`}>Drop task here</div>
                 ) : (
                   items.map((t) => {
                     const due = fmtDue(t.dueAt);
@@ -120,7 +120,7 @@ export function WorkTaskStatusBoard({
                         onKeyDown={(e) => e.key === 'Enter' && onOpenTask(t.id)}
                       >
                         <div className="flex items-start gap-1">
-                          <GripVertical size={14} className="text-white/45 shrink-0 mt-0.5" />
+                          <GripVertical size={14} className="text-slate-400 shrink-0 mt-0.5" />
                           <div className="min-w-0 flex-1">
                             <div className="fc-work-card-title line-clamp-2">{t.title}</div>
                             <div className="fc-work-card-meta mt-1">{phase} · {t.kind.replace(/_/g, ' ')}</div>
@@ -239,7 +239,7 @@ export function WorkTaskListPanel({
         ))}
       </div>
 
-      <div className="space-y-4">
+      <div className="fc-wlp-list-chamber space-y-5">
         {grouped.map(([stageId, groupTasks]) => {
           const visible = groupTasks.filter((t) => pageSlice.some((p) => p.id === t.id));
           if (!visible.length) return null;
@@ -251,7 +251,7 @@ export function WorkTaskListPanel({
                 {phaseLabel}
                 <span className="text-white/35 normal-case tracking-normal">({groupTasks.length})</span>
               </h3>
-              <div className="grid sm:grid-cols-2 gap-2">
+              <div className="grid sm:grid-cols-2 gap-5">
                 {visible.map((t, i) => {
                   const due = fmtDue(t.dueAt);
                   const st = (t.status ?? 'pending') as TaskStatus;

@@ -18,8 +18,28 @@ type Props = {
   className?: string;
 };
 
-/** Fun step dots with a per-step "what you get" result label — used on join/apply flows. */
-export function CareerSignupProgress({ steps, activeId, onStepClick, accent = 'gold', className = '' }: Props) {
+const ACTIVE_DOT: Record<CareerAccent, string> = {
+  slate: 'border-white bg-white text-slate-900 shadow-[0_0_0_4px_rgba(255,255,255,0.18)]',
+  gold: 'border-emerald-400 bg-emerald-500 text-white shadow-[0_0_0_4px_rgba(16,185,129,0.22)]',
+  amber: 'border-emerald-400 bg-emerald-500 text-white shadow-[0_0_0_4px_rgba(16,185,129,0.22)]',
+  emerald: 'border-emerald-400 bg-emerald-500 text-white shadow-[0_0_0_4px_rgba(16,185,129,0.22)]',
+  navy: 'border-sky-300 bg-sky-500 text-white shadow-[0_0_0_4px_rgba(56,189,248,0.22)]',
+  sky: 'border-sky-300 bg-sky-500 text-white shadow-[0_0_0_4px_rgba(56,189,248,0.22)]',
+  rose: 'border-rose-300 bg-rose-500 text-white shadow-[0_0_0_4px_rgba(244,63,94,0.22)]',
+};
+
+const RESULT_CHIP: Record<CareerAccent, string> = {
+  slate: 'border-white/25 bg-white/10 text-white',
+  gold: 'border-emerald-400/40 bg-emerald-500/15 text-emerald-100',
+  amber: 'border-emerald-400/40 bg-emerald-500/15 text-emerald-100',
+  emerald: 'border-emerald-400/40 bg-emerald-500/15 text-emerald-100',
+  navy: 'border-sky-400/40 bg-sky-500/15 text-sky-100',
+  sky: 'border-sky-400/40 bg-sky-500/15 text-sky-100',
+  rose: 'border-rose-400/40 bg-rose-500/15 text-rose-100',
+};
+
+/** Step dots for join/apply flows — readable on the dark OS join floor. */
+export function CareerSignupProgress({ steps, activeId, onStepClick, accent = 'emerald', className = '' }: Props) {
   const activeIndex = Math.max(0, steps.findIndex((s) => s.id === activeId));
   const activeStep = steps[activeIndex];
   const pct = steps.length > 1 ? (activeIndex / (steps.length - 1)) * 100 : 0;
@@ -27,7 +47,7 @@ export function CareerSignupProgress({ steps, activeId, onStepClick, accent = 'g
   return (
     <div className={className}>
       <div className="relative">
-        <div className="absolute left-0 right-0 top-[13px] h-1 rounded-full bg-slate-200" aria-hidden />
+        <div className="absolute left-0 right-0 top-[13px] h-1 rounded-full bg-white/15" aria-hidden />
         <div
           className={`absolute left-0 top-[13px] h-1 rounded-full transition-all duration-300 ${careerAccentBar(accent)}`}
           style={{ width: `${pct}%` }}
@@ -46,16 +66,16 @@ export function CareerSignupProgress({ steps, activeId, onStepClick, accent = 'g
                   onClick={() => clickable && onStepClick?.(step.id)}
                   className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 text-[11px] font-black transition-all ${
                     done
-                      ? 'border-slate-900 bg-slate-900 text-white'
+                      ? 'border-emerald-300 bg-emerald-500 text-white'
                       : active
-                        ? 'border-amber-500 bg-amber-500 text-[#1c1206] shadow-[0_0_0_4px_rgba(245,158,11,0.18)]'
-                        : 'border-slate-300 bg-white text-slate-400'
+                        ? ACTIVE_DOT[accent]
+                        : 'border-white/25 bg-white/5 text-white/45'
                   } ${clickable ? 'cursor-pointer' : 'cursor-default'}`}
                   aria-current={active ? 'step' : undefined}
                 >
                   {done ? <Check size={13} strokeWidth={3} /> : i + 1}
                 </button>
-                <span className={`hidden text-[10px] font-bold uppercase tracking-wide sm:block ${active ? 'text-slate-900' : 'text-slate-400'}`}>
+                <span className={`hidden text-[10px] font-bold uppercase tracking-wide sm:block ${active ? 'text-white' : 'text-white/45'}`}>
                   {step.label}
                 </span>
               </li>
@@ -66,7 +86,7 @@ export function CareerSignupProgress({ steps, activeId, onStepClick, accent = 'g
 
       {activeStep?.resultLabel ? (
         <div className="mt-3 flex justify-center">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-xs font-bold text-amber-800">
+          <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold ${RESULT_CHIP[accent]}`}>
             {activeStep.resultLabel}
           </span>
         </div>

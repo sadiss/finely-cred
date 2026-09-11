@@ -10,7 +10,7 @@ type ReqBody = {
   params?: Record<string, unknown>;
 };
 
-type CacheBucket = 'statutes' | 'institutions' | 'geocode' | 'holidays' | 'complaints' | 'general';
+type CacheBucket = 'statutes' | 'institutions' | 'geocode' | 'holidays' | 'complaints' | 'general' | 'news';
 
 type CacheEntry = {
   value: unknown;
@@ -31,6 +31,7 @@ const TTL_MS: Record<CacheBucket, number> = {
   holidays: 30 * 24 * 60 * 60 * 1000,
   complaints: 24 * 60 * 60 * 1000,
   general: 24 * 60 * 60 * 1000,
+  news: 15 * 60 * 1000,
 };
 
 const SOURCE_BUCKET: Record<string, CacheBucket> = {
@@ -45,6 +46,12 @@ const SOURCE_BUCKET: Record<string, CacheBucket> = {
   hmda: 'general',
   sba: 'general',
   courtlistener: 'statutes',
+  gdelt: 'news',
+  fred: 'general',
+  congress: 'news',
+  guardian: 'news',
+  brave_search: 'news',
+  google_cse: 'news',
 };
 
 const cache = new Map<string, CacheEntry>();
@@ -551,6 +558,190 @@ async function handleSba(action: string, params: Record<string, unknown>): Promi
   };
 }
 
+function envKey(name: string): string {
+  return (Deno.env.get(name) || '').trim();
+}
+
+function notWired(hint: string, endpoint: string): HandlerResult {
+  return { data: { ok: false, error: 'not_wired', hint }, endpoint };
+}
+
+async function handleGdelt(action: string, params: Record<string, unknown>): Promise<HandlerResult> {
+  if (action !== 'search') throw new Error(`Unknown gdelt action: ${action}`);
+  const query =
+    strParam(params, 'query') ||
+    '(credit OR "credit score" OR "debt collector" OR CFPB) sourcelang:eng';
+  const url = new URL('https://api.gdeltproject.org/api/v2/doc/doc');
+  url.searchParams.set('query', query.slice(0, 400));
+  url.searchParams.set('mode', 'ArtList');
+  url.searchParams.set('maxrecords', String(Math.min(15, Math.max(1, numParam(params, 'maxrecords', 8)))));
+  url.searchParams.set('format', 'json');
+  url.searchParams.set('timespan', strParam(params, 'timespan', '3d'));
+  const res = await fetchWithTimeout(url, { headers: { 'User-Agent': FINELY_UA, Accept: 'application/json' } });
+  if (!res.ok) throw new Error(`gdelt HTTP ${res.status}`);
+  const raw = await res.text();
+  let parsed: { articles?: Array<Record<string, unknown>> } = {};
+  try {
+    parsed = raw ? (JSON.parse(raw) as { articles?: Array<Record<string, unknown>> }) : {};
+  } catch {
+    throw new Error('gdelt returned non-JSON');
+  }
+  const hits = (parsed.articles ?? []).map((a) => ({
+    title: String(a.title ?? ''),
+    url: String(a.url ?? ''),
+    date: String(a.seendate ?? ''),
+    source: String(a.domain ?? ''),
+    snippet: String(a.sourcecountry ?? ''),
+  }));
+  return { data: { hits }, endpoint: url.toString() };
+}
+
+async function handleFred(action: string, params: Record<string, unknown>): Promise<HandlerResult> {
+  if (action !== 'observations') throw new Error(`Unknown fred action: ${action}`);
+  const key = envKey('FRED_API_KEY');
+  if (!key) return notWired('Set FRED_API_KEY on the public-data function.', 'env:FRED_API_KEY');
+  const seriesId = strParam(params, 'series_id', 'REVOLSL');
+  const url = new URL('https://api.stlouisfed.org/fred/series/observations');
+  url.searchParams.set('series_id', seriesId.slice(0, 32));
+  url.searchParams.set('api_key', key);
+  url.searchParams.set('file_type', 'json');
+  url.searchParams.set('sort_order', 'desc');
+  url.searchParams.set('limit', String(Math.min(12, Math.max(1, numParam(params, 'limit', 6)))));
+  const res = await fetchWithTimeout(url, { headers: govHeaders() });
+  if (!res.ok) throw new Error(`fred HTTP ${res.status}`);
+  const data = await res.json();
+  const observations = Array.isArray(data?.observations) ? data.observations : [];
+  return {
+    data: {
+      seriesId,
+      observations: observations.map((o: Record<string, unknown>) => ({
+        date: String(o.date ?? ''),
+        value: String(o.value ?? ''),
+      })),
+    },
+    endpoint: url.toString().replace(key, 'redacted'),
+  };
+}
+
+async function handleCongress(action: string, params: Record<string, unknown>): Promise<HandlerResult> {
+  if (action !== 'search') throw new Error(`Unknown congress action: ${action}`);
+  const key = envKey('CONGRESS_GOV_API_KEY');
+  if (!key) return notWired('Set CONGRESS_GOV_API_KEY on the public-data function.', 'env:CONGRESS_GOV_API_KEY');
+  const query = strParam(params, 'query') || strParam(params, 'q') || 'credit report';
+  const url = new URL('https://api.congress.gov/v3/bill');
+  url.searchParams.set('api_key', key);
+  url.searchParams.set('limit', String(Math.min(15, Math.max(1, numParam(params, 'limit', 8)))));
+  url.searchParams.set('sort', 'updateDate+desc');
+  url.searchParams.set('q', query.slice(0, 200));
+  const res = await fetchWithTimeout(url, { headers: govHeaders() });
+  if (!res.ok) throw new Error(`congress HTTP ${res.status}`);
+  const data = await res.json();
+  const bills = Array.isArray(data?.bills) ? data.bills : [];
+  return {
+    data: {
+      hits: bills.map((b: Record<string, unknown>) => {
+        const latest = (b.latestAction as Record<string, unknown> | undefined) ?? {};
+        return {
+          title: String(b.title ?? b.number ?? 'Bill'),
+          url: String(b.url ?? ''),
+          date: String(latest.actionDate ?? b.updateDate ?? ''),
+          source: 'Congress.gov',
+          snippet: String(latest.text ?? ''),
+        };
+      }),
+    },
+    endpoint: url.toString().replace(key, 'redacted'),
+  };
+}
+
+async function handleGuardian(action: string, params: Record<string, unknown>): Promise<HandlerResult> {
+  if (action !== 'search') throw new Error(`Unknown guardian action: ${action}`);
+  const key = envKey('GUARDIAN_API_KEY');
+  if (!key) return notWired('Set GUARDIAN_API_KEY on the public-data function.', 'env:GUARDIAN_API_KEY');
+  const query = strParam(params, 'query') || 'credit score OR debt collection';
+  const url = new URL('https://content.guardianapis.com/search');
+  url.searchParams.set('q', query.slice(0, 200));
+  url.searchParams.set('api-key', key);
+  url.searchParams.set('page-size', String(Math.min(12, Math.max(1, numParam(params, 'page_size', 8)))));
+  url.searchParams.set('show-fields', 'trailText');
+  const res = await fetchWithTimeout(url, { headers: govHeaders() });
+  if (!res.ok) throw new Error(`guardian HTTP ${res.status}`);
+  const data = await res.json();
+  const results = Array.isArray(data?.response?.results) ? data.response.results : [];
+  return {
+    data: {
+      hits: results.map((r: Record<string, unknown>) => {
+        const fields = (r.fields as Record<string, unknown> | undefined) ?? {};
+        return {
+          title: String(r.webTitle ?? ''),
+          url: String(r.webUrl ?? ''),
+          date: String(r.webPublicationDate ?? ''),
+          source: 'The Guardian',
+          snippet: String(fields.trailText ?? r.pillarName ?? ''),
+        };
+      }),
+    },
+    endpoint: url.toString().replace(key, 'redacted'),
+  };
+}
+
+async function handleBraveSearch(action: string, params: Record<string, unknown>): Promise<HandlerResult> {
+  if (action !== 'search') throw new Error(`Unknown brave_search action: ${action}`);
+  const key = envKey('BRAVE_SEARCH_API_KEY');
+  if (!key) return notWired('Set BRAVE_SEARCH_API_KEY on the public-data function.', 'env:BRAVE_SEARCH_API_KEY');
+  const query = strParam(params, 'query');
+  if (!query) throw new Error('brave_search requires params.query');
+  const url = new URL('https://api.search.brave.com/res/v1/web/search');
+  url.searchParams.set('q', query.slice(0, 300));
+  url.searchParams.set('count', String(Math.min(10, Math.max(1, numParam(params, 'count', 8)))));
+  const res = await fetchWithTimeout(url, {
+    headers: { ...govHeaders(), 'X-Subscription-Token': key },
+  });
+  if (!res.ok) throw new Error(`brave_search HTTP ${res.status}`);
+  const data = await res.json();
+  const results = Array.isArray(data?.web?.results) ? data.web.results : [];
+  return {
+    data: {
+      hits: results.map((r: Record<string, unknown>) => ({
+        title: String(r.title ?? ''),
+        url: String(r.url ?? ''),
+        snippet: String(r.description ?? ''),
+        source: 'Brave',
+      })),
+    },
+    endpoint: url.toString(),
+  };
+}
+
+async function handleGoogleCse(action: string, params: Record<string, unknown>): Promise<HandlerResult> {
+  if (action !== 'search') throw new Error(`Unknown google_cse action: ${action}`);
+  const key = envKey('GOOGLE_CSE_API_KEY');
+  const cx = envKey('GOOGLE_CSE_CX');
+  if (!key || !cx) return notWired('Set GOOGLE_CSE_API_KEY and GOOGLE_CSE_CX on the public-data function.', 'env:GOOGLE_CSE');
+  const query = strParam(params, 'query');
+  if (!query) throw new Error('google_cse requires params.query');
+  const url = new URL('https://www.googleapis.com/customsearch/v1');
+  url.searchParams.set('key', key);
+  url.searchParams.set('cx', cx);
+  url.searchParams.set('q', query.slice(0, 300));
+  url.searchParams.set('num', String(Math.min(10, Math.max(1, numParam(params, 'num', 8)))));
+  const res = await fetchWithTimeout(url, { headers: govHeaders() });
+  if (!res.ok) throw new Error(`google_cse HTTP ${res.status}`);
+  const data = await res.json();
+  const items = Array.isArray(data?.items) ? data.items : [];
+  return {
+    data: {
+      hits: items.map((r: Record<string, unknown>) => ({
+        title: String(r.title ?? ''),
+        url: String(r.link ?? ''),
+        snippet: String(r.snippet ?? ''),
+        source: 'Google CSE',
+      })),
+    },
+    endpoint: url.toString().replace(key, 'redacted'),
+  };
+}
+
 const HANDLERS: Record<
   string,
   (action: string, params: Record<string, unknown>) => Promise<HandlerResult> | HandlerResult
@@ -566,6 +757,12 @@ const HANDLERS: Record<
   courtlistener: handleCourtListener,
   hmda: handleHmda,
   sba: handleSba,
+  gdelt: handleGdelt,
+  fred: handleFred,
+  congress: handleCongress,
+  guardian: handleGuardian,
+  brave_search: handleBraveSearch,
+  google_cse: handleGoogleCse,
 };
 
 function geocodeCacheParams(params: Record<string, unknown>): Record<string, unknown> {

@@ -9,21 +9,27 @@ type Props = {
   pkg: PricingPackage;
   /** Compact = tighter type for quote/catalog cards */
   compact?: boolean;
+  tone?: 'dark' | 'light';
   className?: string;
 };
 
 /** Three figures: program fee · est. vendor/trade outlay · potential BC capital. */
-export function BusinessCapitalOutlookBlock({ pkg, compact = false, className = '' }: Props) {
+export function BusinessCapitalOutlookBlock({ pkg, compact = false, tone = 'dark', className = '' }: Props) {
   const outlook = formatBusinessCapitalOutlook(pkg);
   if (!outlook) return null;
 
+  const light = tone === 'light';
   const labelCls = compact
-    ? 'text-[10px] uppercase tracking-wider text-white/50'
-    : 'text-[11px] uppercase tracking-wider text-white/50';
-  const valueCls = 'text-sm font-semibold text-white';
+    ? `text-[10px] font-extrabold uppercase tracking-wider ${light ? 'text-[#3d4f66]' : 'text-white/50'}`
+    : `text-[11px] font-extrabold uppercase tracking-wider ${light ? 'text-[#3d4f66]' : 'text-white/50'}`;
+  const valueCls = `text-sm font-semibold ${light ? 'text-[#0a1628]' : 'text-white'}`;
 
   return (
-    <div className={`rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 space-y-2 ${className}`}>
+    <div
+      className={`rounded-xl border p-3 space-y-2 ${
+        light ? 'border-emerald-600/20 bg-emerald-500/8' : 'border-amber-500/20 bg-amber-500/5'
+      } ${className}`}
+    >
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
         <div>
           <div className={labelCls}>Program fee</div>
@@ -35,11 +41,11 @@ export function BusinessCapitalOutlookBlock({ pkg, compact = false, className = 
         </div>
         <div>
           <div className={labelCls}>Potential capital (BC only)</div>
-          <div className={`${valueCls} text-amber-200`}>{outlook.potentialLabel}</div>
+          <div className={`${valueCls} ${light ? 'text-emerald-800' : 'text-amber-200'}`}>{outlook.potentialLabel}</div>
         </div>
       </div>
-      <p className="text-[10px] leading-snug text-white/45">{outlook.outlayNote}</p>
-      <p className="text-[10px] uppercase tracking-wider text-white/40">
+      <p className={`text-[11px] font-semibold leading-snug ${light ? 'text-[#3d4f66]' : 'text-white/45'}`}>{outlook.outlayNote}</p>
+      <p className={`text-[11px] font-bold uppercase tracking-wider ${light ? 'text-[#3d4f66]' : 'text-white/40'}`}>
         {BC_CAPITAL_OUTLOOK_COMPLIANCE}
       </p>
     </div>

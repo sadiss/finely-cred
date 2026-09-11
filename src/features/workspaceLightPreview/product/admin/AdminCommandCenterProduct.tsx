@@ -71,14 +71,14 @@ const PIPELINE_ICONS = [Users, Gavel, Target] as const;
 const PIPELINE_CHART_COLORS = ['#10b981', '#8b5cf6', '#38bdf8', '#f43f5e'] as const;
 
 const WORKSPACE_DOCK_IDS = [
-  { id: 'partners', title: 'Partner operations', description: 'Profiles, reports, documents, and progress', icon: Users, route: '/preview/workspace-light/admin/partners' },
-  { id: 'cases', title: 'Cases & disputes', description: 'Rounds, findings, approvals, and outcomes', icon: Gavel, route: '/preview/workspace-light/admin/cases' },
-  { id: 'work', title: 'Team work queue', description: 'Ownership, due dates, and service targets', icon: Inbox, route: '/preview/workspace-light/admin/workflow' },
-  { id: 'crm', title: 'Leads & CRM', description: 'Qualified people, outreach, and pipeline', icon: Target, route: '/preview/workspace-light/admin/crm' },
-  { id: 'mail', title: 'Mail fulfillment', description: 'Letter review, approval, and delivery', icon: Mail, route: '/preview/workspace-light/admin/mail' },
-  { id: 'playbooks', title: 'Playbooks & help', description: 'SOPs, walkthroughs, and launch guidance', icon: BookOpen, route: '/preview/workspace-light/admin/resources' },
-  { id: 'roles', title: 'Role access studio', description: 'Partner, HOS, specialist, agency, AU, and admin views', icon: ShieldCheck, route: '/preview/workspace-light/admin/role-preview' },
-  { id: 'settings', title: 'Platform settings', description: 'Security, payments, messaging, features, and webhooks', icon: Settings, route: '/preview/workspace-light/admin/settings' },
+  { id: 'partners', title: 'Partner operations', description: 'Open profiles, reports, documents, and progress.', icon: Users, route: '/preview/workspace-light/admin/partners' },
+  { id: 'cases', title: 'Cases & disputes', description: 'Work rounds, findings, approvals, and outcomes.', icon: Gavel, route: '/preview/workspace-light/admin/cases' },
+  { id: 'work', title: 'Team work queue', description: 'See ownership, due dates, and service targets.', icon: Inbox, route: '/preview/workspace-light/admin/workflow' },
+  { id: 'crm', title: 'Leads & CRM', description: 'Qualify people, run outreach, and move the pipeline.', icon: Target, route: '/preview/workspace-light/admin/crm' },
+  { id: 'mail', title: 'Mail fulfillment', description: 'Review, approve, and deliver letters.', icon: Mail, route: '/preview/workspace-light/admin/mail' },
+  { id: 'playbooks', title: 'Playbooks & help', description: 'Open SOPs, walkthroughs, and launch guidance.', icon: BookOpen, route: '/preview/workspace-light/admin/resources' },
+  { id: 'roles', title: 'Role access', description: 'See partner, Head of Society, specialist, agency, AU, and admin views.', icon: ShieldCheck, route: '/preview/workspace-light/admin/role-preview' },
+  { id: 'settings', title: 'Platform settings', description: 'Configure security, payments, messaging, features, and webhooks.', icon: Settings, route: '/preview/workspace-light/admin/settings' },
 ] as const;
 
 export function AdminCommandCenterProduct({
@@ -148,10 +148,10 @@ export function AdminCommandCenterProduct({
           eyebrow={dataMode === 'demo' ? 'Admin command center · demo data' : 'Admin command center · live data'}
           title={
             <>
-              Run today’s work from one <span className="fc-wlp-command-title-accent">decision deck.</span>
+              See what needs a <span className="fc-wlp-command-title-accent">decision today.</span>
             </>
           }
-          description="Urgent partner needs, team workload, pipeline movement, and platform health are organized into one clear operating view."
+          description="Urgent partner needs, team workload, pipeline movement, and platform health appear here so you can choose the next action."
           status={model.overviewStatus}
           freshness={model.freshness}
           icon={Command}
@@ -181,7 +181,7 @@ export function AdminCommandCenterProduct({
             />
           }
         >
-          <div className="fc-wlp-command-pulse" aria-label="Command deck state">
+          <div className="fc-wlp-command-pulse" aria-label="Desk state">
             <span><i data-accent="emerald" /> Partner delivery</span>
             <span><i data-accent="rose" /> Service risk</span>
             <span><i data-accent="sky" /> Pipeline motion</span>
@@ -224,7 +224,7 @@ export function AdminCommandCenterProduct({
 
         <section className="fc-wlp-section">
           <ProductSectionHeader
-            eyebrow="Priority command"
+            eyebrow="Priorities"
             title="What needs attention now"
             description="The most urgent item leads. Other work stays nearby until you need it."
             action={
@@ -279,9 +279,9 @@ export function AdminCommandCenterProduct({
 
         <section className="fc-wlp-section">
           <ProductSectionHeader
-            eyebrow="Operating intelligence"
+            eyebrow="Pipeline and activity"
             title="Pipeline movement and recent decisions"
-            description="The dashboard summarizes; detailed work opens only when you ask for it."
+            description="This page summarizes movement. Open a lane when you need the full file."
           />
           <div className="fc-wlp-grid-7-5">
             <ProductPanel
@@ -358,9 +358,9 @@ export function AdminCommandCenterProduct({
 
         <section className="fc-wlp-section">
           <ProductSectionHeader
-            eyebrow="Workspace dock"
-            title="Open the next operating lane"
-            description="Core destinations stay visible. Specialized tools live behind search or All tools."
+            eyebrow="Workspaces"
+            title="Open a workspace"
+            description="The rooms you use most stay visible. Everything else is in search or All tools."
           />
           <ProductWorkspaceDock
             items={WORKSPACE_DOCK_IDS.map((item, index) => ({
@@ -382,7 +382,7 @@ export function AdminCommandCenterProduct({
       <ProductDrawer
         open={Boolean(detail)}
         title={detail?.title ?? 'Details'}
-        subtitle="Focused detail without adding another dashboard layer"
+        subtitle="More detail for this signal"
         onClose={() => setDetail(null)}
       >
         {detail ? (

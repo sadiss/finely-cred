@@ -133,7 +133,7 @@ export default function AdminBridgeOpsProductSurface({ role, pageId }: Workspace
       pageId={pageId}
       eyebrow="Finance"
       title="Finely Cred ↔ Bridge ops"
-      description="Command deck for fund-ready partners — scan the pipeline, pick a handoff, open the partner file."
+      description="Bridge desk for fund-ready partners — scan the pipeline, pick a handoff, open the partner file."
       accent={accent}
       surfaceMode={navItem?.surfaceMode ?? 'studio'}
       archetype={archetype}
@@ -158,7 +158,7 @@ export default function AdminBridgeOpsProductSurface({ role, pageId }: Workspace
         { label: 'Handoffs pending', value: String(kpis?.handoffsPending ?? '—'), hint: 'Queued transfers', accent: 'rose' },
         { label: 'Phases', value: String(kpis ? Object.keys(kpis.phaseDistribution).length : '—'), hint: 'Tracked stages', accent: 'sky' },
       ]}
-      metricTitle="Bridge command deck"
+      metricTitle="Bridge desk"
       metricDescription="Status tiles up top, fund-ready runway in the middle, pipeline console below."
       metricsVariant="instrument"
     >

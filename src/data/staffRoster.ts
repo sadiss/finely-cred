@@ -9,6 +9,7 @@ import {
   shiftBlockMatches,
   staffMemberOnShift,
 } from '../domain/staffMember';
+import { pickHaitianCompanionOnDuty } from './haitianCompanionDuty';
 import { STAFF_ROSTER_EXPANSION } from './staffRosterExpansion';
 
 /** 8-hour day shift (never stack with EVENING on the same person). */
@@ -99,6 +100,84 @@ export const STAFF_ROSTER_SEED: StaffMember[] = [
   { ...m('staff-david-okonkwo', 'David', 'Okonkwo', 'compliance_agent', 'internal_ops', 'masculine', 'Chief Compliance & Trust Officer — human backstop for claims and consent.'), displayTitle: 'Chief Compliance Officer' },
   { ...m('staff-marcus-sterling-exec', 'Marcus', 'Sterling', 'sales_closer', 'growth_sessions', 'masculine', 'Chief Revenue Officer — consult quality and ethical close.'), displayTitle: 'Chief Revenue Officer' },
   { ...m('staff-tamara-brooks-exec', 'Tamara', 'Brooks', 'social_creator', 'marketing', 'feminine', 'VP Marketing & Brand — premium campaigns with honest education.'), displayTitle: 'VP Marketing & Brand' },
+  {
+    ...m(
+      'staff-marie-claire-baptiste',
+      'Marie-Claire',
+      'Baptiste',
+      'haitian_companion',
+      'haitian_community',
+      'feminine',
+      'Community Guide — Kreyòl-first welcome for Haitian-American partners and guests.',
+      [WEEKDAY],
+    ),
+    displayTitle: 'Community Guide',
+  },
+  {
+    ...m(
+      'staff-nadege-pierre',
+      'Nadège',
+      'Pierre',
+      'haitian_companion',
+      'haitian_community',
+      'feminine',
+      'Restore Companion — bureau letters and screenshot language, two-voice.',
+      [WEEKDAY],
+    ),
+    displayTitle: 'Restore Companion',
+  },
+  {
+    ...m(
+      'staff-farah-jean-louis',
+      'Farah',
+      'Jean-Louis',
+      'haitian_companion',
+      'haitian_community',
+      'feminine',
+      'Debt Companion — collectors, validation, require proof. Kreyòl + English.',
+      [LATE],
+    ),
+    displayTitle: 'Debt Companion',
+  },
+  {
+    ...m(
+      'staff-jean-marc-toussaint',
+      'Jean-Marc',
+      'Toussaint',
+      'haitian_companion',
+      'haitian_community',
+      'masculine',
+      'Desk lead — routes restore, debt, build, and business on the Haitian desk.',
+      [WEEKDAY],
+    ),
+    displayTitle: 'Desk Lead',
+  },
+  {
+    ...m(
+      'staff-samuel-augustin',
+      'Samuel',
+      'Augustin',
+      'haitian_companion',
+      'haitian_community',
+      'masculine',
+      'Walkthrough helper — phone, QR, and one next tap for guests who are not tech-savvy.',
+      [WEEKEND],
+    ),
+    displayTitle: 'Walkthrough Helper',
+  },
+  {
+    ...m(
+      'staff-patrick-saint-louis',
+      'Patrick',
+      'Saint-Louis',
+      'haitian_companion',
+      'haitian_community',
+      'masculine',
+      'Specialist coach — people who help the Haitian community sit through the English work.',
+      [EVENING],
+    ),
+    displayTitle: 'Specialist Coach',
+  },
   ...STAFF_ROSTER_EXPANSION,
 ];
 
@@ -107,7 +186,7 @@ export const RETIRED_STAFF_IDS = new Set(['staff-aia-guide']);
 
 let memoryRoster: StaffMember[] | null = null;
 /** Bump when shift policy changes so in-memory/DB faces re-clamp without a full restart. */
-const SHIFT_POLICY_VERSION = 6;
+const SHIFT_POLICY_VERSION = 7;
 let appliedShiftPolicyVersion = 0;
 
 function queueStaffRosterPersist(members: StaffMember[]) {
@@ -210,6 +289,12 @@ export const MARKETING_BLACK_STAFF_IDS = new Set([
   'staff-raheem-sullivan',
   'staff-yolanda-cruz',
   'staff-imani-cooper',
+  'staff-marie-claire-baptiste',
+  'staff-nadege-pierre',
+  'staff-farah-jean-louis',
+  'staff-jean-marc-toussaint',
+  'staff-samuel-augustin',
+  'staff-patrick-saint-louis',
 ]);
 
 /** Asian team members featured on public marketing for portrait diversity. */
@@ -245,6 +330,12 @@ const MARKETING_DISPLAY_BY_ROLE: Partial<Record<AgentPersonaId, string[]>> = {
   education_coach: ['staff-priya-shah', 'staff-jasmine-kerr', 'staff-victor-stone', 'staff-olivia-park'],
   affiliate_specialist: ['staff-miles-chen', 'staff-harper-wells', 'staff-adrian-stone', 'staff-drew-sinclair'],
   social_creator: ['staff-jamie-foster', 'staff-elise-hart', 'staff-renee-cole', 'staff-imani-cooper'],
+  haitian_companion: [
+    'staff-marie-claire-baptiste',
+    'staff-jean-marc-toussaint',
+    'staff-nadege-pierre',
+    'staff-samuel-augustin',
+  ],
 };
 
 function pickDiverseMarketingSubset(pool: StaffMember[], max: number): StaffMember[] {
@@ -297,6 +388,9 @@ export function listAllMessageableStaff(lane?: string): StaffMember[] {
   if (l.includes('business') || l.includes('funding')) priorityDepts.add('funding');
   if (l.includes('tradeline') || l.includes('sales') || l.includes('upgrade')) priorityDepts.add('growth_sessions');
   if (l.includes('affiliate') || l.includes('referral') || l.includes('marketing')) priorityDepts.add('marketing');
+  if (l.includes('haitian') || l.includes('kreyol') || l.includes('kreyòl') || l.includes('creole') || l.includes('ayisyen')) {
+    priorityDepts.add('haitian_community');
+  }
   if (l.includes('restore') || l.includes('credit') || l.includes('dispute')) {
     priorityDepts.add('credit_operations');
     priorityDepts.add('dispute_processing');
@@ -372,6 +466,9 @@ function dailyRotationIndex(pool: StaffMember[], date: Date): number {
 
 /** On-duty human for a role at a given time. Daily shift rotation — never pins one face 24/7. */
 export function resolveStaffOnDuty(roleId: AgentPersonaId, date = new Date()): StaffMember | null {
+  if (roleId === 'haitian_companion') {
+    return pickHaitianCompanionOnDuty(loadStaffRoster(), date);
+  }
   const curated = listMarketingDisplayStaff(roleId, 6);
   const fallback = listStaffByRole(roleId);
   const pool = orderStaffPoolForRole(roleId, curated.length ? curated : fallback);

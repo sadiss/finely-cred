@@ -12,7 +12,7 @@ export function FinelyOsPaginatedStack<T>({
   pageSize = 8,
   renderItem,
   emptyMessage = 'Nothing here.',
-  itemSpacingClassName = 'space-y-2',
+  itemSpacingClassName = 'space-y-5',
 }: {
   items: T[];
   pageSize?: number;
@@ -30,7 +30,7 @@ export function FinelyOsPaginatedStack<T>({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="fc-os-paginated-stack space-y-3">
       <div className={itemSpacingClassName}>{slice.map((item, i) => renderItem(item, safePage * pageSize + i))}</div>
       {items.length > pageSize ? (
         <div className={FINELY_OS_LUXURY_PAGINATION}>

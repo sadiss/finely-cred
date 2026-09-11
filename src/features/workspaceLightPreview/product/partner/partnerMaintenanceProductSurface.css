@@ -1,0 +1,40 @@
+.fc-partner-maintain {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 2rem;
+}
+
+@media (max-width: 900px) {
+  .fc-partner-maintain {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fc-partner-maintain-clock {
+  min-height: 22rem;
+  padding: 2.5rem;
+  border-radius: 2rem 0.5rem 2rem 0.5rem;
+  background:
+    radial-gradient(90% 80% at 100% 0%, rgba(167, 139, 250, 0.25), transparent 46%),
+    #0c1024;
+  border: 1px solid rgba(167, 139, 250, 0.3);
+}
+
+.fc-partner-maintain-days {
+  font-size: clamp(3.5rem, 8vw, 6rem);
+  font-weight: 800;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  color: #fff;
+}
+
+.fc-partner-maintain-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.fc-partner-maintain-step {
+  padding: 1.5rem 1.75rem;
+  border-radius: 1.25rem;
+}

@@ -65,7 +65,7 @@ function AgencyYouRunFinelyRunsSplit() {
   const split = ROLE_WORK_SPLIT.agency;
   const accents = ['emerald', 'violet', 'sky'] as const;
   return (
-    <div className={`${finelyOsCatalogCard('emerald')} space-y-4 p-6 lg:p-8`} data-fc-accent="emerald">
+    <div className="space-y-4">
       <div className={FINELY_OS_ENTITY_SUBLABEL}>You run / Finely runs</div>
       <p className={`text-base font-bold ${FINELY_OS_ENTITY_VALUE}`}>{split.headline}</p>
       <div className="grid gap-4 sm:grid-cols-3">
@@ -151,7 +151,7 @@ export default function PartnerAgencyHubProductSurface({
   const tenantLive = tenant?.status === 'active';
   const roleLabel = gate.membership?.role === 'tenant_owner' ? 'Owner' : 'Staff';
   const whiteLabelOn = Boolean(tenant?.settings?.features?.whiteLabel);
-  const partnersPath = mapPortalHref('/admin/partners');
+  const partnersPath = mapPortalHref(AGENCY.tenantPartnersPath);
   const teamPath = mapPortalHref('/admin/team');
   const messagesPath = mapPortalHref(AGENCY.messagesDeepLink);
   const signupPath = mapPortalHref(AGENCY.signupPath);
@@ -173,7 +173,7 @@ export default function PartnerAgencyHubProductSurface({
           <div className={`${finelyOsCatalogCard('emerald')} space-y-4 p-6 lg:p-8`} data-fc-accent="emerald">
             <div className={`text-lg font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>Partner files</div>
             <p className={`text-base ${FINELY_OS_ENTITY_BODY}`}>
-              Manage partners inside your agency tenant — restore, debt, and build lanes share Finely OS tools.
+              Manage partners in your agency workspace. Restore, debt, and credit-building tools stay available on each partner file.
             </p>
             <button type="button" onClick={() => navigate(partnersPath)} className={FINELY_OS_PRIMARY_BTN}>
               <Users size={14} /> Open partner management
@@ -235,7 +235,7 @@ export default function PartnerAgencyHubProductSurface({
           <UnifiedTrainingPanel audience="credit_specialist" specialties={['personal_restore']} />
           <RoleWorkflowPanel roleId="agency" compact />
           <div className="flex items-center gap-2 text-sm font-semibold text-slate-600">
-            <GraduationCap size={14} /> Agency launch + ops tracks
+            <GraduationCap size={14} /> Agency launch and operations training
           </div>
         </>
       ) : null}
@@ -267,7 +267,7 @@ export default function PartnerAgencyHubProductSurface({
           </div>
         </div>
       </header>
-      <div className="fc-agency-command-grid" role="tablist" aria-label="Agency command deck">
+      <div className="fc-agency-command-grid" role="tablist" aria-label="Agency sections">
         {COMMAND_TILES.map((tile) => {
           const Icon = tile.icon;
           return (
@@ -307,7 +307,7 @@ export default function PartnerAgencyHubProductSurface({
         pageId="agency-hub"
         eyebrow="Agency"
         title="Agency"
-        description="Your brand out front — partners, letters, team seats, payouts, and white-label on Finely OS."
+        description="Your brand out front. Manage partners, letters, team seats, payouts, and white-label settings."
         status="Demo workspace · sample tenant metrics"
         freshness="demo snapshot"
         accent={accent}
@@ -329,7 +329,7 @@ export default function PartnerAgencyHubProductSurface({
           {commandDeck}
           <ProductEmptyState
             title="Sign in for your agency tenant"
-            description="Demo mode shows the command deck — sign in to route partner files, manage seats, and track payouts."
+            description="This preview shows the agency workspace. Sign in to open partner files, manage seats, and track payouts."
             action={
               <button type="button" className="fc-wlp-btn-primary" onClick={() => navigate('/login')}>
                 Sign in
@@ -374,7 +374,7 @@ export default function PartnerAgencyHubProductSurface({
         pageId="agency-hub"
         eyebrow="Agency"
         title="Agency"
-        description="Your brand out front — partners, letters, team seats, payouts, and white-label on Finely OS."
+        description="Your brand out front. Manage partners, letters, team seats, payouts, and white-label settings."
         status={gate.message}
         freshness="just now"
         accent={accent}
@@ -396,7 +396,7 @@ export default function PartnerAgencyHubProductSurface({
         }
         metrics={blockedMetrics}
         metricTitle="Tenant snapshot"
-        metricDescription="Provision your agency tenant to unlock partner routing and team seats."
+        metricDescription="Set up your agency workspace to open partner files and team seats."
       >
         <section className="fc-wlp-section">
           <ProductEmptyState
@@ -468,7 +468,7 @@ export default function PartnerAgencyHubProductSurface({
       pageId="agency-hub"
       eyebrow="Agency"
       title="Agency"
-      description="Your brand out front — partners, letters, team seats, payouts, and white-label on Finely OS."
+      description="Your brand out front. Manage partners, letters, team seats, payouts, and white-label settings."
       status={`${statusHeadline}${getUserDisplayName(auth.user) ? ` · ${getUserDisplayName(auth.user)}` : ''} · live data`}
       freshness="just now"
       accent={accent}

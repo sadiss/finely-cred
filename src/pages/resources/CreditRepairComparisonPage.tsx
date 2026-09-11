@@ -202,6 +202,10 @@ export default function CreditRepairComparisonPage() {
         description:
           'A factual, feature-based comparison of pure self-directed DIY dispute work, Finely Cred\u2019s done-for-you programs, and the traditional credit-repair-agency category — price, who does the work, legal grounding, and real documented outcomes.',
         path: CONTENT_REF,
+        faqs: [
+          { q: 'Do you name other credit shops?', a: 'No. Traditional-agency notes come from CROA, a federal statute — not a claim about any named company.' },
+          { q: 'Are score results guaranteed?', a: 'No. Documented case studies show a disclosed sample. Results vary. Not legal advice.' },
+        ],
       }}
       badge="Comparison"
       kicker="Honest comparison · no disparagement"
@@ -218,6 +222,8 @@ export default function CreditRepairComparisonPage() {
         { label: 'Which program fits your situation? (free wizard)', to: '/resources/which-program-fits' },
         { label: 'See pricing & packages', to: '/pricing' },
         { label: 'Debt validation letters & cease-communication rights', to: '/resources/debt-defense-validation-letters' },
+        { label: 'What the statute says', to: '/resources/law' },
+        { label: 'Public complaint study', to: '/resources/complaint-study' },
       ]}
     >
       {/* ── Always-visible snapshot grid ─────────────────────────────────── */}

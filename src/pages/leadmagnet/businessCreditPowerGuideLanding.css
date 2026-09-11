@@ -320,23 +320,9 @@
   position: relative;
   z-index: 2;
   width: 100%;
-  max-width: min(100%, 1180px);
-  max-height: min(68vh, 720px);
+  max-width: none;
+  max-height: min(78vh, 980px);
   margin-bottom: 0;
-}
-
-@media (min-width: 1024px) {
-  .bcpg-mockup--tall {
-    max-width: min(100%, 1320px);
-    max-height: min(74vh, 820px);
-  }
-}
-
-@media (min-width: 1280px) {
-  .bcpg-mockup--tall {
-    max-width: min(100%, 1440px);
-    max-height: min(78vh, 900px);
-  }
 }
 
 .bcpg-mockup--hero {

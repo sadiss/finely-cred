@@ -126,8 +126,12 @@ export default function RealEstateCareersPage() {
   usePublicSeoMeta({
     title: 'Real estate partners — refer buyers, Finely runs the credit work',
     description:
-      'Finely Cred real estate affiliation: you refer buyers and sellers, Finely specialists run the restore, dispute, and AU prep work. Open the Real Estate Operator Guide free. Results vary · not legal advice · underwriting subject to approval.',
+      'Finely Cred real estate affiliation: you refer buyers and sellers. Finely specialists run restore, dispute, and authorized-user prep. Open the Real Estate Operator Guide free.',
     path: '/careers/real-estate',
+    faqs: [
+      { q: 'Do I run the credit work?', a: 'No. You refer buyers and sellers. Finely specialists run restore and dispute work. Results vary.' },
+      { q: 'Is funding guaranteed for referred partners?', a: 'No. Funding is subject to underwriting. Not legal advice.' },
+    ],
   });
 
   const [fullName, setFullName] = useState('');
@@ -233,6 +237,7 @@ export default function RealEstateCareersPage() {
       title="Real estate partners"
       subtitle="You refer the buyer or seller. Finely specialists run the credit work."
       hideHero
+      contentWidth="full"
     >
       <style>{`
         @keyframes reCareersFade { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
@@ -244,7 +249,7 @@ export default function RealEstateCareersPage() {
         .re-motion-rail { animation: reCareersRail 0.55s ease both; }
       `}</style>
 
-      <div className={`${FINELY_OS_PAGE} max-w-7xl mx-auto space-y-0`}>
+      <div className={`${FINELY_OS_PAGE} fc-viewport-floor space-y-0`}>
         <div className="px-0 py-2 space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <a href="/" className={FINELY_OS_BACK_LINK}>
@@ -285,8 +290,8 @@ export default function RealEstateCareersPage() {
               />
               <p className="fc-light-contrast-body text-base sm:text-lg leading-relaxed max-w-xl">
                 Agents and brokers hand us the buyer or seller whose credit is blocking the contract. Finely specialists
-                pull reports, send findings-based dispute letters, prep AU optics, and package paydown proof for the loan
-                officer. You keep the relationship and the closing.
+                pull reports, send findings-based dispute letters, prepare authorized-user tradelines, and package
+                paydown proof for the loan officer. You keep the relationship and the closing.
               </p>
 
               <div className="flex flex-wrap items-center gap-3 pt-1">
@@ -306,7 +311,7 @@ export default function RealEstateCareersPage() {
               </div>
 
               <div className={`${LEDGER_RULE} mt-6`}>
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/35">Read first — free Operator Guide</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/35">Free operator guide</p>
                 <RoleGuideCta role={ROLE} className="mt-3" />
                 <p className="mt-3 text-[11px] leading-relaxed text-white/35">{ROLE_ACTION_LEGEND[ROLE]}</p>
               </div>
@@ -327,7 +332,7 @@ export default function RealEstateCareersPage() {
           className={`mt-6 rounded-3xl border border-white/10 px-5 sm:px-10 py-12 ${finelyOsLandingContrastSection('fc-band-ember')}`}
           data-fc-contrast-band="1"
         >
-          <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-[0.95fr_1.05fr]">
+          <div className="grid w-full max-w-none items-center gap-10 lg:grid-cols-[0.95fr_1.05fr]">
             <div className="re-motion-fade flex justify-center">
               <CreditSpecialistGuideBookMockup
                 title={RE_GUIDE_META.title}
@@ -340,7 +345,7 @@ export default function RealEstateCareersPage() {
               />
             </div>
             <div className="space-y-4 re-motion-fade" style={{ animationDelay: '0.1s' }}>
-              <p className="text-[11px] font-black uppercase tracking-[0.28em] text-violet-300">Book-first · free to read</p>
+              <p className="text-[11px] font-black uppercase tracking-[0.28em] text-violet-300">Free to read before you join</p>
               <LandingTypewriterTitle
                 as="h2"
                 text="Real Estate Operator Guide"
@@ -349,8 +354,8 @@ export default function RealEstateCareersPage() {
                 delayMs={120}
               />
               <p className="fc-light-contrast-body text-base leading-relaxed">
-                {guideCta.blurb} Score Roadmap stays available as a secondary buyer checklist — not the primary guide for
-                this path.
+                {guideCta.blurb} The Score Roadmap remains a secondary buyer checklist, not the primary guide for this
+                path.
               </p>
               <ul className="space-y-2.5">
                 {guideCta.inside.map((line) => (
@@ -381,7 +386,7 @@ export default function RealEstateCareersPage() {
 
         {/* Clear WIIFM */}
         <section className={`mt-6 rounded-3xl px-5 sm:px-10 py-12 ${finelyOsLandingWealthyIvorySection()}`}>
-          <div className="max-w-6xl mx-auto space-y-8">
+          <div className="w-full max-w-none space-y-8">
             <div className="max-w-2xl space-y-3">
               <p className={FINELY_OS_LANDING_IVORY_KICKER}>What’s in it for you</p>
               <LandingTypewriterTitle
@@ -489,7 +494,7 @@ export default function RealEstateCareersPage() {
           className={`mt-6 rounded-3xl border border-white/10 px-5 sm:px-10 py-12 ${finelyOsLandingContrastSection('fc-band-dark')}`}
           data-fc-contrast-band="1"
         >
-          <div className="max-w-6xl mx-auto space-y-9">
+          <div className="w-full max-w-none space-y-9">
             <div className="max-w-2xl space-y-3">
               <p className="text-[11px] font-black uppercase tracking-[0.28em] text-violet-300">What you get</p>
               <LandingTypewriterTitle
@@ -549,7 +554,7 @@ export default function RealEstateCareersPage() {
 
         {/* Cinematic 5-step rail */}
         <section className={`mt-6 rounded-3xl px-5 sm:px-10 py-12 ${finelyOsLandingWealthyIvorySection()}`}>
-          <div className="max-w-6xl mx-auto space-y-8">
+          <div className="w-full max-w-none space-y-8">
             <div className="max-w-2xl space-y-3">
               <p className={FINELY_OS_LANDING_IVORY_KICKER}>How it works</p>
               <LandingTypewriterTitle
@@ -605,7 +610,7 @@ export default function RealEstateCareersPage() {
           className={`mt-6 rounded-3xl border border-white/10 px-5 sm:px-10 py-12 ${finelyOsLandingContrastSection('fc-band-emerald')}`}
           data-fc-contrast-band="1"
         >
-          <div className="max-w-6xl mx-auto space-y-8">
+          <div className="w-full max-w-none space-y-8">
             <div className="max-w-2xl space-y-3">
               <p className="text-[11px] font-black uppercase tracking-[0.28em] text-violet-300">Command toolkit · 7 levers</p>
               <h2 className={`${FINELY_OS_LANDING_PLATINUM_TITLE} !text-3xl sm:!text-4xl`}>
@@ -672,7 +677,7 @@ export default function RealEstateCareersPage() {
           className={`mt-6 rounded-3xl border border-white/10 px-5 sm:px-10 py-12 ${finelyOsLandingContrastSection('fc-band-dark')}`}
           data-fc-contrast-band="1"
         >
-          <div className="max-w-6xl mx-auto space-y-8">
+          <div className="w-full max-w-none space-y-8">
             <div className="max-w-2xl space-y-3">
               <p className="text-[11px] font-black uppercase tracking-[0.28em] text-violet-300">Resource rail</p>
               <h2 className={`${FINELY_OS_LANDING_PLATINUM_TITLE} !text-3xl`}>Monitoring partners · law links · research chips</h2>

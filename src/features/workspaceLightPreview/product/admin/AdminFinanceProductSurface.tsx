@@ -366,7 +366,7 @@ export default function AdminFinanceProductSurface({ role, pageId }: WorkspacePr
         </div>
       ) : null}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4" role="tablist" aria-label="Finance command deck">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4" role="tablist" aria-label="Finance overview">
         {DECK_TILES.map((tile) => {
           const Icon = tile.icon;
           const active = deckPanel === tile.id;
@@ -582,7 +582,7 @@ export default function AdminFinanceProductSurface({ role, pageId }: WorkspacePr
             </button>
           </div>
 
-          <div className="grid md:grid-cols-5 gap-3">
+          <div className="grid md:grid-cols-5 gap-5">
             <input value={incomeAmount} onChange={(e) => setIncomeAmount(e.target.value)} className={FINELY_OS_ENTITY_INPUT} placeholder="Amount (e.g. 1497.00)" />
             <input type="datetime-local" value={incomeReceivedAtLocal} onChange={(e) => setIncomeReceivedAtLocal(e.target.value)} className={FINELY_OS_ENTITY_INPUT} />
             <input value={incomeSource} onChange={(e) => setIncomeSource(e.target.value)} className={FINELY_OS_ENTITY_INPUT} placeholder="Source (Stripe/Denefit/Cash)" />

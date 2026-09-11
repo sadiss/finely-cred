@@ -15,14 +15,13 @@ import type { WorkspaceProductSurfaceProps } from '../workspaceProductSurfaceReg
 import {
   AdminContextCommand,
   AdminStageHero,
-  AdminStageSection,
   AdminStageShell,
 } from '../components/ProductAdminStage';
 import { ProductPagePrimaryAction } from '../components/ProductHubScaffold';
 import '../../../work/views/workBoardCards.css';
 
 const PROJECT_VIEWS = [
-  { label: 'Journey board', icon: Network, accent: 'emerald' },
+  { label: 'Pipeline', icon: Network, accent: 'emerald' },
   { label: 'Project list', icon: LayoutList, accent: 'violet' },
   { label: 'Project calendar', icon: CalendarDays, accent: 'sky' },
   { label: 'Task Kanban', icon: Rows3, accent: 'rose' },
@@ -74,7 +73,7 @@ export default function AdminProjectsProductSurface({
             ? 'Move personal work through Kanban, list, or calendar while keeping its parent project visible.'
             : 'Create the project first, then manage its child tasks. Opening a project keeps the portfolio and opens an enhanced workspace sheet.'
         }
-        status={projectId ? 'Project inspector open' : tasksFirst ? 'Task workstation' : 'Project master workspace'}
+        status={projectId ? 'Project inspector open' : tasksFirst ? 'Task room' : 'Project master workspace'}
         freshness="ready now"
         icon={tasksFirst ? ListChecks : FolderKanban}
         primaryFirst
@@ -105,22 +104,11 @@ export default function AdminProjectsProductSurface({
         }
       />
 
-      <AdminStageSection
-        eyebrow={tasksFirst ? 'My task workstation' : 'Master project workstation'}
-        title={tasksFirst ? 'Kanban, list, and calendar—without losing project context' : 'Create, stage, inspect, and deliver from one wide canvas'}
-        description={
-          tasksFirst
-            ? 'Select a parent project at left, then move or open its child tasks in the full-width board.'
-            : 'Every configured stage and existing project/task function remains available below. Card click opens the enhanced project sheet.'
-        }
-        tone="dark"
-      >
-        <WorkProjectsHub
-          embedded
-          initialTab={tasksFirst ? 'tasks' : 'projects'}
-          workspaceBasePath={projectBasePath}
-        />
-      </AdminStageSection>
+      <WorkProjectsHub
+        embedded
+        initialTab={tasksFirst ? 'tasks' : 'projects'}
+        workspaceBasePath={projectBasePath}
+      />
 
       {projectId ? (
         <div

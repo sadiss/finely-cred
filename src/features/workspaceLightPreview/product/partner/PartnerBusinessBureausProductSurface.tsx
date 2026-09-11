@@ -15,6 +15,7 @@ import { usePartnerSession } from '../../../../auth/PartnerSessionContext';
 import { BusinessCommandStrip } from '../../../../components/business/BusinessCommandStrip';
 import { deleteBusinessScoreSnapshot, listBusinessScoreSnapshots, upsertBusinessScoreSnapshot } from '../../../../data/businessCreditRepo';
 import { hasEntitlement } from '../../../../data/billingRepo';
+import { useStaffEntitlementBypass } from '../../../../components/billing/EntitlementGate';
 import { getPartnerSync } from '../../../../data/partnersRepo';
 import type { BusinessBureau, BusinessScoreSnapshot, BusinessScoreType } from '../../../../domain/businessCredit';
 import type { Partner } from '../../../../domain/partners';
@@ -106,6 +107,7 @@ type LoadState =
 export default function PartnerBusinessBureausProductSurface({ role, pageId, partnerId, dataMode }: WorkspaceProductSurfaceProps) {
   const navigate = useNavigate();
   const mapPortalHref = usePartnerProductPathResolver();
+  const staffBypass = useStaffEntitlementBypass();
   const { partner: sessionPartner } = usePartnerSession();
   const navItem = getWorkspaceProductNavItem('partner', pageId);
   const PageIcon = navItem?.icon ?? BarChart3;
@@ -130,7 +132,7 @@ export default function PartnerBusinessBureausProductSurface({ role, pageId, par
     let cancelled = false;
     setState({ status: 'loading' });
     try {
-      if (!partnerOwnsBusinessLine(partnerId!)) {
+      if (!staffBypass && !partnerOwnsBusinessLine(partnerId!)) {
         if (!cancelled) setState({ status: 'locked' });
         return;
       }
@@ -143,7 +145,7 @@ export default function PartnerBusinessBureausProductSurface({ role, pageId, par
       if (!cancelled) setState({ status: 'error', message });
     }
     return () => { cancelled = true; };
-  }, [isDemo, partnerId, retryToken]);
+  }, [isDemo, partnerId, retryToken, staffBypass]);
 
   const demoSpec = useMemo(() => getWorkspaceProductPageSpec('partner', pageId), [pageId]);
   const partner = state.status === 'ready' ? state.partner : sessionPartner;
@@ -298,7 +300,7 @@ export default function PartnerBusinessBureausProductSurface({ role, pageId, par
                 setRetryToken((t) => t + 1);
               }}
             >
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-5">
                 <label className="block">
                   <div className={FINELY_OS_ENTITY_LABEL}>Bureau</div>
                   <select value={bureau} onChange={(e) => setBureau(e.target.value as BusinessBureau)} className={`mt-2 w-full ${FINELY_OS_ENTITY_SELECT}`}>
@@ -318,7 +320,7 @@ export default function PartnerBusinessBureausProductSurface({ role, pageId, par
                   </select>
                 </label>
               </div>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-3 gap-5">
                 <label className="block">
                   <div className={FINELY_OS_ENTITY_LABEL}>Score</div>
                   <input value={scoreValue} onChange={(e) => setScoreValue(e.target.value.replace(/[^\d.]/g, '').slice(0, 6))} className={FINELY_OS_ENTITY_INPUT} placeholder="80" />

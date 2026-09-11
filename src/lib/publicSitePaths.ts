@@ -34,6 +34,10 @@ const PUBLIC_PREFIXES = [
   '/signup',
   '/forgot-password',
   '/reset-password',
+  '/haitian',
+  '/kreyol',
+  '/preview/haitian',
+  '/free-kreyol-guide',
 ];
 
 export function isPublicMarketingPath(pathname: string): boolean {

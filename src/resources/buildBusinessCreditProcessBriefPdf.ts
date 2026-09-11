@@ -759,15 +759,15 @@ export const BUSINESS_CREDIT_PROCESS_BRIEF = {
   /** Three pages — never label this a one-sheet. */
   pageCount: 3,
   sheetLabel: '3-sheet',
-  title: 'Business Credit 3-Sheet Process Brief',
-  downloadLabel: 'Download the 3-sheet Process Brief',
+  title: 'Business Credit Process Brief',
+  downloadLabel: 'Download the process brief',
   filename: 'finely-cred-business-credit-3-sheet-process-brief.pdf',
-  eyebrow: '3-SHEET PARTNER BRIEF · START HERE',
+  eyebrow: 'PARTNER BRIEF · START HERE',
   summary:
-    'How business credit is built (six-layer sequence), Finely Cred work-calibrated approach and what specialists actually do, plus Business Credit OS — the cockpit that makes the build efficient. Pair with the single-page Fundability Roadmap one-sheet for stage gates and scorecard mapping.',
+    'How a company file is built: identity, reporting vendors, payment history, and a capital ask packaged the way commercial desks read it. Download the brief, then the Fundability Roadmap for stage gates.',
   pages: [
-    'Process map — entity truth -> commercial identity -> vendors -> payment optics -> packaging -> capital',
-    'Unique approach — sequence first, hours not hope, compliance voice + Diagnose / Sequence / Package work',
-    'Business Credit OS — cockpit, scorecard, vendor ladder, vault, specialist loops, Ask Finely',
+    'Process map — from entity identity to a capital ask',
+    'Our approach — sequence the file, then package the ask',
+    'The workspace — scorecard, vendor ladder, vault, and specialist loops',
   ],
 };

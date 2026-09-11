@@ -26,6 +26,8 @@ import {
   DEBT_GUIDE_READ_PATH,
 } from './debtEradicationGuideContent';
 import GuideReaderShell from './GuideReaderShell';
+import { LeadMagnetPreviewBanner } from '../../components/leadmagnet/LeadMagnetPreviewBanner';
+import { clampLeadMagnetChapter, useLeadMagnetGuideGate } from '../../lib/useLeadMagnetGuideGate';
 import './debtEradicationGuideReader.css';
 import './guideReaderShell.css';
 
@@ -35,6 +37,7 @@ export default function DebtEradicationGuideReaderPage() {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const [indexOpen, setIndexOpen] = useState(false);
+  const { unlocked, previewLocked } = useLeadMagnetGuideGate('debt_freedom');
 
   const initialIdx = useMemo(() => {
     const q = params.get('chapter') ?? '';
@@ -47,8 +50,8 @@ export default function DebtEradicationGuideReaderPage() {
   const [idx, setIdx] = useState(initialIdx);
 
   useEffect(() => {
-    setIdx(initialIdx);
-  }, [initialIdx]);
+    setIdx(previewLocked ? 0 : initialIdx);
+  }, [initialIdx, previewLocked]);
 
   const chapter = DEBT_GUIDE_CHAPTERS[idx] ?? DEBT_GUIDE_CHAPTERS[0]!;
   const totalMinutes = useMemo(() => guideReadMinutes(DEBT_GUIDE_CHAPTERS), []);
@@ -72,12 +75,12 @@ export default function DebtEradicationGuideReaderPage() {
 
   const goChapter = useCallback(
     (next: number) => {
-      const clamped = Math.max(0, Math.min(TOTAL - 1, next));
+      const clamped = clampLeadMagnetChapter(next, TOTAL, unlocked);
       setIdx(clamped);
       setParams({ chapter: DEBT_GUIDE_CHAPTERS[clamped]!.id }, { replace: true });
       setIndexOpen(false);
     },
-    [setParams],
+    [setParams, unlocked],
   );
 
   return (
@@ -86,6 +89,14 @@ export default function DebtEradicationGuideReaderPage() {
       chapters={shellChapters}
       chapterIndex={idx}
       onChapterChange={goChapter}
+      previewLocked={previewLocked}
+      previewUnlockHref={`${DEBT_GUIDE_LANDING_PATH}#download`}
+      previewBanner={
+        <LeadMagnetPreviewBanner
+          unlockHref={`${DEBT_GUIDE_LANDING_PATH}#download`}
+          pagesLabel="all 9 pages of the debt guide"
+        />
+      }
       tocOpen={indexOpen}
       onTocOpenChange={setIndexOpen}
       tocToggleLabel="Index"
@@ -136,7 +147,8 @@ export default function DebtEradicationGuideReaderPage() {
                   key={ch.id}
                   type="button"
                   onClick={() => goChapter(i)}
-                  className={cx('dge-index-item', i === idx && 'is-active')}
+                  disabled={previewLocked && i > 0}
+                  className={cx('dge-index-item', i === idx && 'is-active', previewLocked && i > 0 && 'opacity-45')}
                   aria-current={i === idx ? 'true' : undefined}
                 >
                   <span className="dge-index-numeral">{ch.number}</span>
@@ -153,7 +165,7 @@ export default function DebtEradicationGuideReaderPage() {
             {[
               { v: String(TOTAL), l: 'Pages' },
               { v: `${totalMinutes}m`, l: 'Full read' },
-              { v: 'Free', l: 'No signup' },
+              { v: previewLocked ? '1' : 'Full', l: previewLocked ? 'Preview' : 'Unlocked' },
             ].map((k) => (
               <div key={k.l} className="bg-black/25 px-3 py-2.5 text-center">
                 <div className="dge-index-title text-lg text-[#e6d6ad]">{k.v}</div>
@@ -166,7 +178,7 @@ export default function DebtEradicationGuideReaderPage() {
             <div className="text-[9.5px] font-black uppercase tracking-[0.24em] text-[#d8b463]">Under a deadline?</div>
             <p className="mt-2 text-[13px] leading-relaxed text-white/60">
               If you were served with court papers, read Page V today and speak with a licensed attorney in your
-              county. Deadlines do not pause while you research. Lawsuit outcomes are never guaranteed.
+              county. Deadlines do not pause while you research. Results vary · not legal advice.
             </p>
             <Link
               to={DEBT_BOOKING_PATH}
@@ -184,14 +196,17 @@ export default function DebtEradicationGuideReaderPage() {
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="max-w-2xl">
               <div className="text-[9.5px] font-black uppercase tracking-[0.26em] text-[#d8b463]">
-                Keep reading freely
+                {previewLocked ? 'This is a preview' : 'Guide unlocked'}
               </div>
               <p className="dge-index-title mt-2 text-xl text-[#f6f1e4]">
-                The manual is free. The portal is where partners run it.
+                {previewLocked
+                  ? 'Enter your details to unlock the rest of the pages.'
+                  : 'The portal is where partners run the playbook.'}
               </p>
               <p className="mt-2 text-[13px] leading-relaxed text-white/58">
-                Validation tracking, certified-mail records, and a document vault your specialist can read in one
-                sitting — no signup required to finish the pages.
+                {previewLocked
+                  ? 'Page I is the preview. The remaining pages unlock after you request the guide.'
+                  : 'Validation tracking, certified-mail records, and a document vault your specialist can read in one sitting.'}
               </p>
               <p className="dge-compliance mt-2">{DEBT_GUIDE_META.compliance}</p>
             </div>
@@ -263,7 +278,14 @@ export default function DebtEradicationGuideReaderPage() {
                 <span className="dge-compliance--onleaf hidden text-[10.5px] sm:inline">
                   {DEBT_GUIDE_META.compliance}
                 </span>
-                {i < TOTAL - 1 ? (
+                {previewLocked ? (
+                  <Link
+                    to={`${DEBT_GUIDE_LANDING_PATH}#download`}
+                    className="dge-page-btn dge-page-btn--primary inline-flex h-11 items-center gap-2 rounded-sm px-5 text-[10px] font-black uppercase tracking-[0.14em]"
+                  >
+                    Unlock full guide <ArrowRight size={16} />
+                  </Link>
+                ) : i < TOTAL - 1 ? (
                   <button
                     type="button"
                     onClick={() => goChapter(i + 1)}

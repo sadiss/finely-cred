@@ -14,10 +14,10 @@ export const BC_ONE_SHEETS_PATH = '/resources/business-credit-one-sheets';
 export const BC_GUIDE_META: GuideMeta = {
   title: 'The Business Credit Power Guide',
   shortTitle: 'Power Guide',
-  tagline: 'Entity truth · Business files · Vendor ladder · Capital stack',
+  tagline: 'Entity truth, business files, a vendor ladder, and a capital stack',
   description:
-    'A free in-app guide to building business credit funders respect: fundability fundamentals, entity hygiene, the three business bureaus, vendor tier sequencing, bank rating, the capital stack, application discipline, and a 12-month build calendar.',
-  compliance: 'Educational only · results vary · funding subject to underwriting',
+    'A free in-app guide to building business credit funders can verify: fundability fundamentals, entity hygiene, the three business bureaus, vendor sequencing, bank rating, the capital stack, application discipline, and a twelve-month build calendar.',
+  compliance: 'Results vary · not legal advice · funding subject to underwriting',
   edition: 'Finely Cred edition',
   landingPath: BC_GUIDE_LANDING_PATH,
   readPath: BC_GUIDE_READ_PATH,

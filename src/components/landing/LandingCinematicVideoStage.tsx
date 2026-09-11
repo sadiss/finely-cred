@@ -52,7 +52,7 @@ export function LandingCinematicVideoStage() {
     >
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_55%_at_50%_0%,rgba(52,211,153,0.16),transparent_60%),radial-gradient(ellipse_50%_40%_at_10%_80%,rgba(16,185,129,0.12),transparent_55%)] pointer-events-none" />
 
-      <div className="container mx-auto px-4 sm:px-6 max-w-5xl relative z-10">
+      <div className="fc-viewport-floor relative z-10">
         <div className="text-center mb-8 sm:mb-10 max-w-2xl mx-auto">
           <Reveal>
             <p className="fc-sell-kicker fc-sell-kicker--emerald mb-4">What we offer partners</p>
@@ -64,11 +64,11 @@ export function LandingCinematicVideoStage() {
               speedMs={42}
             />
             <p className="mt-4 text-sm sm:text-base text-white/55 leading-relaxed">
-              A full credit solutions company — not a SaaS demo. Personal restore, dispute letters, debt &amp; summons
-              response, business credit, and funding readiness with concierge execution or self-guided DIY access.
+              Personal restore, dispute letters, collector paper, business credit, and funding — work the file yourself,
+              or let the desk run it with you.
             </p>
             <p className="mt-2 text-xs sm:text-sm text-emerald-200/55 leading-relaxed">
-              FCRA-aware workflows · encrypted partner vault · one clear next step from messy file to fundable profile.
+              Factual dispute letters, an encrypted partner vault, and a next step that matches the file in front of you.
             </p>
           </Reveal>
         </div>

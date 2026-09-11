@@ -45,7 +45,7 @@ function defaultLinkAssets(): DistributionLinkAsset[] {
       id: 'asset-pricing',
       label: 'Personal credit restore pricing',
       kind: 'pricing',
-      path: '/services/personal-credit-restore',
+      path: '/pricing/personal-credit-restore',
       utmCampaign: 'pricing_personal',
       enabled: true,
       createdAt: t,

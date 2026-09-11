@@ -3,6 +3,7 @@ export type VoiceProfile =
   | 'finely_female_warm'
   | 'finely_male_calm'
   | 'finely_documentary'
+  | 'finely_kreyol_companion'
   | 'nora_funding_advisor';
 
 export type VoiceTenantId = 'finely_cred' | 'nora_capital';
@@ -14,6 +15,7 @@ export const VOICE_PROFILES: VoiceProfile[] = [
   'finely_female_warm',
   'finely_male_calm',
   'finely_documentary',
+  'finely_kreyol_companion',
   'nora_funding_advisor',
 ];
 
@@ -24,6 +26,7 @@ export function voiceProfileLabel(v: VoiceProfile): string {
   if (v === 'finely_male_calm') return 'Calm male advisor';
   if (v === 'finely_documentary') return 'Documentary narrator';
   if (v === 'nora_funding_advisor') return 'Nora funding advisor';
+  if (v === 'finely_kreyol_companion') return 'Kreyòl companion';
   return 'Warm female advisor';
 }
 
@@ -31,7 +34,7 @@ export function voiceProfilesForTenant(tenantId: VoiceTenantId): VoiceProfile[] 
   if (tenantId === 'nora_capital') {
     return ['nora_funding_advisor', 'finely_brand_primary', 'finely_male_calm', 'finely_documentary'];
   }
-  return ['finely_brand_primary', 'finely_female_warm', 'finely_male_calm', 'finely_documentary'];
+  return ['finely_brand_primary', 'finely_female_warm', 'finely_male_calm', 'finely_documentary', 'finely_kreyol_companion'];
 }
 
 /** @deprecated use VoiceProfile */

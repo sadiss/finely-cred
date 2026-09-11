@@ -219,11 +219,11 @@ export function DisputeLetterGuidePreview({ compact, className = '' }: Props) {
 
       <div className="px-3 pb-3 sm:px-4">
         <Link
-          to={DISPUTE_LETTER_GUIDE_READ_PATH}
+          to={`${DISPUTE_LETTER_GUIDE_READ_PATH}?preview=1`}
           className="fdg-primary-btn inline-flex w-full items-center justify-center gap-2 rounded-md px-4 py-2.5 text-[10px] font-bold uppercase tracking-[0.14em]"
         >
           <span className="relative z-10 inline-flex items-center gap-2">
-            <BookOpen className="h-3.5 w-3.5" /> Read all {DISPUTE_LETTER_GUIDE_PROGRAMMATIC_PAGES.length} pages free
+            <BookOpen className="h-3.5 w-3.5" /> See preview
           </span>
         </Link>
       </div>

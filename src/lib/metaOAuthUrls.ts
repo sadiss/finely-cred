@@ -27,6 +27,27 @@ export function buildMetaOAuthRedirectUris(cfg?: Pick<MetaIntegrationConfig, 'pr
   return [...new Set(uris)];
 }
 
+export const META_OAUTH_SCOPES = [
+  'pages_show_list',
+  'pages_read_engagement',
+  'pages_manage_posts',
+  'instagram_basic',
+  'leads_retrieval',
+].join(',');
+
+export function buildMetaOAuthDialogUrl(appId: string, redirectUri?: string): string {
+  const uri = redirectUri ?? primaryMetaOAuthRedirectUri();
+  return `https://www.facebook.com/v19.0/dialog/oauth?client_id=${encodeURIComponent(appId)}&redirect_uri=${encodeURIComponent(uri)}&scope=${encodeURIComponent(META_OAUTH_SCOPES)}&response_type=code`;
+}
+
+/** Starts Facebook Page OAuth. Returns false when the App ID is missing. */
+export function startMetaPageOAuth(appId: string, cfg?: Pick<MetaIntegrationConfig, 'productionSiteUrl'>): boolean {
+  const id = appId.trim();
+  if (!id || id === 'YOUR_META_APP_ID') return false;
+  window.location.href = buildMetaOAuthDialogUrl(id, primaryMetaOAuthRedirectUri(cfg));
+  return true;
+}
+
 export function primaryMetaOAuthRedirectUri(cfg?: Pick<MetaIntegrationConfig, 'productionSiteUrl'>): string {
   if (cfg?.productionSiteUrl?.trim()) {
     try {

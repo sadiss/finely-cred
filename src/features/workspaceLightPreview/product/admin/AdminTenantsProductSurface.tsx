@@ -151,7 +151,7 @@ export default function AdminTenantsProductSurface({ role, pageId }: WorkspacePr
       pageId={pageId}
       eyebrow="Platform"
       title="Tenants"
-      description="Tenant mosaic first — open a card to edit branding, domains, and feature access."
+      description="Open a tenant card to edit branding, domains, and feature access."
       accent={accent}
       surfaceMode={navItem?.surfaceMode ?? 'light'}
       archetype={archetype}

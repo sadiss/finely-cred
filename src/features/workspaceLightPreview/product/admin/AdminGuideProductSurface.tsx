@@ -171,7 +171,7 @@ export default function AdminGuideProductSurface({ role, pageId }: WorkspaceProd
         nextTopic ? (
           <ProductPagePrimaryAction label={`Next: ${nextTopic.title}`} onClick={goNext} />
         ) : (
-          <ProductPagePrimaryAction label="Back to command center" onClick={() => navigate('/admin')} />
+          <ProductPagePrimaryAction label="Back to dashboard" onClick={() => navigate('/admin')} />
         )
       }
       secondaryAction={
@@ -192,7 +192,7 @@ export default function AdminGuideProductSurface({ role, pageId }: WorkspaceProd
                 </div>
                 <h2 className="mt-2 text-3xl font-extrabold">Enterprise playbook mosaic</h2>
                 <p className={`mt-2 max-w-3xl text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
-                  Each tile is a standing operating procedure. Open one to read steps and jump to the live workstation.
+                  Each tile is a standing operating procedure. Open one to read steps and jump to the live room.
                 </p>
               </div>
 

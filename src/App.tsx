@@ -1,9 +1,9 @@
 import React, { Suspense, useEffect, useState } from 'react';
 import { 
   Shield, Zap, Trophy, UserCheck, ShoppingBag, ArrowRight, Menu,
-  Download, Sparkles, CreditCard
+  CreditCard, Download, Sparkles
 } from 'lucide-react';
-import { BrowserRouter, Routes, Route, useLocation, useNavigate, Navigate, useParams } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation, useNavigate, Navigate, useParams, useSearchParams } from 'react-router-dom';
 
 // Import all components
 import { Button, Reveal, Toast, LiveApprovalTicker, MobileNav, FullPageLoader, AppErrorBoundary, FlashyIcon } from './components/ui';
@@ -12,7 +12,6 @@ import {
   TestimonialDossier,
   ProvenResultsStrip,
   HomeHeroProofStrip,
-  WhatMakesDifferentSection,
   ViolationLiveFeed,
   Footer,
   LandingPathChooserSection,
@@ -25,6 +24,8 @@ import {
   MasteryOSSection,
   LandingSellAtmosphere,
 } from './components/landing';
+import { FreeGuideFunnelStyles } from './components/leadmagnet/FreeGuideFunnelStyles';
+import { LeadMagnetEbook } from './components/leadmagnet/LeadMagnetHeroMockup';
 import { SovereignPortal } from './components/portal';
 import { MasteryOSDashboard } from './components/dashboard';
 import { AuthProvider, useAuth } from './auth/AuthProvider';
@@ -40,19 +41,18 @@ import { getOrCreatePartnerForSession } from './portal/getOrCreatePartnerForSess
 import { PartnerSessionProvider, usePartnerSession } from './auth/PartnerSessionContext';
 import { adminPartnerFocusMatchesPath } from './lib/adminPartnerFocus';
 import { BackToSiteButton, consumeSignedOutFlag, markSignedOutAndGoHome } from './components/navigation/BackToSiteButton';
-import { AuListingShowcase, type AuShowcaseListing } from './components/tradelines/AuListingShowcase';
-import { auRequestSearchParams } from './lib/auMarketplaceInventory';
-import { DigitalInviteShareBand } from './components/digitalCards';
-import { captureDigitalInviteCardFromUrl } from './lib/digitalInviteCardAttribution';
 import { resolvePostAuthHomePath } from './lib/postAuthRouting';
+import { isAdminEmail } from './auth/admin';
+import { resolveHaitianCommunityHref } from './lib/haitianCompanionDesk';
+import HaitianCompanionDeskPage from './pages/public/HaitianCompanionDeskPage';
+import HaitianMetroDeskPage from './pages/public/HaitianMetroDeskPage';
+import HaitianKitStudioPage from './pages/public/HaitianKitStudioPage';
 import { isAuthEntryPath, signupUrlForCareerPath } from './lib/onboardingRoleRouting';
 import { resolveAuthedOnboardingBouncePath } from './lib/packageCheckoutRouting';
 import { finelyCtaNavigate, resolveFinelyCtaPath } from './lib/finelyCtaIntent';
 import { ensureDefaultExperiments, assignFunnelVariant, getAssignedCtaDestination } from './data/funnelExperimentsRepo';
 import { persistCtaBridgeVariant } from './lib/funnelCtaBridge';
 import { clearOnboardingProgress, peekOnboardingRecommendedNextPath } from './lib/onboardingProgressStorage';
-import { FreeGuideFunnelStyles } from './components/leadmagnet/FreeGuideFunnelStyles';
-import { LeadMagnetEbook } from './components/leadmagnet/LeadMagnetHeroMockup';
 import { AdminCommandPaletteHost } from './features/work/components/WorkCommandPalette';
 import { FinelySiteThemeProvider } from './features/os/FinelySiteThemeProvider';
 import { FinelyThemeToggle } from './features/os/FinelyThemeToggle';
@@ -70,11 +70,9 @@ import {
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_SECONDARY_BTN,
-  finelyOsCatalogCard,
-  finelyOsInlineListItem,
-  finelyOsLeadMagnetPanel,
   finelyOsLandingContrastSection,
   finelyOsLandingPlatinumSection,
+  finelyOsLeadMagnetPanel,
 } from './features/os/finelyOsLightUi';
 import { FinelyOsComplianceStrip } from './features/os/FinelyOsComplianceStrip';
 import { isFeatureEnabled } from './data/settingsRepo';
@@ -84,6 +82,8 @@ import { SiteViewportPreview } from './components/layout/SiteViewportPreview';
 import { Overnight50SiteBootstrap } from './components/overnight50/Overnight50SiteBootstrap';
 import { inPreviewFrame } from './lib/inPreviewFrame';
 import { lazyWithRetry } from './lib/lazyWithRetry';
+import AboutPage from './pages/public/AboutPage';
+import TradelinesPublicPage from './pages/public/TradelinesPublicPage';
 import FreeGuideFunnelPage from './pages/leadmagnet/FreeGuideFunnelPage';
 
 // Route-level code splitting (keeps main bundle lean)
@@ -261,7 +261,22 @@ const BookstorePage = lazyWithRetry(() => import('./pages/BookstorePage'));
 const BookstoreProductPage = lazyWithRetry(() => import('./pages/BookstoreProductPage'));
 const PricingPage = lazyWithRetry(() => import('./pages/PricingPage'));
 const PricingServicePage = lazyWithRetry(() => import('./pages/PricingServicePage'));
+const CityCreditPage = lazyWithRetry(() => import('./pages/public/CityCreditPage'));
+const RulesThisWeekPage = lazyWithRetry(() => import('./pages/public/RulesThisWeekPage'));
+const ComplaintsBoardPage = lazyWithRetry(() => import('./pages/public/ComplaintsBoardPage'));
+const LawStatutePage = lazyWithRetry(() => import('./pages/public/LawStatutePage'));
+const DebtOpinionsPage = lazyWithRetry(() => import('./pages/public/DebtOpinionsPage'));
+const StateFundingPage = lazyWithRetry(() => import('./pages/public/StateFundingPage'));
+const ComplaintStudyPage = lazyWithRetry(() => import('./pages/public/ComplaintStudyPage'));
+const PinWallPage = lazyWithRetry(() => import('./pages/public/PinWallPage'));
+const CreditLabPage = lazyWithRetry(() => import('./pages/public/CreditLabPage'));
 const PersonalCreditRestorePreviewPage = lazyWithRetry(() => import('./pages/preview/PersonalCreditRestorePreviewPage'));
+const BusinessCreditPreviewPage = lazyWithRetry(() => import('./pages/preview/BusinessCreditPreviewPage'));
+const DebtLegalPreviewPage = lazyWithRetry(() => import('./pages/preview/DebtLegalPreviewPage'));
+const PersonalCreditBuildPreviewPage = lazyWithRetry(() => import('./pages/preview/PersonalCreditBuildPreviewPage'));
+const PrivacyIdPreviewPage = lazyWithRetry(() => import('./pages/preview/PrivacyIdPreviewPage'));
+const BundlesPreviewPage = lazyWithRetry(() => import('./pages/preview/BundlesPreviewPage'));
+const WealthBuilderPreviewPage = lazyWithRetry(() => import('./pages/preview/WealthBuilderPreviewPage'));
 const WorkspaceLightPreviewHubPage = lazyWithRetry(() => import('./pages/preview/WorkspaceLightPreviewHubPage'));
 const AdminDashboardLightPreviewPage = lazyWithRetry(() => import('./pages/preview/AdminDashboardLightPreviewPage'));
 const PartnerDashboardLightPreviewPage = lazyWithRetry(() => import('./pages/preview/PartnerDashboardLightPreviewPage'));
@@ -334,6 +349,7 @@ const RealEstateCareersPage = lazyWithRetry(() => import('./pages/RealEstateCare
 const AgencySignupPage = lazyWithRetry(() => import('./pages/agency/AgencySignupPage'));
 const AgencyHubPage = lazyWithRetry(() => import('./pages/agency/AgencyHubPage'));
 const AgencyPartnersPage = lazyWithRetry(() => import('./pages/agency/AgencyPartnersPage'));
+const AgencyTenantPartnersPage = lazyWithRetry(() => import('./pages/agency/AgencyTenantPartnersPage'));
 const CaseHelpHubPage = lazyWithRetry(() => import('./pages/caseHelp/CaseHelpHubPage'));
 const RealEstateHubPage = lazyWithRetry(() => import('./pages/realEstate/RealEstateHubPage'));
 const AgentHubPage = lazyWithRetry(() => import('./pages/agent/AgentHubPage'));
@@ -369,7 +385,9 @@ type NavView =
   | 'privacy'
   | 'disclaimer'
   | 'unsubscribe'
-  | 'head_of_society';
+  | 'head_of_society'
+  | 'haitian'
+  | 'kreyol';
 
 function routeFromView(view: NavView): string {
   switch (view) {
@@ -401,6 +419,9 @@ function routeFromView(view: NavView): string {
     case 'disclaimer': return '/disclaimer';
     case 'unsubscribe': return '/unsubscribe';
     case 'head_of_society': return '/head-of-society';
+    case 'haitian':
+    case 'kreyol':
+      return '/haitian';
     default: return '/';
   }
 }
@@ -424,6 +445,7 @@ function viewFromPath(pathname: string): NavView {
     pathname.startsWith('/credit-specialist/join') ||
     pathname.startsWith('/credit-specialist/onboarding') ||
     pathname.startsWith('/credit-specialist/hub') ||
+    pathname.startsWith('/credit-specialist-guide') ||
     pathname.startsWith('/agent/hub')
   ) {
     return 'agents';
@@ -435,7 +457,21 @@ function viewFromPath(pathname: string): NavView {
   if (pathname.startsWith('/privacy')) return 'privacy';
   if (pathname.startsWith('/disclaimer')) return 'disclaimer';
   if (pathname.startsWith('/unsubscribe')) return 'unsubscribe';
+  if (pathname === '/haitian' || pathname === '/kreyol' || pathname.startsWith('/haitian/')) return 'haitian';
   return 'landing';
+}
+
+/** Signed-in people get the new desks. Guests keep the public Haitian community page. */
+function HaitianCommunityRoute() {
+  const [params] = useSearchParams();
+  const auth = useAuth();
+  if (params.get('public') === '1') return <HaitianCompanionDeskPage />;
+  const dest = resolveHaitianCommunityHref({
+    isAdmin: isAdminEmail(auth.user?.email),
+    isAuthed: Boolean(auth.user),
+  });
+  if (dest !== '/haitian') return <Navigate to={dest} replace />;
+  return <HaitianCompanionDeskPage />;
 }
 
 /** Legacy `/consultation` bookmarks â†’ canonical enlightenment session (preserves query string). */
@@ -533,9 +569,9 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
       {/* 8. Mastery OS â€” device cluster + live approvals */}
       <MasteryOSSection />
 
-      {/* 9. Free guide teaser */}
+      {/* Standalone free guide — its own section. One-sheets stay one-sheets. */}
       <section className={`py-12 sm:py-16 ${finelyOsLandingContrastSection('fc-band-violet')}`} data-fc-contrast-band="1">
-        <div className="container mx-auto px-4 sm:px-6 max-w-6xl">
+        <div className="mx-auto w-full max-w-none px-4 sm:px-8 lg:px-12 xl:px-16">
           <Reveal>
             <div className={`relative overflow-hidden ${finelyOsLeadMagnetPanel('emerald')} p-6 sm:p-10 lg:p-12`} data-fc-accent="emerald">
               <div className="relative grid lg:grid-cols-[1.15fr_0.85fr] gap-8 items-center">
@@ -563,9 +599,19 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
                     </span>
                   </div>
                 </div>
-                <div className="fg-funnel flex justify-center lg:justify-end">
+                <div className="fg-funnel relative flex flex-col items-center lg:items-end">
                   <FreeGuideFunnelStyles />
+                  <p className="mb-2 rounded-full border border-emerald-600/25 bg-white/90 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-emerald-800">
+                    Cover preview
+                  </p>
                   <LeadMagnetEbook compact />
+                  <button
+                    type="button"
+                    onClick={() => navigate('/free-guide/read?preview=1')}
+                    className="mt-3 text-[11px] font-black uppercase tracking-[0.14em] text-emerald-800 underline-offset-4 hover:underline"
+                  >
+                    See preview
+                  </button>
                 </div>
               </div>
             </div>
@@ -576,17 +622,17 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
       <LandingMaterialsPreviewBand />
 
       {/* 10. Social proof + compliance */}
-      <section className={`fc-sell py-16 sm:py-20 overflow-x-hidden relative ${finelyOsLandingPlatinumSection()}`} data-fc-contrast-band="1">
+      <section className={`fc-sell fc-sell--brand py-16 sm:py-20 overflow-x-hidden relative ${finelyOsLandingPlatinumSection()}`} data-fc-contrast-band="1">
         <LandingSellAtmosphere tone="platinum" />
-        <div className="container mx-auto px-4 sm:px-6 max-w-6xl min-w-0 relative z-10">
+        <div className="fc-viewport-floor min-w-0 relative z-10">
           <FinelyOsComplianceStrip className="mb-10" />
           <div className="text-center mb-12">
             <Reveal>
-              <p className="text-xs font-bold tracking-[0.3em] text-[#8a6a24] uppercase mb-4">
+              <p className="text-xs font-bold tracking-[0.3em] text-emerald-700 uppercase mb-4">
                 <Trophy size={14} className="inline mr-2" /> Reviews
               </p>
               <h2 className="text-3xl lg:text-4xl font-extrabold text-[#0c1228] mb-4">
-                Partner <span className="text-[#8a6a24]">success stories</span>
+                Partner <span className="text-emerald-700">success stories</span>
               </h2>
             </Reveal>
           </div>
@@ -595,8 +641,9 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
               <Reveal delay={100}>
                 <TestimonialDossier
                   id="FC-881"
-                  variant="champagne"
-                  metal="gold"
+                  variant="obsidian"
+                  metal="obsidian"
+                  accent="emerald"
                   service="Tradelines"
                   name="Amy Peaks"
                   review="My score moved in the first cycle. The guidance was precise, the process was clean, and the results were exactly what I needed."
@@ -608,8 +655,9 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
               <Reveal delay={200}>
                 <TestimonialDossier
                   id="FC-924"
-                  variant="champagne"
-                  metal="silver"
+                  variant="obsidian"
+                  metal="obsidian"
+                  accent="violet"
                   service="Funding"
                   name="Jennifer Boykins"
                   review="I was skeptical at first, but the sequencing and execution were real. I qualified for funding faster than I thought possible."
@@ -621,8 +669,9 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
               <Reveal delay={300}>
                 <TestimonialDossier
                   id="FC-110"
-                  variant="champagne"
-                  metal="bronze"
+                  variant="obsidian"
+                  metal="obsidian"
+                  accent="sky"
                   service="Credit Restoration"
                   name="Bruce Cunningham"
                   review="The strategy was detailed and disciplined. They didn't just send letters — they built a real case file and kept everything organized."
@@ -654,23 +703,24 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
               </div>
             </Reveal>
             <Reveal delay={150}>
-              <h2 className="text-3xl lg:text-5xl font-light leading-tight text-white">
-                Start with the <span className="text-emerald-400 font-medium">free guide</span>
+              <h2 className="text-3xl lg:text-5xl font-extrabold leading-tight text-white">
+                Ready for a <span className="text-emerald-400">clear next step</span>
               </h2>
             </Reveal>
             <Reveal delay={300}>
               <p className="text-lg text-white/55">
-                Join thousands of partners building credit clarity and funding readiness — results vary · not legal advice · funding subject to underwriting.
+                Book a session or see solutions — the free guide stays at the top of the page if you want it first.
+                Results vary · not legal advice · funding subject to underwriting.
               </p>
             </Reveal>
             <Reveal delay={450}>
               <div className="flex flex-col sm:flex-row justify-center gap-4 pt-2">
                 <button
                   type="button"
-                  onClick={() => finelyCtaNavigate(navigate, 'personal_free_guide', { isAuthed: Boolean(auth.user) })}
+                  onClick={() => finelyCtaNavigate(navigate, 'consultation', { isAuthed: Boolean(auth.user) })}
                   className="group relative inline-flex items-center justify-center gap-3 px-8 py-4 rounded-xl fc-button-platinum-surface font-bold uppercase tracking-wider text-sm transition-all duration-300 hover:scale-105"
                 >
-                  <span className="relative z-[1]">Start free guide</span>
+                  <span className="relative z-[1]">Book a session</span>
                   <ArrowRight size={18} className="relative z-[1] group-hover:translate-x-1 transition-transform" />
                 </button>
                 <button
@@ -693,391 +743,17 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
 }
 
 function TradelinesRoute({ addToCart, onNavigate }: { addToCart: (item: any) => void; onNavigate: (view: NavView) => void }) {
-  const location = useLocation();
-  const navigate = useNavigate();
-  usePublicSeoMeta({
-    title: 'Tradeline marketplace',
-    description: 'Authorized user tradelines and primary tradeline education â€” profile enhancement with compliance-first guidance.',
-    path: '/tradelines',
-  });
-  const focus = new URLSearchParams(location.search).get('focus'); // 'primary' | 'au' | null
-  const [miniCartPulse, setMiniCartPulse] = useState(0);
-
-  // Invite cards land here with `?invite=tradelines&src=digital-card`.
-  useEffect(() => {
-    captureDigitalInviteCardFromUrl(location.search, location.pathname);
-  }, [location.pathname, location.search]);
-
-  useEffect(() => {
-    if (!focus) return;
-    const id = focus === 'primary' ? 'tradelines-primary' : focus === 'au' ? 'tradelines-au' : null;
-    if (!id) return;
-    // Slight delay so layout is ready before scrolling
-    const t = window.setTimeout(() => {
-      const el = document.getElementById(id);
-      el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 80);
-    return () => window.clearTimeout(t);
-  }, [focus]);
-
-  const onAdd = (item: any) => {
-    addToCart(item);
-    setMiniCartPulse((v) => v + 1);
-  };
-
-  const onCheckAuAvailability = (listing: AuShowcaseListing) => {
-    const cartId =
-      listing.source === 'seller' && listing.sellerId && listing.listingId
-        ? `seller:${listing.sellerId}:${listing.listingId}`
-        : `au-interest:${listing.id}`;
-    onAdd({
-      id: cartId,
-      bank: listing.issuer,
-      limit: listing.limit,
-      age: listing.age,
-      priceCents: listing.priceCents,
-      kind: listing.live ? 'au_tradeline' : 'au_tradeline_interest',
-      label: listing.live
-        ? `${listing.issuer} AU Â· reserve seat`
-        : `${listing.issuer} AU Â· check availability (demo)`,
-      source: listing.source,
-      sellerId: listing.sellerId,
-      listingId: listing.listingId,
-      slotsAvailable: listing.slotsAvailable,
-    });
-    // Live rows â†’ buyer intake with listing id (auth bounce preserves deep link). Demo â†’ same path, labeled demo.
-    navigate(`/au/request?${auRequestSearchParams(listing).toString()}`);
-  };
-
   return (
-    <div className="min-h-screen pt-28 pb-0">
-      <div className="px-6 pb-32 lg:pb-44">
-        <div className="max-w-7xl mx-auto space-y-10">
-          <div className="text-center space-y-4">
-            <p className="text-xs font-bold tracking-[0.3em] text-amber-500 uppercase">Premium Tradelines</p>
-            <h1 className="text-4xl md:text-5xl font-light text-white">
-              Choose your <span className="text-amber-500">lane</span>
-            </h1>
-            <p className="text-white/50 max-w-2xl mx-auto">
-              Authorized Users (AU) for premium profile enhancement, or Primary tradelines via inâ€‘house financing
-              (educationâ€‘first; reports to Equifax when eligible).
-            </p>
-          </div>
-
-          {/* Lane cards */}
-          <div className="grid md:grid-cols-2 gap-6">
-            <button
-              type="button"
-              onClick={() => onNavigate('tradelines_au')}
-              className="text-left rounded-3xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-transparent hover:border-amber-500/40 transition-all p-8"
-            >
-              <div className="text-[10px] uppercase tracking-[0.28em] text-amber-400 font-black">AU Marketplace</div>
-              <div className="mt-2 text-2xl font-medium text-white">Authorized Users</div>
-              <div className="mt-2 text-white/55 text-sm leading-relaxed">
-                Get added to seasoned tradelines with strong limits and clean payment history. Designed for profile enhancement.
-              </div>
-              <div className="mt-6 inline-flex items-center gap-2 text-amber-400 font-medium">
-                Browse inventory <ArrowRight size={16} />
-              </div>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => onNavigate('tradelines_primary')}
-              className="text-left rounded-3xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 to-transparent hover:border-emerald-500/40 transition-all p-8"
-            >
-              <div className="text-[10px] uppercase tracking-[0.28em] text-emerald-300 font-black">Primary Tradeline</div>
-              <div className="mt-2 text-2xl font-medium text-white">Inâ€‘House Financing (Educationâ€‘First)</div>
-              <div className="mt-2 text-white/55 text-sm leading-relaxed">
-                Built for creditâ€‘building programs. We confirm fit in a free strategy call so it supports your long-term plan (not a debt swap).
-              </div>
-              <div className="mt-6 inline-flex items-center gap-2 text-emerald-400 font-medium">
-                See how it works <ArrowRight size={16} />
-              </div>
-            </button>
-          </div>
-
-          {/* Primary lane */}
-          <section id="tradelines-primary" className={`${finelyOsCatalogCard('emerald')} p-8`}>
-            <div className="flex flex-col lg:flex-row gap-8 items-start lg:items-center">
-              <div className="flex-1 space-y-3">
-                <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-emerald-400`}>Primary tradeline lane</div>
-                <div className={`text-2xl font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Build credit while you pay</div>
-                <p className={`${FINELY_OS_ENTITY_BODY} text-sm leading-relaxed`}>
-                  When eligible, inâ€‘house financing can report to Equifax as a positive installment tradeline. We only recommend this
-                  when it aligns with a responsible plan and your profile goals. Financing terms vary and are disclosed in the contract.
-                </p>
-                <p className="text-white/50 text-xs">
-                  We do not promise approvals, outcomes, or loan amounts. Lender pathways are bureau-pull dependent and vary by profile.
-                </p>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Button onClick={() => onNavigate('consultation')} size="md">
-                  Book a strategy call <ArrowRight size={16} />
-                </Button>
-                <Button variant="outline" onClick={() => onNavigate('pricing')} size="md">
-                  View pricing options
-                </Button>
-              </div>
-            </div>
-          </section>
-
-          {/* AU lane â€” single inventory row (showcase cards + Check availability â†’ get matched). */}
-          <section id="tradelines-au" className="space-y-8">
-            <AuListingShowcase
-              onNavigateAuTeenSheet={() => navigate('/resources/au-teen-credit-sheet')}
-              onCheckAvailability={onCheckAuAvailability}
-            />
-            <div className="flex flex-wrap gap-3 items-center justify-center">
-              <Button variant="outline" onClick={() => onNavigate('checkout')} size="sm">
-                Go to checkout <ArrowRight size={16} />
-              </Button>
-              <Button variant="outline" onClick={() => navigate('/au/request')} size="sm">
-                Start buyer intake <ArrowRight size={16} />
-              </Button>
-            </div>
-          </section>
-
-          <DigitalInviteShareBand role="tradelines" />
-        </div>
-      </div>
-
-      {/* Mini checkout CTA after add-to-cart */}
-      <div
-        className={`fixed bottom-6 right-6 z-50 hidden lg:block transition-transform ${
-          miniCartPulse ? 'animate-in slide-in-from-bottom duration-500' : ''
-        }`}
-        key={miniCartPulse}
-      >
-        <button
-          type="button"
-          onClick={() => onNavigate('checkout')}
-          className="rounded-2xl border border-amber-500/25 bg-fc-section/95 backdrop-blur-xl px-5 py-4 shadow-2xl hover:border-amber-500/40 hover:bg-fc-section transition-all"
-        >
-          <div className="text-[10px] uppercase tracking-[0.28em] text-amber-400 font-black">Ready?</div>
-          <div className="mt-1 text-white font-semibold">Checkout your secured assets</div>
-          <div className="mt-2 inline-flex items-center gap-2 text-amber-300 text-sm font-semibold">
-            Go to checkout <ArrowRight size={16} />
-          </div>
-        </button>
-      </div>
-      <div className="px-6 pb-8 max-w-4xl mx-auto">
-        <MarketingStaffChatStrip
-          roleId="finely_advisor"
-          goal="tradelines"
-          roleLabel="tradeline advisor"
-          subline="AU vs primary tradeline â€” not sure which lane fits? Chat before you add to cart."
-          buttonTone="secondary"
-        />
-      </div>
-      <Footer onNavigate={(page) => onNavigate(page as NavView)} />
-    </div>
+    <TradelinesPublicPage
+      addToCart={addToCart}
+      onNavigate={onNavigate}
+      onFooterNavigate={(page) => onNavigate(page as NavView)}
+    />
   );
 }
 
 function AboutRoute({ onNavigate }: { onNavigate: (view: NavView) => void }) {
-  const navigate = useNavigate();
-  usePublicSeoMeta({
-    title: 'About Finely Cred',
-    description: 'Credit systems architecture since 2014 â€” DIY and done-for-you restore, funding, and partner OS.',
-    path: '/about',
-  });
-  return (
-    <div className="min-h-screen pt-28 pb-0">
-      <div className="px-6 pb-20">
-        <div className="max-w-6xl mx-auto">
-        <div className="relative overflow-hidden rounded-[2rem] md:rounded-[2.5rem] border border-emerald-500/20 bg-white p-6 md:p-10 lg:p-14 shadow-2xl shadow-black/25 mb-16">
-          <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(800px_360px_at_80%_20%,rgba(16,185,129,0.16),transparent_60%)]" />
-          <div className="relative grid lg:grid-cols-12 gap-8 items-center">
-            <div className="lg:col-span-7">
-              <p className="text-xs font-black tracking-[0.3em] text-emerald-700 uppercase">About Finely Cred</p>
-              <h1 className="mt-4 text-4xl md:text-6xl font-black text-slate-950 leading-tight">
-                We don't just repair. We architect credit systems.
-              </h1>
-              <p className="mt-5 text-lg text-slate-600 max-w-2xl leading-relaxed">
-                Since <span className="text-slate-950 font-bold">2014</span>, Finely Cred has helped partners move from
-                scattered credit problems into disciplined evidence, dispute, funding, and operating workflows.
-              </p>
-              <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50/80 p-5 max-w-2xl">
-                <div className="text-[10px] font-black uppercase tracking-[0.28em] text-emerald-800">What is a Finely partner?</div>
-                <p className="mt-2 text-sm text-slate-700 leading-relaxed">
-                  A <strong>partner</strong> is anyone working with Finely Cred on restore, funding, or education — DIY portal access,
-                  done-for-you execution, or both. We use &quot;partner&quot; on this site; your portal and Communication Hub
-                  unlock after onboarding.
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-3 pt-6">
-                <button
-                  onClick={() => onNavigate('consultation')}
-                  className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all"
-                >
-                  Book a strategy call <ArrowRight size={14} />
-                </button>
-                <button onClick={() => onNavigate('pricing')} className="fc-button-platinum">
-                  Explore pricing <ArrowRight size={14} />
-                </button>
-              </div>
-            </div>
-            <div className="lg:col-span-5 grid grid-cols-2 gap-3">
-              {[
-                { k: 'Operating since', v: '2014' },
-                { k: 'Core model', v: 'DIY + DFY' },
-                { k: 'Built around', v: 'Evidence' },
-                { k: 'End goal', v: 'Capital readiness' },
-              ].map((s) => (
-                <div key={s.k} className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                  <div className="text-[10px] uppercase tracking-widest text-slate-500 font-black">{s.k}</div>
-                  <div className="mt-2 text-2xl font-black text-slate-950">{s.v}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-10">
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              { k: 'Since', v: '2014', d: 'Years in credit strategy + operations' },
-              { k: 'Model', v: 'DIY + DFY', d: 'Tools for self-starters, execution for complex files' },
-              { k: 'Focus', v: 'Outcomes', d: 'Clean process, evidence discipline, and strategy' },
-            ].map((s) => (
-              <div key={s.k} className="rounded-2xl border border-emerald-500/20 bg-white p-6 text-slate-950 shadow-xl shadow-black/10">
-                <div className="text-emerald-700 text-[10px] font-black uppercase tracking-[0.28em]">{s.k}</div>
-                <div className="mt-2 text-3xl font-black">{s.v}</div>
-                <div className="mt-2 text-slate-600 text-sm">{s.d}</div>
-              </div>
-            ))}
-          </div>
-
-          <div className={`${finelyOsCatalogCard('emerald')} p-8`}>
-            <div className={`${FINELY_OS_ENTITY_VALUE} text-xl font-semibold`}>What we do</div>
-            <p className={`mt-3 ${FINELY_OS_ENTITY_BODY} text-sm leading-relaxed`}>
-              We help partners improve profile quality, reduce underwriting friction, and build lending readiness through a structured
-              process: education â†’ evidence discipline â†’ workflow execution â†’ reporting strategy. We donâ€™t sell â€œmagic.â€ We build systems.
-            </p>
-            <div className="mt-6 grid md:grid-cols-2 gap-4">
-              {[
-                { t: 'Personal + business credit', d: 'Profile cleanup, sequencing, and fundability readiness.' },
-                { t: 'Debt kill workflows', d: 'Validation + dispute workflows and document discipline (not legal advice).' },
-                { t: 'Premium Tradelines', d: 'AU inventory and educationâ€‘first primary lanes where appropriate.' },
-                { t: 'Wealth paths', d: 'From credit stability to capital readiness and next-step funding pathways.' },
-              ].map((x) => (
-                <div key={x.t} className={`${finelyOsCatalogCard('emerald')} space-y-1`}>
-                  <div className={`${FINELY_OS_ENTITY_VALUE} font-semibold`}>{x.t}</div>
-                  <div className={`${FINELY_OS_ENTITY_BODY} text-sm`}>{x.d}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className={`${finelyOsCatalogCard('violet')} p-8`}>
-            <div className={`${FINELY_OS_ENTITY_VALUE} text-xl font-semibold`}>How we operate (professional + compliant)</div>
-            <ul className={`mt-4 space-y-3 ${FINELY_OS_ENTITY_BODY} text-sm`}>
-              <li>
-                <span className={`${FINELY_OS_ENTITY_VALUE} font-semibold`}>Evidence-first</span>: We organize proof packs and track timelines. Strong
-                inputs produce strong outcomes.
-              </li>
-              <li>
-                <span className={`${FINELY_OS_ENTITY_VALUE} font-semibold`}>Education-first</span>: For financing/primary lanes, we confirm fit before
-                recommending anything.
-              </li>
-              <li>
-                <span className={`${FINELY_OS_ENTITY_VALUE} font-semibold`}>No guarantees</span>: We donâ€™t promise score changes, approvals, or
-                funding amounts â€” we promise disciplined process.
-              </li>
-            </ul>
-          </div>
-
-          <WhatMakesDifferentSection />
-        </div>
-      </div>
-
-        {/* Enhanced About pre-footer (keeps existing footer links below) */}
-        <div className="mt-24 max-w-6xl mx-auto">
-          <div className={`relative overflow-hidden ${finelyOsCatalogCard('amber')} p-8 md:p-10`}>
-            <div className="absolute inset-0 pointer-events-none">
-              <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[980px] h-[420px] blur-3xl opacity-40"
-                style={{ background: 'radial-gradient(ellipse at 50% 50%, rgba(251,191,36,0.18) 0%, transparent 62%)' }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-black/30" />
-            </div>
-
-            <div className="relative">
-              <div className="flex flex-wrap items-start justify-between gap-6">
-                <div className="max-w-2xl">
-                  <div className="text-[10px] font-black uppercase tracking-[0.35em] text-white/45">Finely Cred â€¢ About</div>
-                  <h2 className="mt-3 text-3xl md:text-4xl font-light text-white leading-tight">
-                    Build credit like an operator â€” with systems, evidence, and execution.
-                  </h2>
-                  <p className="mt-3 text-white/60 text-sm md:text-base leading-relaxed">
-                    If youâ€™re ready to move from â€œfixingâ€ to building real lending readiness, start intake or book a free strategy call.
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap gap-3 items-center">
-                  <Button variant="gold" size="lg" onClick={() => navigate(resolveFinelyCtaPath('personal_intake'))}>
-                    Start intake <ArrowRight size={18} />
-                  </Button>
-                  <Button variant="platinum" size="lg" onClick={() => onNavigate('consultation')}>
-                    Book a strategy call <ArrowRight size={18} />
-                  </Button>
-                </div>
-              </div>
-
-              <div className="mt-8 grid md:grid-cols-3 gap-4">
-                {[
-                  { t: 'Evidence vault', d: 'Upload, tag, and keep proof organized by dispute + timeline.' },
-                  { t: 'Letter engine', d: 'Generate dispute letters fast with reason codes + rounds.' },
-                  { t: 'Milestones + tasks', d: 'Stay on sequence with checklists, tasks, and progress signals.' },
-                ].map((x) => (
-                  <div key={x.t} className={`${finelyOsCatalogCard('sky')} space-y-1`}>
-                    <div className={`${FINELY_OS_ENTITY_VALUE} font-semibold`}>{x.t}</div>
-                    <div className={`${FINELY_OS_ENTITY_BODY} text-sm leading-relaxed`}>{x.d}</div>
-                  </div>
-                ))}
-              </div>
-
-              <div className={`mt-8 flex flex-wrap items-center justify-between gap-4 ${finelyOsCatalogCard('emerald')}`}>
-                <div className={`flex flex-wrap items-center gap-6 text-xs ${FINELY_OS_ENTITY_BODY}`}>
-                  <span className="inline-flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> SSL secured
-                  </span>
-                  <span className="inline-flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400" /> Verified business
-                  </span>
-                  <span className="inline-flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-sky-400" /> Data protected
-                  </span>
-                  <span className="inline-flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-white/40" /> FCRA compliant
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => onNavigate('resources')}
-                  className={FINELY_OS_SECONDARY_BTN}
-                >
-                  Explore resources <ArrowRight size={14} />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="px-6 pb-8 max-w-4xl mx-auto">
-        <MarketingStaffChatStrip
-          roleId="finely_advisor"
-          goal="not_sure"
-          roleLabel="credit restoration specialist"
-          subline="New to Finely Cred? Chat about DIY vs DFY, partner OS, or which lane fits your goals."
-          buttonTone="secondary"
-        />
-      </div>
-
-      <Footer onNavigate={(page) => onNavigate(page as NavView)} />
-    </div>
-  );
+  return <AboutPage onNavigate={onNavigate} onFooterNavigate={(page) => onNavigate(page as NavView)} />;
 }
 
 function MasteryDashboardRoute({
@@ -1161,7 +837,7 @@ function AppInner() {
 
   const addToCart = (item: any) => {
     setCart((prev) => [...(prev ?? []), item]);
-    setToast(`Asset Secured: ${item.bank} - ${item.limit}`);
+    setToast(`Seat reserved: ${item.bank} · ${item.limit}`);
   };
 
   const navigate = useNavigate();
@@ -1181,6 +857,8 @@ function AppInner() {
     !location.pathname.startsWith('/account') &&
     !location.pathname.startsWith('/claim') &&
     !location.pathname.startsWith('/partner-setup');
+
+  const hideApprovalTicker = location.pathname.startsWith('/free-');
 
   const hideFloatingHub =
     location.pathname.startsWith('/portal/messages') ||
@@ -1283,12 +961,15 @@ function AppInner() {
       }
     }
     // Supports both legacy view ids and direct paths (used by dropdowns).
-    if (newView.startsWith('/')) {
-      navigate(newView);
-    } else {
-      const next = newView as NavView;
-      navigate(routeFromView(next));
-    }
+    const dest = newView.startsWith('/') ? newView : routeFromView(newView as NavView);
+    const haitianDest =
+      dest === '/haitian' || dest === '/kreyol'
+        ? resolveHaitianCommunityHref({
+            isAdmin: isAdminEmail(auth.user?.email),
+            isAuthed: Boolean(auth.user),
+          })
+        : dest;
+    navigate(haitianDest);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -1307,8 +988,8 @@ function AppInner() {
       
       {showPublicChrome && (
         <>
-          {/* Live Approval Ticker - Desktop only */}
-          <LiveApprovalTicker />
+          {/* Live Approval Ticker — hidden on free-guide landings so it cannot cover the product */}
+          {hideApprovalTicker ? null : <LiveApprovalTicker />}
 
           {/* Mobile Navigation */}
           <MobileNav 
@@ -1325,18 +1006,9 @@ function AppInner() {
               className="pointer-events-none absolute inset-0 border-b border-white/[0.08] bg-fc-chrome/90 backdrop-blur-xl"
               aria-hidden
             />
-            <div className="relative z-10 pr-4 sm:pr-6 lg:pr-8">
-            {/* Desktop logo â€” ~1.5â€“2" left of the centered content column (viewport-relative) */}
-            <button
-              type="button"
-              onClick={() => handleNavigate('landing')}
-              className="hidden lg:flex absolute inset-y-0 items-center z-[60] hover:opacity-90 transition-opacity left-[max(1rem,calc((100vw-min(100vw,80rem))/2-11rem))] xl:left-[max(1rem,calc((100vw-min(100vw,80rem))/2-12rem))]"
-              aria-label="Go to home"
-            >
-              <FinelyCredLogo size="md" alignLeft />
-            </button>
+            <div className="relative z-10 px-4 sm:px-6 lg:px-[clamp(1.5rem,4vw,3.5rem)]">
 
-            <div className="max-w-7xl mx-auto overflow-visible">
+            <div className="w-full max-w-none overflow-visible">
               {/* Mobile header: true centered brand */}
               <div className="lg:hidden grid grid-cols-3 items-center">
                 <div className="flex items-center justify-start gap-2">
@@ -1378,8 +1050,16 @@ function AppInner() {
                 </div>
               </div>
 
-              {/* Desktop header â€” nav + actions (logo is viewport-anchored above) */}
-              <div className="hidden lg:flex items-center justify-between w-full overflow-visible gap-4">
+              {/* Desktop header — logo in flow, then nav rail, then actions */}
+              <div className="hidden lg:flex items-center w-full overflow-visible gap-4">
+                <button
+                  type="button"
+                  onClick={() => handleNavigate('landing')}
+                  className="shrink-0 hover:opacity-90 transition-opacity"
+                  aria-label="Go to home"
+                >
+                  <FinelyCredLogo size="md" alignLeft />
+                </button>
                 <div className="fc-nav-rail min-w-0">
                     {PUBLIC_CORE_NAV.filter((item) => item.id === 'home').map((item) => {
                       const active = item.match(location.pathname);
@@ -1426,7 +1106,7 @@ function AppInner() {
                     <FinelyPublicNavCareerMenu pathname={location.pathname} onNavigate={(path) => handleNavigate(path)} />
                     <FinelyPublicNavContactMenu pathname={location.pathname} onNavigate={(path) => handleNavigate(path)} />
                 </div>
-                <div className="flex items-center justify-end gap-2 shrink-0">
+                <div className="ml-auto flex items-center justify-end gap-2 shrink-0">
                     {showPublicThemeToggle ? <FinelyThemeToggle compact /> : null}
                     <button type="button" onClick={() => handleNavigate(personalFreeTrialPath)} className="fc-nav-trial-cta">
                       Start free trial
@@ -1500,7 +1180,7 @@ function AppInner() {
               onNavigate={(v) => navigate(routeFromView(v))}
               addToCart={addToCart}
               onVisitAffiliate={() => navigate('/affiliate')}
-              onViewPricing={() => navigate('/pricing')}
+              onViewPricing={() => navigate('/pricing/personal-credit-restore')}
             />
           }
         />
@@ -1514,7 +1194,7 @@ function AppInner() {
               onNavigate={(v) => navigate(routeFromView(v))}
               addToCart={addToCart}
               onVisitAffiliate={() => navigate('/affiliate')}
-              onViewPricing={() => navigate('/pricing')}
+              onViewPricing={() => navigate('/pricing/personal-credit-restore')}
             />
           }
         />
@@ -1528,7 +1208,7 @@ function AppInner() {
               onNavigate={(v) => navigate(routeFromView(v))}
               addToCart={addToCart}
               onVisitAffiliate={() => navigate('/affiliate')}
-              onViewPricing={() => navigate('/pricing')}
+              onViewPricing={() => navigate('/pricing/personal-credit-restore')}
             />
           }
         />
@@ -1541,7 +1221,7 @@ function AppInner() {
               onNavigate={(v) => navigate(routeFromView(v))}
               addToCart={addToCart}
               onVisitAffiliate={() => navigate('/affiliate')}
-              onViewPricing={() => navigate('/pricing')}
+              onViewPricing={() => navigate('/pricing/personal-credit-restore')}
             />
           }
         />
@@ -1554,7 +1234,7 @@ function AppInner() {
               onNavigate={(v) => navigate(routeFromView(v))}
               addToCart={addToCart}
               onVisitAffiliate={() => navigate('/affiliate')}
-              onViewPricing={() => navigate('/pricing')}
+              onViewPricing={() => navigate('/pricing/personal-credit-restore')}
             />
           }
         />
@@ -1562,15 +1242,32 @@ function AppInner() {
         <Route path="/tradelines" element={<TradelinesRoute addToCart={addToCart} onNavigate={(v) => navigate(routeFromView(v))} />} />
         <Route path="/checkout" element={<CheckoutPage cart={cart} setCart={setCart} />} />
         <Route path="/about" element={<AboutRoute onNavigate={(v) => navigate(routeFromView(v))} />} />
-        <Route path="/services" element={<PricingPage />} />
+        <Route path="/haitian" element={<HaitianCommunityRoute />} />
+        <Route path="/haitian/:metro" element={<HaitianMetroDeskPage />} />
+        <Route path="/kreyol" element={<HaitianCommunityRoute />} />
+        <Route path="/services" element={<Navigate to="/" replace />} />
         <Route path="/services/tradelines" element={<Navigate to="/tradelines" replace />} />
         <Route path="/services/finelycred" element={<FinelyCredServicesPage />} />
+        <Route path="/services/business-credit" element={<BusinessCreditPreviewPage />} />
+        <Route path="/services/debt-legal" element={<DebtLegalPreviewPage />} />
+        <Route path="/services/personal-credit-restore" element={<PersonalCreditRestorePreviewPage />} />
+        <Route path="/services/personal-credit-building" element={<PersonalCreditBuildPreviewPage />} />
         <Route path="/services/:service" element={<PricingServicePage />} />
-        <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/pricing" element={<Navigate to="/" replace />} />
         <Route path="/pricing/tradelines" element={<Navigate to="/tradelines" replace />} />
         <Route path="/pricing/personal-credit-restore" element={<PersonalCreditRestorePreviewPage />} />
         <Route path="/personal-credit" element={<PersonalCreditRestorePreviewPage />} />
+        <Route path="/pricing/business-credit" element={<BusinessCreditPreviewPage />} />
+        <Route path="/pricing/debt-legal" element={<DebtLegalPreviewPage />} />
+        <Route path="/pricing/personal-credit-building" element={<PersonalCreditBuildPreviewPage />} />
+        <Route path="/pricing/privacy-id" element={<PrivacyIdPreviewPage />} />
+        <Route path="/pricing/bundles" element={<BundlesPreviewPage />} />
+        <Route path="/pricing/wealth-builder" element={<WealthBuilderPreviewPage />} />
+        <Route path="/services/privacy-id" element={<PrivacyIdPreviewPage />} />
+        <Route path="/services/bundles" element={<BundlesPreviewPage />} />
+        <Route path="/services/wealth-builder" element={<WealthBuilderPreviewPage />} />
         <Route path="/pricing/:service" element={<PricingServicePage />} />
+        <Route path="/credit/:citySlug" element={<CityCreditPage />} />
         {/* Legacy marketing slugs (resolve to real pricing/service views) */}
         <Route path="/fix-my-credit" element={<Navigate to="/pricing/personal-credit-restore" replace />} />
         <Route path="/build-my-credit" element={<Navigate to="/pricing/personal-credit-building" replace />} />
@@ -1592,6 +1289,12 @@ function AppInner() {
         <Route path="/resources/credit-monitoring" element={<ResourcesCreditMonitoringPage />} />
         <Route path="/resources/videos" element={<ResourcesVideosPage />} />
         <Route path="/resources/references" element={<ResourcesReferencesPage />} />
+        <Route path="/resources/rules-this-week" element={<RulesThisWeekPage />} />
+        <Route path="/resources/complaints" element={<ComplaintsBoardPage />} />
+        <Route path="/resources/law" element={<LawStatutePage />} />
+        <Route path="/resources/debt-opinions" element={<DebtOpinionsPage />} />
+        <Route path="/resources/funding/:stateSlug" element={<StateFundingPage />} />
+        <Route path="/resources/funding" element={<Navigate to="/resources/funding/tx" replace />} />
         <Route path="/resources/business-credit-one-sheets" element={<BusinessCreditOneSheetsPage />} />
         {/* Dedicated sheet pages â€” each PDF gets its own home, not a shared hub */}
         <Route path="/resources/personal-credit-restore-sheet" element={<PersonalCreditRestoreSheetPage />} />
@@ -1609,6 +1312,10 @@ function AppInner() {
         <Route path="/resources/non-citizen-business-credit" element={<NonCitizenBusinessCreditPage />} />
         <Route path="/resources/international-credit-systems-guide" element={<InternationalCreditSystemsGuidePage />} />
         <Route path="/resources/which-program-fits" element={<OutcomeWizardPage />} />
+        <Route path="/resources/diy-vs-traditional-vs-finely" element={<CreditRepairComparisonPage />} />
+        <Route path="/resources/complaint-study" element={<ComplaintStudyPage />} />
+        <Route path="/resources/pins" element={<PinWallPage />} />
+        <Route path="/credit-lab" element={<CreditLabPage />} />
         {/* C4 state-specific debt-defense landing pages â€” highest compliance scrutiny (C0.3) */}
         <Route path="/resources/debt-defense-texas" element={<DebtDefenseTexasPage />} />
         <Route path="/resources/debt-defense-new-york" element={<DebtDefenseNewYorkPage />} />
@@ -1666,6 +1373,14 @@ function AppInner() {
           element={
             <ProtectedRoute>
               <ProductRoutedPage role="partner" pageId="agency-hub" legacy={<AgencyHubPage />} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/agency/partners"
+          element={
+            <ProtectedRoute>
+              <AgencyTenantPartnersPage />
             </ProtectedRoute>
           }
         />
@@ -1827,6 +1542,30 @@ function AppInner() {
           element={
             <ProtectedRoute>
               <ProductRoutedPage role="partner" pageId="education" legacy={<PartnerEducationPage />} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/portal/news"
+          element={
+            <ProtectedRoute>
+              <ProductRoutedPage role="partner" pageId="news" legacy={<div className="p-8">Credit news</div>} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/portal/haitian"
+          element={
+            <ProtectedRoute>
+              <ProductRoutedPage role="partner" pageId="haitian" legacy={<div className="p-8">Haitian community desk</div>} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/portal/maintenance"
+          element={
+            <ProtectedRoute>
+              <ProductRoutedPage role="partner" pageId="maintenance" legacy={<div className="p-8">Credit maintenance</div>} />
             </ProtectedRoute>
           }
         />
@@ -2652,6 +2391,14 @@ function AppInner() {
           }
         />
         <Route
+          path="/admin/haitian"
+          element={
+            <ProtectedAdminRoute>
+              <ProductRoutedPage role="admin" pageId="haitian" legacy={<div className="p-8 text-white">Haitian community</div>} />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
           path="/admin/role-preview"
           element={
             <ProtectedAdminRoute>
@@ -2900,6 +2647,30 @@ function AppInner() {
           }
         />
         <Route
+          path="/admin/data-feeds"
+          element={
+            <ProtectedAdminRoute>
+              <ProductRoutedPage
+                role="admin"
+                pageId="data-feeds"
+                legacy={<div className="p-8 text-white">Data feeds</div>}
+              />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/today"
+          element={
+            <ProtectedAdminRoute>
+              <ProductRoutedPage
+                role="admin"
+                pageId="today"
+                legacy={<div className="p-8 text-white">Today</div>}
+              />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
           path="/admin/studio-ux-command"
           element={
             <ProtectedAdminRoute>
@@ -2993,7 +2764,12 @@ function AppInner() {
             </ProtectedRoute>
           }
         />
-        <Route path="/preview/personal-credit-restore" element={<PersonalCreditRestorePreviewPage />} />
+        <Route path="/preview/personal-credit-restore" element={<Navigate to="/pricing/personal-credit-restore" replace />} />
+        <Route path="/preview/business-credit" element={<Navigate to="/pricing/business-credit" replace />} />
+        <Route path="/preview/debt-legal" element={<Navigate to="/pricing/debt-legal" replace />} />
+        <Route path="/preview/personal-credit-building" element={<Navigate to="/pricing/personal-credit-building" replace />} />
+        <Route path="/preview/wealth-builder" element={<Navigate to="/pricing/wealth-builder" replace />} />
+        <Route path="/preview/haitian" element={<Navigate to="/haitian" replace />} />
         <Route path="/preview/workspace-light" element={<WorkspaceLightPreviewHubPage />} />
         <Route
           path="/preview/workspace-light/business/dashboard"
@@ -3043,6 +2819,8 @@ function AppInner() {
         <Route path="/real-estate-guide/read" element={<RealEstateGuideReaderPage />} />
         <Route path="/case-desk-guide" element={<CaseDeskGuideLandingPage />} />
         <Route path="/case-desk-guide/read" element={<CaseDeskGuideReaderPage />} />
+        <Route path="/free-kreyol-guide" element={<HaitianKitStudioPage />} />
+        <Route path="/free-kreyol-guide/:kitId" element={<HaitianKitStudioPage />} />
         <Route path="/affiliate-toolkit" element={<AffiliateToolkitFunnelPage />} />
         <Route path="/affiliate-toolkit/read" element={<AffiliateToolkitGuideReaderPage />} />
         <Route path="/owners-guide" element={<ProtectedRoute><OwnersGuidePage /></ProtectedRoute>} />

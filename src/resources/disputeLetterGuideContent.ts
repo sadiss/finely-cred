@@ -151,7 +151,7 @@ const READER_META: Record<string, { kicker?: string; accent?: DisputeGuideAccent
   'online-traps': { kicker: 'Page 14 · Channel', accent: 'rose', readMinutes: 4 },
   'letter-stream': { kicker: 'Page 15 · Workflow', accent: 'emerald', readMinutes: 5 },
   complaints: { kicker: 'Page 16 · Escalation', accent: 'amber', readMinutes: 4 },
-  'validation-first-doctrine': { kicker: 'Page 17 · Doctrine', accent: 'violet', readMinutes: 5 },
+  'validation-first-doctrine': { kicker: 'Page 17 · Playbook', accent: 'violet', readMinutes: 5 },
   'law-per-negative': { kicker: 'Page 18 · Statutes', accent: 'sky', readMinutes: 5 },
   'affidavit-court-system': { kicker: 'Page 19 · Court', accent: 'rose', readMinutes: 5 },
 };

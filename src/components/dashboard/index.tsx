@@ -308,7 +308,9 @@ export function MasteryOSDashboard({ user, onLogout }: MasteryOSDashboardProps) 
   return (
     <div className="min-h-screen bg-fc-shell text-white flex flex-col animate-in fade-in duration-1000 overflow-x-clip">
       {/* Top Bar */}
-      <div className="h-16 border-b border-white/5 bg-fc-chrome/70 backdrop-blur-xl flex items-center justify-between px-4 md:px-8 z-50 shrink-0 pt-[env(safe-area-inset-top,0px)]">
+      <div className={`h-16 border-b border-white/5 bg-fc-chrome/70 backdrop-blur-xl flex items-center justify-between px-4 md:px-8 z-50 shrink-0 pt-[env(safe-area-inset-top,0px)] ${
+        isCompactViewport ? '' : sidebarExpanded ? 'md:ml-[17rem]' : 'md:ml-[5.5rem]'
+      }`}>
         <div className="flex items-center gap-2 md:gap-6 min-w-0">
           {isCompactViewport ? (
             <button
@@ -355,17 +357,20 @@ export function MasteryOSDashboard({ user, onLogout }: MasteryOSDashboardProps) 
             onClick={() => setMobileNavOpen(false)}
           />
         ) : null}
-        {/* Sidebar — drawer on phone/tablet, rail on desktop */}
+        {/* Sidebar — drawer on phone/tablet, full-height fixed department rail on desktop */}
+        {!isCompactViewport ? (
+          <div className={`shrink-0 ${sidebarExpanded ? 'w-[17rem]' : 'w-[5.5rem]'}`} aria-hidden />
+        ) : null}
         <aside
           className={`${
             isCompactViewport
               ? `fixed inset-y-0 left-0 z-[200] w-[min(17rem,88vw)] transform transition-transform duration-300 ease-out shadow-2xl ${
                   mobileNavOpen ? 'translate-x-0' : '-translate-x-full pointer-events-none'
                 }`
-              : `${sidebarExpanded ? 'w-[17rem]' : 'w-[5.5rem]'} shrink-0`
-          } overflow-y-auto p-2 bg-fc-shell`}
+              : `fixed inset-y-0 left-0 z-40 h-screen ${sidebarExpanded ? 'w-[17rem]' : 'w-[5.5rem]'}`
+          } overflow-y-auto bg-fc-shell`}
         >
-          <div className={`${FINELY_OS_SIDE_RAIL_SHELL} !max-h-[calc(100vh-5rem)] h-full ${sidebarExpanded || isCompactViewport ? '' : '!p-2'}`}>
+          <div className={`${FINELY_OS_SIDE_RAIL_SHELL} !max-h-none h-full !rounded-none ${sidebarExpanded || isCompactViewport ? '' : '!p-2'}`}>
             <div className={FINELY_OS_SIDE_RAIL_GLOW} />
 
             <div className={`relative flex items-center ${sidebarExpanded || isCompactViewport ? 'justify-between px-1' : 'justify-center'}`}>

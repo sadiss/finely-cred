@@ -52,7 +52,6 @@ import {
   FINELY_OS_SECONDARY_BTN,
   FINELY_OS_SUCCESS_BTN,
   finelyOsCatalogCard,
-  finelyOsInlineListItem,
   finelyOsStatusChip,
 } from '../../../os/finelyOsLightUi';
 import './partnerWorkstationSurfaceTabs.css';
@@ -234,102 +233,101 @@ export default function PartnerReadinessProductSurface({ role, pageId, partnerId
     ) ?? [];
 
     return (
-      <section className={`fc-wlp-section ${FINELY_OS_PAGE} space-y-6`} data-surface-layout="passport-focus">
-        <div className="fc-wlp-readiness-workbench">
-          <nav className="fc-wlp-readiness-nav" aria-label="Readiness sections">
-            {RUNWAY_NODES.map((node, index) => {
-              const active = runwayView === node.id;
-              const meta =
-                node.id === 'score' && plan
-                  ? `${readinessScore}/100`
-                  : node.id === 'lanes'
-                    ? `${LANES.length} programs`
-                    : node.id === 'ladder'
-                      ? 'Vendor ladder'
-                      : 'Funding strip';
-              return (
-                <button
-                  key={node.id}
-                  type="button"
-                  className={`fc-wlp-readiness-nav-item ${finelyOsCatalogCard(node.accent)}`}
-                  data-fc-accent={node.accent}
-                  data-active={active ? 'true' : undefined}
-                  onClick={() => setRunwayView(node.id)}
-                >
-                  <span className="fc-wlp-readiness-nav-marker">{index + 1}</span>
-                  <span>
-                    <strong>{node.label}</strong>
-                    <em>{meta}</em>
-                  </span>
-                </button>
-              );
-            })}
-
-            {blockers.length > 0 ? (
-              <div className={`${finelyOsCatalogCard('rose')} p-4 lg:p-5`} data-fc-accent="rose">
-                <div className={FINELY_OS_ENTITY_SUBLABEL}>Blockers</div>
-                <div className="fc-wlp-readiness-blocker-stack">
-                  {blockers.slice(0, 3).map((action) => (
-                    <button
-                      key={action.key}
-                      type="button"
-                      className="fc-wlp-readiness-blocker-btn"
-                      onClick={() => navigate(action.path ?? livePath)}
-                    >
-                      {action.title}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-          </nav>
-
-          <div className="fc-wlp-readiness-stage space-y-6">
-            {runwayView === 'overview' && partner ? (
-          <div className="space-y-6">
-            <PartnerFundingCommandStrip
-              partner={partner}
-              reportCount={reportCount}
-              letterCount={letterCount}
-              onApply={runHandoff}
-            />
-            <FinelyBridgeConnectorPanel
-              partner={partner}
-              reportCount={reportCount}
-              letterCount={letterCount}
-              mode="origination"
-              onPartnerRefresh={() => refresh()}
-            />
-            {!features.wealthPaths ? (
-              <div className={`${FINELY_OS_NOTICE_WARN} space-y-2 p-4`}>
-                <div className="inline-flex items-center gap-2 text-fuchsia-200">
-                  <Lock size={18} />
-                  <span className={FINELY_OS_ENTITY_SUBLABEL}>Module gated</span>
-                </div>
-                <div className={FINELY_OS_ENTITY_BODY}>
-                  Wealth Paths are currently disabled in settings. Enable them in admin settings → Features.
-                </div>
-              </div>
-            ) : null}
-            {features.wealthPaths && !hasAnyAccess && !demoMode ? (
-              <div className={FINELY_OS_LUXURY_EMPTY}>
-                You don&apos;t have access to Wealth Paths yet. Choose a Wealth Builder program to unlock lanes.
-              </div>
-            ) : null}
-            <div className={`${finelyOsCatalogCard('violet')} p-6 lg:p-8 space-y-4`} data-fc-accent="violet">
-              <div className={`inline-flex items-center gap-2 ${finelyOsStatusChip('warn')}`}>
-                <Crown size={14} /> Wealth Builder
-              </div>
-              <p className={`max-w-2xl text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
-                Lane-based programs unlock after your build — funding readiness, business credit, and Nora Capital connection.
-              </p>
-              <button type="button" onClick={() => navigate(unlockPath)} className={FINELY_OS_SUCCESS_BTN}>
-                {partner ? 'Unlock in Billing' : 'View Wealth Builder pricing'} <ArrowRight size={14} />
+      <section className={`fc-wlp-section ${FINELY_OS_PAGE} space-y-6`} data-surface-layout="timeline">
+        <nav className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4" aria-label="Readiness sections">
+          {RUNWAY_NODES.map((node, index) => {
+            const active = runwayView === node.id;
+            const meta =
+              node.id === 'score' && plan
+                ? `${readinessScore}/100`
+                : node.id === 'lanes'
+                  ? `${LANES.length} programs`
+                  : node.id === 'ladder'
+                    ? 'Vendor ladder'
+                    : 'Funding strip';
+            return (
+              <button
+                key={node.id}
+                type="button"
+                className={`fc-wlp-readiness-nav-item ${finelyOsCatalogCard(node.accent)}`}
+                data-fc-accent={node.accent}
+                data-active={active ? 'true' : undefined}
+                onClick={() => setRunwayView(node.id)}
+              >
+                <span className="fc-wlp-readiness-nav-marker">{index + 1}</span>
+                <span>
+                  <strong>{node.label}</strong>
+                  <em>{meta}</em>
+                </span>
               </button>
+            );
+          })}
+        </nav>
+
+        {blockers.length > 0 ? (
+          <div className="flex flex-wrap gap-2" aria-label="Blockers">
+            {blockers.slice(0, 3).map((action) => (
+              <button
+                key={action.key}
+                type="button"
+                className="fc-wlp-readiness-blocker-btn"
+                onClick={() => navigate(action.path ?? livePath)}
+              >
+                {action.title}
+              </button>
+            ))}
+          </div>
+        ) : null}
+
+        {runwayView === 'overview' && partner ? (
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div className="space-y-4">
+              <PartnerFundingCommandStrip
+                partner={partner}
+                reportCount={reportCount}
+                letterCount={letterCount}
+                onApply={runHandoff}
+              />
+              {!features.wealthPaths ? (
+                <div className={`${FINELY_OS_NOTICE_WARN} space-y-2 p-4`}>
+                  <div className="inline-flex items-center gap-2 text-fuchsia-200">
+                    <Lock size={18} />
+                    <span className={FINELY_OS_ENTITY_SUBLABEL}>Module gated</span>
+                  </div>
+                  <div className={FINELY_OS_ENTITY_BODY}>
+                    Wealth Paths are currently disabled in settings. Enable them in admin settings → Features.
+                  </div>
+                </div>
+              ) : null}
+              {features.wealthPaths && !hasAnyAccess && !demoMode ? (
+                <div className={FINELY_OS_LUXURY_EMPTY}>
+                  You don&apos;t have access to Wealth Paths yet. Choose a Wealth Builder program to unlock lanes.
+                </div>
+              ) : null}
+              <div className="space-y-4">
+                <div className={`inline-flex items-center gap-2 ${finelyOsStatusChip('warn')}`}>
+                  <Crown size={14} /> Wealth Builder
+                </div>
+                <p className={`text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
+                  Lane-based programs unlock after your build — funding readiness, business credit, and Nora Capital connection.
+                </p>
+                <button type="button" onClick={() => navigate(unlockPath)} className={FINELY_OS_SUCCESS_BTN}>
+                  {partner ? 'Unlock in Billing' : 'View Wealth Builder pricing'} <ArrowRight size={14} />
+                </button>
+              </div>
             </div>
-            {overallScore ? (
-              <ProfileGoalsReadinessPanel partner={partner} overallScore={overallScore} onSaved={() => refresh()} surface="light" />
-            ) : null}
+            <div className="space-y-4">
+              <FinelyBridgeConnectorPanel
+                partner={partner}
+                reportCount={reportCount}
+                letterCount={letterCount}
+                mode="origination"
+                onPartnerRefresh={() => refresh()}
+              />
+              {overallScore ? (
+                <ProfileGoalsReadinessPanel partner={partner} overallScore={overallScore} onSaved={() => refresh()} surface="light" />
+              ) : null}
+            </div>
           </div>
         ) : null}
 
@@ -343,7 +341,7 @@ export default function PartnerReadinessProductSurface({ role, pageId, partnerId
               compact
               coachSubtitle="Wealth path specialist — funding readiness, vendor ladder, or Nora handoff"
             />
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
               {LANES.map((lane, idx) => {
                 const locked = lane.entitlementKey ? !hasEntitlement(partner.id, lane.entitlementKey) : false;
                 const accent = (['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4];
@@ -403,8 +401,8 @@ export default function PartnerReadinessProductSurface({ role, pageId, partnerId
         {runwayView === 'ladder' && partner ? <FundingLadderPanel partnerId={partner.id} /> : null}
 
         {runwayView === 'score' && plan ? (
-          <div className="grid lg:grid-cols-12 gap-6">
-            <div className={`lg:col-span-5 ${finelyOsCatalogCard('violet')} p-6 lg:p-8 space-y-4`} data-fc-accent="violet">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div className={`${finelyOsCatalogCard('violet')} p-6 lg:p-8 space-y-4`} data-fc-accent="violet">
               <div className={FINELY_OS_ENTITY_SUBLABEL}>Planning profile</div>
               <div className={`text-4xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{readinessScore}/100</div>
               <p className={`text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
@@ -414,87 +412,80 @@ export default function PartnerReadinessProductSurface({ role, pageId, partnerId
                 Open lender logic <ArrowRight size={14} />
               </button>
             </div>
-            <div className={`lg:col-span-7 space-y-4`}>
-              {blockers.length > 0 ? (
-                <div className={`${finelyOsCatalogCard('rose')} p-6 lg:p-8 space-y-3`} data-fc-accent="rose">
-                  <div className="inline-flex items-center gap-2"><ShieldCheck size={18} /><span className={FINELY_OS_ENTITY_SUBLABEL}>Active blockers</span></div>
-                  {blockers.slice(0, 5).map((action) => (
-                    <button
-                      key={action.key}
-                      type="button"
-                      onClick={() => navigate(action.path ?? livePath)}
-                      className={`w-full text-left ${finelyOsInlineListItem()} p-4`}
-                    >
-                      <div className={FINELY_OS_ENTITY_VALUE}>{action.title}</div>
-                      <div className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>{action.desc}</div>
-                    </button>
-                  ))}
-                </div>
-              ) : null}
-              {strengths.length > 0 ? (
-                <div className={`${finelyOsCatalogCard('emerald')} p-6 lg:p-8 space-y-3`} data-fc-accent="emerald">
-                  <div className="inline-flex items-center gap-2"><CheckCircle2 size={18} /><span className={FINELY_OS_ENTITY_SUBLABEL}>Current strengths</span></div>
-                  {strengths.slice(0, 4).map((cat) => (
-                    <div key={cat.key} className={finelyOsInlineListItem()}>
-                      <div className={FINELY_OS_ENTITY_VALUE}>{cat.label}</div>
-                      <div className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>Score {cat.score}/100 — evidence supported.</div>
-                    </div>
-                  ))}
-                </div>
-              ) : null}
-              {lenderPaths.length > 0 ? (
-                <div className={`${finelyOsCatalogCard('sky')} p-6 lg:p-8 space-y-3`} data-fc-accent="sky">
-                  <div className="inline-flex items-center gap-2"><Landmark size={18} /><span className={FINELY_OS_ENTITY_SUBLABEL}>Lender paths</span></div>
-                  {lenderPaths.slice(0, 3).map((rel) => (
-                    <div key={rel.id} className={finelyOsInlineListItem()}>
-                      <div className={FINELY_OS_ENTITY_VALUE}>{rel.lenderName}</div>
-                      <div className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>{rel.notes?.trim() || 'Planning match — not an approval.'}</div>
-                    </div>
-                  ))}
-                </div>
-              ) : null}
-            </div>
+            {blockers.length > 0 ? (
+              <div className={`${finelyOsCatalogCard('rose')} p-6 lg:p-8 space-y-3`} data-fc-accent="rose">
+                <div className="inline-flex items-center gap-2"><ShieldCheck size={18} /><span className={FINELY_OS_ENTITY_SUBLABEL}>Active blockers</span></div>
+                {blockers.slice(0, 5).map((action) => (
+                  <button
+                    key={action.key}
+                    type="button"
+                    onClick={() => navigate(action.path ?? livePath)}
+                    className="w-full text-left py-2"
+                  >
+                    <div className={FINELY_OS_ENTITY_VALUE}>{action.title}</div>
+                    <div className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>{action.desc}</div>
+                  </button>
+                ))}
+              </div>
+            ) : null}
+            {strengths.length > 0 ? (
+              <div className={`${finelyOsCatalogCard('emerald')} p-6 lg:p-8 space-y-3`} data-fc-accent="emerald">
+                <div className="inline-flex items-center gap-2"><CheckCircle2 size={18} /><span className={FINELY_OS_ENTITY_SUBLABEL}>Current strengths</span></div>
+                {strengths.slice(0, 4).map((cat) => (
+                  <div key={cat.key}>
+                    <div className={FINELY_OS_ENTITY_VALUE}>{cat.label}</div>
+                    <div className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>Score {cat.score}/100 — evidence supported.</div>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+            {lenderPaths.length > 0 ? (
+              <div className={`${finelyOsCatalogCard('sky')} p-6 lg:p-8 space-y-3`} data-fc-accent="sky">
+                <div className="inline-flex items-center gap-2"><Landmark size={18} /><span className={FINELY_OS_ENTITY_SUBLABEL}>Lender paths</span></div>
+                {lenderPaths.slice(0, 3).map((rel) => (
+                  <div key={rel.id}>
+                    <div className={FINELY_OS_ENTITY_VALUE}>{rel.lenderName}</div>
+                    <div className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>{rel.notes?.trim() || 'Planning match — not an approval.'}</div>
+                  </div>
+                ))}
+              </div>
+            ) : null}
           </div>
         ) : null}
+
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className={`${finelyOsCatalogCard('violet')} p-6 lg:p-8 space-y-4`} data-fc-accent="violet">
+            <div className={FINELY_OS_ENTITY_SUBLABEL}>Readiness score</div>
+            <div className={`text-4xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{readinessScore}/100</div>
+            <p className={`text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
+              Planning profile — not an approval. Every recommendation links to evidence.
+            </p>
+            <button type="button" onClick={() => setRunwayView('score')} className={FINELY_OS_SECONDARY_BTN}>
+              Score breakdown <ArrowRight size={14} />
+            </button>
           </div>
-
-          <aside className="fc-wlp-readiness-inspector">
-            <div className={`${finelyOsCatalogCard('violet')} p-6 lg:p-8 space-y-4`} data-fc-accent="violet">
-              <div className={FINELY_OS_ENTITY_SUBLABEL}>Readiness score</div>
-              <div className={`text-4xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{readinessScore}/100</div>
-              <p className={`text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
-                Planning profile — not an approval. Every recommendation links to evidence.
-              </p>
-              <button type="button" onClick={() => setRunwayView('score')} className={FINELY_OS_SECONDARY_BTN}>
-                Score breakdown <ArrowRight size={14} />
-              </button>
-            </div>
-
-            <div className={`${finelyOsCatalogCard('emerald')} p-6 lg:p-8 space-y-3`} data-fc-accent="emerald">
-              <div className={FINELY_OS_ENTITY_SUBLABEL}>Strengths</div>
-              <div className={`text-2xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{strengths.length}</div>
-              <p className={`text-sm font-bold ${FINELY_OS_ENTITY_BODY}`}>
-                {strengths.length ? strengths.slice(0, 2).map((i) => i.label).join(' · ') : 'Complete profile fields'}
-              </p>
-            </div>
-
-            <div className={`${finelyOsCatalogCard('sky')} p-6 lg:p-8 space-y-3`} data-fc-accent="sky">
-              <div className={FINELY_OS_ENTITY_SUBLABEL}>Lender paths</div>
-              <div className={`text-2xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{lenderPaths.length}</div>
-              <p className={`text-sm font-bold ${FINELY_OS_ENTITY_BODY}`}>
-                {lenderPaths.length ? 'Planning matches — not approvals' : 'Add relationships in wealth paths'}
-              </p>
-            </div>
-
-            <div className={`${finelyOsCatalogCard('rose')} p-6 lg:p-8 space-y-3`} data-fc-accent="rose">
-              <div className="fc-wlp-eyebrow">Next step</div>
-              <p className={`text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>Every recommendation shows the reason and source behind it.</p>
-              {guideActions}
-              <button type="button" onClick={() => navigate(livePath)} className={FINELY_OS_PRIMARY_BTN}>
-                Update readiness profile
-              </button>
-            </div>
-          </aside>
+          <div className={`${finelyOsCatalogCard('emerald')} p-6 lg:p-8 space-y-3`} data-fc-accent="emerald">
+            <div className={FINELY_OS_ENTITY_SUBLABEL}>Strengths</div>
+            <div className={`text-2xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{strengths.length}</div>
+            <p className={`text-sm font-bold ${FINELY_OS_ENTITY_BODY}`}>
+              {strengths.length ? strengths.slice(0, 2).map((i) => i.label).join(' · ') : 'Complete profile fields'}
+            </p>
+          </div>
+          <div className={`${finelyOsCatalogCard('sky')} p-6 lg:p-8 space-y-3`} data-fc-accent="sky">
+            <div className={FINELY_OS_ENTITY_SUBLABEL}>Lender paths</div>
+            <div className={`text-2xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{lenderPaths.length}</div>
+            <p className={`text-sm font-bold ${FINELY_OS_ENTITY_BODY}`}>
+              {lenderPaths.length ? 'Planning matches — not approvals' : 'Add relationships in wealth paths'}
+            </p>
+          </div>
+          <div className={`${finelyOsCatalogCard('rose')} p-6 lg:p-8 space-y-3`} data-fc-accent="rose">
+            <div className="fc-wlp-eyebrow">Next step</div>
+            <p className={`text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>Every recommendation shows the reason and source behind it.</p>
+            {guideActions}
+            <button type="button" onClick={() => navigate(livePath)} className={FINELY_OS_PRIMARY_BTN}>
+              Update readiness profile
+            </button>
+          </div>
         </div>
       </section>
     );

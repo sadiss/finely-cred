@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, Building2, FolderKanban, Inbox, ListChecks, Lock, Users } from 'lucide-react';
+import { ArrowRight, FolderKanban, Inbox, ListChecks, Lock, Users } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import type { AdminVisibilityFilter } from '../../lib/workVisibility';
 import { VISIBILITY_LABELS } from '../../lib/workVisibility';
@@ -33,17 +33,13 @@ export function AdminOpsWorkHubPanel({
   const workflowPath = `${adminBase}/workflow`;
 
   return (
-    <div className="rounded-2xl border border-violet-400/35 bg-gradient-to-br from-violet-500/20 via-sky-500/10 to-emerald-500/10 p-5 sm:p-6 space-y-4 shadow-[0_22px_52px_-36px_rgba(139,92,246,0.8)]">
+    <div className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
-          <div className="inline-flex items-center gap-2 text-violet-300">
-            <Building2 size={16} />
-            <span className="text-[10px] font-black uppercase tracking-widest">Ops command center</span>
-          </div>
-          <h2 className="mt-2 text-xl font-semibold text-white">Admin {noun} — full DFY operations</h2>
-          <p className="mt-2 text-sm text-white/72 max-w-3xl leading-relaxed">
-            Cross-partner boards with kanban, list, and calendar views. Internal prep stays hidden from partners.
-            Daily triage lives in <strong className="text-white/75">Ops Inbox</strong> — this is where you execute.
+          <div className="text-[10px] font-black uppercase tracking-widest text-slate-500">Delivery</div>
+          <h2 className="mt-1 text-2xl font-extrabold text-slate-900">Admin {noun}</h2>
+          <p className="mt-2 max-w-3xl text-sm font-semibold text-slate-600">
+            Pipeline, list, and calendar. Internal prep stays hidden from partners.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -63,20 +59,20 @@ export function AdminOpsWorkHubPanel({
       </div>
 
       <div className="fc-work-metric-grid">
-        <div className="fc-work-card" data-accent="sky" data-fc-kpi-surface="dark">
-          <p className="text-xs uppercase tracking-widest text-sky-100">Total {noun}</p>
+        <div className="fc-work-card" data-accent="sky">
+          <p className="text-xs font-extrabold uppercase tracking-widest text-sky-700">Total {noun}</p>
           <p className="fc-work-card-title mt-1 text-2xl">{totalCount}</p>
           <p className="fc-work-card-meta mt-1 flex items-center gap-1">
             <Users size={10} /> {partnerCount} partners
           </p>
         </div>
-        <div className="fc-work-card" data-accent="emerald" data-fc-kpi-surface="dark">
-          <p className="text-xs uppercase tracking-widest text-emerald-100">Partner-visible</p>
+        <div className="fc-work-card" data-accent="emerald">
+          <p className="text-xs font-extrabold uppercase tracking-widest text-emerald-700">Partner-visible</p>
           <p className="fc-work-card-title mt-1 text-2xl">{sharedCount}</p>
           <p className="fc-work-card-meta mt-1">{VISIBILITY_LABELS.hybrid}</p>
         </div>
-        <div className="fc-work-card" data-accent="violet" data-fc-kpi-surface="dark">
-          <p className="text-xs uppercase tracking-widest text-violet-100">Internal ops</p>
+        <div className="fc-work-card" data-accent="violet">
+          <p className="text-xs font-extrabold uppercase tracking-widest text-violet-700">Internal ops</p>
           <p className="fc-work-card-title mt-1 text-2xl">{internalCount}</p>
           <p className="fc-work-card-meta mt-1 flex items-center gap-1">
             <Lock size={10} /> {VISIBILITY_LABELS.admin}
@@ -98,8 +94,8 @@ export function AdminOpsWorkHubPanel({
             onClick={() => onVisibilityFilterChange(opt.id)}
             className={`px-4 py-2 rounded-xl border text-xs font-black uppercase tracking-widest transition-all ${
               visibilityFilter === opt.id
-                ? 'border-violet-300/50 bg-violet-600 text-white'
-                : 'border-white/25 bg-white/10 text-white hover:bg-white/16'
+                ? 'border-violet-400 bg-violet-600 text-white'
+                : 'border-slate-300 bg-white text-slate-800 hover:border-violet-300'
             }`}
           >
             {opt.label}
@@ -108,7 +104,7 @@ export function AdminOpsWorkHubPanel({
         <button
           type="button"
           onClick={() => navigate(kind === 'tasks' ? `${tasksPath}?create=task` : `${projectsPath}?create=project`)}
-          className="ml-auto inline-flex items-center gap-1 text-xs font-black uppercase text-emerald-300 hover:text-emerald-200"
+          className="ml-auto inline-flex items-center gap-1 text-xs font-black uppercase text-emerald-700 hover:text-emerald-600"
         >
           Quick create <ArrowRight size={12} />
         </button>

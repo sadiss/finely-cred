@@ -28,6 +28,7 @@ import { openCommunicationHub } from '../../../../components/chat/communicationH
 import { DashboardFundingPanel } from '../../../../components/dashboard/DashboardFundingPanel';
 import { FinelyNoticedStrip } from '../../../../components/tours/FinelyNoticedStrip';
 import { PartnerDashboardWorkstationMosaic } from './PartnerDashboardWorkstationMosaic';
+import { PartnerNewsThisWeekCard } from './PartnerNewsThisWeekCard';
 import { PartnerDashboardPartnerFileStrip } from './PartnerDashboardPartnerFileStrip';
 import { FinelyNowDoThisStrip } from '../../../../components/tours/FinelyNowDoThisStrip';
 import { buildPortalNoticedItems } from '../../../../lib/finelyProactiveSignals';
@@ -268,7 +269,7 @@ export function PartnerDashboardCommandDeck({
         <ProductSectionHeader
           eyebrow="Partner home"
           title="What matters now"
-          description="Signals from your file and one guided step to keep your restore plan moving."
+          description="Alerts from your file, plus the next restore step."
         />
         <FinelyNoticedStrip
           surface="light"
@@ -306,7 +307,7 @@ export function PartnerDashboardCommandDeck({
           <ProductSectionHeader
             eyebrow="Your next step"
             title="Priority actions"
-            description="Start with the featured action. Other steps stay nearby until you need them."
+            description="Begin with the highlighted action. The rest stay on this page until you need them."
             action={
               <button type="button" className="fc-wlp-btn-quiet" onClick={() => go('/portal/reports')}>
                 Open reports <ArrowRight size={13} />
@@ -384,7 +385,7 @@ export function PartnerDashboardCommandDeck({
           title="Live lender signals"
           description={
             dataMode === 'demo'
-              ? 'Demo snapshot — connect a partner file for live lender planning signals.'
+              ? 'This is a sample view. Sign in to see lender fit based on your file.'
               : 'Based on your score, utilization, and location. Not an approval or guarantee.'
           }
           action={
@@ -444,6 +445,10 @@ export function PartnerDashboardCommandDeck({
             </p>
           )}
         </ProductPanel>
+      </section>
+
+      <section className="fc-wlp-section" aria-label="This week">
+        <PartnerNewsThisWeekCard onOpen={() => go('/portal/news')} />
       </section>
 
       <PartnerDashboardWorkstationMosaic

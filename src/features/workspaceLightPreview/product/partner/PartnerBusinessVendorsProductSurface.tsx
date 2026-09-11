@@ -21,6 +21,7 @@ import type { Vendor, VendorTier } from '../../../../domain/vendors';
 import { BusinessReadinessChecklist } from '../../../../components/business/BusinessReadinessChecklist';
 import { BusinessCommandStrip } from '../../../../components/business/BusinessCommandStrip';
 import { hasEntitlement } from '../../../../data/billingRepo';
+import { useStaffEntitlementBypass } from '../../../../components/billing/EntitlementGate';
 import { getPartnerSync } from '../../../../data/partnersRepo';
 import { ensureVendorCatalogDefaultsOnce, listVendors } from '../../../../data/vendorsRepo';
 import { listVendorProgress, setVendorProgress } from '../../../../data/vendorProgressRepo';
@@ -223,6 +224,7 @@ type LoadState =
 export default function PartnerBusinessVendorsProductSurface({ role, pageId, partnerId, dataMode }: WorkspaceProductSurfaceProps) {
   const navigate = useNavigate();
   const mapPortalHref = usePartnerProductPathResolver();
+  const staffBypass = useStaffEntitlementBypass();
   const { partner: sessionPartner } = usePartnerSession();
   const navItem = getWorkspaceProductNavItem('partner', pageId);
   const PageIcon = navItem?.icon ?? Store;
@@ -250,7 +252,7 @@ export default function PartnerBusinessVendorsProductSurface({ role, pageId, par
     let cancelled = false;
     setState({ status: 'loading' });
     try {
-      if (!partnerOwnsBusinessLine(partnerId!)) {
+      if (!staffBypass && !partnerOwnsBusinessLine(partnerId!)) {
         if (!cancelled) setState({ status: 'locked' });
         return;
       }
@@ -262,7 +264,7 @@ export default function PartnerBusinessVendorsProductSurface({ role, pageId, par
       if (!cancelled) setState({ status: 'error', message });
     }
     return () => { cancelled = true; };
-  }, [isDemo, partnerId, retryToken, version]);
+  }, [isDemo, partnerId, retryToken, version, staffBypass]);
 
   const demoSpec = useMemo(() => getWorkspaceProductPageSpec('partner', pageId), [pageId]);
   const partner = state.status === 'ready' ? state.partner : sessionPartner;

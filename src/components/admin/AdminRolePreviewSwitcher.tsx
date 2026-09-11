@@ -94,7 +94,7 @@ export function AdminRolePreviewSwitcher() {
 
   if (collapsed) {
     return (
-      <div className="fixed bottom-4 left-4 z-[108] pointer-events-none">
+      <div className="fc-admin-roles-chip fixed bottom-4 z-[108] pointer-events-none">
         <button
           type="button"
           className={`${FINELY_OS_SECONDARY_BTN} pointer-events-auto shadow-2xl`}
@@ -112,7 +112,7 @@ export function AdminRolePreviewSwitcher() {
 
   return (
     <div
-      className="fixed bottom-4 left-4 z-[108] pointer-events-none w-[min(100vw-2rem,28rem)]"
+      className="fc-admin-roles-chip fixed bottom-4 z-[108] pointer-events-none w-[min(100vw-2rem,28rem)]"
       role="region"
       aria-label="Role preview switcher"
     >

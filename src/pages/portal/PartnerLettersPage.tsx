@@ -8,6 +8,8 @@ import { EntitlementGate } from '../../components/billing/EntitlementGate';
 import { hasEntitlement } from '../../data/billingRepo';
 import { PartnerCreditLettersStudioWorkspace } from '../../components/letters/PartnerCreditLettersStudioWorkspace';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
+import { FinelyNowDoThisStrip } from '../../components/tours/FinelyNowDoThisStrip';
+import { FinelyNoticedStrip } from '../../components/tours/FinelyNoticedStrip';
 import { FINELY_OS_LUXURY_EMPTY, FINELY_OS_PAGE, FINELY_OS_SUCCESS_BTN } from '../../features/os/finelyOsLightUi';
 
 const PORTAL_LETTERS_NAVIGATION = {
@@ -53,7 +55,7 @@ export default function PartnerLettersPage() {
       <PageShell
         badge="Partner Portal"
         title="Credit Letters"
-        subtitle="Credit letter workstations are locked on your current plan. Upgrade or ask your specialist to grant access."
+        subtitle="Credit letters are locked on your current plan. Upgrade or ask your specialist to grant access."
       >
         <EntitlementGate partnerId={partner.id} requiredKeys={[ENTITLEMENT_KEYS.letters]}>
           <div />
@@ -66,8 +68,21 @@ export default function PartnerLettersPage() {
     <PageShell
       badge="Partner Portal"
       title="Credit Letters"
-      subtitle="Letter Studio — bureau disputes and credit-report letter tracks → paper preview → Letters Vault."
+      subtitle="Draft bureau dispute letters, preview the paper, and save them to Letters Vault."
     >
+      <FinelyNowDoThisStrip surface="light" />
+      <FinelyNoticedStrip
+        surface="light"
+        items={[
+          {
+            id: 'letters-next',
+            tone: 'info',
+            text: 'Open Letter Studio to draft, preview, and send the next bureau letter.',
+            actionLabel: 'Open letters',
+            to: '/portal/letters',
+          },
+        ]}
+      />
       <PartnerCreditLettersStudioWorkspace partner={partner} navigation={PORTAL_LETTERS_NAVIGATION} />
       <FinelyOsPageFooter />
     </PageShell>

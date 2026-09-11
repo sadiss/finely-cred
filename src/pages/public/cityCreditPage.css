@@ -1,0 +1,74 @@
+.fc-city-credit {
+  --ink: #f8fafc;
+  color: var(--ink);
+}
+
+.fc-city-credit-hero {
+  padding: clamp(2.5rem, 6vw, 5rem) 0 2.5rem;
+}
+
+.fc-city-credit-kicker {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.fc-city-credit-title {
+  margin: 0.75rem 0 1rem;
+  font-size: clamp(2.4rem, 5vw, 4rem);
+  line-height: 1.05;
+  font-weight: 800;
+}
+
+.fc-city-credit-lead {
+  max-width: 40rem;
+  font-size: 1.125rem;
+  line-height: 1.7;
+}
+
+.fc-city-credit-harbor .fc-city-credit-hero {
+  background:
+    radial-gradient(80% 80% at 100% 0%, rgba(16, 185, 129, 0.2), transparent 45%),
+    #07110e;
+  border-radius: 0 0 2.5rem 0;
+  padding-left: clamp(1.25rem, 4vw, 3rem);
+}
+
+.fc-city-credit-grid .fc-city-credit-hero {
+  background:
+    radial-gradient(70% 90% at 0% 0%, rgba(99, 102, 241, 0.22), transparent 50%),
+    #0b1020;
+}
+
+.fc-city-credit-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: 2rem;
+}
+
+@media (max-width: 860px) {
+  .fc-city-credit-split {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fc-city-credit-spine {
+  border-left: 4px solid #38bdf8;
+  padding-left: 1.5rem;
+}
+
+.fc-city-credit-fact {
+  margin-top: 1.5rem;
+  padding: 1.5rem 1.75rem;
+  border-radius: 1.25rem;
+  font-size: 1.05rem;
+  line-height: 1.65;
+}
+
+.fc-city-credit-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.75rem;
+}

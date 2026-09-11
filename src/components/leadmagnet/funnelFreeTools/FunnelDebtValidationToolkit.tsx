@@ -110,7 +110,7 @@ export function FunnelDebtValidationToolkit({ leadId, email }: Props) {
         leadId={leadId}
         email={email}
         funnelId="debt"
-        title="Debt validation command center"
+        title="Debt validation desk"
         subtitle="FDCPA-aware workflow — track validation, deadlines, and collector contact."
         accent="sky"
         items={VALIDATION_ITEMS}

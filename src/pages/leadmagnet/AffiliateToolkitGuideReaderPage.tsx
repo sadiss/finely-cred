@@ -11,6 +11,8 @@ import {
   type AffiliateToolkitChapter,
 } from './affiliateToolkitGuideContent';
 import GuideReaderShell from './GuideReaderShell';
+import { LeadMagnetPreviewBanner } from '../../components/leadmagnet/LeadMagnetPreviewBanner';
+import { clampLeadMagnetChapter, useLeadMagnetGuideGate } from '../../lib/useLeadMagnetGuideGate';
 import './guideReaderShell.css';
 import '../../components/leadmagnet/leadMagnetLuxuryStage.css';
 
@@ -52,6 +54,7 @@ export default function AffiliateToolkitGuideReaderPage() {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const [tocOpen, setTocOpen] = useState(false);
+  const { unlocked, previewLocked } = useLeadMagnetGuideGate('affiliate_toolkit');
 
   const initialIdx = useMemo(() => {
     const q = params.get('chapter') ?? '';
@@ -60,8 +63,8 @@ export default function AffiliateToolkitGuideReaderPage() {
 
   const [chapterIdx, setChapterIdx] = useState(initialIdx);
   useEffect(() => {
-    setChapterIdx(initialIdx);
-  }, [initialIdx]);
+    setChapterIdx(previewLocked ? 0 : initialIdx);
+  }, [initialIdx, previewLocked]);
 
   const chapter = AFFILIATE_TOOLKIT_CHAPTERS[chapterIdx] ?? AFFILIATE_TOOLKIT_CHAPTERS[0]!;
 
@@ -83,7 +86,7 @@ export default function AffiliateToolkitGuideReaderPage() {
   });
 
   const goChapter = (idx: number) => {
-    const next = Math.max(0, Math.min(AFFILIATE_TOOLKIT_CHAPTERS.length - 1, idx));
+    const next = clampLeadMagnetChapter(idx, AFFILIATE_TOOLKIT_CHAPTERS.length, unlocked);
     setChapterIdx(next);
     setParams({ chapter: AFFILIATE_TOOLKIT_CHAPTERS[next]!.id }, { replace: true });
     setTocOpen(false);
@@ -95,6 +98,14 @@ export default function AffiliateToolkitGuideReaderPage() {
       chapters={shellChapters}
       chapterIndex={chapterIdx}
       onChapterChange={goChapter}
+      previewLocked={previewLocked}
+      previewUnlockHref={`${AFFILIATE_TOOLKIT_PATH}#download`}
+      previewBanner={
+        <LeadMagnetPreviewBanner
+          unlockHref={`${AFFILIATE_TOOLKIT_PATH}#download`}
+          pagesLabel="the full affiliate toolkit"
+        />
+      }
       tocOpen={tocOpen}
       onTocOpenChange={setTocOpen}
       tocLabel="Toolkit chapters"

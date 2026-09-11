@@ -8,7 +8,8 @@ export type StaffDepartment =
   | 'partner_success'
   | 'growth_sessions'
   | 'marketing'
-  | 'internal_ops';
+  | 'internal_ops'
+  | 'haitian_community';
 
 export type StaffShiftBlock = {
   days: number[];

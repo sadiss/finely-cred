@@ -356,8 +356,8 @@ export default function PersonalCreditPage() {
                 </h3>
                 <p className="mt-1 text-sm text-white/75">Search or paginate — no endless scroll.</p>
               </div>
-              <button type="button" onClick={() => navigate('/pricing')} className={PC_RESTORE_BTN.ghost}>
-                View full pricing <ArrowRight size={14} />
+              <button type="button" onClick={() => navigate('/pricing/personal-credit-building')} className={PC_RESTORE_BTN.ghost}>
+                Personal building programs <ArrowRight size={14} />
               </button>
             </div>
             <PricingPackageCatalog

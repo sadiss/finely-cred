@@ -14,20 +14,20 @@ const PROOF: Array<{
 }> = [
   {
     icon: Layers,
-    title: 'One OS — not ten tabs',
-    desc: 'Marketing, onboarding, portal, Work OS, CRM, and automations share the same lane logic.',
+    title: 'One workspace, not ten tabs',
+    desc: 'Marketing, onboarding, the portal, and follow-up share the same partner file.',
     accent: 'violet',
   },
   {
     icon: Bot,
-    title: 'Automations that feel human',
-    desc: '40+ persona-driven recipes with cadence delays — not blast-and-pray email bots.',
+    title: 'Follow-up that waits for a real beat',
+    desc: 'Messages that wait for the next real step, instead of blasting the same email to everyone.',
     accent: 'fuchsia',
   },
   {
     icon: ShieldCheck,
     title: 'Factual dispute discipline',
-    desc: 'Reasons OS ranks library findings for fundability impact before letters go out.',
+    desc: 'We rank factual findings by how they affect lending readiness before a letter goes out.',
     accent: 'sky',
   },
 ];
@@ -36,17 +36,17 @@ export function LandingFundabilityTrustSection() {
   const navigate = useNavigate();
   return (
     <section className={`py-16 ${finelyOsLandingContrastSection('fc-band-violet')}`} data-fc-contrast-band="1">
-      <div className="container mx-auto px-4 sm:px-6 max-w-6xl">
+      <div className="fc-viewport-floor">
         <Reveal>
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-10">
             <div className="max-w-2xl">
-              <p className="text-xs font-bold tracking-[0.3em] text-violet-300 uppercase mb-3">Built to unify</p>
+              <p className="text-xs font-bold tracking-[0.3em] text-violet-300 uppercase mb-3">Built to stay readable</p>
               <h2 className="text-3xl lg:text-4xl font-light text-white">
-                Fundability-first — with <span className="text-violet-300 font-medium">calm layouts</span> everywhere
+                Funding readiness, with a <span className="text-violet-300 font-medium">workspace you can finish</span>
               </h2>
               <p className="text-white/55 mt-3 leading-relaxed">
-                Dense credit work belongs in tab-first hubs, not infinite scroll walls. Finely Cred routes you from signup →
-                fundability scan → portal execution without losing context.
+                Heavy credit work belongs in a hub you can actually complete, not an endless scroll. You move from signup
+                to a readiness scan to the portal without losing the file.
               </p>
             </div>
             <div className="flex flex-wrap gap-3 shrink-0">
@@ -54,7 +54,7 @@ export function LandingFundabilityTrustSection() {
                 Open fundability hub <ArrowRight size={16} />
               </Button>
               <Button variant="platinum" size="lg" onClick={() => finelyCtaNavigate(navigate, 'personal_intake')}>
-                Get started
+                Start free guide
               </Button>
             </div>
           </div>
@@ -75,7 +75,7 @@ export function LandingFundabilityTrustSection() {
             <div className="flex items-center gap-3">
               <FlashyIcon icon={Sparkles} color="emerald" size="sm" className="!w-12 !h-12 shrink-0" />
               <p className="text-sm text-white/70">
-                <span className="text-white font-semibold">Reasons OS + Letter Studio</span> — AI-ranked factual findings with fundability lens.
+                <span className="text-white font-semibold">Letter Studio</span> ranks factual findings by lending impact before you mail.
               </p>
             </div>
             <button

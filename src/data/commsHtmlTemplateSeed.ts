@@ -11,6 +11,7 @@ import {
 } from '../comms/prebuiltHtmlEmailLayout';
 import { WELCOME_EMAIL_SUBJECT_STARTER, WELCOME_HTML_STARTER } from '../comms/templateVariables';
 import { defaultSignatureHtml } from './emailDomainsRepo';
+import { ensureHaitianCommsTemplatesOnce } from './commsHaitianTemplatesSeed';
 
 function nowIso() {
   return new Date().toISOString();
@@ -136,6 +137,7 @@ export function ensureCommsHtmlTemplatesOnce() {
     changed = true;
   }
 
+  ensureHaitianCommsTemplatesOnce();
   return changed;
 }
 

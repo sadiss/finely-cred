@@ -90,7 +90,7 @@ export default function AdminCmsProductSurface({ role, pageId }: WorkspaceProduc
         bullets: [
           'Welcome experiences and partner messaging.',
           'Templates route into Communication Hub threads.',
-          'Delivery only — not a duplicate inbox.',
+          'Templates for outbound partner messages.',
         ],
       },
       {
@@ -100,7 +100,7 @@ export default function AdminCmsProductSurface({ role, pageId }: WorkspaceProduc
         description: 'Review what partners see on DIY, DFY, and hybrid package rails.',
         icon: Sparkles,
         accent: 'rose',
-        path: '/pricing',
+        path: '/pricing/personal-credit-restore',
         statLabel: 'Categories',
         statValue: String(PRICING_CATEGORIES.length),
         bullets: [
@@ -161,7 +161,7 @@ export default function AdminCmsProductSurface({ role, pageId }: WorkspaceProduc
       pageId={pageId}
       eyebrow="Studio"
       title="Site content"
-      description="Command deck for guides, partner messaging, and public pricing — open the live editor for each surface."
+      description="Edit guides, partner messaging, and public pricing from one place."
       accent={accent}
       surfaceMode={navItem?.surfaceMode ?? 'studio'}
       archetype={archetype}
@@ -208,7 +208,7 @@ export default function AdminCmsProductSurface({ role, pageId }: WorkspaceProduc
         },
       ]}
       metricTitle="Content pulse"
-      metricDescription="Deck tiles below mirror live counts — pick a module to inspect scope."
+      metricDescription="Counts update from live content. Pick a module to review it."
     >
       <div className={FINELY_OS_PAGE} data-surface-layout="command-deck">
         <section className={`${finelyOsCatalogCard('sky')} p-6 lg:p-8 space-y-6`} data-fc-accent="sky">
@@ -216,12 +216,12 @@ export default function AdminCmsProductSurface({ role, pageId }: WorkspaceProduc
             <div>
               <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
                 <Layout size={18} />
-                <span>Content command deck</span>
+                <span>Content overview</span>
               </div>
-              <h2 className="mt-3 text-3xl font-extrabold">What ships on the public site</h2>
+              <h2 className="mt-3 text-3xl font-extrabold">What partners see on the public site</h2>
               <p className={`mt-3 max-w-3xl text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
-                Three live editors cover partner education, messaging templates, and pricing audit. Compliance gate tracks
-                doctrine-derived routes before they merge.
+                Three editors cover partner education, messaging templates, and pricing. Compliance review tracks public
+                pages before they go live.
               </p>
             </div>
             <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => navigate(selectedModule.path)}>
@@ -264,7 +264,7 @@ export default function AdminCmsProductSurface({ role, pageId }: WorkspaceProduc
           >
             <div className={FINELY_OS_ENTITY_SUBLABEL}>Module navigator</div>
             <p className={`text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
-              Pick a surface — counts refresh from live stores.
+              Pick a module. Counts update from live content.
             </p>
 
             <div className="space-y-2">
@@ -321,7 +321,7 @@ export default function AdminCmsProductSurface({ role, pageId }: WorkspaceProduc
               >
                 <div className="flex items-center gap-2">
                   <FileCheck size={16} />
-                  <span className="text-sm font-extrabold">{compliancePending} route(s) need compliance review</span>
+                  <span className="text-sm font-extrabold">{compliancePending} page(s) need compliance review</span>
                 </div>
               </button>
             ) : null}
@@ -371,7 +371,7 @@ export default function AdminCmsProductSurface({ role, pageId }: WorkspaceProduc
                   </button>
                 ) : null}
                 {selectedModule.id !== 'pricing' ? (
-                  <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/pricing')}>
+                  <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/pricing/personal-credit-restore')}>
                     Public pricing
                   </button>
                 ) : null}

@@ -41,6 +41,8 @@ function lineStat(line: PartnerServiceLine, stats: PartnerDashboardWorkstationMo
       return `${stats.readinessScore} / 100 readiness`;
     case 'debt':
       return `${stats.openDebt} open matter${stats.openDebt === 1 ? '' : 's'} · ${stats.letters} letter${stats.letters === 1 ? '' : 's'}`;
+    case 'haitian':
+      return 'Credit help, kits, and Pale Kreyòl';
     case 'programs':
       return 'Specialist, affiliate, and partner hubs';
     default:
@@ -82,8 +84,8 @@ export function PartnerDashboardWorkstationMosaic({
     <section className="fc-partner-service-mosaic" aria-label="Credit services" data-fc-dashboard-mosaic="1">
       <ProductSectionHeader
         eyebrow="Your services"
-        title="Open the workspace for this job"
-        description="Each room is a different credit service. The one you need now is the next click."
+        title="Your credit services"
+        description="Each tile opens a different service. Start with the one you need now."
       />
       <div className="fc-partner-service-mosaic__grid">
         {rooms.map((room, index) => {

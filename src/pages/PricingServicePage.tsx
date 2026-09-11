@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { AlertCircle, ArrowRight, Gift } from 'lucide-react';
+import { AlertCircle, ArrowRight, Gift, Info } from 'lucide-react';
 import { PageShell } from '../components/layout/PageShell';
 import { useAuth } from '../auth/AuthProvider';
 import { resolvePackageSelectPath } from '../lib/packageCheckoutRouting';
@@ -28,33 +28,35 @@ import { getPublicAgencyBuyInTiers } from '../config/agencyPartnersProgram';
 import { DigitalInviteShareBand } from '../components/digitalCards';
 import { captureDigitalInviteCardFromUrl } from '../lib/digitalInviteCardAttribution';
 import type { DigitalInviteCardRole } from '../config/digitalInviteCards';
-import { PricingPackageCatalog } from '../components/pricing/PricingPackageCatalog';
+import { personalCreditCompareMeta } from '../components/pricing/PricingPackageCatalog';
+import { ServicePackageDetailModal } from '../components/pricing/ServicePackageDetailModal';
 import { ServicesChooserModal } from '../components/pricing/ServicesChooserModal';
 import { BusinessCreditQuotePanel } from '../components/pricing/BusinessCreditQuotePanel';
 import { BusinessCreditOneSheetsPanel } from '../components/pricing/BusinessCreditOneSheetsPanel';
 import { FinelyOsPageFooter } from '../features/os/FinelyOsPageFooter';
 import { MarketingStaffChatStrip } from '../components/marketing/MarketingStaffChatStrip';
 import { usePublicSeoMeta } from '../hooks/usePublicSeoMeta';
+import { ServiceLaneStage, type ServiceFloorSlug } from '../features/os/ServiceLaneStage';
 import {
   FINELY_OS_COMPLIANCE_FOOTNOTE,
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,
-  FINELY_OS_GLOW_INCLUDES_BTN,
+  FINELY_OS_PACKAGE_SELECT_BTN,
   FINELY_OS_PAGE,
+  FINELY_OS_SECONDARY_BTN,
   FINELY_OS_SUCCESS_BTN,
   FINELY_OS_VIEW_TABS,
   finelyOsCatalogCard,
-  finelyOsLandingIvoryCard,
-  finelyOsIvorySolidTile,
   finelyOsRestoreLaneHeroShell,
   FINELY_OS_RESTORE_HERO_KICKER,
   FINELY_OS_RESTORE_HERO_TITLE,
   FINELY_OS_RESTORE_HERO_BODY,
-  finelyOsListItem,
   finelyOsViewTab,
   type FinelyOsPublicAccent,
 } from '../features/os/finelyOsLightUi';
+import './pricingServicePage.css';
+import './serviceLaneStage.css';
 
 type ServiceSlug =
   | 'personal-credit'
@@ -103,7 +105,7 @@ function serviceMetaFromSlug(slugRaw: string | undefined): ServiceMeta | null {
       slug: 'personal-credit-restore',
       category: 'personal_credit',
       title: 'Personal Credit Restore',
-      subtitle: 'Disputes, deletions, and restoration sequencing to stabilize your personal credit profile.',
+      subtitle: 'Dispute what the bureaus show, then sequence the next round so the file lenders read is cleaner.',
       filter: isPersonalRestorePackage,
     };
   }
@@ -113,7 +115,7 @@ function serviceMetaFromSlug(slugRaw: string | undefined): ServiceMeta | null {
       slug,
       category: 'personal_credit',
       title: 'Personal Credit Building',
-      subtitle: 'Thin-file builds, utilization optimization, and maintenance cadence to grow strength over time.',
+      subtitle: 'Thicken a thin file, hold a healthy utilization band, and keep the cadence after restore.',
       filter: (p) =>
         p.category === 'personal_credit' && (p.id.startsWith('personal_build') || p.id.startsWith('personal_maintenance')),
     };
@@ -133,7 +135,7 @@ function serviceMetaFromSlug(slugRaw: string | undefined): ServiceMeta | null {
     case 'tradelines':
       return { slug, category: 'tradeline_promo', title: categoryLabels.tradeline_promo, subtitle: categoryDescriptions.tradeline_promo };
     case 'agencies':
-      return { slug, category: 'agency', title: 'Agency Plans', subtitle: 'Tooling and operations tiers for credit repair agencies.' };
+      return { slug, category: 'agency', title: 'Agency Plans', subtitle: 'Seats, branding, and payout tiers for operators who run partner files under their own name.' };
     default:
       return null;
   }
@@ -166,6 +168,254 @@ function packagesFor(category: PricingCategory): PricingPackage[] {
     default:
       return [];
   }
+}
+
+const CHIP_ACCENTS: FinelyOsPublicAccent[] = ['emerald', 'violet', 'sky', 'rose'];
+const PKG_SHAPES = ['rail', 'cut', 'ticket', 'band'] as const;
+
+const SERVICE_FLOORS: ServiceFloorSlug[] = [
+  'business-credit',
+  'debt-legal',
+  'personal-credit-building',
+  'wealth-builder',
+  'privacy-id',
+  'bundles',
+  'tradelines',
+  'agencies',
+];
+
+function isServiceFloor(slug: string | undefined): slug is ServiceFloorSlug {
+  return SERVICE_FLOORS.includes(slug as ServiceFloorSlug);
+}
+
+function ServicePackageWorkbench({
+  packages,
+  accent,
+  includePersonalCompare,
+  onSelect,
+  selectLabel = 'Select package',
+  cinematic = false,
+}: {
+  packages: PricingPackage[];
+  accent: FinelyOsPublicAccent;
+  includePersonalCompare?: boolean;
+  onSelect: (pkgId: string) => void;
+  selectLabel?: string;
+  cinematic?: boolean;
+}) {
+  const [query, setQuery] = useState('');
+  const [selectedId, setSelectedId] = useState<string | null>(packages[0]?.id ?? null);
+  const [detailOpen, setDetailOpen] = useState(false);
+
+  useEffect(() => {
+    if (!packages.length) {
+      setSelectedId(null);
+      return;
+    }
+    if (!selectedId || !packages.some((p) => p.id === selectedId)) {
+      setSelectedId(packages[0].id);
+    }
+  }, [packages, selectedId]);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return packages;
+    return packages.filter(
+      (p) =>
+        p.name.toLowerCase().includes(q) ||
+        (p.tagline ?? '').toLowerCase().includes(q) ||
+        (p.description ?? '').toLowerCase().includes(q),
+    );
+  }, [packages, query]);
+
+  const selected = useMemo(
+    () => (selectedId ? packages.find((p) => p.id === selectedId) ?? null : null),
+    [packages, selectedId],
+  );
+
+  const priceLabel = (pkg: PricingPackage) =>
+    pkg.isCustomQuote ? 'Custom quote' : pkg.priceAmount === 0 ? 'Free' : `${formatPrice(pkg.priceAmount)}${pkg.interval === 'month' ? '/mo' : ''}`;
+
+  const highlightLines = useMemo(() => {
+    if (!selected) return [];
+    const compare = includePersonalCompare ? personalCreditCompareMeta(selected) : [];
+    const fromPkg = [...(selected.highlights ?? []), ...(selected.scopeBullets ?? [])].slice(0, 4);
+    return [...compare, ...fromPkg].slice(0, 6);
+  }, [selected, includePersonalCompare]);
+
+  if (!packages.length) {
+    return cinematic ? (
+      <div className="pricing-workbench-inspector">
+        <div className="pricing-workbench-inspector__empty">No packages match this mode yet. Try switching DIY / DFY.</div>
+      </div>
+    ) : (
+      <div className="svc-pkg-empty">No packages match this mode yet. Try switching DIY / DFY.</div>
+    );
+  }
+
+  const selectedAccent = CHIP_ACCENTS[Math.max(0, packages.findIndex((p) => p.id === selectedId)) % CHIP_ACCENTS.length];
+
+  if (cinematic) {
+    return (
+      <>
+        <div className="pricing-workbench" data-fc-pricing-workbench="1">
+          <aside className="pricing-workbench-nav" aria-label="Package navigator">
+            <div className="pricing-workbench-nav__head">
+              <input
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search packages…"
+                className="pricing-workbench-nav__search"
+                aria-label="Search packages"
+              />
+            </div>
+            <div className="pricing-workbench-nav__list" role="listbox" aria-label="Packages">
+              {filtered.map((pkg) => (
+                <button
+                  key={pkg.id}
+                  type="button"
+                  role="option"
+                  aria-selected={selectedId === pkg.id}
+                  onClick={() => setSelectedId(pkg.id)}
+                  className={`pricing-workbench-nav__item pricing-workbench-nav__item--${accent} ${
+                    selectedId === pkg.id ? 'pricing-workbench-nav__item--active' : ''
+                  }`}
+                >
+                  <span className="pricing-workbench-nav__name">{pkg.name}</span>
+                  <span className="pricing-workbench-nav__meta">
+                    {priceLabel(pkg)}
+                    {pkg.delivery ? ` · ${pkg.delivery}` : ''}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </aside>
+          <div className="pricing-workbench-inspector" aria-live="polite">
+            {selected ? (
+              <>
+                <p className="pricing-workbench-inspector__kicker">Selected package</p>
+                <h2 className="pricing-workbench-inspector__title">{selected.name}</h2>
+                <p className="pricing-workbench-inspector__price">{priceLabel(selected)}</p>
+                <p className="pricing-workbench-inspector__tagline">{selected.tagline || selected.description}</p>
+                {highlightLines.length ? (
+                  <div className="pricing-workbench-inspector__highlights">
+                    {highlightLines.map((line, i) => (
+                      <div
+                        key={`${line}-${i}`}
+                        className={`pricing-workbench-inspector__chip pricing-workbench-inspector__chip--${CHIP_ACCENTS[i % CHIP_ACCENTS.length]}`}
+                      >
+                        {line}
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+                <div className="pricing-workbench-inspector__actions">
+                  <button type="button" onClick={() => setDetailOpen(true)} className={FINELY_OS_SECONDARY_BTN}>
+                    <Info size={14} /> What&apos;s included
+                  </button>
+                  <button type="button" onClick={() => onSelect(selected.id)} className={FINELY_OS_PACKAGE_SELECT_BTN}>
+                    {selectLabel} <ArrowRight size={14} />
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="pricing-workbench-inspector__empty">Select a package to see details.</div>
+            )}
+          </div>
+        </div>
+        <ServicePackageDetailModal
+          pkg={detailOpen ? selected : null}
+          onClose={() => setDetailOpen(false)}
+          onSelect={onSelect}
+          selectLabel={selectLabel}
+        />
+      </>
+    );
+  }
+
+  return (
+    <>
+      <div className="svc-pkg" id="svc-packages" data-fc-pricing-workbench="1">
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search packages…"
+          className="svc-pkg__search"
+          aria-label="Search packages"
+        />
+        <div className="svc-pkg-mosaic" role="listbox" aria-label="Packages">
+          {filtered.map((pkg, i) => {
+            const shape = PKG_SHAPES[i % PKG_SHAPES.length];
+            const cardAccent = CHIP_ACCENTS[i % CHIP_ACCENTS.length];
+            const active = selectedId === pkg.id;
+            return (
+              <button
+                key={pkg.id}
+                type="button"
+                role="option"
+                aria-selected={active}
+                onClick={() => setSelectedId(pkg.id)}
+                className={`svc-pkg-card svc-pkg-card--${shape} svc-pkg-card--${cardAccent} svc-acc-${cardAccent} ${
+                  active ? 'svc-pkg-card--active' : ''
+                }`}
+              >
+                <span className="svc-pkg-card__name">{pkg.name}</span>
+                <span className="svc-pkg-card__price">{priceLabel(pkg)}</span>
+                <span className="svc-pkg-card__meta">
+                  {pkg.delivery ? `${pkg.delivery}` : 'Package'}
+                  {pkg.badge ? ` · ${pkg.badge}` : ''}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className={`svc-pkg-showcase svc-acc-${selectedAccent}`} aria-live="polite">
+          {selected ? (
+            <>
+              <p className="svc-pkg-showcase__kicker">Selected package</p>
+              <h2 className="svc-pkg-showcase__title">{selected.name}</h2>
+              <p className="svc-pkg-showcase__price">{priceLabel(selected)}</p>
+              <p className="svc-pkg-showcase__tagline">{selected.tagline || selected.description}</p>
+              {highlightLines.length ? (
+                <div className="svc-pkg-showcase__chips">
+                  {highlightLines.map((line, i) => (
+                    <div
+                      key={`${line}-${i}`}
+                      className={`svc-pkg-showcase__chip svc-acc-${CHIP_ACCENTS[i % CHIP_ACCENTS.length]}`}
+                    >
+                      {line}
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+              <div className="svc-pkg-showcase__actions">
+                <button type="button" onClick={() => setDetailOpen(true)} className={FINELY_OS_SECONDARY_BTN}>
+                  <Info size={14} /> What&apos;s included
+                </button>
+                <button type="button" onClick={() => onSelect(selected.id)} className={FINELY_OS_PACKAGE_SELECT_BTN}>
+                  {selectLabel} <ArrowRight size={14} />
+                </button>
+              </div>
+              <p className={`${FINELY_OS_COMPLIANCE_FOOTNOTE} mt-4`}>
+                Results vary · not legal advice · funding subject to underwriting
+              </p>
+            </>
+          ) : (
+            <div className="svc-pkg-empty">Select a package to see details.</div>
+          )}
+        </div>
+      </div>
+      <ServicePackageDetailModal
+        pkg={detailOpen ? selected : null}
+        onClose={() => setDetailOpen(false)}
+        onSelect={onSelect}
+        selectLabel={selectLabel}
+      />
+    </>
+  );
 }
 
 export default function PricingServicePage() {
@@ -271,49 +521,58 @@ export default function PricingServicePage() {
 
   const currentPath = `${basePath}/${meta?.slug ?? params.service ?? ''}`;
   const accent = hubAccentFor(category);
+  const floorSlug = isServiceFloor(meta?.slug) ? meta.slug : null;
 
   return (
-    <PageShell hideHero title={title} subtitle={subtitle} surface={isRestoreLane ? 'ivory' : 'default'}>
+    <PageShell
+      hideHero
+      title={title}
+      subtitle={subtitle}
+      surface="ivory"
+      contentWidth="full"
+      laneHero={
+        floorSlug ? (
+          <div data-fc-service-floor={floorSlug}>
+            <ServiceLaneStage slug={floorSlug} subtitle={subtitle} onSwitch={() => setChooserOpen(true)} />
+          </div>
+        ) : undefined
+      }
+    >
       <div
         className={`${FINELY_OS_PAGE}${isRestoreLane ? ' !space-y-8' : ''}`}
         data-fc-restore-pricing={isRestoreLane ? '1' : undefined}
+        data-fc-service-lane={isRestoreLane ? undefined : '1'}
+        data-fc-service-floor={floorSlug ?? undefined}
       >
-        <header
-          className={
-            isRestoreLane
-              ? `${finelyOsRestoreLaneHeroShell()} fc-restore-solutions-hero`
-              : finelyOsCatalogCard(accent === 'amber' || accent === 'fuchsia' ? 'rose' : accent)
-          }
-          data-fc-accent={accent}
-        >
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div className="min-w-0 space-y-3">
-              <p className={isRestoreLane ? FINELY_OS_RESTORE_HERO_KICKER : `${FINELY_OS_ENTITY_SUBLABEL} tracking-[0.22em]`}>
-                Solutions
-              </p>
-              <h1 className={isRestoreLane ? FINELY_OS_RESTORE_HERO_TITLE : `text-2xl sm:text-3xl font-semibold tracking-tight ${FINELY_OS_ENTITY_VALUE}`}>
-                {title}
-              </h1>
-              <p className={isRestoreLane ? FINELY_OS_RESTORE_HERO_BODY : `max-w-2xl text-sm sm:text-base ${FINELY_OS_ENTITY_BODY}`}>
-                {subtitle}
-              </p>
-              <p className={`${FINELY_OS_COMPLIANCE_FOOTNOTE} ${isRestoreLane ? '!text-white/50 !text-left' : ''}`}>
-                Educational only · not legal advice · payments cover software access and guided workflows.
-              </p>
+        {isRestoreLane ? (
+          <header className={`${finelyOsRestoreLaneHeroShell()} fc-restore-solutions-hero`} data-fc-accent={accent}>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0 space-y-3">
+                <p className={FINELY_OS_RESTORE_HERO_KICKER}>Personal credit restore</p>
+                <h1 className={FINELY_OS_RESTORE_HERO_TITLE}>{title}</h1>
+                <p className={FINELY_OS_RESTORE_HERO_BODY}>{subtitle}</p>
+                <p className={`${FINELY_OS_COMPLIANCE_FOOTNOTE} !text-white/50 !text-left`}>
+                  Educational only · not legal advice · payments cover software access and guided workflows.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setChooserOpen(true)}
+                className="shrink-0 self-start inline-flex items-center gap-2 rounded-xl border-2 border-violet-300/45 bg-violet-500/20 px-5 py-3 text-sm font-extrabold text-violet-50 hover:border-violet-200/60 transition"
+              >
+                Switch solution <ArrowRight size={14} />
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() => setChooserOpen(true)}
-              className={
-                isRestoreLane
-                  ? 'shrink-0 self-start inline-flex items-center gap-2 rounded-xl border-2 border-violet-300/45 bg-violet-500/20 px-5 py-3 text-sm font-extrabold text-violet-50 hover:border-violet-200/60 transition'
-                  : `shrink-0 self-start ${FINELY_OS_GLOW_INCLUDES_BTN}`
-              }
-            >
-              Switch solution <ArrowRight size={14} />
-            </button>
-          </div>
-        </header>
+          </header>
+        ) : floorSlug ? null : (
+          <header className={finelyOsCatalogCard(accent === 'amber' || accent === 'fuchsia' ? 'rose' : accent)} data-fc-accent={accent}>
+            <div className="min-w-0 space-y-3">
+              <p className={`${FINELY_OS_ENTITY_SUBLABEL} tracking-[0.22em]`}>{title}</p>
+              <h1 className={`text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight ${FINELY_OS_ENTITY_VALUE}`}>{title}</h1>
+              <p className={`max-w-2xl text-base sm:text-lg ${FINELY_OS_ENTITY_BODY}`}>{subtitle}</p>
+            </div>
+          </header>
+        )}
 
         {category === 'personal_credit' ? (
           <div
@@ -403,7 +662,7 @@ export default function PricingServicePage() {
         {category === 'business_credit' ? (
           <>
             <BusinessCreditQuotePanel />
-            <div className={finelyOsCatalogCard('violet')} data-fc-accent="violet">
+            <div className="svc-outlook svc-acc-violet" data-fc-accent="violet">
               <div className={`text-xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>
                 Program + vendor outlay → potential BC capital (approx)
               </div>
@@ -413,26 +672,26 @@ export default function PricingServicePage() {
                 only · funding subject to underwriting · outlay varies by vendors.
               </p>
               <div className="mt-3 overflow-x-auto">
-                <table className="w-full text-base text-left">
+                <table>
                   <thead>
-                    <tr className="text-white/50 border-b border-white/10">
-                      <th className="py-2 pr-3 font-semibold">Package</th>
-                      <th className="py-2 pr-3 font-semibold">Program fee</th>
-                      <th className="py-2 pr-3 font-semibold">Est. vendor/trade outlay</th>
-                      <th className="py-2 font-semibold">Potential capital (BC only)</th>
+                    <tr>
+                      <th>Package</th>
+                      <th>Program fee</th>
+                      <th>Est. vendor/trade outlay</th>
+                      <th>Potential capital (BC only)</th>
                     </tr>
                   </thead>
-                  <tbody className="text-white/75">
+                  <tbody>
                     {businessCreditPackages
                       .filter((p) => p.businessCapitalOutlook)
                       .map((p) => {
                         const o = formatBusinessCapitalOutlook(p)!;
                         return (
-                          <tr key={p.id} className="border-b border-white/5">
-                            <td className="py-2 pr-3">{p.name}</td>
-                            <td className="py-2 pr-3">{o.programLabel}</td>
-                            <td className="py-2 pr-3">{o.outlayLabel}</td>
-                            <td className={`py-2 font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{o.potentialLabel}</td>
+                          <tr key={p.id}>
+                            <td>{p.name}</td>
+                            <td>{o.programLabel}</td>
+                            <td>{o.outlayLabel}</td>
+                            <td className={FINELY_OS_ENTITY_VALUE}>{o.potentialLabel}</td>
                           </tr>
                         );
                       })}
@@ -445,26 +704,26 @@ export default function PricingServicePage() {
         ) : null}
 
         {category === 'debt_legal' ? (
-          <div className={`${finelyOsCatalogCard('rose')} flex items-start gap-3`} data-fc-accent="rose">
-            <AlertCircle size={18} className="mt-0.5 text-rose-400 shrink-0" />
+          <div className="svc-outlook svc-acc-rose flex items-start gap-3" data-fc-accent="rose">
+            <AlertCircle size={18} className="mt-0.5 text-rose-500 shrink-0" />
             <div className="min-w-0">
               <div className={`text-xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>Typical debt balance → starting package</div>
               <p className={`mt-2 text-base ${FINELY_OS_ENTITY_BODY}`}>
                 Illustrative guidance only — exact package and pricing confirmed after intake. Sticker prices unchanged.
               </p>
               <div className="mt-3 overflow-x-auto">
-                <table className="w-full text-base text-left">
+                <table>
                   <thead>
-                    <tr className="text-white/50 border-b border-white/10">
-                      <th className="py-2 pr-3 font-semibold">Typical debt / complexity</th>
-                      <th className="py-2 font-semibold">Package (sticker)</th>
+                    <tr>
+                      <th>Typical debt / complexity</th>
+                      <th>Package (sticker)</th>
                     </tr>
                   </thead>
-                  <tbody className="text-white/75">
+                  <tbody>
                     {debtLegalPackages.filter((p) => p.debtBalanceGuidance && p.isPublic).map((p) => (
-                      <tr key={p.id} className="border-b border-white/5">
-                        <td className="py-2 pr-3">{p.debtBalanceGuidance?.label}</td>
-                        <td className="py-2">
+                      <tr key={p.id}>
+                        <td>{p.debtBalanceGuidance?.label}</td>
+                        <td>
                           {p.name} · {formatPrice(p.priceAmount)}
                         </td>
                       </tr>
@@ -477,7 +736,7 @@ export default function PricingServicePage() {
         ) : null}
 
         {category !== 'agency' ? (
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className={isRestoreLane ? 'grid md:grid-cols-2 gap-4' : 'svc-mode-row'}>
             <button
               type="button"
               onClick={() => setMode('DIY')}
@@ -488,13 +747,13 @@ export default function PricingServicePage() {
                         ? 'border-violet-400/55 bg-violet-600/25 shadow-[0_0_32px_rgba(139,92,246,0.2)]'
                         : 'border-white/10 bg-[#0a1420]/40 hover:border-violet-400/25'
                     }`
-                  : finelyOsListItem(mode === 'DIY', 'violet')
+                  : `svc-mode-ticket svc-mode-ticket--diy svc-acc-violet ${mode === 'DIY' ? 'svc-mode-ticket--active' : ''}`
               }
             >
-              <div className={isRestoreLane ? 'font-bold tracking-tight text-white text-lg' : FINELY_OS_ENTITY_VALUE}>
+              <div className={isRestoreLane ? 'font-bold tracking-tight text-white text-lg' : 'svc-mode-ticket__title'}>
                 DIY (Do‑It‑Yourself)
               </div>
-              <div className={`mt-1 ${isRestoreLane ? 'text-sm text-white/72' : FINELY_OS_ENTITY_BODY}`}>
+              <div className={isRestoreLane ? 'mt-1 text-sm text-white/72' : 'svc-mode-ticket__body'}>
                 Templates, tools, and structured workflows — you execute.
               </div>
             </button>
@@ -508,13 +767,13 @@ export default function PricingServicePage() {
                         ? 'border-emerald-400/55 bg-gradient-to-br from-emerald-600/28 via-teal-900/22 to-[#0a1420] shadow-[0_0_32px_rgba(52,211,153,0.22)]'
                         : 'border-white/10 bg-[#0a1420]/40 hover:border-emerald-400/25'
                     }`
-                  : finelyOsListItem(mode === 'DFY', 'emerald')
+                  : `svc-mode-ticket svc-mode-ticket--dfy svc-acc-emerald ${mode === 'DFY' ? 'svc-mode-ticket--active' : ''}`
               }
             >
-              <div className={isRestoreLane ? 'font-bold tracking-tight text-white text-lg' : FINELY_OS_ENTITY_VALUE}>
+              <div className={isRestoreLane ? 'font-bold tracking-tight text-white text-lg' : 'svc-mode-ticket__title'}>
                 DFY (Done‑For‑You)
               </div>
-              <div className={`mt-1 ${isRestoreLane ? 'text-sm text-white/72' : FINELY_OS_ENTITY_BODY}`}>
+              <div className={isRestoreLane ? 'mt-1 text-sm text-white/72' : 'svc-mode-ticket__body'}>
                 We build the packet strategy + tracking and guide execution.
               </div>
             </button>
@@ -522,12 +781,12 @@ export default function PricingServicePage() {
         ) : null}
 
         {category === 'agency' ? (
-          <div className="space-y-6">
+          <div className="space-y-6" id="svc-packages">
             <div className={`${finelyOsCatalogCard('emerald')} space-y-4`} data-fc-accent="emerald">
               <div className="text-[10px] font-black uppercase tracking-widest text-emerald-300">Step 1 — one-time buy-in</div>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {agencyBuyInTiers.map((b) => (
-                  <div key={b.id} className="rounded-xl border-2 border-emerald-200 bg-white px-4 py-3">
+                  <div key={b.id} className="svc-plaque svc-acc-emerald">
                     <div className="flex items-baseline justify-between gap-2">
                       <span className="text-base font-bold text-slate-900">{b.name}</span>
                       <span className="text-lg font-black text-emerald-700">{b.priceLabel}</span>
@@ -551,12 +810,11 @@ export default function PricingServicePage() {
             </div>
           </div>
         ) : (
-          <PricingPackageCatalog
+          <ServicePackageWorkbench
             packages={visible}
-            pageSize={6}
+            accent={accent === 'fuchsia' ? 'rose' : accent}
+            cinematic={isRestoreLane}
             includePersonalCompare={category === 'personal_credit'}
-            cardSurface={isRestoreLane ? 'adminSolid' : 'default'}
-            searchPlaceholder="Search packages…"
             selectLabel="Select package"
             onSelect={(pkgId) => {
               const pkg = visible.find((p) => p.id === pkgId);
@@ -576,11 +834,11 @@ export default function PricingServicePage() {
           roleLabel="solutions advisor"
           subline="Not sure which package in this category fits? Chat before checkout."
           buttonTone="secondary"
-          surface={isRestoreLane ? 'ivory' : 'default'}
+          surface="ivory"
         />
 
         {inviteCardRole ? (
-          <DigitalInviteShareBand role={inviteCardRole} surface={isRestoreLane ? 'ivory' : 'default'} />
+          <DigitalInviteShareBand role={inviteCardRole} surface="ivory" />
         ) : null}
 
         {isRestoreLane ? null : <FinelyOsPageFooter />}

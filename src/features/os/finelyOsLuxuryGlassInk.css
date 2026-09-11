@@ -29,14 +29,14 @@ html[data-fc-theme='light'] [data-fc-app-surface='admin'] .fc-accent-card:not([d
     .text-white, .text-white\/90, .text-white\/85, .text-white\/80, .text-white\/75,
     .font-semibold, .font-bold, .font-extrabold, .font-black,
     .text-slate-200, .text-slate-300, .text-gray-100, .text-gray-200, .text-gray-300
-  ):not(button):not(a):not(.fc-wlp-atlas-tag):not(.fc-wlp-signal *):not(.fc-ivory-solid-tile *),
+  ):not(button):not(a):not(.fc-wlp-atlas-tag):not(.fc-wlp-signal *):not(.fc-ivory-solid-tile *):not(.fc-os-alert-copy):not([data-fc-os-alert]),
 html[data-fc-theme='light'] [data-fc-app-surface='portal'] .fc-accent-card:not([data-fc-kpi-surface='light']):not(.fc-wlp-signal):not(.fc-wlp-kpi):not(.fc-wlp-metric):not(.fc-ivory-solid-tile):not([class*='fc-admin-solid'])
   :is(
     h1, h2, h3, h4, h5, h6, p,
     .text-white, .text-white\/90, .text-white\/85, .text-white\/80, .text-white\/75,
     .font-semibold, .font-bold, .font-extrabold, .font-black,
     .text-slate-200, .text-slate-300, .text-gray-100, .text-gray-200, .text-gray-300
-  ):not(button):not(a):not(.fc-wlp-atlas-tag):not(.fc-wlp-signal *):not(.fc-ivory-solid-tile *),
+  ):not(button):not(a):not(.fc-wlp-atlas-tag):not(.fc-wlp-signal *):not(.fc-ivory-solid-tile *):not(.fc-os-alert-copy):not([data-fc-os-alert]),
 html[data-fc-theme='light'] [data-fc-shell-surface='ivory'] [data-fc-app-surface='admin'] .fc-accent-card:not([data-fc-kpi-surface='light']):not(.fc-wlp-signal):not(.fc-ivory-solid-tile):not([class*='fc-admin-solid'])
   :is(h1, h2, h3, h4, p, .text-white, .text-white\/90, .text-white\/85, .font-semibold, .font-bold, .font-extrabold, .text-lg, .text-xl, .text-2xl, .text-3xl),
 html[data-fc-theme='light'] [data-fc-shell-surface='ivory'] [data-fc-app-surface='admin'] .fc-luxury-glass:not(.fc-ivory-solid-tile)
@@ -47,11 +47,11 @@ html[data-fc-theme='light'] [data-fc-app-surface='portal'] [data-fc-kpi-surface=
 }
 
 html[data-fc-theme='light'] [data-fc-app-surface='admin'] .fc-accent-card:not([data-fc-kpi-surface='light']):not(.fc-wlp-signal):not(.fc-ivory-solid-tile)
-  :is(.text-white\/70, .text-white\/65, .text-white\/60, .text-white\/55, .text-white\/50, .text-sm, .text-xs, [class*='text-white/']),
+  :is(.text-white\/70, .text-white\/65, .text-white\/60, .text-white\/55, .text-white\/50, .text-sm, .text-xs, [class*='text-white/']):not(button):not([data-fc-os-alert]):not(.fc-os-alert-copy),
 html[data-fc-theme='light'] [data-fc-app-surface='portal'] .fc-accent-card:not([data-fc-kpi-surface='light']):not(.fc-wlp-signal):not(.fc-ivory-solid-tile)
-  :is(.text-white\/70, .text-white\/65, .text-white\/60, .text-white\/55, .text-white\/50, .text-sm, .text-xs, [class*='text-white/']),
+  :is(.text-white\/70, .text-white\/65, .text-white\/60, .text-white\/55, .text-white\/50, .text-sm, .text-xs, [class*='text-white/']):not(button):not([data-fc-os-alert]):not(.fc-os-alert-copy),
 html[data-fc-theme='light'] [data-fc-shell-surface='ivory'] [data-fc-app-surface='admin'] .fc-accent-card:not([data-fc-kpi-surface='light']):not(.fc-wlp-signal):not(.fc-ivory-solid-tile)
-  :is(p, .text-sm, .text-xs, .text-white\/80, .text-white\/75, .text-white\/70, .text-white\/65, .text-white\/60, [class*='text-white/']) {
+  :is(p, .text-sm, .text-xs, .text-white\/80, .text-white\/75, .text-white\/70, .text-white\/65, .text-white\/60, [class*='text-white/']):not(button):not([data-fc-os-alert]):not(.fc-os-alert-copy) {
   color: rgba(226, 232, 240, 0.86) !important;
 }
 
@@ -157,10 +157,20 @@ html[data-fc-theme='light'] .fc-wlp-local-modal {
 
 html[data-fc-theme='light'] .fc-wlp-partner-record-inspector .fc-wlp-btn-secondary,
 html[data-fc-theme='light'] .fc-wlp-inspector-panel .fc-wlp-btn-secondary,
-html[data-fc-theme='light'] .fc-wlp-local-modal .fc-wlp-btn-secondary {
+html[data-fc-theme='light'] .fc-wlp-local-modal[data-bed='dark'] .fc-wlp-btn-secondary {
   color: #fff !important;
   border-color: rgba(255, 255, 255, 0.19) !important;
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.055)) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp-local-modal:not([data-bed='dark']) .fc-wlp-btn-secondary,
+html[data-fc-theme='light'] .fc-today-sheet .fc-wlp-btn-secondary,
+html[data-fc-theme='light'] button.fc-view-tab-idle,
+html[data-fc-theme='light'] .fc-wlp-atlas-tag,
+html[data-fc-theme='light'] .fc-admin-inbox-lane-pill,
+html[data-fc-theme='light'] .fc-today-stamp {
+  color: #0a1628 !important;
+  -webkit-text-fill-color: #0a1628 !important;
 }
 
 html[data-fc-theme='light'] .fc-wlp-partner-record-inspector .fc-wlp-compliance-line,
@@ -175,4 +185,265 @@ html[data-fc-theme='light'] .fc-wlp-partner-record-inspector .fc-wlp-section-des
   color: #0a1628 !important;
   background: #fff !important;
   border-color: rgba(10, 22, 40, 0.14) !important;
+}
+
+/*
+ * Logged-in dark stages (WLP heroes, data-bed=dark, dark admin sections).
+ * Light remaps assume pale admin/portal beds and navy .text-white/40 + jewels.
+ * Last-win vs index.css — frost ink + real dark glass, not 82% white washes.
+ */
+html[data-fc-theme='light'] :is(
+  [data-fc-app-surface='admin'],
+  [data-fc-app-surface='portal'],
+  [data-fc-app-surface='app']
+) :is(
+  [data-bed='dark'],
+  .fc-wlp-admin-stage-hero,
+  .fc-wlp-admin-stage-section[data-tone='dark'],
+  .fc-wlp-command[data-bed='dark'],
+  .fc-premium-chart-card
+) {
+  --fc-os-entity-ink: #f8faf9;
+  --fc-os-entity-body: rgba(255, 255, 255, 0.88);
+  --fc-os-entity-muted: rgba(255, 255, 255, 0.78);
+  --fc-os-entity-faint: rgba(255, 255, 255, 0.62);
+  --fc-os-entity-chip: rgba(255, 255, 255, 0.78);
+  --fc-os-entity-label: #ddd6fe;
+  --fc-os-entity-link: #7dd3fc;
+  color: rgba(248, 250, 252, 0.94);
+}
+
+html[data-fc-theme='light'] :is(
+  [data-fc-app-surface='admin'],
+  [data-fc-app-surface='portal'],
+  [data-fc-app-surface='app']
+) :is(
+  [data-bed='dark'],
+  .fc-wlp-admin-stage-hero,
+  .fc-wlp-admin-stage-section[data-tone='dark']
+) :is(
+  .text-white,
+  .text-white\/90,
+  .text-white\/85,
+  .text-white\/80,
+  .text-white\/75,
+  .font-semibold,
+  .font-bold,
+  .font-extrabold,
+  h1, h2, h3, h4
+):not(button):not(a):not(.fc-light-chrome-btn) {
+  color: rgba(255, 255, 255, 0.96) !important;
+}
+
+html[data-fc-theme='light'] :is(
+  [data-fc-app-surface='admin'],
+  [data-fc-app-surface='portal'],
+  [data-fc-app-surface='app']
+) :is(
+  [data-bed='dark'],
+  .fc-wlp-admin-stage-hero,
+  .fc-wlp-admin-stage-section[data-tone='dark']
+) :is(
+  .text-white\/70,
+  .text-white\/65,
+  .text-white\/60,
+  .text-white\/55,
+  .text-white\/50,
+  .text-white\/45,
+  .text-white\/40,
+  .text-white\/35
+):not(button):not(a):not(.fc-light-chrome-btn) {
+  color: rgba(226, 232, 240, 0.78) !important;
+}
+
+html[data-fc-theme='light'] :is(
+  [data-fc-app-surface='admin'],
+  [data-fc-app-surface='portal'],
+  [data-fc-app-surface='app']
+) :is(
+  [data-bed='dark'],
+  .fc-wlp-admin-stage-hero
+) :is(.text-emerald-100, .text-emerald-200, .text-emerald-300, .text-emerald-400) {
+  color: #6ee7b7 !important;
+}
+html[data-fc-theme='light'] :is(
+  [data-fc-app-surface='admin'],
+  [data-fc-app-surface='portal'],
+  [data-fc-app-surface='app']
+) :is(
+  [data-bed='dark'],
+  .fc-wlp-admin-stage-hero
+) :is(.text-sky-100, .text-sky-200, .text-sky-300, .text-sky-400, .text-cyan-300) {
+  color: #7dd3fc !important;
+}
+html[data-fc-theme='light'] :is(
+  [data-fc-app-surface='admin'],
+  [data-fc-app-surface='portal'],
+  [data-fc-app-surface='app']
+) :is(
+  [data-bed='dark'],
+  .fc-wlp-admin-stage-hero
+) :is(.text-violet-200, .text-violet-300) {
+  color: #c4b5fd !important;
+}
+html[data-fc-theme='light'] :is(
+  [data-fc-app-surface='admin'],
+  [data-fc-app-surface='portal'],
+  [data-fc-app-surface='app']
+) :is(
+  [data-bed='dark'],
+  .fc-wlp-admin-stage-hero
+) :is(.text-rose-200, .text-rose-300, .text-fuchsia-100, .text-fuchsia-200, .text-fuchsia-300) {
+  color: #fda4af !important;
+}
+
+html[data-fc-theme='light'] :is(
+  [data-fc-app-surface='admin'],
+  [data-fc-app-surface='portal'],
+  [data-fc-app-surface='app']
+) :is(
+  [data-bed='dark'],
+  .fc-wlp-admin-stage-hero,
+  .fc-wlp-admin-stage-section[data-tone='dark']
+) [class*='bg-white/']:not([class*='bg-gradient']) {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+
+html[data-fc-theme='light'] :is(
+  [data-fc-app-surface='admin'],
+  [data-fc-app-surface='portal'],
+  [data-fc-app-surface='app']
+) :is(
+  [data-bed='dark'],
+  .fc-wlp-admin-stage-hero,
+  .fc-wlp-admin-stage-section[data-tone='dark']
+) [class*='border-white/'] {
+  border-color: rgba(255, 255, 255, 0.16) !important;
+}
+
+html[data-fc-theme='light'] :is(
+  [data-fc-app-surface='admin'],
+  [data-fc-app-surface='portal'],
+  [data-fc-app-surface='app']
+) :is(
+  [data-bed='dark'],
+  .fc-wlp-admin-stage-hero,
+  .fc-wlp-admin-stage-section[data-tone='dark']
+) :is(
+  [class*='bg-emerald-500/'],
+  [class*='bg-violet-500/'],
+  [class*='bg-sky-500/'],
+  [class*='bg-blue-500/'],
+  [class*='bg-cyan-500/'],
+  [class*='bg-rose-500/'],
+  [class*='bg-fuchsia-500/']
+):not([class*='from-']):not([class*='to-']) {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+html[data-fc-theme='light'] :is(
+  [data-fc-app-surface='admin'],
+  [data-fc-app-surface='portal'],
+  [data-fc-app-surface='app']
+) :is([data-bed='dark'], .fc-wlp-admin-stage-hero) [class*='bg-emerald-500/']:not([class*='from-']) {
+  background: rgba(16, 185, 129, 0.22) !important;
+  border-color: rgba(52, 211, 153, 0.4) !important;
+}
+html[data-fc-theme='light'] :is(
+  [data-fc-app-surface='admin'],
+  [data-fc-app-surface='portal'],
+  [data-fc-app-surface='app']
+) :is([data-bed='dark'], .fc-wlp-admin-stage-hero) [class*='bg-violet-500/']:not([class*='from-']) {
+  background: rgba(139, 92, 246, 0.22) !important;
+  border-color: rgba(167, 139, 250, 0.4) !important;
+}
+html[data-fc-theme='light'] :is(
+  [data-fc-app-surface='admin'],
+  [data-fc-app-surface='portal'],
+  [data-fc-app-surface='app']
+) :is([data-bed='dark'], .fc-wlp-admin-stage-hero) :is([class*='bg-sky-500/'], [class*='bg-blue-500/'], [class*='bg-cyan-500/']):not([class*='from-']) {
+  background: rgba(14, 165, 233, 0.22) !important;
+  border-color: rgba(56, 189, 248, 0.4) !important;
+}
+html[data-fc-theme='light'] :is(
+  [data-fc-app-surface='admin'],
+  [data-fc-app-surface='portal'],
+  [data-fc-app-surface='app']
+) :is([data-bed='dark'], .fc-wlp-admin-stage-hero) :is([class*='bg-rose-500/'], [class*='bg-fuchsia-500/']):not([class*='from-']) {
+  background: rgba(244, 63, 94, 0.22) !important;
+  border-color: rgba(251, 113, 133, 0.4) !important;
+}
+
+html[data-fc-theme='light'] :is(
+  [data-fc-app-surface='admin'],
+  [data-fc-app-surface='portal'],
+  [data-fc-app-surface='app']
+) :is(
+  [data-bed='dark'],
+  .fc-wlp-admin-stage-hero,
+  .fc-wlp-admin-stage-section[data-tone='dark']
+) :is(.fc-card, .fc-panel, .fc-spotlight-panel, .fc-elevated-card) {
+  background: rgba(8, 14, 22, 0.72) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: rgba(248, 250, 252, 0.94) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html[data-fc-theme='light'] :is(
+  [data-fc-app-surface='admin'],
+  [data-fc-app-surface='portal'],
+  [data-fc-app-surface='app']
+) :is(
+  [data-bed='dark'],
+  .fc-wlp-admin-stage-hero
+) :is(.rounded-xl.border-dashed, .rounded-2xl.border-dashed) {
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  color: rgba(226, 232, 240, 0.78) !important;
+}
+
+/* Pastel KPI / mosaic tiles stay navy in Dark — theme --wlp-ink flips to frost. */
+html[data-fc-theme='dark'] .fc-wlp :is(
+  .fc-wlp-metric,
+  .fc-wlp-metric[data-bed='light'],
+  .fc-wlp-signal,
+  .fc-wlp-pipeline-bento-tile:not([data-featured='true']),
+  .fc-wlp-activity-deck-card,
+  .fc-wlp-health-lattice-tile,
+  .fc-wlp-admin-stage-nav-card,
+  .fc-wlp-lender:not(:first-child)
+) {
+  color: #0a1628;
+}
+
+html[data-fc-theme='dark'] .fc-wlp :is(
+  .fc-wlp-metric .fc-wlp-metric-value,
+  .fc-wlp-metric[data-bed='light'] .fc-wlp-metric-value
+) {
+  color: #0a1628;
+}
+
+html[data-fc-theme='dark'] .fc-wlp :is(
+  .fc-wlp-metric .fc-wlp-metric-hint,
+  .fc-wlp-metric[data-bed='light'] .fc-wlp-metric-hint,
+  .fc-wlp-pipeline-bento-tile:not([data-featured='true']) .fc-wlp-pipeline-bento-copy > span,
+  .fc-wlp-activity-deck-copy > span,
+  .fc-wlp-health-lattice-detail,
+  .fc-wlp-lender:not(:first-child) .fc-wlp-lender-product
+) {
+  color: #435063;
+}
+
+/* Dark luxury panels — titles stay frost even when --wlp-ink is navy on a light site */
+.fc-wlp-panel[data-accent] .fc-wlp-panel-title {
+  color: rgba(248, 250, 252, 0.96);
+}
+
+.fc-wlp-panel[data-accent] .fc-wlp-panel-subtitle {
+  color: rgba(226, 232, 240, 0.78);
 }

@@ -61,7 +61,6 @@ import { CS_GUIDE_READ_PATH } from './leadmagnet/creditSpecialistGuideContent';
 import {
   FINELY_OS_BACK_LINK,
   FINELY_OS_COMPACT_PAGE,
-  FINELY_OS_COMPLIANCE_FOOTNOTE,
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_INPUT,
   FINELY_OS_ENTITY_LABEL,
@@ -87,13 +86,13 @@ const STEPS: CareerProgressStep[] = [
 
 const TIER_ACCENT: Record<CreditSpecialistOfferTierId, CareerAccent> = {
   cs_foundation: 'sky',
-  cs_builder: 'gold',
+  cs_builder: 'rose',
   cs_pro: 'emerald',
   cs_elite: 'navy',
 };
 
 const formLabel = `block ${FINELY_OS_ENTITY_LABEL} mb-1`;
-const formInput = `${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')} ${finelyOsGlowField('amber')}`;
+const formInput = `${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')} ${finelyOsGlowField('emerald')}`;
 
 const LEAD_CHOICES: Array<{
   id: CreditSpecialistLeadEntryChoice;
@@ -127,7 +126,9 @@ export default function CreditSpecialistJoinPage() {
   });
 
   const tiers = useMemo(() => listPublicCreditSpecialistOfferTiers(), []);
-  const [step, setStep] = useState<StepId>('tier');
+  const [step, setStep] = useState<StepId>(() =>
+    getCreditSpecialistOfferTier(tierFromUrl) ? 'commit' : 'tier',
+  );
   const [cardEligibility, setCardEligibility] = useState(() => getDigitalInviteCardEligibilityForRole('cs'));
   const [intent, setIntent] = useState<CreditSpecialistJoinIntent>(() =>
     defaultCreditSpecialistJoinIntent({
@@ -408,8 +409,10 @@ export default function CreditSpecialistJoinPage() {
       badge="Join"
       title={`Join as a ${CS.singular}`}
       subtitle={`${intent.minLeadsRequired}-lead minimum · ${CS_OFFER.freeLeadsWindowDays}-day free-leads window · guided onboarding`}
+      hideHero
+      contentWidth="full"
     >
-      <div className={FINELY_OS_COMPACT_PAGE}>
+      <div className={`${FINELY_OS_COMPACT_PAGE} fc-viewport-floor pb-20`}>
         <div className="flex flex-wrap items-center gap-3">
           <button type="button" onClick={() => navigate(CS_OFFER.pricingPath)} className={FINELY_OS_BACK_LINK}>
             <ArrowLeft size={16} /> Pricing hub
@@ -439,14 +442,14 @@ export default function CreditSpecialistJoinPage() {
           }}
           ctaLabel={primaryCta.label}
           onCta={primaryCta.ready ? primaryCta.onCta : undefined}
-          accent="gold"
+          accent="emerald"
         />
 
         <CareerSignupProgress
           steps={STEPS}
           activeId={step}
           onStepClick={(id) => setStep(id as StepId)}
-          accent="navy"
+          accent="emerald"
         />
 
         {cardEligibility ? (
@@ -889,9 +892,11 @@ export default function CreditSpecialistJoinPage() {
           </section>
         )}
 
-        <DigitalInviteShareBand role="cs" />
+        <DigitalInviteShareBand role="cs" surface="onLight" />
 
-        <p className={FINELY_OS_COMPLIANCE_FOOTNOTE}>{CS_OFFER.complianceFootnote}</p>
+        <p className="mx-auto max-w-3xl text-center text-xs leading-relaxed text-slate-300 sm:text-sm">
+          {CS_OFFER.complianceFootnote}
+        </p>
 
         <FinelyOsPageFooter />
       </div>

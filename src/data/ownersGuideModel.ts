@@ -44,7 +44,7 @@ export const OWNERS_GUIDE_SECTIONS: OwnersGuideSection[] = [
       { label: 'Partner portal home', path: '/portal/dashboard', access: 'partner' },
       { label: 'Communication Hub', path: '/portal/messages', access: 'partner' },
       { label: 'Book a strategy call', path: '/portal/calendar', access: 'partner' },
-      { label: 'Public pricing (pre-partner)', path: '/pricing', access: 'public' },
+      { label: 'Public pricing (pre-partner)', path: '/pricing/personal-credit-restore', access: 'public' },
     ],
   },
   {

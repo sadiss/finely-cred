@@ -181,8 +181,8 @@ export default function AdminAnalyticsProductSurface({ role, pageId, dataMode }:
       archetype={archetype}
       icon={PageIcon}
       metrics={metrics}
-      metricTitle="Command deck"
-      metricDescription="Tap a signal to focus the deck. Switch views to compare workload vs throughput."
+      metricTitle="Overview"
+      metricDescription="Tap a signal to focus the overview. Switch views to compare workload vs throughput."
       primaryAction={<ProductPagePrimaryAction label={primaryLabel} onClick={() => navigate(primaryPath)} />}
       secondaryAction={
         <button
@@ -221,7 +221,7 @@ export default function AdminAnalyticsProductSurface({ role, pageId, dataMode }:
                 </button>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-3 gap-5">
                 {[
                   { label: 'Completed', value: completedTasks, family: 'violet' as const },
                   { label: 'Overdue', value: overdueTasks, family: 'rose' as const },
@@ -229,7 +229,7 @@ export default function AdminAnalyticsProductSurface({ role, pageId, dataMode }:
                 ].map((tile) => (
                   <div
                     key={tile.label}
-                    className={`${finelyOsCatalogCard(tile.family)} p-4 text-center`}
+                    className={`${finelyOsCatalogCard(tile.family)} p-6 lg:p-8 text-center`}
                     data-fc-accent={tile.family}
                   >
                     <div className={`text-[10px] font-black uppercase tracking-widest ${FINELY_OS_ENTITY_SUBLABEL}`}>

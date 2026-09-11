@@ -15,6 +15,16 @@ export function usePreviewReveal<T extends HTMLElement>(threshold = 0.12) {
       return;
     }
 
+    const inView = () => {
+      const rect = el.getBoundingClientRect();
+      const vh = window.innerHeight || document.documentElement.clientHeight;
+      return rect.height > 0 && rect.top < vh * 0.94 && rect.bottom > 0;
+    };
+    if (inView()) {
+      setVisible(true);
+      return;
+    }
+
     const obs = new IntersectionObserver(
       ([entry]) => {
         if (entry?.isIntersecting) {

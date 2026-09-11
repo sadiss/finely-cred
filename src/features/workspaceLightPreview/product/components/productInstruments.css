@@ -70,6 +70,10 @@
   letter-spacing: -0.03em;
   line-height: 1;
   font-variant-numeric: tabular-nums;
+  color: var(--fcm-ink, #0a1628);
+}
+[data-bed='dark'] .fc-wlp-inst-spectrum-value {
+  color: rgba(248, 250, 252, 0.96);
 }.fc-wlp-inst-spectrum-value-sm{
   font-family: 'Space Mono', ui-monospace, monospace;
   font-size: var(--wlp-text-body);

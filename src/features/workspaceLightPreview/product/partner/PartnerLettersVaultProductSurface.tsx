@@ -210,8 +210,8 @@ export default function PartnerLettersVaultProductSurface({
         role={role}
         pageId="letters-vault"
         eyebrow="Letters vault"
-        title="Saved PDFs, mail tracking, and response windows"
-        description="Every mailed dispute round lives here — pick a letter, confirm the address, and watch bureau replies."
+        title="Your mailed letters and response windows"
+        description="Every mailed dispute round lives here. Pick a letter, confirm the address, and watch for bureau replies."
         status="Demo vault · sample mail pipeline"
         freshness="demo snapshot"
         accent={accent}
@@ -275,8 +275,8 @@ export default function PartnerLettersVaultProductSurface({
         role={role}
         pageId="letters-vault"
         eyebrow="Letters vault"
-        title="Saved PDFs, mail tracking, and response windows"
-        description="Every mailed dispute round lives here — pick a letter, confirm the address, and watch bureau replies."
+        title="Your mailed letters and response windows"
+        description="Every mailed dispute round lives here. Pick a letter, confirm the address, and watch for bureau replies."
         status={`${statusHeadline} · ${isDemo ? 'demo data' : 'live data'}`}
         freshness={isDemo ? 'demo snapshot' : 'just now'}
         accent={accent}

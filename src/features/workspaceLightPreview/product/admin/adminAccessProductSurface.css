@@ -16,7 +16,7 @@
 .fc-admin-access-zone-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
+  gap: 20px;
 }
 
 @media (max-width: 1100px) {
@@ -57,10 +57,8 @@
 }
 
 .fc-admin-access-inspector-bed {
-  padding: 22px 24px;
-  border-radius: 20px;
-  border: 1px solid rgba(16, 185, 129, 0.18);
-  background:
-    radial-gradient(circle at 100% 0%, rgba(56, 189, 248, 0.06), transparent 42%),
-    rgba(255, 255, 255, 0.92);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }

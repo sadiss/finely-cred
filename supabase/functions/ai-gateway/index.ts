@@ -33,7 +33,7 @@ type ReqBody = {
   images?: Array<{ dataUrl: string; mimeType?: string }>;
   context?: Record<string, unknown>;
   safetyLevel?: 'normal' | 'strict';
-  providerHint?: 'openai' | 'gemini' | 'anthropic';
+  providerHint?: 'openai' | 'gemini' | 'anthropic' | 'groq';
   responseFormat?: 'text' | 'json';
   /** Native Anthropic tool-calling (Phase 5) — only honored for the anthropic provider. */
   tools?: AnthropicToolDef[];
@@ -50,9 +50,50 @@ function json(body: unknown, init?: ResponseInit) {
   });
 }
 
-function pickProvider(args: { taskType: string; hint?: ReqBody['providerHint'] }): 'openai' | 'gemini' | 'anthropic' {
-  if (args.hint) return args.hint;
+function isPartnerPiiChat(t: string): boolean {
+  return (
+    t.includes('portal_chat') ||
+    t.includes('partner_workspace') ||
+    t.includes('letter_draft') ||
+    t.includes('legal_debt') ||
+    t.includes('public_chat') ||
+    t.includes('public_concierge')
+  );
+}
+
+function isMarketingDraft(t: string): boolean {
+  return (
+    t.includes('social') ||
+    t.includes('caption') ||
+    t.includes('copy') ||
+    t.includes('content') ||
+    t.includes('marketing') ||
+    t.includes('cmo') ||
+    t.includes('esther') ||
+    t.includes('lydia') ||
+    t.includes('community') ||
+    t.includes('course_outline') ||
+    t.includes('lesson_script')
+  );
+}
+
+function pickFreeDraftProvider(): 'gemini' | 'groq' {
+  const gemini = (Deno.env.get('GEMINI_API_KEY') || '').trim();
+  const groq = (Deno.env.get('GROQ_API_KEY') || '').trim();
+  if (gemini) return 'gemini';
+  if (groq) return 'groq';
+  return 'gemini';
+}
+
+function pickProvider(args: { taskType: string; hint?: ReqBody['providerHint'] }): 'openai' | 'gemini' | 'anthropic' | 'groq' {
   const t = (args.taskType || '').toLowerCase();
+  if (isPartnerPiiChat(t)) return args.hint === 'anthropic' ? 'anthropic' : 'openai';
+  if (isMarketingDraft(t)) {
+    if (args.hint === 'groq' && (Deno.env.get('GROQ_API_KEY') || '').trim()) return 'groq';
+    if (args.hint === 'gemini' && (Deno.env.get('GEMINI_API_KEY') || '').trim()) return 'gemini';
+    return pickFreeDraftProvider();
+  }
+  if (args.hint) return args.hint;
   if (t.includes('coowner') || t.includes('ops.coowner') || t.includes('ops.agent')) return 'anthropic';
   if (t.includes('lead_intel') || t.includes('doc') || t.includes('extract') || t.includes('classify')) return 'gemini';
   if (t.includes('legal') || t.includes('policy') || t.includes('compliance') || t.includes('admin_ops')) return 'anthropic';
@@ -128,7 +169,14 @@ function dailyBudgetForTask(taskType: string): number {
   return Number(Deno.env.get('AI_GATEWAY_DEFAULT_DAILY_BUDGET') || 1500);
 }
 
-async function callOpenAI(args: { apiKey: string; model: string; messages: ChatMsg[]; responseFormat: 'text' | 'json' }) {
+async function callOpenAI(args: {
+  apiKey: string;
+  model: string;
+  messages: ChatMsg[];
+  responseFormat: 'text' | 'json';
+  endpoint?: string;
+  providerLabel?: 'openai' | 'groq';
+}) {
   const sys = args.messages.find((m) => m.role === 'system')?.content ?? '';
   const nonSys = args.messages.filter((m) => m.role !== 'system');
   const messages = sys
@@ -142,7 +190,7 @@ async function callOpenAI(args: { apiKey: string; model: string; messages: ChatM
   };
   if (args.responseFormat === 'json') body.response_format = { type: 'json_object' };
 
-  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+  const res = await fetch(args.endpoint ?? 'https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${args.apiKey}`,
@@ -153,7 +201,7 @@ async function callOpenAI(args: { apiKey: string; model: string; messages: ChatM
   if (!res.ok) throw new Error(`OpenAI error: ${res.status} ${await res.text()}`);
   const jsonRes = await res.json();
   const text = jsonRes?.choices?.[0]?.message?.content ?? '';
-  return { provider: 'openai' as const, model: args.model, text, raw: jsonRes };
+  return { provider: args.providerLabel ?? 'openai' as const, model: args.model, text, raw: jsonRes };
 }
 
 async function callAnthropic(args: {
@@ -352,6 +400,18 @@ Deno.serve(async (req) => {
       const model = resolveOpenAiModel(taskType);
       if (!key) return json({ error: 'OPENAI_API_KEY missing' }, { status: 500 });
       out = await callOpenAI({ apiKey: key, model, messages, responseFormat });
+    } else if (provider === 'groq') {
+      const key = Deno.env.get('GROQ_API_KEY') || '';
+      const model = Deno.env.get('GROQ_MODEL') || 'llama-3.3-70b-versatile';
+      if (!key) return json({ error: 'GROQ_API_KEY missing' }, { status: 500 });
+      out = await callOpenAI({
+        apiKey: key,
+        model,
+        messages,
+        responseFormat,
+        endpoint: 'https://api.groq.com/openai/v1/chat/completions',
+        providerLabel: 'groq',
+      });
     } else if (provider === 'anthropic') {
       const key = Deno.env.get('ANTHROPIC_API_KEY') || '';
       const model = resolveAnthropicModel(taskType);

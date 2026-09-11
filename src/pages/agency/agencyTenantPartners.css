@@ -1,0 +1,30 @@
+/* Agency tenant partner list — queue + inspector (not the public careers page). */
+
+.fc-agency-tenant-deck {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+  min-height: 28rem;
+}
+
+@media (min-width: 900px) {
+  .fc-agency-tenant-deck {
+    grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.fc-agency-tenant-queue {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.fc-agency-tenant-queue button {
+  width: 100%;
+  text-align: left;
+}
+
+.fc-agency-tenant-inspector {
+  min-height: 22rem;
+}

@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   AlertTriangle,
-  ArrowRight,
   CheckCircle2,
   FileCheck2,
   Layers,
@@ -29,6 +28,7 @@ import {
   FINELY_OS_ENTITY_INPUT,
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,
+  FINELY_OS_PAGE,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
   FINELY_OS_SUCCESS_BTN,
@@ -161,12 +161,26 @@ const SAMPLE_DEMO_MAIL_QUEUE: QueueRow[] = [
   },
 ];
 
-const QUEUE_STAGES: Array<{ id: QueueStage; label: string; accent: 'violet' | 'rose' | 'emerald' | 'sky'; icon: typeof Layers }> = [
-  { id: 'all', label: 'All packages', accent: 'violet', icon: Layers },
+const MAIL_ACCENTS = ['emerald', 'violet', 'sky', 'rose'] as const;
+type MailAccent = (typeof MAIL_ACCENTS)[number];
+
+function mailAccentAt(index: number): MailAccent {
+  return MAIL_ACCENTS[index % MAIL_ACCENTS.length]!;
+}
+
+const MAIL_CARD_SHAPE: Record<MailAccent, string> = {
+  emerald: '!rounded-2xl',
+  violet: '!rounded-3xl',
+  sky: '!rounded-[2rem]',
+  rose: '!rounded-xl',
+};
+
+const QUEUE_STAGES: Array<{ id: QueueStage; label: string; accent: MailAccent; icon: typeof Layers }> = [
+  { id: 'all', label: 'All packages', accent: 'emerald', icon: Layers },
   { id: 'drafting', label: 'Drafts', accent: 'violet', icon: FileCheck2 },
-  { id: 'blocked', label: 'Evidence blocked', accent: 'rose', icon: AlertTriangle },
-  { id: 'ready', label: 'Ready to mail', accent: 'emerald', icon: Mail },
-  { id: 'mailed', label: 'Mailed', accent: 'sky', icon: CheckCircle2 },
+  { id: 'blocked', label: 'Evidence blocked', accent: 'sky', icon: AlertTriangle },
+  { id: 'ready', label: 'Ready to mail', accent: 'rose', icon: Mail },
+  { id: 'mailed', label: 'Mailed', accent: 'emerald', icon: CheckCircle2 },
 ];
 
 export default function AdminMailProductSurface({ role, pageId, dataMode }: WorkspaceProductSurfaceProps) {
@@ -393,6 +407,11 @@ export default function AdminMailProductSurface({ role, pageId, dataMode }: Work
     setMailedDone(false);
   };
 
+  const openPackage = (row: QueueRow) => {
+    selectQueueItem(row);
+    setActiveModal('inspect_package');
+  };
+
   const metrics: ProductMetric[] = [
     { label: 'Ready', value: readyToMail.length, hint: 'Certified dispatch', accent: 'emerald', icon: Mail },
     { label: 'Blocked', value: blockedEvidence.length, hint: 'Need exhibits', accent: 'rose', icon: AlertTriangle },
@@ -404,13 +423,17 @@ export default function AdminMailProductSurface({ role, pageId, dataMode }: Work
     return <ProductDashboardSkeleton label="Loading mail studio" />;
   }
 
+  const packageBlocked = selectedQueueItem
+    ? letterEvidenceBlocked(selectedQueueItem.letter, selectedQueueItem.evidence)
+    : false;
+
   return (
     <ProductHubScaffold
       role={role}
       pageId={pageId}
       eyebrow="Delivery"
       title="Certified letter dispatch studio"
-      description="Compose and send partner mail in the editor — pick packages from the queue rail without leaving the page."
+      description="Compose and send partner mail. Pick a partner, confirm PDF-ready letters, then dispatch."
       accent={accent}
       surfaceMode={navItem?.surfaceMode ?? 'studio'}
       archetype={archetype}
@@ -431,40 +454,40 @@ export default function AdminMailProductSurface({ role, pageId, dataMode }: Work
         </button>
       }
     >
-      <div className="grid gap-6 lg:grid-cols-12 items-start">
-        <section className={`lg:col-span-8 space-y-5 ${finelyOsCatalogCard('violet')} p-6 lg:p-8`} data-fc-accent="violet">
-          <div>
-            <div className="text-xs font-black uppercase tracking-widest text-violet-300">Compose studio</div>
-            <h2 className="mt-2 text-3xl font-extrabold">Mailing editor</h2>
-            <p className={`mt-2 text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
-              Pick a partner, confirm PDF-ready letters, and dispatch through {FINELY_MAIL_COPY.serviceName}.
-            </p>
-          </div>
+      <div className={FINELY_OS_PAGE} data-surface-layout="compose-studio">
+        <section className="space-y-3">
+          <p className={FINELY_OS_ENTITY_SUBLABEL}>Mailing editor</p>
+          <h2 className={`text-3xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>Certified dispatch</h2>
+          <p className={`max-w-3xl text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
+            Pick a partner, confirm PDF-ready letters, and send through {FINELY_MAIL_COPY.serviceName}.
+          </p>
+        </section>
 
-          <FinelyNowDoThisStrip
-            title="Mail path"
-            currentIndex={pathStep}
-            items={[
-              { label: 'Pick partner', detail: 'Search directory and select who you are mailing for', to: mailPath },
-              { label: 'Confirm letters', detail: 'Check PDF-ready letters, then open Confirm address', to: mailPath },
-              { label: 'Mail', detail: 'Confirm To/From → send via Finely Mail', to: mailPath },
-              { label: 'Email notify', detail: 'Partner gets confirmation when commsDelivery is on', to: mailPath },
-            ]}
+        <FinelyNowDoThisStrip
+          title="Mail path"
+          currentIndex={pathStep}
+          items={[
+            { label: 'Pick partner', detail: 'Search directory and select who you are mailing for', to: mailPath },
+            { label: 'Confirm letters', detail: 'Check PDF-ready letters, then open Confirm address', to: mailPath },
+            { label: 'Mail', detail: 'Confirm To/From → send via Finely Mail', to: mailPath },
+            { label: 'Email notify', detail: 'Partner gets confirmation when commsDelivery is on', to: mailPath },
+          ]}
+        />
+
+        {!mailingOn ? (
+          <FinelyOsAlertBanner
+            tone="warning"
+            message="letterMailing feature flag is off. Enable it in Admin Settings before live sends."
           />
+        ) : null}
 
-          {!mailingOn ? (
-            <FinelyOsAlertBanner
-              tone="warning"
-              message="letterMailing feature flag is off. Enable it in Admin Settings before live sends."
-            />
-          ) : null}
+        <MailProviderStatusBanner letterCount={selectedReady.length || pdfReady.length || 1} />
+        <LetterStreamStatusCard compact />
 
-          <MailProviderStatusBanner letterCount={selectedReady.length || pdfReady.length || 1} />
-          <LetterStreamStatusCard compact />
+        {notice ? <FinelyOsAlertBanner tone="success" message={notice} /> : null}
 
-          {notice ? <FinelyOsAlertBanner tone="success" message={notice} /> : null}
-
-          <div className={`${finelyOsCatalogCard('emerald')} p-5 lg:p-6 space-y-4`} data-fc-accent="emerald">
+        <div className="grid gap-6 lg:grid-cols-2 items-start">
+          <section className={`${finelyOsCatalogCard('emerald')} ${MAIL_CARD_SHAPE.emerald} p-6 lg:p-8 space-y-4`} data-fc-accent="emerald">
             <div className={FINELY_OS_ENTITY_SUBLABEL}>Step 1 · Pick partner</div>
             <div className="flex items-center gap-2">
               <Search size={16} className="opacity-50" />
@@ -479,7 +502,7 @@ export default function AdminMailProductSurface({ role, pageId, dataMode }: Work
             <FinelyOsPaginatedStack
               items={filteredPartners}
               pageSize={6}
-              itemSpacingClassName="grid sm:grid-cols-2 gap-2"
+              itemSpacingClassName="grid sm:grid-cols-2 gap-5"
               emptyMessage="No partners match."
               renderItem={(p) => (
                 <button
@@ -490,8 +513,8 @@ export default function AdminMailProductSurface({ role, pageId, dataMode }: Work
                     setNotice(null);
                     setMailedDone(false);
                   }}
-                  className={`text-left rounded-xl border px-4 py-3 transition-colors ${
-                    partnerId === p.id ? 'border-sky-400/50 bg-sky-500/15' : 'border-white/10 bg-black/30 hover:border-white/25'
+                  className={`w-full text-left py-3 border-b border-white/15 last:border-0 ${
+                    partnerId === p.id ? 'text-sky-200' : 'hover:text-white'
                   }`}
                 >
                   <div className={`${FINELY_OS_ENTITY_VALUE} text-sm truncate`}>{p.profile.fullName || 'Partner'}</div>
@@ -499,66 +522,73 @@ export default function AdminMailProductSurface({ role, pageId, dataMode }: Work
                 </button>
               )}
             />
-          </div>
+          </section>
 
-          {partner ? (
-            <div className={`${finelyOsCatalogCard('sky')} p-5 lg:p-6 space-y-4`} data-fc-accent="sky">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <div className={FINELY_OS_ENTITY_SUBLABEL}>Step 2 · Letters for {partner.profile.fullName}</div>
-                  <p className={`${FINELY_OS_ENTITY_BODY} text-sm font-bold`}>
-                    {selectedReady.length} selected · {pdfReady.length} PDF-ready · {letters.length} in vault
-                  </p>
+          <section className={`${finelyOsCatalogCard('sky')} ${MAIL_CARD_SHAPE.sky} p-6 lg:p-8 space-y-4`} data-fc-accent="sky">
+            {partner ? (
+              <>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <div className={FINELY_OS_ENTITY_SUBLABEL}>Step 2 · Letters for {partner.profile.fullName}</div>
+                    <p className={`${FINELY_OS_ENTITY_BODY} text-base font-bold`}>
+                      {selectedReady.length} selected · {pdfReady.length} PDF-ready · {letters.length} in vault
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      className={FINELY_OS_SECONDARY_BTN}
+                      onClick={() => navigate(`${partnersPath}/${partner.id}?tab=letters`)}
+                    >
+                      Open partner letters
+                    </button>
+                    <button
+                      type="button"
+                      className={`${FINELY_OS_SUCCESS_BTN} disabled:opacity-60`}
+                      disabled={!mailingOn || selectedReady.length === 0}
+                      onClick={() => setWizardOpen(true)}
+                    >
+                      <Send size={16} /> Confirm address &amp; Mail ({selectedReady.length})
+                    </button>
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    className={FINELY_OS_SECONDARY_BTN}
-                    onClick={() => navigate(`${partnersPath}/${partner.id}?tab=letters`)}
-                  >
-                    Open partner letters
-                  </button>
-                  <button
-                    type="button"
-                    className={`${FINELY_OS_SUCCESS_BTN} disabled:opacity-60`}
-                    disabled={!mailingOn || selectedReady.length === 0}
-                    onClick={() => setWizardOpen(true)}
-                  >
-                    <Send size={16} /> Confirm address &amp; Mail ({selectedReady.length})
-                  </button>
-                </div>
-              </div>
 
-              {pdfReady.length === 0 ? (
-                <FinelyOsAlertBanner
-                  tone="warning"
-                  message="No PDF-ready letters on this device. Open the partner file → Letters, generate PDFs, then return here."
-                />
-              ) : (
-                <ul className="space-y-2 max-h-48 overflow-y-auto">
-                  {pdfReady.slice(0, 40).map((l) => (
-                    <li key={l.id}>
-                      <label className="flex items-start gap-3 rounded-lg border border-white/10 bg-black/25 px-3 py-2 text-sm cursor-pointer hover:border-white/25">
-                        <input
-                          type="checkbox"
-                          className="mt-1"
-                          checked={selectedIds.has(l.id)}
-                          onChange={() => toggleLetter(l.id)}
-                        />
-                        <span className="min-w-0">
-                          <span className="font-extrabold">{l.title}</span>
-                          <span className="opacity-60"> · {l.status || 'generated'}</span>
-                        </span>
-                      </label>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          ) : (
-            <FinelyOsAlertBanner tone="info" message="Select a partner above to load vault letters and mail." />
-          )}
+                {pdfReady.length === 0 ? (
+                  <FinelyOsAlertBanner
+                    tone="warning"
+                    message="No PDF-ready letters on this device. Open the partner file → Letters, generate PDFs, then return here."
+                  />
+                ) : (
+                  <ul className="space-y-2 max-h-48 overflow-y-auto">
+                    {pdfReady.slice(0, 40).map((l) => (
+                      <li key={l.id}>
+                        <label className="flex items-start gap-3 py-2 text-base cursor-pointer">
+                          <input
+                            type="checkbox"
+                            className="mt-1"
+                            checked={selectedIds.has(l.id)}
+                            onChange={() => toggleLetter(l.id)}
+                          />
+                          <span className="min-w-0">
+                            <span className="font-extrabold">{l.title}</span>
+                            <span className="opacity-60"> · {l.status || 'generated'}</span>
+                          </span>
+                        </label>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </>
+            ) : (
+              <>
+                <div className={FINELY_OS_ENTITY_SUBLABEL}>Step 2 · Letters</div>
+                <FinelyOsAlertBanner tone="info" message="Select a partner to load vault letters and mail." />
+              </>
+            )}
+          </section>
+        </div>
 
+        <section className="space-y-3">
           <label className="block space-y-2">
             <span className={`text-sm font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>
               Letter preview {editorLetter ? `· ${editorLetter.title}` : ''}
@@ -568,117 +598,74 @@ export default function AdminMailProductSurface({ role, pageId, dataMode }: Work
               value={editorLetter?.body ?? ''}
               placeholder="Select a package from the queue or pick letters above to preview body text here."
               rows={12}
-              className={`${finelyOsGlowTextarea} w-full text-base font-bold min-h-[320px]`}
+              className={`${finelyOsGlowTextarea('violet')} w-full text-base font-bold min-h-[320px]`}
             />
           </label>
         </section>
 
-        <aside className="lg:col-span-4 space-y-4">
-          <div className={`${finelyOsCatalogCard('rose')} p-5 lg:p-6`} data-fc-accent="rose">
-            <div className="text-xs font-black uppercase tracking-widest text-rose-300">Dispatch queue</div>
-            <h3 className="mt-2 text-xl font-extrabold">Package rail</h3>
-            <nav className="mt-4 flex flex-wrap gap-2" aria-label="Mail queue stages">
-              {QUEUE_STAGES.map((stage) => {
-                const Icon = stage.icon;
-                const count = stageBuckets[stage.id].length;
-                return (
-                  <button
-                    key={stage.id}
-                    type="button"
-                    onClick={() => {
-                      setQueueStage(stage.id);
-                      const first = stageBuckets[stage.id][0];
-                      if (first) selectQueueItem(first);
-                    }}
-                    className={`rounded-xl border px-3 py-2 text-xs font-extrabold flex items-center gap-1.5 ${
-                      queueStage === stage.id ? 'border-white/40 bg-white/10' : 'border-white/10 bg-black/20 hover:border-white/25'
-                    }`}
-                    data-fc-accent={stage.accent}
-                  >
-                    <Icon size={14} />
-                    {stage.label}
-                    <em className="not-italic opacity-70">{count}</em>
-                  </button>
-                );
-              })}
-            </nav>
+        <section className="space-y-4">
+          <div className="space-y-2">
+            <p className={FINELY_OS_ENTITY_SUBLABEL}>Dispatch queue</p>
+            <h3 className={`text-3xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>Packages</h3>
           </div>
 
-          <div className={`${finelyOsCatalogCard('sky')} p-4 lg:p-5 space-y-3`} data-fc-accent="sky">
-            <FinelyOsPaginatedStack
-              items={filteredQueue}
-              pageSize={8}
-              emptyMessage="No letters in this stage."
-              renderItem={(row) => (
+          <nav className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5" aria-label="Mail queue stages">
+            {QUEUE_STAGES.map((stage) => {
+              const Icon = stage.icon;
+              const count = stageBuckets[stage.id].length;
+              const selected = queueStage === stage.id;
+              return (
+                <button
+                  key={stage.id}
+                  type="button"
+                  onClick={() => {
+                    setQueueStage(stage.id);
+                    const first = stageBuckets[stage.id][0];
+                    if (first) selectQueueItem(first);
+                  }}
+                  className={`${finelyOsCatalogCard(stage.accent)} ${MAIL_CARD_SHAPE[stage.accent]} p-6 lg:p-8 text-left transition-all ${
+                    selected ? 'ring-2 ring-white/40' : ''
+                  }`}
+                  data-fc-accent={stage.accent}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <Icon size={20} />
+                    <em className="not-italic text-2xl font-extrabold">{count}</em>
+                  </div>
+                  <div className={`mt-3 text-base font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{stage.label}</div>
+                </button>
+              );
+            })}
+          </nav>
+
+          <FinelyOsPaginatedStack
+            items={filteredQueue}
+            pageSize={8}
+            itemSpacingClassName="grid sm:grid-cols-2 xl:grid-cols-4 gap-4"
+            emptyMessage="No letters in this stage."
+            renderItem={(row, index) => {
+              const family = mailAccentAt(index);
+              const selected = selectedQueueItem?.letter.id === row.letter.id;
+              return (
                 <button
                   key={row.letter.id}
                   type="button"
-                  onClick={() => selectQueueItem(row)}
-                  className={`w-full text-left rounded-xl border px-3 py-3 transition-colors ${
-                    selectedQueueItem?.letter.id === row.letter.id
-                      ? 'border-violet-400/50 bg-violet-500/15'
-                      : 'border-white/10 bg-black/25 hover:border-white/25'
+                  onClick={() => openPackage(row)}
+                  className={`${finelyOsCatalogCard(family)} ${MAIL_CARD_SHAPE[family]} p-6 lg:p-8 text-left ${
+                    selected ? 'ring-2 ring-white/40' : ''
                   }`}
+                  data-fc-accent={family}
                 >
-                  <div className="text-sm font-extrabold truncate">{row.letter.title}</div>
-                  <div className={`text-xs font-bold ${FINELY_OS_ENTITY_BODY}`}>{row.partner.profile?.fullName ?? 'Partner'}</div>
-                  <div className="text-[11px] font-bold opacity-60 mt-1">{(row.letter.status ?? 'unknown').replace(/_/g, ' ')}</div>
+                  <div className={`text-base font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{row.letter.title}</div>
+                  <div className={`mt-2 text-sm font-bold ${FINELY_OS_ENTITY_BODY}`}>{row.partner.profile?.fullName ?? 'Partner'}</div>
+                  <div className={`mt-3 text-sm font-bold ${FINELY_OS_ENTITY_SUBLABEL}`}>
+                    {(row.letter.status ?? 'unknown').replace(/_/g, ' ')}
+                  </div>
                 </button>
-              )}
-            />
-          </div>
-
-          {selectedQueueItem ? (
-            <div className={`${finelyOsCatalogCard('emerald')} p-5 space-y-4`} data-fc-accent="emerald">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <h4 className="text-lg font-extrabold">{selectedQueueItem.letter.title}</h4>
-                  <p className={`text-sm font-bold ${FINELY_OS_ENTITY_BODY}`}>{selectedQueueItem.partner.profile?.fullName ?? 'Partner'}</p>
-                </div>
-                <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => setActiveModal('inspect_package')}>
-                  Inspect <ArrowRight size={12} />
-                </button>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div className="rounded-lg border border-violet-400/30 bg-violet-500/10 p-2">
-                  <div className="text-[10px] font-black uppercase opacity-70">Type</div>
-                  <div className="font-extrabold">{selectedQueueItem.letter.type}</div>
-                </div>
-                <div className="rounded-lg border border-sky-400/30 bg-sky-500/10 p-2">
-                  <div className="text-[10px] font-black uppercase opacity-70">PDF</div>
-                  <div className="font-extrabold">{selectedQueueItem.letter.pdfBlobRef ? 'Generated' : 'Pending'}</div>
-                </div>
-              </div>
-
-              <div
-                className={`rounded-xl border p-3 flex gap-3 ${
-                  letterEvidenceBlocked(selectedQueueItem.letter, selectedQueueItem.evidence)
-                    ? 'border-rose-400/40 bg-rose-500/10'
-                    : 'border-emerald-400/40 bg-emerald-500/10'
-                }`}
-              >
-                {letterEvidenceBlocked(selectedQueueItem.letter, selectedQueueItem.evidence) ? (
-                  <>
-                    <AlertTriangle size={18} className="text-rose-400 shrink-0" />
-                    <div>
-                      <div className="font-extrabold">Evidence gate blocked</div>
-                      <p className={`text-sm font-bold ${FINELY_OS_ENTITY_BODY}`}>Link source exhibits before certified dispatch.</p>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 size={18} className="text-emerald-400 shrink-0" />
-                    <div>
-                      <div className="font-extrabold">Evidence gate clear</div>
-                      <p className={`text-sm font-bold ${FINELY_OS_ENTITY_BODY}`}>Exhibits verified for this package.</p>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          ) : null}
-        </aside>
+              );
+            }}
+          />
+        </section>
       </div>
 
       {partner && wizardOpen ? (
@@ -702,17 +689,49 @@ export default function AdminMailProductSurface({ role, pageId, dataMode }: Work
           aria-label="Inspect package"
           onClick={() => setActiveModal(null)}
         >
-          <div className={`${finelyOsCatalogCard('violet')} max-w-lg w-full p-6 space-y-4`} onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-extrabold">Inspect package</h3>
+          <div className={`${finelyOsCatalogCard('violet')} max-w-lg w-full p-6 lg:p-8 space-y-4`} onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="text-2xl font-extrabold">{selectedQueueItem.letter.title}</h3>
               <button type="button" aria-label="Close" onClick={() => setActiveModal(null)}>
                 <X size={18} />
               </button>
             </div>
             <p className={`text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
-              Created {formatShortDate(selectedQueueItem.letter.createdAt)} · Status: {selectedQueueItem.letter.status}
+              {selectedQueueItem.partner.profile?.fullName ?? 'Partner'} · Created {formatShortDate(selectedQueueItem.letter.createdAt)} · Status:{' '}
+              {selectedQueueItem.letter.status}
             </p>
-            <p className={`text-sm font-bold ${FINELY_OS_ENTITY_BODY}`}>{selectedQueueItem.letter.body}</p>
+            <div className="grid grid-cols-2 gap-3 text-base">
+              <div>
+                <div className={FINELY_OS_ENTITY_SUBLABEL}>Type</div>
+                <div className={`font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{selectedQueueItem.letter.type}</div>
+              </div>
+              <div>
+                <div className={FINELY_OS_ENTITY_SUBLABEL}>PDF</div>
+                <div className={`font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>
+                  {selectedQueueItem.letter.pdfBlobRef ? 'Generated' : 'Pending'}
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              {packageBlocked ? (
+                <>
+                  <AlertTriangle size={18} className="text-rose-400 shrink-0 mt-0.5" />
+                  <div>
+                    <div className="font-extrabold">Evidence gate blocked</div>
+                    <p className={`text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>Link source exhibits before certified dispatch.</p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 size={18} className="text-emerald-400 shrink-0 mt-0.5" />
+                  <div>
+                    <div className="font-extrabold">Evidence gate clear</div>
+                    <p className={`text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>Exhibits verified for this package.</p>
+                  </div>
+                </>
+              )}
+            </div>
+            <p className={`text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>{selectedQueueItem.letter.body}</p>
             <button type="button" className={`${FINELY_OS_PRIMARY_BTN} w-full`} onClick={() => setActiveModal(null)}>
               Close
             </button>

@@ -9,8 +9,7 @@ export const AFFILIATE_GUIDE_ID = 'affiliate-referral-toolkit' as const;
 
 export const AFFILIATE_TOOLKIT_META = {
   shortTitle: 'Affiliate Referral Toolkit',
-  compliance:
-    'Educational only · results vary · no income guarantees · not legal advice · funding subject to underwriting',
+  compliance: 'Results vary · not legal advice · funding subject to underwriting',
 };
 
 export type AffiliateToolkitSection = {
@@ -125,7 +124,7 @@ export const AFFILIATE_TOOLKIT_CHAPTERS: AffiliateToolkitChapter[] = [
     sections: [
       {
         bullets: [
-          'E-guide landings with Read free + capture (dispute, debt, business, score, agency)',
+          'E-guide landings with See preview + capture (dispute, debt, business, score, agency)',
           'Career pages for CS / Agency / Affiliate / AU when someone wants to earn with Finely',
           'Digital invite cards for warm intros',
           'One-sheets for business credit and fundability when the prospect is funding-minded',

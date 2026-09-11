@@ -578,7 +578,7 @@ export function finelyOsStatusChip(tone: 'ok' | 'warn' | 'blocked') {
 
 /** Admin / ops left rail — obsidian + multi-color spotlight glow */
 export const FINELY_OS_SIDE_RAIL_SHELL =
-  'relative rounded-[34px] border border-white/[0.08] bg-fc-chrome/95 backdrop-blur-xl p-4 flex flex-col gap-4 shadow-[0_28px_70px_-38px_rgba(0,0,0,0.65)] ring-1 ring-inset ring-white/[0.08] overflow-hidden max-h-[calc(100vh-7rem)]';
+  'relative rounded-none border border-white/[0.08] bg-fc-chrome/95 backdrop-blur-xl p-4 flex flex-col gap-4 shadow-[18px_0_40px_-28px_rgba(0,0,0,0.7)] ring-1 ring-inset ring-white/[0.08] overflow-hidden h-full max-h-none';
 
 export const FINELY_OS_SIDE_RAIL_GLOW =
   'pointer-events-none absolute inset-0 bg-[radial-gradient(900px_360px_at_12%_0%,rgba(139,92,246,0.14)_0%,transparent_58%),radial-gradient(700px_280px_at_88%_20%,rgba(56,189,248,0.10)_0%,transparent_55%),radial-gradient(600px_240px_at_50%_100%,rgba(16,185,129,0.08)_0%,transparent_50%)]';

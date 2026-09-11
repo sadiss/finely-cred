@@ -81,7 +81,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroupDef[] = [
     items: [
       { path: '/admin/comms', label: 'Comms Studio', icon: Mail, hint: 'Templates + delivery' },
       { path: '/admin/resources', label: 'Resources', icon: Library, hint: 'Public guides' },
-      { path: '/admin/compliance-review', label: 'Compliance review', icon: Scale, hint: 'Approve doctrine-derived content' },
+      { path: '/admin/compliance-review', label: 'Compliance review', icon: Scale, hint: 'Approve playbook-derived content' },
       { path: '/admin/tour-studio', label: 'Tour Studio', icon: ListChecks, hint: 'Walkthrough factory' },
       { path: '/admin/launch-os', label: 'Launch OS', icon: BookOpen, hint: 'SOP help center' },
       { path: '/admin/courses', label: 'Courses', icon: GraduationCap, hint: 'Course builder' },

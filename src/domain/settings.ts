@@ -287,7 +287,8 @@ export interface VoiceStudioSettings {
     | 'finely_brand_primary'
     | 'finely_female_warm'
     | 'finely_male_calm'
-    | 'finely_documentary';
+    | 'finely_documentary'
+    | 'finely_kreyol_companion';
   /** Locked narrator for Nora Capital Group (5173) when using shared API. */
   noraPublicVoiceProfile: 'nora_funding_advisor' | 'finely_brand_primary' | 'finely_male_calm' | 'finely_documentary';
 }

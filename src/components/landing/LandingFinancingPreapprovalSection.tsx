@@ -101,7 +101,7 @@ export function LandingFinancingPreapprovalSection({ variant = 'full' }: Props) 
         data-fc-contrast-band="1"
       >
         <LandingSellAtmosphere tone="platinum" />
-        <div className="container mx-auto px-4 sm:px-6 max-w-5xl relative z-10">
+        <div className="fc-viewport-floor relative z-10">
           <Reveal>
             <div className="relative overflow-hidden fc-sell-champagne-card fc-sell-champagne-card--featured px-6 py-10 sm:px-12 sm:py-12">
               <div className="fc-sell-champagne-card__sheen" aria-hidden />
@@ -132,7 +132,7 @@ export function LandingFinancingPreapprovalSection({ variant = 'full' }: Props) 
                   <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#8a6a24]">Financing readiness</p>
                   <p className="fc-sell-serif mt-3 text-2xl font-semibold text-[#0c1228]">Check pre-approval</p>
                   <p className="mt-2 text-sm text-[#0c1228]/65 leading-relaxed">
-                    A short application — know your options before you commit. No vendor named in our copy.
+                    A short application so you can see your options before you enroll.
                   </p>
                   <button
                     type="button"
@@ -165,7 +165,7 @@ export function LandingFinancingPreapprovalSection({ variant = 'full' }: Props) 
       className={`py-16 sm:py-20 ${finelyOsLandingContrastSection('fc-band-emerald')}`}
       data-fc-contrast-band="1"
     >
-      <div className="container mx-auto px-4 sm:px-6 max-w-6xl">
+      <div className="fc-viewport-floor">
         <Reveal>
           <div className={`${finelyOsCatalogCard('emerald')} !p-6 sm:!p-8 lg:!p-10`} data-fc-accent="emerald">
             <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-8 lg:gap-10 items-start">
@@ -258,7 +258,7 @@ export function LandingFinancingPreapprovalSection({ variant = 'full' }: Props) 
                     <Button variant="platinum" size="sm" onClick={() => navigate('/enlightenment-session')}>
                       {copy.secondaryCta}
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => navigate('/pricing')}>
+                    <Button variant="outline" size="sm" onClick={() => navigate('/pricing/personal-credit-restore')}>
                       {copy.tertiaryCta}
                     </Button>
                   </div>

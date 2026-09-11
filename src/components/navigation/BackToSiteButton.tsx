@@ -5,7 +5,7 @@ import { clearOnboardingProgress } from '../../lib/onboardingProgressStorage';
 import { finelyCtaNavigate } from '../../lib/finelyCtaIntent';
 
 type Props = {
-  variant?: 'primary' | 'ghost' | 'bar';
+  variant?: 'primary' | 'ghost' | 'onLight' | 'bar';
   className?: string;
   label?: string;
 };
@@ -47,6 +47,19 @@ export function BackToSiteButton({ variant = 'primary', className = '', label = 
         className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/15 bg-white/[0.06] hover:bg-white/[0.10] text-sm font-semibold text-white/85 transition-all fc-focus-ring ${className}`}
       >
         <Home size={16} className="text-fuchsia-300" />
+        {label}
+      </button>
+    );
+  }
+
+  if (variant === 'onLight') {
+    return (
+      <button
+        type="button"
+        onClick={() => navigate('/')}
+        className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-sm font-bold text-slate-800 transition-all hover:border-slate-400 hover:bg-slate-50 fc-focus-ring ${className}`}
+      >
+        <Home size={16} className="text-emerald-700" />
         {label}
       </button>
     );

@@ -50,15 +50,15 @@ export const CREDIT_SPECIALIST_OFFER_TIERS: CreditSpecialistOfferTier[] = [
   {
     id: 'cs_foundation',
     name: 'Specialist Foundation',
-    tagline: 'Start trained — platform, methods, and mentor-backed files.',
+    tagline: 'Learn the method while Finely helps you run the first files.',
     keepPctLabel: '~30%',
     keepPctTypical: 30,
     pricingModel: 'revenue_share',
     priceLabel: 'Revenue share',
-    priceHint: 'No platform fee — you keep ~30% while Finely co-runs early files.',
+    priceHint: 'No platform fee — you keep about 30% while Finely helps run the early files.',
     access: [
-      'Full Finely partner OS (CRM, portal, disputes, vault)',
-      'Specialist Hub + academy unlock after 3-lead commitment',
+      'Full partner workspace: CRM, portal, disputes, and vault',
+      'Specialist Hub and academy unlock after the three-lead commitment',
       `${CS_OFFER.freeLeadsWindowDays}-day window to source your free leads`,
     ],
     education: [
@@ -79,7 +79,7 @@ export const CREDIT_SPECIALIST_OFFER_TIERS: CreditSpecialistOfferTier[] = [
   {
     id: 'cs_builder',
     name: 'Specialist Builder',
-    tagline: 'You run day-to-day — Finely backs complex fulfillment.',
+    tagline: 'You run the day-to-day. Finely steps in on the hard files.',
     badge: 'Popular',
     keepPctLabel: '~42%',
     keepPctTypical: 42,
@@ -109,7 +109,7 @@ export const CREDIT_SPECIALIST_OFFER_TIERS: CreditSpecialistOfferTier[] = [
   {
     id: 'cs_pro',
     name: 'Specialist Pro',
-    tagline: 'Independent operator — platform is your engine.',
+    tagline: 'You run the practice. Finely Cred is the engine underneath.',
     keepPctLabel: '~52%',
     keepPctTypical: 52,
     pricingModel: 'revenue_share',
@@ -134,7 +134,7 @@ export const CREDIT_SPECIALIST_OFFER_TIERS: CreditSpecialistOfferTier[] = [
   {
     id: 'cs_elite',
     name: 'Certified Partner',
-    tagline: 'Top specialist status — highest per-file keep.',
+    tagline: 'Highest keep for specialists who already run volume well.',
     badge: 'Elite',
     keepPctLabel: '~62–80%',
     keepPctTypical: 62,
@@ -156,21 +156,21 @@ export const CREDIT_SPECIALIST_OFFER_TIERS: CreditSpecialistOfferTier[] = [
 ];
 
 export const CS_OFFER_ENTRY_RULES = {
-  headline: `Bring ${CS_OFFER.minLeadsRequired} leads · ${CS_OFFER.freeLeadsWindowDays} days to get them free`,
+  headline: `Bring ${CS_OFFER.minLeadsRequired} partner leads in ${CS_OFFER.freeLeadsWindowDays} days — those leads are yours`,
   subline:
-    'Minimum requirement to use the system, get educated, and access methods, tools, and the full specialist stack.',
+    'That commitment unlocks the academy, the letter studio, and the full specialist workspace. There is no empty trial seat.',
   bullets: [
     {
       title: `${CS_OFFER.minLeadsRequired}-lead minimum`,
-      body: `You commit to bringing at least ${CS_OFFER.minLeadsRequired} partner leads. That unlocks education, methods, and full platform access — not a side-door trial with empty seats.`,
+      body: `You commit to bringing at least ${CS_OFFER.minLeadsRequired} partner leads. That unlocks education, methods, and full workspace access — not a trial with empty seats.`,
     },
     {
       title: `${CS_OFFER.freeLeadsWindowDays}-day free-leads window`,
-      body: `From signup, you have ${CS_OFFER.freeLeadsWindowDays} days to source those leads using Finely capture pages, playbooks, and growth tooling. The window is clear on day one — no surprise clocks.`,
+      body: `From signup, you have ${CS_OFFER.freeLeadsWindowDays} days to source those leads using Finely capture pages, playbooks, and growth tools. The window is clear on day one.`,
     },
     {
       title: 'What “free leads” means',
-      body: 'You keep the partners you bring. Finely provides the capture funnels, education, and OS so you can convert — without charging a platform fee for the lead window itself.',
+      body: 'You keep the partners you bring. Finely provides the capture pages, the education, and the workspace so you can convert — without a platform fee for the lead window itself.',
     },
     {
       title: 'After the window',
@@ -192,8 +192,8 @@ export const CS_OPPORTUNITY_FRAMING = {
       body: 'Help partners clean files, build credit, pursue funding readiness, and navigate debt lanes — with methods that stay compliance-aware.',
     },
     {
-      title: 'OS, not a spreadsheet',
-      body: 'CRM, letters, vault, tasks, and academy in one place so you spend time on partners — not duct-taping tools.',
+      title: 'One workspace, not a pile of tools',
+      body: 'Letters, vault, tasks, and academy live in one place so you spend the day on partners.',
     },
   ],
   earningsNote:

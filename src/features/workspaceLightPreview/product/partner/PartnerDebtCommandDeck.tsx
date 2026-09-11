@@ -193,31 +193,31 @@ export function PartnerDebtCommandDeck({
     switch (tab) {
       case 'foreclosure':
         return {
-          title: 'Foreclosure command center',
+          title: 'Foreclosure desk',
           subtitle: 'RESPA, loss mitigation, dual-track stops, and note demands — with live coach.',
           accent: active.accent,
         };
       case 'repossession':
         return {
-          title: 'Repossession command center',
+          title: 'Repossession desk',
           subtitle: 'UCC Article 9 reinstatement, wrongful repo, and deficiency fights.',
           accent: active.accent,
         };
       case 'litigation':
         return {
-          title: 'Litigation command',
+          title: 'Litigation desk',
           subtitle: 'Hearing countdown, docket scrape, affidavits, answers, and day-of defense.',
           accent: active.accent,
         };
       case 'bankruptcy':
         return {
-          title: 'Bankruptcy workstation',
+          title: 'Bankruptcy desk',
           subtitle: 'Chapter 7/13 prep, stay notices, creditor matrix, and post-discharge disputes.',
           accent: active.accent,
         };
       case 'validation':
         return {
-          title: 'Validation workstation',
+          title: 'Validation desk',
           subtitle: 'FDCPA proof demands — licensing, chain of title, and accounting.',
           accent: active.accent,
         };
@@ -236,7 +236,7 @@ export function PartnerDebtCommandDeck({
       default:
         return {
           title: 'Debt & court overview',
-          subtitle: 'Add cases, upload proof, and open the workstation that matches your matter.',
+          subtitle: 'Add cases, upload proof, and open the room that matches your matter.',
           accent: active.accent,
         };
     }
@@ -435,7 +435,7 @@ export function PartnerDebtCommandDeck({
         </div>
       ) : (
         <p className={FINELY_OS_ENTITY_BODY}>
-          <strong className={FINELY_OS_ENTITY_VALUE}>{openCount + disputedCount} active case(s).</strong> Each workstation has its own letter library and coach.
+          <strong className={FINELY_OS_ENTITY_VALUE}>{openCount + disputedCount} active case(s).</strong> Each room has its own letter library and coach.
         </p>
       )}
 
@@ -557,7 +557,7 @@ export function PartnerDebtCommandDeck({
       )}
 
       <div className="fc-wlp-debt-workbench">
-        <aside className="fc-wlp-debt-workstation-rail" aria-label="Debt workstations">
+        <aside className="fc-wlp-debt-workstation-rail" aria-label="Debt cases">
           {WORKSTATIONS.map((w) => {
             const Icon = w.icon;
             const active = tab === w.id || (w.id === 'litigation' && tab === 'court');
@@ -605,7 +605,7 @@ export function PartnerDebtCommandDeck({
         <div className="fc-wlp-debt-workbench-main">
           {!workstationTab && tab !== 'overview' ? (
             <div className={`fc-wlp-debt-workbench-head ${finelyOsCatalogCard(workstationMeta.accent)}`} data-fc-accent={workstationMeta.accent}>
-              <p className={FINELY_OS_ENTITY_SUBLABEL}>{WORKSTATIONS.find((w) => w.id === tab)?.label ?? 'Workstation'}</p>
+              <p className={FINELY_OS_ENTITY_SUBLABEL}>{WORKSTATIONS.find((w) => w.id === tab)?.label ?? 'Room'}</p>
               <h3>{workstationMeta.title}</h3>
               <p>{workstationMeta.subtitle}</p>
             </div>
@@ -649,8 +649,8 @@ export function PartnerDebtCommandDeck({
         role={role}
         pageId={pageId}
         eyebrow="Debt & court"
-        title="Debt & court workstations"
-        description="Validation, litigation, foreclosure, repossession, and bankruptcy — open cases for deadlines and court workflow."
+        title="Debt and court"
+        description="Open validation, litigation, foreclosure, repossession, and bankruptcy cases. Deadlines and court steps stay on each file."
         status={`${openCount + disputedCount} active · ${cases.length} case${cases.length === 1 ? '' : 's'}`}
         freshness={nearestHearing ? `Hearing ${new Date(nearestHearing.date).toLocaleDateString()}` : 'live data'}
         accent={accent}
@@ -674,7 +674,7 @@ export function PartnerDebtCommandDeck({
             <PageIcon size={22} strokeWidth={2.05} />
           </div>
           <div className="fc-wlp-eyebrow">What to do next</div>
-          <h2>{cases.length ? 'Open the workstation that matches your matter' : 'Add your first case'}</h2>
+          <h2>{cases.length ? 'Open the room that matches your matter' : 'Add your first case'}</h2>
           <p>
             {cases.length
               ? 'Validation for collector proof, Litigation for court deadlines, and foreclosure or repossession tracks for collateral fights.'

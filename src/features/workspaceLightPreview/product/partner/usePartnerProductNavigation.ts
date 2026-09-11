@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useLocation, useNavigate, type NavigateOptions, type To } from 'react-router-dom';
+import { adminEmbeddedNavHref, adminPartnerIdFromPathname } from '../../../../lib/adminPartnerRoutes';
 import {
   getWorkspaceProductNavigationMode,
   resolveWorkspaceProductPath,
@@ -18,11 +19,21 @@ function useWorkspaceProductPathResolver(role: WorkspaceProductRole) {
 
 /**
  * Preview surfaces stay inside the review shell; the same workstation on a canonical route
- * keeps canonical `/portal/*` (or `/business/*`) links. Accepts either a live path or a
- * leftover `/preview/workspace-light/...` href so live partners are never sent into preview.
+ * keeps canonical `/portal/*` (or `/business/*`) links. When staff are on `/admin/partners/:id`,
+ * portal links stay on that partner file.
  */
 export function usePartnerProductPathResolver() {
-  return useWorkspaceProductPathResolver('partner');
+  const { pathname } = useLocation();
+  const partnerResolve = useWorkspaceProductPathResolver('partner');
+  const adminPartnerId = adminPartnerIdFromPathname(pathname);
+
+  return useCallback(
+    (href: string) => {
+      if (adminPartnerId) return adminEmbeddedNavHref(adminPartnerId, href, pathname);
+      return partnerResolve(href);
+    },
+    [adminPartnerId, partnerResolve, pathname],
+  );
 }
 
 /** Admin equivalent — preview stays in preview, live stays on `/admin/*`. */

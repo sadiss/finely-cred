@@ -542,7 +542,7 @@ export default function PartnerTrainingProductSurface({
               </div>
               <p className={`mt-2 text-base font-bold ${FINELY_OS_ENTITY_BODY} max-w-3xl`}>
                 Everyone completes <strong className={FINELY_OS_ENTITY_VALUE}>Core Foundation</strong> (compliance, validation-first
-                doctrine, platform safety). Your onboarding lane unlocks a <strong className={FINELY_OS_ENTITY_VALUE}>role track</strong>{' '}
+                rules, platform safety). Your onboarding lane unlocks a <strong className={FINELY_OS_ENTITY_VALUE}>role track</strong>{' '}
                 — partner restore, affiliate, credit specialist, AU seller, business credit, debt validation, admin, or agency.
               </p>
             </div>

@@ -23,6 +23,7 @@ import {
   resolveFrequencyCapKey,
 } from '../../../data/commsSuppressionRepo';
 import { sendEmail } from '../../../lib/commsDeliveryClient';
+import { htmlFromPlainEmail } from '../../../comms/prebuiltHtmlEmailLayout';
 import { isFeatureEnabled } from '../../../data/settingsRepo';
 import { logAgentAction } from '../../../lib/agentAuditLog';
 
@@ -154,6 +155,7 @@ async function sendCrmSequenceEmail(
       toName: record.contact.fullName,
       subject,
       text: body,
+      html: htmlFromPlainEmail({ headline: subject, text: body, email }),
     });
     recordSendForFrequencyCap(frequencyCapKey);
     logSequenceActivity(record, `Email sent: ${subject}`);

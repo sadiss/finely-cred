@@ -594,7 +594,7 @@ export function PartnerPortalHubLauncherSection({ partner, refresh }: Props) {
         <FinelyOsPaginatedStack
           items={disputeModuleCards}
           pageSize={6}
-          itemSpacingClassName="grid md:grid-cols-2 gap-3"
+          itemSpacingClassName="grid md:grid-cols-2 gap-5"
           emptyMessage="No dispute modules available."
           renderItem={(c, idx) => (
             <button
@@ -628,7 +628,7 @@ export function PartnerPortalHubLauncherSection({ partner, refresh }: Props) {
         <FinelyOsPaginatedStack
           items={debtModuleCards}
           pageSize={4}
-          itemSpacingClassName="grid md:grid-cols-2 gap-3"
+          itemSpacingClassName="grid md:grid-cols-2 gap-5"
           emptyMessage="No debt modules available."
           renderItem={(c, idx) => (
             <button
@@ -733,7 +733,7 @@ export function PartnerPortalHubLauncherSection({ partner, refresh }: Props) {
         <FinelyOsPaginatedStack
           items={documentModuleCards}
           pageSize={4}
-          itemSpacingClassName="grid md:grid-cols-2 gap-3"
+          itemSpacingClassName="grid md:grid-cols-2 gap-5"
           emptyMessage="No document modules available."
           renderItem={(c, idx) => (
             <button
@@ -803,7 +803,7 @@ export function PartnerPortalHubLauncherSection({ partner, refresh }: Props) {
                 <FinelyOsPaginatedStack
                   items={openTasks}
                   pageSize={6}
-                  itemSpacingClassName="grid md:grid-cols-2 gap-3"
+                  itemSpacingClassName="grid md:grid-cols-2 gap-5"
                   emptyMessage="No open tasks."
                   renderItem={(t) => (
                     <div key={t.id} className={`${finelyOsCatalogCard('sky')} min-w-0`}>

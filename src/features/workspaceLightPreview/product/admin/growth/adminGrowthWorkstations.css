@@ -38,7 +38,7 @@
 
 .fc-wlp-growth-blocks {
   display: grid;
-  gap: 0.75rem;
+  gap: 1.25rem;
 }
 
 @media (min-width: 960px) {
@@ -399,7 +399,7 @@
 
 .fc-wlp-growth-research-lanes {
   display: grid;
-  gap: 0.65rem;
+  gap: 1.25rem;
   margin-top: 1.25rem;
 }
 
@@ -687,7 +687,7 @@
 .fc-wlp-growth-strategy-side,
 .fc-wlp-growth-strategy-foot {
   display: grid;
-  gap: 0.75rem;
+  gap: 1.25rem;
 }
 
 .fc-wlp-growth-strategy-studio {
@@ -746,7 +746,7 @@
 .fc-wlp-growth-command-runway {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: 1.25rem;
   padding: 0.5rem 0;
 }
 
@@ -809,7 +809,7 @@
 .fc-wlp-growth-command-kpi-strip {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.65rem;
+  gap: 1.25rem;
 }
 
 @media (min-width: 900px) {
@@ -848,7 +848,7 @@
 
 .fc-wlp-growth-command-tool-mosaic {
   display: grid;
-  gap: 0.75rem;
+  gap: 1.25rem;
 }
 
 @media (min-width: 900px) {
@@ -859,7 +859,7 @@
 
 .fc-wlp-growth-command-alerts {
   display: grid;
-  gap: 0.75rem;
+  gap: 1.25rem;
 }
 
 @media (min-width: 900px) {
@@ -870,7 +870,7 @@
 
 .fc-wlp-growth-room-tile-grid {
   display: grid;
-  gap: 0.75rem;
+  gap: 1.25rem;
 }
 
 .fc-wlp-growth-room-tile {
@@ -919,7 +919,7 @@
 .fc-wlp-growth-funnel-lane-rail {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.65rem;
+  gap: 1.25rem;
 }
 
 @media (min-width: 900px) {
@@ -1132,7 +1132,7 @@
 .fc-wlp-growth-testimonials-stats {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem;
+  gap: 1.25rem;
 }
 
 @media (min-width: 900px) {
@@ -1187,13 +1187,11 @@
 .fc-wlp-growth-intel-vault,
 .fc-wlp-growth-desk-canvas,
 .fc-wlp-growth-agent-floor {
-  border-radius: 1.1rem;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  padding: 1.25rem 1.5rem;
-  background:
-    radial-gradient(circle at 100% 0, rgba(42, 167, 220, 0.14), transparent 42%),
-    linear-gradient(155deg, rgba(8, 13, 21, 0.96), rgba(12, 18, 30, 0.92));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  border-radius: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .fc-wlp-growth-intel-vault[data-fcm-accent='sky'] {
@@ -1281,7 +1279,7 @@
 [data-page-signature='growth-marketing-desk'] .fc-wlp-growth-block-panel {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem;
+  gap: 1.25rem;
 }
 
 [data-page-signature='growth-marketing-desk'] .fc-wlp-growth-block-head {
@@ -1468,7 +1466,7 @@ html[data-fc-theme='dark'] .fc-wlp-growth-room-accent-band p {
 .fc-wlp-growth-control-status-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.65rem;
+  gap: 1.25rem;
 }
 
 @media (min-width: 900px) {
@@ -1546,7 +1544,7 @@ html[data-fc-theme='dark'] .fc-wlp-growth-room-accent-band p {
 
 .fc-wlp-growth-acquisition-lane-grid {
   display: grid;
-  gap: 0.75rem;
+  gap: 1.25rem;
 }
 
 @media (min-width: 900px) {
@@ -1782,7 +1780,7 @@ html[data-fc-theme='dark'] .fc-wlp-growth-room-accent-band p {
 .fc-wlp-growth-social-kpi-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.65rem;
+  gap: 1.25rem;
 }
 
 @media (min-width: 900px) {
@@ -1849,7 +1847,7 @@ html[data-fc-theme='dark'] .fc-wlp-growth-room-accent-band p {
 
 .fc-wlp-growth-ledger-mosaic {
   display: grid;
-  gap: 0.75rem;
+  gap: 1.25rem;
 }
 
 @media (min-width: 900px) {
@@ -1918,7 +1916,7 @@ html[data-fc-theme='dark'] .fc-wlp-growth-room-accent-band p {
 .fc-wlp-growth-routing-mesh {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.65rem;
+  gap: 1.25rem;
   padding: 1rem;
   border-radius: 1rem;
   border: 1px dashed rgba(143, 92, 246, 0.35);
@@ -2022,7 +2020,7 @@ html[data-fc-theme='dark'] .fc-wlp-growth-room-accent-band p {
 
 .fc-wlp-growth-sequence-foot {
   display: grid;
-  gap: 0.75rem;
+  gap: 1.25rem;
 }
 
 @media (min-width: 900px) {
@@ -2034,7 +2032,7 @@ html[data-fc-theme='dark'] .fc-wlp-growth-room-accent-band p {
 .fc-wlp-growth-control-side-tiles,
 .fc-wlp-growth-routing-side {
   display: grid;
-  gap: 0.65rem;
+  gap: 1.25rem;
   margin-top: 1rem;
 }
 
@@ -2110,7 +2108,7 @@ html[data-fc-theme='dark'] .fc-wlp-growth-room-accent-band p {
 
 .fc-wlp-growth-triage-context-tiles {
   display: grid;
-  gap: 0.65rem;
+  gap: 1.25rem;
 }
 
 .fc-wlp-growth-leads-embed {
@@ -2236,7 +2234,7 @@ html[data-fc-theme='dark'] .fc-wlp-growth-room-accent-band p {
 
 .fc-wlp-growth-funnel-stack-rail {
   display: grid;
-  gap: 0.5rem;
+  gap: 1.25rem;
 }
 
 @media (min-width: 900px) {
@@ -2287,7 +2285,7 @@ html[data-fc-theme='dark'] .fc-wlp-growth-room-accent-band p {
 
 .fc-wlp-growth-funnel-stack-foot {
   display: grid;
-  gap: 0.65rem;
+  gap: 1.25rem;
 }
 
 @media (min-width: 900px) {
@@ -2331,7 +2329,7 @@ html[data-fc-theme='dark'] .fc-wlp-growth-room-accent-band p {
 
 .fc-wlp-growth-workflow-lanes {
   display: grid;
-  gap: 0.65rem;
+  gap: 1.25rem;
 }
 
 @media (min-width: 900px) {
@@ -2483,7 +2481,7 @@ html[data-fc-theme='dark'] .fc-wlp-growth-room-accent-band p {
 
 .fc-wlp-growth-drop-side {
   display: grid;
-  gap: 0.65rem;
+  gap: 1.25rem;
 }
 
 .fc-wlp-growth-drop-studio {

@@ -52,6 +52,7 @@ const COVERAGE_ROLE_IDS: AgentPersonaId[] = [
   'debt_strategist',
   'appointment_setter',
   'compliance_agent',
+  'haitian_companion',
 ];
 
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;

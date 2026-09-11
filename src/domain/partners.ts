@@ -60,6 +60,8 @@ export type PartnerBaseProfile = {
   fullName: string;
   email?: string;
   phone?: string;
+  /** Haitian community mail voice. Never inferred from a last name. */
+  preferredVoice?: 'en' | 'ht';
 };
 
 export type PartnerRouteIntake = {

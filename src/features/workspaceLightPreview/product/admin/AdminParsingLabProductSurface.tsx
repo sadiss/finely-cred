@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { ArrowRight, Clipboard, FileJson, FlaskConical, Layers, ListOrdered, Type } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ArrowRight, Clipboard, FileJson, FlaskConical, Layers, ListOrdered, Type, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { parseCreditReportHtml } from '../../../../creditReports/parseHtmlReport';
 import { detectProviderFromText } from '../../../../creditReports/detectProvider';
@@ -56,6 +56,7 @@ export default function AdminParsingLabProductSurface({ role, pageId }: Workspac
   const [pdfText, setPdfText] = useState('');
   const [parsedJson, setParsedJson] = useState('');
   const [notice, setNotice] = useState<string | null>(null);
+  const [signalsOpen, setSignalsOpen] = useState(false);
 
   const parsed = useMemo(() => {
     if (!html.trim()) return null;
@@ -108,9 +109,15 @@ export default function AdminParsingLabProductSurface({ role, pageId }: Workspac
 
   const htmlTradelines =
     parsed && !('error' in parsed) ? String((parsed as { tradelines?: unknown[] }).tradelines?.length ?? 0) : '—';
+  const htmlScores =
+    parsed && !('error' in parsed) ? String((parsed as { scores?: unknown[] }).scores?.length ?? 0) : '—';
   const pdfTradelines =
     pdfHints?.parsed && !('error' in pdfHints.parsed)
       ? String((pdfHints.parsed as { tradelines?: unknown[] }).tradelines?.length ?? 0)
+      : '—';
+  const pdfScores =
+    pdfHints?.parsed && !('error' in pdfHints.parsed)
+      ? String((pdfHints.parsed as { scores?: unknown[] }).scores?.length ?? 0)
       : '—';
   const providerHint =
     (parsed && !('error' in parsed) ? (parsed as { provider?: string }).provider : null) ??
@@ -120,6 +127,21 @@ export default function AdminParsingLabProductSurface({ role, pageId }: Workspac
     (parsed && !('error' in parsed) ? (parsed as { reportDate?: string }).reportDate : null) ??
     pdfHints?.reportDate ??
     '—';
+
+  useEffect(() => {
+    if (!signalsOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setSignalsOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [signalsOpen]);
+
+  const modeValue = (id: LabMode) => {
+    if (id === 'html') return htmlTradelines;
+    if (id === 'pdf') return pdfTradelines;
+    return parsedJson ? 'Ready' : '—';
+  };
 
   return (
     <ProductHubScaffold
@@ -164,12 +186,14 @@ export default function AdminParsingLabProductSurface({ role, pageId }: Workspac
           value: providerHint,
           hint: 'Detected bureau',
           accent: 'emerald',
+          onClick: () => setSignalsOpen(true),
         },
         {
           label: 'Report date',
           value: reportDateHint,
           hint: 'Parsed or hinted',
           accent: 'rose',
+          onClick: () => setSignalsOpen(true),
         },
       ]}
       metricTitle="Parser signals"
@@ -177,270 +201,257 @@ export default function AdminParsingLabProductSurface({ role, pageId }: Workspac
     >
       <span hidden data-surface-kind="real" data-surface-key={`admin:${pageId ?? 'parsing-lab'}`} />
 
-      <div className={FINELY_OS_PAGE} data-surface-layout="split-workbench">
+      <div className={FINELY_OS_PAGE} data-surface-layout="command-deck">
         {notice ? <div className={FINELY_OS_NOTICE_SUCCESS}>{notice}</div> : null}
 
-        <div className="grid gap-6 lg:grid-cols-12 items-start">
-          {/* Navigator + signal inspector */}
-          <aside className="lg:col-span-4 space-y-4">
-            <nav
-              className={`${finelyOsCatalogCard('rose')} p-5 lg:p-6 space-y-4`}
-              data-fc-accent="rose"
-              aria-label="Parser modes"
-            >
-              <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
-                <FlaskConical size={16} />
-                <span>Parser modes</span>
-              </div>
-              <div className="space-y-2">
-                {LAB_MODES.map((tool) => {
-                  const Icon = tool.icon;
-                  const isActive = mode === tool.id;
-                  return (
-                    <button
-                      key={tool.id}
-                      type="button"
-                      onClick={() => setMode(tool.id)}
-                      className={`w-full rounded-2xl border px-4 py-4 text-left transition-all ${
-                        isActive
-                          ? tool.accent === 'emerald'
-                            ? 'border-emerald-400/40 bg-emerald-500/15'
-                            : tool.accent === 'violet'
-                              ? 'border-violet-400/40 bg-violet-500/15'
-                              : 'border-sky-400/40 bg-sky-500/15'
-                          : 'border-white/10 bg-black/20 hover:border-white/25'
-                      }`}
-                      data-fc-accent={isActive ? tool.accent : undefined}
-                      aria-current={isActive ? 'true' : undefined}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Icon size={16} />
-                        <span className="text-base font-extrabold">{tool.label}</span>
-                      </div>
-                      <p className={`mt-1 text-sm font-bold ${FINELY_OS_ENTITY_BODY}`}>{tool.hint}</p>
-                    </button>
-                  );
-                })}
-              </div>
-            </nav>
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" role="tablist" aria-label="Parser modes">
+          {LAB_MODES.map((tool) => {
+            const Icon = tool.icon;
+            const isActive = mode === tool.id;
+            return (
+              <button
+                key={tool.id}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                onClick={() => setMode(tool.id)}
+                className={`${finelyOsCatalogCard(tool.accent)} p-6 lg:p-8 text-left min-h-[160px] flex flex-col gap-3 transition-all ${
+                  isActive ? 'ring-2 ring-white/30 scale-[1.01]' : 'hover:shadow-lg'
+                }`}
+                data-fc-accent={tool.accent}
+                aria-current={isActive ? 'true' : undefined}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-black/[0.06]">
+                    <Icon size={22} />
+                  </span>
+                  <span className={`text-3xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{modeValue(tool.id)}</span>
+                </div>
+                <div>
+                  <div className="text-xl font-extrabold">{tool.label}</div>
+                  <p className={`mt-1 text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>{tool.hint}</p>
+                </div>
+              </button>
+            );
+          })}
+          <button
+            type="button"
+            onClick={() => setSignalsOpen(true)}
+            className={`${finelyOsCatalogCard('rose')} p-6 lg:p-8 text-left min-h-[160px] flex flex-col gap-3 transition-all hover:shadow-lg`}
+            data-fc-accent="rose"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-black/[0.06]">
+                <FlaskConical size={22} />
+              </span>
+              <span className={`text-3xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{providerHint}</span>
+            </div>
+            <div>
+              <div className="text-xl font-extrabold">Parser signals</div>
+              <p className={`mt-1 text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
+                Tradelines, scores, and regression steps
+              </p>
+            </div>
+          </button>
+        </div>
 
-            <div className={`${finelyOsCatalogCard('violet')} p-5 lg:p-6 space-y-4`} data-fc-accent="violet">
-              <div className={FINELY_OS_ENTITY_SUBLABEL}>Live signals</div>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-                <FinelyOsOverviewStatTile
-                  icon={Layers}
-                  label="HTML tradelines"
-                  value={htmlTradelines}
-                  hint="Pasted export"
-                  accent="violet"
-                  iconAccent="violet"
-                />
-                <FinelyOsOverviewStatTile
-                  icon={Type}
-                  label="PDF tradelines"
-                  value={pdfTradelines}
-                  hint="Extracted text"
-                  accent="sky"
-                  iconAccent="sky"
-                />
-                <FinelyOsOverviewStatTile
-                  icon={FlaskConical}
-                  label="Provider"
-                  value={providerHint}
-                  hint="Detected bureau"
-                  accent="emerald"
-                  iconAccent="emerald"
-                />
-                <FinelyOsOverviewStatTile
-                  icon={FileJson}
-                  label="Report date"
-                  value={reportDateHint}
-                  hint="Parsed or hinted"
-                  accent="fuchsia"
-                  iconAccent="fuchsia"
-                />
+        <section className={`${finelyOsCatalogCard(activeCanvasAccent)} p-6 lg:p-8 space-y-5`} data-fc-accent={activeCanvasAccent}>
+          <div>
+            <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
+              <FlaskConical size={18} />
+              <span>{LAB_MODES.find((m) => m.id === mode)?.label ?? 'Editor'}</span>
+            </div>
+            <h2 className="mt-2 text-3xl font-extrabold">
+              {mode === 'html' ? 'HTML export' : mode === 'pdf' ? 'PDF text' : 'Parsed output'}
+            </h2>
+            <p className={`mt-2 text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
+              {mode === 'html'
+                ? 'Paste exported HTML. Tradelines, scores, sections, and coverage appear as you type.'
+                : mode === 'pdf'
+                  ? 'Paste text from our PDF extractor. Provider and date hints validate before import.'
+                  : 'Latest parsed JSON — attach to a ticket when a bureau variant breaks.'}
+            </p>
+          </div>
+
+          {mode === 'html' ? (
+            <>
+              <textarea
+                value={html}
+                onChange={(e) => setHtml(e.target.value)}
+                rows={16}
+                className={`${finelyOsGlowTextarea('violet')} min-h-[320px] font-mono text-sm`}
+                placeholder="Paste HTML here…"
+                aria-label="HTML report paste area"
+              />
+              {parsed && 'error' in parsed ? <div className={FINELY_OS_NOTICE_ERROR}>{parsed.error}</div> : null}
+              <div className="flex flex-wrap gap-3">
+                <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={copyParsedJson} disabled={!parsed}>
+                  <Clipboard size={14} /> Copy parsed JSON
+                </button>
+                <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => setHtml('')}>
+                  Clear HTML
+                </button>
+                <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => setSignalsOpen(true)}>
+                  Open signals
+                </button>
               </div>
+            </>
+          ) : null}
+
+          {mode === 'pdf' ? (
+            <>
+              <textarea
+                value={pdfText}
+                onChange={(e) => setPdfText(e.target.value)}
+                rows={16}
+                className={`${finelyOsGlowTextarea('sky')} min-h-[320px] font-mono text-sm`}
+                placeholder="Paste extracted PDF text here…"
+                aria-label="PDF extracted text paste area"
+              />
+              {pdfHints?.parsed && 'error' in pdfHints.parsed ? (
+                <div className={FINELY_OS_NOTICE_ERROR}>{pdfHints.parsed.error}</div>
+              ) : null}
+              <div className="flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  className={FINELY_OS_PRIMARY_BTN}
+                  onClick={() => void copy(pdfText)}
+                  disabled={!pdfText.trim()}
+                >
+                  <Clipboard size={14} /> Copy text
+                </button>
+                <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => setPdfText('')}>
+                  Clear text
+                </button>
+                <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => setSignalsOpen(true)}>
+                  Open signals
+                </button>
+              </div>
+            </>
+          ) : null}
+
+          {mode === 'output' ? (
+            <>
+              <pre
+                className={`${finelyOsGlowTextarea('emerald')} min-h-[320px] whitespace-pre-wrap break-words font-mono text-sm overflow-auto max-h-[480px]`}
+                aria-label="Parsed JSON output"
+              >
+                {parsedJson.slice(0, 60_000) || 'Run a parse on HTML or PDF text, then copy JSON here.'}
+              </pre>
+              <div className="flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  className={FINELY_OS_PRIMARY_BTN}
+                  onClick={() => void copy(parsedJson)}
+                  disabled={!parsedJson}
+                >
+                  <Clipboard size={14} /> Copy again
+                </button>
+                <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => setParsedJson('')}>
+                  Clear output
+                </button>
+                <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => setSignalsOpen(true)}>
+                  Open signals
+                </button>
+              </div>
+            </>
+          ) : null}
+        </section>
+      </div>
+
+      {signalsOpen ? (
+        <div
+          className="fc-wlp-local-modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Parser signals"
+          onClick={() => setSignalsOpen(false)}
+        >
+          <div
+            className="fc-wlp-local-modal fc-wlp-wide-drawer p-6 lg:p-8 space-y-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p className={FINELY_OS_ENTITY_SUBLABEL}>Parser signals</p>
+                <h2 className={`mt-2 text-3xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>Live parse readout</h2>
+                <p className={`mt-2 text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
+                  Tradelines, scores, provider, and date from the pasted export.
+                </p>
+              </div>
+              <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => setSignalsOpen(false)} aria-label="Close signals">
+                <X size={14} /> Close
+              </button>
             </div>
 
-            <div className={`${finelyOsCatalogCard('emerald')} p-5 lg:p-6 space-y-3`} data-fc-accent="emerald">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <FinelyOsOverviewStatTile
+                icon={Layers}
+                label="HTML tradelines"
+                value={htmlTradelines}
+                hint={`Scores ${htmlScores}`}
+                accent="violet"
+                iconAccent="violet"
+              />
+              <FinelyOsOverviewStatTile
+                icon={Type}
+                label="PDF tradelines"
+                value={pdfTradelines}
+                hint={`Scores ${pdfScores}`}
+                accent="sky"
+                iconAccent="sky"
+              />
+              <FinelyOsOverviewStatTile
+                icon={FlaskConical}
+                label="Provider"
+                value={providerHint}
+                hint="Detected bureau"
+                accent="emerald"
+                iconAccent="emerald"
+              />
+              <FinelyOsOverviewStatTile
+                icon={FileJson}
+                label="Report date"
+                value={reportDateHint}
+                hint="Parsed or hinted"
+                accent="rose"
+                iconAccent="rose"
+              />
+            </div>
+
+            {pdfHints ? (
+              <p className={`text-sm font-mono font-bold ${FINELY_OS_ENTITY_BODY}`}>
+                {pdfHints.chars.toLocaleString()} chars · first line: {pdfHints.firstLine.slice(0, 120)}
+              </p>
+            ) : null}
+
+            <div>
               <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
                 <ListOrdered size={14} />
                 <span>Regression steps</span>
               </div>
-              <ol className={`${FINELY_OS_ENTITY_BODY} space-y-2 list-decimal list-inside text-base font-semibold`}>
-                <li>Paste an export that parses poorly.</li>
-                <li>Copy parsed JSON and debug signals.</li>
-                <li>Extend selectors, then retest here.</li>
+              <ol className={`${FINELY_OS_ENTITY_BODY} mt-3 grid gap-3 sm:grid-cols-3 list-none`}>
+                <li className={`${finelyOsCatalogCard('emerald')} p-5 text-base font-bold`} data-fc-accent="emerald">
+                  1. Paste an export that parses poorly.
+                </li>
+                <li className={`${finelyOsCatalogCard('violet')} p-5 text-base font-bold`} data-fc-accent="violet">
+                  2. Copy parsed JSON and debug signals.
+                </li>
+                <li className={`${finelyOsCatalogCard('sky')} p-5 text-base font-bold`} data-fc-accent="sky">
+                  3. Extend selectors, then retest here.
+                </li>
               </ol>
               <button
                 type="button"
-                className={`${FINELY_OS_SECONDARY_BTN} w-full`}
+                className={`${FINELY_OS_SECONDARY_BTN} mt-4`}
                 onClick={() => navigate('/admin/partners')}
               >
                 Open partner management <ArrowRight size={14} />
               </button>
             </div>
-          </aside>
-
-          {/* Workbench canvas */}
-          <section
-            className={`lg:col-span-8 space-y-5 ${finelyOsCatalogCard(activeCanvasAccent)} p-6 lg:p-8`}
-            data-fc-accent={activeCanvasAccent}
-          >
-            <div>
-              <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
-                <FlaskConical size={18} />
-                <span>{LAB_MODES.find((m) => m.id === mode)?.label ?? 'Editor'}</span>
-              </div>
-              <h2 className="mt-2 text-3xl font-extrabold">
-                {mode === 'html' ? 'HTML export workbench' : mode === 'pdf' ? 'PDF text workbench' : 'Parsed output'}
-              </h2>
-              <p className={`mt-2 text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
-                {mode === 'html'
-                  ? 'Paste exported HTML. Tradelines, scores, sections, and coverage appear as you type.'
-                  : mode === 'pdf'
-                    ? 'Paste text from our PDF extractor. Provider and date hints validate before import.'
-                    : 'Latest parsed JSON — attach to a ticket when a bureau variant breaks.'}
-              </p>
-            </div>
-
-            {mode === 'html' ? (
-              <>
-                <textarea
-                  value={html}
-                  onChange={(e) => setHtml(e.target.value)}
-                  rows={16}
-                  className={`${finelyOsGlowTextarea('violet')} min-h-[320px] font-mono text-sm`}
-                  placeholder="Paste HTML here…"
-                  aria-label="HTML report paste area"
-                />
-                {parsed && 'error' in parsed ? <div className={FINELY_OS_NOTICE_ERROR}>{parsed.error}</div> : null}
-                {parsed && !('error' in parsed) ? (
-                  <div className={`${finelyOsCatalogCard('sky')} p-5 space-y-2`} data-fc-accent="sky">
-                    <div className={FINELY_OS_ENTITY_SUBLABEL}>HTML parse summary</div>
-                    <div className={`grid grid-cols-2 gap-3 text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
-                      <div>
-                        Provider:{' '}
-                        <span className={FINELY_OS_ENTITY_VALUE}>
-                          {(parsed as { provider?: string }).provider ?? '—'}
-                        </span>
-                      </div>
-                      <div>
-                        Report date:{' '}
-                        <span className={FINELY_OS_ENTITY_VALUE}>
-                          {(parsed as { reportDate?: string }).reportDate || '—'}
-                        </span>
-                      </div>
-                      <div>
-                        Tradelines:{' '}
-                        <span className={FINELY_OS_ENTITY_VALUE}>
-                          {(parsed as { tradelines?: unknown[] }).tradelines?.length ?? 0}
-                        </span>
-                      </div>
-                      <div>
-                        Scores:{' '}
-                        <span className={FINELY_OS_ENTITY_VALUE}>
-                          {(parsed as { scores?: unknown[] }).scores?.length ?? 0}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ) : null}
-                <div className="flex flex-wrap gap-3">
-                  <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={copyParsedJson} disabled={!parsed}>
-                    <Clipboard size={14} /> Copy parsed JSON
-                  </button>
-                  <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => setHtml('')}>
-                    Clear HTML
-                  </button>
-                </div>
-              </>
-            ) : null}
-
-            {mode === 'pdf' ? (
-              <>
-                <textarea
-                  value={pdfText}
-                  onChange={(e) => setPdfText(e.target.value)}
-                  rows={16}
-                  className={`${finelyOsGlowTextarea('sky')} min-h-[320px] font-mono text-sm`}
-                  placeholder="Paste extracted PDF text here…"
-                  aria-label="PDF extracted text paste area"
-                />
-                {pdfHints ? (
-                  <div className={`${finelyOsCatalogCard('violet')} p-5 space-y-2`} data-fc-accent="violet">
-                    <div className={FINELY_OS_ENTITY_SUBLABEL}>PDF text summary</div>
-                    <div className={`grid grid-cols-2 gap-3 text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
-                      <div>
-                        Provider hint: <span className={FINELY_OS_ENTITY_VALUE}>{pdfHints.provider}</span>
-                      </div>
-                      <div>
-                        Report date hint: <span className={FINELY_OS_ENTITY_VALUE}>{pdfHints.reportDate || '—'}</span>
-                      </div>
-                      {pdfHints.parsed && !('error' in pdfHints.parsed) ? (
-                        <>
-                          <div>
-                            PDF tradelines:{' '}
-                            <span className={FINELY_OS_ENTITY_VALUE}>
-                              {(pdfHints.parsed as { tradelines?: unknown[] }).tradelines?.length ?? 0}
-                            </span>
-                          </div>
-                          <div>
-                            PDF scores:{' '}
-                            <span className={FINELY_OS_ENTITY_VALUE}>
-                              {(pdfHints.parsed as { scores?: unknown[] }).scores?.length ?? 0}
-                            </span>
-                          </div>
-                        </>
-                      ) : null}
-                    </div>
-                    <div className={`mt-2 text-sm font-mono font-bold ${FINELY_OS_ENTITY_BODY}`}>
-                      {pdfHints.chars.toLocaleString()} chars · first line: {pdfHints.firstLine.slice(0, 120)}
-                    </div>
-                  </div>
-                ) : null}
-                <div className="flex flex-wrap gap-3">
-                  <button
-                    type="button"
-                    className={FINELY_OS_PRIMARY_BTN}
-                    onClick={() => void copy(pdfText)}
-                    disabled={!pdfText.trim()}
-                  >
-                    <Clipboard size={14} /> Copy text
-                  </button>
-                  <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => setPdfText('')}>
-                    Clear text
-                  </button>
-                </div>
-              </>
-            ) : null}
-
-            {mode === 'output' ? (
-              <>
-                <pre
-                  className={`${finelyOsGlowTextarea('emerald')} min-h-[320px] whitespace-pre-wrap break-words font-mono text-sm overflow-auto max-h-[480px]`}
-                  aria-label="Parsed JSON output"
-                >
-                  {parsedJson.slice(0, 60_000) || 'Run a parse on HTML or PDF text, then copy JSON here.'}
-                </pre>
-                <div className="flex flex-wrap gap-3">
-                  <button
-                    type="button"
-                    className={FINELY_OS_PRIMARY_BTN}
-                    onClick={() => void copy(parsedJson)}
-                    disabled={!parsedJson}
-                  >
-                    <Clipboard size={14} /> Copy again
-                  </button>
-                  <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => setParsedJson('')}>
-                    Clear output
-                  </button>
-                </div>
-              </>
-            ) : null}
-          </section>
+          </div>
         </div>
-      </div>
+      ) : null}
 
       <p className="fc-wlp-section-description fc-wlp-compliance-line mt-6">
         Results vary · not legal advice · funding subject to underwriting

@@ -365,7 +365,7 @@ export default function AdminOpsAgentProductSurface({ role, pageId }: WorkspaceP
     const fixedTail = [
       { id: 'daily', label: 'Daily ops', prompt: 'Run a 5× deep daily ops review. TESTING MODE — low counts expected. Nine-lens synthesis: headline verdict, deep read, top 5 priorities with verify steps, people/automations, stewardship close.' },
       { id: 'launch-audit', label: 'Launch audit', prompt: 'Run a strict launch-readiness audit: identify what is missing, broken, inconsistent, or confusing. Give a punchlist ordered by impact.' },
-      { id: 'validation-doc', label: 'Validation doctrine', prompt: 'Summarize our validation-first debt strategy for partners — challenge before pay, affidavits for summons, law per negative.' },
+      { id: 'validation-doc', label: 'Validation playbook', prompt: 'Summarize our validation-first debt strategy for partners — challenge before pay, affidavits for summons, law per negative.' },
       { id: 'dev', label: 'Dev Studio', prompt: 'Dev Studio session: write a complete, purposeful site feature for Finely Cred and save it via coowner-dev block. Include full code.' },
       { id: 'sweep', label: 'Automation sweep', prompt: 'Run superhuman automation sweep — validation clocks, phone SLA, social, hiring, ops health. Nine-lens synthesis with execute moves.' },
       { id: 'sitemap', label: 'Site map', prompt: 'Scan the full site map — every admin, portal, and public surface. Report knowledge gaps and top 5 wiring fixes.' },
@@ -514,7 +514,7 @@ export default function AdminOpsAgentProductSurface({ role, pageId }: WorkspaceP
             <FinelyOsAIChatPanel
               icon={Crown}
               title={CO_OWNER_IDENTITY.name}
-              subtitle={`Ask ${CO_OWNER_IDENTITY.name} about business, credit doctrine, automations, or coaching.`}
+              subtitle={`Ask ${CO_OWNER_IDENTITY.name} about business, credit rules, automations, or coaching.`}
               messages={history}
               draft={draft}
               onDraftChange={setDraft}

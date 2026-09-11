@@ -207,7 +207,7 @@ export default function PartnerRealEstateHubProductSurface({
         pageId="real-estate-hub"
         eyebrow="Real estate"
         title="Real estate"
-        description="RE-tagged affiliate hub — tracked referrals, underwriting playbook, and partner handoffs."
+        description="Real-estate affiliate playbook, tracked referrals, and partner handoffs."
         status="Demo workspace · sample metrics"
         freshness="demo snapshot"
         accent={accent}
@@ -297,7 +297,7 @@ export default function PartnerRealEstateHubProductSurface({
         pageId="real-estate-hub"
         eyebrow="Real estate"
         title="Real estate"
-        description="RE-tagged affiliate hub — tracked referrals, underwriting playbook, and partner handoffs."
+        description="Real-estate affiliate playbook, tracked referrals, and partner handoffs."
         status={gate.message}
         freshness="just now"
         accent={accent}
@@ -437,7 +437,7 @@ export default function PartnerRealEstateHubProductSurface({
       pageId="real-estate-hub"
       eyebrow="Real estate"
       title="Real estate"
-      description="RE-tagged affiliate hub — tracked referrals, underwriting playbook, and partner handoffs."
+      description="Real-estate affiliate playbook, tracked referrals, and partner handoffs."
       status={`${statusHeadline} · live data`}
       freshness="just now"
       accent={accent}

@@ -54,7 +54,7 @@ export function DoctrineArticleShell({
   complianceNote,
   primaryCta,
 }: {
-  seo: { title: string; description: string; path: string };
+  seo: { title: string; description: string; path: string; faqs?: Array<{ q: string; a: string }> };
   badge: string;
   kicker: string;
   title: string;
@@ -110,8 +110,8 @@ export function DoctrineArticleShell({
               >
                 {primaryCta?.label ?? 'Book a strategy call'} <ArrowRight size={14} />
               </button>
-              <button type="button" onClick={() => navigate('/pricing')} className={FINELY_OS_SECONDARY_BTN}>
-                See pricing &amp; packages
+              <button type="button" onClick={() => navigate('/pricing/personal-credit-restore')} className={FINELY_OS_SECONDARY_BTN}>
+                See restore programs
               </button>
             </div>
           </div>

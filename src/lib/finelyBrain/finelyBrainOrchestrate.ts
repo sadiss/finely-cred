@@ -7,6 +7,14 @@ import {
   formatFinelyKnowledgeForPrompt,
   type FinelyKnowledgeHit,
 } from '../finelyKnowledgeIndex';
+import {
+  HUMAN_I_DONT_KNOW,
+  excerptAnswersQuery,
+  humanSpokenReply,
+  shouldSkipKnowledgeArticle,
+  speakKnowledgeHit,
+  speakPageHelp,
+} from './humanCreditTalk';
 
 export type FinelyPageContext = {
   pathname: string;
@@ -30,6 +38,11 @@ export function pickPersonaForRoute(pathname: string): AgentPersonaId {
   if (/^\/admin\/(ops-agent|phone-hub)/.test(p)) return 'finely_coowner';
   if (/^\/admin\/(workflow|ops-autopilot|monitoring|automations)/.test(p)) return 'ops_copilot';
   if (/^\/admin\/(crm|leads|funnel)/.test(p)) return 'crm_intake_specialist';
+  if (/^\/(haitian|kreyol)/.test(p)) return 'haitian_companion';
+  if (/personal-credit-restore|\/personal-credit$/.test(p)) return 'dispute_coach';
+  if (/business-credit/.test(p)) return 'funding_strategist';
+  if (/debt-legal|\/free-debt/.test(p)) return 'debt_strategist';
+  if (/credit-building|build-my-credit|personal-credit-building/.test(p)) return 'finely_advisor';
   if (/^\/(pricing|services|personal-credit)/.test(p)) return 'sales_closer';
   return 'finely_advisor';
 }
@@ -105,11 +118,10 @@ export function finelyBrainOrchestrate(input: FinelyBrainInput): FinelyBrainResu
   const citations: FinelyBrainCitation[] = hits.map((h) => ({ id: h.id, title: h.title, route: h.route, source: h.source }));
   const msg = input.userMessage.toLowerCase();
 
-  if (PUBLIC_DEMO_VIDEOS_ENABLED && (msg.includes('video') || msg.includes('watch'))) {
+  const term = humanSpokenReply(input.userMessage);
+  if (term) {
     return {
-      reply: ctx.tour
-        ? `Tap "Watch how" to play: ${ctx.tour.title}. It walks through each step slowly with captions.`
-        : 'Open Resources → Videos for guided tours, or use Start Here for an overview.',
+      reply: term,
       personaId: ctx.personaId,
       citations,
       tourId: ctx.tour?.id,
@@ -117,22 +129,22 @@ export function finelyBrainOrchestrate(input: FinelyBrainInput): FinelyBrainResu
     };
   }
 
-  if (msg.includes('video') || msg.includes('watch')) {
+  if (PUBLIC_DEMO_VIDEOS_ENABLED && (msg.includes('video') || msg.includes('watch'))) {
     return {
-      reply: ctx.sop
-        ? `${ctx.sop.title}. ${ctx.sop.whenToUse} Follow the numbered steps on this page, or ask me to walk through one step at a time.`
-        : 'Tell me what you are trying to do on this page and I will guide you step by step.',
+      reply: ctx.tour
+        ? `There is a short walkthrough for this page: ${ctx.tour.title}. Tap Watch how if you want to see it.`
+        : 'Tell me what you want to see and I will walk you through it.',
       personaId: ctx.personaId,
       citations,
+      tourId: ctx.tour?.id,
       sopId: ctx.sop?.id,
     };
   }
 
-  if (ctx.sop) {
-    const steps = ctx.sop.steps.map((s) => `${s.order}. ${s.label}`).join('  ');
-    const watch = PUBLIC_DEMO_VIDEOS_ENABLED && ctx.tour ? ' Want to watch a short video? Tap "Watch how".' : '';
+  const askingPageHelp = /\b(what should i do on this page|what is this page for|help on this page|what do i do here)\b/.test(msg);
+  if (askingPageHelp && ctx.sop) {
     return {
-      reply: `${ctx.sop.title}. ${ctx.sop.whenToUse}\nSteps: ${steps}.${watch}`,
+      reply: speakPageHelp(ctx.sop.whenToUse, ctx.sop.steps[0]?.label),
       personaId: ctx.personaId,
       citations,
       tourId: ctx.tour?.id,
@@ -140,11 +152,11 @@ export function finelyBrainOrchestrate(input: FinelyBrainInput): FinelyBrainResu
     };
   }
 
-  const top = hits[0];
+  const top = hits.find(
+    (h) => !shouldSkipKnowledgeArticle(h.id) && excerptAnswersQuery(input.userMessage, `${h.title} ${h.snippet}`),
+  );
   return {
-    reply: top
-      ? `${top.title}: ${top.snippet}${PUBLIC_DEMO_VIDEOS_ENABLED && ctx.tour ? ' Ask "watch how" for a video on this page.' : ''}`
-      : 'Tell me what you are trying to do — fix credit, upload a report, or refer someone — and I will guide you step by step.',
+    reply: top ? speakKnowledgeHit(top.title, top.snippet) : HUMAN_I_DONT_KNOW,
     personaId: ctx.personaId,
     citations,
     tourId: ctx.tour?.id,

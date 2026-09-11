@@ -39,7 +39,7 @@ export default function AdminPartnerFileProductSurface({
         accent="emerald"
         eyebrow="Partners portfolio"
         title="Opening partner inspector…"
-        description="Partner files live in the partners portfolio inspector — not a separate legacy workstation."
+        description="Partner files live in the partners portfolio inspector — not a separate legacy room."
         status="Redirecting"
         freshness="portfolio inspector"
         icon={Users}

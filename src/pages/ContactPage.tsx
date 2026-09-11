@@ -12,6 +12,7 @@ import { FinelyUnifiedHubLayout } from '../features/unified/FinelyUnifiedHubLayo
 import { MarketingStaffChatStrip } from '../components/marketing/MarketingStaffChatStrip';
 import {
   FINELY_OS_BACK_LINK,
+  FINELY_OS_COMPLIANCE_FOOTNOTE,
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_INPUT,
   FINELY_OS_ENTITY_LABEL,
@@ -32,7 +33,7 @@ export default function ContactPage() {
   const navigate = useNavigate();
   usePublicSeoMeta({
     title: 'Contact Finely Cred',
-    description: 'Reach support, sales, or partnerships — we respond within one business day.',
+    description: 'Write the team about restore, billing, or a partnership. We typically respond within one business day.',
     path: '/contact',
   });
   const [fullName, setFullName] = useState('');
@@ -87,16 +88,14 @@ export default function ContactPage() {
       setStatusMsg(
         res.remote === 'ok'
           ? 'Message received. Our team will respond shortly.'
-          : res.remote === 'not_configured'
-            ? 'Message saved locally on this device. Configure Supabase to receive submissions remotely.'
-            : `Message saved locally. Remote submit failed: ${res.remoteError ?? 'unknown error'}`,
+          : 'We saved your message. If you need a faster reply, email partnersupport@finelycred.com.',
       );
       setSubject('');
       setMessage('');
       setMarketingConsent({ email: false, sms: false });
     } catch (err: any) {
       setStatus('error');
-      setStatusMsg(err?.message || 'Failed to submit. Please email support instead.');
+      setStatusMsg(err?.message || 'We could not send that message. Please email partnersupport@finelycred.com.');
     }
   };
 
@@ -104,13 +103,13 @@ export default function ContactPage() {
     <PageShell
       badge="Public"
       title="Contact"
-      subtitle="Get in touch for support, affiliate inquiries, or to start your credit and funding journey."
+      subtitle="Write us about restore, billing, or a partnership — or start your partner file from here."
     >
       <div className={FINELY_OS_PAGE}>
         <FinelyUnifiedHubLayout
           eyebrow="Support"
           title="Contact Finely Cred"
-          subtitle="Support, affiliate inquiries, or help starting your credit and funding journey."
+          subtitle="Support, affiliate questions, or help starting restore and funding work."
           accent="fuchsia"
           tabs={[
             { id: 'inquiry', label: 'Send message' },
@@ -118,7 +117,7 @@ export default function ContactPage() {
           ]}
           activeTab={contactTab}
           onTabChange={(id) => setContactTab(id as 'inquiry' | 'links')}
-          primaryAction={{ label: 'Book a strategy call', onClick: () => navigate('/enlightenment-session') }}
+          primaryAction={{ label: 'Book a session', onClick: () => navigate('/enlightenment-session') }}
           secondaryAction={{ label: 'FAQ', onClick: () => navigate('/faq') }}
         >
         {contactTab === 'inquiry' ? (
@@ -188,7 +187,7 @@ export default function ContactPage() {
                   {status === 'sending' ? 'Sending…' : 'Send'} <ArrowRight size={14} />
                 </button>
                 <button type="button" onClick={() => finelyCtaNavigate(navigate, 'personal_intake')} className={FINELY_OS_SECONDARY_BTN}>
-                  Apply instead <ArrowRight size={14} />
+                  Start your partner file <ArrowRight size={14} />
                 </button>
               </div>
             </form>
@@ -228,11 +227,15 @@ export default function ContactPage() {
         )}
         </FinelyUnifiedHubLayout>
 
+        <p className={FINELY_OS_COMPLIANCE_FOOTNOTE}>
+          Results vary · not legal advice · funding subject to underwriting
+        </p>
+
         <MarketingStaffChatStrip
           roleId="support_specialist"
           goal="not_sure"
           roleLabel="partner success specialist"
-          subline="Prefer live chat over the form? We typically respond within one business day."
+          subline="Prefer chat to the form? We typically respond within one business day."
           buttonTone="secondary"
         />
 

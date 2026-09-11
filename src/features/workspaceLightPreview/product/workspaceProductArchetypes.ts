@@ -119,6 +119,9 @@ const PARTNER_ARCHETYPE_BY_PAGE: Record<string, WorkspaceProductArchetype> = {
   build: 'journey',
   courses: 'matrix',
   education: 'focus',
+  news: 'journey',
+  haitian: 'focus',
+  maintenance: 'journey',
   business: 'focus',
   'business-profile': 'matrix',
   'business-vendors': 'journey',
@@ -147,7 +150,7 @@ const ADMIN_ARCHETYPE_BY_PAGE: Record<string, WorkspaceProductArchetype> = {
   partners: 'ledger',
   workflow: 'pipeline',
   crm: 'matrix',
-  marketing: 'feed',
+  marketing: 'command',
   staff: 'matrix',
   communications: 'feed',
   cases: 'pipeline',
@@ -157,6 +160,9 @@ const ADMIN_ARCHETYPE_BY_PAGE: Record<string, WorkspaceProductArchetype> = {
   settings: 'ledger',
   'hos-program': 'journey',
   'role-preview': 'matrix',
+  'data-feeds': 'command',
+  haitian: 'command',
+  today: 'focus',
 };
 
 function getArchetypeMap(role: WorkspaceProductRole): Record<string, WorkspaceProductArchetype> {

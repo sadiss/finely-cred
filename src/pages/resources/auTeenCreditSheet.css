@@ -1,7 +1,7 @@
 /* AU teen credit sheet — pure white shell that lifts dark glass panels */
 
 [data-fc-shell-surface='ivory']:has([data-fc-au-teen-sheet='1']) .fc-container {
-  max-width: min(1720px, 100%);
+  max-width: none;
 }
 
 [data-fc-shell-surface='ivory'][data-fc-pageshell-root='1']:has([data-fc-au-teen-sheet='1']).fc-landing-wealthy-ivory {

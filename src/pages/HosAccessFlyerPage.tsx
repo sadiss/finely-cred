@@ -17,7 +17,7 @@ export default function HosAccessFlyerPage() {
 
   return (
     <div className="min-h-screen bg-fc-shell text-white">
-      <div className="container mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
+      <div className="fc-viewport-floor py-6 sm:py-8">
         <button
           type="button"
           onClick={() => navigate(HEAD_OF_SOCIETY_PATH)}

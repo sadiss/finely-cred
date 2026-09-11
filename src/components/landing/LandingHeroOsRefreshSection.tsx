@@ -7,16 +7,16 @@ import { Button, Reveal, FlashyIcon } from '../ui';
 import { finelyOsCatalogCard, finelyOsLightMeshSection } from '../../features/os/finelyOsLightUi';
 
 const OS_KPIS = [
-  { value: '6 lanes', label: 'Partner paths', accent: 'violet' as const },
-  { value: '40+', label: 'Guided follow-ups', accent: 'emerald' as const },
-  { value: 'One step', label: 'Always clear next', accent: 'sky' as const },
+  { value: 'Restore', label: 'Personal file', accent: 'violet' as const },
+  { value: 'Debt', label: 'Collector paper', accent: 'emerald' as const },
+  { value: 'Business', label: 'Company file', accent: 'sky' as const },
 ];
 
 export function LandingHeroOsRefreshSection() {
   const navigate = useNavigate();
   return (
     <section className={`py-10 ${finelyOsLightMeshSection('fc-band-violet')} border-b border-white/5`}>
-      <div className="container mx-auto px-4 sm:px-6 max-w-6xl">
+      <div className="fc-viewport-floor">
         <Reveal>
           <div className={`${finelyOsCatalogCard('violet')} !p-6 md:!p-8`} data-fc-accent="violet">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
@@ -26,10 +26,10 @@ export function LandingHeroOsRefreshSection() {
                   From signup to fundability
                 </div>
                 <h2 className="text-2xl md:text-3xl font-extrabold leading-snug">
-                  One workspace from <span className="text-violet-200">signup to fundability</span>
+                  From your first login to a <span className="text-violet-200">file that can fund</span>
                 </h2>
                 <p className="text-base leading-relaxed opacity-80">
-                  Personal restore, business credit, and debt help share the same next step — so you always know what to do now.
+                  Personal restore, business credit, and debt help share one next step — so you always know what to do now.
                 </p>
                 <div className="flex flex-wrap gap-3 pt-1">
                   <Button variant="gold" size="md" onClick={() => navigate('/fundability-readiness')}>
@@ -53,9 +53,9 @@ export function LandingHeroOsRefreshSection() {
             </div>
             <div className="mt-6 grid sm:grid-cols-3 gap-3 border-t border-black/10 pt-6">
               {[
-                { icon: Layers, title: 'Clear rooms', desc: 'Personal credit, business, and pricing — one path at a time.', accent: 'violet' as const },
-                { icon: Bot, title: 'Human follow-up', desc: 'Timed check-ins from the team, not blast messages.', accent: 'emerald' as const },
-                { icon: Target, title: 'Fundability lens', desc: 'Findings are ranked before letters go out.', accent: 'sky' as const },
+                { icon: Layers, title: 'Your rooms', desc: 'Personal credit, business, and pricing — one path at a time.', accent: 'violet' as const },
+                { icon: Bot, title: 'A person follows up', desc: 'Check-ins from the team, not a blast to everyone.', accent: 'emerald' as const },
+                { icon: Target, title: 'What lenders see', desc: 'We rank the findings before a letter goes out.', accent: 'sky' as const },
               ].map((item, i) => (
                 <Reveal key={item.title} delay={120 + i * 60}>
                   <div className="flex items-start gap-3">

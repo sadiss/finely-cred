@@ -5,6 +5,7 @@ import {
   portraitFolderForGender,
   randomUserPortraitUrl,
 } from '../data/staffPortraitCatalog';
+import { isHaitianStaffId } from './haitianCompanionDesk';
 
 export type PortraitGender = StaffMember['portraitGender'];
 
@@ -70,10 +71,10 @@ export function resolveStaffPortraitUrl(
   if (custom && isResolvableCustomAvatar(custom)) return custom;
 
   if (hasStaffPhotoCatalogEntry(staff.id)) {
-    return staffPortraitStaticPath(staff.id) + '?v=photo5';
+    return staffPortraitStaticPath(staff.id) + '?v=haitian7';
   }
 
-  return staffPortraitStaticPath(staff.id) + '?v=photo5';
+  return staffPortraitStaticPath(staff.id) + '?v=haitian7';
 }
 
 /** CSS class for runtime polish on photo portraits (pairs with build-time touch-up). */
@@ -84,6 +85,7 @@ export const STAFF_PORTRAIT_PHOTO_CLASS =
 export function resolveStaffPortraitFallbackUrl(
   staff: Pick<StaffMember, 'id' | 'firstName' | 'lastName' | 'portraitGender'>,
 ): string | null {
+  if (isHaitianStaffId(staff.id)) return null;
   const src = getStaffPortraitSource(staff.id);
   const folder = portraitFolderForGender(effectivePortraitGender(staff));
   return randomUserPortraitUrl(folder, src.portraitIndex);

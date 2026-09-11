@@ -167,7 +167,7 @@ export default function AdminVendorsProductSurface({ role, pageId }: WorkspacePr
     >
       {notice ? <div className={FINELY_OS_NOTICE_WARN}>{notice}</div> : null}
 
-      <div className="fc-admin-vendors-workbench" data-surface-layout="split-workbench">
+      <div className="fc-admin-vendors-workbench" data-surface-layout="catalog-mosaic">
         <nav className="fc-admin-vendors-tier-rail" aria-label="Tier filter">
           {TIER_RAIL.map((tier) => (
             <button

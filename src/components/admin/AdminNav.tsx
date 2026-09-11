@@ -176,11 +176,11 @@ export function AdminNavRail({
   return (
     <aside
       data-fc-admin-nav-rail="1"
-      className={`hidden lg:block sticky top-24 self-start shrink-0 ${expanded ? 'w-[17rem]' : 'w-[5.5rem]'}`}
+      className={`hidden lg:flex flex-col fixed inset-y-0 left-0 z-40 h-screen shrink-0 ${expanded ? 'w-[17rem]' : 'w-[5.5rem]'}`}
     >
       <div
         data-fc-admin-nav-rail-shell="1"
-        className={`${FINELY_OS_SIDE_RAIL_SHELL} !max-h-[calc(100vh-6rem)] ${expanded ? '' : '!p-2'}`}
+        className={`${FINELY_OS_SIDE_RAIL_SHELL} !max-h-none h-full !rounded-none !border-y-0 !border-l-0 ${expanded ? '' : '!p-2'}`}
       >
         <div data-fc-admin-nav-rail-glow="1" className={FINELY_OS_SIDE_RAIL_GLOW} />
 

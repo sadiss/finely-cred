@@ -54,7 +54,7 @@
 }
 
 .tla-hero-grid {
-  max-width: 92rem;
+  max-width: none;
 }
 
 @media (min-width: 1024px) {
@@ -266,7 +266,7 @@
 }
 
 .tla-video-grid {
-  max-width: 92rem;
+  max-width: none;
 }
 
 @media (min-width: 1024px) {

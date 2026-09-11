@@ -16,7 +16,7 @@
 .fc-admin-integrations-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
+  gap: 20px;
 }
 
 @media (max-width: 1100px) {

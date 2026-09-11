@@ -1,0 +1,138 @@
+/**
+ * Conversion skin for public lead-magnet landings.
+ * Light field + dark capture card. No tan/gold page fills.
+ */
+
+.lm-convert-page {
+  --lm-convert-bg: #f4f7fb;
+  --lm-convert-ink: #0a1628;
+  --lm-convert-muted: rgba(10, 22, 40, 0.68);
+}
+
+/* Light convert field. Tradeline / score / agency keep their navy overlay — do not inherit navy ink. */
+.lm-convert-page:not(.tla-page):not(.csr-page):not(.agc-page) {
+  background: var(--lm-convert-bg) !important;
+  color: var(--lm-convert-ink);
+}
+
+.lm-convert-page .lm-convert-atmosphere {
+  background:
+    radial-gradient(ellipse 70% 50% at 12% 0%, rgba(16, 185, 129, 0.1), transparent 55%),
+    radial-gradient(ellipse 55% 45% at 92% 8%, rgba(139, 92, 246, 0.1), transparent 50%),
+    linear-gradient(180deg, #ffffff 0%, #f4f7fb 42%, #eef2f7 100%) !important;
+}
+
+.lm-convert-page:not(.tla-page):not(.csr-page):not(.agc-page) h1,
+.lm-convert-page:not(.tla-page):not(.csr-page):not(.agc-page) h2,
+.lm-convert-page:not(.tla-page):not(.csr-page):not(.agc-page) h3:not(.csg-book-title) {
+  color: var(--lm-convert-ink);
+}
+
+.lm-convert-page .csg-book-cover,
+.lm-convert-page .csg-book-cover h3,
+.lm-convert-page .csg-book-title {
+  color: #ffffff !important;
+}
+
+.lm-convert-page .lm-convert-keep-dark,
+.lm-convert-page .lm-lux-panel,
+.lm-convert-page .del-hero-form,
+.lm-convert-page [class*='hero-form'],
+.lm-convert-page .csg-cta-panel {
+  color: #f8fafc;
+}
+
+.lm-convert-page .lm-convert-keep-dark h1,
+.lm-convert-page .lm-convert-keep-dark h2,
+.lm-convert-page .lm-convert-keep-dark h3,
+.lm-convert-page .lm-lux-panel h1,
+.lm-convert-page .lm-lux-panel h2,
+.lm-convert-page .lm-lux-panel h3,
+.lm-convert-page .del-hero-form h1,
+.lm-convert-page .del-hero-form h2,
+.lm-convert-page .del-hero-form h3,
+.lm-convert-page .csg-cta-panel h1,
+.lm-convert-page .csg-cta-panel h2,
+.lm-convert-page .csg-cta-panel h3 {
+  color: #f8fafc;
+}
+
+.lm-convert-page.bcpg-page,
+.lm-convert-page.csg-page,
+.lm-convert-page.del-page {
+  background: #f4f7fb !important;
+}
+
+.lm-convert-page:not(.tla-page):not(.csr-page):not(.agc-page) [class$='-atmosphere'],
+.lm-convert-page:not(.tla-page):not(.csr-page):not(.agc-page) [class*='atmosphere'] {
+  background:
+    radial-gradient(ellipse 70% 50% at 12% 0%, rgba(16, 185, 129, 0.1), transparent 55%),
+    radial-gradient(ellipse 55% 45% at 92% 8%, rgba(139, 92, 246, 0.1), transparent 50%),
+    linear-gradient(180deg, #ffffff 0%, #f4f7fb 50%, #eef2f7 100%) !important;
+}
+
+/* Hardcoded navy overlays must not win over the convert field. */
+.lm-convert-page .bg-\[\#030504\],
+.lm-convert-page .bg-\[\#050a14\],
+.lm-convert-page .bg-\[\#020812\],
+.lm-convert-page .bg-\[\#070b14\] {
+  background: transparent !important;
+}
+
+.lm-convert-page .bcpg-hero-copy,
+.lm-convert-page .csg-hero-copy {
+  color: var(--lm-convert-ink);
+}
+
+.lm-convert-page .bcpg-hero-copy :is(p, a),
+.lm-convert-page .lm-lux-lede {
+  color: var(--lm-convert-muted);
+}
+
+.lm-convert-page .bcpg-hero-title-gold {
+  color: #059669 !important;
+}
+
+.lm-convert-page .lm-seo-depth {
+  background: #ffffff;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.lm-convert-page .lm-seo-depth > summary {
+  color: #0a1628;
+}
+
+.lm-convert-page .lm-seo-depth > summary .lm-seo-depth-hint {
+  color: rgba(10, 22, 40, 0.5);
+}
+
+.lm-convert-page.csg-page,
+.lm-convert-page .csg-hero-copy,
+.lm-convert-page .csg-hero-lede {
+  color: var(--lm-convert-ink);
+}
+
+/* Navy-era body utilities on the light convert field — not on navy-overlay guides. */
+.lm-convert-page:not(.tla-page):not(.csr-page):not(.agc-page) :is(.text-white, [class*="text-white/"]) {
+  color: var(--lm-convert-muted);
+}
+.lm-convert-page:not(.tla-page):not(.csr-page):not(.agc-page) :is(.text-white, .text-white\/90, .text-white\/92, .text-white\/85) {
+  color: var(--lm-convert-ink);
+}
+
+.lm-convert-page :is(
+  .lm-convert-keep-dark,
+  .lm-lux-panel,
+  .del-hero-form,
+  [class*='hero-form'],
+  .csg-cta-panel,
+  .csg-book-cover,
+  .bcpg-form-panel,
+  .bcpg-kpi-card,
+  .bcpg-quote-card,
+  .bcpg-footer,
+  .del-cta-panel,
+  .del-cta-caption
+) :is(.text-white, [class*='text-white/']) {
+  color: #f8fafc !important;
+}

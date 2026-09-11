@@ -1,6 +1,6 @@
 import type { GeneratedGuidePage } from './disputeLetterGuideContent';
 
-export const SCORE_ROADMAP_PDF_TITLE = 'Boost Your Credit Score in 72 Hours';
+export const SCORE_ROADMAP_PDF_TITLE = 'A 72-Hour Credit Score Roadmap';
 export const SCORE_BOOST_READ_PATH = '/free-score-roadmap/read';
 export const SCORE_BOOST_COMPLIANCE = 'Results vary · not legal or financial advice · funding subject to underwriting';
 
@@ -42,8 +42,8 @@ export type ScoreBoostChapter = {
 export const SCORE_BOOST_CHAPTERS: ScoreBoostChapter[] = [
   {
     id: 'mission-brief',
-    title: 'The 72-Hour Mission Brief',
-    subtitle: 'A disciplined sequence — not hype, not shortcuts',
+    title: 'The 72-Hour Sequence',
+    subtitle: 'A disciplined first sprint — not hype, and not a shortcut around the file',
     window: 'T-MINUS',
     lever: 'Lock your target',
     speed: 'instant',

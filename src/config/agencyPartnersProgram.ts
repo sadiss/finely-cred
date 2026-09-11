@@ -11,6 +11,7 @@ export const AGENCY = {
   hubPath: '/agency/hub',
   signupPath: '/agency/signup',
   publicPath: '/agency-partners',
+  tenantPartnersPath: '/agency/partners',
   messagesDeepLink: '/portal/messages?hub=team&topic=agency_program',
 } as const;
 

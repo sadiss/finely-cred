@@ -31,6 +31,7 @@ This guide is concrete about file paths so you can jump straight to the code. It
 19. [Ruth (AI Co-Owner), public chat brain, knowledge/RAG, and compliance review gate (Aug 2026)](#19-ruth-ai-co-owner-public-chat-brain-knowledgerag-and-compliance-review-gate-aug-2026) — **Ruth's tool-calling, public chat personas, unified knowledge index, doctrine repos, pgvector status, compliance gate, psychology engine**
 20. [Server cron, reliability, Content Studio media & public funnel/referral (Aug 2026)](#20-server-cron-reliability-content-studio-media--public-funnelreferral-aug-2026) — **platform-cron server migration, retry queue, server-side comms safety, dual-write sync, media production engine, proof/pricing/referral system, missed-call text-back, calendar-sync groundwork**
 21. [Letter lifecycle hardening (Aug 2026)](#21-letter-lifecycle-hardening-aug-2026) — **unsaved-edit protection, mail/ledger reconciliation, evidence-exhibit regression fix**
+22. [Public-data plane + $0 go-live (Aug 2026)](#22-public-data-plane--0-go-live-aug-2026) — **deploy public-data, optional free keys, Marketing Desk Go-Live, Data Feeds war room**
 
 ---
 
@@ -1823,6 +1824,82 @@ An end-to-end audit of the letter lifecycle (template → rich-text edit → sav
 
 - `src/lib/letterBodySafety.ts` broadly scrubs *any* email address pattern from letter bodies (not just Finely-branded ones), which could theoretically strip legitimate partner-authored content — a content-safety policy question, not a lifecycle bug, left for explicit product direction.
 - `src/components/letters/BatchMailWizard.tsx` still silently swallows a ledger-charge failure (code comment only, no user-facing warning) unlike the single-mail flow's new reconciliation warning (§21.2) — low risk since the physical mail still succeeds and reports correctly, but worth mirroring later for full consistency.
+
+---
+
+## 22. Public-data plane + $0 go-live (Aug 2026)
+
+The browser never calls government or news hosts directly. One edge function proxies them: `supabase/functions/public-data/index.ts`. The app talks through `src/lib/publicDataClient.ts`.
+
+### Deploy
+
+```powershell
+npx supabase functions deploy public-data
+```
+
+Requires `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` in `.env.local`. If the edge is missing, every call returns `not_configured` and Data Feeds / partner news stay empty.
+
+### No-key feeds (work as soon as the function is live)
+
+| Source | Client | Used on |
+|---|---|---|
+| eCFR | `searchCfr`, `fetchCfrSection` | Law cites, Data Feeds |
+| Federal Register | `searchFederalRegister` | Data Feeds, partner news, authority pack |
+| CFPB complaints | `searchCfpbComplaints` | Partner intel strip, Data Feeds (company+state required) |
+| FDIC / NCUA / Census / Zippopotam / Nager | existing wrappers | Lookups, holidays, ZIP help |
+| HMDA / SBA | `fetchHmdaStateSummary`, `fetchSbaStateSummary` | Lender overlays only — not a second lender list |
+| GDELT 2.1 | `searchGdeltArticles` | Marketing firehose (no key) |
+| CourtListener | `searchCourtListenerOpinions` | **Admin only** — anon is 403 |
+
+### Optional free keys (set as Supabase function secrets)
+
+| Secret | Source | If missing |
+|---|---|---|
+| `FRED_API_KEY` | St. Louis Fed | Tile shows Setup — get a free key at fred.stlouisfed.org |
+| `CONGRESS_GOV_API_KEY` | Congress.gov | Setup tile |
+| `GUARDIAN_API_KEY` | Guardian Open Platform | Setup tile |
+| `BRAVE_SEARCH_API_KEY` | Brave Search | `searchFreeWebFirst` skips to CSE |
+| `GOOGLE_CSE_API_KEY` + `GOOGLE_CSE_CX` | Programmable Search | Serper last |
+| `COURTLISTENER_API_TOKEN` | CourtListener | Only if you hit their rate limit |
+
+**Do not invent a bureau score API.** Scores come from uploaded reports (`src/data/reportsRepo.ts`).
+
+### How to test
+
+1. Admin → `/admin/data-feeds` (preview: `/preview/workspace-light/admin/data-feeds`).
+2. You should see three columns (Marketing / Credit / Debt) plus a Today rail. Click a live ticket → it appears in Today. Approve → Marketing Desk task.
+3. Marketing Desk → **Go live** strip: Email, cron heartbeat, GBP, YouTube, Meta, Bluesky, IndexNow, Search Console. **Do not flip `commsDelivery` until SMTP/SendGrid secrets are on `send-email`.**
+4. Partner → `/portal/news` (timeline) and `/portal/maintenance` (days since last upload).
+5. Public city pages → `/credit/new-york-ny` through Atlanta, Detroit, Miami, Boston, Baltimore, Nashville, Las Vegas, and Portland. Complementary public feeds: `/resources/rules-this-week`, `/resources/complaints`, `/resources/law`, `/resources/debt-opinions`, `/resources/funding/tx`, `/resources/complaint-study`, `/resources/diy-vs-traditional-vs-finely`, `/resources/pins` (Pinterest copy wall), `/credit-lab` (Ask Finely rooms — no second messenger). Homepage ticker links to law / complaints / rules. Daily/tomorrow packs include HARO, Pinterest/TikTok, 3 captions, GBP, 5 wild replies, and Nextdoor. Then `npm run sitemap:generate`. Lydia’s SEO audit flags thin or cloned city angles.
+6. Agency operators open **their** tenant list at `/agency/partners` — not `/admin/partners`. The public careers page stays `/agency-partners`.
+
+### Email HTML
+
+Nurture and other plain-text marketing sends now wrap through `htmlFromPlainEmail` / `wrapSimpleLetterHtml` in `src/comms/prebuiltHtmlEmailLayout.ts` (typographic letter — not the gold welcome pack). Edge cron uses `supabase/functions/_shared/simpleLetterHtml.ts`. `sendEmail` already accepted `html`; it is now passed.
+
+### Bluesky (free social)
+
+1. Create an app password at bsky.app → Settings → App passwords.
+2. Admin → Social Hub → Settings → Bluesky. Save and test.
+3. Deploy `supabase functions deploy bluesky-publish` (or set `BLUESKY_HANDLE` / `BLUESKY_APP_PASSWORD` on the function).
+4. Composer can queue Facebook, Instagram, and Bluesky. Approve-then-send stays on.
+
+### Free marketing drafts
+
+`ai-gateway` + `resolveAiProviderHint` send marketing/social/copy tasks to Gemini, then Groq (`GROQ_API_KEY`, default `llama-3.3-70b-versatile`) if Gemini is missing. Partner-PII chat (`portal_chat`, letters, public chat) stays on OpenAI/Anthropic.
+
+### Today deck + tomorrow’s pack
+
+- `/admin/today` — one river of decisions (feed rows, caption review, due posts, Marketing Desk tasks). One button per row.
+- **Write tomorrow’s pack** queues the next weekday authority caption for 9:15am and a Today review row. Operator posts and books; the machine drafts.
+
+### Search order
+
+`src/lib/freeSearchRouter.ts` tries Brave, then Google CSE. `legalWebResearch.ts` and community listen should hit that before Serper (`legal-research` / `lead-intel`).
+
+### Cron
+
+See `docs/PLATFORM_CRON.md`. Live ticks need `{"action":"tick","dryRun":false}`. The Go-Live strip reads `platform_cron_heartbeats`.
 
 ---
 

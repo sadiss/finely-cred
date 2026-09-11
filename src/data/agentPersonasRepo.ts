@@ -29,6 +29,7 @@ const DEFAULT_SHIFTS: PersonaShiftBlock[] = [
   { personaId: 'support_specialist', days: [1, 2, 3, 4, 5], startHour: 8, endHour: 17 },
   { personaId: 'finely_advisor', days: [1, 2, 3, 4, 5], startHour: 8, endHour: 17 },
   { personaId: 'debt_strategist', days: [2, 4], startHour: 10, endHour: 16 },
+  { personaId: 'haitian_companion', days: [0, 1, 2, 3, 4, 5, 6], startHour: 9, endHour: 17 },
 ];
 
 const AGENT_STAFF_CONFIG_VERSION = 2;
@@ -71,6 +72,9 @@ export function personaOnDutyAt(date = new Date()): AgentPersona {
 export function portalPersonaForLane(lane?: string): AgentPersona {
   const cfg = loadAgentStaffConfig();
   const l = (lane || '').toLowerCase();
+  if (l.includes('haitian') || l.includes('kreyol') || l.includes('kreyòl') || l.includes('creole') || l.includes('ayisyen') || l.includes('ayiti')) {
+    return getAgentPersona('haitian_companion')!;
+  }
   if (l.includes('debt') || l.includes('summons') || l.includes('validation') || l.includes('foreclosure') || l.includes('repossession') || l.includes('bankruptcy') || l.includes('discharge')) {
     return getAgentPersona('debt_strategist')!;
   }
@@ -91,6 +95,7 @@ export const PORTAL_STAFF_PERSONAS: AgentPersonaId[] = [
   'social_creator',
   'affiliate_specialist',
   'debt_strategist',
+  'haitian_companion',
 ];
 
 export function getPortalStaffPersona(id: AgentPersonaId): AgentPersona {

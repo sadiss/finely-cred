@@ -28,13 +28,7 @@ import {
 } from '../../../staffCommandCenter/staffRoster';
 import { STAFF_DEPARTMENTS } from '../../../staffCommandCenter/staffDirectory';
 import type { StaffMember } from '../../../staffCommandCenter/types';
-import {
-  FINELY_OS_ENTITY_BODY,
-  FINELY_OS_ENTITY_SUBLABEL,
-  FINELY_OS_ENTITY_VALUE,
-  finelyOsCatalogCard,
-  finelyOsStatusChip,
-} from '../../../os/finelyOsLightUi';
+import { FINELY_OS_ENTITY_BODY } from '../../../os/finelyOsLightUi';
 import type { WorkspaceProductSurfaceProps } from '../workspaceProductSurfaceRegistry';
 import {
   AdminContextCommand,
@@ -57,12 +51,6 @@ type StaffControlTile = {
   status: 'attention' | 'live' | 'muted';
   statusLabel: string;
 };
-
-function staffTileChipTone(status: StaffControlTile['status']): 'ok' | 'warn' | 'blocked' {
-  if (status === 'attention') return 'warn';
-  if (status === 'muted') return 'blocked';
-  return 'ok';
-}
 
 export default function AdminStaffSignatureSurface({
   dataMode,
@@ -348,167 +336,92 @@ export default function AdminStaffSignatureSurface({
         </div>
       </AdminStageHero>
 
-      <div className="fc-wlp-staff-control-room space-y-4">
-        <div className={`${finelyOsCatalogCard('violet')} p-5 lg:p-6`} data-fc-accent="violet">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className={FINELY_OS_ENTITY_SUBLABEL}>Control room pulse</p>
-              <p className={`mt-1 text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
-                {critical > 0
-                  ? `${critical} staff signal${critical === 1 ? '' : 's'} need attention — check the alert rail first.`
-                  : `${model.working.length} people active now. Scan departments, missions, or partner coverage.`}
-              </p>
-            </div>
-            <span className={finelyOsStatusChip(critical > 0 ? 'warn' : 'ok')}>
-              {critical > 0 ? 'Needs attention' : 'Coverage steady'}
-            </span>
+      <div className="fc-wlp-staff-control-room">
+        <div className="fc-wlp-staff-kpi-row" data-bed="dark">
+          <div className="fc-wlp-staff-kpi" data-accent="emerald">
+            <Activity size={18} />
+            <strong>{model.working.length}</strong>
+            <span>Working</span>
           </div>
-          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <div className={`${finelyOsCatalogCard('emerald')} p-4`} data-fc-accent="emerald">
-              <div className="flex items-center gap-2">
-                <Activity size={18} />
-                <span className={`text-2xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{model.working.length}</span>
-              </div>
-              <p className={`mt-1 text-sm font-bold ${FINELY_OS_ENTITY_BODY}`}>Working now</p>
-            </div>
-            <div className={`${finelyOsCatalogCard('rose')} p-4`} data-fc-accent="rose">
-              <div className="flex items-center gap-2">
-                <Target size={18} />
-                <span className={`text-2xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{critical}</span>
-              </div>
-              <p className={`mt-1 text-sm font-bold ${FINELY_OS_ENTITY_BODY}`}>Need attention</p>
-            </div>
-            <div className={`${finelyOsCatalogCard('sky')} p-4`} data-fc-accent="sky">
-              <div className="flex items-center gap-2">
-                <Users size={18} />
-                <span className={`text-2xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{model.humans.length}</span>
-              </div>
-              <p className={`mt-1 text-sm font-bold ${FINELY_OS_ENTITY_BODY}`}>Human team</p>
-            </div>
-            <div className={`${finelyOsCatalogCard('violet')} p-4`} data-fc-accent="violet">
-              <div className="flex items-center gap-2">
-                <Sparkles size={18} />
-                <span className={`text-2xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{model.ai.length}</span>
-              </div>
-              <p className={`mt-1 text-sm font-bold ${FINELY_OS_ENTITY_BODY}`}>AI operators</p>
-            </div>
+          <div className="fc-wlp-staff-kpi" data-accent="rose">
+            <Target size={18} />
+            <strong>{critical}</strong>
+            <span>Attention</span>
+          </div>
+          <div className="fc-wlp-staff-kpi" data-accent="sky">
+            <Users size={18} />
+            <strong>{model.humans.length}</strong>
+            <span>Human</span>
+          </div>
+          <div className="fc-wlp-staff-kpi" data-accent="violet">
+            <Sparkles size={18} />
+            <strong>{model.ai.length}</strong>
+            <span>AI</span>
           </div>
         </div>
 
-        <div className="fc-wlp-staff-control-layout">
-          <aside className="fc-wlp-staff-status-grid">
-            <h2 className={`text-2xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>Status grid</h2>
-            <p className={`text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>Pick a room to open its inspector.</p>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {controlTiles.map((tile) => {
-                const Icon = tile.icon;
-                const selected = room === tile.id;
-                const chipTone = staffTileChipTone(tile.status);
-                return (
-                  <button
-                    key={tile.id}
-                    type="button"
-                    data-selected={selected ? 'true' : undefined}
-                    className={`text-left ${finelyOsCatalogCard(tile.accent)} p-4 lg:p-5 transition-all ${
-                      selected ? 'ring-2 ring-white/30' : ''
-                    }`}
-                    data-fc-accent={tile.accent}
-                    onClick={() => {
-                      setRoom(tile.id);
-                      if (tile.id === 'roster') setKindFilter('all');
-                    }}
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <Icon size={20} className="shrink-0 opacity-90" />
-                      <span className={finelyOsStatusChip(chipTone)}>{tile.statusLabel}</span>
-                    </div>
-                    <div className={`mt-3 text-base font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{tile.label}</div>
-                    <p className={`mt-1 text-sm font-bold leading-snug ${FINELY_OS_ENTITY_BODY}`}>{tile.purpose}</p>
-                    {tile.count !== undefined ? (
-                      <div className="mt-3 text-2xl font-extrabold">{tile.count}</div>
-                    ) : null}
-                  </button>
-                );
-              })}
-            </div>
-          </aside>
-
-          <div className="fc-wlp-staff-inspector-column space-y-4 min-w-0">
-            <div className={`${finelyOsCatalogCard(activeTile.accent)} p-5 lg:p-6`} data-fc-accent={activeTile.accent}>
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <p className={FINELY_OS_ENTITY_SUBLABEL}>Room inspector</p>
-                  <h2 className="mt-1 text-2xl font-extrabold lg:text-3xl">{activeTile.label}</h2>
-                  <p className={`mt-1 text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>{activeTile.purpose}</p>
-                </div>
-                {activeTile.id === 'roster' ? (
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      className={`fc-wlp-btn-secondary ${kindFilter === 'human' ? '!border-emerald-400/50' : ''}`}
-                      onClick={() => setKindFilter('human')}
-                    >
-                      Human team
-                    </button>
-                    <button
-                      type="button"
-                      className={`fc-wlp-btn-secondary ${kindFilter === 'ai_staff' ? '!border-violet-400/50' : ''}`}
-                      onClick={() => setKindFilter('ai_staff')}
-                    >
-                      AI staff
-                    </button>
-                  </div>
-                ) : null}
-              </div>
-            </div>
-
-            <div className="fc-wlp-staff-inspector-stage">{renderRoomSection()}</div>
-          </div>
-
-          <aside className="fc-wlp-staff-alert-rail space-y-4">
-            <div className={`${finelyOsCatalogCard('rose')} p-5 lg:p-6 space-y-4`} data-fc-accent="rose">
-              <div className="flex items-center gap-2">
-                <AlertTriangle size={18} />
-                <h3 className="text-lg font-extrabold">Alert rail</h3>
-              </div>
-              {alertRail.length === 0 ? (
-                <p className={`text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>No blocked profiles or approval queues.</p>
-              ) : (
-                <div className="space-y-2">
-                  {alertRail.map((alert) => (
-                    <button
-                      key={alert.id}
-                      type="button"
-                      onClick={() => setRoom(alert.room)}
-                      className={`fc-wlp-staff-alert-item w-full text-left ${finelyOsCatalogCard('sky')} p-4`}
-                      data-fc-accent="sky"
-                    >
-                      <span className={finelyOsStatusChip(alert.tone === 'blocked' ? 'blocked' : 'warn')}>
-                        {alert.title}
-                      </span>
-                      <p className={`mt-2 text-sm font-bold ${FINELY_OS_ENTITY_BODY}`}>{alert.detail}</p>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className={`${finelyOsCatalogCard('emerald')} p-5 lg:p-6 space-y-3`} data-fc-accent="emerald">
-              <p className={FINELY_OS_ENTITY_SUBLABEL}>Floor snapshot</p>
-              <div className="space-y-2">
-                {model.working.slice(0, 4).map((member) => (
-                  <div key={member.id} className="flex items-center gap-3">
-                    <StaffAvatar staff={member} size="sm" active />
-                    <div className="min-w-0">
-                      <p className={`text-sm font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{staffFullName(member)}</p>
-                      <p className={`text-sm font-bold ${FINELY_OS_ENTITY_BODY}`}>{member.title}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </aside>
+        <div className="fc-wlp-staff-room-strip" role="tablist" aria-label="Staff rooms" data-bed="dark">
+          {controlTiles.map((tile) => {
+            const Icon = tile.icon;
+            const selected = room === tile.id;
+            return (
+              <button
+                key={tile.id}
+                type="button"
+                role="tab"
+                aria-selected={selected}
+                className="fc-wlp-staff-room-chip"
+                data-accent={tile.accent}
+                data-selected={selected ? 'true' : undefined}
+                onClick={() => {
+                  setRoom(tile.id);
+                  if (tile.id === 'roster') setKindFilter('all');
+                }}
+              >
+                <Icon size={16} />
+                <b>{tile.label}</b>
+                {tile.count !== undefined ? <em>{tile.count}</em> : null}
+              </button>
+            );
+          })}
         </div>
+
+        {alertRail.length ? (
+          <div className="fc-wlp-staff-alert-chips">
+            {alertRail.map((alert) => (
+              <button
+                key={alert.id}
+                type="button"
+                className="fc-wlp-staff-alert-chip"
+                onClick={() => setRoom(alert.room)}
+              >
+                <AlertTriangle size={14} />
+                {alert.title}
+              </button>
+            ))}
+          </div>
+        ) : null}
+
+        {activeTile.id === 'roster' ? (
+          <div className="fc-wlp-staff-roster-filters">
+            <button
+              type="button"
+              className={`fc-wlp-btn-secondary ${kindFilter === 'human' ? '!border-emerald-400/50' : ''}`}
+              onClick={() => setKindFilter('human')}
+            >
+              Human team
+            </button>
+            <button
+              type="button"
+              className={`fc-wlp-btn-secondary ${kindFilter === 'ai_staff' ? '!border-violet-400/50' : ''}`}
+              onClick={() => setKindFilter('ai_staff')}
+            >
+              AI staff
+            </button>
+          </div>
+        ) : null}
+
+        <div className="fc-wlp-staff-inspector-stage">{renderRoomSection()}</div>
       </div>
 
       <AdminContextCommand
@@ -557,7 +470,7 @@ function StaffCommandFloor({
     return (
       <div className="fc-wlp-staff-floor-empty">
         <p className={`text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
-          The roster is empty. Restore the demo roster or open the live command center to add staff.
+          The roster is empty. Restore the demo roster or open the live dashboard to add staff.
         </p>
         <button
           type="button"

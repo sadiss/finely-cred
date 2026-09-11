@@ -54,3 +54,45 @@ export function buildAudioObjectSchema(args: {
     publisher: { '@type': 'Organization', name: 'Finely Cred', url: args.origin },
   };
 }
+
+export function buildFaqPageSchema(args: { questions: Array<{ q: string; a: string }> }) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: args.questions.map((item) => ({
+      '@type': 'Question',
+      name: item.q,
+      acceptedAnswer: { '@type': 'Answer', text: item.a },
+    })),
+  };
+}
+
+export function buildHowToSchema(args: { name: string; description: string; steps: string[] }) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'HowTo',
+    name: args.name,
+    description: args.description,
+    step: args.steps.map((name, i) => ({
+      '@type': 'HowToStep',
+      position: i + 1,
+      name,
+    })),
+  };
+}
+
+export function buildLocalBusinessSchema(args: {
+  origin: string;
+  city: string;
+  state: string;
+  description: string;
+}) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ProfessionalService',
+    name: `Finely Cred — credit restore in ${args.city}`,
+    url: args.origin,
+    description: args.description,
+    areaServed: { '@type': 'City', name: args.city, containedInPlace: { '@type': 'State', name: args.state } },
+  };
+}

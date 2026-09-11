@@ -5,6 +5,7 @@ import { FreeGuideFunnelStyles } from './FreeGuideFunnelStyles';
 import { FlashyIcon } from '../ui';
 import { findFreeGuideById } from '../../resources/freeGuides';
 import { submitLeadCapture } from '../../data/leadsRepo';
+import { markLeadMagnetUnlocked } from '../../lib/leadMagnetUnlock';
 import { downloadFreeGuidePdf } from '../../resources/downloadGuidePdf';
 import { downloadScoreRoadmapPdf } from '../../resources/buildScoreRoadmapPdf';
 import { captureLeadAttributionFromUrl, getLeadAttribution } from '../../lib/leadAttribution';
@@ -31,7 +32,9 @@ import { CreditGuidePremiumDownload, CreditGuidePremiumLanding } from './CreditG
 import { UniversalPremiumLeadMagnetLanding } from './UniversalPremiumLeadMagnetLanding';
 import { getLeadMagnetPremiumProfile } from './leadMagnetPremiumProfiles';
 import { resolveLaneOnboardingPath } from '../../lib/finelyCtaIntent';
-import { FunnelLeadCaptureForm } from './FunnelLeadCaptureForm';
+import { findPartnerByEmail, upsertPartner } from '../../data/partnersRepo';
+import { withPreferredVoice } from '../../lib/haitianVoice';
+import { FunnelLeadCaptureForm, type FunnelLeadCaptureCopy } from './FunnelLeadCaptureForm';
 import { FunnelCollectionDisputePanel } from './FunnelCollectionDisputePanel';
 import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
 import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubLayout';
@@ -45,6 +48,22 @@ import {
   finelyOsCatalogCard,
   finelyOsLeadMagnetPanel,
 } from '../../features/os/finelyOsLightUi';
+
+const KREYOL_CAPTURE_COPY: FunnelLeadCaptureCopy = {
+  accessLabel: 'Aksè gratis',
+  unlockTitle: 'Voye kat feyè yo.',
+  chips: ['Kat kit', 'Haitian community', '0 $ jodi a'],
+  firstName: 'Non',
+  lastName: 'Siyati',
+  email: 'Imèl',
+  phone: 'Telefòn',
+  consent: 'M dakò pou yo kontakte m sou telechajman an (obligatwa).',
+  marketing: 'Voye konsèy kredi pa imèl (opsyonèl).',
+  sending: 'Ap voye…',
+  noCard: 'Pa bezwen kat',
+  secure: 'Livrezon sekirite',
+};
+
 type Step = 'landing' | 'form' | 'success' | 'download';
 
 export function LeadMagnetFunnelShell({
@@ -66,6 +85,15 @@ export function LeadMagnetFunnelShell({
     title: activeConfig.metaTitle,
     description: activeConfig.metaDesc,
     path: activeConfig.path,
+    faqs:
+      getLeadMagnetPremiumProfile(activeConfig)?.faqs ??
+      (activeConfig.id === 'credit'
+        ? [
+            { q: 'Is this legal advice?', a: 'No. The free guide is education. Consult a licensed attorney for legal advice.' },
+            { q: 'Do you guarantee a score increase?', a: 'No. Results vary. We work from the report you upload.' },
+            { q: 'What do I do after I download?', a: 'Upload a bureau report and start the first letter. Book a session if you are stuck.' },
+          ]
+        : undefined),
   });
   const [searchParams] = useSearchParams();
   const guideId = searchParams.get('guide') ?? activeConfig.guideId;
@@ -166,6 +194,10 @@ export function LeadMagnetFunnelShell({
         surface: 'lead_magnet',
       });
       startLeadMagnetTrial({ leadId: result.lead.id, email: email.trim() });
+      if (activeConfig.id === 'kreyol') {
+        const existing = await findPartnerByEmail(email.trim());
+        if (existing) await upsertPartner(withPreferredVoice(existing, 'ht'));
+      }
       emitFunnelStepCompleted({
         tenantId: 'finely_cred',
         funnelId: activeConfig.funnelId,
@@ -177,6 +209,7 @@ export function LeadMagnetFunnelShell({
         addLeadNote(result.lead.id, `Referral: ${attr.referralCode}`);
       }
       recordFunnelConversion(activeConfig.funnelId, abVariant);
+      markLeadMagnetUnlocked(activeConfig.funnelId);
       setStep('success');
       queueMicrotask(() => {
         const targetId = activeConfig.id === 'credit' ? 'fg-dispute-track' : 'fg-free-toolkit';
@@ -344,6 +377,7 @@ export function LeadMagnetFunnelShell({
                 submitLabel={ctaOverride ?? getLeadMagnetPremiumProfile(activeConfig)?.captureHeadline ?? 'Get free access'}
                 totalValue={totalValue}
                 trustLabel={trustLabel}
+                copy={activeConfig.id === 'kreyol' ? KREYOL_CAPTURE_COPY : undefined}
                 onFirstNameChange={setFirstName}
                 onLastNameChange={setLastName}
                 onEmailChange={setEmail}
@@ -365,7 +399,7 @@ export function LeadMagnetFunnelShell({
             activeTab="landing"
             primaryAction={{ label: ctaOverride ?? 'Get free access now', onClick: () => setStep('form') }}
           >
-          <header className="container mx-auto px-4 sm:px-6 pt-4 pb-8 max-w-5xl">
+          <header className="fc-viewport-floor pt-4 pb-8">
             <div className={`${finelyOsLeadMagnetPanel('emerald')} p-6 sm:p-10`} data-fc-accent="emerald">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full fg-kicker-pill mb-6">
                 <span className="h-2 w-2 rounded-full bg-[#39ff14] animate-pulse" />
@@ -422,7 +456,7 @@ export function LeadMagnetFunnelShell({
       )}
 
       {step === 'form' && !isAnyPremiumLanding && (
-        <div className="container mx-auto px-4 py-10 sm:py-12 max-w-lg">
+        <div id="download" className="container mx-auto px-4 py-10 sm:py-12 max-w-lg">
           {activeConfig.id === 'credit' && variant === 'premium' ? (
             <div className="mb-6 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-center">
               <p className="text-[11px] sm:text-xs font-black uppercase tracking-wider text-red-200">

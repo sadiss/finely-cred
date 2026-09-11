@@ -1,6 +1,17 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { grantEntitlement, hasEntitlement, listEntitlementsByPartner } from '../../data/billingRepo';
 import { FinelyOsEntitlementUnlock } from '../../features/os/FinelyOsEntitlementUnlock';
+
+const StaffEntitlementBypassContext = createContext(false);
+
+/** Admin / specialist credit work: process a file that is not yet entitled. */
+export function StaffEntitlementBypass({ children }: { children: React.ReactNode }) {
+  return <StaffEntitlementBypassContext.Provider value={true}>{children}</StaffEntitlementBypassContext.Provider>;
+}
+
+export function useStaffEntitlementBypass(): boolean {
+  return useContext(StaffEntitlementBypassContext);
+}
 
 export function EntitlementGate({
   partnerId,
@@ -9,6 +20,7 @@ export function EntitlementGate({
   children,
   hideBillingCta,
   lockedActions,
+  staffBypass,
 }: {
   partnerId: string;
   requiredKeys?: string[];
@@ -21,7 +33,10 @@ export function EntitlementGate({
   children: React.ReactNode;
   hideBillingCta?: boolean;
   lockedActions?: React.ReactNode;
+  /** Staff processing a partner file that is not yet entitled. */
+  staffBypass?: boolean;
 }) {
+  const contextBypass = useContext(StaffEntitlementBypassContext);
   const [version, setVersion] = useState(0);
 
   useEffect(() => {
@@ -36,7 +51,7 @@ export function EntitlementGate({
   const hasAll = required.every((k) => hasEntitlement(partnerId, k));
   const hasAny = anyOf.length === 0 || anyOf.some((k) => hasEntitlement(partnerId, k));
 
-  if (hasAll && hasAny) return <>{children}</>;
+  if (staffBypass || contextBypass || (hasAll && hasAny)) return <>{children}</>;
 
   const canDevUnlock =
     import.meta.env.DEV && (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost');

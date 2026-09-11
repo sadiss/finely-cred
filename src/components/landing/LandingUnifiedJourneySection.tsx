@@ -19,7 +19,7 @@ const STEPS: Array<{
   {
     icon: Sparkles,
     title: 'Create your profile',
-    desc: '2-minute onboarding — pick personal, business, or funding lane.',
+    desc: 'A short signup. Choose personal restore, business credit, or funding.',
     path: PERSONAL_INTAKE_PATH,
     cta: 'Start free',
     accent: 'emerald',
@@ -27,7 +27,7 @@ const STEPS: Array<{
   {
     icon: Target,
     title: 'Fundability scan',
-    desc: 'See utilization, entity, and vendor pillars in one calm hub.',
+    desc: 'See utilization, entity hygiene, and vendor readiness in one hub.',
     path: '/fundability-readiness',
     cta: 'Open hub',
     accent: 'sky',
@@ -35,7 +35,7 @@ const STEPS: Array<{
   {
     icon: CreditCard,
     title: 'Restore & build',
-    desc: 'Disputes, evidence vault, Work OS tasks — DIY or DFY.',
+    desc: 'Disputes, evidence, and tasks — work them yourself or let the team run the file.',
     path: '/portal/dashboard',
     cta: 'Enter portal',
     accent: 'violet',
@@ -43,7 +43,7 @@ const STEPS: Array<{
   {
     icon: Building2,
     title: 'Capital readiness',
-    desc: 'Lender logic, Nora handoff, wealth builder paths.',
+    desc: 'Lender logic and Wealth Builder paths when the file is ready for capital.',
     path: '/pricing/wealth-builder',
     cta: 'Wealth builder',
     accent: 'rose',
@@ -54,14 +54,14 @@ export function LandingUnifiedJourneySection() {
   const navigate = useNavigate();
   return (
     <section className={`py-20 ${finelyOsLandingContrastSection('fc-band-emerald')}`} data-fc-contrast-band="1">
-      <div className="container mx-auto px-4 sm:px-6 max-w-6xl">
+      <div className="fc-viewport-floor">
         <Reveal>
           <p className="text-xs font-bold tracking-[0.3em] text-emerald-300 uppercase mb-3 text-center">One unified path</p>
           <h2 className="text-3xl lg:text-4xl font-light text-white text-center mb-4">
             From signup to <span className="text-emerald-400 font-medium">fundability</span> — without the overwhelm
           </h2>
           <p className="text-white/55 text-center max-w-2xl mx-auto mb-12">
-            Finely Cred is one OS: marketing, onboarding, portal, Work OS, CRM, and automations that run like your best staff — not robotic blasts.
+            Finely Cred keeps marketing, onboarding, the partner portal, and follow-up in one path — so the file does not get lost between tools.
           </p>
         </Reveal>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">

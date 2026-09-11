@@ -406,6 +406,18 @@ export const NURTURE_SEQUENCES: NurtureSequenceDef[] = [
       { id: 'day60', delayHours: 1440, channel: 'email', templateId: 'specialist_keepwarm_day60', subject: 'Keep-warm check-in for active specialists' },
     ],
   },
+  {
+    id: 'seq_kreyol_funnel',
+    name: 'Haitian community funnel',
+    funnelId: 'kreyol_companion',
+    agentPersonaId: 'haitian_companion',
+    enabled: true,
+    steps: [
+      { id: 'welcome', delayHours: 0, channel: 'email', templateId: 'tpl_haitian_welcome_en', subject: 'Haitian community is open' },
+      { id: 'day1', delayHours: 24, channel: 'email', templateId: 'tpl_haitian_kit_en', subject: 'One Haitian piece — not thirty' },
+      { id: 'day7', delayHours: 168, channel: 'email', templateId: 'tpl_haitian_session_en', subject: 'Book a session — bring the letter' },
+    ],
+  },
 ];
 
 export function resolveSequenceForLead(args: {
@@ -452,6 +464,17 @@ export function resolveSequenceForLead(args: {
     return NURTURE_SEQUENCES.find((s) => s.id === 'seq_tradeline_purchase')!;
   }
   const path = (args.funnelPath || '').toLowerCase();
+  if (
+    path.includes('haitian') ||
+    path.includes('kreyol') ||
+    path.includes('kreyòl') ||
+    args.offer?.includes('haitian') ||
+    args.offer?.includes('kreyol') ||
+    blob.includes('haitian') ||
+    blob.includes('kreyol')
+  ) {
+    return NURTURE_SEQUENCES.find((s) => s.id === 'seq_kreyol_funnel')!;
+  }
   if (path.includes('enlightenment') || path.includes('strategy-call')) {
     return NURTURE_SEQUENCES.find((s) => s.id === 'seq_strategy_session')!;
   }

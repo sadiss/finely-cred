@@ -81,6 +81,7 @@ export const PERSONA_DEFAULT_TOOLS: Partial<Record<AgentPersonaId, AgentPersonaT
   evidence_specialist: ['view_tasks', 'open_portal'],
   crm_intake_specialist: ['open_funnel', 'book_session', 'open_portal'],
   underwriting_analyst: ['browse_bookstore', 'book_session', 'open_portal'],
+  haitian_companion: ['open_funnel', 'book_session', 'open_portal'],
 };
 
 export function toolsForPersona(personaId: AgentPersonaId): AgentPersonaTool[] {

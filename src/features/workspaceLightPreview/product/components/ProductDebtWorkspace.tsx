@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useParams, useSearchParams } from 'react-rout
 import { X } from 'lucide-react';
 import { PartnerDebtDetailWorkspace } from '../../../../pages/portal/PartnerDebtDetailPage';
 import { debtHubHref } from '../../../../lib/debtProductPaths';
+import { adminPartnerIdFromPathname } from '../../../../lib/adminPartnerRoutes';
 import type { WorkspaceProductSurfaceProps } from '../workspaceProductSurfaceRegistry';
 import { PartnerDebtCommandDeck } from '../partner/PartnerDebtCommandDeck';
 import './productDebtWorkspace.css';
@@ -16,7 +17,12 @@ export function ProductDebtWorkspace(props: WorkspaceProductSurfaceProps) {
   const { pathname, search } = useLocation();
   const [searchParams] = useSearchParams();
   const { id: routeCaseId } = useParams<{ id?: string }>();
-  const caseId = searchParams.get('caseId')?.trim() || props.entityId || routeCaseId || undefined;
+  const onAdminPartnerFile = Boolean(adminPartnerIdFromPathname(pathname));
+  const caseId =
+    searchParams.get('caseId')?.trim() ||
+    props.entityId ||
+    (onAdminPartnerFile ? undefined : routeCaseId) ||
+    undefined;
 
   const closeCaseSheet = () => {
     navigate(debtHubHref(pathname, search));

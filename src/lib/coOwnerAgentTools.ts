@@ -45,7 +45,7 @@ export function buildCoOwnerAgentTools(): AiGatewayToolDef[] {
           primaryRoleId: { type: 'string', description: 'Agent persona id, e.g. dispute_coach, finely_advisor, funding_strategist.' },
           department: {
             type: 'string',
-            enum: ['credit_operations', 'dispute_processing', 'funding', 'debt_resolution', 'partner_success', 'growth_sessions', 'marketing', 'internal_ops'],
+            enum: ['credit_operations', 'dispute_processing', 'funding', 'debt_resolution', 'partner_success', 'growth_sessions', 'marketing', 'internal_ops', 'haitian_community'],
           },
           bioLine: { type: 'string' },
           portraitGender: { type: 'string', enum: ['masculine', 'feminine', 'neutral'] },

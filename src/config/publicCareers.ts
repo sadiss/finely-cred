@@ -26,9 +26,9 @@ export const PUBLIC_CAREER_TRACKS: PublicCareerTrack[] = [
     label: 'Credit specialists',
     shortLabel: 'Specialists',
     path: '/credit-specialist',
-    hint: 'You run partner files · Finely supplies the method',
+    hint: 'You run partner files. Finely supplies the method.',
     description:
-      'Solo operators and certified partners who run dispute files end to end — Finely supplies the method, the OS, and the back office.',
+      'Solo operators and certified partners who run dispute files end to end. Finely supplies the method, the operating system, and the back office.',
     guidePath: '/credit-specialist-guide',
     guideLabel: 'Open Specialist Guide',
   },
@@ -37,9 +37,9 @@ export const PUBLIC_CAREER_TRACKS: PublicCareerTrack[] = [
     label: 'Agency partners',
     shortLabel: 'Agencies',
     path: '/agency-partners',
-    hint: 'Your brand and team · Finely runs the platform',
+    hint: 'Your brand and team. Finely runs the platform.',
     description:
-      'Company owners building a branded credit services agency on Finely OS — tenant, seats, white-label depth, buy-in, and capacity payout tiers.',
+      'Company owners building a branded credit services agency on Finely Cred — tenant, seats, white-label depth, buy-in, and capacity payout tiers.',
     guidePath: '/free-agency-guide',
     guideLabel: 'Open Agency Guide',
   },
@@ -48,8 +48,8 @@ export const PUBLIC_CAREER_TRACKS: PublicCareerTrack[] = [
     label: 'Affiliates',
     shortLabel: 'Affiliates',
     path: '/affiliate',
-    hint: 'You refer · Finely delivers · payouts on engagement',
-    description: 'Promote guides and packages — earn referral payouts without running partner files.',
+    hint: 'You refer. Finely delivers. Payouts follow engagement.',
+    description: 'Promote guides and packages, then earn referral payouts without running partner files.',
     guidePath: '/affiliate-toolkit',
     guideLabel: 'Open Affiliate Toolkit',
   },
@@ -58,9 +58,9 @@ export const PUBLIC_CAREER_TRACKS: PublicCareerTrack[] = [
     label: 'AU sellers',
     shortLabel: 'AU sellers',
     path: '/au-sellers',
-    hint: 'You supply cards · Finely brings the buyers',
+    hint: 'You supply cards. Finely brings the buyers.',
     description:
-      'List authorized-user tradeline inventory and fulfill placements — Finely runs buyer marketing, intake, and order routing.',
+      'List authorized-user tradeline inventory and fulfill placements. Finely runs buyer marketing, intake, and order routing.',
     guidePath: '/free-tradeline-guide',
     guideLabel: 'Open AU Seller Guide',
   },
@@ -69,9 +69,9 @@ export const PUBLIC_CAREER_TRACKS: PublicCareerTrack[] = [
     label: 'Paralegal · Attorney · Consultant',
     shortLabel: 'Case help',
     path: '/careers/case-help',
-    hint: 'You work assigned matters · scoped, audited access',
+    hint: 'You work assigned matters with scoped, audited access.',
     description:
-      'Paralegals, attorneys/counsel, and consultants who work assigned partner debt and litigation matters (packets, dockets, sessions) with scoped access.',
+      'Paralegals, attorneys, and consultants who work assigned partner debt and litigation matters — packets, dockets, and sessions — with scoped access.',
     guidePath: '/case-desk-guide',
     guideLabel: 'Open Case Desk Guide',
   },
@@ -80,9 +80,9 @@ export const PUBLIC_CAREER_TRACKS: PublicCareerTrack[] = [
     label: 'Real estate partners',
     shortLabel: 'Real estate',
     path: '/careers/real-estate',
-    hint: 'You refer · Finely runs the credit work',
+    hint: 'You refer. Finely runs the credit work.',
     description:
-      'Agents and brokers who refer buyers and sellers into Finely-run restore, dispute, and AU prep work — you never process disputes yourself, and no approval is guaranteed.',
+      'Agents and brokers who refer buyers and sellers into Finely-run restore, dispute, and authorized-user prep. You never process disputes yourself, and no approval is guaranteed.',
     guidePath: '/real-estate-guide',
     guideLabel: 'Open Real Estate Operator Guide',
   },
@@ -95,6 +95,7 @@ export function getCareerTrack(id: PublicCareerTrackId): PublicCareerTrack {
 export function matchCareersPath(p: string): boolean {
   if (PUBLIC_CAREER_TRACKS.some((t) => p === t.path || p.startsWith(`${t.path}/`))) return true;
   if (p === '/credit-specialists' || p.startsWith('/credit-specialists/')) return true;
+  if (p === '/credit-specialist-guide' || p.startsWith('/credit-specialist-guide/')) return true;
   if (p.startsWith('/agency/signup')) return true;
   if (p === '/agents' || p.startsWith('/agents/')) return true;
   if (p.startsWith('/careers/')) return true;

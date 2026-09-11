@@ -1,6 +1,6 @@
 /** Homepage — cinematic debt & summons highlight band. */
 import React from 'react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Reveal } from '../ui';
 import { finelyOsLandingContrastSection } from '../../features/os/finelyOsLightUi';
@@ -21,14 +21,13 @@ export function LandingDebtEradicationBand() {
     >
       <LandingSellAtmosphere tone="navy" />
 
-      <div className="container mx-auto px-4 sm:px-6 max-w-6xl relative z-10">
+      <div className="relative z-10 mx-auto w-full max-w-none px-4 sm:px-8 lg:px-12 xl:px-16">
         <Reveal>
           <div className="relative overflow-hidden rounded-[1.75rem] border border-rose-500/30 bg-gradient-to-br from-[#060c2f]/90 via-[#0a1628]/85 to-[#020618]/95 px-6 py-10 sm:px-10 sm:py-12 lg:px-12 lg:py-14 shadow-[0_40px_100px_-40px_rgba(0,0,0,0.75)]">
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_55%_60%_at_90%_10%,rgba(244,63,94,0.14),transparent_60%)] pointer-events-none" />
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_40%_50%_at_0%_100%,rgba(163,230,53,0.08),transparent_55%)] pointer-events-none" />
 
             <div className="relative grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12 xl:gap-14">
-              {/* Copy — left */}
               <div className="min-w-0 text-center lg:text-left">
                 <p className="fc-sell-kicker mb-5">Debt &amp; summons</p>
                 <LandingTypewriterTitle
@@ -41,26 +40,26 @@ export function LandingDebtEradicationBand() {
                 />
                 <Reveal delay={220}>
                   <p className="mt-5 text-base sm:text-lg text-white/58 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    When collectors call, summons arrive, or foreclosure pressure builds — you need a clear sequence, not
-                    guesswork. The free debt &amp; summons guide maps validation, defense posture, and rebuild steps for
-                    partners ready to move.
+                    When collectors call, a summons arrives, or foreclosure pressure builds, you need a sequence — not
+                    guesswork. Enter your details for the full debt and summons guide. The cover on the right is a
+                    preview.
                   </p>
                 </Reveal>
                 <Reveal delay={360}>
                   <div className="mt-8 flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-3">
                     <button
                       type="button"
-                      onClick={() => navigate('/free-debt-guide')}
+                      onClick={() => navigate('/free-debt-guide#download')}
                       className="fc-sell-cta-gold w-full sm:w-auto"
                     >
                       Get free debt guide <ArrowRight size={16} />
                     </button>
                     <button
                       type="button"
-                      onClick={() => navigate('/free-debt-guide/read')}
+                      onClick={() => navigate('/free-debt-guide/read?preview=1')}
                       className="fc-sell-cta-ghost w-full sm:w-auto"
                     >
-                      Read all 9 pages free
+                      <Eye size={16} /> See preview
                     </button>
                     <button
                       type="button"
@@ -70,18 +69,20 @@ export function LandingDebtEradicationBand() {
                       Book a strategy call
                     </button>
                   </div>
-                  <p className="fc-sell-compliance mt-5">Results vary · not legal advice · not outcome guarantees</p>
+                  <p className="fc-sell-compliance mt-5">Results vary · not legal advice · funding subject to underwriting</p>
                 </Reveal>
               </div>
 
-              {/* Mockup — right, beside writing */}
               <Reveal delay={180}>
                 <div className="fc-sell-debt-mockup relative mx-auto w-full max-w-[28rem] lg:max-w-none">
                   <div className="fc-sell-debt-mockup__glow" aria-hidden />
                   <div className="fc-sell-debt-mockup__halo" aria-hidden />
+                  <p className="absolute left-3 top-3 z-[2] rounded-full border border-white/25 bg-black/55 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-white">
+                    Cover preview
+                  </p>
                   <img
                     src={DEBT_GUIDE_MOCKUP_STANDUP_SRC}
-                    alt="Debt & summons free e-guide — Summons Snapshot and Response Path"
+                    alt="Cover preview of the debt and summons e-guide"
                     className="fc-sell-debt-mockup__img relative z-[1] w-full h-auto drop-shadow-[0_28px_60px_rgba(0,0,0,0.55)]"
                     loading="lazy"
                     decoding="async"

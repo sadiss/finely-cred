@@ -53,7 +53,7 @@ export default function AdminOvernightProductSurface({ role, pageId }: Workspace
       id: 'paid',
       label: 'Paid estimate',
       value: `${budget.paidLeadEstimate.low}-${budget.paidLeadEstimate.high}`,
-      hint: 'Honest paid range',
+      hint: 'Estimated paid range',
       accent: 'violet' as const,
       icon: TrendingUp,
     },
@@ -69,7 +69,7 @@ export default function AdminOvernightProductSurface({ role, pageId }: Workspace
       id: 'budget',
       label: 'Daily budget',
       value: `$${(budget.totalBudgetCents / 100).toFixed(0)}`,
-      hint: 'Micro-budget plan',
+      hint: 'Daily budget plan',
       accent: 'rose' as const,
       icon: Clock,
     },
@@ -81,7 +81,7 @@ export default function AdminOvernightProductSurface({ role, pageId }: Workspace
       pageId={pageId}
       eyebrow="Growth"
       title="Overnight50"
-      description="Control room for overnight lead jobs — budget cells, owned sources, swarm practice, and staff shifts."
+      description="Plan overnight lead work. Review budget, owned sources, lead search practice, and staff shifts."
       accent={accent}
       surfaceMode={navItem?.surfaceMode ?? 'studio'}
       archetype={archetype}
@@ -96,7 +96,7 @@ export default function AdminOvernightProductSurface({ role, pageId }: Workspace
         {
           label: 'Paid estimate',
           value: `${budget.paidLeadEstimate.low}-${budget.paidLeadEstimate.high}`,
-          hint: 'Honest paid range',
+          hint: 'Estimated paid range',
           accent: 'violet',
         },
         {
@@ -108,12 +108,12 @@ export default function AdminOvernightProductSurface({ role, pageId }: Workspace
         {
           label: 'Budget',
           value: `$${(budget.totalBudgetCents / 100).toFixed(0)}`,
-          hint: 'Daily micro-budget',
+          hint: 'Daily budget plan',
           accent: 'rose',
         },
       ]}
-      metricTitle="Overnight control room"
-      metricDescription="Status grid, alert rail, and live job floors below."
+      metricTitle="Overnight status"
+      metricDescription="Budget, source targets, and live job status."
       primaryAction={
         <ProductPagePrimaryAction label="Open Marketing Desk Find" onClick={() => navigate('/admin/marketing-desk?helper=find')} />
       }
@@ -216,12 +216,12 @@ export default function AdminOvernightProductSurface({ role, pageId }: Workspace
 
             {/* Swarm + staff floors — embedded overnight tools */}
             <section className="space-y-6">
-              <h2 className="text-2xl font-extrabold">Lead Intel swarm</h2>
+              <h2 className="text-2xl font-extrabold">Lead search tools</h2>
               <LeadIntelSwarmDashboard />
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-extrabold">Synthetic staff shifts</h2>
+              <h2 className="text-2xl font-extrabold">Overnight staff shifts</h2>
               <SyntheticStaffFloor />
             </section>
 
@@ -229,7 +229,7 @@ export default function AdminOvernightProductSurface({ role, pageId }: Workspace
             <div className={`${finelyOsCatalogCard('emerald')} p-6 lg:p-8 space-y-4`} data-fc-accent="emerald">
               <h2 className="text-2xl font-extrabold">Morning handoff</h2>
               <p className={`text-base font-semibold ${FINELY_OS_ENTITY_BODY}`}>
-                Hand off to Marketing Desk and Caleb Brooks (Lead Discovery) for live Serper imports. Review staging
+                Hand off to Marketing Desk and Caleb Brooks (Lead Discovery) for live lead imports. Review staging
                 queue before CRM import.
               </p>
               {budget.feasibilityWarnings.map((w) => (
@@ -257,11 +257,11 @@ export default function AdminOvernightProductSurface({ role, pageId }: Workspace
             <div className={`${finelyOsCatalogCard('rose')} p-5 lg:p-6 space-y-4`} data-fc-accent="rose">
               <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
                 <AlertTriangle size={16} />
-                <span>Alert rail</span>
+                <span>Alerts</span>
               </div>
               <FinelyOsAlertBanner
                 tone="warning"
-                message="Simulation only · not live finds. Use Caleb Brooks desk or Marketing Desk → Find for real Serper imports."
+                message="This is a practice run, not live lead search. Use Caleb Brooks or Marketing Desk → Find to import real leads."
               />
               <ul className={`space-y-3 text-sm font-semibold ${FINELY_OS_ENTITY_BODY}`}>
                 {budget.feasibilityWarnings.map((w) => (
@@ -298,7 +298,7 @@ export default function AdminOvernightProductSurface({ role, pageId }: Workspace
                 <li>6:00 PM — Set wake-up target</li>
                 <li>8:00 PM — Allocate paid spend</li>
                 <li>10:00 PM — Queue owned sources</li>
-                <li>12:00 AM — Lead Intel practice</li>
+                <li>12:00 AM — Lead search practice</li>
                 <li>4:00 AM — Staff shifts</li>
                 <li>6:00 AM — Morning handoff</li>
               </ul>

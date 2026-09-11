@@ -9,6 +9,7 @@ import {
   ShieldAlert,
   ShieldCheck,
   Target,
+  X,
 } from 'lucide-react';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { usePartnerSession } from '../../../../auth/PartnerSessionContext';
@@ -380,27 +381,30 @@ export default function PartnerDisputesProductSurface({
   );
 
   const queueListItems = () => {
+    const tileGrid = 'grid sm:grid-cols-2 xl:grid-cols-3 gap-4';
     if (queueMode === 'needs') {
       return (
         <FinelyOsPaginatedStack
           items={queueNeeds}
           pageSize={10}
           emptyMessage="Nothing needs disputing in this bureau filter."
-          itemSpacingClassName="fc-wlp-dispute-queue-list"
-          renderItem={(c) => (
+          itemSpacingClassName={tileGrid}
+          renderItem={(c, idx) => (
             <button
               key={c.id}
               type="button"
-              className="fc-wlp-dispute-queue-item"
+              className={`${finelyOsCatalogCard(ACCENT_ROTATION[idx % ACCENT_ROTATION.length])} p-6 lg:p-8 text-left space-y-2`}
+              data-fc-accent={ACCENT_ROTATION[idx % ACCENT_ROTATION.length]}
               data-selected={selectedCandidateId === c.id && !selectedCaseId ? 'true' : undefined}
               onClick={() => {
                 setSelectedCandidateId(c.id);
                 closeCase();
               }}
             >
-              <div className="fc-wlp-dispute-queue-item-title">{c.account}</div>
-              <div className="fc-wlp-dispute-queue-item-meta">
-                {bureauShortCode(c.bureau)} · {c.type} · {c.code}
+              <p className={FINELY_OS_ENTITY_SUBLABEL}>{bureauShortCode(c.bureau)}</p>
+              <div className={`text-xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{c.account}</div>
+              <div className={`text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
+                {c.type} · {c.code}
               </div>
             </button>
           )}
@@ -414,14 +418,15 @@ export default function PartnerDisputesProductSurface({
           items={queueTracked}
           pageSize={10}
           emptyMessage="No tracked tradelines in this bureau filter."
-          itemSpacingClassName="fc-wlp-dispute-queue-list"
-          renderItem={(c) => {
+          itemSpacingClassName={tileGrid}
+          renderItem={(c, idx) => {
             const hit = disputedIndex.get(c.id);
             return (
               <button
                 key={c.id}
                 type="button"
-                className="fc-wlp-dispute-queue-item"
+                className={`${finelyOsCatalogCard(ACCENT_ROTATION[idx % ACCENT_ROTATION.length])} p-6 lg:p-8 text-left space-y-2`}
+                data-fc-accent={ACCENT_ROTATION[idx % ACCENT_ROTATION.length]}
                 data-selected={selectedCandidateId === c.id && !selectedCaseId ? 'true' : undefined}
                 onClick={() => {
                   setSelectedCandidateId(c.id);
@@ -429,10 +434,9 @@ export default function PartnerDisputesProductSurface({
                   else closeCase();
                 }}
               >
-                <div className="fc-wlp-dispute-queue-item-title">{c.account}</div>
-                <div className="fc-wlp-dispute-queue-item-meta">
-                  {bureauShortCode(c.bureau)} · {hit?.caseTitle ?? 'Tracked'}
-                </div>
+                <p className={FINELY_OS_ENTITY_SUBLABEL}>{bureauShortCode(c.bureau)}</p>
+                <div className={`text-xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{c.account}</div>
+                <div className={`text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>{hit?.caseTitle ?? 'Tracked'}</div>
               </button>
             );
           }}
@@ -445,20 +449,22 @@ export default function PartnerDisputesProductSurface({
         items={queueCases}
         pageSize={10}
         emptyMessage="No cases in this bureau filter."
-        itemSpacingClassName="fc-wlp-dispute-queue-list"
-        renderItem={(c) => {
+        itemSpacingClassName={tileGrid}
+        renderItem={(c, idx) => {
           const lastRound = c.rounds.slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0] ?? null;
           return (
             <button
               key={c.id}
               type="button"
-              className="fc-wlp-dispute-queue-item"
+              className={`${finelyOsCatalogCard(ACCENT_ROTATION[idx % ACCENT_ROTATION.length])} p-6 lg:p-8 text-left space-y-2`}
+              data-fc-accent={ACCENT_ROTATION[idx % ACCENT_ROTATION.length]}
               data-selected={selectedCaseId === c.id ? 'true' : undefined}
               onClick={() => openCase(c.id)}
             >
-              <div className="fc-wlp-dispute-queue-item-title">{c.title}</div>
-              <div className="fc-wlp-dispute-queue-item-meta">
-                {bureauShortCode(c.bureau)} · {c.status} · {c.rounds.length} round{c.rounds.length === 1 ? '' : 's'}
+              <p className={FINELY_OS_ENTITY_SUBLABEL}>{bureauShortCode(c.bureau)} · {c.status}</p>
+              <div className={`text-xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{c.title}</div>
+              <div className={`text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
+                {c.rounds.length} round{c.rounds.length === 1 ? '' : 's'}
                 {lastRound?.dueAt ? ` · due ${new Date(lastRound.dueAt).toLocaleDateString()}` : ''}
               </div>
             </button>
@@ -469,7 +475,7 @@ export default function PartnerDisputesProductSurface({
   };
 
   const candidateDetail = selectedCandidate && !selectedCaseId ? (
-    <div className={`${finelyOsCatalogCard('rose')} fc-surface-harmony p-6 lg:p-8 space-y-4`} data-fc-accent="rose">
+    <div className="space-y-4">
       <p className={FINELY_OS_ENTITY_LABEL}>Tradeline</p>
       <h3 className={`text-2xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{selectedCandidate.account}</h3>
       <p className={FINELY_OS_ENTITY_SUBLABEL}>
@@ -492,7 +498,7 @@ export default function PartnerDisputesProductSurface({
 
   const caseDetail =
     selectedCase && selectedCase.partnerId === partner.id ? (
-      <div className="fc-wlp-dispute-detail-panel">
+      <div className="space-y-6">
         <div className="fc-wlp-dispute-detail-head">
           <div>
             <p className={FINELY_OS_ENTITY_LABEL}>{bureauShortCode(selectedCase.bureau)} case</p>
@@ -518,19 +524,16 @@ export default function PartnerDisputesProductSurface({
           const lastRound = selectedCase.rounds.slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0] ?? null;
           const caseEff = summarizeDisputeEffectiveness([selectedCase]);
           return (
-            <>
+            <div className="grid gap-4 lg:grid-cols-2">
               {caseEff.logged ? (
-                <div className={`${finelyOsCatalogCard('emerald')} p-5 lg:p-6`} data-fc-accent="emerald">
+                <div>
                   <p className={FINELY_OS_ENTITY_LABEL}>Effectiveness</p>
-                  <p className={`text-2xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>
-                    {describeDisputeEffectiveness(caseEff)}
-                  </p>
+                  <p className={`text-2xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{describeDisputeEffectiveness(caseEff)}</p>
                   <p className={`mt-1 text-sm font-bold ${FINELY_OS_ENTITY_BODY}`}>Results vary · logged from round outcomes</p>
                 </div>
               ) : null}
-
               {selectedCase.status === 'open' && lastRound?.dueAt ? (
-                <div className={`${FINELY_OS_NOTICE_WARN} flex items-start gap-3 p-5 lg:p-6`}>
+                <div className={`${FINELY_OS_NOTICE_WARN} flex items-start gap-3 p-5`}>
                   <ShieldAlert size={18} className="text-fuchsia-400 shrink-0 mt-0.5" />
                   <div>
                     <p className={`font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>Follow-up window</p>
@@ -544,51 +547,46 @@ export default function PartnerDisputesProductSurface({
                   </div>
                 </div>
               ) : null}
-            </>
+            </div>
           );
         })()}
 
-        <div className={`${finelyOsCatalogCard('violet')} p-6 lg:p-8`} data-fc-accent="violet">
+        <div>
           <p className={`text-sm font-extrabold uppercase tracking-[0.14em] ${FINELY_OS_ENTITY_SUBLABEL}`}>Bureau rounds</p>
-          <div className="fc-wlp-dispute-round-timeline mt-5">
+          <div className="grid gap-4 md:grid-cols-2 mt-4">
             {selectedCase.rounds
               .slice()
               .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
               .map((r, idx) => (
-                <div
-                  key={`${r.round}-${r.createdAt}`}
-                  className="fc-wlp-dispute-round-node"
-                  data-fc-accent={ACCENT_ROTATION[idx % ACCENT_ROTATION.length]}
-                >
-                  <span className="fc-wlp-dispute-round-dot">{idx + 1}</span>
-                  <div className="fc-wlp-dispute-round-card fc-surface-harmony">
-                    <div className={`font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{r.round}</div>
-                    <div className={`mt-1 text-sm font-bold ${FINELY_OS_ENTITY_SUBLABEL}`}>
-                      tone: {r.tone} · created {new Date(r.createdAt).toLocaleDateString()}
-                      {r.dueAt ? ` · due ${new Date(r.dueAt).toLocaleDateString()}` : ''}
-                    </div>
-                    {r.responseOutcome ? (
-                      <div className={`mt-2 text-sm font-bold ${FINELY_OS_ENTITY_BODY}`}>
-                        Outcome: <span className={FINELY_OS_ENTITY_VALUE}>{r.responseOutcome}</span>
-                      </div>
-                    ) : null}
-                    {r.letterId ? (
-                      <button
-                        type="button"
-                        onClick={() => go(`/portal/letters/vault?letterId=${encodeURIComponent(r.letterId!)}`)}
-                        className={`mt-3 ${FINELY_OS_SECONDARY_BTN}`}
-                      >
-                        Open linked letter <ArrowRight size={14} />
-                      </button>
-                    ) : null}
+                <div key={`${r.round}-${r.createdAt}`} data-fc-accent={ACCENT_ROTATION[idx % ACCENT_ROTATION.length]}>
+                  <div className={`font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>
+                    {idx + 1}. {r.round}
                   </div>
+                  <div className={`mt-1 text-sm font-bold ${FINELY_OS_ENTITY_SUBLABEL}`}>
+                    tone: {r.tone} · created {new Date(r.createdAt).toLocaleDateString()}
+                    {r.dueAt ? ` · due ${new Date(r.dueAt).toLocaleDateString()}` : ''}
+                  </div>
+                  {r.responseOutcome ? (
+                    <div className={`mt-2 text-sm font-bold ${FINELY_OS_ENTITY_BODY}`}>
+                      Outcome: <span className={FINELY_OS_ENTITY_VALUE}>{r.responseOutcome}</span>
+                    </div>
+                  ) : null}
+                  {r.letterId ? (
+                    <button
+                      type="button"
+                      onClick={() => go(`/portal/letters/vault?letterId=${encodeURIComponent(r.letterId!)}`)}
+                      className={`mt-3 ${FINELY_OS_SECONDARY_BTN}`}
+                    >
+                      Open linked letter <ArrowRight size={14} />
+                    </button>
+                  ) : null}
                 </div>
               ))}
           </div>
         </div>
 
-        <div className="fc-wlp-dispute-detail-tools">
-          <div className={`${finelyOsCatalogCard('sky')} p-6 lg:p-8 min-w-0`} data-fc-accent="sky">
+        <div className="grid gap-6 lg:grid-cols-2">
+          <div className="min-w-0">
             <p className={FINELY_OS_ENTITY_LABEL}>Workflow</p>
             <DisputeCaseWorkflowPanel
               caseId={selectedCase.id}
@@ -597,7 +595,7 @@ export default function PartnerDisputesProductSurface({
               onUpdated={() => setWorkflowVersion((v) => v + 1)}
             />
           </div>
-          <div className={`${finelyOsCatalogCard('emerald')} p-6 lg:p-8 min-w-0`} data-fc-accent="emerald">
+          <div className="min-w-0">
             <p className={FINELY_OS_ENTITY_LABEL}>Upload proof</p>
             <SmartProofUploader
               partner={partner}
@@ -609,15 +607,11 @@ export default function PartnerDisputesProductSurface({
           </div>
         </div>
 
-        <div className={`${finelyOsCatalogCard('rose')} p-6 lg:p-8`} data-fc-accent="rose">
+        <div>
           <p className={FINELY_OS_ENTITY_LABEL}>Disputed items</p>
           <div className="grid md:grid-cols-2 gap-4 mt-4">
             {selectedCase.items.map((it, idx) => (
-              <div
-                key={it.id}
-                className={`${finelyOsCatalogCard(ACCENT_ROTATION[idx % ACCENT_ROTATION.length])} fc-surface-harmony p-5 space-y-2`}
-                data-fc-accent={ACCENT_ROTATION[idx % ACCENT_ROTATION.length]}
-              >
+              <div key={it.id} data-fc-accent={ACCENT_ROTATION[idx % ACCENT_ROTATION.length]}>
                 <div className={`font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>{it.account}</div>
                 <div className={`text-sm font-bold ${FINELY_OS_ENTITY_SUBLABEL}`}>
                   {bureauShortCode(it.bureau)} · {it.type}
@@ -631,7 +625,7 @@ export default function PartnerDisputesProductSurface({
         </div>
       </div>
     ) : selectedCaseId ? (
-      <div className={`${finelyOsCatalogCard('rose')} p-6 lg:p-8`} data-fc-accent="rose">
+      <div>
         <p className={`font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>Case not found</p>
         <p className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>This case may belong to another partner file.</p>
         <button type="button" onClick={closeCase} className={`mt-4 ${FINELY_OS_SECONDARY_BTN}`}>
@@ -640,8 +634,8 @@ export default function PartnerDisputesProductSurface({
       </div>
     ) : null;
 
-  const defaultDetail = !selectedCaseId && !selectedCandidate ? (
-    <div className="fc-wlp-dispute-detail-panel space-y-5">
+  const canvasRooms = (
+    <div className="grid gap-4 lg:grid-cols-3">
       {latestParsedReport ? (
         <div className={`${finelyOsCatalogCard('violet')} p-6 lg:p-8`} data-fc-accent="violet">
           <p className={FINELY_OS_ENTITY_LABEL}>Latest report</p>
@@ -659,7 +653,6 @@ export default function PartnerDisputesProductSurface({
           </div>
         </div>
       ) : null}
-
       <div className={`${finelyOsCatalogCard('sky')} p-6 lg:p-8`} data-fc-accent="sky">
         <p className={FINELY_OS_ENTITY_LABEL}>Add proof</p>
         <SmartProofUploader partner={partner} email={partner.profile.email} uploadContext="bureau" />
@@ -667,104 +660,127 @@ export default function PartnerDisputesProductSurface({
           Open Evidence vault <ArrowRight size={14} />
         </button>
       </div>
-
       <DisputeLaneHandoffStrip partnerId={partner.id} />
     </div>
-  ) : null;
+  );
 
   const queueDeskBody = (
-    <section className={`fc-wlp-section ${FINELY_OS_PAGE} fc-wlp-dispute-surface-root`} data-surface-layout="queue-detail">
+    <section className={`fc-wlp-section ${FINELY_OS_PAGE} fc-wlp-dispute-surface-root`} data-surface-layout="timeline">
       {runwayBody}
       {alertBanners}
 
-      <div className="fc-wlp-dispute-queue-desk">
-        <aside className="fc-wlp-dispute-queue-rail">
-          <div className="fc-wlp-dispute-queue-modes" role="tablist" aria-label="Dispute queue">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={queueMode === 'needs'}
-              data-active={queueMode === 'needs' ? 'true' : undefined}
-              className={`fc-wlp-dispute-queue-mode ${finelyOsCatalogCard('rose')}`}
-              data-fc-accent="rose"
-              onClick={() => handleQueueModeChange('needs')}
-            >
-              <strong>Needs dispute</strong>
-              <span>Tradelines not yet in a bureau case</span>
-              {needsDisputing.length > 0 ? <em>{needsDisputing.length}</em> : null}
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={queueMode === 'cases'}
-              data-active={queueMode === 'cases' ? 'true' : undefined}
-              className={`fc-wlp-dispute-queue-mode ${finelyOsCatalogCard('violet')}`}
-              data-fc-accent="violet"
-              onClick={() => handleQueueModeChange('cases')}
-            >
-              <strong>Active cases</strong>
-              <span>Rounds, deadlines, and outcomes</span>
-              {cases.length > 0 ? <em>{cases.length}</em> : null}
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={queueMode === 'tracked'}
-              data-active={queueMode === 'tracked' ? 'true' : undefined}
-              className={`fc-wlp-dispute-queue-mode ${finelyOsCatalogCard('emerald')}`}
-              data-fc-accent="emerald"
-              onClick={() => handleQueueModeChange('tracked')}
-            >
-              <strong>Tracked tradelines</strong>
-              <span>Already inside open or closed cases</span>
-              {alreadyDisputed.length > 0 ? <em>{alreadyDisputed.length}</em> : null}
-            </button>
+      <div className="grid sm:grid-cols-3 gap-4" role="tablist" aria-label="Dispute queue">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={queueMode === 'needs'}
+          data-active={queueMode === 'needs' ? 'true' : undefined}
+          className={`fc-wlp-dispute-queue-mode ${finelyOsCatalogCard('rose')}`}
+          data-fc-accent="rose"
+          onClick={() => handleQueueModeChange('needs')}
+        >
+          <strong>Needs dispute</strong>
+          <span>Tradelines not yet in a bureau case</span>
+          {needsDisputing.length > 0 ? <em>{needsDisputing.length}</em> : null}
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={queueMode === 'cases'}
+          data-active={queueMode === 'cases' ? 'true' : undefined}
+          className={`fc-wlp-dispute-queue-mode ${finelyOsCatalogCard('violet')}`}
+          data-fc-accent="violet"
+          onClick={() => handleQueueModeChange('cases')}
+        >
+          <strong>Active cases</strong>
+          <span>Rounds, deadlines, and outcomes</span>
+          {cases.length > 0 ? <em>{cases.length}</em> : null}
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={queueMode === 'tracked'}
+          data-active={queueMode === 'tracked' ? 'true' : undefined}
+          className={`fc-wlp-dispute-queue-mode ${finelyOsCatalogCard('emerald')}`}
+          data-fc-accent="emerald"
+          onClick={() => handleQueueModeChange('tracked')}
+        >
+          <strong>Tracked tradelines</strong>
+          <span>Already inside open or closed cases</span>
+          {alreadyDisputed.length > 0 ? <em>{alreadyDisputed.length}</em> : null}
+        </button>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3">
+        {queueMode === 'cases' ? (
+          <div className={FINELY_OS_VIEW_TABS}>
+            {(['open', 'closed', 'all'] as const).map((s) => (
+              <button key={s} type="button" onClick={() => setCaseStatus(s)} className={finelyOsViewTab(caseStatus === s, 'violet')}>
+                {s}
+              </button>
+            ))}
           </div>
-
-          {queueMode === 'cases' ? (
-            <div className={FINELY_OS_VIEW_TABS}>
-              {(['open', 'closed', 'all'] as const).map((s) => (
-                <button key={s} type="button" onClick={() => setCaseStatus(s)} className={finelyOsViewTab(caseStatus === s, 'violet')}>
-                  {s}
-                </button>
-              ))}
-            </div>
-          ) : null}
-
-          {bureauOptions.length > 0 ? (
-            <div className="fc-wlp-dispute-bureau-chips" aria-label="Bureau filter">
+        ) : null}
+        {bureauOptions.length > 0 ? (
+          <div className="fc-wlp-dispute-bureau-chips" aria-label="Bureau filter">
+            <button
+              type="button"
+              className="fc-wlp-dispute-bureau-chip"
+              data-active={bureauFilter === 'all' ? 'true' : undefined}
+              onClick={() => setBureauFilter('all')}
+            >
+              All bureaus
+            </button>
+            {bureauOptions.map((b) => (
               <button
+                key={b}
                 type="button"
                 className="fc-wlp-dispute-bureau-chip"
-                data-active={bureauFilter === 'all' ? 'true' : undefined}
-                onClick={() => setBureauFilter('all')}
+                data-active={bureauFilter === b ? 'true' : undefined}
+                onClick={() => {
+                  setBureauFilter(b);
+                  if (partner) saveDisputeLaneFocus(partner.id, b);
+                }}
               >
-                All bureaus
+                {bureauFullName(b as import('../../../../domain/creditReports').Bureau)}
               </button>
-              {bureauOptions.map((b) => (
-                <button
-                  key={b}
-                  type="button"
-                  className="fc-wlp-dispute-bureau-chip"
-                  data-active={bureauFilter === b ? 'true' : undefined}
-                  onClick={() => {
-                    setBureauFilter(b);
-                    if (partner) saveDisputeLaneFocus(partner.id, b);
-                  }}
-                >
-                  {bureauFullName(b as import('../../../../domain/creditReports').Bureau)}
-                </button>
-              ))}
-            </div>
-          ) : null}
-
-          {queueListItems()}
-        </aside>
-
-        <div className="fc-wlp-dispute-detail-panel">
-          {caseDetail ?? candidateDetail ?? defaultDetail}
-        </div>
+            ))}
+          </div>
+        ) : null}
       </div>
+
+      {queueListItems()}
+      {canvasRooms}
+
+      {caseDetail || candidateDetail ? (
+        <div
+          className="fc-wlp-local-modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label={selectedCase ? 'Dispute case' : 'Tradeline'}
+          onClick={() => {
+            setSelectedCandidateId(null);
+            closeCase();
+          }}
+        >
+          <div className="fc-wlp-local-modal fc-wlp-wide-drawer" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-end">
+              <button
+                type="button"
+                className="fc-wlp-btn-secondary !py-1.5 !px-2.5 !text-xs"
+                onClick={() => {
+                  setSelectedCandidateId(null);
+                  closeCase();
+                }}
+                aria-label="Close detail"
+              >
+                <X size={14} /> Close
+              </button>
+            </div>
+            {caseDetail ?? candidateDetail}
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 
@@ -774,7 +790,7 @@ export default function PartnerDisputesProductSurface({
         role={role}
         pageId="disputes"
         eyebrow="Dispute center"
-        title="Bureau disputes — queue and case detail"
+        title="Bureau disputes"
         description="Pick tradelines, mail with proof, and track each bureau round with follow-up deadlines."
         status={`${openCasesCount} open case${openCasesCount === 1 ? '' : 's'} · live data`}
         freshness={latestParsedReport ? 'report on file' : 'needs report'}

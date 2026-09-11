@@ -1,0 +1,135 @@
+/* Five public authority pages — each namespace is a different architecture. */
+
+.fc-rules-runway { display: grid; gap: 0; position: relative; margin-top: 2rem; }
+.fc-rules-runway::before {
+  content: '';
+  position: absolute;
+  left: 1.4rem;
+  top: 0.5rem;
+  bottom: 0.5rem;
+  width: 3px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #10b981, #7c3aed, #0ea5e9, #e11d48);
+}
+.fc-rules-item {
+  display: grid;
+  grid-template-columns: 3.2rem 1fr;
+  gap: 1rem;
+  padding: 1.25rem 0;
+}
+.fc-rules-dot {
+  width: 2.8rem;
+  height: 2.8rem;
+  border-radius: 999px;
+  color: #fff;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+}
+
+.fc-complaints-mosaic {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+@media (min-width: 900px) {
+  .fc-complaints-mosaic { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+.fc-complaints-tile { min-height: 10rem; padding: 1.35rem; border-radius: 1.15rem; }
+
+.fc-law-reader {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+  min-height: 420px;
+}
+@media (min-width: 900px) {
+  .fc-law-reader { grid-template-columns: 280px minmax(0, 1fr); }
+}
+.fc-law-nav button { width: 100%; text-align: left; margin-bottom: 0.55rem; }
+.fc-law-body {
+  white-space: pre-wrap;
+  font-size: 1.05rem;
+  line-height: 1.75;
+  max-height: 28rem;
+  overflow: auto;
+}
+
+.fc-opinions-spine { display: grid; gap: 1.5rem; }
+@media (min-width: 900px) {
+  .fc-opinions-spine { grid-template-columns: 1fr 1fr; align-items: start; }
+}
+
+.fc-funding-deck {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+@media (min-width: 900px) {
+  .fc-funding-deck { grid-template-columns: 220px minmax(0, 1fr); }
+}
+.fc-funding-states { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+@media (min-width: 900px) {
+  .fc-funding-states { flex-direction: column; }
+}
+
+/* Complaint study — control room (KPI grid + issue rail). */
+.fc-study-control {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+  min-height: 22rem;
+}
+@media (min-width: 960px) {
+  .fc-study-control {
+    grid-template-columns: minmax(0, 1.4fr) minmax(16rem, 22rem);
+    align-items: start;
+  }
+}
+.fc-study-kpis {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.fc-study-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Pin wall — masonry, not the complaints mosaic. */
+.fc-pin-wall {
+  columns: 1;
+  column-gap: 1.1rem;
+}
+@media (min-width: 720px) { .fc-pin-wall { columns: 2; } }
+@media (min-width: 1100px) { .fc-pin-wall { columns: 3; } }
+.fc-pin-card {
+  break-inside: avoid;
+  margin-bottom: 1.1rem;
+  display: inline-block;
+  width: 100%;
+}
+
+/* Credit Lab — hearth + room dock. */
+.fc-lab-hearth {
+  border-radius: 1.75rem;
+  padding: 2rem 1.6rem;
+  background:
+    radial-gradient(circle at 12% 20%, rgba(16, 185, 129, 0.28), transparent 42%),
+    radial-gradient(circle at 88% 10%, rgba(124, 58, 237, 0.22), transparent 38%),
+    linear-gradient(180deg, rgba(8, 20, 48, 0.4), rgba(8, 20, 48, 0.05));
+  border: 1px solid rgba(16, 185, 129, 0.28);
+}
+.fc-lab-rooms {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+@media (min-width: 800px) {
+  .fc-lab-rooms { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.fc-lab-room { text-align: left; cursor: pointer; }

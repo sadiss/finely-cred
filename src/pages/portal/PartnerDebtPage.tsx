@@ -451,38 +451,38 @@ export function PartnerDebtWorkspace({ embedded = false }: { embedded?: boolean 
     switch (workstationTab) {
       case 'foreclosure':
         return {
-          title: 'Foreclosure command center',
+          title: 'Foreclosure',
           subtitle: 'RESPA, loss mitigation, dual-track stops, note/assignment demands — with live coach.',
           accent: 'rose' as const,
         };
       case 'repossession':
         return {
-          title: 'Repossession command center',
+          title: 'Repossession',
           subtitle: 'UCC Article 9 reinstatement, wrongful repo, deficiency fights — with live coach.',
           accent: 'rose' as const,
         };
       case 'court':
         return {
-          title: 'Litigation Command',
+          title: 'Court defense',
           subtitle: 'Hearing countdown, docket/summons scrape, affidavits, answers, and day-of defense — one home for court work.',
           accent: 'rose' as const,
         };
       case 'bankruptcy':
         return {
-          title: 'Bankruptcy workstation',
+          title: 'Bankruptcy',
           subtitle: 'Chapter 7/13 prep, stay notices, creditor matrix, post-discharge bureau disputes.',
           accent: 'sky' as const,
         };
       case 'validation':
         return {
-          title: 'Validation workstation',
+          title: 'Validation',
           subtitle: 'FDCPA § 1692g proof demands — licensing, chain of title, accounting.',
           accent: 'emerald' as const,
         };
       default:
         return {
-          title: 'Debt & Court workstations',
-          subtitle: 'Validation, affidavits & court, and debt tracks — pick a workstation below. Bureau credit disputes are under Credit Letters.',
+          title: 'Debt and court',
+          subtitle: 'Validation, court defense, and debt tracks. Bureau credit disputes are under Credit Letters.',
           accent: 'rose' as const,
         };
     }
@@ -653,7 +653,7 @@ export function PartnerDebtWorkspace({ embedded = false }: { embedded?: boolean 
                   ) : (
                     <div className="space-y-3">
                       <p className={FINELY_OS_ENTITY_BODY}>
-                        <strong className="text-white/90">{openCount + disputedCount} active case(s).</strong> Use the tabs above — each workstation has its own letter library and coach.
+                        <strong className="text-white/90">{openCount + disputedCount} active case(s).</strong> Use the tabs above — each track has its own letter library and coach.
                       </p>
                       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                         {(
@@ -701,7 +701,7 @@ export function PartnerDebtWorkspace({ embedded = false }: { embedded?: boolean 
                     <div>
                       <div className={FINELY_OS_ENTITY_SUBLABEL}>Court defense</div>
                       <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>
-                        Hearing countdown, docket scrape, affidavit & answer builds, and Defense Book — all in Litigation Command.
+                        Hearing countdown, docket scrape, affidavit and answer builds, and Defense Book — all in Court defense.
                       </p>
                     </div>
                     <Link to={debtTabHref('litigation', pathname, search)} className={FINELY_OS_PRIMARY_BTN} onClick={() => handleTabChange('litigation')}>
@@ -717,7 +717,7 @@ export function PartnerDebtWorkspace({ embedded = false }: { embedded?: boolean 
                         lane="debt"
                         focusId={debtCoachFocusId}
                         compact
-                        coachSubtitle="Debt & validation coach — dedicated specialist per workstation"
+                        coachSubtitle="Debt and validation coach — dedicated specialist for this track"
                       />
                     </div>
                     <div className="lg:col-span-2">
@@ -820,7 +820,7 @@ export function PartnerDebtWorkspace({ embedded = false }: { embedded?: boolean 
     <PageShell
       badge="Partner Portal"
       title="Debt & Court"
-      subtitle="Validation, Litigation Command (court defense), foreclosure, repossession, and bankruptcy — FDCPA/contract focus. Credit bureau disputes live under Credit Letters."
+      subtitle="Validation, court defense, foreclosure, repossession, and bankruptcy. Bureau credit disputes are under Credit Letters."
     >
       {workspaceBody}
     </PageShell>
