@@ -346,13 +346,13 @@ export const KREYOL_FUNNEL: LeadMagnetFunnelConfig = {
   guideId: 'kreyol-companion-kit',
   offer: 'kreyol_companion_kit',
   onboardingLane: 'haitian',
-  metaTitle: 'Credit kits — Haitian community',
+  metaTitle: 'Gid Kredi an Kreyòl — Biwo Ayisyen | Finely Cred',
   metaDesc:
-    'Credit kits for Haitian Americans: what credit is, what the letter says, how to help family, and a church flyer. Pale Kreyòl when you are ready. Results vary · not legal advice.',
-  urgencyText: 'Kat kit kredi, san peye, ak Pale Kreyòl lè w pare',
-  heroHeadline: 'Credit kits for',
-  heroHighlight: 'Haitian community',
-  heroSub: 'Nou li kredi, lèt, ak feyè legliz ansanm — klè, pou fanmi ak espesyalis.',
+    'Restore kredi pou bati richès. Gid Kreyòl pou Biwo Ayisyen: kredi, lèt, èd fanmi, ak feyè. Rezilta yo varye · se pa konsèy legal.',
+  urgencyText: 'Gid Kreyòl — nou pral rele w nan 1 jou ouvrab',
+  heroHeadline: 'Restore kredi pou',
+  heroHighlight: 'bati richès',
+  heroSub: 'Biwo Ayisyen — gid kredi an Kreyòl pou fanmi ak espesyalis. Dèt pa efase. Pa gen pwomès nòt.',
   valueStack: [
     { label: 'What is credit? — a clear one-page kit', value: '$29' },
     { label: 'What this letter says — annotated collector language', value: '$39' },
@@ -370,6 +370,42 @@ export const KREYOL_FUNNEL: LeadMagnetFunnelConfig = {
   bookingPath: '/enlightenment-session',
 };
 
+/** Campaign door — wealth / funding mindset. Do not collapse `/free-guide` into this. */
+export const RESTORE_WEALTH_FUNNEL: LeadMagnetFunnelConfig = {
+  id: 'restore_wealth',
+  path: '/free-restore-wealth',
+  funnelId: 'restore_wealth',
+  sequenceId: 'seq_inbound_nurture',
+  agentPersonaId: 'finely_advisor',
+  agentDisplayName: 'Alex',
+  agentRole: 'Credit Restoration Specialist',
+  guideId: 'restore-for-wealth-guide',
+  offer: 'restore_for_wealth',
+  onboardingLane: 'personal_restore',
+  metaTitle: 'Restore for Wealth — credit restore for funding | Finely Cred',
+  metaDesc:
+    'A practical guide to credit restore for funding and opportunity. Debt is not erased. Results vary · not legal advice · funding subject to underwriting.',
+  urgencyText: 'Restore-for-wealth guide — we’ll call within 1 business day',
+  heroHeadline: 'Restore for',
+  heroHighlight: 'wealth',
+  heroSub: 'Credit restore so you can fund the next chapter. Debt is not erased. No score is promised.',
+  valueStack: [
+    { label: 'Restore-for-wealth sequence (funding purpose)', value: '$49' },
+    { label: 'Honesty brief: debt is not erased', value: '$29' },
+    { label: 'Funding-readiness checklist', value: '$39' },
+    { label: 'Specialist call within 1 business day', value: '$149' },
+    { label: `${LEAD_MAGNET_TRIAL_DAYS}-day portal preview`, value: '$79', trialFeature: 'report_upload_preview', locksAfterTrial: true },
+  ],
+  features: [
+    { icon: Target, title: 'Funding is the point', desc: 'Restore so a lender or underwriter can read the file — not for a vanity screenshot.' },
+    { icon: ShieldCheck, title: 'Debt honesty', desc: 'Valid obligations are not erased. Results vary. No score guarantees.' },
+    { icon: TrendingUp, title: 'Sequence toward capital', desc: 'High-impact items first, then utilization and inquiry discipline, then the funding conversation.' },
+    { icon: LayoutDashboard, title: `${LEAD_MAGNET_TRIAL_DAYS}-day portal preview`, desc: 'Upload a report and see the partner workspace.' },
+  ],
+  trustCerts: ['No score promises', 'Debt is not erased', 'Educational only', 'We’ll call within 1 business day'],
+  bookingPath: '/enlightenment-session',
+};
+
 export const LEAD_MAGNET_FUNNELS = [
   CREDIT_FUNNEL,
   DEBT_FUNNEL,
@@ -381,6 +417,7 @@ export const LEAD_MAGNET_FUNNELS = [
   SPECIALIST_APPLY_FUNNEL,
   AFFILIATE_FUNNEL,
   KREYOL_FUNNEL,
+  RESTORE_WEALTH_FUNNEL,
 ] as const;
 
 export function funnelByPath(path: string): LeadMagnetFunnelConfig {

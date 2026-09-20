@@ -68,6 +68,8 @@ export const PUBLIC_ROUTES: RouteSpec[] = [
   { path: '/enlightenment-session', title: 'Book a strategy call', badge: 'Public' },
   { path: '/owners-guide', title: "Owner's Guide", badge: 'Reference' },
   { path: '/free-guide', title: 'Free Credit Dispute Letter Guide', badge: 'Free Guide' },
+  { path: '/free-restore-wealth', title: 'Restore for Wealth', badge: 'Campaign' },
+  { path: '/free-kreyol-guide', title: 'Gid Kredi an Kreyòl', badge: 'Biwo Ayisyen' },
   { path: '/g/:code', title: 'Partner Referral Link', badge: 'Signup' },
   { path: '/consultation', title: 'Consultation Booking (legacy)', badge: 'Public' },
   { path: '/faq', title: 'FAQ', badge: 'Public' },

@@ -46,10 +46,12 @@ import { isAdminEmail } from './auth/admin';
 import { resolveHaitianCommunityHref } from './lib/haitianCompanionDesk';
 import HaitianCompanionDeskPage from './pages/public/HaitianCompanionDeskPage';
 import HaitianMetroDeskPage from './pages/public/HaitianMetroDeskPage';
-import HaitianKitStudioPage from './pages/public/HaitianKitStudioPage';
+import KreyolGuideFunnelPage from './pages/leadmagnet/KreyolGuideFunnelPage';
+import RestoreWealthFunnelPage from './pages/leadmagnet/RestoreWealthFunnelPage';
 import { isAuthEntryPath, signupUrlForCareerPath } from './lib/onboardingRoleRouting';
 import { resolveAuthedOnboardingBouncePath } from './lib/packageCheckoutRouting';
 import { finelyCtaNavigate, resolveFinelyCtaPath } from './lib/finelyCtaIntent';
+import { isDesignConversionPath } from './lib/funnelConversionDesign';
 import { ensureDefaultExperiments, assignFunnelVariant, getAssignedCtaDestination } from './data/funnelExperimentsRepo';
 import { persistCtaBridgeVariant } from './lib/funnelCtaBridge';
 import { clearOnboardingProgress, peekOnboardingRecommendedNextPath } from './lib/onboardingProgressStorage';
@@ -859,6 +861,7 @@ function AppInner() {
     !location.pathname.startsWith('/partner-setup');
 
   const hideApprovalTicker = location.pathname.startsWith('/free-');
+  const hideNavTrialCta = isDesignConversionPath(location.pathname);
 
   const hideFloatingHub =
     location.pathname.startsWith('/portal/messages') ||
@@ -1108,9 +1111,11 @@ function AppInner() {
                 </div>
                 <div className="ml-auto flex items-center justify-end gap-2 shrink-0">
                     {showPublicThemeToggle ? <FinelyThemeToggle compact /> : null}
+                    {hideNavTrialCta ? null : (
                     <button type="button" onClick={() => handleNavigate(personalFreeTrialPath)} className="fc-nav-trial-cta">
                       Start free trial
                     </button>
+                    )}
                     <button type="button" onClick={() => handleNavigate('/login')} className="fc-nav-pill-ghost">
                       Login
                     </button>
@@ -2745,6 +2750,7 @@ function AppInner() {
         <Route path="/book/i/:token" element={<PublicSelfBookInvitePage />} />
         <Route path="/meet/:eventId" element={<GuestMeetingJoinPage />} />
         <Route path="/free-guide" element={<FreeGuideFunnelPage />} />
+        <Route path="/free-restore-wealth" element={<RestoreWealthFunnelPage />} />
         <Route path="/free-guide/read" element={<DisputeGuideReaderPage />} />
         <Route path="/head-of-society" element={<HetaSocietyPage />} />
         <Route path="/head-of-society/flyer" element={<Navigate to="/admin" replace />} />
@@ -2819,8 +2825,8 @@ function AppInner() {
         <Route path="/real-estate-guide/read" element={<RealEstateGuideReaderPage />} />
         <Route path="/case-desk-guide" element={<CaseDeskGuideLandingPage />} />
         <Route path="/case-desk-guide/read" element={<CaseDeskGuideReaderPage />} />
-        <Route path="/free-kreyol-guide" element={<HaitianKitStudioPage />} />
-        <Route path="/free-kreyol-guide/:kitId" element={<HaitianKitStudioPage />} />
+        <Route path="/free-kreyol-guide" element={<KreyolGuideFunnelPage />} />
+        <Route path="/free-kreyol-guide/:kitId" element={<KreyolGuideFunnelPage />} />
         <Route path="/affiliate-toolkit" element={<AffiliateToolkitFunnelPage />} />
         <Route path="/affiliate-toolkit/read" element={<AffiliateToolkitGuideReaderPage />} />
         <Route path="/owners-guide" element={<ProtectedRoute><OwnersGuidePage /></ProtectedRoute>} />

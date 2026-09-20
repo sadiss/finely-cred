@@ -152,6 +152,14 @@ export const PUBLIC_FEATURED_FREE_GUIDES: {
     badge: 'Popular',
   },
   {
+    id: 'restore-wealth',
+    title: 'Restore for Wealth',
+    desc: 'Credit restore for funding and opportunity. Debt is not erased. Separate from the DIY letter guide.',
+    path: '/free-restore-wealth',
+    accent: 'amber',
+    badge: 'Campaign',
+  },
+  {
     id: 'debt',
     title: 'Debt & summons guide',
     desc: 'Validation and court education: FDCPA letters, summons triage, and a debt task board you can actually use.',

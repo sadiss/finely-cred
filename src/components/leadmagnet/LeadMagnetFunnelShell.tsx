@@ -35,6 +35,8 @@ import { resolveLaneOnboardingPath } from '../../lib/finelyCtaIntent';
 import { findPartnerByEmail, upsertPartner } from '../../data/partnersRepo';
 import { withPreferredVoice } from '../../lib/haitianVoice';
 import { FunnelLeadCaptureForm, type FunnelLeadCaptureCopy } from './FunnelLeadCaptureForm';
+import { LeadMagnetCallSlaCard } from './LeadMagnetCallSlaCard';
+import { isDesignConversionFunnelId } from '../../lib/funnelConversionDesign';
 import { FunnelCollectionDisputePanel } from './FunnelCollectionDisputePanel';
 import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
 import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubLayout';
@@ -51,17 +53,32 @@ import {
 
 const KREYOL_CAPTURE_COPY: FunnelLeadCaptureCopy = {
   accessLabel: 'Aksè gratis',
-  unlockTitle: 'Voye kat feyè yo.',
-  chips: ['Kat kit', 'Haitian community', '0 $ jodi a'],
+  unlockTitle: 'Pran gid Kreyòl la.',
+  chips: ['Gid Kreyòl', 'Biwo Ayisyen', '0 $ jodi a'],
   firstName: 'Non',
   lastName: 'Siyati',
   email: 'Imèl',
-  phone: 'Telefòn',
+  phone: 'Telefòn (obligatwa)',
   consent: 'M dakò pou yo kontakte m sou telechajman an (obligatwa).',
   marketing: 'Voye konsèy kredi pa imèl (opsyonèl).',
   sending: 'Ap voye…',
   noCard: 'Pa bezwen kat',
-  secure: 'Livrezon sekirite',
+  secure: 'Nou pral rele w',
+};
+
+const RESTORE_WEALTH_CAPTURE_COPY: FunnelLeadCaptureCopy = {
+  accessLabel: 'Restore for wealth',
+  unlockTitle: 'Leave a number — we call you.',
+  chips: ['Phone required', '1-day call', '$0 today'],
+  firstName: 'First name',
+  lastName: 'Last name',
+  email: 'Email',
+  phone: 'Phone (required)',
+  consent: 'I agree to be called about this restore-for-wealth guide (required).',
+  marketing: 'Send me restore and funding education by email (optional).',
+  sending: 'Sending…',
+  noCard: 'No credit card',
+  secure: 'We’ll call you',
 };
 
 type Step = 'landing' | 'form' | 'success' | 'download';
@@ -159,7 +176,14 @@ export function LeadMagnetFunnelShell({
     setErr(null);
     if (!firstName.trim() || !lastName.trim()) return setErr('Enter your first and last name.');
     if (!email.trim() || !email.includes('@')) return setErr('Enter a valid email.');
-    if (!phone.trim()) return setErr('Enter your phone number.');
+    const phoneDigits = phone.replace(/\D/g, '');
+    if (phoneDigits.length < 10 || phoneDigits.length > 15) {
+      return setErr(
+        activeConfig.id === 'kreyol'
+          ? 'Antre yon nimewo telefòn valab (10–15 chif).'
+          : 'Enter a valid phone number (10–15 digits).',
+      );
+    }
     if (!consent) return setErr('Consent is required to receive the guide.');
 
     setBusy(true);
@@ -340,9 +364,10 @@ export function LeadMagnetFunnelShell({
                 marketing={marketing}
                 busy={busy}
                 err={err}
-                submitLabel={ctaOverride ?? 'Get the free kit'}
+                submitLabel={ctaOverride ?? 'Get the free letter guide'}
                 totalValue={totalValue}
                 trustLabel={trustLabel}
+                variant="hero"
                 onFirstNameChange={setFirstName}
                 onLastNameChange={setLastName}
                 onEmailChange={setEmail}
@@ -377,7 +402,14 @@ export function LeadMagnetFunnelShell({
                 submitLabel={ctaOverride ?? getLeadMagnetPremiumProfile(activeConfig)?.captureHeadline ?? 'Get free access'}
                 totalValue={totalValue}
                 trustLabel={trustLabel}
-                copy={activeConfig.id === 'kreyol' ? KREYOL_CAPTURE_COPY : undefined}
+                variant={isDesignConversionFunnelId(activeConfig.id) ? 'hero' : 'default'}
+                copy={
+                  activeConfig.id === 'kreyol'
+                    ? KREYOL_CAPTURE_COPY
+                    : activeConfig.id === 'restore_wealth'
+                      ? RESTORE_WEALTH_CAPTURE_COPY
+                      : undefined
+                }
                 onFirstNameChange={setFirstName}
                 onLastNameChange={setLastName}
                 onEmailChange={setEmail}
@@ -523,10 +555,12 @@ export function LeadMagnetFunnelShell({
               <Check className="w-12 h-12 text-emerald-400 mx-auto mb-4" />
               <h2 className="text-2xl font-black mb-2">{premiumProfile?.successHeadline ?? "You're in!"}</h2>
               <p className="text-white/70">
-                Reference {leadId}. {staffName}, your {staffTitle}, is on your team and will follow up by email.
+                Reference {leadId}. {staffName}, your {staffTitle}, is on your team.
                 {trialActive ? ` Your ${LEAD_MAGNET_TRIAL_DAYS}-day portal preview is active.` : ''}
               </p>
             </div>
+
+            <LeadMagnetCallSlaCard bookingUrl={bookingUrl} kreyol={activeConfig.id === 'kreyol'} />
 
             <div className="rounded-2xl border border-emerald-500/25 bg-black/25 p-4 flex items-center gap-4">
               {assignedStaff ? (

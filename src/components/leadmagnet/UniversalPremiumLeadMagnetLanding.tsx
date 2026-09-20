@@ -14,6 +14,9 @@ import {
   themeCssVars,
 } from './leadMagnetVisualThemes';
 import { LeadMagnetMediaStage } from './LeadMagnetMediaStage';
+import { FunnelHeroProofStrip } from './FunnelHeroProofStrip';
+import { resolveBrandEbookCoverForFunnel } from './brandEbookCovers';
+import { isDesignConversionFunnelId } from '../../lib/funnelConversionDesign';
 
 type Props = {
   config: LeadMagnetFunnelConfig;
@@ -79,6 +82,9 @@ export function UniversalPremiumLeadMagnetLanding({
   if (!profile) return null;
 
   const cta = ctaOverride ?? profile.captureHeadline;
+  const conversionLane = isDesignConversionFunnelId(config.id);
+  const brandCover = resolveBrandEbookCoverForFunnel(config);
+  const heroCover = brandCover ?? heroImage;
   return (
     <div
       className={`lm-page lm-flyer-page lm-flyer-slim min-h-screen pb-10 ${theme.meshClass}`}
@@ -89,7 +95,7 @@ export function UniversalPremiumLeadMagnetLanding({
       {/* 1. Short hero */}
       <header className="lm-flyer-hero-band lm-flyer-hero-band--slim pt-16 sm:pt-20">
         <div className="lm-flyer-hero-band-img">
-          <img src={heroImage} alt={theme.heroImageAlt} loading="eager" />
+          <img src={heroCover} alt={theme.heroImageAlt} loading="eager" />
           <div className="lm-flyer-hero-band-overlay" />
         </div>
         <div className="fc-viewport-floor relative z-[2]">
@@ -98,37 +104,64 @@ export function UniversalPremiumLeadMagnetLanding({
               <p className="lm-flyer-category">{flyer.categoryLabel}</p>
               <h1 className="lm-flyer-headline">
                 {headlineOverride ?? (
-                  <>
-                    {powerLines.map((line, i) => (
-                      <span key={line} className={i === 0 ? 'lm-text-theme-gradient' : ''}>
-                        {line}.
-                        {i < powerLines.length - 1 ? <br /> : null}
-                      </span>
-                    ))}
-                  </>
+                  conversionLane ? (
+                    <>
+                      {config.heroHeadline}{' '}
+                      <span className="lm-text-theme-gradient">{config.heroHighlight}</span>
+                    </>
+                  ) : (
+                    <>
+                      {powerLines.map((line, i) => (
+                        <span key={line} className={i === 0 ? 'lm-text-theme-gradient' : ''}>
+                          {line}.
+                          {i < powerLines.length - 1 ? <br /> : null}
+                        </span>
+                      ))}
+                    </>
+                  )
                 )}
               </h1>
               <div className="lm-flyer-pill">{config.urgencyText}</div>
               <p className="lm-flyer-sub">
-                {config.heroHeadline}{' '}
-                <strong className="lm-flyer-highlight">{config.heroHighlight}</strong> {config.heroSub}
+                {conversionLane ? config.heroSub : (
+                  <>
+                    {config.heroHeadline}{' '}
+                    <strong className="lm-flyer-highlight">{config.heroHighlight}</strong> {config.heroSub}
+                  </>
+                )}
               </p>
               <p className="lm-flyer-desc">{guide.desc}</p>
-              <div className="mt-5 flex flex-wrap items-center gap-3">
-                <button type="button" onClick={onGoForm} className="lm-cta-theme">
-                  {cta} <ArrowRight className="w-4 h-4" />
-                </button>
-                <a href="#fg-preview" className="lm-flyer-secondary-link">
-                  {config.id === 'kreyol' ? 'Gade kit la ↓' : 'Preview the kit ↓'}
-                </a>
-                <Link to={bookingPath} className="lm-flyer-secondary-link inline-flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5" /> {joinOrBookLabel}
-                </Link>
-              </div>
+              {conversionLane ? (
+                <>
+                  <div id="fg-capture" className="lm-capture-card fc-mobile-form-compact mt-5 scroll-mt-24">
+                    <p className="text-center text-sm text-white/50 mb-4 pb-4 border-b border-white/10">
+                      {staffName} · {staffTitle}
+                    </p>
+                    {captureForm}
+                    <p className="mt-3 text-center text-xs text-white/40">
+                      <Lock className="w-3 h-3 inline mr-1" />
+                      ${totalValue}+ value · {LEAD_MAGNET_TRIAL_DAYS}-day portal · {trustLabel} partners
+                    </p>
+                  </div>
+                  <FunnelHeroProofStrip kreyol={config.id === 'kreyol'} tone="dark" className="mt-4" />
+                </>
+              ) : (
+                <div className="mt-5 flex flex-wrap items-center gap-3">
+                  <button type="button" onClick={onGoForm} className="lm-cta-theme">
+                    {cta} <ArrowRight className="w-4 h-4" />
+                  </button>
+                  <a href="#fg-preview" className="lm-flyer-secondary-link">
+                    {config.id === 'kreyol' ? 'Gade kit la ↓' : 'Preview the kit ↓'}
+                  </a>
+                  <Link to={bookingPath} className="lm-flyer-secondary-link inline-flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5" /> {joinOrBookLabel}
+                  </Link>
+                </div>
+              )}
             </div>
 
-            <div className="lm-flyer-hero-thumb" aria-hidden>
-              <img src={heroImage} alt="" loading="lazy" />
+            <div className="lm-flyer-hero-thumb" aria-hidden={!conversionLane}>
+              <img src={heroCover} alt={conversionLane ? theme.heroImageAlt : ''} loading="eager" />
               <div className="lm-flyer-hero-thumb-overlay" />
             </div>
           </div>
@@ -147,10 +180,12 @@ export function UniversalPremiumLeadMagnetLanding({
           benefitsTitle={flyer.benefitsTitle}
           taglineBar={flyer.taglineBar}
           onGoForm={onGoForm}
+          hideVideo={conversionLane}
+          coverImageUrl={brandCover}
         />
       </div>
 
-      {/* 3. Soft capture */}
+      {conversionLane ? null : (
       <section id="fg-capture" className="container mx-auto max-w-lg px-4 sm:px-6 mt-8 scroll-mt-24">
         <h2 className="lm-flyer-section-title text-center">{profile.captureHeadline}</h2>
         <p className="text-center text-base text-white/55 mt-2 mb-5">{profile.captureSub}</p>
@@ -171,6 +206,7 @@ export function UniversalPremiumLeadMagnetLanding({
           </Link>
         </p>
       </section>
+      )}
 
       {/* 4. Secondary CTA banner */}
       <section className="fc-viewport-floor mt-8">
@@ -185,6 +221,7 @@ export function UniversalPremiumLeadMagnetLanding({
               {cta}
               <ArrowRight className="w-5 h-5" />
             </button>
+            {conversionLane ? null : (
             <Link
               to={bookingPath}
               className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 px-5 py-3 text-sm font-semibold text-white/80 hover:bg-white/5 transition"
@@ -192,6 +229,7 @@ export function UniversalPremiumLeadMagnetLanding({
               <Calendar className="w-4 h-4" />
               {joinOrBookLabel}
             </Link>
+            )}
           </div>
         </div>
       </section>

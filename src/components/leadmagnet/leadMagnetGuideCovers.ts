@@ -33,6 +33,12 @@ const COVERS: Record<string, GuideCoverArt> = {
     accent: '#6ee7b7',
     kicker: 'Dispute letter guide',
   },
+  'restore-for-wealth-guide': {
+    gradient: 'linear-gradient(145deg, #060908 0%, #0a100e 45%, #1a1408 100%)',
+    spine: 'linear-gradient(180deg, #fde68a, #fbbf24, #b45309)',
+    accent: '#fbbf24',
+    kicker: 'Restore for wealth',
+  },
   'score-boost-72-roadmap': {
     gradient: 'linear-gradient(145deg, #052e1a 0%, #022c22 45%, #059669 100%)',
     spine: 'linear-gradient(180deg, #6ee7b7, #34d399, #fbbf24)',

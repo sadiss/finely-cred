@@ -114,6 +114,10 @@
   margin-top: 1.25rem;
 }
 
+.cgp-hero-capture {
+  width: 100%;
+}
+
 /* Under-hero row: signup LEFT + large video RIGHT */
 .cgp-capture-video-row {
   display: grid;
