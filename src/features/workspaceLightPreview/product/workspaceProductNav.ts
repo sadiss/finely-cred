@@ -435,6 +435,8 @@ export const ADMIN_PRODUCT_NAV: WorkspaceProductNavItem[] = [
   admin('lead-acquisition', 'Lead acquisition', '/admin/lead-acquisition', Network, 'violet', 'Channel spend, sourcing, and acquisition economics.', 'growth', 'secondary', 'studio'),
   admin('lead-intel', 'Lead intel', '/admin/lead-intel', FileSearch, 'sky', 'Enrichment and research on inbound prospects.', 'growth', 'secondary'),
   admin('lead-magnets', 'Lead magnets', '/admin/lead-magnets', Sparkles, 'emerald', 'Guides and funnels that capture new partners.', 'growth', 'secondary', 'light', 'daily'),
+  admin('ebook-conversions', 'Ebook conversion', '/admin/ebook-conversions', BookOpen, 'sky', 'See which free guides converted in the last 7, 14, and 30 days.', 'growth', 'secondary', 'studio'),
+  admin('partner-library', 'Partner library', '/admin/partner-library', LibraryBig, 'rose', 'Browse researched referral partners without downloading a CSV.', 'growth', 'secondary', 'studio'),
   admin('marketing-desk', 'Marketing desk', '/admin/marketing-desk', Newspaper, 'violet', 'Day-to-day campaign execution desk.', 'growth', 'secondary', 'studio', 'daily'),
   admin('cmo', 'Marketing director', '/admin/cmo', Crown, 'rose', 'Strategy view of positioning, spend, and pipeline.', 'growth', 'secondary', 'studio'),
   admin('growth-command', 'Growth overview', '/admin/growth-command', TrendingUp, 'emerald', 'See growth targets, experiments, and weekly movement.', 'growth', 'secondary', 'studio'),

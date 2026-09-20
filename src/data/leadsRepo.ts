@@ -146,7 +146,9 @@ export async function submitLeadCapture(
       utm_source: lead.utmSource ?? null,
       utm_medium: lead.utmMedium ?? null,
       utm_campaign: lead.utmCampaign ?? null,
+      utm_content: lead.utmContent ?? null,
       funnel_path: lead.funnelPath ?? null,
+      funnel_id: lead.funnelId ?? funnelId ?? null,
     });
     if (error) return { lead, remote: 'failed', remoteError: error.message };
     return { lead, remote: 'ok' };

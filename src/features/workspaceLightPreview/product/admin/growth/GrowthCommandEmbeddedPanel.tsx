@@ -27,6 +27,8 @@ const LANE_TOOLS: Record<
 > = {
   promote: [
     { title: 'Lead Magnets', detail: 'Funnels, heroes, capture forms', href: '/admin/lead-magnets', accent: 'emerald', purpose: 'Capture intent' },
+    { title: 'Ebook conversion', detail: '7 / 14 / 30 day guide captures', href: '/admin/ebook-conversions', accent: 'sky', purpose: 'See conversions' },
+    { title: 'Partner library', detail: 'Researched partners — no CSV', href: '/admin/partner-library', accent: 'violet', purpose: 'Browse HOLD list' },
     { title: 'Social Hub', detail: 'Meta scheduling, inbox, autopilot', href: '/admin/social-hub', accent: 'sky', purpose: 'Organic reach' },
     { title: 'Content Studio', detail: 'Video, e-books, publish bridges', href: '/admin/marketing?tab=content', accent: 'violet', purpose: 'Create assets' },
     { title: 'Marketing Director', detail: 'Campaigns, angles, channel mix', href: '/admin/cmo', accent: 'fuchsia', purpose: 'Strategy' },

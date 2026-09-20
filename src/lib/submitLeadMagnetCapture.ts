@@ -82,6 +82,7 @@ export async function submitLeadMagnetCapture(args: LeadMagnetCaptureInput): Pro
     utmSource: attr?.utmSource,
     utmMedium: attr?.utmMedium,
     utmCampaign: attr?.utmCampaign,
+    utmContent: attr?.utmContent,
     funnelPath: args.funnelConfig.path,
     guideId: args.funnelConfig.guideId,
     guideTitle: guide?.title,
@@ -105,8 +106,27 @@ export async function submitLeadMagnetCapture(args: LeadMagnetCaptureInput): Pro
     leadId: result.lead.id,
     payload: { guideId: args.funnelConfig.guideId, agentPersonaId: args.funnelConfig.agentPersonaId },
   });
-  if (attr?.referralCode) {
-    addLeadNote(result.lead.id, `Referral: ${attr.referralCode}`);
+  if (attr?.referralCode || attr?.utmSource || attr?.utmCampaign || args.funnelConfig.id === 'partner_refer') {
+    const bits = [
+      attr?.referralCode ? `ref=${attr.referralCode}` : null,
+      attr?.utmSource ? `utm_source=${attr.utmSource}` : null,
+      attr?.utmMedium ? `utm_medium=${attr.utmMedium}` : null,
+      attr?.utmCampaign ? `utm_campaign=${attr.utmCampaign}` : null,
+      attr?.utmContent ? `utm_content=${attr.utmContent}` : null,
+    ].filter(Boolean);
+    addLeadNote(
+      result.lead.id,
+      args.funnelConfig.id === 'partner_refer'
+        ? `Partner referral capture · ${bits.join(' · ') || 'no ref/UTM on URL'}`
+        : `Referral: ${bits.join(' · ')}`,
+    );
+  }
+  if (args.funnelConfig.id === 'partner_refer') {
+    addLeadTags(result.lead.id, [
+      'partner_refer',
+      'warm_capture',
+      ...(attr?.referralCode ? [`ref:${attr.referralCode}`] : []),
+    ]);
   }
   if (isCreditSpecialistLeadOffer(args.funnelConfig.offer)) {
     addLeadTags(result.lead.id, [
