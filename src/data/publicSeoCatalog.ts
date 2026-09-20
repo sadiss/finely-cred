@@ -342,6 +342,20 @@ export const PUBLIC_SEO_CATALOG: PublicSeoRoute[] = [
     hasSchema: true,
   },
   {
+    path: '/partners/refer',
+    title: 'Partner referral — credit restore | Finely Cred',
+    description:
+      'A trusted partner referred you to Finely Cred. Leave your name, email, and phone — we call within 1 business day to map a credit restore and wealth plan.',
+    hasSchema: true,
+  },
+  {
+    path: '/partner-refer',
+    title: 'Partner referral — credit restore | Finely Cred',
+    description:
+      'A trusted partner referred you to Finely Cred. Leave your name, email, and phone — we call within 1 business day to map a credit restore and wealth plan.',
+    hasSchema: true,
+  },
+  {
     path: '/credit-specialists',
     title: 'Credit specialists',
     description: 'Join the Finely Cred specialist network and grow your agency.',

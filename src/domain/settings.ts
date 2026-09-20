@@ -92,6 +92,12 @@ export interface SiteSettings {
   postLoginWelcome?: PostLoginWelcomeSettings;
   /** Lead magnet trust line — "Join {n}+ customers" (Phase 11). */
   funnelTrustClientCount?: number;
+  /**
+   * Public warm-capture call promise.
+   * Unset = “We’ll call within 1 business day”.
+   * Set to hours (e.g. 4, 24) to override thank-you copy.
+   */
+  leadMagnetCallSlaHours?: number;
 }
 
 export type PostLoginWelcomeSettings = {
