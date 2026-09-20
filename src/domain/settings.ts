@@ -141,6 +141,8 @@ export interface FeatureFlags {
   commsDelivery: boolean;
   /** Enable Lead Intelligence Agent (prospecting/search/enrichment). */
   leadIntel: boolean;
+  /** Enable Partner Prospector (SFL referral-partner batches). Default on for admin. */
+  partnerProspector: boolean;
   /** Enable CRM pipelines (prospects + lead ops). */
   crm: boolean;
   auMarketplace: boolean;
@@ -284,6 +286,7 @@ export const DEFAULT_SETTINGS: PlatformSettings = {
     inviteDelivery: false,
     commsDelivery: false,
     leadIntel: false,
+    partnerProspector: true,
     crm: true,
     auMarketplace: true,
     businessPortal: true,

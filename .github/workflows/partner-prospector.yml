@@ -1,0 +1,46 @@
+# Partner Prospector scheduled/manual runner.
+# Default: OFF in production until explicitly configured.
+#
+# Enable the Monday cron only after setting repo variable:
+#   PARTNER_PROSPECTOR_SCHEDULE_ENABLED=true
+# And secrets:
+#   SUPABASE_URL
+#   PARTNER_PROSPECTOR_BEARER  (admin JWT or service token accepted by the edge function)
+#
+# workflow_dispatch can still be used for a dry check; the job exits 0 when secrets are missing.
+
+name: Partner Prospector
+
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: 'Batch size'
+        required: false
+        default: '50'
+  schedule:
+    - cron: '0 14 * * 1'
+
+jobs:
+  prospect:
+    name: Run referral-partner batch
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || vars.PARTNER_PROSPECTOR_SCHEDULE_ENABLED == 'true' }}
+    steps:
+      - name: Invoke partner-prospector (or skip if unconfigured)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          PARTNER_PROSPECTOR_BEARER: ${{ secrets.PARTNER_PROSPECTOR_BEARER }}
+          LIMIT: ${{ github.event.inputs.limit || '50' }}
+        run: |
+          set -euo pipefail
+          if [ -z "${SUPABASE_URL:-}" ] || [ -z "${PARTNER_PROSPECTOR_BEARER:-}" ]; then
+            echo "Partner Prospector is registered but secrets are not configured. Skipping (scheduled job stays off)."
+            exit 0
+          fi
+          curl -sS -X POST "${SUPABASE_URL}/functions/v1/partner-prospector" \
+            -H "Authorization: Bearer ${PARTNER_PROSPECTOR_BEARER}" \
+            -H "Content-Type: application/json" \
+            -d "{\"action\":\"discover\",\"limit\":${LIMIT},\"verticals\":[\"tax\",\"bhph\",\"realtor\",\"mortgage\",\"immigration\"]}"
+          echo
+          echo "Discover only. Scoring + persist still run from admin / prospectReferralPartners. No email is sent."

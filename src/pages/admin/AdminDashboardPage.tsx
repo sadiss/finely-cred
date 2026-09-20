@@ -122,6 +122,14 @@ export default function AdminDashboardPage() {
       hidden: !opsCaps.canManageTenants,
     },
     {
+      title: 'Partner Prospector',
+      description: 'Outbound-quality SFL referral partners (tax, BHPH, realtor, mortgage, immigration). Score, why_fit, CRM dedupe, CSV export. Never auto-emails.',
+      path: '/admin/partner-prospector',
+      icon: BriefcaseBusiness,
+      stat: 'Referral ICP',
+      hidden: !opsCaps.canManageTenants,
+    },
+    {
       title: 'Automation Studio',
       description: 'Run long-horizon automations and “agents” (follow-ups, reminders, nudges).',
       path: '/admin/automations',
@@ -348,7 +356,7 @@ export default function AdminDashboardPage() {
         title: 'Automation & AI',
         subtitle: 'Assistants, automations, and generation tools.',
         defaultOpen: false,
-        cards: take(['/admin/automations', '/admin/ops-agent', '/admin/lead-intel', '/admin/media-studio']),
+        cards: take(['/admin/automations', '/admin/ops-agent', '/admin/lead-intel', '/admin/partner-prospector', '/admin/media-studio']),
       },
       {
         key: 'platform',

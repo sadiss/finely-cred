@@ -93,6 +93,7 @@ const AdminFinanceAllocatorPage = lazy(() => import('./pages/admin/AdminFinanceA
 const AdminMonitoringPage = lazy(() => import('./pages/admin/AdminMonitoringPage'));
 const AdminCrmPage = lazy(() => import('./pages/admin/AdminCrmPage'));
 const AdminLeadIntelPage = lazy(() => import('./pages/admin/AdminLeadIntelPage'));
+const AdminPartnerProspectorPage = lazy(() => import('./pages/admin/AdminPartnerProspectorPage'));
 const AdminMediaStudioPage = lazy(() => import('./pages/admin/AdminMediaStudioPage'));
 const AdminNoraCapitalPage = lazy(() => import('./pages/admin/AdminNoraCapitalPage'));
 const AdminProductsPage = lazy(() => import('./pages/admin/AdminProductsPage'));
@@ -1852,6 +1853,14 @@ function AppInner() {
           element={
             <ProtectedAdminRoute>
               <AdminLeadIntelPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/partner-prospector"
+          element={
+            <ProtectedAdminRoute>
+              <AdminPartnerProspectorPage />
             </ProtectedAdminRoute>
           }
         />

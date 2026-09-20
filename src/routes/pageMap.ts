@@ -103,6 +103,7 @@ export const ADMIN_ROUTES: RouteSpec[] = [
   { path: '/admin/monitoring', title: 'Monitoring', badge: 'Admin' },
   { path: '/admin/crm', title: 'CRM', badge: 'Admin' },
   { path: '/admin/lead-intel', title: 'Lead Intelligence Agent', badge: 'Admin' },
+  { path: '/admin/partner-prospector', title: 'Partner Prospector', badge: 'Admin' },
   { path: '/admin/workflow', title: 'Workflow Queue', badge: 'Admin' },
   { path: '/admin/courses', title: 'Courses', badge: 'Admin' },
   { path: '/admin/media-studio', title: 'AI Media Studio', badge: 'Admin' },

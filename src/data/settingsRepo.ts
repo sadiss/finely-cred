@@ -72,6 +72,7 @@ export function loadSettings(): PlatformSettings {
             inviteDelivery: true,
             commsDelivery: true,
             leadIntel: true,
+            partnerProspector: true,
             courses: true,
             videoStudio: true,
             wealthPaths: true,

@@ -61,6 +61,7 @@ const GROUPS: NavGroup[] = [
       { path: '/admin/automations', label: 'Automation Studio', icon: Bot, hint: 'Run automations' },
       { path: '/admin/ops-agent', label: 'Ops Agent', icon: Crown, hint: 'Daily priorities' },
       { path: '/admin/lead-intel', label: 'Lead Intel', icon: Sparkles, hint: 'Prospect enrichment' },
+      { path: '/admin/partner-prospector', label: 'Partner Prospector', icon: BriefcaseBusiness, hint: 'SFL referral partners' },
       { path: '/admin/media-studio', label: 'Media Studio', icon: Film, hint: 'Generate assets' },
     ],
   },
