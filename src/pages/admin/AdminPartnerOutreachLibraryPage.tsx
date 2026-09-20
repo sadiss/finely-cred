@@ -148,11 +148,11 @@ export default function AdminPartnerOutreachLibraryPage({ embedded = false }: Ad
         </div>
 
         <div className="grid lg:grid-cols-12 gap-4 items-start">
-          <div className={`lg:col-span-8 ${finelyOsCatalogCard('violet')} p-4 space-y-3`} data-fc-accent="violet">
+          <div className="lg:col-span-8 rounded-2xl border border-white/10 bg-[#0a100e] p-4 space-y-3 text-white">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[720px] text-left text-sm">
                 <thead>
-                  <tr className={`${FINELY_OS_ENTITY_SUBLABEL} border-b border-white/10`}>
+                  <tr className="text-[11px] uppercase tracking-wider text-amber-100/70 border-b border-white/10">
                     <th className="py-2 pr-3 font-semibold">Partner</th>
                     <th className="py-2 pr-3 font-semibold">Corridor</th>
                     <th className="py-2 pr-3 font-semibold">Metro</th>
@@ -172,18 +172,18 @@ export default function AdminPartnerOutreachLibraryPage({ embedded = false }: Ad
                   key={row.partnerId}
                   type="button"
                   onClick={() => setSelectedId(row.partnerId)}
-                  className={`w-full text-left grid grid-cols-5 gap-2 px-2 py-2.5 border-b border-white/5 hover:bg-white/5 ${
-                    selected?.partnerId === row.partnerId ? 'bg-amber-400/10' : ''
+                  className={`w-full text-left grid grid-cols-5 gap-2 px-2 py-2.5 border-b border-white/10 hover:bg-white/10 ${
+                    selected?.partnerId === row.partnerId ? 'bg-amber-400/15' : ''
                   }`}
                 >
                   <div className="min-w-0">
-                    <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{row.businessName || row.personName || row.partnerId}</div>
-                    <div className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono normal-case`}>{row.partnerId}</div>
+                    <div className="truncate font-semibold text-white">{row.businessName || row.personName || row.partnerId}</div>
+                    <div className="font-mono text-[11px] text-amber-100/60">{row.partnerId}</div>
                   </div>
-                  <div className={`${FINELY_OS_ENTITY_BODY} capitalize`}>{row.corridor}</div>
-                  <div className={`${FINELY_OS_ENTITY_BODY} truncate`}>{row.metro}</div>
-                  <div className={`${FINELY_OS_ENTITY_BODY} truncate`}>{row.category}</div>
-                  <div className={`${FINELY_OS_ENTITY_BODY} truncate`}>
+                  <div className="capitalize text-white/80">{row.corridor}</div>
+                  <div className="truncate text-white/80">{row.metro}</div>
+                  <div className="truncate text-white/80">{row.category}</div>
+                  <div className="truncate text-white/80">
                     {row.hasPhoneAndEmail ? 'Phone + email' : row.hasPhone ? 'Phone' : row.hasEmail ? 'Email' : 'Missing'}
                   </div>
                 </button>
