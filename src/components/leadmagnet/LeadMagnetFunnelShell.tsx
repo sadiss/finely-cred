@@ -402,6 +402,7 @@ export function LeadMagnetFunnelShell({
                 submitLabel={ctaOverride ?? getLeadMagnetPremiumProfile(activeConfig)?.captureHeadline ?? 'Get free access'}
                 totalValue={totalValue}
                 trustLabel={trustLabel}
+                embedded={isDesignConversionFunnelId(activeConfig.id)}
                 variant={isDesignConversionFunnelId(activeConfig.id) ? 'hero' : 'default'}
                 copy={
                   activeConfig.id === 'kreyol'

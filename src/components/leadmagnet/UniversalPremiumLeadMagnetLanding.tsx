@@ -122,7 +122,7 @@ export function UniversalPremiumLeadMagnetLanding({
                 )}
               </h1>
               <div className="lm-flyer-pill">{config.urgencyText}</div>
-              <p className="lm-flyer-sub">
+              <p className={`lm-flyer-sub ${conversionLane ? 'max-sm:line-clamp-3' : ''}`}>
                 {conversionLane ? config.heroSub : (
                   <>
                     {config.heroHeadline}{' '}
@@ -130,11 +130,11 @@ export function UniversalPremiumLeadMagnetLanding({
                   </>
                 )}
               </p>
-              <p className="lm-flyer-desc">{guide.desc}</p>
+              <p className={`lm-flyer-desc ${conversionLane ? 'line-clamp-3' : ''}`}>{guide.desc}</p>
               {conversionLane ? (
                 <>
                   <div id="fg-capture" className="lm-capture-card fc-mobile-form-compact mt-5 scroll-mt-24">
-                    <p className="text-center text-sm text-white/50 mb-4 pb-4 border-b border-white/10">
+                    <p className="mb-3 hidden text-center text-xs text-white/50 sm:block">
                       {staffName} · {staffTitle}
                     </p>
                     {captureForm}
@@ -160,9 +160,9 @@ export function UniversalPremiumLeadMagnetLanding({
               )}
             </div>
 
-            <div className="lm-flyer-hero-thumb" aria-hidden={!conversionLane}>
+            <div className={`lm-flyer-hero-thumb ${conversionLane ? 'lm-flyer-hero-thumb--cover' : ''}`} aria-hidden={!conversionLane}>
               <img src={heroCover} alt={conversionLane ? theme.heroImageAlt : ''} loading="eager" />
-              <div className="lm-flyer-hero-thumb-overlay" />
+              {conversionLane ? null : <div className="lm-flyer-hero-thumb-overlay" />}
             </div>
           </div>
         </div>
