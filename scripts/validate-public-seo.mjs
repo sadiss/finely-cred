@@ -50,6 +50,12 @@ if (fs.existsSync(robotsPath)) {
   } else {
     console.log('✓ robots.txt Sitemap directive');
   }
+  if (!/canonical host:\s*https:\/\/finelycred\.com/i.test(robots)) {
+    console.log('✗ robots.txt missing apex canonical-host note');
+    failed += 1;
+  } else {
+    console.log('✓ robots.txt documents apex canonical host');
+  }
 }
 
 const catalog = fs.existsSync(catalogPath)
@@ -75,6 +81,12 @@ if (dupeTitles.length) {
 
 if (fs.existsSync(sitemapPath)) {
   const xml = fs.readFileSync(sitemapPath, 'utf8');
+  if (!xml.startsWith('<?xml') || !xml.includes('<urlset') || !xml.includes('</urlset>')) {
+    console.log('✗ sitemap.xml is not well-formed XML (would 500 / fail fetch)');
+    failed += 1;
+  } else {
+    console.log('✓ sitemap.xml well-formed');
+  }
   const urls = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
   if (urls.length < 80) {
     console.log(`✗ sitemap.xml too few URLs (${urls.length})`);

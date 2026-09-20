@@ -10,6 +10,12 @@
   # Alias consolidation (do not collapse /free-kreyol-guide into /haitian).
   RewriteRule ^blog(/.*)?$ /resources [R=301,L]
 
+  # Soft-404: /learn is not a published hub (must run before the SPA catch-all).
+  RewriteRule ^learn(/.*)?$ - [R=404,L]
+
+  # Never send crawler files through the SPA shell (avoids sitemap 500s).
+  RewriteRule ^(sitemap\.xml|robots\.txt)$ - [L]
+
   # Serve real files and directories (assets, /faq/index.html, sitemap, robots).
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d
