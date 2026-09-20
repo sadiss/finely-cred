@@ -10,6 +10,7 @@ import { finelyCtaNavigate } from '../../lib/finelyCtaIntent';
 import {
   HAITIAN_DESK_LIVE_PATH,
   HAITIAN_HEAR_IT_LINES,
+  HAITIAN_KIT_PATH,
   HAITIAN_LETTER_SAMPLES,
   HAITIAN_PLACE_CARDS,
   HAITIAN_STAFF_IDS,
@@ -87,6 +88,9 @@ export default function HaitianCompanionDeskPage() {
               <button type="button" className="ht-desk-btn-secondary" onClick={bookSession}>
                 Book a session
               </button>
+              <Link className="ht-desk-btn-secondary" to={HAITIAN_KIT_PATH}>
+                Free Kreyol kits
+              </Link>
             </div>
             <p className="ht-desk-compliance">
               Results vary · not legal advice · funding subject to underwriting · Rezilta yo varye
