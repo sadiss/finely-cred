@@ -210,7 +210,7 @@ export default function AdminPartnerOutreachLibraryPage({ embedded = false }: Ad
                 </div>
                 <div className={`${FINELY_OS_ENTITY_SUBLABEL} uppercase`}>{selected.outreachStatus}</div>
                 <p className={`${FINELY_OS_ENTITY_BODY} text-xs`}>
-                  Credit restore referrals only. Do not pitch “credit repair.” Do not send this list as a blast.
+                  Credit restore referrals only. No repair-shop hype. Do not send this list as a blast.
                 </p>
               </>
             ) : (
