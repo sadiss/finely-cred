@@ -21,8 +21,9 @@ const body = `Finely Cred — deploy handoff
 Generated: ${built}
 
 FRONTEND (this artifact)
-- Upload entire dist/ folder to Vercel, Netlify, or Cloudflare Pages
-- SPA fallback: _redirects + _routes.json included
+- Upload entire dist/ folder to Vercel, Netlify, Cloudflare Pages, or Bluehost
+- Public marketing routes ship as prerendered HTML (unique title / H1 / JSON-LD)
+- App/auth/portal fallback: spa-fallback.html (noindex) via _redirects / .htaccess / vercel.json
 - Security: _headers + security.txt + .well-known/security.txt included
 - PWA: manifest.webmanifest + sw.js included
 

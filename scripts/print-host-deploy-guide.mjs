@@ -69,7 +69,7 @@ if (host === 'cloudflare' || host === 'any') {
 if (host === 'any') {
   console.log('── Any static host ──');
   console.log('npm run build → upload dist/ folder');
-  console.log('Ensure SPA fallback: all routes → index.html (200)');
+  console.log('Bluehost: upload dist/ including .htaccess. Existing files (prerendered /faq/index.html) win; other routes → spa-fallback.html (noindex).');
   console.log('Local preview: npm run start → http://127.0.0.1:8080\n');
 }
 

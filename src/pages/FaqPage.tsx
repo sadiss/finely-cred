@@ -3,6 +3,7 @@ import { ArrowLeft, ChevronDown, HelpCircle, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../components/layout/PageShell';
 import { usePublicSeoMeta } from '../hooks/usePublicSeoMeta';
+import { PUBLIC_FAQ_ITEMS } from '../data/publicFaq';
 import { FinelyOsPageFooter } from '../features/os/FinelyOsPageFooter';
 import { FinelyOsPaginatedStack } from '../features/os/FinelyOsPaginatedStack';
 import { FinelyUnifiedHubLayout } from '../features/unified/FinelyUnifiedHubLayout';
@@ -35,10 +36,11 @@ const codeChip = 'px-1.5 py-0.5 rounded bg-white/10 font-mono text-xs text-emera
 export default function FaqPage() {
   const navigate = useNavigate();
   usePublicSeoMeta({
-    title: 'FAQ — Finely Cred',
+    title: 'Credit restore FAQ',
     description:
       'Clear answers about credit restore, disputes, tradelines, billing, and how partners work with Finely Cred.',
     path: '/faq',
+    faqs: PUBLIC_FAQ_ITEMS.map((item) => ({ q: item.q, a: item.a })),
   });
   const [openId, setOpenId] = useState<string | null>('getting-started');
   const [query, setQuery] = useState('');
@@ -47,12 +49,12 @@ export default function FaqPage() {
     () => [
       {
         id: 'what-is-credit-repair',
-        q: 'What is credit repair?',
-        searchText: 'what is credit repair definition disputes errors inaccuracies bureaus furnishers',
+        q: 'What is credit restore?',
+        searchText: 'what is credit restore credit repair definition disputes errors inaccuracies bureaus furnishers',
         a: (
           <div className="space-y-2">
             <p>
-              Credit repair is the work of finding information on your reports that may be inaccurate, incomplete,
+              Credit restore is the work of finding information on your reports that may be inaccurate, incomplete,
               duplicated, or outdated, then challenging it with the bureaus and the companies that furnished it.
             </p>
             <p className={muted}>
@@ -138,7 +140,7 @@ export default function FaqPage() {
       },
       {
         id: 'how-long-does-it-take',
-        q: 'How long does credit repair take?',
+        q: 'How long does credit restore take?',
         searchText: 'timeline how long does it take 30 days 45 days rounds bureau response',
         a: (
           <div className="space-y-2">

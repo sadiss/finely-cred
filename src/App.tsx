@@ -46,7 +46,6 @@ import { isAdminEmail } from './auth/admin';
 import { resolveHaitianCommunityHref } from './lib/haitianCompanionDesk';
 import HaitianCompanionDeskPage from './pages/public/HaitianCompanionDeskPage';
 import HaitianMetroDeskPage from './pages/public/HaitianMetroDeskPage';
-import HaitianKitStudioPage from './pages/public/HaitianKitStudioPage';
 import { isAuthEntryPath, signupUrlForCareerPath } from './lib/onboardingRoleRouting';
 import { resolveAuthedOnboardingBouncePath } from './lib/packageCheckoutRouting';
 import { finelyCtaNavigate, resolveFinelyCtaPath } from './lib/finelyCtaIntent';
@@ -77,6 +76,7 @@ import {
 import { FinelyOsComplianceStrip } from './features/os/FinelyOsComplianceStrip';
 import { isFeatureEnabled } from './data/settingsRepo';
 import { usePublicSeoMeta } from './hooks/usePublicSeoMeta';
+import { useRouteRobots } from './hooks/useRouteRobots';
 import { FinelyCredLogo } from './components/brand/FinelyCredLogo';
 import { SiteViewportPreview } from './components/layout/SiteViewportPreview';
 import { Overnight50SiteBootstrap } from './components/overnight50/Overnight50SiteBootstrap';
@@ -301,6 +301,7 @@ const GuestMeetingJoinPage = lazyWithRetry(() => import('./pages/GuestMeetingJoi
 const DisputeGuideReaderPage = lazyWithRetry(() => import('./pages/leadmagnet/DisputeGuideReaderPage'));
 const ScoreBoostGuideReaderPage = lazyWithRetry(() => import('./pages/leadmagnet/ScoreBoostGuideReaderPage'));
 const DebtGuideFunnelPage = lazyWithRetry(() => import('./pages/leadmagnet/DebtGuideFunnelPage'));
+const KreyolGuideFunnelPage = lazyWithRetry(() => import('./pages/leadmagnet/KreyolGuideFunnelPage'));
 const DebtEradicationGuideReaderPage = lazyWithRetry(() => import('./pages/leadmagnet/DebtEradicationGuideReaderPage'));
 const BusinessGuideFunnelPage = lazyWithRetry(() => import('./pages/leadmagnet/BusinessGuideFunnelPage'));
 const BusinessCreditPowerGuideReaderPage = lazyWithRetry(() => import('./pages/leadmagnet/BusinessCreditPowerGuideReaderPage'));
@@ -510,7 +511,7 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
   const auth = useAuth();
   const personalFreeTrialPath = resolveFinelyCtaPath('personal_free_trial', { isAuthed: Boolean(auth.user) });
   usePublicSeoMeta({
-    title: 'Finely Cred — credit restore & funding',
+    title: 'Credit restore for wealth',
     description:
       'Personal credit restore, business credit, debt strategy, tradelines, and funding readiness — with guided workflows and partner education.',
     path: '/',
@@ -842,6 +843,7 @@ function AppInner() {
 
   const navigate = useNavigate();
   const location = useLocation();
+  useRouteRobots(location.pathname);
   const currentView = viewFromPath(location.pathname);
   const isWorkspaceLightPreview = location.pathname.startsWith('/preview/workspace-light');
   const showPublicChrome =
@@ -2819,8 +2821,10 @@ function AppInner() {
         <Route path="/real-estate-guide/read" element={<RealEstateGuideReaderPage />} />
         <Route path="/case-desk-guide" element={<CaseDeskGuideLandingPage />} />
         <Route path="/case-desk-guide/read" element={<CaseDeskGuideReaderPage />} />
-        <Route path="/free-kreyol-guide" element={<HaitianKitStudioPage />} />
-        <Route path="/free-kreyol-guide/:kitId" element={<HaitianKitStudioPage />} />
+        <Route path="/free-kreyol-guide" element={<KreyolGuideFunnelPage />} />
+        <Route path="/free-kreyol-guide/:kitId" element={<KreyolGuideFunnelPage />} />
+        <Route path="/learn" element={<NotFoundPage />} />
+        <Route path="/learn/*" element={<NotFoundPage />} />
         <Route path="/affiliate-toolkit" element={<AffiliateToolkitFunnelPage />} />
         <Route path="/affiliate-toolkit/read" element={<AffiliateToolkitGuideReaderPage />} />
         <Route path="/owners-guide" element={<ProtectedRoute><OwnersGuidePage /></ProtectedRoute>} />

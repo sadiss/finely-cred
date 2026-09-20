@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { StaffPortraitImg } from '../../components/staff/StaffPortraitImg';
 import { getStaffMemberById } from '../../data/staffRoster';
@@ -28,7 +28,9 @@ const SERVICE_OFFERS = HT_OFFERS;
 
 export default function HaitianCompanionDeskPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [params] = useSearchParams();
+  const isKreyol = (location.pathname || '').split('?')[0] === '/kreyol';
   const [letterKey, setLetterKey] = useState<(typeof LETTERS)[number]['key']>('collection');
   const [hearing, setHearing] = useState(false);
   const [hearNote, setHearNote] = useState<string | null>(null);
@@ -41,10 +43,13 @@ export default function HaitianCompanionDeskPage() {
   );
 
   usePublicSeoMeta({
-    title: 'Haitian community · Credit help for Haitian Americans',
-    description:
-      'Credit help for Haitian Americans — restore, debt, building, and business credit. Pale Kreyòl. Book a session.',
-    path: HAITIAN_DESK_LIVE_PATH,
+    title: isKreyol
+      ? 'Pale Kreyòl — restore kredi ak Finely Cred'
+      : 'Biwo Ayisyen — credit restore pou kominote Ayisyen an',
+    description: isKreyol
+      ? 'Biwo Ayisyen: kit kredi, sesyon, ak èd pou fanmi Ayisyen. Pale Kreyòl.'
+      : 'Pale Kreyòl. Lèt, koleksyon, ak yon pwochen etap pou Ayisyen nan Etazini — credit restore san pwomès fo.',
+    path: isKreyol ? '/kreyol' : HAITIAN_DESK_LIVE_PATH,
   });
 
   useEffect(() => {
@@ -87,6 +92,9 @@ export default function HaitianCompanionDeskPage() {
               <button type="button" className="ht-desk-btn-secondary" onClick={bookSession}>
                 Book a session
               </button>
+              <Link to="/free-kreyol-guide" className="ht-desk-btn-secondary">
+                Free Kreyol kits
+              </Link>
             </div>
             <p className="ht-desk-compliance">
               Results vary · not legal advice · funding subject to underwriting · Rezilta yo varye

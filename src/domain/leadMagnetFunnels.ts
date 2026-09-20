@@ -346,9 +346,9 @@ export const KREYOL_FUNNEL: LeadMagnetFunnelConfig = {
   guideId: 'kreyol-companion-kit',
   offer: 'kreyol_companion_kit',
   onboardingLane: 'haitian',
-  metaTitle: 'Credit kits — Haitian community',
+  metaTitle: 'Kit kredi gratis — Biwo Ayisyen',
   metaDesc:
-    'Credit kits for Haitian Americans: what credit is, what the letter says, how to help family, and a church flyer. Pale Kreyòl when you are ready. Results vary · not legal advice.',
+    'Kat kit kredi pou Ayisyen: kisa kredi ye, sa lèt la di, ede fanmi, flayer legliz. Pale Kreyòl. Results vary · not legal advice.',
   urgencyText: 'Kat kit kredi, san peye, ak Pale Kreyòl lè w pare',
   heroHeadline: 'Credit kits for',
   heroHighlight: 'Haitian community',

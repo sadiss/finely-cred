@@ -12,8 +12,9 @@ export type PublicSeoRoute = {
 export const PUBLIC_SEO_CATALOG: PublicSeoRoute[] = [
   {
     path: '/',
-    title: 'Finely Cred homepage',
-    description: 'Credit restore, business credit, debt strategy, tradelines, and funding readiness operating system.',
+    title: 'Credit restore for wealth',
+    description:
+      'Personal credit restore, business credit, debt strategy, tradelines, and funding readiness — with guided workflows and partner education.',
     hasSchema: true,
   },
   {
@@ -226,45 +227,45 @@ export const PUBLIC_SEO_CATALOG: PublicSeoRoute[] = [
   },
   {
     path: '/haitian',
-    title: 'Haitian community · Credit help for Haitian Americans',
+    title: 'Biwo Ayisyen — credit restore pou kominote Ayisyen an',
     description:
-      'Credit help for Haitian Americans — letters, collections, and a next step. Pale Kreyòl.',
+      'Pale Kreyòl. Lèt, koleksyon, ak yon pwochen etap pou Ayisyen nan Etazini — credit restore san pwomès fo.',
     hasSchema: true,
   },
   {
     path: '/kreyol',
-    title: 'Haitian community',
-    description: 'Credit help for Haitian Americans. Pale Kreyòl. Open a kit. Book a session.',
+    title: 'Pale Kreyòl — restore kredi ak Finely Cred',
+    description: 'Biwo Ayisyen: kit kredi, sesyon, ak èd pou fanmi Ayisyen. Pale Kreyòl.',
     hasSchema: true,
   },
   {
     path: '/free-kreyol-guide',
-    title: 'Credit kits · Haitian community',
-    description: 'Four credit kits for Haitian Americans — what credit is, what the letter says, helping family, church flyer.',
+    title: 'Kit kredi gratis — Biwo Ayisyen',
+    description: 'Kat kit kredi pou Ayisyen: kisa kredi ye, sa lèt la di, ede fanmi, flayer legliz. Pale Kreyòl.',
     hasSchema: true,
   },
   {
     path: '/free-kreyol-guide/what-is-credit',
-    title: 'What is credit? · Haitian community',
-    description: 'Your SSN file, three bureaus, and the words on a U.S. credit report.',
+    title: 'Kisa kredi ye? — kit Ayisyen',
+    description: 'Dosye SSN ou, twa biwo kredi, ak mo ki sou yon rapò kredi Ozetazini. Pale Kreyòl.',
     hasSchema: true,
   },
   {
     path: '/free-kreyol-guide/letter-meaning',
-    title: 'What this letter says · Haitian community',
-    description: 'A collector or bureau letter, line by line, with a clear Kreyòl meaning.',
+    title: 'Sa lèt sa a vle di — kit Ayisyen',
+    description: 'Yon lèt kolektè oswa biwo, liy pa liy, ak yon sans klè an Kreyòl.',
     hasSchema: true,
   },
   {
     path: '/free-kreyol-guide/helper',
-    title: 'For the person helping · Haitian community',
-    description: 'Family and specialists: sit together, one next step, what not to promise.',
+    title: 'Pou moun k ap ede fanmi — kit Ayisyen',
+    description: 'Fanmi ak espesyalis: chita ansanm, yon pwochen etap, sa ou pa dwe pwomèt.',
     hasSchema: true,
   },
   {
     path: '/free-kreyol-guide/community-flyer',
-    title: 'Church / community flyer · Haitian community',
-    description: 'One page. One QR. Pale Kreyòl. finelycred.com/haitian',
+    title: 'Flayer legliz / kominote — Pale Kreyòl',
+    description: 'Yon paj. Yon QR. Pale Kreyòl. finelycred.com/haitian',
     hasSchema: true,
   },
   {
@@ -376,12 +377,14 @@ export const PUBLIC_SEO_CATALOG: PublicSeoRoute[] = [
     title: 'AU tradeline marketplace',
     description: 'Browse authorized user tradelines and submit buyer intake.',
     hasSchema: true,
+    sitemap: false,
   },
   {
     path: '/au/request',
     title: 'AU tradeline request',
     description: 'Structured buyer intake for authorized user tradeline placement.',
     hasSchema: true,
+    sitemap: false,
   },
   {
     path: '/au/orders',
@@ -488,7 +491,7 @@ export const PUBLIC_SEO_CATALOG: PublicSeoRoute[] = [
   },
   {
     path: '/faq',
-    title: 'FAQ',
+    title: 'Credit restore FAQ',
     description: 'Answers about credit restore, disputes, tradelines, billing, and the Finely Cred platform.',
     hasSchema: true,
   },

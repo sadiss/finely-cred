@@ -25,6 +25,12 @@ const required = [
   'brand/finely-cred-mark.png',
   'sw.js',
   'DEPLOY_HANDOFF.txt',
+  'spa-fallback.html',
+  '.htaccess',
+  'faq/index.html',
+  'haitian/index.html',
+  'free-kreyol-guide/index.html',
+  '404.html',
 ];
 
 console.log('Finely Cred — production dist verify\n');
@@ -42,11 +48,26 @@ for (const rel of required) {
 }
 
 const indexHtml = fs.readFileSync(path.join(dist, 'index.html'), 'utf8');
-if (!indexHtml.includes('Finely Cred')) {
-  console.log('✗ dist/index.html missing expected title');
+if (!indexHtml.includes('Credit restore for wealth')) {
+  console.log('✗ dist/index.html missing homepage title');
   failed += 1;
 } else {
-  console.log('✓ dist/index.html title present');
+  console.log('✓ dist/index.html homepage title present');
+}
+if (/<h1[^>]*>\s*Finely Cred could not start/i.test(indexHtml)) {
+  console.log('✗ dist/index.html still uses boot-error H1');
+  failed += 1;
+} else {
+  console.log('✓ dist/index.html boot error is not an H1');
+}
+const faqHtml = fs.existsSync(path.join(dist, 'faq/index.html'))
+  ? fs.readFileSync(path.join(dist, 'faq/index.html'), 'utf8')
+  : '';
+if (!faqHtml.includes('Credit restore FAQ') || !faqHtml.includes('<h1>Credit restore FAQ</h1>')) {
+  console.log('✗ dist/faq/index.html missing unique title/H1');
+  failed += 1;
+} else {
+  console.log('✓ dist/faq/index.html unique title + H1');
 }
 
 if (!indexHtml.includes('og:title') || !indexHtml.includes('og:image')) {

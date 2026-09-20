@@ -1,2 +1,34 @@
-# Netlify / Cloudflare Pages — SPA fallback (copied to dist/ on build)
-/*    /index.html   200
+# Canonical host: apex (https://finelycred.com). www 301s here on Netlify.
+https://www.finelycred.com/*  https://finelycred.com/:splat  301!
+
+# Alias consolidation (do not collapse /free-kreyol-guide into /haitian).
+/blog                 /resources           301
+/blog/*               /resources           301
+
+# Soft-404: /learn is not a hub yet — real 404, not an empty 200 SPA shell.
+/learn                /404.html            404
+/learn/*              /404.html            404
+
+# Existing prerendered files (e.g. /faq/index.html) are served first (shadowing).
+# App / auth / portal routes use the noindex SPA shell.
+/admin/*              /spa-fallback.html  200
+/portal/*             /spa-fallback.html  200
+/dashboard            /spa-fallback.html  200
+/dashboard/*          /spa-fallback.html  200
+/onboarding           /spa-fallback.html  200
+/login                /spa-fallback.html  200
+/signup               /spa-fallback.html  200
+/forgot-password      /spa-fallback.html  200
+/seller/*             /spa-fallback.html  200
+/account/*            /spa-fallback.html  200
+/preview/*            /spa-fallback.html  200
+/owners-guide         /spa-fallback.html  200
+/owners-guide/*       /spa-fallback.html  200
+/business/*           /spa-fallback.html  200
+/partner-setup        /spa-fallback.html  200
+/partner-setup/*      /spa-fallback.html  200
+/au/*                 /spa-fallback.html  200
+/unsubscribe          /spa-fallback.html  200
+
+# Unknown routes → noindex shell. Homepage remains dist/index.html.
+/*                    /spa-fallback.html  200

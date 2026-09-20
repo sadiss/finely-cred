@@ -1,0 +1,25 @@
+# Bluehost / Apache — apex canonical, prerendered HTML, then noindex SPA fallback.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Prefer https://finelycred.com (www → apex).
+  RewriteCond %{HTTP_HOST} ^www\.finelycred\.com$ [NC]
+  RewriteRule ^(.*)$ https://finelycred.com/$1 [L,R=301]
+
+  # Alias consolidation (do not collapse /free-kreyol-guide into /haitian).
+  RewriteRule ^blog(/.*)?$ /resources [R=301,L]
+
+  # Serve real files and directories (assets, /faq/index.html, sitemap, robots).
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # App / auth / portal + unknown public paths without a snapshot.
+  RewriteRule ^(admin|portal|dashboard|onboarding|login|signup|forgot-password|seller|account|preview|owners-guide|business|partner-setup|au)(/|$) spa-fallback.html [L]
+  RewriteRule ^unsubscribe(/|$) spa-fallback.html [L]
+  RewriteRule ^ spa-fallback.html [L]
+</IfModule>
+
+RedirectMatch 404 ^/learn(/.*)?$
+ErrorDocument 404 /404.html

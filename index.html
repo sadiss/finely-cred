@@ -5,17 +5,20 @@
     <link rel="icon" type="image/png" href="/brand/finely-cred-mark.png" />
     <link rel="apple-touch-icon" href="/brand/finely-cred-mark.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Finely Cred — credit restore, dispute letters, business credit, debt OS, and partner portal." />
+    <meta name="description" content="Personal credit restore, business credit, debt strategy, tradelines, and funding readiness — with guided workflows and partner education." />
+    <meta name="robots" content="index, follow" />
     <meta name="theme-color" content="#0a100e" />
+    <link rel="canonical" href="https://finelycred.com/" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
     <meta property="og:site_name" content="Finely Cred" />
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Finely Cred — Credit Restore, Disputes & Partner Portal" />
-    <meta property="og:description" content="Finely Cred — credit restore, dispute letters, business credit, debt OS, and partner portal." />
+    <meta property="og:url" content="https://finelycred.com/" />
+    <meta property="og:title" content="Credit restore for wealth — Finely Cred" />
+    <meta property="og:description" content="Personal credit restore, business credit, debt strategy, tradelines, and funding readiness — with guided workflows and partner education." />
     <meta property="og:image" content="https://finelycred.com/brand/finely-cred-logo-dark.png" />
     <meta name="twitter:card" content="summary_large_image" />
-    <title>Finely Cred — Credit Restore, Disputes & Partner Portal</title>
+    <title>Credit restore for wealth — Finely Cred</title>
     <meta name="application-name" content="Finely Cred" />
     <style>
       /* Critical boot styles — must work before JS/CSS bundles load */
@@ -67,6 +70,28 @@
       html.fc-app-ready #fc-boot-loader {
         display: none !important;
       }
+      #fc-seo-doc {
+        box-sizing: border-box;
+        max-width: 44rem;
+        margin: 0 auto;
+        padding: 3.25rem 1.5rem 2rem;
+        font-family: Inter, system-ui, sans-serif;
+        color: #e2e8f0;
+      }
+      #fc-seo-doc h1 {
+        margin: 0 0 0.75rem;
+        font-size: 1.85rem;
+        line-height: 1.2;
+        color: #fbbf24;
+        font-weight: 700;
+      }
+      #fc-seo-doc p, #fc-seo-doc li {
+        opacity: 0.8;
+        line-height: 1.65;
+        margin: 0 0 0.85rem;
+      }
+      #fc-seo-doc a { color: #fbbf24; }
+      html.fc-app-ready #fc-seo-doc { display: none !important; }
       #fc-boot-error {
         display: none;
         min-height: 100vh;
@@ -78,6 +103,8 @@
       html.fc-boot-failed #fc-boot-loader { display: none !important; }
       html.fc-boot-failed #fc-boot-error { display: block; }
     </style>
+    <script type="application/ld+json" id="fc-org-schema">{"@context":"https://schema.org","@type":"Organization","@id":"https://finelycred.com/#organization","name":"Finely Cred","url":"https://finelycred.com","description":"Credit restore, dispute letters, business credit, and funding readiness platform."}</script>
+    <script type="application/ld+json" id="fc-website-schema">{"@context":"https://schema.org","@type":"WebSite","name":"Finely Cred","url":"https://finelycred.com","description":"Credit restore, dispute letters, business credit, and funding readiness.","publisher":{"@id":"https://finelycred.com/#organization"}}</script>
     <script>
       (function () {
         try {
@@ -99,6 +126,10 @@
     </script>
   </head>
   <body>
+    <article id="fc-seo-doc">
+      <h1>Credit restore for wealth</h1>
+      <p>Personal credit restore, business credit, debt strategy, tradelines, and funding readiness — with guided workflows and partner education.</p>
+    </article>
     <div id="app">
       <div id="fc-boot-loader">
         <img class="fc-boot-logo" src="/brand/finely-cred-logo-dark.png" alt="Finely Cred" width="156" height="40" decoding="async" />
@@ -106,7 +137,7 @@
         <div class="fc-boot-label">Loading</div>
       </div>
       <div id="fc-boot-error">
-        <h1 style="font-size:1.25rem;margin:0 0 0.75rem">Finely Cred could not start</h1>
+        <p style="font-size:1.25rem;margin:0 0 0.75rem">Finely Cred could not start</p>
         <p id="fc-boot-error-msg" style="opacity:0.8;line-height:1.5;margin:0 0 1rem"></p>
         <p style="opacity:0.65;font-size:0.875rem;line-height:1.5;margin:0">
           Try a hard refresh (Ctrl+Shift+R). Dev URL:
