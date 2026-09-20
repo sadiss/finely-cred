@@ -1,4 +1,5 @@
 import { listProspects } from '../../data/crmProspectsRepo';
+import { listLeadCaptures } from '../../data/leadsRepo';
 import { listPartnersByTenant } from '../../data/partnersRepo';
 import {
   localDedupeIndex,
@@ -48,6 +49,13 @@ async function crmDedupeIndex(): Promise<DedupeIndex> {
       phones: p.contact?.phones ?? [],
       domains: [p.company?.website, p.company?.domain].filter(Boolean) as string[],
       names: p.company?.name ? [nameCityKey(p.company.name, p.company.location)] : [],
+    });
+  }
+  // Inbound consumer magnets (Resources / consult) — reuse identity only, not their funnel.
+  for (const lead of listLeadCaptures()) {
+    addIdentity(index, {
+      emails: lead.email ? [lead.email] : [],
+      phones: lead.phone ? [lead.phone] : [],
     });
   }
   try {

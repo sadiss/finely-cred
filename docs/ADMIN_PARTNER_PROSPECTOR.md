@@ -56,8 +56,33 @@ Apply `supabase/migrations/20260920000001_partner_prospector.sql` when you want 
 - Public business data only. No invented emails/phones.
 - Official sites + public search API. Respects `robots.txt` `Disallow: /`.
 - Rate-limited fetches (~850ms gap).
-- Dedupes normalized email / last-10 phone / domain / name+city against prior batches, local CRM prospects, and `partners.profile` email/phone when readable.
-- **Do not** buy lists or scrape consumer PII.
+- Dedupes normalized email / last-10 phone / domain / name+city against prior batches, local CRM prospects, inbound `lead_captures`, and `partners.profile` email/phone when readable.
+- **Do not** buy lists or scrape consumer PII. Do **not** bolt this onto consumer/syndicate lead magnets.
+
+## GitHub inventory (verified — do not assume `main` has the launch stack)
+
+Checked `origin/main` and `origin/launch/ready-sovereign-supreme` on 2026-09-20.
+
+| Hinted path | On current `main`? | On `launch/ready-sovereign-supreme`? | What it actually is |
+|---|---|---|---|
+| `.github/workflows/lead-intel-hourly.yml` | No | Yes | Hourly **dry-run** of `scripts/lead_intel/swarm_enqueue.py` — not B2B partner ICP |
+| `.github/workflows/lead-syndication.yml` | No | Yes | Publishes consumer SEO / lead-magnet feeds (`npm run syndication:publish`) |
+| `docs/FINELY-INTELLIGENCE-OS.md` | No | Yes | In-app copilot / RAG / tours — not outbound referral prospecting |
+| `docs/plans/INTEL_AND_ROLE_GAPS.md` | No | Yes | Credit-file, court, evidence scrape, lender signals, overnight swarm |
+| `docs/SUPABASE_LEAD_CAPTURES_SETUP.md` | **Yes** | Yes | Inbound Resources guide captures (`lead_captures`) |
+| `scripts/lead_intel/dedupe_prospects.py` | No | Yes | **Stub** — `simulated_items` only. Not reused. |
+| `scripts/lead_intel/dead_lead_revival_scan.py` | No | Yes | Same dry-run stub pattern |
+| `scripts/overnight/phase1_intel_swarm.py` | No | Yes | Same dry-run stub pattern |
+| `scripts/audit-intelligence-surfaces.mjs` | No | Yes | Launch-gate file existence check for copilot surfaces |
+| `scripts/smoke-litigation-address-scrape.mjs` | No | Yes | Client-file litigation address extract |
+| `src/data/crmProspectsRepo.ts` | **Yes** | Yes | Local CRM prospects; website match is exact URL, not domain |
+| `src/data/leadsRepo.ts` / `leadOpsRepo.ts` | **Yes** | Yes | Inbound consumer leads |
+| `src/data/leadDistributionRepo.ts` | No | Yes | Lead-magnet distribution / social queue |
+| `src/data/leadAcquisitionManifest.json` | No | Yes | Consumer/agency magnet lanes (`audience: consumer`) |
+| `src/components/creditIntel/*` | Partial (`CreditIntelTabs`) | Yes | Credit-**file** intelligence |
+| `LitigationDocScraperChat` / `EvidenceScrapeIntelPanel` | No | Yes | Partner-client debt/evidence OCR, not B2B desks |
+
+**Hypothesis: confirmed.** Existing intel (even on the launch branch) skews consumer magnets, syndication, and credit-file/litigation scrape. Partner Prospector stays a dedicated engine + `prospectReferralPartners` tool. We reuse **identity keys** from CRM prospects, inbound leads, and client `partners` — we do not import the Python stubs or syndication hub.
 
 ## CSV columns (Batch 2 schema)
 

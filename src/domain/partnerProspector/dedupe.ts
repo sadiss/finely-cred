@@ -1,3 +1,11 @@
+/**
+ * Partner-prospector identity keys (email / last-10 phone / registrable domain / name+city).
+ *
+ * Verified on GitHub: `scripts/lead_intel/dedupe_prospects.py` exists on
+ * `launch/ready-sovereign-supreme` but is a dry-run stub (`simulated_items` only) —
+ * not present on current `main`, and not a reusable normalizer. `crmProspectsRepo`
+ * only matches exact website URL strings. This module is the production keyer.
+ */
 import { nameCityKey, normalizeDomain, normalizeEmail, normalizePhone } from './normalize.ts';
 import type { DedupeIdentity, DedupeIndex, RawProspectCandidate } from './types.ts';
 

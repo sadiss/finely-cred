@@ -77,6 +77,19 @@ test('scoring: strong vs maybe vs skip', () => {
   assert.equal(skip.fit, 'skip');
 });
 
+test('inbound lead-capture identities reuse the same keyer (not the launch-branch python stub)', () => {
+  const index = emptyDedupeIndex();
+  addIdentity(index, { emails: ['  Client@Inbox.com '], phones: ['+1 305-555-0140'] });
+  assert.equal(
+    findDedupeHit(index, { businessName: 'Desk', vertical: 'tax', email: 'client@inbox.com' }),
+    'email:client@inbox.com',
+  );
+  assert.equal(
+    findDedupeHit(index, { businessName: 'Desk', vertical: 'tax', phone: '(305) 555-0140' }),
+    'phone:3055550140',
+  );
+});
+
 test('dedupe keys normalize phone/email/domain/name+city', () => {
   const index = emptyDedupeIndex();
   addIdentity(index, {
