@@ -23,6 +23,7 @@ export const LEAD_OFFER_LABELS: Record<LeadOffer, string> = {
   agency_workspace: 'Agency workspace',
   heta_society_signup: 'HETA Society signup',
   financing_preapproval: 'Financing pre-approval',
+  partner_referral: 'Partner referral',
 };
 
 export function leadOfferLabel(offer: string | null | undefined): string {

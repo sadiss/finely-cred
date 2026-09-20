@@ -9,7 +9,7 @@ import { markLeadMagnetUnlocked } from '../../lib/leadMagnetUnlock';
 import { downloadFreeGuidePdf } from '../../resources/downloadGuidePdf';
 import { downloadScoreRoadmapPdf } from '../../resources/buildScoreRoadmapPdf';
 import { captureLeadAttributionFromUrl, getLeadAttribution } from '../../lib/leadAttribution';
-import { addLeadNote } from '../../data/leadOpsRepo';
+import { addLeadNote, addLeadTags } from '../../data/leadOpsRepo';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
 import { getLeadMagnetTrial, LEAD_MAGNET_TRIAL_DAYS, startLeadMagnetTrial } from '../../lib/leadMagnetTrial';
 import { emitFunnelStepCompleted } from '../../domain/platformEvents';
@@ -35,6 +35,7 @@ import { resolveLaneOnboardingPath } from '../../lib/finelyCtaIntent';
 import { findPartnerByEmail, upsertPartner } from '../../data/partnersRepo';
 import { withPreferredVoice } from '../../lib/haitianVoice';
 import { FunnelLeadCaptureForm, type FunnelLeadCaptureCopy } from './FunnelLeadCaptureForm';
+import { LeadMagnetCallSlaCard } from './LeadMagnetCallSlaCard';
 import { FunnelCollectionDisputePanel } from './FunnelCollectionDisputePanel';
 import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
 import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubLayout';
@@ -48,6 +49,21 @@ import {
   finelyOsCatalogCard,
   finelyOsLeadMagnetPanel,
 } from '../../features/os/finelyOsLightUi';
+
+const PARTNER_REFER_CAPTURE_COPY: FunnelLeadCaptureCopy = {
+  accessLabel: 'Partner referral',
+  unlockTitle: 'Leave your details — we call you.',
+  chips: ['Phone required', '1-day call', '$0 today'],
+  firstName: 'First name',
+  lastName: 'Last name',
+  email: 'Email',
+  phone: 'Phone (required)',
+  consent: 'I agree to be called about credit restore and this referral (required).',
+  marketing: 'Send me restore and wealth education by email (optional).',
+  sending: 'Sending…',
+  noCard: 'No credit card',
+  secure: 'We’ll call you',
+};
 
 const KREYOL_CAPTURE_COPY: FunnelLeadCaptureCopy = {
   accessLabel: 'Aksè gratis',
@@ -159,7 +175,10 @@ export function LeadMagnetFunnelShell({
     setErr(null);
     if (!firstName.trim() || !lastName.trim()) return setErr('Enter your first and last name.');
     if (!email.trim() || !email.includes('@')) return setErr('Enter a valid email.');
-    if (!phone.trim()) return setErr('Enter your phone number.');
+    const phoneDigits = phone.replace(/\D/g, '');
+    if (phoneDigits.length < 10 || phoneDigits.length > 15) {
+      return setErr(activeConfig.id === 'kreyol' ? 'Antre yon nimewo telefòn valab (10–15 chif).' : 'Enter a valid phone number (10–15 digits).');
+    }
     if (!consent) return setErr('Consent is required to receive the guide.');
 
     setBusy(true);
@@ -178,6 +197,7 @@ export function LeadMagnetFunnelShell({
         utmSource: attr?.utmSource,
         utmMedium: attr?.utmMedium,
         utmCampaign: attr?.utmCampaign,
+        utmContent: attr?.utmContent,
         funnelPath: activeConfig.path,
         guideId: guide.id,
         guideTitle: guide.title,
@@ -205,8 +225,27 @@ export function LeadMagnetFunnelShell({
         leadId: result.lead.id,
         payload: { guideId: guide.id, agentPersonaId: activeConfig.agentPersonaId },
       });
-      if (attr?.referralCode) {
-        addLeadNote(result.lead.id, `Referral: ${attr.referralCode}`);
+      if (attr?.referralCode || attr?.utmSource || attr?.utmCampaign) {
+        const bits = [
+          attr.referralCode ? `ref=${attr.referralCode}` : null,
+          attr.utmSource ? `utm_source=${attr.utmSource}` : null,
+          attr.utmMedium ? `utm_medium=${attr.utmMedium}` : null,
+          attr.utmCampaign ? `utm_campaign=${attr.utmCampaign}` : null,
+          attr.utmContent ? `utm_content=${attr.utmContent}` : null,
+        ].filter(Boolean);
+        addLeadNote(
+          result.lead.id,
+          activeConfig.id === 'partner_refer'
+            ? `Partner referral capture · ${bits.join(' · ')}`
+            : `Referral: ${bits.join(' · ')}`,
+        );
+      }
+      if (activeConfig.id === 'partner_refer') {
+        addLeadTags(result.lead.id, [
+          'partner_refer',
+          'warm_capture',
+          ...(attr?.referralCode ? [`ref:${attr.referralCode}`] : []),
+        ]);
       }
       recordFunnelConversion(activeConfig.funnelId, abVariant);
       markLeadMagnetUnlocked(activeConfig.funnelId);
@@ -305,10 +344,19 @@ export function LeadMagnetFunnelShell({
   const assignedStaff = useMemo(() => resolveStaffOnDuty(activeConfig.agentPersonaId), [activeConfig.agentPersonaId]);
   const staffName = assignedStaff ? staffMemberFullName(assignedStaff) : activeConfig.agentDisplayName;
   const staffTitle = getAgentPersona(activeConfig.agentPersonaId)?.displayTitle ?? activeConfig.agentRole;
+  const referringPartnerId = useMemo(() => {
+    const fromQuery = (searchParams.get('ref') || searchParams.get('partner_id') || searchParams.get('partnerId') || '').trim();
+    return fromQuery || getLeadAttribution()?.referralCode || '';
+  }, [searchParams]);
 
   return (
     <div className="fg-funnel min-h-screen text-white overflow-x-hidden">
       <FreeGuideFunnelStyles />
+      {activeConfig.id === 'partner_refer' && referringPartnerId ? (
+        <div className="border-b border-amber-300/20 bg-amber-400/10 px-4 py-2 text-center text-[11px] font-bold uppercase tracking-wider text-amber-100">
+          Referred by partner {referringPartnerId}
+        </div>
+      ) : null}
       {variant === 'standard' ? (
         <div className="fg-urgency-bar text-white text-center py-3 px-4 font-bold text-xs sm:text-sm tracking-wider">
           <span className="inline-flex items-center justify-center gap-2 flex-wrap">
@@ -377,7 +425,13 @@ export function LeadMagnetFunnelShell({
                 submitLabel={ctaOverride ?? getLeadMagnetPremiumProfile(activeConfig)?.captureHeadline ?? 'Get free access'}
                 totalValue={totalValue}
                 trustLabel={trustLabel}
-                copy={activeConfig.id === 'kreyol' ? KREYOL_CAPTURE_COPY : undefined}
+                copy={
+                  activeConfig.id === 'kreyol'
+                    ? KREYOL_CAPTURE_COPY
+                    : activeConfig.id === 'partner_refer'
+                      ? PARTNER_REFER_CAPTURE_COPY
+                      : undefined
+                }
                 onFirstNameChange={setFirstName}
                 onLastNameChange={setLastName}
                 onEmailChange={setEmail}
@@ -523,10 +577,12 @@ export function LeadMagnetFunnelShell({
               <Check className="w-12 h-12 text-emerald-400 mx-auto mb-4" />
               <h2 className="text-2xl font-black mb-2">{premiumProfile?.successHeadline ?? "You're in!"}</h2>
               <p className="text-white/70">
-                Reference {leadId}. {staffName}, your {staffTitle}, is on your team and will follow up by email.
+                Reference {leadId}. {staffName}, your {staffTitle}, is on your team.
                 {trialActive ? ` Your ${LEAD_MAGNET_TRIAL_DAYS}-day portal preview is active.` : ''}
               </p>
             </div>
+
+            <LeadMagnetCallSlaCard bookingUrl={bookingUrl} kreyol={activeConfig.id === 'kreyol'} />
 
             <div className="rounded-2xl border border-emerald-500/25 bg-black/25 p-4 flex items-center gap-4">
               {assignedStaff ? (
