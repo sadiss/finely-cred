@@ -1,16 +1,32 @@
 import { useEffect } from 'react';
 import { usePageMeta } from './usePageMeta';
 import {
+  buildArticleSchema,
   buildAudioObjectSchema,
   buildFaqPageSchema,
   buildHowToSchema,
   buildLocalBusinessSchema,
   buildOrganizationSchema,
   buildWebPageSchema,
+  buildWebSiteSchema,
   injectJsonLd,
 } from '../lib/seoSchema';
 
-/** Title, description, and JSON-LD for public marketing routes (Phase 35). */
+function upsertLink(rel: string, href: string) {
+  let el = document.querySelector(`link[rel="${rel}"]`) as HTMLLinkElement | null;
+  if (!el) {
+    el = document.createElement('link');
+    el.rel = rel;
+    document.head.appendChild(el);
+  }
+  el.href = href;
+}
+
+function isArticlePath(path: string) {
+  return path.startsWith('/resources/') && path !== '/resources/videos' && path !== '/resources/pins';
+}
+
+/** Title, description, canonical, and JSON-LD for public marketing routes (Phase 35). */
 export function usePublicSeoMeta(args: {
   title: string;
   description: string;
@@ -37,13 +53,16 @@ export function usePublicSeoMeta(args: {
       el.setAttribute('content', content);
     };
 
+    setMeta('name', 'robots', 'index, follow');
     setMeta('property', 'og:title', args.title);
     setMeta('property', 'og:description', args.description);
     setMeta('property', 'og:url', pageUrl);
-    setMeta('property', 'og:type', 'website');
+    setMeta('property', 'og:type', isArticlePath(args.path) ? 'article' : 'website');
     setMeta('property', 'og:image', `${origin}/brand/finely-cred-logo-dark.png`);
+    upsertLink('canonical', pageUrl);
 
     injectJsonLd('fc-org-schema', buildOrganizationSchema(origin));
+    injectJsonLd('fc-website-schema', buildWebSiteSchema(origin));
     injectJsonLd(
       'fc-webpage-schema',
       buildWebPageSchema({
@@ -53,6 +72,19 @@ export function usePublicSeoMeta(args: {
         description: args.description,
       }),
     );
+    if (isArticlePath(args.path)) {
+      injectJsonLd(
+        'fc-article-schema',
+        buildArticleSchema({
+          origin,
+          path: args.path,
+          name: args.title,
+          description: args.description,
+        }),
+      );
+    } else {
+      document.getElementById('fc-article-schema')?.remove();
+    }
     if (args.audio) {
       injectJsonLd(
         'fc-audio-schema',
@@ -84,6 +116,7 @@ export function usePublicSeoMeta(args: {
     }
     return () => {
       document.getElementById('fc-webpage-schema')?.remove();
+      document.getElementById('fc-article-schema')?.remove();
       document.getElementById('fc-audio-schema')?.remove();
       document.getElementById('fc-faq-schema')?.remove();
       document.getElementById('fc-howto-schema')?.remove();

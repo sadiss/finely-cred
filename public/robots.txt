@@ -1,3 +1,4 @@
+# Canonical host: https://finelycred.com (apex). www 301s to apex.
 User-agent: *
 Allow: /
 

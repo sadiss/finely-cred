@@ -3,9 +3,40 @@ export function buildOrganizationSchema(origin: string) {
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
+    '@id': `${origin}/#organization`,
     name: 'Finely Cred',
     url: origin,
     description: 'Credit restore, dispute letters, business credit, and funding readiness platform.',
+  };
+}
+
+export function buildWebSiteSchema(origin: string) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'Finely Cred',
+    url: origin,
+    description: 'Credit restore, dispute letters, business credit, and funding readiness.',
+    publisher: { '@id': `${origin}/#organization` },
+  };
+}
+
+export function buildArticleSchema(args: {
+  origin: string;
+  path: string;
+  name: string;
+  description: string;
+}) {
+  const url = `${args.origin}${args.path}`;
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: args.name,
+    description: args.description,
+    url,
+    author: { '@type': 'Organization', name: 'Finely Cred' },
+    publisher: { '@type': 'Organization', name: 'Finely Cred', url: args.origin },
+    mainEntityOfPage: { '@type': 'WebPage', '@id': url },
   };
 }
 

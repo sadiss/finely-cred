@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 5173 --strictPort",
     "dev:host": "vite --host 0.0.0.0 --port 5173 --strictPort",
-    "build": "npm run sitemap:generate && npm run syndication:feeds && tsc && npm run build:bundle && node scripts/generate-deploy-handoff.mjs && node scripts/verify-production-dist.mjs",
+    "build": "npm run sitemap:generate && npm run syndication:feeds && tsc && npm run build:bundle && npm run seo:prerender && node scripts/generate-deploy-handoff.mjs && node scripts/verify-production-dist.mjs",
     "build:bundle": "node --max-old-space-size=4096 node_modules/vite/bin/vite.js build",
     "typecheck": "tsc --noEmit",
     "preview": "vite preview",
@@ -32,6 +32,7 @@
     "launch:refresh": "npm run build && npm run launch:status",
     "launch:gate": "node scripts/launch-gate.mjs",
     "seo:check": "node scripts/validate-public-seo.mjs",
+    "seo:prerender": "node scripts/prerender-public-html.mjs",
     "secrets:summary": "node scripts/secrets-summary.mjs",
     "comms:secrets": "node scripts/setup-comms-api-secrets.mjs",
     "mail:secrets": "node scripts/setup-mail-secrets.mjs",

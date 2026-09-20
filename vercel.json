@@ -1,10 +1,40 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
+  "redirects": [
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "www.finelycred.com" }],
+      "destination": "https://finelycred.com/",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.finelycred.com" }],
+      "destination": "https://finelycred.com/:path*",
+      "permanent": true
+    },
+    { "source": "/blog", "destination": "/resources", "permanent": true },
+    { "source": "/blog/:slug", "destination": "/resources", "permanent": true }
+  ],
   "rewrites": [
+    { "source": "/learn", "destination": "/404.html" },
+    { "source": "/learn/:path*", "destination": "/404.html" },
+    {
+      "source": "/(admin|portal|dashboard|onboarding|login|signup|forgot-password|seller|account|preview|owners-guide|business|partner-setup)(/.*)?",
+      "destination": "/spa-fallback.html"
+    },
+    {
+      "source": "/au(/.*)?",
+      "destination": "/spa-fallback.html"
+    },
+    {
+      "source": "/unsubscribe",
+      "destination": "/spa-fallback.html"
+    },
     {
       "source": "/((?!assets/|resources/|credit-analysis/|brand/|tours/|images/|guides/|feeds/|media/|staff/|staff-portraits/|\\.well-known/).*)",
-      "destination": "/index.html"
+      "destination": "/spa-fallback.html"
     }
   ],
   "headers": [
