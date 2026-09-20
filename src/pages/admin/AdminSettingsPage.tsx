@@ -1325,6 +1325,12 @@ export default function AdminSettingsPage() {
                     description="Enable web discovery + enrichment for qualified prospecting (admin-only; requires search API key server-side)."
                   />
                   <Toggle
+                    label="Partner Prospector"
+                    checked={settings.features.partnerProspector !== false}
+                    onChange={(v) => handleFeatureChange({ partnerProspector: v })}
+                    description="Outbound-quality SFL referral-partner batches (admin + site agents). Draft/export only — never auto-sends email. Scheduled job stays off until secrets are set."
+                  />
+                  <Toggle
                     label="AU Marketplace"
                     checked={settings.features.auMarketplace}
                     onChange={(v) => handleFeatureChange({ auMarketplace: v })}

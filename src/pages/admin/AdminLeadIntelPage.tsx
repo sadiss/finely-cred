@@ -213,6 +213,13 @@ export default function AdminLeadIntelPage() {
             >
               Open CRM <ArrowRight size={14} />
             </button>
+            <button
+              type="button"
+              onClick={() => navigate('/admin/partner-prospector')}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/10 bg-black/30 text-white/80 font-black uppercase tracking-widest text-[10px] hover:bg-white/[0.05] transition-all"
+            >
+              Partner Prospector <ArrowRight size={14} />
+            </button>
           </div>
         </div>
 
@@ -412,6 +419,13 @@ export default function AdminLeadIntelPage() {
 
         <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 text-white/70 text-sm">
           <div className="font-semibold text-white">Compliance & quality notes</div>
+          <p className="mt-2 text-white/55">
+            For South Florida referral partners (tax, BHPH, realtor, mortgage, immigration), use{' '}
+            <button type="button" className="text-amber-200 underline" onClick={() => navigate('/admin/partner-prospector')}>
+              Partner Prospector
+            </button>{' '}
+            — shared scoring, why_fit, and CRM dedupe. This page is generic search, not the Haitian-corridor ICP batch.
+          </p>
           <ul className="mt-3 space-y-2 list-disc pl-5">
             <li>Results come from a search API (not restricted platforms). Enrichment is limited to public pages and skips sites that disallow all crawling.</li>
             <li>Qualification score prioritizes reachable contacts (email/phone) and keyword relevance to the selected target.</li>

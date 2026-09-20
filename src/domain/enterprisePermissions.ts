@@ -108,6 +108,7 @@ export const ENTERPRISE_PERMISSION_GROUPS = [
   'canAssignLeads',
   'canViewLeadIntel',
   'canManageCrmProspects',
+  'canRunPartnerProspector',
 
   // 13. Automation (5)
   'canViewAutomations',
@@ -258,6 +259,7 @@ export const ENTERPRISE_PERMISSIONS: Record<(typeof ENTERPRISE_PERMISSION_GROUPS
   canAssignLeads: { label: 'Assign leads', group: 'CRM & leads' },
   canViewLeadIntel: { label: 'View lead intel', group: 'CRM & leads' },
   canManageCrmProspects: { label: 'Manage CRM prospects', group: 'CRM & leads' },
+  canRunPartnerProspector: { label: 'Run Partner Prospector', group: 'CRM & leads' },
 
   canViewAutomations: { label: 'View automations', group: 'Automation' },
   canCreateAutomations: { label: 'Create automations', group: 'Automation' },

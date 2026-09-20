@@ -38,6 +38,9 @@ verify_jwt = false
 [functions.lead-intel]
 verify_jwt = false
 
+[functions.partner-prospector]
+verify_jwt = false
+
 [functions.mailer]
 verify_jwt = false
 

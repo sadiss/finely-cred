@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { isFeatureEnabled } from '../../data/settingsRepo';
 import { callAiGateway } from '../../lib/aiClient';
+import { agentToolsPromptBlock, executeAgentTool, parseToolCall } from '../../agents/toolRegistry';
+import { listProspectorRuns } from '../../data/partnerProspectsRepo';
 import { listPartnersByTenant } from '../../data/partnersRepo';
 import { listLeadCaptures } from '../../data/leadsRepo';
 import { listCases } from '../../data/casesRepo';
@@ -66,6 +68,7 @@ export default function AdminOpsAgentPage() {
       const openCases = tenantCases.filter((c) => c.status === 'open').length;
       const openTasks = tenantTasks.filter((t: any) => t.status === 'pending' || t.status === 'in_progress').length;
       const recentLeads = leads.slice().sort((a: any, b: any) => `${b.createdAt}`.localeCompare(`${a.createdAt}`)).slice(0, 10);
+      const prospectorRuns = listProspectorRuns().slice(0, 3);
       setSnapshot({
         generatedAt: nowIso(),
         tenantId,
@@ -76,6 +79,12 @@ export default function AdminOpsAgentPage() {
           openTasks,
           agreements: agreements.length,
           entitlements: entitlements.length,
+          prospectorRuns: prospectorRuns.length,
+        },
+        partnerProspector: {
+          latest: prospectorRuns[0] ?? null,
+          tool: 'prospectReferralPartners',
+          autoSend: false,
         },
         recentLeads: recentLeads.map((l: any) => ({
           id: l.id, createdAt: l.createdAt, fullName: l.fullName, email: l.email,
@@ -107,14 +116,24 @@ export default function AdminOpsAgentPage() {
           {
             role: 'system',
             content:
-              'You are Finely Cred’s co-owner operator. Your job is to help run the business and the app. Be decisive, prioritize, and be extremely practical. Output should be structured with headings and bullet points. Include: (1) Today’s priorities (max 7), (2) Risks/blocks, (3) Revenue pipeline actions, (4) Product/app launch readiness checks, (5) Suggested automations/comms. Avoid legal advice.',
+              'You are Finely Cred’s co-owner operator. Your job is to help run the business and the app. Be decisive, prioritize, and be extremely practical. Output should be structured with headings and bullet points. Include: (1) Today’s priorities (max 7), (2) Risks/blocks, (3) Revenue pipeline actions, (4) Product/app launch readiness checks, (5) Suggested automations/comms. Avoid legal advice. Do not scrape the open web yourself. To prospect referral partners, emit only a prospectReferralPartners tool JSON (no prose in that turn). Never auto-send outreach. Say credit restore, not repair. Live Haitian URL is /haitian.\n\n' +
+              agentToolsPromptBlock(),
           },
           ...nextHistory.map((m) => ({ role: m.role, content: m.content })) as any,
         ],
       });
 
       const text = String(res.text ?? '').trim() || '(no response)';
-      setHistory((h) => [...h, { role: 'assistant', content: text, createdAt: nowIso() }]);
+      const call = parseToolCall(text);
+      if (call?.tool === 'prospectReferralPartners') {
+        const toolRes = await executeAgentTool(call.tool, call.args);
+        const summary = toolRes.ok
+          ? `Partner Prospector ran (draft/export only, nothing emailed).\nBatch ${toolRes.data.batchId}\nKept ${toolRes.data.stats.kept} · strong ${toolRes.data.stats.strong} · maybe ${toolRes.data.stats.maybe} · skipped ${toolRes.data.stats.skipped} · deduped ${toolRes.data.stats.deduped}\nOpen /admin/partner-prospector to review + export CSV.`
+          : `Partner Prospector tool failed: ${toolRes.error}`;
+        setHistory((h) => [...h, { role: 'assistant', content: `${text}\n\n${summary}`, createdAt: nowIso() }]);
+      } else {
+        setHistory((h) => [...h, { role: 'assistant', content: text, createdAt: nowIso() }]);
+      }
     } catch (e: any) {
       setError(e?.message || 'Agent failed.');
     } finally {
@@ -128,6 +147,11 @@ export default function AdminOpsAgentPage() {
   const runLaunchAudit = () =>
     send(
       'Run a strict launch-readiness audit: identify what is missing, broken, inconsistent, or confusing. Give a punchlist ordered by impact.',
+    );
+
+  const runPartnerProspector = () =>
+    send(
+      'Prospect 50 South Florida Haitian-corridor referral partners (tax, BHPH, realtor, mortgage, immigration). Use the prospectReferralPartners tool only this turn. Do not invent contacts. Do not send email.',
     );
 
   const clear = () => {
@@ -174,6 +198,14 @@ export default function AdminOpsAgentPage() {
             </button>
             <button
               type="button"
+              onClick={runPartnerProspector}
+              disabled={busy}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/10 bg-white/[0.03] text-white/80 font-black uppercase tracking-widest text-[10px] hover:bg-white/[0.06] transition-all disabled:opacity-60"
+            >
+              <Sparkles size={14} /> Prospect partners
+            </button>
+            <button
+              type="button"
               onClick={clear}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/10 bg-white/[0.03] text-white/70 font-black uppercase tracking-widest text-[10px] hover:bg-white/[0.06] transition-all"
             >
@@ -189,7 +221,7 @@ export default function AdminOpsAgentPage() {
               <span className="text-xs font-semibold uppercase tracking-wider">Live snapshot</span>
             </div>
             <div className="grid grid-cols-2 gap-3 text-sm">
-              {Object.entries(snapshot.counts).map(([k, v]) => (
+              {Object.entries(snapshot?.counts ?? {}).map(([k, v]) => (
                 <div key={k} className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
                   <div className="text-[10px] uppercase tracking-widest text-white/40">{k}</div>
                   <div className="mt-1 text-2xl font-light text-white">{String(v as any)}</div>
@@ -199,7 +231,7 @@ export default function AdminOpsAgentPage() {
             <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
               <div className="text-[10px] uppercase tracking-widest text-white/40">recent leads</div>
               <div className="mt-2 space-y-2">
-                {snapshot.recentLeads.length === 0 ? (
+                {(snapshot?.recentLeads ?? []).length === 0 ? (
                   <div className="text-white/50 text-sm">No leads captured yet.</div>
                 ) : (
                   snapshot.recentLeads.map((l: any) => (

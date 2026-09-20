@@ -23,5 +23,9 @@
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": [
+    "src/domain/partnerProspector/partnerProspector.test.ts",
+    "src/domain/partnerProspector/cli.ts"
+  ]
 }

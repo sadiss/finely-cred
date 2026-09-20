@@ -68,6 +68,7 @@ Deno.serve(async (req) => {
     'stripe',
     'denefits',
     'lead-intel',
+    'partner-prospector',
     'media',
     'nora-capital',
     'nora-llc-api',

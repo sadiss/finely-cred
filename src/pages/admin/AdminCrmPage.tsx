@@ -419,6 +419,13 @@ export default function AdminCrmPage() {
             >
               Lead Intel Agent <ArrowRight size={14} />
             </button>
+            <button
+              type="button"
+              onClick={() => navigate('/admin/partner-prospector')}
+              className="fc-button-soft"
+            >
+              Partner Prospector <ArrowRight size={14} />
+            </button>
           </div>
         </div>
 

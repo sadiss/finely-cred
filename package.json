@@ -10,7 +10,10 @@
     "dev:host": "vite --host 0.0.0.0 --port 5175 --strictPort",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "start": "serve -s dist -l 8080"
+    "start": "serve -s dist -l 8080",
+    "test": "npm run test:partner-prospector",
+    "test:partner-prospector": "node --experimental-strip-types --test src/domain/partnerProspector/partnerProspector.test.ts",
+    "prospect:sample": "node --experimental-strip-types src/domain/partnerProspector/cli.ts"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.24",
