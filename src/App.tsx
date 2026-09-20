@@ -46,7 +46,6 @@ import { isAdminEmail } from './auth/admin';
 import { resolveHaitianCommunityHref } from './lib/haitianCompanionDesk';
 import HaitianCompanionDeskPage from './pages/public/HaitianCompanionDeskPage';
 import HaitianMetroDeskPage from './pages/public/HaitianMetroDeskPage';
-import HaitianKitStudioPage from './pages/public/HaitianKitStudioPage';
 import { isAuthEntryPath, signupUrlForCareerPath } from './lib/onboardingRoleRouting';
 import { resolveAuthedOnboardingBouncePath } from './lib/packageCheckoutRouting';
 import { finelyCtaNavigate, resolveFinelyCtaPath } from './lib/finelyCtaIntent';
@@ -85,6 +84,7 @@ import { lazyWithRetry } from './lib/lazyWithRetry';
 import AboutPage from './pages/public/AboutPage';
 import TradelinesPublicPage from './pages/public/TradelinesPublicPage';
 import FreeGuideFunnelPage from './pages/leadmagnet/FreeGuideFunnelPage';
+import KreyolGuideFunnelPage from './pages/leadmagnet/KreyolGuideFunnelPage';
 
 // Route-level code splitting (keeps main bundle lean)
 const PartnerReportsPage = lazyWithRetry(() => import('./pages/portal/PartnerReportsPage'));
@@ -2819,8 +2819,8 @@ function AppInner() {
         <Route path="/real-estate-guide/read" element={<RealEstateGuideReaderPage />} />
         <Route path="/case-desk-guide" element={<CaseDeskGuideLandingPage />} />
         <Route path="/case-desk-guide/read" element={<CaseDeskGuideReaderPage />} />
-        <Route path="/free-kreyol-guide" element={<HaitianKitStudioPage />} />
-        <Route path="/free-kreyol-guide/:kitId" element={<HaitianKitStudioPage />} />
+        <Route path="/free-kreyol-guide" element={<KreyolGuideFunnelPage />} />
+        <Route path="/free-kreyol-guide/:kitId" element={<KreyolGuideFunnelPage />} />
         <Route path="/affiliate-toolkit" element={<AffiliateToolkitFunnelPage />} />
         <Route path="/affiliate-toolkit/read" element={<AffiliateToolkitGuideReaderPage />} />
         <Route path="/owners-guide" element={<ProtectedRoute><OwnersGuidePage /></ProtectedRoute>} />
