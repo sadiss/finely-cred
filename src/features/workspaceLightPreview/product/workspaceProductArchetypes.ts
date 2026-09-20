@@ -157,6 +157,8 @@ const ADMIN_ARCHETYPE_BY_PAGE: Record<string, WorkspaceProductArchetype> = {
   mail: 'ledger',
   resources: 'matrix',
   analytics: 'focus',
+  'ebook-conversions': 'focus',
+  'partner-library': 'ledger',
   settings: 'ledger',
   'hos-program': 'journey',
   'role-preview': 'matrix',

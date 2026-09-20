@@ -203,6 +203,8 @@ const ResetPasswordPage = lazyWithRetry(() => import('./pages/ResetPasswordPage'
 const AdminProductsPage = lazyWithRetry(() => import('./pages/admin/AdminProductsPage'));
 const AdminCmsPage = lazyWithRetry(() => import('./pages/admin/AdminCmsPage'));
 const AdminAnalyticsPage = lazyWithRetry(() => import('./pages/admin/AdminAnalyticsPage'));
+const AdminEbookConversionPage = lazyWithRetry(() => import('./pages/admin/AdminEbookConversionPage'));
+const AdminPartnerOutreachLibraryPage = lazyWithRetry(() => import('./pages/admin/AdminPartnerOutreachLibraryPage'));
 const AdminSitewideUxCommandPage = lazyWithRetry(() => import('./pages/admin/AdminSitewideUxCommandPage'));
 const AdminStudioUxCommandPage = lazyWithRetry(() => import('./pages/admin/AdminStudioUxCommandPage'));
 const AdminOvernight50Page = lazyWithRetry(() => import('./pages/admin/AdminOvernight50Page'));
@@ -2632,6 +2634,22 @@ function AppInner() {
           element={
             <ProtectedAdminRoute>
               <ProductRoutedPage role="admin" pageId="analytics" legacy={<AdminAnalyticsPage />} />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/ebook-conversions"
+          element={
+            <ProtectedAdminRoute>
+              <ProductRoutedPage role="admin" pageId="ebook-conversions" legacy={<AdminEbookConversionPage />} />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/partner-library"
+          element={
+            <ProtectedAdminRoute>
+              <ProductRoutedPage role="admin" pageId="partner-library" legacy={<AdminPartnerOutreachLibraryPage />} />
             </ProtectedAdminRoute>
           }
         />

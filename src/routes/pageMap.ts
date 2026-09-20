@@ -207,6 +207,8 @@ export const ADMIN_ROUTES: RouteSpec[] = [
   { path: '/admin/products', title: 'Product & Vendor Admin', badge: 'Admin' },
   { path: '/admin/cms', title: 'CMS', badge: 'Admin' },
   { path: '/admin/analytics', title: 'Analytics & Reporting', badge: 'Admin' },
+  { path: '/admin/ebook-conversions', title: 'Ebook conversion', badge: 'Admin', subtitle: 'Lead-magnet captures for 7 / 14 / 30 days.' },
+  { path: '/admin/partner-library', title: 'Partner library', badge: 'Admin', subtitle: 'Researched referral partners. Outreach HOLD.' },
   { path: '/admin/settings', title: 'System Settings', badge: 'Admin' },
 ];
 

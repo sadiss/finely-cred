@@ -76,6 +76,8 @@ const DESK_TILES: Array<{
   { title: 'Board', blurb: 'New → Talking → Booked → Won/No.', href: '/admin/marketing-desk?helper=board', accent: 'violet' },
   { title: 'Clean out junk', blurb: 'Hide from Board. Put back anytime.', href: '/admin/marketing-desk?helper=clean', accent: 'rose' },
   { title: 'Mail on autopilot', blurb: 'Ready / Needs setup / Paused.', href: '/admin/marketing-desk?helper=mail', accent: 'sky' },
+  { title: 'Ebook conversion', blurb: '7 / 14 / 30 day guide captures.', href: '/admin/ebook-conversions', accent: 'emerald' },
+  { title: 'Partner library', blurb: 'Researched partners. Outreach HOLD.', href: '/admin/partner-library', accent: 'rose' },
 ];
 
 function tabFromParams(params: URLSearchParams): PageMode {

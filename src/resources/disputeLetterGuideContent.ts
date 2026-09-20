@@ -25,7 +25,7 @@ export const DISPUTE_LETTER_GUIDE_IMAGE_PAGES = [
   '/guides/credit-dispute-letter-guide/page-13.png',
 ] as const;
 
-export const DISPUTE_LETTER_GUIDE_COVER = '/free-guide-cover.png';
+export const DISPUTE_LETTER_GUIDE_COVER = '/marketing/ebooks/restore-for-wealth-cover.png';
 
 /** Reader-only accent rail per chapter. PDF ignores these. */
 export type DisputeGuideAccent = 'sky' | 'ink' | 'amber' | 'violet' | 'emerald' | 'rose';

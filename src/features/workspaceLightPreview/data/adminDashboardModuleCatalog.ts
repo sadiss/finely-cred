@@ -185,6 +185,20 @@ function buildCards(stats: AdminDashboardStats, opsCaps: OpsCaps): ModuleCard[] 
         hidden: !opsCaps.canManageTenants,
       },
       {
+        title: 'Ebook conversion',
+        description: 'See English and Kreyòl guide captures for the last 7, 14, and 30 days — no CSV download.',
+        path: '/admin/ebook-conversions',
+        icon: BookOpen,
+        stat: 'Guides',
+      },
+      {
+        title: 'Partner library',
+        description: 'Browse 719 researched referral partners. Filter Haitian / general. Outreach stays HOLD.',
+        path: '/admin/partner-library',
+        icon: Library,
+        stat: 'HOLD',
+      },
+      {
         title: 'Operations copilot',
         description: 'Daily priorities, launch readiness, pipeline actions, and system checks.',
         path: '/admin/ops-agent',

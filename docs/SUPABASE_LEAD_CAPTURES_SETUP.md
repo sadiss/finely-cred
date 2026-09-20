@@ -19,8 +19,27 @@ create table if not exists public.lead_captures (
   full_name text not null,
   email text not null,
   phone text not null,
-  consent_to_contact boolean not null default false
+  consent_to_contact boolean not null default false,
+  referral_code text null,
+  promoter_role text null,
+  promo_type text null,
+  promo_asset text null,
+  utm_source text null,
+  utm_medium text null,
+  utm_campaign text null,
+  utm_content text null,
+  funnel_path text null,
+  funnel_id text null
 );
+
+-- Safe on existing tables: add columns if an older schema is already live.
+alter table public.lead_captures add column if not exists referral_code text;
+alter table public.lead_captures add column if not exists utm_source text;
+alter table public.lead_captures add column if not exists utm_medium text;
+alter table public.lead_captures add column if not exists utm_campaign text;
+alter table public.lead_captures add column if not exists utm_content text;
+alter table public.lead_captures add column if not exists funnel_path text;
+alter table public.lead_captures add column if not exists funnel_id text;
 
 alter table public.lead_captures enable row level security;
 ```
@@ -53,12 +72,16 @@ using (true);
 
 For a tighter policy, restrict by allowlisted admin email(s) using JWT claims or a `profiles` table with an `is_admin` flag.
 
-### 4) Configure env vars
+### 4) Configure env vars (public + admin read)
 
 Ensure your Vite environment has:
 
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
 
-When these are set, the app will attempt to insert into `lead_captures`. If not set (or if insert fails), it will still save the request locally in the browser.
+These two keys are **read-only from the browser’s point of view**. They are the public anon key, not the service-role key. Admin **Ebook conversion** (`/admin/ebook-conversions`) uses the signed-in admin session + the `auth_read_lead_captures` policy above to `select` recent rows. No extra read-only key is required.
+
+When these are set, the app will attempt to insert into `lead_captures`. If not set (or if insert fails), it will still save the request locally in the browser. The admin conversion view then shows this browser’s local captures and says Supabase is not configured.
+
+Do **not** put `SUPABASE_SERVICE_ROLE_KEY` in Vite / `VITE_*`. Service role stays on the server (Edge Functions only).
 
