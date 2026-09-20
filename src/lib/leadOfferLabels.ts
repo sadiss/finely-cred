@@ -12,6 +12,7 @@ export const LEAD_OFFER_LABELS: Record<LeadOffer, string> = {
   enlightenment_session: 'Strategy session',
   consultation_booking: 'Consultation booking',
   dispute_letter_guide: 'Dispute letter guide',
+  restore_for_wealth: 'Restore for wealth',
   haitian_credit_kit: 'Haitian credit kit',
   debt_validation_playbook: 'Debt validation playbook',
   business_credit_jumpstart: 'Business credit jumpstart',

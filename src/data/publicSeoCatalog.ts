@@ -215,7 +215,14 @@ export const PUBLIC_SEO_CATALOG: PublicSeoRoute[] = [
   {
     path: '/free-guide',
     title: 'Free dispute letter guide',
-    description: 'Download the credit dispute letter guide and start your restore journey.',
+    description: 'Learn to write dispute letters yourself — a sequenced DIY guide with Letter Studio preview.',
+    hasSchema: true,
+  },
+  {
+    path: '/free-restore-wealth',
+    title: 'Restore for Wealth — free guide',
+    description:
+      'Credit restore for funding and opportunity. Debt is not erased. Results vary · not legal advice · funding subject to underwriting.',
     hasSchema: true,
   },
   {
@@ -239,8 +246,8 @@ export const PUBLIC_SEO_CATALOG: PublicSeoRoute[] = [
   },
   {
     path: '/free-kreyol-guide',
-    title: 'Credit kits · Haitian community',
-    description: 'Four credit kits for Haitian Americans — what credit is, what the letter says, helping family, church flyer.',
+    title: 'Gid Kredi an Kreyòl · Biwo Ayisyen',
+    description: 'Restore kredi pou bati richès. Kat kit Kreyòl pou Ayisyen Ozetazini — kredi, lèt, èd fanmi, feyè legliz.',
     hasSchema: true,
   },
   {

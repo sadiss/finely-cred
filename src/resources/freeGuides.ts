@@ -4,6 +4,7 @@ import { AGENCY_GUIDE } from './agencyGuideContent';
 import { AFFILIATE_TOOLKIT_FREE_GUIDE } from './affiliateToolkitFreeGuide';
 import { SCORE_BOOST_FREE_GUIDE } from './scoreBoostFreeGuide';
 import { KREYOL_COMPANION_GUIDE } from './kreyolCompanionGuide';
+import { RESTORE_FOR_WEALTH_GUIDE } from './restoreForWealthGuide';
 
 export type FreeGuideId =
   | 'credit-dispute-letter-guide'
@@ -40,7 +41,8 @@ export type FreeGuideId =
   | 'debt-settlement-tax-traps'
   | 'mortgage-overlay-dispute-prep'
   | 'identity-theft-block-unblock'
-  | 'kreyol-companion-kit';
+  | 'kreyol-companion-kit'
+  | 'restore-for-wealth-guide';
 
 export type FreeGuide = {
   id: FreeGuideId;
@@ -91,6 +93,7 @@ export const FREE_GUIDES: FreeGuide[] = [
   SCORE_BOOST_FREE_GUIDE,
   AFFILIATE_TOOLKIT_FREE_GUIDE,
   KREYOL_COMPANION_GUIDE,
+  RESTORE_FOR_WEALTH_GUIDE,
   ...CORE_PARTNER_GUIDES,
 ];
 

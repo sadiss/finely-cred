@@ -230,6 +230,23 @@ export function FreeGuideFunnelStyles() {
       inset: 0;
       background: linear-gradient(180deg, transparent, rgba(0,0,0,0.55));
     }
+    .fg-funnel .lm-flyer-hero-thumb--cover {
+      opacity: 1;
+      aspect-ratio: 723 / 1024;
+      max-width: 260px;
+      margin-left: auto;
+      border: 1px solid rgba(251, 191, 36, 0.35);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+    }
+    .fg-funnel .lm-flyer-hero-thumb--cover img {
+      object-fit: cover;
+      object-position: center;
+    }
+    @media (min-width: 900px) {
+      .fg-funnel .lm-flyer-hero-band-grid:has(.lm-flyer-hero-thumb--cover) {
+        grid-template-columns: minmax(0, 1fr) minmax(200px, 280px);
+      }
+    }
     .fg-funnel .lm-flyer-hero-copy { max-width: 42rem; }
     .fg-funnel .lm-flyer-category {
       font-size: 0.8125rem;

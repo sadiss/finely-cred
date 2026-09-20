@@ -3,8 +3,8 @@ import type { FreeGuide } from './freeGuides';
 /** Haitian community kits — credit help, not a site-architecture lecture. */
 export const KREYOL_COMPANION_GUIDE: FreeGuide = {
   id: 'kreyol-companion-kit',
-  title: 'Credit kits — kredi pou Ayisyen Ozetazini',
-  desc: 'Credit kits for Haitian Americans: what credit is, what a letter says, how to help someone, and a church flyer. Pale Kreyòl when you are ready. Book a session when you want a person.',
+  title: 'Gid Kredi an Kreyòl — Biwo Ayisyen',
+  desc: 'Restore kredi pou bati richès. Kat kit pou Ayisyen Ozetazini: kisa kredi ye, lèt la di kisa, kijan pou ede fanmi, ak yon feyè legliz. Pale Kreyòl lè w pare. Dèt pa efase. Rezilta yo varye.',
   sections: [
     {
       heading: 'Kit 1 — Kisa kredi ye?',
