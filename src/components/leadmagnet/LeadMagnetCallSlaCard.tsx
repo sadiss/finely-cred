@@ -19,6 +19,7 @@ export function LeadMagnetCallSlaCard({ bookingUrl = '/enlightenment-session', k
 
   return (
     <div
+      id="lm-call-sla"
       className={
         className ??
         'rounded-2xl border border-amber-300/30 bg-amber-400/10 p-4 text-left text-sm text-white/85'

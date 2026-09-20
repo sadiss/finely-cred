@@ -120,6 +120,7 @@ export async function submitLeadCapture(
     fullName: sanitize(leadArgs.fullName),
     email: sanitize(leadArgs.email),
     phone: sanitize(leadArgs.phone),
+    funnelId: funnelId ?? leadArgs.funnelId,
   });
 
   void runLeadCapturePipeline({ lead, guideId, guideTitle, funnelId }).catch(() => {

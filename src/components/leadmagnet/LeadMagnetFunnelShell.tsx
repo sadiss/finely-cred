@@ -251,8 +251,7 @@ export function LeadMagnetFunnelShell({
       markLeadMagnetUnlocked(activeConfig.funnelId);
       setStep('success');
       queueMicrotask(() => {
-        const targetId = activeConfig.id === 'credit' ? 'fg-dispute-track' : 'fg-free-toolkit';
-        document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        document.getElementById('lm-call-sla')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       });
     } catch (ex: unknown) {
       setErr((ex as Error)?.message || 'Could not submit. Try again.');
