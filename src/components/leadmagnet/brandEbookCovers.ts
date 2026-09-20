@@ -1,7 +1,7 @@
 import type { FreeGuideId } from '../../resources/freeGuides';
 import type { LeadMagnetFunnelConfig } from '../../domain/leadMagnetFunnels';
 
-/** Official gold-on-ink covers. Never invent a shield-F mark. */
+/** Official gold-on-ink v3 cultural covers (wealth stairs / desk). Never invent a shield-F mark. */
 export const BRAND_EBOOK_COVERS = {
   en: '/marketing/ebooks/restore-for-wealth-cover.png',
   kreyol: '/marketing/ebooks/gid-kredi-kreyol-cover.png',

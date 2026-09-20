@@ -22,6 +22,7 @@ import {
   buildEbookConversionSnapshot,
   type EbookConversionPeriod,
 } from '../../lib/ebookConversionMetrics';
+import { BRAND_EBOOK_COVERS } from '../../components/leadmagnet/brandEbookCovers';
 
 const PERIODS: EbookConversionPeriod[] = [7, 14, 30];
 
@@ -95,6 +96,31 @@ export default function AdminEbookConversionPage({ embedded = false }: AdminEmbe
           <FinelyOsOverviewStatTile icon={BookOpen} label="Free Kreyòl guide" value={snapshot.kreyolGuide} accent="emerald" hint="/free-kreyol-guide · kreyol_companion" />
           <FinelyOsOverviewStatTile icon={Phone} label="With phone" value={`${snapshot.phonePct}%`} accent="sky" hint={`${snapshot.withPhone} of ${snapshot.total}`} />
           <FinelyOsOverviewStatTile icon={Radio} label="Other magnets" value={snapshot.otherMagnets} accent="rose" hint="Debt, business, partner-refer, untagged" />
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-4">
+          <a href="/free-guide" className={`${finelyOsCatalogCard('amber')} overflow-hidden group`} data-fc-accent="amber">
+            <img
+              src={BRAND_EBOOK_COVERS.en}
+              alt="Restore for Wealth — English cover"
+              className="w-full aspect-video object-cover"
+            />
+            <div className="p-4">
+              <div className={FINELY_OS_ENTITY_TITLE}>Restore for Wealth</div>
+              <p className={`${FINELY_OS_ENTITY_SUBLABEL} mt-1`}>English `/free-guide` · wealth stairs · gold + ink</p>
+            </div>
+          </a>
+          <a href="/free-kreyol-guide" className={`${finelyOsCatalogCard('emerald')} overflow-hidden group`} data-fc-accent="emerald">
+            <img
+              src={BRAND_EBOOK_COVERS.kreyol}
+              alt="Gid Kredi an Kreyòl — cover"
+              className="w-full aspect-video object-cover"
+            />
+            <div className="p-4">
+              <div className={FINELY_OS_ENTITY_TITLE}>Gid Kredi an Kreyòl</div>
+              <p className={`${FINELY_OS_ENTITY_SUBLABEL} mt-1`}>Haitian `/free-kreyol-guide` · desk culture · gold + ink</p>
+            </div>
+          </a>
         </div>
 
         <div className="grid lg:grid-cols-12 gap-4">

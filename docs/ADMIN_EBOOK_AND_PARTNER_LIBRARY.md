@@ -54,15 +54,13 @@ The table is the main tool. **Export visible** is optional if you still want a s
 
 ## Brand ebook covers
 
-Official gold-on-ink covers live at:
+Locked v3 cultural covers (gold `#fbbf24` + ink `#060908` / `#0a100e` only). Refined **Finely Cred** wordmark — no shield-F, no stacked FINELY.
 
-- `/marketing/ebooks/restore-for-wealth-cover.png` (English `/free-guide`)
-- `/marketing/ebooks/gid-kredi-kreyol-cover.png` (Kreyòl `/free-kreyol-guide`)
+- `/marketing/ebooks/restore-for-wealth-cover.png` — English Restore for Wealth (wealth stairs + gold door) for `/free-guide`
+- `/marketing/ebooks/gid-kredi-kreyol-cover.png` — Kreyòl Gid Kredi (desk culture) for `/free-kreyol-guide`
 - `/marketing/ebooks/see-inside-preview.png`
 
-Copies also sit under `/guides/`. Official mark is the gold circle + FINELY Cred wordmark in `public/brand`. Do not invent a shield-F.
-
-Colors: gold `#fbbf24`, ink `#060908` / `#0a100e`.
+The same English file is also served as `/free-guide-cover.png`, `/guides/restore-for-wealth-cover.png`, `/guides/credit-dispute-letter-guide/cover.png`, and `/images/product-shots/guide-dispute-cover.png`. Official mark is the gold circle + Finely Cred wordmark in `public/brand`.
 
 ## Thank-you call SLA
 

@@ -36,6 +36,7 @@ import { findPartnerByEmail, upsertPartner } from '../../data/partnersRepo';
 import { withPreferredVoice } from '../../lib/haitianVoice';
 import { FunnelLeadCaptureForm, type FunnelLeadCaptureCopy } from './FunnelLeadCaptureForm';
 import { LeadMagnetCallSlaCard } from './LeadMagnetCallSlaCard';
+import { resolveBrandEbookCover } from './brandEbookCovers';
 import { FunnelCollectionDisputePanel } from './FunnelCollectionDisputePanel';
 import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
 import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubLayout';
@@ -101,6 +102,7 @@ export function LeadMagnetFunnelShell({
     title: activeConfig.metaTitle,
     description: activeConfig.metaDesc,
     path: activeConfig.path,
+    image: resolveBrandEbookCover(activeConfig.guideId, activeConfig.funnelId) ?? undefined,
     faqs:
       getLeadMagnetPremiumProfile(activeConfig)?.faqs ??
       (activeConfig.id === 'credit'

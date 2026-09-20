@@ -52,7 +52,7 @@ Copy-Item "public\brand\finely-cred-icon.svg" "$env:USERPROFILE\Desktop\finely-c
 
 Official mark is the **gold circle + FINELY Cred wordmark**. Never invent a shield-F.
 
-Ebook covers (wired into `/free-guide` and `/free-kreyol-guide`):
+Locked v3 ebook covers (wired into `/free-guide` and `/free-kreyol-guide`): wealth stairs + desk culture, gold `#fbbf24` on ink only, refined Finely Cred wordmark.
 
 - `/marketing/ebooks/restore-for-wealth-cover.png`
 - `/marketing/ebooks/gid-kredi-kreyol-cover.png`
