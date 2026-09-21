@@ -1,11 +1,10 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
-import { listCommandAudit } from '../commandIntelligence/commandAudit';
 import { captionDraft } from '../commandIntelligence/commandRouter';
 import { runCommand } from '../commandIntelligence/commandRunner';
-import { PARTNER_SUPPORT_FROM, sendPartnerEmail } from '../commandIntelligence/sendPartnerEmail';
 import { warmPartnerRows } from '../commandIntelligence/warmPartners';
+import { PartnerEmailDesk } from '../partnerEmailDesk/PartnerEmailDesk';
 import './businessOs.css';
 import {
   listKeySlots,
@@ -395,41 +394,9 @@ function BriefRoom() {
 }
 
 function DraftRoom() {
-  const [rows, setRows] = useState(() => listCommandAudit().filter((row) => row.action.startsWith('partner_email')));
-  const [toEmail, setToEmail] = useState('');
-  const [note, setNote] = useState('');
-  const [approved, setApproved] = useState(false);
   return (
     <section className="fc-bos-panel">
-      <h2>Partner draft queue</h2>
-      <p>From {PARTNER_SUPPORT_FROM}. Unchecked saves a draft. Checked still waits on Zoho secrets.</p>
-      <form
-        onSubmit={async (event) => {
-          event.preventDefault();
-          const result = await sendPartnerEmail({
-            toEmail,
-            subject: 'Next step on your file',
-            text: 'One document or habit for this week. Education, not a guarantee.',
-            approved,
-          });
-          setNote(result.message);
-          setRows(listCommandAudit().filter((row) => row.action.startsWith('partner_email')));
-        }}
-      >
-        <input value={toEmail} onChange={(event) => setToEmail(event.target.value)} placeholder="Partner email" aria-label="Draft recipient" />
-        <label>
-          <input type="checkbox" checked={approved} onChange={(event) => setApproved(event.target.checked)} /> Approve before send
-        </label>
-        <button className="fc-bos-gold" type="submit">{approved ? 'Send if Zoho is ready' : 'Save draft'}</button>
-      </form>
-      {note ? <p>{note}</p> : null}
-      {rows.length === 0 ? <p>Queue is empty.</p> : null}
-      {rows.slice(0, 8).map((row) => (
-        <div key={row.id} className="fc-bos-row">
-          <span>{row.summary}</span>
-          <span>{row.sent ? 'Sent' : 'Not sent'}</span>
-        </div>
-      ))}
+      <PartnerEmailDesk />
     </section>
   );
 }

@@ -188,3 +188,92 @@
   color: #f5f5f4;
   font-weight: 700;
 }
+
+.fc-mail-desk {
+  display: grid;
+  gap: 0.75rem;
+  color: #f5f5f4;
+}
+
+.fc-mail-desk h2 { margin: 0; font-size: 1.35rem; }
+
+.fc-mail-kicker {
+  margin: 0;
+  color: #e8b84a;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.fc-mail-banner {
+  margin: 0;
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.9rem;
+  background: #faf6ee;
+  color: #14120b;
+  font-weight: 800;
+}
+
+.fc-mail-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.fc-mail-kpis div {
+  background: #182420;
+  border: 1px solid rgba(245, 245, 244, 0.22);
+  border-radius: 0.9rem;
+  padding: 0.7rem 0.8rem;
+}
+
+.fc-mail-kpis b { display: block; font-size: 1.3rem; }
+.fc-mail-kpis span { color: #d6d3d1; font-size: 0.75rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
+
+.fc-mail-form, .fc-mail-card {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.fc-mail-card {
+  border: 1px solid rgba(245, 245, 244, 0.22);
+  border-radius: 1rem;
+  background: #121a17;
+  padding: 0.85rem 1rem;
+}
+
+.fc-mail-card summary {
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-weight: 800;
+}
+
+.fc-mail-desk input,
+.fc-mail-desk textarea,
+.fc-mail-desk select {
+  width: 100%;
+  border-radius: 0.85rem;
+  border: 1px solid rgba(245, 245, 244, 0.28);
+  background: #0b1110;
+  color: #f5f5f4;
+  padding: 0.7rem 0.8rem;
+  font: inherit;
+}
+
+.fc-mail-desk button {
+  min-height: 44px;
+  border-radius: 0.85rem;
+  border: 1px solid #f6e2a8;
+  background: linear-gradient(135deg, #ffeaa7 0%, #f39c12 48%, #d68910 100%);
+  color: #14120b;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.fc-mail-desk button:disabled {
+  cursor: default;
+  opacity: 0.85;
+}

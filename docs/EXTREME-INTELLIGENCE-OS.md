@@ -23,7 +23,7 @@ One Finely mark (`/brand/finely-cred-icon.svg`). Staff portraits stay in chat. T
 
 ## Mail
 
-`sendPartnerEmail` refuses unless `approved === true`. The browser flag is `VITE_ZOHO_PARTNER_EMAIL=true`. The edge function `send-partner-email` also requires `ZOHO_PARTNER_EMAIL_ENABLED` plus `ZOHO_SMTP_USER` and `ZOHO_SMTP_PASS`. From is locked to `partnersupport@finelycred.com`. It does not fall back to generic SMTP. Drafts and blocks are written to local audit and, when the service role is present, `audit_events`. A browser insert may fail RLS; the local log still stands.
+Partner Email Desk keeps a HOLD queue. Approving a draft on that screen does not transmit. From addresses are only `partnersupport@finelycred.com` and `sanzstlouis@finelycred.com`. Vertical templates: tax, BHPH, mortgage, realtor, immigration. Site deploy is not required. `send-partner-email` sends only when `approved === true` and `ZOHO_PARTNER_EMAIL_ENABLED` plus `ZOHO_SMTP_USER` and `ZOHO_SMTP_PASS` are set. It does not fall back to generic SMTP. The desk itself does not call that function.
 
 ## PARTIAL
 

@@ -1,10 +1,10 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import './commandIntelligence.css';
-import { listCommandAudit } from './commandAudit';
+import { PartnerEmailDesk } from '../partnerEmailDesk/PartnerEmailDesk';
+import { ensurePartnerEmailDrafts } from '../partnerEmailDesk/partnerEmailDesk';
 import { FinelyAssistantMark } from './FinelyAssistantMark';
 import { runCommand, type CommandRun } from './commandRunner';
-import { PARTNER_SUPPORT_FROM, sendPartnerEmail, zohoPartnerEmailEnabled } from './sendPartnerEmail';
 import { listSoftPullConsents, recordSoftPullConsent, SOFT_PULL_DOCS, SOFT_PULL_VENDORS } from './softPullDesk';
 import { warmPartnerRows } from './warmPartners';
 
@@ -25,17 +25,8 @@ export function CommandIntelligenceHome() {
   const [consentName, setConsentName] = useState('');
   const [consentNote, setConsentNote] = useState('');
   const [consents, setConsents] = useState(() => listSoftPullConsents());
-  const [toEmail, setToEmail] = useState('');
-  const [subject, setSubject] = useState('A next step on your file');
-  const [body, setBody] = useState('Here is the document or habit to finish this week. This is education, not a score promise.');
-  const [approved, setApproved] = useState(false);
-  const [sendNote, setSendNote] = useState('');
-  const [auditTick, setAuditTick] = useState(0);
-  const warm = useMemo(() => warmPartnerRows(5), [auditTick]);
-  const drafts = useMemo(
-    () => listCommandAudit().filter((row) => row.action.startsWith('partner_email')).slice(0, 4),
-    [auditTick, sendNote],
-  );
+  const warm = useMemo(() => warmPartnerRows(5), []);
+  const drafts = useMemo(() => ensurePartnerEmailDrafts().filter((row) => row.status === 'hold'), []);
 
   async function onAsk(event: FormEvent) {
     event.preventDefault();
@@ -45,13 +36,6 @@ export function CommandIntelligenceHome() {
     } finally {
       setBusy(false);
     }
-  }
-
-  async function onSend(event: FormEvent) {
-    event.preventDefault();
-    const result = await sendPartnerEmail({ toEmail, subject, text: body, approved });
-    setSendNote(result.message);
-    setAuditTick((n) => n + 1);
   }
 
   return (
@@ -68,7 +52,7 @@ export function CommandIntelligenceHome() {
       <div className="fc-cmd-grid fc-cmd-grid-4">
         <div className="fc-cmd-kpi"><b>{warm.length}</b><span>Warm files</span></div>
         <div className="fc-cmd-kpi"><b>{drafts.length}</b><span>Email notes</span></div>
-        <div className="fc-cmd-kpi"><b>{zohoPartnerEmailEnabled() ? 'On' : 'Off'}</b><span>Zoho flag</span></div>
+        <div className="fc-cmd-kpi"><b>HOLD</b><span>Mail stays here</span></div>
         <div className="fc-cmd-kpi"><b>0</b><span>Invented scores</span></div>
       </div>
 
@@ -117,19 +101,9 @@ export function CommandIntelligenceHome() {
           ))}
         </article>
 
-        <form className="fc-cmd-card fc-cmd-field" onSubmit={onSend}>
-          <strong>Partner email</strong>
-          <span>From {PARTNER_SUPPORT_FROM}. Drafts save locally. Send needs your approval and Zoho secrets.</span>
-          <input value={toEmail} onChange={(event) => setToEmail(event.target.value)} placeholder="Partner email" aria-label="Partner email" />
-          <input value={subject} onChange={(event) => setSubject(event.target.value)} aria-label="Subject" />
-          <textarea value={body} onChange={(event) => setBody(event.target.value)} rows={4} aria-label="Email body" />
-          <label className="fc-cmd-check">
-            <input type="checkbox" checked={approved} onChange={(event) => setApproved(event.target.checked)} />
-            Approve before send
-          </label>
-          <button className="fc-cmd-ink" type="submit">{approved ? 'Send if Zoho is ready' : 'Save draft'}</button>
-          {sendNote ? <span>{sendNote}</span> : null}
-        </form>
+        <div className="fc-cmd-card">
+          <PartnerEmailDesk />
+        </div>
       </div>
 
       <details>

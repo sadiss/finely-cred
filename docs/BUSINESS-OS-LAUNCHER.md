@@ -23,7 +23,7 @@ Open-Meteo answers from the browser with no key. The other lookups use the same 
 
 ## Automations
 
-Morning brief, partner draft queue, and caption pack are local shortcuts. They do not post and they do not email unless that draft’s Approve box is checked and Zoho is configured. See `docs/OWNER-MINIMAL-SETUP.md`.
+Morning brief, the Partner Email Desk, and the caption pack are local. The desk seeds HOLD drafts from warm partner files that already have an email and does not send them. See `docs/OWNER-MINIMAL-SETUP.md`.
 
 ## Secrets
 

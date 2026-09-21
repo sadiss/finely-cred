@@ -10,7 +10,7 @@ import { json, logEdgeEvent, rateLimit, requireAuth } from '../_shared/edgeGuard
 import { requireStaffAllowlistedEmail } from '../_shared/actorAuth.ts';
 import { getZohoSmtpCredentials } from '../_shared/commsCredentials.ts';
 
-const FROM_EMAIL = 'partnersupport@finelycred.com';
+const FROM_ADDRESSES = ['partnersupport@finelycred.com', 'sanzstlouis@finelycred.com'] as const;
 const FROM_NAME = 'Finely Cred Partner Support';
 
 type ReqBody = {
@@ -21,6 +21,7 @@ type ReqBody = {
   partnerId?: string;
   approved?: boolean;
   draftId?: string;
+  fromEmail?: string;
 };
 
 async function writeAudit(args: {
@@ -76,6 +77,11 @@ Deno.serve(async (req) => {
   const subject = String(body.subject || '').trim();
   const text = String(body.text || '').trim();
   const draftId = String(body.draftId || '').trim() || crypto.randomUUID();
+  const requestedFrom = String(body.fromEmail || FROM_ADDRESSES[0]).trim().toLowerCase();
+  const fromEmail = (FROM_ADDRESSES as readonly string[]).includes(requestedFrom) ? requestedFrom : '';
+  if (!fromEmail) {
+    return json({ ok: false, error: 'From must be partnersupport@finelycred.com or sanzstlouis@finelycred.com.' }, { status: 400 });
+  }
   if (!toEmail || !subject || !text) {
     return json({ ok: false, error: 'toEmail, subject, and text are required' }, { status: 400 });
   }
@@ -119,7 +125,7 @@ Deno.serve(async (req) => {
   try {
     const to = body.toName ? `"${body.toName.replace(/"/g, '')}" <${toEmail}>` : toEmail;
     await transporter.sendMail({
-      from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
+      from: `"${FROM_NAME}" <${fromEmail}>`,
       to,
       subject,
       text,
@@ -141,7 +147,7 @@ Deno.serve(async (req) => {
     partnerId: body.partnerId,
     actorEmail: ctx.user.email,
     entityId: draftId,
-    meta: { toEmail, subject: subject.slice(0, 140), from: FROM_EMAIL, sent: true },
+    meta: { toEmail, subject: subject.slice(0, 140), from: fromEmail, sent: true },
   });
   await logEdgeEvent({
     namespace: 'send-partner-email',
@@ -149,5 +155,5 @@ Deno.serve(async (req) => {
     event: 'sent',
     meta: { userId: ctx.user.id, toEmail, draftId },
   });
-  return json({ ok: true, status: 'sent', draftId, from: FROM_EMAIL });
+  return json({ ok: true, status: 'sent', draftId, from: fromEmail });
 });
