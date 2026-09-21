@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, MessageSquare, Send, Sparkles, Users, Trophy, Video } from 'lucide-react';
+import { ArrowLeft, MessageSquare, Send, Sparkles, Users, Trophy } from 'lucide-react';
 import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
 import { LOUNGE_CHANNELS, type LoungeChannelId, type LoungeRole } from '../../domain/specialistLounge';
@@ -16,6 +16,7 @@ import { buildAgentSystemPrompt } from '../../lib/knowledgeBase/agentPersonas';
 import { detectKbLang, retrieveKnowledgeSync } from '../../lib/knowledgeBaseRouter';
 import { isFeatureEnabled } from '../../data/settingsRepo';
 import { listCalendarEvents } from '../../data/calendarRepo';
+import { HubMeetingsPanel } from '../../components/meeting/HubMeetingsPanel';
 import { AcademyResourcesShelf } from '../../components/training/academy/AcademyResourcesShelf';
 import { KpiCard } from '../../components/ui/KpiCards';
 
@@ -191,22 +192,7 @@ export default function AdminSpecialistLoungePage() {
           </div>
 
           <aside className="space-y-4">
-            <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-              <div className="flex items-center gap-2 text-white font-semibold text-sm">
-                <Video size={16} className="text-sky-300" /> Meeting lobby
-              </div>
-              <p className="mt-2 text-white/55 text-xs">Calendar events + consultation booking (extend to guest /meet when wired).</p>
-              <ul className="mt-3 space-y-2 text-xs text-white/65">
-                {events.length ? events.map((e) => (
-                  <li key={e.id}>{e.title} — {e.startAt?.slice(0, 10)}</li>
-                )) : (
-                  <li>No upcoming events — book via Consultation.</li>
-                )}
-              </ul>
-              <button type="button" onClick={() => navigate('/consultation')} className="mt-3 text-amber-300 text-xs">
-                Open consultation booking →
-              </button>
-            </div>
+            <HubMeetingsPanel events={events} lang={lang} />
             {channel === 'resources' ? <AcademyResourcesShelf lang={lang} /> : null}
             <div className="rounded-2xl border border-violet-500/20 bg-violet-500/5 p-4 text-xs text-white/60">
               <Users size={14} className="inline text-violet-300" /> Roles: trainee · specialist · coach · admin (moderation via coach/admin posts).

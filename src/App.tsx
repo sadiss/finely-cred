@@ -133,6 +133,8 @@ const SellerContractsPage = lazy(() => import('./pages/seller/SellerContractsPag
 const SellerPayoutsPage = lazy(() => import('./pages/seller/SellerPayoutsPage'));
 const ConsultationPage = lazy(() => import('./pages/ConsultationPage'));
 const EnlightenmentSessionPage = lazy(() => import('./pages/EnlightenmentSessionPage'));
+const GuestMeetingJoinPage = lazy(() => import('./pages/GuestMeetingJoinPage'));
+const VideoMeetingRoomPage = lazy(() => import('./pages/VideoMeetingRoomPage'));
 const FaqPage = lazy(() => import('./pages/FaqPage'));
 const ClaimPartnerProfilePage = lazy(() => import('./pages/ClaimPartnerProfilePage'));
 const TermsPage = lazy(() => import('./pages/legal/TermsPage'));
@@ -2067,6 +2069,15 @@ function AppInner() {
           }
         />
         <Route path="/partner-community" element={<PartnerCommunityWaitlistPage />} />
+        <Route path="/meet/:eventId" element={<GuestMeetingJoinPage />} />
+        <Route
+          path="/admin/meet/:eventId"
+          element={
+            <ProtectedAdminRoute>
+              <VideoMeetingRoomPage />
+            </ProtectedAdminRoute>
+          }
+        />
         <Route
           path="/admin/vault"
           element={
