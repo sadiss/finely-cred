@@ -28,6 +28,7 @@ import {
   getPackAssetsForRoom,
 } from './finelyPackCatalog';
 import { SocialMediaDesk } from './SocialMediaDesk';
+import { FC_SURFACE_CARD } from '../../styles/layoutSurfaces';
 
 const channelIcon: Record<MarketingChannelId, React.ReactNode> = {
   email: <Mail size={20} />,
@@ -86,16 +87,10 @@ export function MarketingCommandFloor() {
           Finely Marketing HQ mirrors Nora-style sales packs — but <strong className="text-white">Finely gold + medallion only</strong> on cold creatives.
           Departments are floors; desks are rooms with ready-to-use copy.
         </p>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
+        <div className="grid sm:grid-cols-3 gap-4 mt-8">
           <KpiCard label="Departments" value={String(MARKETING_DEPARTMENTS.length)} hint="Active floors" />
           <KpiCard label="Pack assets" value={String(FINELY_PACK_ASSETS.length)} hint="Full Finely library" />
-          <KpiCard
-            label="Marketing Desk"
-            value="Find"
-            hint="Grok-style partner intel"
-            onClick={() => navigate('/admin/marketing-desk?tab=desk&helper=find')}
-          />
-          <KpiCard label="Comms wire" value="Studio" hint="/admin/comms" onClick={() => navigate('/admin/comms')} />
+          <KpiCard label="Lead Intel" value="Agent" hint="Enrich prospects" onClick={() => navigate('/admin/lead-intel')} />
         </div>
       </div>
 
@@ -301,21 +296,26 @@ export function MarketingChannelRoom() {
       <ManualSendBanner />
       {(dept.id === 'growth-acquisition' && (ch.id === 'email' || ch.id === 'social')) && <MarketingStartHereStrip />}
 
-      <ReadyToUseSection departmentId={dept.id as MarketingDepartmentId} channelId={ch.id as MarketingChannelId} />
+      {!isSocial ? (
+        <ReadyToUseSection departmentId={dept.id as MarketingDepartmentId} channelId={ch.id as MarketingChannelId} />
+      ) : null}
 
-      <div className="grid lg:grid-cols-3 gap-4">
+      <div className="grid lg:grid-cols-3 gap-4 md:gap-6">
         <KpiCard label="Queue today" value={String(room.queue.length)} hint="Desk checklist" />
         <KpiCard label="Campaigns" value={String(room.campaigns.length)} hint="Tracked offers" />
         <KpiCard label="Pack assets" value={String(getPackAssetsForRoom(dept.id as MarketingDepartmentId, ch.id as MarketingChannelId).length)} hint="In this room" />
       </div>
 
-      <section className="rounded-2xl border border-white/15 bg-[#0b1110] p-6">
+      <section className="space-y-4">
         <h3 className="text-lg font-bold text-white flex items-center gap-2">
           <Users size={20} className="text-[#fbbf24]" /> Today&apos;s queue
         </h3>
-        <ul className="mt-4 space-y-3">
+        <ul className="grid gap-4 md:gap-6">
           {room.queue.map((q) => (
-            <li key={q.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/15 bg-black/40 px-4 py-3">
+            <li
+              key={q.id}
+              className={`${FC_SURFACE_CARD} flex flex-wrap items-center justify-between gap-2`}
+            >
               <div>
                 <div className="text-white text-base">{q.title}</div>
                 <div className="text-white/55 text-sm mt-0.5">{q.dueLabel}</div>
@@ -329,18 +329,18 @@ export function MarketingChannelRoom() {
         </ul>
       </section>
 
-      <section className="rounded-2xl border border-white/15 bg-[#0b1110] p-6">
+      <section className="space-y-4">
         <h3 className="text-lg font-bold text-white">Campaigns</h3>
         {room.campaigns.length === 0 ? (
-          <p className="text-white/60 text-sm mt-3">No campaigns staged in this room yet.</p>
+          <p className="text-white/75 text-sm">No campaigns staged in this room yet.</p>
         ) : (
-          <ul className="mt-4 space-y-3">
+          <ul className="grid gap-4 md:gap-6 md:grid-cols-2">
             {room.campaigns.map((c) => (
-              <li key={c.id} className="rounded-xl border border-[#fbbf24]/25 bg-[#fbbf24]/5 p-4">
+              <li key={c.id} className={`${FC_SURFACE_CARD} border-[#fbbf24]/25 bg-[#fbbf24]/5`}>
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div>
                     <div className="text-white font-semibold text-base">{c.name}</div>
-                    {c.note && <p className="text-white/70 text-sm mt-1">{c.note}</p>}
+                    {c.note && <p className="text-white/75 text-sm mt-1">{c.note}</p>}
                     {c.publicPath && (
                       <a href={c.publicPath} target="_blank" rel="noreferrer" className="text-[#fbbf24] text-sm mt-2 inline-block underline font-semibold">
                         Public: {c.publicPath}
@@ -358,9 +358,9 @@ export function MarketingChannelRoom() {
         )}
       </section>
 
-      <section className="rounded-2xl border border-white/15 bg-[#0b1110] p-6">
+      <section className="space-y-4">
         <h3 className="text-lg font-bold text-white">Wired tools</h3>
-        <div className="mt-3 flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2">
           {room.wiredTools.map((t) => (
             <Link
               key={t.path}

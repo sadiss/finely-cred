@@ -10,6 +10,7 @@ import { generateTextPdfToVault } from '../../letters/generateTextPdf';
 import { newId } from '../../utils/ids';
 import { upsertLetter } from '../../data/lettersRepo';
 import { getBusinessDispute, upsertBusinessDispute } from '../../data/businessCreditRepo';
+import { BusinessJourneyShell } from '../../components/business/BusinessJourneyShell';
 import type { BusinessBureau, BusinessNegativeItem } from '../../domain/businessCredit';
 
 function bureauLabel(b: BusinessBureau) {
@@ -154,6 +155,7 @@ export default function BusinessDisputeDetailPage() {
         autoPickOnUpload={true}
       />
 
+      <BusinessJourneyShell activeStepId="docs_funding">
       <div className="space-y-6">
         <button
           type="button"
@@ -408,13 +410,14 @@ export default function BusinessDisputeDetailPage() {
               <button type="button" onClick={() => navigate('/portal/letters/vault')} className="fc-button-soft w-full">
                 Open Letters Vault <ArrowRight size={14} />
               </button>
-              <div className="text-white/40 text-xs">
+              <div className="text-white/55 text-xs">
                 Tip: keep long explanations out of the letter—stick to facts, items, and requested corrections.
               </div>
             </div>
           </div>
         </div>
       </div>
+      </BusinessJourneyShell>
     </PageShell>
   );
 }

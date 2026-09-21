@@ -50,7 +50,7 @@ const GROUPS: NavGroup[] = [
     label: 'Comms & Content',
     items: [
       { path: '/admin/comms', label: 'Comms Studio', icon: Mail, hint: 'Templates + delivery' },
-      { path: '/admin/marketing-desk', label: 'Marketing Desk', icon: Globe, hint: 'Grok Find + partner helpers' },
+      { path: '/admin/marketing', label: 'Marketing HQ', icon: Globe, hint: 'Floors, packs, Social Media' },
       { path: '/admin/resources', label: 'Resources', icon: Library, hint: 'Public guides' },
       { path: '/admin/courses', label: 'Courses', icon: GraduationCap, hint: 'Course builder' },
       { path: '/admin/specialist-academy', label: 'Specialist Academy', icon: BookOpen, hint: 'Restore methodology training' },

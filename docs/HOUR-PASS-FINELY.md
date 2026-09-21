@@ -1,5 +1,7 @@
 # Hour pass — Finely PR #28 mega summary
 
+**Out of scope on PR #28:** Marketing Desk Grok Find lives on `main` (`src/features/marketingDesk/*`, agent bc-9de4cc50) — not this branch.
+
 | Area | Status | Notes |
 |------|--------|-------|
 | Layout card rule | **SHIPPED** | `docs/LAYOUT-CARD-RULE.md`, `src/styles/layoutSurfaces.ts`, CSS utilities |

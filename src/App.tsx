@@ -88,9 +88,6 @@ const AdminWorkflowQueuePage = lazyRoute(() => import('./pages/admin/AdminWorkfl
 const AdminAutomationsPage = lazyRoute(() => import('./pages/admin/AdminAutomationsPage'));
 const AdminCommsStudioPage = lazyRoute(() => import('./pages/admin/AdminCommsStudioPage'));
 const MarketingHqPage = lazyRoute(() => import('./pages/admin/MarketingHqPage'), { prefetchPath: '/admin/marketing' });
-const MarketingDeskPage = lazyRoute(() => import('./pages/admin/MarketingDeskPage'), {
-  prefetchPath: '/admin/marketing-desk',
-});
 const AdminTemplatesPage = lazyRoute(() => import('./pages/admin/AdminTemplatesPage'));
 const AdminVendorsPage = lazyRoute(() => import('./pages/admin/AdminVendorsPage'));
 const AdminResourcesPage = lazyRoute(() => import('./pages/admin/AdminResourcesPage'));
@@ -2025,14 +2022,6 @@ function AppInner() {
           element={
             <ProtectedAdminRoute>
               <MarketingHqPage />
-            </ProtectedAdminRoute>
-          }
-        />
-        <Route
-          path="/admin/marketing-desk"
-          element={
-            <ProtectedAdminRoute>
-              <MarketingDeskPage />
             </ProtectedAdminRoute>
           }
         />

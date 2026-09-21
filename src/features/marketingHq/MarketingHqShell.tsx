@@ -48,7 +48,7 @@ export function MarketingHqShell({ children }: { children: React.ReactNode }) {
 
       <div className="max-w-[1600px] mx-auto flex flex-col lg:flex-row min-h-[calc(100vh-5rem)]">
         <aside className={`lg:w-72 shrink-0 border-b lg:border-b-0 lg:border-r border-white/10 ${PANEL} p-4`}>
-          <div className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-3 flex items-center gap-2">
+          <div className="text-[10px] font-black uppercase tracking-widest text-white/55 mb-3 flex items-center gap-2">
             <Building2 size={14} className="text-[#fbbf24]" /> Department floors
           </div>
           <nav className="space-y-1">
@@ -101,7 +101,7 @@ export function MarketingHqShell({ children }: { children: React.ReactNode }) {
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-x-hidden">
           {activeDept && (
-            <div className="mb-6 flex flex-wrap items-center gap-2 text-xs text-white/45">
+            <div className="mb-6 flex flex-wrap items-center gap-2 text-xs text-white/55">
               <Link to="/admin/marketing" className="hover:text-[#fbbf24]">Command floor</Link>
               <ChevronRight size={12} />
               <Link to={`/admin/marketing/${activeDept.id}`} className="hover:text-[#fbbf24]">{activeDept.name}</Link>

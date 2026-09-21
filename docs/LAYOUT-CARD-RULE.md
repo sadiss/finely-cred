@@ -33,10 +33,10 @@ Tailwind mirror (optional) in `index.css` `@layer components`: `.fc-page-section
 | Start Here strip | Order: Post → Guides → library; `3×2` grid |
 | Department floor | Channel grid `sm:grid-cols-2 lg:grid-cols-3` |
 
-## Marketing Desk (`/admin/marketing*`)
+## Marketing HQ channel rooms
 
-- **Marketing Desk Find** (`/admin/marketing-desk?helper=find`): one `FC_SECTION_SHELL` hero ask; KPI row + **even** `sm:grid-cols-2 lg:grid-cols-3` result cards on section background — no bordered card inside the hero shell.
-- Partner helpers (Draft, Qualify) reuse the same Grok ask bar; previews use a single `FC_SURFACE_CARD` `<details>`, not nested form panels.
+- **Social Media room:** `SocialMediaDesk` only — skip duplicate `ReadyToUseSection` grid (pack cards are not rendered twice).
+- **Queue / campaigns:** section headings on main background; each row is a sibling `FC_SURFACE_CARD` — not a bordered panel wrapping bordered rows.
 
 ## Still watch
 
