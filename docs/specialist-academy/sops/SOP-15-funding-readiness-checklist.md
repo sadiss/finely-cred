@@ -60,6 +60,12 @@ Coach against **typical teaching targets** — not lender law:
 
 ---
 
+## Example — BUILD + Nora language
+
+Partner has two cards (one 78% utilization, one paid on time) and auto installment current. Specialist completes § A file hygiene, § B BUILD coaching on utilization pacing, § C five-factor education. § D Nora intro: “Funding partners review separately; no approval today.”
+
+---
+
 ## Outcomes
 
 | Result | Next step |

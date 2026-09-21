@@ -39,6 +39,16 @@
 
 ---
 
+## Example — Round 1 vs Round 2 (same account)
+
+**Round 1 (EX):** Exhibit shows collection balance $920; letter requests investigation and MOFV.
+
+**Bureau reply:** “Verified as reported.”
+
+**Round 2:** Quotes reply, attaches same exhibit, requests specific verification documentation; **reordered sections** vs Round 1.
+
+---
+
 ## Do not
 
 - Restart Round 1 templates when SOP-14 shows Round 2 already sent.

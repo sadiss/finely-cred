@@ -46,6 +46,19 @@
 
 ---
 
+## Example walkthrough — Capital One v. Partner
+
+Partner uploads 12-page PDF April 3. Page 1: served March 28; answer due April 28; case #2026-CC-44102.
+
+1. Vault upload tagged debt/summons.
+2. Tasks: April 21, 25, 27 reminders.
+3. File note: “Court track—defer Round 1 batch.”
+4. Educational message: do not ignore; consider attorney.
+
+> **Mistake:** Scheduling Round 1 certified mail same night without lead review.
+
+---
+
 ## Documentation minimum
 
 - [ ] Summons PDF in Vault

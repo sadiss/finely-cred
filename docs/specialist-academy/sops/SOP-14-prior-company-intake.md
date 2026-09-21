@@ -35,6 +35,12 @@
 
 ---
 
+## Example — Credit Pro Round 2 on file
+
+Partner provides March PDFs: Round 2 to EQ/EX for Chase charge-off. Finely logs sends, continues **follow-up Round 2** with new OCR structure—does not reset Round 1.
+
+---
+
 ## Portal note template
 
 ```

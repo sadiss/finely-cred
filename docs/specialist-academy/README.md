@@ -72,10 +72,21 @@ Internal curriculum for specialists who run **restore** the way Finely Cred actu
 4. **Week 4:** SOP-15 funding-readiness dry run; Nora soft-handoff script (no approval language).
 5. **Ongoing:** [MEETING-COACH.md](./MEETING-COACH.md) quizzes before solo file ownership.
 
+## In-app navigation (product UI)
+
+**Admin → Specialist Academy** (`/admin/specialist-academy`)
+
+- Sidebar browse for tracks A–G, SOPs 08–15, and deep lessons
+- **EN | HT** toggle where Kreyòl twins exist
+- Long-form layout with example callouts and local progress checkmarks
+- Also linked from Admin Dashboard → **Specialist Academy** card
+
+Registry: `src/domain/trainingAcademy.ts` (additive lesson IDs; does not replace Courses builder).
+
 ## Maintainer notes
 
-- Docs-first: no change to auth, billing, or in-app lesson gates required for this pack.
-- When `src/domain/trainingAcademy.ts` exists in your branch, add lesson IDs that deep-link here — do not remove existing modules.
+- Docs under `docs/specialist-academy/` are loaded at build time via `import.meta.glob`.
+- Do not remove existing Courses modules when extending training links.
 
 ---
 

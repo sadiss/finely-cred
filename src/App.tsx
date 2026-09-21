@@ -88,6 +88,7 @@ const AdminGuidePage = lazy(() => import('./pages/admin/AdminGuidePage'));
 // AdminTaskCreatorPage removed: task creation is unified into Projects/Tasks pages
 const AdminCoursesPage = lazy(() => import('./pages/admin/AdminCoursesPage'));
 const AdminCourseEditorPage = lazy(() => import('./pages/admin/AdminCourseEditorPage'));
+const AdminSpecialistAcademyPage = lazy(() => import('./pages/admin/AdminSpecialistAcademyPage'));
 const AdminSecretVaultPage = lazy(() => import('./pages/admin/AdminSecretVaultPage'));
 const AdminFinanceAllocatorPage = lazy(() => import('./pages/admin/AdminFinanceAllocatorPage'));
 const AdminMonitoringPage = lazy(() => import('./pages/admin/AdminMonitoringPage'));
@@ -2028,6 +2029,22 @@ function AppInner() {
           element={
             <ProtectedAdminRoute>
               <AdminCourseEditorPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/specialist-academy"
+          element={
+            <ProtectedAdminRoute>
+              <AdminSpecialistAcademyPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/specialist-academy/:itemId"
+          element={
+            <ProtectedAdminRoute>
+              <AdminSpecialistAcademyPage />
             </ProtectedAdminRoute>
           }
         />

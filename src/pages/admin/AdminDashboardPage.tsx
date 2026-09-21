@@ -187,6 +187,13 @@ export default function AdminDashboardPage() {
       stat: 'Teach',
     },
     {
+      title: 'Specialist Academy',
+      description: 'Restore methodology, SOPs 08–15, BUILD literacy, and Haitian desk twins (EN | HT).',
+      path: '/admin/specialist-academy',
+      icon: BookOpen,
+      stat: 'Train',
+    },
+    {
       title: 'AI Media Studio',
       description: 'Generate premium images + storyboard videos. Edit scenes and export downloadable assets.',
       path: '/admin/media-studio',
@@ -341,7 +348,7 @@ export default function AdminDashboardPage() {
         title: 'Comms & content',
         subtitle: 'Templates, resources, courses, and publishable assets.',
         defaultOpen: false,
-        cards: take(['/admin/comms', '/admin/resources', '/admin/courses', '/admin/templates', '/admin/testimonials', '/admin/guide']),
+        cards: take(['/admin/comms', '/admin/resources', '/admin/courses', '/admin/specialist-academy', '/admin/templates', '/admin/testimonials', '/admin/guide']),
       },
       {
         key: 'automation',

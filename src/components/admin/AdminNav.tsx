@@ -52,6 +52,7 @@ const GROUPS: NavGroup[] = [
       { path: '/admin/comms', label: 'Comms Studio', icon: Mail, hint: 'Templates + delivery' },
       { path: '/admin/resources', label: 'Resources', icon: Library, hint: 'Public guides' },
       { path: '/admin/courses', label: 'Courses', icon: GraduationCap, hint: 'Course builder' },
+      { path: '/admin/specialist-academy', label: 'Specialist Academy', icon: BookOpen, hint: 'Restore methodology training' },
       { path: '/admin/testimonials', label: 'Testimonials', icon: Trophy, hint: 'Social proof' },
     ],
   },

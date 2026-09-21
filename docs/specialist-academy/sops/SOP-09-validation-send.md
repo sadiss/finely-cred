@@ -45,6 +45,20 @@
 
 ---
 
+## Example walkthrough — Summit Receivables
+
+**Intake:** First collector letter dated June 12; TU tradeline “Summit Receivables” $1,842.
+
+1. Specialist confirms June 12 as first written communication.
+2. Generates validation with account line matching letter; varies intro from last client.
+3. Certified mail June 14; tracking `9407…` uploaded.
+4. Partner portal note: validation started; bureau round queued after mail proof.
+5. Screenshot TU tradeline saved for later Round 1.
+
+> **Haitian desk:** Explain mailing date in Kreyòl; letter stays English.
+
+---
+
 ## Follow-up outcomes
 
 | Outcome | Action |

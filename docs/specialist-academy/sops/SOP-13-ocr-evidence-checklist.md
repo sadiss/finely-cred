@@ -36,6 +36,14 @@
 
 ---
 
+## Example — evidence + OCR pair
+
+**Evidence:** Screenshot `collections_tradeline_0` showing creditor label matching dispute candidate “ABC Recovery” on Experian pull dated 2026-03-01.
+
+**OCR:** Round 1 letter opens with investigation request; Round 2 for same account opens with bureau response quote—no duplicate body.
+
+---
+
 ## Review before mail
 
 - [ ] Specialist peer or lead spot-check on first solo file
