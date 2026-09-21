@@ -25,10 +25,12 @@ import { effectiveHuntSortScore } from '../growthAgents/growthMlScore';
 import { getMarketingStagingPrioritySourceIds } from '../overnight50/leadIntelSwarmRepo';
 import { getLeadIntelSourceAdapter } from '../overnight50/sourceAdapters';
 import type { LeadIntelSourceId } from '../overnight50/types';
+import { parseMarketingFindAsk } from './marketingDeskFindAsk';
 import {
   advanceHuntMetroQueue,
   getMetroShardRotationMeta,
   isNationalGeoFallback,
+  MARKETING_FIND_GEO_STORAGE_KEY,
   metroShardSummaryLine,
   metroShortLabel,
   resolveDailyPackMetroTargets,
@@ -36,7 +38,7 @@ import {
 } from './usMetroShardMap';
 
 const STAGING_KEY = 'finely.marketing_desk_staging.v1';
-const GEO_KEY = 'finely.marketing_desk_find_geo.v1';
+const GEO_KEY = MARKETING_FIND_GEO_STORAGE_KEY;
 const SCHEDULE_KEY = 'finely.marketing_desk_find_schedule.v1';
 const LAST_RUN_KEY = 'finely.marketing_desk_find_last_run.v1';
 const HUNT_SCHEDULER_KEY = 'finely.marketing_desk_hunt_scheduler.v1';
@@ -198,21 +200,90 @@ function tagPriorityOvernightSources(hits: MarketingStagedHit[]): MarketingStage
   }));
 }
 
-export function getMarketingFindGeo(): string {
-  const raw = loadJson<{ location?: string }>(GEO_KEY, {}, 1);
-  const stored = (raw.location || '').trim();
-  if (stored && !isNationalGeoFallback(stored)) return stored;
-  return resolveMarketingHuntLocation();
+export type MarketingFindGeoSource = 'browser' | 'nominatim' | 'chip' | 'query' | 'manual' | 'shard';
+
+export type MarketingFindGeoStatus = 'granted' | 'denied' | 'unavailable' | 'prompt';
+
+/** Extended shape stored at `finely.marketing_desk_find_geo.v1` (version stays 1). */
+export type MarketingFindGeoRecord = {
+  location?: string;
+  source?: MarketingFindGeoSource;
+  lat?: number;
+  lng?: number;
+  city?: string;
+  state?: string;
+  status?: MarketingFindGeoStatus;
+  updatedAt?: string;
+  lastAsk?: string;
+};
+
+export function getMarketingFindGeoRecord(): MarketingFindGeoRecord {
+  return loadJson<MarketingFindGeoRecord>(GEO_KEY, {}, 1);
 }
 
-export function setMarketingFindGeo(location: string) {
+/** Preferred metro only. Empty string means "no city typed" — hunt resolution still works. */
+export function getMarketingFindGeo(): string {
+  const stored = (getMarketingFindGeoRecord().location || '').trim();
+  if (!stored || isNationalGeoFallback(stored)) return '';
+  if (getMarketingFindGeoRecord().source === 'shard') return '';
+  return stored;
+}
+
+export function setMarketingFindGeo(location: string, meta?: Partial<MarketingFindGeoRecord>) {
+  const prev = getMarketingFindGeoRecord();
   const loc = (location || '').trim();
-  saveJson(
-    GEO_KEY,
-    { location: loc && !isNationalGeoFallback(loc) ? loc : resolveMarketingHuntLocation() },
-    1,
-  );
+  const national = !loc || isNationalGeoFallback(loc);
+  const next: MarketingFindGeoRecord = {
+    ...prev,
+    ...meta,
+    updatedAt: new Date().toISOString(),
+  };
+  if (!national) {
+    next.location = loc;
+    next.source = meta?.source ?? prev.source ?? 'manual';
+  } else if (meta?.source === 'manual') {
+    next.location = '';
+    next.source = 'manual';
+  }
+  saveJson(GEO_KEY, next, 1);
   if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('finely:store'));
+}
+
+/** Metro a one-tap or daily pack will actually use when the city field is empty. */
+export function getMarketingFindEffectiveLocation(override?: string | null): string {
+  return resolveMarketingHuntLocation(override);
+}
+
+export type MarketingDeskFindRequest = {
+  /** Pass through only when the ask or city field named a place. */
+  location?: string;
+  ask?: string;
+  lane?: LeadEngineLane;
+  effectiveLocation: string;
+  nearMe: boolean;
+};
+
+/** Parse an ask + optional city, persist a named place, and leave city empty when it should resolve. */
+export function resolveMarketingDeskFindRequest(input?: { ask?: string; city?: string }): MarketingDeskFindRequest {
+  const parsed = parseMarketingFindAsk(input?.ask || '');
+  const typed = (input?.city || '').trim();
+  const typedPlace = typed && !isNationalGeoFallback(typed) ? typed : '';
+  const explicit = parsed.location || typedPlace;
+  if (parsed.location) {
+    setMarketingFindGeo(parsed.location, { source: 'query', lastAsk: parsed.raw });
+  } else if (typedPlace) {
+    setMarketingFindGeo(typedPlace, { source: 'manual', lastAsk: parsed.raw });
+  } else if (parsed.raw) {
+    const prev = getMarketingFindGeoRecord();
+    saveJson(GEO_KEY, { ...prev, lastAsk: parsed.raw }, 1);
+  }
+  return {
+    location: explicit || undefined,
+    ask: parsed.nicheQuery || undefined,
+    lane: parsed.lane,
+    effectiveLocation: resolveMarketingHuntLocation(explicit || undefined),
+    nearMe: parsed.nearMe,
+  };
 }
 
 export function getMarketingMetroShardMeta() {
@@ -578,17 +649,26 @@ async function applyOptionalAiFit(
 async function invokeLaneHunt(args: {
   lane: LeadEngineLane;
   location: string;
+  ask?: string;
 }): Promise<{ hits: MarketingStagedHit[]; error?: string }> {
   const preset = HUNT_LANE_PRESETS.find((p) => p.id === args.lane);
   if (!preset) return { hits: [], error: `Unknown lane ${args.lane}` };
 
-  const queries = buildHuntQueries({
+  const local = !isNationalGeoFallback(args.location);
+  const presetQueries = buildHuntQueries({
     lane: args.lane,
     location: args.location,
     niche: 'general',
     intent: 'high_intent',
-    geo: 'national',
+    geo: local ? 'custom' : 'national',
   });
+  const ask = (args.ask || '').trim();
+  const askQuery = ask
+    ? [ask, local ? args.location : ''].filter(Boolean).join(' ').replace(/\s+/g, ' ').trim()
+    : '';
+  const queries = askQuery
+    ? Array.from(new Set([askQuery, ...presetQueries])).slice(0, 4)
+    : presetQueries;
 
   const invokeOnce = () =>
     supabase.functions.invoke('lead-intel', {
@@ -761,6 +841,8 @@ async function processQualifiedHits(args: {
 export async function huntForMarketingReview(args?: {
   lane?: LeadEngineLane;
   location?: string;
+  /** Niche words from the ask box, without the place phrase. */
+  ask?: string;
   mode?: MarketingFindLastRun['mode'];
 }): Promise<MarketingFindResult> {
   ensureMarketingPipelineProject();
@@ -798,7 +880,7 @@ export async function huntForMarketingReview(args?: {
     return result;
   }
 
-  const { hits, error } = await invokeLaneHunt({ lane, location });
+  const { hits, error } = await invokeLaneHunt({ lane, location, ask: args?.ask });
   if (error && hits.length === 0) {
     const result: MarketingFindResult = {
       found: 0,
@@ -868,6 +950,7 @@ export async function huntForMarketingReview(args?: {
 
 export async function runMarketingDailyPack(args?: {
   location?: string;
+  ask?: string;
   lanes?: LeadEngineLane[];
   mode?: MarketingFindLastRun['mode'];
 }): Promise<MarketingFindResult> {
@@ -898,7 +981,7 @@ export async function runMarketingDailyPack(args?: {
 
   for (const location of metroTargets) {
     for (const lane of lanes) {
-      const { hits, error } = await invokeLaneHunt({ lane, location });
+      const { hits, error } = await invokeLaneHunt({ lane, location, ask: args?.ask });
       if (error) errors.push(`${metroShortLabel(location)}/${lane}: ${error}`);
       if (!hits.length) continue;
       found += hits.length;
