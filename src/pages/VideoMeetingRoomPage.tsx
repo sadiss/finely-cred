@@ -4,6 +4,8 @@ import { PageShell } from '../components/layout/PageShell';
 import { listCalendarEvents } from '../data/calendarRepo';
 import { MeetingPreJoinLobby } from '../components/meeting/MeetingPreJoinLobby';
 import { FinelyJitsiMeetingRoom } from '../components/meeting/FinelyJitsiMeetingRoom';
+import { MeetingPipelineKeepAlive } from '../components/meeting/MeetingPipelineKeepAlive';
+import { hasLobbyVisualEffects } from '../lib/meetingVideoQuality';
 import { buildGuestMeetingJoinPath, meetingRoomName } from '../lib/meetingUrls';
 import type { MeetingHostContext } from '../lib/meetingVideoPrefs';
 import type { MeetingVideoPrefs } from '../lib/meetingVideoQuality';
@@ -43,7 +45,7 @@ export default function VideoMeetingRoomPage() {
 
   const onJoin = (prefs: MeetingVideoPrefs, stream: MediaStream | null) => {
     setJoinPrefs(prefs);
-    setOutboundStream(stream);
+    setOutboundStream(hasLobbyVisualEffects(prefs) ? null : stream);
     setJoined(true);
   };
 
@@ -60,7 +62,7 @@ export default function VideoMeetingRoomPage() {
             {guestPath}
           </button>
         </p>
-        <div className={joined ? 'hidden' : undefined}>
+        {!joined ? (
           <MeetingPreJoinLobby
             lang={lang}
             hostContext={hostContext}
@@ -69,7 +71,10 @@ export default function VideoMeetingRoomPage() {
             onJoin={onJoin}
             joinLabel={lang === 'ht' ? 'Kòmanse kòm host' : 'Join as host'}
           />
-        </div>
+        ) : null}
+        {joined && joinPrefs && hasLobbyVisualEffects(joinPrefs) ? (
+          <MeetingPipelineKeepAlive prefs={joinPrefs} onStream={setOutboundStream} />
+        ) : null}
         {joined && joinPrefs ? (
           <FinelyJitsiMeetingRoom
             roomName={room}

@@ -3,7 +3,7 @@
  * Content files live under docs/specialist-academy/ (loaded at build time).
  */
 
-export type AcademyTrackId = 'hub' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H';
+export type AcademyTrackId = 'hub' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I';
 
 export type AcademyItem = {
   id: string;
@@ -269,14 +269,6 @@ export const ACADEMY_GROUPS: AcademyGroup[] = [
         minutes: 22,
       },
       {
-        id: 'fico-01',
-        track: 'F',
-        title: 'FICO-01 — Score talk-track',
-        titleHt: 'FICO-01 — Pale sou nòt',
-        pathEn: p('cards/FICO-01-score-talk-track.md'),
-        minutes: 8,
-      },
-      {
         id: 'f-debt-legal',
         track: 'F',
         title: 'Debt & Legal — Litigation Command',
@@ -337,6 +329,74 @@ export const ACADEMY_GROUPS: AcademyGroup[] = [
     }),
   },
   {
+    id: 'track-i-score-intelligence',
+    track: 'I',
+    label: 'Track I — Credit score intelligence',
+    labelHt: 'Trac I — Entèlijans nòt kredi',
+    items: [
+      {
+        id: 'sci-overview',
+        track: 'I',
+        title: 'Module map — score literacy',
+        titleHt: 'Plan modil — alfabetizasyon nòt',
+        pathEn: p('score-intelligence/README.md'),
+        pathHt: p('score-intelligence/README-HT.md'),
+        minutes: 10,
+      },
+      {
+        id: 'sci-fico-versions',
+        track: 'I',
+        title: 'FICO 8, 9, 10, 10T — what changed',
+        titleHt: 'FICO 8, 9, 10, 10T',
+        pathEn: p('score-intelligence/en/01-fico-consumer-versions.md'),
+        pathHt: p('score-intelligence/ht/01-fico-consumer-versions.md'),
+        minutes: 18,
+      },
+      {
+        id: 'sci-mortgage-legacy',
+        track: 'I',
+        title: 'Mortgage legacy FICO (Beacon 5.0, FICO 2/4)',
+        titleHt: 'FICO ipotèk klasik',
+        pathEn: p('score-intelligence/en/02-mortgage-legacy-fico.md'),
+        pathHt: p('score-intelligence/ht/02-mortgage-legacy-fico.md'),
+        minutes: 16,
+      },
+      {
+        id: 'sci-vantage-industry',
+        track: 'I',
+        title: 'Vantage 3/4, industry scores, UltraFICO',
+        titleHt: 'Vantage, endistri, UltraFICO',
+        pathEn: p('score-intelligence/en/03-vantage-industry-ultrafico.md'),
+        pathHt: p('score-intelligence/ht/03-vantage-industry-ultrafico.md'),
+        minutes: 16,
+      },
+      {
+        id: 'fico-01',
+        track: 'I',
+        title: 'Card FICO-01 — Score talk-track',
+        titleHt: 'Kat FICO-01 — Pale sou nòt',
+        pathEn: p('cards/FICO-01-score-talk-track.md'),
+        minutes: 8,
+      },
+      {
+        id: 'sci-02',
+        track: 'I',
+        title: 'Card SCI-02 — Why scores differ by product',
+        titleHt: 'Kat SCI-02 — Poukisa nòt diferan',
+        pathEn: p('cards/SCI-02-why-scores-differ.md'),
+        minutes: 6,
+      },
+      {
+        id: 'sci-03',
+        track: 'I',
+        title: 'Card SCI-03 — Consumer-first coaching (no guarantees)',
+        titleHt: 'Kat SCI-03 — Konsomatè an premye',
+        pathEn: p('cards/SCI-03-consumer-coaching.md'),
+        minutes: 6,
+      },
+    ],
+  },
+  {
     id: 'track-g',
     track: 'G',
     label: 'Track G — Nora handoff',
@@ -370,4 +430,5 @@ export const TRACK_LABELS: Record<AcademyTrackId, string> = {
   F: 'Track F — Methodology',
   G: 'Track G — Nora',
   H: 'Track H — Compliance & consumer law',
+  I: 'Track I — Credit score intelligence',
 };

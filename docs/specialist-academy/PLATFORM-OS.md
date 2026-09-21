@@ -58,7 +58,9 @@ Additive extensions on PR #28 **Specialist Academy**. **Do not** fork parallel c
 | --- | --- |
 | Guest join (no signup) | `src/pages/GuestMeetingJoinPage.tsx` → `/meet/:eventId` |
 | Host / huddle room | `src/pages/VideoMeetingRoomPage.tsx` → `/admin/meet/:eventId?ctx=lounge\|academy_huddle` |
-| Jitsi External API | `src/hooks/useJitsiMeetingApi.ts` |
+| Jitsi External API | `src/hooks/useJitsiMeetingApi.ts` (no custom video when effects off) |
+| Processed outbound video | `src/lib/meetingOutboundVideo.ts`, `src/lib/jitsiLibConference.ts`, `MeetingPipelineKeepAlive.tsx` |
+| In-call room | `src/components/meeting/FinelyJitsiMeetingRoom.tsx` |
 | Room URLs | `src/lib/meetingUrls.ts` (`VITE_DAILY_DOMAIN`, `VITE_JITSI_DOMAIN`) |
 | Pre-join lobby | `src/components/meeting/MeetingPreJoinLobby.tsx` |
 | Lounge lobby UI | `src/components/meeting/HubMeetingsPanel.tsx` |
@@ -75,6 +77,8 @@ Additive extensions on PR #28 **Specialist Academy**. **Do not** fork parallel c
 - [x] HD vs Smooth modes — WebRTC `ideal` 720p@30 vs 540p@24; Jitsi simulcast + layer suspension on
 - [x] Echo cancellation, noise suppression, AGC on by default in `getUserMedia` audio constraints
 - [x] Specialist Lounge + academy huddle host defaults (`LOUNGE_HOST_VIDEO_DEFAULTS`, `ACADEMY_HUDDLE_VIDEO_DEFAULTS`)
+- [x] **Live touch-up path:** when lobby effects are on, outbound video uses `canvas.captureStream()` + **lib-jitsi-meet** (`createLocalTracksFromMediaStreams`). Preview alone does **not** prove in-call video until the pipeline keep-alive is running.
+- [ ] **Not shipped:** ML portrait segmentation, Zoom/Teams-grade beauty, or processed video through the iframe-only External API path.
 
 | Env / flag | Purpose |
 | --- | --- |

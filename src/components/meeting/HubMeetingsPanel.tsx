@@ -26,6 +26,11 @@ export function HubMeetingsPanel({
         Host defaults: HD, touch-up {LOUNGE_HOST_VIDEO_DEFAULTS.beautyStrength}%,{' '}
         {LOUNGE_HOST_VIDEO_DEFAULTS.virtualBackground.replace(/_/g, ' ')}.
       </p>
+      <p className="mt-2 text-white/55 text-[11px] leading-relaxed">
+        {lang === 'ht'
+          ? 'Host: touche-up v1 ale nan reyinyon an lè w aktive efè (lib-jitsi + canvas) — pa Beauty AI.'
+          : 'Host: touch-up v1 pipes into the live room when effects are on (lib-jitsi + canvas stream) — not AI beauty parity.'}
+      </p>
       <ul className="mt-3 space-y-2 text-xs text-white/65">
         {events.length ? (
           events.map((e) => (
@@ -36,9 +41,9 @@ export function HubMeetingsPanel({
                 <button
                   type="button"
                   onClick={() => navigate(`/admin/meet/${e.id}?ctx=lounge&lang=${lang}`)}
-                  className="px-2 py-1 rounded-lg bg-amber-500/20 text-amber-100 border border-amber-500/30 text-[10px] font-bold uppercase"
+                  className="px-3 py-1.5 rounded-lg bg-amber-500 text-black border border-amber-400 text-[10px] font-black uppercase tracking-wide"
                 >
-                  Host join
+                  {lang === 'ht' ? 'Host — pre-join + touch-up' : 'Host — pre-join + live touch-up'}
                 </button>
                 <button
                   type="button"

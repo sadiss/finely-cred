@@ -4,6 +4,27 @@
 
 import { detectKbLang } from './knowledgeBase/kbLang';
 import { excerptFinelyKnowledge, listFinelyKnowledgeDocs, searchFinelyKnowledgeVector } from './finelyKnowledgeIndex';
+import type { KbDoc } from './knowledgeBase/kbContent';
+
+const SCORE_INTEL_TOPICS = new Set(['fico-score-models-literacy', 'credit-score-intelligence-overview']);
+const SCORE_QUERY_HINTS =
+  /\b(fico|vantage|beacon|tri-?merge|mortgage score|ultrafico|bankcard|middle score|10t|score model)\b/i;
+
+function pinScoreIntelDocs(query: string, lang: 'en' | 'ht', ranked: KbDoc[], limit: number): KbDoc[] {
+  if (!SCORE_QUERY_HINTS.test(query)) return ranked.slice(0, limit);
+  const pinned = listFinelyKnowledgeDocs().filter(
+    (d) => SCORE_INTEL_TOPICS.has(d.topic) && (d.lang === lang || lang === 'en'),
+  );
+  const seen = new Set<string>();
+  const merged: KbDoc[] = [];
+  for (const d of [...pinned, ...ranked]) {
+    if (seen.has(d.path)) continue;
+    seen.add(d.path);
+    merged.push(d);
+    if (merged.length >= limit) break;
+  }
+  return merged;
+}
 
 function tokenize(q: string) {
   return q
@@ -40,7 +61,8 @@ export async function retrieveKnowledge(query: string, lang: 'en' | 'ht', limit 
     .slice(0, limit);
 
   if (!scored.length) return '';
-  return excerptFinelyKnowledge(scored.map((x) => x.d));
+  const picked = pinScoreIntelDocs(query, lang, scored.map((x) => x.d), limit);
+  return excerptFinelyKnowledge(picked);
 }
 
 /** Sync wrapper for UI paths that cannot await (uses local index only). */
@@ -60,5 +82,6 @@ export function retrieveKnowledgeSync(query: string, lang: 'en' | 'ht', limit = 
     .sort((a, b) => b.score - a.score)
     .slice(0, limit);
   if (!scored.length) return '';
-  return excerptFinelyKnowledge(scored.map((x) => x.d));
+  const picked = pinScoreIntelDocs(query, lang, scored.map((x) => x.d), limit);
+  return excerptFinelyKnowledge(picked);
 }

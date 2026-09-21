@@ -36,6 +36,7 @@ export function UnifiedTrainingPanel({
   const trackChips: { id: AcademyTrackId | 'all'; label: string }[] = [
     { id: 'all', label: 'All' },
     { id: 'F', label: 'F' },
+    { id: 'I', label: 'I' },
     { id: 'H', label: 'H' },
     { id: 'hub', label: 'Hub' },
   ];
@@ -90,7 +91,7 @@ export function UnifiedTrainingPanel({
           {visibleGroups.map((g) => (
             <details
               key={g.id}
-              open={g.track === 'F' || g.track === 'H' || g.id === 'hub'}
+              open={g.track === 'F' || g.track === 'I' || g.track === 'H' || g.id === 'hub'}
               className="rounded-2xl border border-white/10 bg-black/25 p-3 group"
             >
               <summary className="cursor-pointer select-none text-[10px] uppercase tracking-widest text-white/55 font-black px-1 mb-2 list-none flex items-center justify-between">

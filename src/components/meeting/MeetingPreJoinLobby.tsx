@@ -153,7 +153,9 @@ export function MeetingPreJoinLobby({
           disabled={!canJoin}
           onClick={() => {
             saveMeetingVideoPrefs(prefs);
-            onJoin(prefs, getOutboundStream());
+            requestAnimationFrame(() => {
+              onJoin(prefs, hasLobbyVisualEffects(prefs) ? getOutboundStream() : null);
+            });
           }}
           className="w-full py-3 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-xs disabled:opacity-40 inline-flex items-center justify-center gap-2"
         >

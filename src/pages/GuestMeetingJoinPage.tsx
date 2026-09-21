@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { MeetingPreJoinLobby } from '../components/meeting/MeetingPreJoinLobby';
 import { FinelyJitsiMeetingRoom } from '../components/meeting/FinelyJitsiMeetingRoom';
+import { MeetingPipelineKeepAlive } from '../components/meeting/MeetingPipelineKeepAlive';
+import { hasLobbyVisualEffects } from '../lib/meetingVideoQuality';
 import { lookupGuestCalendarEvent } from '../lib/calendarGuestLookup';
 import { meetingRoomName, meetingProviderLabel } from '../lib/meetingUrls';
 import type { MeetingVideoPrefs } from '../lib/meetingVideoQuality';
@@ -45,7 +47,7 @@ export default function GuestMeetingJoinPage() {
 
   const onJoin = (prefs: MeetingVideoPrefs, stream: MediaStream | null) => {
     setJoinPrefs(prefs);
-    setOutboundStream(stream);
+    setOutboundStream(hasLobbyVisualEffects(prefs) ? null : stream);
     setJoined(true);
   };
 
@@ -77,16 +79,17 @@ export default function GuestMeetingJoinPage() {
             {demoWarning}
           </div>
         ) : null}
-        {!cancelled && !blockJoin ? (
-          <div className={joined ? 'hidden' : undefined}>
-            <MeetingPreJoinLobby
-              lang={lang}
-              hostContext="guest"
-              displayName={displayName}
-              onDisplayNameChange={setDisplayName}
-              onJoin={onJoin}
-            />
-          </div>
+        {!cancelled && !blockJoin && !joined ? (
+          <MeetingPreJoinLobby
+            lang={lang}
+            hostContext="guest"
+            displayName={displayName}
+            onDisplayNameChange={setDisplayName}
+            onJoin={onJoin}
+          />
+        ) : null}
+        {joined && joinPrefs && hasLobbyVisualEffects(joinPrefs) ? (
+          <MeetingPipelineKeepAlive prefs={joinPrefs} onStream={setOutboundStream} />
         ) : null}
         {joined && joinPrefs ? (
           <FinelyJitsiMeetingRoom

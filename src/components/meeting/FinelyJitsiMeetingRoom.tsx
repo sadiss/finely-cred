@@ -25,12 +25,22 @@ export function FinelyJitsiMeetingRoom({
   const remoteRef = useRef<HTMLDivElement>(null);
   const localRef = useRef<HTMLDivElement>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [waitingStream, setWaitingStream] = useState(false);
   const { join, loading, error } = useJitsiMeetingApi();
   const libHandle = useRef<{ dispose: () => void } | null>(null);
 
   useEffect(() => {
+    if (useProcessed && !outboundStream) {
+      setWaitingStream(true);
+      return;
+    }
+    setWaitingStream(false);
+  }, [useProcessed, outboundStream]);
+
+  useEffect(() => {
     let cancelled = false;
     const run = async () => {
+      if (useProcessed && !outboundStream) return;
       if (useProcessed && outboundStream && remoteRef.current) {
         try {
           libHandle.current = await joinJitsiLibConference({
@@ -72,6 +82,9 @@ export function FinelyJitsiMeetingRoom({
       ) : (
         <p className="text-white/45 text-xs">Standard camera — no lobby touch-up applied.</p>
       )}
+      {waitingStream ? (
+        <p className="text-white/50 text-sm">Starting processed video pipeline…</p>
+      ) : null}
       {loading ? <p className="text-white/50 text-sm">Connecting…</p> : null}
       {error || err ? <p className="text-rose-200 text-sm">{error || err}</p> : null}
       {useProcessed ? (

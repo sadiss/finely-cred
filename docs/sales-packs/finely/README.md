@@ -10,4 +10,8 @@ Use [SCORE-LITERACY-FOOTER.md](./SCORE-LITERACY-FOOTER.md) on every pack touch �
 
 See [day-01-welcome.md](./day-01-welcome.md).
 
+## Partner one-sheets
+
+- [Restore → funding-readiness](./partner-one-sheets/restore-to-funding-readiness.md) (score literacy + Nora handoff — no cross-brand spam)
+
 *Educational only. Not legal advice.*

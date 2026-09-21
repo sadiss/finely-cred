@@ -13,6 +13,7 @@ Use this checklist when Sanz (or a lead coach) runs a **live video** review. Goa
 - [ ] Cards F01–F14 reviewed in last 72 hours
 - [ ] SOP-14 intake notes filled for the practice file
 - [ ] Camera on; screen share ready
+- [ ] If hosting with touch-up / virtual background: use **Host — pre-join + live touch-up** (processed canvas stream — not AI beauty)
 
 ---
 

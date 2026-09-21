@@ -479,6 +479,76 @@ export const ACADEMY_QUIZZES: AcademyQuiz[] = [
       },
     ],
   },
+  {
+    id: 'score-intelligence',
+    title: 'Track I — Credit score intelligence',
+    titleHt: 'Trac I — Entèlijans nòt',
+    module: 'methodology',
+    passPercent: 80,
+    questions: [
+      {
+        id: 'si1',
+        prompt: 'Why can Credit Karma disagree with a mortgage LO score?',
+        promptHt: 'Poukisa Credit Karma ka pa matche ak ipotèk?',
+        choices: [
+          'Different model, bureau, purpose, and pull timing',
+          'One bureau is always wrong',
+          'Mortgage always uses FICO 8',
+          'Vantage 3.0 is legally required for loans',
+        ],
+        answerIndex: 0,
+        explain: 'Product and model literacy — not a bureau conspiracy.',
+      },
+      {
+        id: 'si2',
+        prompt: 'Classic mortgage tri-merge (educational) uses:',
+        choices: [
+          'Beacon 5.0 (EQ), FICO 2 (EX), FICO 4 (TU) — often middle score',
+          'FICO 10T only on all bureaus',
+          'Vantage 3.0 median everywhere',
+          'UltraFICO by default',
+        ],
+        answerIndex: 0,
+        explain: 'Legacy mortgage generations per bureau.',
+      },
+      {
+        id: 'si3',
+        prompt: 'A dealer quotes “FICO Auto.” Finely should teach:',
+        choices: [
+          'Purpose-specific industry score — number may differ from generic FICO',
+          'Same as free app Vantage',
+          'Illegal to discuss',
+          'Guarantees approval at 700+',
+        ],
+        answerIndex: 0,
+        explain: 'Industry scores vary by product.',
+      },
+      {
+        id: 'si4',
+        prompt: 'Partner mentions “FICO 5.4” on Equifax. Best Finely response:',
+        choices: [
+          'Teach Beacon 5.0; 5.4 is unverified jargon — document what LO said',
+          'Demand deletion of FICO 5.4 tradeline',
+          'Assert 5.4 is official FICO product',
+          'Ignore mortgage scores',
+        ],
+        answerIndex: 0,
+        explain: 'Research lock on naming.',
+      },
+      {
+        id: 'si5',
+        prompt: 'Funding-readiness score talk should end with:',
+        choices: [
+          'Nora/lender decides; Finely documents restore — no approval promise',
+          'Finely guarantees funding at 720',
+          'Skip SOP-15 if score is high',
+          'Cross-sell Nora in every Finely email body',
+        ],
+        answerIndex: 0,
+        explain: 'Consumer-favoring + brand handoff discipline.',
+      },
+    ],
+  },
 ];
 
 export function getQuiz(id: string): AcademyQuiz | undefined {
