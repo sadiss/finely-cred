@@ -46,6 +46,12 @@ export const HT_PUBLIC = {
   helperH2: 'You’re allowed to sit there. Don’t take the phone.',
   helperTitle: 'Se yo ki kenbe telefòn nan. Ou pa pran l.',
   helperTitleEn: 'She holds her phone. You point at the sentence.',
+  kitsKicker: 'Free kits',
+  kitsH2: 'Four credit kits. Unlock them here.',
+  kitsLede:
+    'What credit is, what the letter says, how to help family, and a church flyer. Leave your name. We send the kits. Pale Kreyòl stays on this desk.',
+  kitsCta: 'Get the free kits',
+  kitsCtaHt: 'Pran kit kredi yo',
 } as const;
 
 export const HT_OFFERS = [

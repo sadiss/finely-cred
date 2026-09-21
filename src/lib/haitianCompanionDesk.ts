@@ -47,18 +47,21 @@ export function resolveHaitianCommunityHref(opts: { isAdmin?: boolean; isAuthed?
   return HAITIAN_DESK_LIVE_PATH;
 }
 
-/** Kits are internal. Guests never browse a public catalog. */
+/**
+ * Signed-in people keep their Haitian desk.
+ * Guests stay on /free-kreyol-guide (public unlock) — never bounce to /haitian.
+ */
 export function resolveHaitianKitRedirect(opts: {
   isAdmin?: boolean;
   isAuthed?: boolean;
   isSpecialist?: boolean;
-}): string {
+}): string | null {
   if (opts.isAdmin) return '/admin/haitian';
   if (opts.isAuthed && opts.isSpecialist && CS.hubPath) {
     return `${CS.hubPath}?tab=haitian`;
   }
   if (opts.isAuthed) return '/portal/haitian';
-  return HAITIAN_DESK_LIVE_PATH;
+  return null;
 }
 
 export function haitianLaneFromPath(pathname: string): string | undefined {
