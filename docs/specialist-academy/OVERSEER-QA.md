@@ -20,7 +20,8 @@
 | Trainee outbox enterprise | **PARTIAL** | migration + edge; browser `localStorage` interim |
 | KB vector / pgvector | **MISSING** | stub only |
 | Guest calendar lookup | **PARTIAL** | server row + migration for cross-device guests |
-| 21-day sales packs | **PARTIAL** | footer, day-1, partner one-sheet `restore-to-funding-readiness.md` |
+| 21-day sales packs | **PARTIAL** | [BRAND-KIT-LOCK](../../sales-packs/finely/BRAND-KIT-LOCK.md), 3 HTML one-sheets, 2 guide v2 covers, `21-day/MANIFEST.md`; days 2–21 TODO |
+| Brand kit lock | **SHIPPED** | `public/brand/*` official logos; `_brand/finely-brand.css`; no `#39ff14` primary / no shield-F |
 | Voice Studio | **MISSING** | launch / reconcile branch |
 | PublicChatWidget | **SHIPPED** | not KB-routed |
 | PortalChatWidget | **SHIPPED** | KB router + `haitian_desk` when HT |
@@ -39,6 +40,17 @@ npm run build
 | 2 | FICO research lock | [KB EN](../../knowledge-base/en/fico-score-models-literacy.md) · quizzes `fico-literacy`, `score-intelligence` |
 | 3 | Partner one-sheet | [restore-to-funding-readiness.md](../../sales-packs/finely/partner-one-sheets/restore-to-funding-readiness.md) |
 | 4 | Meeting processed stream honesty | [PLATFORM-OS.md](./PLATFORM-OS.md) §4 |
+| 5 | Brand kit on packs | [BRAND-KIT-LOCK.md](../../sales-packs/finely/BRAND-KIT-LOCK.md) · HTML one-sheets |
+
+## Brand kit (sales / one-sheets / guide v2)
+
+| Rule | Lock |
+| --- | --- |
+| Colors | Primary `#fbbf24`, shell `#0b1110`/`#060908`, text `#f8faf9`, CTA gradient metal, ink `#1a1400` |
+| Logo | `finely-cred-logo.svg`, `finely-cred-logo-dark.png`, `finely-cred-mark.png` only |
+| Typography | Inter; FINELY 0.14em wt 200; Cred title case |
+| Voice | Restore / file accuracy / wealth tool — not “credit repair” lead |
+| Nora | Text handoff only on Finely-primary cold creatives |
 
 ## Sanz trainee session (60 min)
 

@@ -38,8 +38,14 @@ export default function FreeKreyolGuidePage() {
       subtitle="Credit kits for Haitian Americans: kredi, lèt kolektè, èd fanmi, feyè legliz. Educational only — pa gen pwomès nòt."
     >
       <div className="max-w-3xl mx-auto space-y-8">
-        <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-br from-[#0a100e] to-[#060908] p-8">
-          <div className="text-[#fbbf24] font-black text-2xl tracking-tight">Finely Cred</div>
+        <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-br from-[#0b1110] to-[#060908] p-8">
+          <img
+            src="/brand/finely-cred-logo-dark.png"
+            alt="Finely Cred"
+            className="h-10 w-auto mb-3"
+            width={160}
+            height={40}
+          />
           <p className="mt-3 text-white/75 text-sm leading-relaxed">
             Unlock the Kreyòl companion kit pack: what credit is, what the collector letter says, how family can help, and a
             simple church flyer. Letters to bureaus stay in English when needed — we explain in Kreyòl.

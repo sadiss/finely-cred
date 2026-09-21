@@ -1,6 +1,8 @@
 # Finely partner one-sheet — Restore → funding-readiness
 
-**Audience:** Finely partners (affiliates / desk). **Not** a Nora capital ad — hand off stacking separately.
+**Brand:** [BRAND-KIT-LOCK.md](../BRAND-KIT-LOCK.md) · **HTML (logo):** [restore-to-funding-readiness.html](../html-one-sheets/restore-to-funding-readiness.html)
+
+**Audience:** Finely partners (affiliates / desk). **Not** a Nora capital ad — hand off stacking separately. **No Nora logo** on Finely-primary art.
 
 ## Headline
 
