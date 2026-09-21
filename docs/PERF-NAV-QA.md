@@ -81,6 +81,29 @@ Observed on production (launch-style `main.tsx` boot):
 
 **Merge note:** When combining with `launch/ready-sovereign-supreme`, **remove** eager `void ensureHumanStaffSyncedOnce()` (etc.) from `main.tsx` and register those functions in `src/lib/staffAutomationSyncRunners.ts` instead.
 
+**Bluehost / Toshiba preview:** step-by-step deploy merge → `docs/BLUEHOST-LAUNCH-PERF-MERGE.md`. Entry point: `applyLaunchSafeBoot()` in `src/lib/launchMainBootPatch.ts` (replaces launch eager sync + conflicting PWA register).
+
+### PR #28 completion pass (slow click / URL ahead of paint)
+
+| Fix | Detail |
+|-----|--------|
+| Removed `Routes key={pathname}` | Full route tree remount on every click was adding delay after URL change |
+| `startTransition` + `prefetchRoutePrefix` on public nav | `handleNavigate` in `App.tsx` warms chunk before navigate |
+| `index.html` inline SW unregister | Marketing paths clear SW **before** JS bundle (stops launch HTML ↔ `pwaRegister` fight) |
+| Favicon | Official medallion — see below |
+
+## Favicon (browser tab)
+
+| Asset | Path |
+|-------|------|
+| ICO | `/favicon.ico` (from `public/brand/finely-cred-mark.png`) |
+| PNG 32 | `/favicon-32x32.png` |
+| Apple touch | `/apple-touch-icon.png` (180) |
+| SVG | `/brand/finely-cred-icon.svg` |
+| Source medallion | `/public/brand/finely-cred-mark.png` |
+
+`index.html` links all of the above. **Removed** `/vite.svg` default.
+
 ## Build
 
 ```bash

@@ -34,5 +34,8 @@ Inter · **FINELY** caps `letter-spacing: 0.14em` weight 200 · **Cred** title c
 | SVG logo | `/brand/finely-cred-logo.svg` |
 | Dark PNG | `/brand/finely-cred-logo-dark.png` |
 | Mark | `/brand/finely-cred-mark.png` |
+| Favicon ICO | `/favicon.ico` |
+| Favicon PNG 32 | `/favicon-32x32.png` |
+| Apple touch | `/apple-touch-icon.png` |
 
 *Nora Capital assets in this folder are for separate handoff creatives only — not on Finely-primary packs.*

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { startTransition, useEffect, useState } from 'react';
 import { 
   Shield, Zap, Library, Trophy, UserCheck, ShoppingBag, ArrowRight, Menu
 } from 'lucide-react';
@@ -12,6 +12,7 @@ import { PartnerLoadGate } from './auth/PartnerLoadGate';
 import './routing/dashboardPrefetch';
 import './routing/publicPrefetch';
 import { prefetchPublicCtasOnIdle } from './routing/publicPrefetch';
+import { prefetchRoutePrefix } from './routing/routePrefetch';
 import { scheduleStaffAutomationSync } from './lib/bootStaffAutomationSync';
 import { syncPwaServiceWorkerWithPath } from './lib/pwaRegister';
 import { 
@@ -1048,12 +1049,9 @@ function AppInner() {
 
   const handleNavigate = (newView: string) => {
     // Supports both legacy view ids and direct paths (used by dropdowns).
-    if (newView.startsWith('/')) {
-      navigate(newView);
-    } else {
-      const next = newView as NavView;
-      navigate(routeFromView(next));
-    }
+    const path = newView.startsWith('/') ? newView : routeFromView(newView as NavView);
+    prefetchRoutePrefix(path);
+    startTransition(() => navigate(path));
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -1337,7 +1335,7 @@ function AppInner() {
 
       <AppErrorBoundary onHome={() => navigate('/')}>
         <PartnerLoadGate>
-          <Routes key={location.pathname}>
+          <Routes>
         <Route
           path="/"
           element={
