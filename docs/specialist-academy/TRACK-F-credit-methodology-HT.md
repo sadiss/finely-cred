@@ -26,7 +26,7 @@ Dokiman sa a se **kouche sans** pou biwo Ayisyen an: eksplike ak kliyan an nan K
 ## F2 — Doktrin Sanz (lòd obligatwa)
 
 1. **Dèt an premye** lè gen koleksyon oswa risk **somasyon / tribinal**.
-2. **Lèt validasyon an premye** sou dèt kolektè (FDCPA §809 — edikasyon, pa konsèy avoka).
+2. **Lèt validasyon an premye** sou dèt kolektè (FDCPA §809) — anvan taktik biwo sèlman ak **anvan risk somasyon/koleksyon monte** san dosye validasyon.
 3. **Li somasyon** — dat limit, pa ignore tribinal; monte nan avoka lè sa nesesè.
 4. **Apre sa**, **round restore** sou biwo yo (FCRA — erè faktik).
 5. **Plent** (CFPB, AG, elatriye) **apre round ki echwe** — souvan apre Round 2 — pa spam revanj.

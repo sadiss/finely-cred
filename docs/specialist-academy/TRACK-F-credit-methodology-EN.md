@@ -44,7 +44,7 @@ This track teaches how credit reporting works in plain language, then how Finely
 Teach and apply **exactly** this order when risk is present:
 
 1. **Debt-first** when debt, collection, or **summons risk** exists — eradicate or challenge debt before (or as a gate to) bureau restore when needed.
-2. **Validation letters FIRST** on collector debt (FDCPA §809 educational framing) so collectors are less positioned to rush litigation without validating.
+2. **Validation letters FIRST** on collector debt (FDCPA §809 educational framing) — before bureau-only tactics and **before summons/collection risk escalates** without a validation record — so collectors are less positioned to rush litigation without validating.
 3. **Summons response literacy** — calendars, affidavits awareness, never ignore court; escalate to counsel when needed.
 4. **THEN credit restore rounds** on the bureau file — FCRA accuracy / factual disputes.
 5. **Complaints** (CFPB, AG, etc.) **after failed rounds** when warranted — often after Round 2 — not emotional spam.

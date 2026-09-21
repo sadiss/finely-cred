@@ -13,6 +13,8 @@ Quick pointers for non-code deliverables that ship with the product.
 | [TRACK F (HT)](./specialist-academy/TRACK-F-credit-methodology-HT.md) | Kreyòl meaning layer for Haitian desk |
 | [WORKFLOW-MAP](./specialist-academy/WORKFLOW-MAP.md) | Debt → validation → restore → complaints → funding handoff |
 | [MEETING-COACH](./specialist-academy/MEETING-COACH.md) | Sanz-style progress quiz for live video sessions |
+| [OVERSEER-QA](./specialist-academy/OVERSEER-QA.md) | Pre-merge QA + 60-min trainee runbook |
+| [Tracks A–E](./specialist-academy/TRACKS-A-E-OVERVIEW.md) | In-repo map for onboarding/evidence/OCR layers |
 | [SOPs](./specialist-academy/sops/) | Operational checklists (08–15) |
 | [Cards](./specialist-academy/cards/) | F-track flash cards (F01–F14, F-Build) |
 
@@ -20,4 +22,4 @@ Quick pointers for non-code deliverables that ship with the product.
 
 ---
 
-*Educational only. Not legal advice. No guaranteed deletions, scores, or loan approvals. Debt may remain after restore. Nora funding is separate; no approval promised.*
+*Educational only. Not legal advice. No guaranteed deletions, scores, loan approvals, or credit card approvals. Debt may remain after restore. Nora funding is separate; no approval promised.*

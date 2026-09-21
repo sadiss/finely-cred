@@ -12,13 +12,15 @@ Internal curriculum for specialists who run **restore** the way Finely Cred actu
 
 | Track | Focus | Primary doc |
 | --- | --- | --- |
-| **A** | Onboarding, consent, portal hygiene | *(existing ops onboarding — link from your tenant SOP)* |
-| **B** | Partner communication & expectations | *(existing comms playbooks)* |
-| **C** | Haitian desk — Kreyòl-first, English letters | [TRACK F (HT)](./TRACK-F-credit-methodology-HT.md) + sit-together norms below |
-| **D** | Evidence, reports, Credit Intel | SOP-13 + TRACK F § Evidence |
-| **E** | Letters, templates, OCR-safe variation | SOP-13 + product Templates admin |
-| **F** | **Credit methodology (Sanz doctrine)** | [TRACK F (EN)](./TRACK-F-credit-methodology-EN.md) |
-| **G** | Nora soft handoff | TRACK F § Funding readiness; Finely ≠ lender |
+| **A** | Onboarding, consent, portal hygiene | [Tracks A–E overview](./TRACKS-A-E-OVERVIEW.md) § A |
+| **B** | Partner communication & expectations | [Tracks A–E overview](./TRACKS-A-E-OVERVIEW.md) § B |
+| **C** | Haitian desk — Kreyòl-first, English letters | [TRACK F (HT)](./TRACK-F-credit-methodology-HT.md) · [A–E § C](./TRACKS-A-E-OVERVIEW.md) |
+| **D** | Evidence, reports, Credit Intel | [SOP-13](./sops/SOP-13-ocr-evidence-checklist.md) · TRACK F § F10 |
+| **E** | Letters, templates, OCR-safe variation | [SOP-13](./sops/SOP-13-ocr-evidence-checklist.md) · [A–E § E](./TRACKS-A-E-OVERVIEW.md) |
+| **F** | **Credit methodology (Sanz doctrine) + BUILD** | [TRACK F (EN)](./TRACK-F-credit-methodology-EN.md) |
+| **G** | Nora soft handoff | [SOP-15](./sops/SOP-15-funding-readiness-checklist.md) § D · TRACK F § F13 |
+
+**Coach / QA:** [MEETING-COACH.md](./MEETING-COACH.md) · [WORKFLOW-MAP.md](./WORKFLOW-MAP.md) · [OVERSEER-QA.md](./OVERSEER-QA.md)
 
 ### Haitian desk (quick norms)
 
@@ -66,8 +68,9 @@ Internal curriculum for specialists who run **restore** the way Finely Cred actu
 
 1. **Week 1:** Tracks A + F cards F01–F06 + SOP-08/09 + shadow one debt triage.
 2. **Week 2:** F07–F11 + SOP-10/11 + draft one validation packet (coach review).
-3. **Week 3:** F12–F14 + SOP-12/13/14 + co-run Round 1 with evidence checklist.
-4. **Ongoing:** [MEETING-COACH.md](./MEETING-COACH.md) quizzes before solo file ownership.
+3. **Week 3:** F12–F14 + F-BUILD + SOP-12/13/14 + co-run Round 1 with evidence checklist.
+4. **Week 4:** SOP-15 funding-readiness dry run; Nora soft-handoff script (no approval language).
+5. **Ongoing:** [MEETING-COACH.md](./MEETING-COACH.md) quizzes before solo file ownership.
 
 ## Maintainer notes
 
