@@ -1,4 +1,5 @@
 import { useMemo, useState, type FormEvent } from 'react';
+import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { listCommandAudit } from '../commandIntelligence/commandAudit';
 import { captionDraft } from '../commandIntelligence/commandRouter';
@@ -54,7 +55,7 @@ export function BusinessOsLauncher({ active }: { active: boolean }) {
       <button type="button" className="fc-bos-orb" aria-label="Open Business OS" onClick={() => setOpen(true)}>
         <img src="/brand/finely-cred-icon.svg" alt="" />
       </button>
-      {open ? <BusinessOsPortal onClose={() => setOpen(false)} /> : null}
+      {open ? createPortal(<BusinessOsPortal onClose={() => setOpen(false)} />, document.body) : null}
     </>
   );
 }
