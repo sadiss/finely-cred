@@ -36,7 +36,21 @@ if (existsSync(htmlDir)) {
     let html = readFileSync(path, 'utf8');
     html = html
       .replace(/\.\.\/\.\.\/\.\.\/\.\.\/public\/brand\//g, '/brand/')
-      .replace(/\.\.\/\.\.\/public\/brand\//g, '/brand/');
+      .replace(/\.\.\/\.\.\/public\/brand\//g, '/brand/')
+      .replace(/finely-cred-logo-dark\.png/g, 'finely-cred-mark.png');
+    if (!html.includes('fc-cred-bar') && html.includes('class="fc-sheet"')) {
+      html = html.replace(
+        /<article class="fc-sheet">/,
+        `<article class="fc-sheet">
+    <div class="fc-cred-bar"><span><strong>Finely Cred</strong> · restore &amp; file accuracy</span><span>Educational · not legal advice</span></div>`,
+      );
+    }
+    if (!html.includes('fc-medallion') && html.includes('class="fc-logo"')) {
+      html = html.replace(
+        /<header class="fc-logo">/,
+        `<header class="fc-logo"><img class="fc-medallion" src="/brand/finely-cred-mark.png" alt="" width="52" height="52" />`,
+      );
+    }
     writeFileSync(path, html);
   }
 }

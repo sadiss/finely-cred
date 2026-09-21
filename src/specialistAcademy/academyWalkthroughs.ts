@@ -224,6 +224,16 @@ export const ACADEMY_COURSE_MODULES: AcademyCourseModule[] = [
     tone: 'gold',
   },
   {
+    id: 'm4b',
+    titleEn: 'Statutory depth drill',
+    titleHt: 'Pwofondè statutory',
+    blurbEn: 'FCRA, FDCPA, Metro 2 fields, FICO honesty — doctorate-style lessons + quiz.',
+    blurbHt: 'FCRA, FDCPA, Metro 2, FICO.',
+    lessonId: 'f-fcra-doctrine',
+    quizId: 'track-f-statutory-depth',
+    tone: 'violet',
+  },
+  {
     id: 'm5',
     titleEn: 'BUILD & funding readiness',
     titleHt: 'BUILD',

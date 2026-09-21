@@ -1,9 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, Megaphone, FileText } from 'lucide-react';
+import { Mail, Megaphone, FileText, Layers, DollarSign } from 'lucide-react';
+import { FINELY_PACK_ASSETS } from './finelyPackCatalog';
 
 const BTN =
-  'flex flex-col items-start gap-2 rounded-2xl border-2 border-[#fbbf24]/40 bg-[#0b1110] p-5 hover:border-[#fbbf24] hover:bg-[#fbbf24]/5 transition-all text-left';
+  'flex flex-col items-start gap-3 rounded-2xl border-2 border-[#fbbf24]/50 bg-[#0b1110] p-6 sm:p-7 hover:border-[#fbbf24] hover:bg-[#fbbf24]/10 transition-all text-left min-h-[140px]';
 
 export function MarketingStartHereStrip() {
   return (
@@ -12,21 +13,32 @@ export function MarketingStartHereStrip() {
       <p className="text-white/80 text-base sm:text-lg mt-2 max-w-3xl">
         Pick one action for today. Everything is <strong className="text-white">copy / preview / download</strong> — you send manually; HQ never auto-sends.
       </p>
-      <div className="grid md:grid-cols-3 gap-4 mt-6">
+      <p className="text-[#fbbf24]/90 text-sm font-bold mt-4">{FINELY_PACK_ASSETS.length} assets in library — preview · copy · download</p>
+      <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4 mt-6">
+        <Link to="/admin/marketing" className={BTN}>
+          <Layers className="text-[#fbbf24]" size={32} />
+          <span className="text-xl font-bold text-white">A · Full library</span>
+          <span className="text-sm text-white/70">Command floor → grouped emails, SMS, HTML, guides.</span>
+        </Link>
         <Link to="/admin/marketing/growth-acquisition/social" className={BTN}>
-          <Megaphone className="text-[#fbbf24]" size={28} />
-          <span className="text-lg font-bold text-white">A · Post today (Social)</span>
-          <span className="text-sm text-white/70">Open Social desk → Day 1 SMS + caption, ready to paste.</span>
+          <Megaphone className="text-[#fbbf24]" size={32} />
+          <span className="text-xl font-bold text-white">B · Post today</span>
+          <span className="text-sm text-white/70">Social desk — Day 1 SMS + caption.</span>
         </Link>
         <Link to="/admin/marketing/growth-acquisition/email" className={BTN}>
-          <Mail className="text-[#fbbf24]" size={28} />
-          <span className="text-lg font-bold text-white">B · Email this week (21-day)</span>
-          <span className="text-sm text-white/70">Day 1 nurture email + Start Restore $147 card.</span>
+          <Mail className="text-[#fbbf24]" size={32} />
+          <span className="text-xl font-bold text-white">C · 21-day email</span>
+          <span className="text-sm text-white/70">All 21 nurture emails in one room.</span>
         </Link>
-        <Link to="/admin/marketing/partner-referral/content" className={BTN}>
-          <FileText className="text-[#fbbf24]" size={28} />
-          <span className="text-lg font-bold text-white">C · Partner one-sheet</span>
-          <span className="text-sm text-white/70">Restore → funding readiness HTML (Finely medallion only).</span>
+        <Link to="/admin/marketing/view/start-restore-147" className={BTN}>
+          <DollarSign className="text-[#fbbf24]" size={32} />
+          <span className="text-xl font-bold text-white">D · $147 Start Restore</span>
+          <span className="text-sm text-white/70">Copy offer block + open live /start.</span>
+        </Link>
+        <Link to="/admin/marketing/partner-referral/content" className={`${BTN} sm:col-span-2 xl:col-span-2`}>
+          <FileText className="text-[#fbbf24]" size={32} />
+          <span className="text-xl font-bold text-white">E · Partner one-sheets</span>
+          <span className="text-sm text-white/70">HTML verticals + restore → funding readiness.</span>
         </Link>
       </div>
     </section>

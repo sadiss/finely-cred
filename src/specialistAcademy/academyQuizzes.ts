@@ -549,6 +549,111 @@ export const ACADEMY_QUIZZES: AcademyQuiz[] = [
       },
     ],
   },
+  {
+    id: 'track-f-statutory-depth',
+    title: 'Track F — Statutory depth (FCRA / FDCPA / Metro 2 / FICO)',
+    titleHt: 'Trac F — pwofondè statutory',
+    module: 'methodology',
+    passPercent: 80,
+    questions: [
+      {
+        id: 'sf1',
+        prompt: 'FCRA reinvestigation (§1681i) requires the bureau to:',
+        choices: [
+          'Delete any account the consumer dislikes within 30 days',
+          'Conduct a reasonable reinvestigation of disputed information',
+          'Skip furnishers when the consumer uses email',
+          'Guarantee a higher score after mail',
+        ],
+        answerIndex: 1,
+        explain: 'Reinvestigation is process-oriented — outcomes vary.',
+      },
+      {
+        id: 'sf2',
+        prompt: 'Round 2 should primarily be driven by:',
+        choices: [
+          'A new calendar month',
+          'Bureau/furnisher responses and factual contradictions',
+          'Identical Round 1 text with ALL CAPS',
+          'Social media templates',
+        ],
+        answerIndex: 1,
+        explain: 'Response-driven rounds with exhibits.',
+      },
+      {
+        id: 'sf3',
+        prompt: 'FDCPA validation (§809) empowers consumers to:',
+        choices: [
+          'Request verification of the debt before collection continues (statutory framework)',
+          'Erase accurate mortgage tradelines instantly',
+          'Avoid court deadlines automatically',
+          'Force bureaus to remove inquiries',
+        ],
+        answerIndex: 0,
+        explain: 'Validation is a collector-facing tool — pair with debt-first triage.',
+      },
+      {
+        id: 'sf4',
+        prompt: 'When a summons is served, Finely should first:',
+        choices: [
+          'Mail mass Round 1 to all bureaus tonight',
+          'Upload summons, calendar answer date, pause blind bureau spam',
+          'Promise deletion before court date',
+          'Skip Vault uploads',
+        ],
+        answerIndex: 1,
+        explain: 'Litigation Command alignment (SOP-10).',
+      },
+      {
+        id: 'sf5',
+        prompt: 'Metro 2 discipline means disputes should target:',
+        choices: [
+          'Vague feelings about the bank',
+          'Specific fields (status, DOFD, balance) with exhibits',
+          'Only the consumer’s favorite bureau',
+          'Random inquiry removal only',
+        ],
+        answerIndex: 1,
+        explain: 'Field-level factual disputes beat volume.',
+      },
+      {
+        id: 'sf6',
+        prompt: 'A “free app score” is best described to partners as:',
+        choices: [
+          'Identical to mortgage tri-merge FICO',
+          'Directional — model and purpose may differ from underwriting',
+          'Illegal to discuss',
+          'A promise of funding approval',
+        ],
+        answerIndex: 1,
+        explain: 'Score literacy honesty.',
+      },
+      {
+        id: 'sf7',
+        prompt: 'FICO 10T trended data messaging should emphasize:',
+        choices: [
+          'Payment stability and balance trends — no 30-day gimmicks',
+          'Guaranteed +120 points in one cycle',
+          'Skipping validation when 10T is mentioned',
+          'Replacing all Round 1 mail with marketing flyers',
+        ],
+        answerIndex: 0,
+        explain: 'Honest education per Finely one-sheets.',
+      },
+      {
+        id: 'sf8',
+        prompt: 'CFPB complaints are most appropriate when:',
+        choices: [
+          'Day one before any documentation',
+          'After disciplined rounds with a clean Vault narrative',
+          'Whenever the consumer wants a refund',
+          'Instead of validation on live collections',
+        ],
+        answerIndex: 1,
+        explain: 'Escalation path — SOP-12/19.',
+      },
+    ],
+  },
 ];
 
 export function getQuiz(id: string): AcademyQuiz | undefined {

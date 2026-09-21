@@ -22,7 +22,11 @@ import {
 } from './marketingHqModel';
 import { MarketingStartHereStrip } from './MarketingStartHereStrip';
 import { MarketingReadyAssetCard } from './MarketingReadyAssetCard';
-import { getFeaturedPackAssetsForRoom, getPackAssetsForRoom } from './finelyPackCatalog';
+import {
+  FINELY_PACK_ASSETS,
+  getAllPackAssetsGrouped,
+  getPackAssetsForRoom,
+} from './finelyPackCatalog';
 
 const channelIcon: Record<MarketingChannelId, React.ReactNode> = {
   email: <Mail size={20} />,
@@ -83,10 +87,12 @@ export function MarketingCommandFloor() {
         </p>
         <div className="grid sm:grid-cols-3 gap-4 mt-8">
           <KpiCard label="Departments" value={String(MARKETING_DEPARTMENTS.length)} hint="Active floors" />
-          <KpiCard label="21-day pack" value="Shipped" hint="Emails + SMS + HTML" />
+          <KpiCard label="Pack assets" value={String(FINELY_PACK_ASSETS.length)} hint="Full Finely library" />
           <KpiCard label="Comms wire" value="Studio" hint="/admin/comms" onClick={() => navigate('/admin/comms')} />
         </div>
       </div>
+
+      <FullPackLibrarySection />
 
       <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
         {MARKETING_DEPARTMENTS.map((d) => (
@@ -181,6 +187,34 @@ export function MarketingDepartmentFloor() {
   );
 }
 
+function FullPackLibrarySection({ compact }: { compact?: boolean }) {
+  const groups = useMemo(() => getAllPackAssetsGrouped(), []);
+  return (
+    <section className="rounded-2xl border border-[#fbbf24]/30 bg-[#060908] p-6 sm:p-8 space-y-6">
+      <div>
+        <h3 className="text-2xl font-bold text-white">Full Finely pack library</h3>
+        <p className="text-white/70 text-sm mt-2 max-w-3xl">
+          Every asset from <span className="font-mono text-white/80">docs/sales-packs/finely</span> (bundled for copy) and{' '}
+          <span className="font-mono text-white/80">public/marketing-packs/finely</span> (HTML preview after sync).{' '}
+          {FINELY_PACK_ASSETS.length} items — manual send only.
+        </p>
+      </div>
+      {groups.map((g) => (
+        <details key={g.id} className="rounded-xl border border-white/10 bg-black/30 p-4" open={!compact && g.id === 'offers'}>
+          <summary className="cursor-pointer select-none text-white font-semibold">
+            {g.label} <span className="text-white/45 font-normal">({g.assets.length})</span>
+          </summary>
+          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4 mt-4">
+            {g.assets.map((asset) => (
+              <MarketingReadyAssetCard key={asset.id} asset={asset} />
+            ))}
+          </div>
+        </details>
+      ))}
+    </section>
+  );
+}
+
 function ReadyToUseSection({
   departmentId,
   channelId,
@@ -188,35 +222,30 @@ function ReadyToUseSection({
   departmentId: MarketingDepartmentId;
   channelId: MarketingChannelId;
 }) {
-  const [showAll, setShowAll] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const all = useMemo(() => getPackAssetsForRoom(departmentId, channelId), [departmentId, channelId]);
-  const featured = useMemo(() => getFeaturedPackAssetsForRoom(departmentId, channelId), [departmentId, channelId]);
-  const list = showAll ? all : featured;
-
-  if (all.length === 0) return null;
 
   return (
     <section className="rounded-2xl border border-[#fbbf24]/25 bg-[#060908] p-6 sm:p-8 space-y-4">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h3 className="text-xl font-bold text-white">Ready to use</h3>
-          <p className="text-white/70 text-sm mt-1">Finely sales pack assets — preview, copy, or download. Hold items stay internal until approved.</p>
-        </div>
-        {all.length > featured.length && (
-          <button
-            type="button"
-            onClick={() => setShowAll((v) => !v)}
-            className="px-4 py-2 rounded-xl border border-[#fbbf24]/40 text-[#fde68a] text-xs font-black uppercase tracking-wider hover:bg-[#fbbf24]/10"
-          >
-            {showAll ? 'Show featured only' : `Show all (${all.length})`}
-          </button>
-        )}
+      <div>
+        <h3 className="text-xl font-bold text-white">Ready to use — full library ({all.length})</h3>
+        <p className="text-white/70 text-sm mt-1">
+          Room-relevant assets sort first. Scroll for every email, SMS, HTML one-sheet, guide, and Start Restore $147.
+        </p>
       </div>
       <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
-        {list.map((asset) => (
+        {all.map((asset) => (
           <MarketingReadyAssetCard key={asset.id} asset={asset} />
         ))}
       </div>
+      <button
+        type="button"
+        onClick={() => setCollapsed((v) => !v)}
+        className="text-[#fbbf24] text-sm font-bold underline"
+      >
+        {collapsed ? 'Expand grouped library view' : 'Collapse grouped view'}
+      </button>
+      {!collapsed ? <FullPackLibrarySection compact /> : null}
     </section>
   );
 }

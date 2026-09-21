@@ -33,8 +33,9 @@ import { recommendedPathForTarget } from '../../lib/prospectOffers';
 import { getActiveTenantId } from '../../tenancy/activeTenant';
 import { listMemberships } from '../../data/tenantsRepo';
 import { createCrmCategory, deleteCrmCategory, listCrmCategories, getCrmCategoryIdsForEntity, setCrmCategoriesForEntity } from '../../data/crmCategoriesRepo';
+import { WarmProspectsPanel } from '../../features/crm/WarmProspectsPanel';
 
-type Tab = 'prospects' | 'inbound' | 'partners';
+type Tab = 'prospects' | 'warm' | 'inbound' | 'partners';
 
 type RemoteStatus = 'idle' | 'loading' | 'ok' | 'not_configured' | 'error';
 
@@ -441,6 +442,13 @@ export default function AdminCrmPage() {
             className={`fc-chip ${tab === 'prospects' ? 'fc-chip-active' : 'fc-chip-muted'}`}
           >
             Prospects
+          </button>
+          <button
+            type="button"
+            onClick={() => setTab('warm')}
+            className={`fc-chip ${tab === 'warm' ? 'fc-chip-active' : 'fc-chip-muted'}`}
+          >
+            Warm library
           </button>
           <button
             type="button"
@@ -1045,6 +1053,8 @@ export default function AdminCrmPage() {
           </div>
         </div>
         )}
+
+        {tab === 'warm' && <WarmProspectsPanel />}
 
         {tab === 'inbound' && (
           <div className="space-y-6">

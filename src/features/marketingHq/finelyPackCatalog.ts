@@ -186,6 +186,34 @@ const HTML_ONE_SHEETS: { file: string; title: string; whenToUse: string; dept: M
     dept: 'partner-referral',
     ch: 'social',
   },
+  {
+    file: 'bhph-second-chance-utilization.html',
+    title: 'BHPH — second chance utilization',
+    whenToUse: 'Auto/BHPH partners — utilization literacy without hype.',
+    dept: 'partner-referral',
+    ch: 'content',
+  },
+  {
+    file: 'community-referral-circle.html',
+    title: 'Community referral circle',
+    whenToUse: 'Faith & community desks — referral circle one-sheet.',
+    dept: 'partner-referral',
+    ch: 'social',
+  },
+  {
+    file: 'fico-10t-adoption-honesty.html',
+    title: 'FICO 10T adoption honesty',
+    whenToUse: 'Mortgage partners — model/version honesty (no score promises).',
+    dept: 'nurture-lifecycle',
+    ch: 'content',
+  },
+  {
+    file: 'ultrafico-opt-in-honesty.html',
+    title: 'UltraFICO opt-in honesty',
+    whenToUse: 'When consumers ask about UltraFICO — opt-in facts only.',
+    dept: 'nurture-lifecycle',
+    ch: 'content',
+  },
 ];
 
 function htmlAssets(): FinelyPackAsset[] {
@@ -310,23 +338,41 @@ export function getPackAsset(id: string): FinelyPackAsset | undefined {
   return FINELY_PACK_ASSETS.find((a) => a.id === id);
 }
 
+function roomPrimaryMatch(
+  a: FinelyPackAsset,
+  departmentId: MarketingDepartmentId,
+  channelId: MarketingChannelId,
+): boolean {
+  if (departmentId === 'growth-acquisition' && channelId === 'sms') {
+    return a.format === 'sms';
+  }
+  if (departmentId === 'growth-acquisition' && channelId === 'email') {
+    return a.format === 'email' || a.format === 'offer';
+  }
+  if (departmentId === 'growth-acquisition' && channelId === 'social') {
+    return a.format === 'sms' || a.channelId === 'social';
+  }
+  if (departmentId === 'nurture-lifecycle' && channelId === 'email') {
+    return (
+      (a.departmentId === 'nurture-lifecycle' && a.channelId === 'email') || a.id.startsWith('email-day-')
+    );
+  }
+  if (channelId === 'content') {
+    return a.format === 'html' || a.format === 'markdown';
+  }
+  return a.departmentId === departmentId && a.channelId === channelId;
+}
+
+/** Every room shows the full library; room-relevant assets sort first. */
 export function getPackAssetsForRoom(
   departmentId: MarketingDepartmentId,
   channelId: MarketingChannelId,
 ): FinelyPackAsset[] {
-  if (departmentId === 'growth-acquisition' && channelId === 'sms') {
-    return FINELY_PACK_ASSETS.filter(
-      (a) => a.departmentId === 'growth-acquisition' && a.format === 'sms',
-    );
-  }
-  if (departmentId === 'nurture-lifecycle' && channelId === 'email') {
-    return FINELY_PACK_ASSETS.filter(
-      (a) =>
-        (a.departmentId === 'nurture-lifecycle' && a.channelId === 'email') ||
-        a.id.startsWith('email-day-'),
-    );
-  }
-  return FINELY_PACK_ASSETS.filter((a) => a.departmentId === departmentId && a.channelId === channelId);
+  const all = [...FINELY_PACK_ASSETS];
+  const primary = all.filter((a) => roomPrimaryMatch(a, departmentId, channelId));
+  const primaryIds = new Set(primary.map((a) => a.id));
+  const rest = all.filter((a) => !primaryIds.has(a.id));
+  return [...primary, ...rest];
 }
 
 export function getFeaturedPackAssetsForRoom(
@@ -335,5 +381,23 @@ export function getFeaturedPackAssetsForRoom(
 ): FinelyPackAsset[] {
   const room = getPackAssetsForRoom(departmentId, channelId);
   const featured = room.filter((a) => a.featured);
-  return featured.length > 0 ? featured : room.slice(0, 6);
+  return featured.length > 0 ? featured : room.slice(0, 12);
+}
+
+export function getAllPackAssetsGrouped() {
+  const groups: { id: string; label: string; assets: FinelyPackAsset[] }[] = [
+    { id: 'offers', label: 'Offers & scripts', assets: [] },
+    { id: 'email', label: '21-day emails', assets: [] },
+    { id: 'sms', label: '21-day SMS + captions', assets: [] },
+    { id: 'html', label: 'HTML one-sheets', assets: [] },
+    { id: 'guides', label: 'Guides & brand', assets: [] },
+  ];
+  for (const a of FINELY_PACK_ASSETS) {
+    if (a.format === 'offer' || a.id === 'call-script-intake') groups[0].assets.push(a);
+    else if (a.format === 'email') groups[1].assets.push(a);
+    else if (a.format === 'sms') groups[2].assets.push(a);
+    else if (a.format === 'html') groups[3].assets.push(a);
+    else groups[4].assets.push(a);
+  }
+  return groups.filter((g) => g.assets.length > 0);
 }
