@@ -72,8 +72,8 @@ export function PortalChatWidget(args: { partnerId?: string; lane?: string; jour
                 <Sparkles size={16} className="text-amber-200" />
               </div>
               <div className="min-w-0">
-                <div className="text-[10px] uppercase tracking-[0.34em] text-black/70 font-black">Finely Chat</div>
-                <div className="text-[11px] text-white/70 truncate">Ask for next actions, uploads, disputes, timelines</div>
+                <div className="text-[10px] uppercase tracking-[0.34em] text-black/70 font-black">Portal assistant</div>
+                <div className="text-[11px] text-white/70 truncate">Uploads, evidence, letters, and timelines</div>
               </div>
             </div>
             <button
@@ -149,7 +149,7 @@ export function PortalChatWidget(args: { partnerId?: string; lane?: string; jour
           type="button"
           onClick={() => setOpen(true)}
           className="group rounded-[26px] border border-amber-500/35 px-6 py-5 shadow-2xl transition-all hover:border-amber-500/55"
-          title="Open portal assistant"
+          title="Open Finely portal assistant"
           style={{
             backgroundImage: [
               'linear-gradient(145deg, rgba(251,191,36,0.22) 0%, rgba(0,0,0,0.62) 44%, rgba(0,0,0,0.72) 100%)',

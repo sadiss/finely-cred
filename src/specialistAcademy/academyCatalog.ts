@@ -37,7 +37,7 @@ export const ACADEMY_GROUPS: AcademyGroup[] = [
       { id: 'readme', track: 'hub', title: 'Pack map & progression', pathEn: p('README.md'), minutes: 8 },
       { id: 'workflow', track: 'hub', title: 'Workflow map', pathEn: p('WORKFLOW-MAP.md'), minutes: 10 },
       { id: 'coach', track: 'hub', title: 'Meeting coach (video quiz)', pathEn: p('MEETING-COACH.md'), minutes: 12 },
-      { id: 'overseer', track: 'hub', title: 'Overseer QA', pathEn: p('OVERSEER-QA.md'), minutes: 5 },
+      { id: 'overseer', track: 'hub', title: 'Launch QA checklist', titleHt: 'Lis verifikasyon lansman', pathEn: p('OVERSEER-QA.md'), minutes: 5 },
     ],
   },
   {

@@ -15,8 +15,8 @@ export function AcademyCoachChat({ lang }: { lang: 'en' | 'ht' }) {
       role: 'assistant',
       content:
         lang === 'ht'
-          ? 'Mwen Academy Coach — mande sou restore, validasyon, round, oswa klik pwodwi. Edikasyon sèlman.'
-          : 'I’m your Academy Coach — ask about restore sequencing, validation, rounds, or product clicks. Educational only.',
+          ? 'Mwen isit pou ede w ak restore, validasyon, round, ak etap pwodwi. Edikasyon sèlman — pa konsèy legal.'
+          : 'Ask about restore sequencing, validation, dispute rounds, or where to click in the portal. Educational only — not legal advice.',
     },
   ]);
 
@@ -57,7 +57,7 @@ export function AcademyCoachChat({ lang }: { lang: 'en' | 'ht' }) {
         className="w-full flex items-center justify-between px-5 py-4 text-left text-emerald-100 font-semibold"
       >
         <span className="inline-flex items-center gap-2">
-          <MessageCircle size={18} /> {lang === 'ht' ? 'Academy Coach (KB)' : 'Academy Coach (KB-grounded)'}
+          <MessageCircle size={18} /> {lang === 'ht' ? 'Coach Akademi' : 'Academy Coach'}
         </span>
         <span className="text-white/40 text-xs">{open ? '−' : '+'}</span>
       </button>

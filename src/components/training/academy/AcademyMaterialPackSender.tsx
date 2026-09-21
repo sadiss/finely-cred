@@ -59,8 +59,8 @@ export function AcademyMaterialPackSender({ lang }: { lang: 'en' | 'ht' }) {
       </div>
       <p className="text-white/60 text-sm">
         {lang === 'ht'
-          ? 'Voye lyen modil, SOP, ak kat bay 1–N trainee (pa outreach patnè).'
-          : 'Email academy module links, SOPs, and card references to 1–N trainees (not partner prospecting).'}
+          ? 'Voye lyen modil, SOP, ak kat referans bay trainee yo.'
+          : 'Email module links, SOPs, and flash-card references to one or more trainees.'}
       </p>
       <textarea
         value={emails}

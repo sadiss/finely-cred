@@ -21,8 +21,8 @@ export function AcademyHubHero({ lang, progressPct }: { lang: 'en' | 'ht'; progr
         </h2>
         <p className="mt-4 text-white/65 text-base leading-relaxed">
           {lang === 'ht'
-            ? 'Pwosesis konplè: lekti, ekran demo, egzanp, quiz — Sanz pa bezwen repete debaz yo.'
-            : 'Full prose, annotated product walkthroughs (demo data only), examples, and quizzes — so Sanz answers only advanced questions.'}
+            ? 'Leson konplè, egzanp reyèl, chemen pwodwi, ak quiz — pou w konprann restore ak dwa konsomatè anvan w pale ak kliyan.'
+            : 'Full lessons, product walkthroughs, examples, and quizzes — build restore and consumer-law literacy before you own live files.'}
         </p>
         <div className="mt-6 flex items-center gap-3">
           <div className="h-2 flex-1 max-w-xs rounded-full bg-white/10 overflow-hidden">

@@ -31,27 +31,27 @@ const TEMPLATES: Template[] = [
     location: 'United States',
   },
   {
-    label: 'Clients • Credit repair demand (US)',
+    label: 'Clients • Credit restore demand (US)',
     target: 'clients',
-    query: 'fix my credit help credit repair consultation',
+    query: 'fix my credit help credit restore consultation educational',
     location: 'United States',
   },
   {
     label: 'Affiliates • Finance/credit affiliate program',
     target: 'affiliates',
-    query: 'credit repair affiliate program partners',
+    query: 'credit restore affiliate program partners educational',
     location: 'United States',
   },
   {
-    label: 'Agents • Credit repair sales agent opportunity',
+    label: 'Agents • Credit restore sales agent opportunity',
     target: 'agents',
-    query: 'credit repair sales agent remote',
+    query: 'credit restore sales agent remote educational',
     location: 'United States',
   },
   {
     label: 'Teams • Marketing partners (B2B)',
     target: 'teams',
-    query: 'credit repair marketing agency partner',
+    query: 'credit restore marketing agency partner',
     location: 'United States',
   },
   {
@@ -285,7 +285,7 @@ export default function AdminLeadIntelPage() {
   return (
     <PageShell
       badge="Admin"
-      title="Lead Intelligence Agent"
+      title="Lead intelligence"
       subtitle="Discover and enrich qualified prospects using compliant search APIs + robots-respecting public-page enrichment. Results save into CRM → Prospects."
     >
       <div className="space-y-6">
@@ -445,7 +445,7 @@ export default function AdminLeadIntelPage() {
           </label>
           <label className="flex items-center gap-3 text-sm text-white/70">
             <input type="checkbox" checked={requireContact} onChange={(e) => setRequireContact(e.target.checked)} />
-            Require <strong className="text-white/90">both</strong> email and phone on results (Sanz ICP)
+            Require <strong className="text-white/90">both</strong> email and phone on results (qualified contact filter)
           </label>
 
           <div className="rounded-xl border border-white/10 bg-black/20 p-4 space-y-2">
@@ -467,7 +467,7 @@ export default function AdminLeadIntelPage() {
               disabled={busy || !features.leadIntel}
               className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all disabled:opacity-60"
             >
-              <Sparkles size={14} /> {busy ? 'Running…' : 'Run lead agent'}
+              <Sparkles size={14} /> {busy ? 'Running…' : 'Run search'}
             </button>
             <button
               type="button"
@@ -563,7 +563,7 @@ export default function AdminLeadIntelPage() {
               Results use <strong className="text-white/90">Google Custom Search</strong> when{' '}
               <span className="font-mono">GOOGLE_CSE_API_KEY</span> is set (cx{' '}
               <span className="font-mono">GOOGLE_CSE_CX</span> or default 815aa44b612a64808), else optional Serper, else{' '}
-              <strong className="text-white/90">OpenStreetMap Nominatim</strong> (no key). Bing signup deferred per Sanz.
+              <strong className="text-white/90">OpenStreetMap Nominatim</strong> when no search API key is configured.
             </li>
             <li>Enrichment is limited to public pages and skips sites that disallow all crawling.</li>
             <li>Qualification score prioritizes reachable contacts (email/phone) and keyword relevance to the selected target.</li>

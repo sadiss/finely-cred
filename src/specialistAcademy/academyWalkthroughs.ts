@@ -197,7 +197,7 @@ export const ACADEMY_COURSE_MODULES: AcademyCourseModule[] = [
     id: 'm2',
     titleEn: 'Visual restore → mail',
     titleHt: 'Restore vizyèl → mail',
-    blurbEn: 'Click-through product walkthrough with demo data only.',
+    blurbEn: 'Step-by-step portal walkthrough for restore, mail, and vault.',
     blurbHt: 'Chemen pwodwi ak done demo sèlman.',
     lessonId: 'f-visual-walkthrough',
     quizId: 'methodology',

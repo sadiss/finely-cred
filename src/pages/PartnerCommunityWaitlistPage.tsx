@@ -27,11 +27,11 @@ export default function PartnerCommunityWaitlistPage() {
     <PageShell
       badge="Coming soon"
       title="Partner Journey Community"
-      subtitle="A separate space for partners on the restore journey — not built in this release."
+      subtitle="A dedicated space for partners on the restore journey — opening soon."
     >
       <div className="max-w-lg mx-auto rounded-2xl border border-white/10 bg-black/30 p-8 space-y-4">
         <p className="text-white/70 text-sm leading-relaxed">
-          Finely Cred specialists train in <strong className="text-white">Specialist Lounge</strong> (admin). Partner-facing community rooms, privacy controls, and handoff from your specialist are documented in our blueprint — shipping later without disrupting the partner portal.
+          Finely Cred is building partner community rooms with privacy controls and a clear handoff from your specialist. Join the waitlist to get early access when we launch.
         </p>
         {done ? (
           <p className="text-emerald-300 text-sm">You are on the waitlist. We will email when the partner community opens.</p>

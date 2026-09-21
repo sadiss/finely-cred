@@ -47,8 +47,11 @@ export function AcademyQuizPanel({
 
   const passed = score >= quiz.passPercent;
 
-  const prompt = lang === 'ht' && q.promptHt ? q.promptHt : q.prompt;
-  const choices = lang === 'ht' && q.choicesHt ? q.choicesHt : q.choices;
+  const htPromptOk = q.promptHt && !/\(HT\)\s*$/i.test(q.promptHt.trim());
+  const htChoicesOk =
+    q.choicesHt && q.choicesHt.length === q.choices.length && !q.choicesHt.some((c) => /\(HT\)\s*$/i.test(c.trim()));
+  const prompt = lang === 'ht' && htPromptOk ? q.promptHt! : q.prompt;
+  const choices = lang === 'ht' && htChoicesOk ? q.choicesHt! : q.choices;
   const explain = lang === 'ht' && q.explainHt ? q.explainHt : q.explain;
 
   const pick = (choiceIndex: number) => {

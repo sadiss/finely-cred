@@ -1085,7 +1085,8 @@ export default function AdminCrmPage() {
                   />
                 </div>
                 <div className="text-[10px] uppercase tracking-widest text-white/40 font-mono">
-                  showing {filteredLeads.length} / {combinedLeads.length} • remote: {remoteStatus}
+                  Showing {filteredLeads.length} of {combinedLeads.length} leads
+                  {remoteStatus === 'ok' ? '' : remoteStatus === 'error' ? ' · sync issue' : ' · local cache'}
                 </div>
               </div>
 

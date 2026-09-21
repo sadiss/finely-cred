@@ -71,11 +71,11 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
               ? 'Debt / summons'
               : 'Not sure';
     push('user', label);
-    push(
-      'bot',
-      `Perfect. If you want, I can reserve a free 1‑hour enlightenment session and have a specialist reach out.`,
-    );
-    push('bot', `Drop your name, email, and phone below. (You’ll get a confirmation reference.)`);
+      push(
+        'bot',
+        `Next step: reserve a free 1‑hour enlightenment session. A specialist will reach out with educational next steps — no score or approval promises.`,
+      );
+      push('bot', `Add your name, email, and phone below. We’ll send a confirmation reference.`);
     scrollToBottom();
   };
 
@@ -125,14 +125,12 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
         consentToContact: Boolean(consent),
       });
       setSubmitted({ remote: res.remote, ref: res.lead.id });
-      push('bot', `You’re in. Reference: ${res.lead.id}`);
+      push('bot', `You’re in. Your reference is ${res.lead.id}.`);
       push(
         'bot',
         res.remote === 'ok'
-          ? `Confirmed in our system. A specialist will contact you shortly.`
-          : res.remote === 'not_configured'
-            ? `Saved locally (Supabase not connected yet). We can still contact you from the information provided.`
-            : `Saved locally. Remote sync failed (${res.remoteError || 'unknown'}). We’ll still follow up.`,
+          ? `Confirmed. A specialist will contact you shortly.`
+          : `Request received. We’ll follow up using the contact information you provided.`,
       );
       scrollToBottom();
     } finally {
@@ -151,14 +149,14 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
             scrollToBottom();
           }}
           className="fixed bottom-5 right-5 z-[120] inline-flex items-center gap-2 rounded-2xl border border-amber-500/30 bg-[#0d1512]/95 backdrop-blur-xl px-4 py-3 shadow-2xl hover:shadow-[0_18px_50px_-18px_rgba(245,158,11,0.35)] transition-all"
-          title="Chat with Finely AI"
+          title="Chat with Finely Cred"
         >
           <div className="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center">
             <MessageCircle size={18} className="text-amber-300" />
           </div>
           <div className="text-left">
-            <div className="text-[10px] font-black uppercase tracking-[0.35em] text-white/70">FINELY AI</div>
-            <div className="text-xs text-white/60">Get routed fast</div>
+            <div className="text-[10px] font-black uppercase tracking-[0.35em] text-white/70">FINELY</div>
+            <div className="text-xs text-white/60">Questions? Start here</div>
           </div>
         </button>
       )}
@@ -171,10 +169,10 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <Sparkles size={16} className="text-amber-400" />
-                  <div className="text-[10px] font-black uppercase tracking-[0.35em] text-white/70">Finely AI</div>
+                  <div className="text-[10px] font-black uppercase tracking-[0.35em] text-white/70">Finely Cred</div>
                 </div>
                 <div className="text-xs text-white/50 mt-1">
-                  Guided routing • Session capture • Workflow suggestions
+                  We’ll point you to the right lane and help you book a session
                 </div>
               </div>
               <button
@@ -276,8 +274,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
 
                 {submitted && (
                   <div className="text-[11px] text-white/70">
-                    Saved. Ref: <span className="font-mono text-white/90">{submitted.ref}</span>{' '}
-                    <span className="text-white/40">(remote: {submitted.remote})</span>
+                    Saved. Reference: <span className="font-mono text-white/90">{submitted.ref}</span>
                   </div>
                 )}
               </div>

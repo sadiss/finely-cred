@@ -97,7 +97,7 @@ export default function AdminSpecialistLoungePage() {
     <PageShell
       badge="Specialist Lounge"
       title={lang === 'ht' ? 'Lounge espesyalis' : 'Specialist Lounge'}
-      subtitle="Discord-energy, Finely brand — announce, huddles, wins, meet lobby. Not partner prospecting."
+      subtitle="Announcements, huddles, wins, and meeting lobby for Finely specialists — internal team space."
     >
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">

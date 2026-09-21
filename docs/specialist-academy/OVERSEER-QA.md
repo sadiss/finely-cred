@@ -17,6 +17,7 @@
 | KB vector | **MISSING** | stub |
 | Voice Studio | **MISSING** | launch branch |
 | Trainee outbox | **PARTIAL** | migration + edge |
+| Copy / prompt-speak sweep | **SHIPPED** | [OVERSEER-COPY-QA.md](./OVERSEER-COPY-QA.md) |
 
 ## Build gate
 

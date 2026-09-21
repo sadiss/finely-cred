@@ -45,14 +45,14 @@ export default function HaitianCompanionPublicPage() {
         <div className="max-w-3xl mx-auto space-y-6">
           <p className="text-white/70 text-sm leading-relaxed">
             {ht
-              ? 'Pale ak ekip nou — oswa itilize chat anba a pou pran randevou edikasyon. Pa gen pwomès nòt oswa apwobasyon prè.'
-              : 'Talk with our team — or use the chat widget to request an educational session. No score or loan guarantees.'}
+              ? 'Pale ak ekip nou — oswa itilize chat la pou pran randevou edikasyon. Pa gen pwomès nòt oswa apwobasyon prè.'
+              : 'Talk with our team — or open the site chat to request an educational session. No score or loan guarantees.'}
           </p>
 
           <div className="rounded-2xl border border-white/10 bg-black/30 p-6 space-y-3">
             <div className="text-white font-semibold flex items-center gap-2">
               <MessageCircle className="text-amber-400" size={18} />
-              {ht ? 'Kaptire demann (chat / fòm)' : 'Capture inquiry (chat / form)'}
+              {ht ? 'Kontakte nou (fòm)' : 'Contact us (form)'}
             </div>
             {sent ? (
               <p className="text-emerald-300 text-sm">{ht ? 'Mèsi — nou pral kontakte w.' : 'Thank you — we will follow up.'}</p>
