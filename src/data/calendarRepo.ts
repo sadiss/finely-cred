@@ -11,6 +11,7 @@ import { nowIso } from '../domain/calendar';
 import { newId } from '../utils/ids';
 import { loadJson, saveJson } from './localJsonStore';
 import { createNotification } from './notificationsRepo';
+import { syncPublicCalendarEventToServer } from '../lib/calendarGuestSync';
 
 const KEY = 'finely.calendar.v1';
 
@@ -173,6 +174,7 @@ export function upsertCalendarEvent(ev: CalendarEvent): CalendarEvent {
   if (idx >= 0) store.events[idx] = next;
   else store.events.push(next);
   saveStore(store);
+  void syncPublicCalendarEventToServer(next);
   return next;
 }
 

@@ -1,7 +1,6 @@
 /**
- * Zoom-grade meeting video defaults — WebRTC constraints + Jitsi config overlays.
- * GPU note: canvas beauty/segmentation runs on GPU when WebGL/canvas is accelerated;
- * budget ~1–3ms/frame at 720p on modern laptops; disable beauty on low-power if needed.
+ * Meeting video defaults — WebRTC constraints + Jitsi config overlays.
+ * Touch-up v1: center-weighted matte + filters (not MediaPipe/BodyPix). See meetingBeautyPipeline.ts.
  */
 
 export type MeetingVideoMode = 'hd' | 'smooth';

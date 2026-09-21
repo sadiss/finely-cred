@@ -36,7 +36,7 @@ export function useMeetingLocalPreview(prefs: MeetingVideoPrefs) {
       setReady(true);
       setGpuNote(
         prefs.beautyEnabled || prefs.virtualBackground !== 'none'
-          ? 'Beauty/background uses GPU-accelerated canvas (~1–3 ms/frame at 720p). Use Smooth mode on older devices.'
+          ? 'Touch-up v1 uses GPU canvas (~1–3 ms/frame at 720p). Not AI segmentation — use Smooth on low-power devices.'
           : null,
       );
 

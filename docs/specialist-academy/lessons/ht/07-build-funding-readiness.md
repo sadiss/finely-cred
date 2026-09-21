@@ -1,28 +1,31 @@
-# BUILD ak pare pou finansman
+# BUILD ak funding readiness
 
-**Restore** korije rapò. **BUILD** montre kijan dosye souvan parèt pi fò pou **underwriting**—pandan dispute yo kontinye. Finely **pa** bank. Nora se chemen **apa**.
+BUILD se **literacy** — pa pwomès apwobasyon kredi biznis oswa kat.
 
-## Sib edikasyon (pa lalwa lender)
+## Prensip
 
-- **2+ revolving** an bon pozisyon
-- **Mix** kredi
-- **1 installment** ki peye alè
-- **AU** — ka ede **pafwa**, pa garanti; lender yo diferan
+- De revolving+ ak itilizasyon ki rezonab
+- Melanj kont (revolving, installment, AU onèt)
+- Faktè FICO — edikasyon, pa garanti
 
-## Faktè FICO (edikasyon ~35/30/15/10/10)
+## Etap pou espesyalis
 
-Nòt se yon kolòn; revni ak DTI konte tou.
+1. Verifye debye gate (validasyon / somasyon) anvan BUILD agresif.
+2. Revize itilizasyon ak limit sou kont ki deja ouvri.
+3. Pale sou AU ak onètete — pa kache relasyon.
+4. Nora / funding: **soft handoff** sèlman (SOP-15 § D).
+5. Dokimante tout konsèy nan portal — pa oral sèlman.
 
-## Egzanp AU
+## Kreyòl
 
-Tonton mete ou sou kont Amex 20 an. Di: “Sa **ka** ede istwa; pa tout lender konte; pa pwomèt nòt oswa apwobasyon.”
+Eksplike BUILD ak “pa gen apwobasyon garanti”; itilize egzanp lokal, pa jargon Wall Street.
 
-> **Erè:** “Twa AU e Nora apwouve w.”
+## Erè
 
-## SOP-15 anvan Nora
-
-Ranpli checklist; Finely ≠ lender.
+- Ouvri twòp kont an menm tan
+- Pwomèt “apwobasyon nan 30 jou”
+- Neglije debye aktif
 
 ## Konfòmite
 
-> **Konfòmite:** Pa garanti prè, nòt, oswa kat. Nora apa.
+> **Konfòmite:** Nora se pwogram separe. Pa pwomèt loan/card approval.

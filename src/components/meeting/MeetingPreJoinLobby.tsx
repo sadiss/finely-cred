@@ -100,7 +100,7 @@ export function MeetingPreJoinLobby({
               checked={prefs.beautyEnabled}
               onChange={(e) => setPrefs((p) => ({ ...p, beautyEnabled: e.target.checked }))}
             />
-            Soft light + skin smooth
+            Soft light (touch-up v1 — not AI beauty)
           </label>
           <input
             type="range"

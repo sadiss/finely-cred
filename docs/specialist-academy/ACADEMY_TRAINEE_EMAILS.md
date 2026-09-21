@@ -31,6 +31,17 @@ Seeded on academy load via `ensureAcademyTraineeTemplates()`:
 
 If disabled, messages are **dry-run logged** to Comms sends + local outbox (`finely.specialistAcademy.traineeEmailOutbox.v1`).
 
+## Server outbox (enterprise path — interim hybrid)
+
+| Layer | Path |
+| --- | --- |
+| Migration | `supabase/migrations/20260921000001_calendar_guest_academy_outbox.sql` → `academy_trainee_email_outbox` |
+| Edge enqueue | `supabase/functions/academy-trainee-outbox` (allowlisted admin) |
+| Client mirror | `academyTraineeOutboxServer.ts` — best-effort on each send |
+| Browser queue | **Interim** — `localStorage` dedupe/outbox/retry until platform-cron drains server table |
+
+Production should schedule cron to drain `pending` rows via existing `send-email` (not yet wired in this PR).
+
 ## Material pack
 
 Admin **Course home → Trainee material pack** — comma/newline emails. Body built by `buildMaterialPackBody()` (module URLs, SOP ids, card note).

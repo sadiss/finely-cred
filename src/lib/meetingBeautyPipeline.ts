@@ -4,12 +4,13 @@ import type { MeetingVideoPrefs, VirtualBackgroundId } from './meetingVideoQuali
 export type BeautyPipelineState = {
   running: boolean;
   usesGpuCanvas: boolean;
-  segmentation: 'mask' | 'full_frame_blur_fallback';
+  /** v1 = center radial matte, not ML segmentation */
+  segmentation: 'touch_up_v1_matte' | 'full_frame_blur_fallback';
 };
 
 /**
- * Draw one frame: soft light + optional virtual background.
- * Segmentation: lightweight luminance edge matte (fast) — upgrade path to MediaPipe when bundled.
+ * Touch-up v1 — soft light + optional virtual background.
+ * Honest scope: radial matte + CSS-style filters. Upgrade path: MediaPipe Selfie Segmentation (not bundled).
  */
 export function drawBeautyFrame(
   ctx: CanvasRenderingContext2D,
@@ -39,7 +40,7 @@ export function drawBeautyFrame(
     }
     ctx.drawImage(video, 0, 0, width, height);
     ctx.restore();
-    return { running: true, usesGpuCanvas: true, segmentation: 'mask' };
+    return { running: true, usesGpuCanvas: true, segmentation: 'touch_up_v1_matte' };
   }
 
   ctx.save();
@@ -63,7 +64,7 @@ export function drawBeautyFrame(
   return {
     running: true,
     usesGpuCanvas: true,
-    segmentation: bg === 'none' ? 'mask' : 'mask',
+    segmentation: 'touch_up_v1_matte',
   };
 }
 

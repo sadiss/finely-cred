@@ -19,11 +19,11 @@ export function HubMeetingsPanel({
       <div className="text-white font-semibold text-sm">Meeting lobby</div>
       <p className="mt-2 text-white/55 text-xs">
         {lang === 'ht'
-          ? `Pre-join ak touch-up + fon vityèl · ${provider === 'daily' ? 'Daily' : 'Jitsi'}`
-          : `Zoom-style pre-join (touch-up + virtual backgrounds) · ${provider === 'daily' ? 'Daily' : 'Jitsi'}`}
+          ? `Pre-join ak touch-up v1 + fon vityèl · ${provider === 'daily' ? 'Daily' : 'Jitsi'}`
+          : `Pre-join lobby (touch-up v1 + virtual backgrounds) · ${provider === 'daily' ? 'Daily' : 'Jitsi'}`}
       </p>
       <p className="mt-1 text-white/40 text-[10px]">
-        Host defaults: HD, beauty {LOUNGE_HOST_VIDEO_DEFAULTS.beautyStrength}%,{' '}
+        Host defaults: HD, touch-up {LOUNGE_HOST_VIDEO_DEFAULTS.beautyStrength}%,{' '}
         {LOUNGE_HOST_VIDEO_DEFAULTS.virtualBackground.replace(/_/g, ' ')}.
       </p>
       <ul className="mt-3 space-y-2 text-xs text-white/65">

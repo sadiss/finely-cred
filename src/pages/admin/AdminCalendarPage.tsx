@@ -18,6 +18,12 @@ import {
 import { getActiveTenantId } from '../../tenancy/activeTenant';
 import { useAuth } from '../../auth/AuthProvider';
 import { getAccessiblePartnerIdsForAdmin } from '../../tenancy/adminPartnerScope';
+import {
+  extractGuestEmailFromEventDescription,
+  sendMeetingLifecycleEmail,
+} from '../../lib/meetingInviteEmailSend';
+import type { CalendarEvent } from '../../domain/calendar';
+import { buildGuestMeetingJoinPath } from '../../lib/meetingUrls';
 
 function fmtWhen(iso: string) {
   try {
@@ -25,6 +31,27 @@ function fmtWhen(iso: string) {
   } catch {
     return iso;
   }
+}
+
+async function cancelEventAndNotifyGuest(e: CalendarEvent) {
+  setEventStatus(e.id, 'cancelled');
+  const email = extractGuestEmailFromEventDescription(e.description);
+  const nameMatch = String(e.description || '').match(/Consultation:.*?—\s*([^\n]+)/);
+  const guestName = nameMatch?.[1]?.trim() || 'Guest';
+  if (!email) return;
+  const origin = window.location.origin;
+  await sendMeetingLifecycleEmail({
+    intent: 'cancel',
+    toEmail: email,
+    guestName,
+    eventId: e.id,
+    title: e.title,
+    startAt: e.startAt,
+    endAt: e.endAt,
+    timezone: e.timezone,
+    joinUrl: `${origin}${buildGuestMeetingJoinPath(e.id)}`,
+    cancelReason: 'Host cancelled from admin calendar',
+  });
 }
 
 function addMinutes(iso: string, minutes: number) {
@@ -678,10 +705,10 @@ export default function AdminCalendarPage() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => setEventStatus(e.id, 'cancelled')}
+                          onClick={() => void cancelEventAndNotifyGuest(e)}
                           className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-amber-500/25 bg-amber-500/10 hover:bg-amber-500/15 text-[10px] font-black uppercase tracking-widest text-amber-200 transition-all"
                         >
-                          Cancel
+                          Cancel + email
                         </button>
                       </div>
                     </div>
@@ -738,10 +765,10 @@ export default function AdminCalendarPage() {
                     ) : null}
                     <button
                       type="button"
-                      onClick={() => setEventStatus(e.id, 'cancelled')}
+                      onClick={() => void cancelEventAndNotifyGuest(e)}
                       className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-amber-500/25 bg-amber-500/10 hover:bg-amber-500/15 text-[10px] font-black uppercase tracking-widest text-amber-200 transition-all"
                     >
-                      Cancel
+                      Cancel + email
                     </button>
                   </div>
                 </div>

@@ -7,6 +7,7 @@ import {
   ensureAcademyTraineeTemplates,
   renderAcademyTraineeEmail,
 } from './academyTraineeComms';
+import { mirrorAcademyTraineeOutbox, newAcademyOutboxId } from '../lib/academyTraineeOutboxServer';
 
 const SENT_KEY = 'finely.specialistAcademy.traineeEmailSent.v1';
 const OUTBOX_KEY = 'finely.specialistAcademy.traineeEmailOutbox.v1';
@@ -101,6 +102,8 @@ export async function triggerAcademyTraineeEmail(args: {
 
   const canSend = isFeatureEnabled('commsDelivery');
 
+  const outboxId = newAcademyOutboxId();
+
   if (!canSend) {
     pushOutbox({
       event: args.event,
@@ -108,6 +111,17 @@ export async function triggerAcademyTraineeEmail(args: {
       subject: rendered.subject,
       body: rendered.body,
       error: 'commsDelivery disabled — queued in outbox',
+    });
+    void mirrorAcademyTraineeOutbox({
+      id: outboxId,
+      event: args.event,
+      toEmail: args.toEmail,
+      toName: args.toName,
+      subject: rendered.subject,
+      body: rendered.body,
+      dedupeKey: dedupeKey,
+      status: 'skipped',
+      error: 'commsDelivery disabled',
     });
     addCommsSend({
       id: newId('send'),
@@ -125,11 +139,31 @@ export async function triggerAcademyTraineeEmail(args: {
   }
 
   try {
+    void mirrorAcademyTraineeOutbox({
+      id: outboxId,
+      event: args.event,
+      toEmail: args.toEmail,
+      toName: args.toName,
+      subject: rendered.subject,
+      body: rendered.body,
+      dedupeKey: dedupeKey,
+      status: 'pending',
+    });
     await sendEmail({
       toEmail: args.toEmail,
       toName: args.toName,
       subject: rendered.subject,
       text: rendered.body,
+    });
+    void mirrorAcademyTraineeOutbox({
+      id: outboxId,
+      event: args.event,
+      toEmail: args.toEmail,
+      toName: args.toName,
+      subject: rendered.subject,
+      body: rendered.body,
+      dedupeKey: dedupeKey,
+      status: 'sent',
     });
     addCommsSend({
       id: newId('send'),
@@ -147,6 +181,17 @@ export async function triggerAcademyTraineeEmail(args: {
   } catch (e: unknown) {
     const msg = (e as Error)?.message || 'Send failed';
     pushOutbox({ event: args.event, to: args.toEmail, subject: rendered.subject, body: rendered.body, error: msg });
+    void mirrorAcademyTraineeOutbox({
+      id: outboxId,
+      event: args.event,
+      toEmail: args.toEmail,
+      toName: args.toName,
+      subject: rendered.subject,
+      body: rendered.body,
+      dedupeKey: dedupeKey,
+      status: 'failed',
+      error: msg,
+    });
     return { ok: false, error: msg };
   }
 }

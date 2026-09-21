@@ -48,7 +48,7 @@ Additive extensions on PR #28 **Specialist Academy**. **Do not** fork parallel c
 | Academy narrate hook | `src/lib/academyNarrateClient.ts`, `AcademyNarrateButton.tsx` |
 | Media / TTS client (existing) | `src/lib/voiceGenClient.ts`, `AdminMediaStudioPage` |
 | Env slots (optional, safe if unset) | `VITE_ACADEMY_NARRATE_URL`, `VITE_VOICE_STT_ENDPOINT` (Whisper/Deepgram-compatible) |
-| **Not in snapshot** | `voiceStudioCore`, `voiceProfiles.ts`, `publicChatStaffVoice`, `useFinelyVoiceInput` — map `finely_kreyol_companion` / `finely_female_executive` when those files merge; route staff TTS through Voice Studio, not browser `speechSynthesis` |
+| **MISSING on branch** | `voiceStudioCore`, `voiceProfiles.ts`, `publicChatStaffVoice`, `useFinelyVoiceInput` (present on `origin/reconcile-ours-wins` only). Map `finely_kreyol_companion` + `finely_female_executive` when merged; route staff TTS through Voice Studio, not browser `speechSynthesis` |
 
 ---
 
@@ -60,17 +60,17 @@ Additive extensions on PR #28 **Specialist Academy**. **Do not** fork parallel c
 | Host / huddle room | `src/pages/VideoMeetingRoomPage.tsx` → `/admin/meet/:eventId?ctx=lounge\|academy_huddle` |
 | Jitsi External API | `src/hooks/useJitsiMeetingApi.ts` |
 | Room URLs | `src/lib/meetingUrls.ts` (`VITE_DAILY_DOMAIN`, `VITE_JITSI_DOMAIN`) |
-| Pre-join lobby (Zoom-like) | `src/components/meeting/MeetingPreJoinLobby.tsx` |
+| Pre-join lobby | `src/components/meeting/MeetingPreJoinLobby.tsx` |
 | Lounge lobby UI | `src/components/meeting/HubMeetingsPanel.tsx` |
-| Beauty + virtual BG pipeline | `src/lib/meetingBeautyPipeline.ts`, `meetingVirtualBackgrounds.ts` |
+| Touch-up v1 + virtual BG | `src/lib/meetingBeautyPipeline.ts` (radial matte — **not** ML segmentation) |
+| Guest calendar lookup | `calendar-guest-lookup` edge + `calendarGuestLookup.ts` |
+| Meeting lifecycle email | `meetingInviteEmailSend.ts` — invite/cancel/reschedule + ICS in text body |
 | Prefs + host defaults | `src/lib/meetingVideoPrefs.ts`, `meetingVideoQuality.ts` |
 | Calendar source | `calendarRepo.ts` |
 
-**Still merge from main/reconcile:** `meetingInviteEmailSend`, cancel/reschedule + ICS attachments on comms path.
+### Meeting video quality (honest scope)
 
-### Meeting video quality
-
-- [x] Pre-join camera preview with subtle touch-up (brightness/contrast/saturate + soft blur) before Jitsi join
+- [x] Pre-join camera preview with **touch-up v1** (filters + radial matte — not Zoom/Teams AI parity)
 - [x] Virtual backgrounds: blur + Finely executive / pro office / brand gradient (procedural HD canvases)
 - [x] HD vs Smooth modes — WebRTC `ideal` 720p@30 vs 540p@24; Jitsi simulcast + layer suspension on
 - [x] Echo cancellation, noise suppression, AGC on by default in `getUserMedia` audio constraints
