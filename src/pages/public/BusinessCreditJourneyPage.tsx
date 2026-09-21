@@ -67,7 +67,7 @@ export default function BusinessCreditJourneyPage() {
       title="Build business credit — guided journey"
       subtitle="Seven honest steps from entity foundation to personal-credit handoff. Educational only — no guaranteed scores, approvals, or funding."
     >
-      <div className="max-w-7xl mx-auto space-y-8">
+      <div className="max-w-7xl mx-auto space-y-8 -mt-2">
         <div className="rounded-2xl border border-[#fbbf24]/35 bg-gradient-to-br from-[#0b1110] via-[#060908] to-[#0b1110] p-6 sm:p-8">
           <div className="flex flex-wrap items-start gap-6">
             <PublicBrandMark className="h-16 w-16" size={64} />

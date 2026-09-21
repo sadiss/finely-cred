@@ -145,6 +145,14 @@ import EagerKreyolHubPage from './pages/public/KreyolHubPage';
 import EagerFreeKreyolGuidePage from './pages/public/FreeKreyolGuidePage';
 import EagerPricingServicePage from './pages/PricingServicePage';
 import EagerBusinessCreditJourneyPage from './pages/public/BusinessCreditJourneyPage';
+import EagerFreeRestoreWealthPage from './pages/public/FreeRestoreWealthPage';
+import EagerWarmReferLandingPage from './pages/public/WarmReferLandingPage';
+import EagerPublicPartnersHubPage from './pages/public/PublicPartnersHubPage';
+import EagerPortalEntryPage from './pages/portal/PortalEntryPage';
+import EagerDisclosuresPage from './pages/legal/DisclosuresPage';
+import EagerPublicAcademyTeaserPage from './pages/public/PublicAcademyTeaserPage';
+import EagerRentReportingPage from './pages/public/RentReportingPage';
+import EagerBlogIndexPage from './pages/public/BlogIndexPage';
 
 const PricingPage = EagerPricingPage;
 const ServicesHubPage = EagerServicesHubPage;
@@ -1174,7 +1182,10 @@ function AppInner() {
                     type="button"
                     {...navWarm('resources')}
                     className={`px-5 py-2 rounded-xl border transition-all text-sm font-semibold ${
-                      currentView === 'resources' || currentView === 'events' || currentView === 'bookstore'
+                      currentView === 'resources' ||
+                      currentView === 'events' ||
+                      currentView === 'bookstore' ||
+                      currentView === 'kreyol'
                         ? 'bg-amber-500 text-black border-amber-400 shadow-lg shadow-amber-900/20'
                         : 'bg-white/5 text-white/80 border-white/10 hover:bg-white/10 hover:text-white'
                     }`}
@@ -1190,6 +1201,7 @@ function AppInner() {
                       <div className="p-2 space-y-1">
                         {[
                           { id: 'resources', label: 'Resources' },
+                          { id: 'kreyol', label: 'Kreyòl / Haitian' },
                           { id: 'events', label: 'Events' },
                           { id: 'bookstore', label: 'Bookstore' },
                         ].map((x) => (
@@ -1325,6 +1337,17 @@ function AppInner() {
           <Routes>
         {/* Public marketing routes first (eager — live SPA must not 404 or fall through to home) */}
         <Route path="/start" element={<StartRestorePage />} />
+        <Route path="/free-restore-wealth" element={<EagerFreeRestoreWealthPage />} />
+        <Route path="/refer" element={<EagerWarmReferLandingPage />} />
+        <Route path="/partners" element={<EagerPublicPartnersHubPage />} />
+        <Route path="/partner" element={<Navigate to="/partners" replace />} />
+        <Route path="/portal" element={<EagerPortalEntryPage />} />
+        <Route path="/disclosures" element={<EagerDisclosuresPage />} />
+        <Route path="/academy" element={<EagerPublicAcademyTeaserPage />} />
+        <Route path="/meet" element={<Navigate to="/enlightenment-session" replace />} />
+        <Route path="/blog" element={<EagerBlogIndexPage />} />
+        <Route path="/blog/:slug" element={<EagerBlogIndexPage />} />
+        <Route path="/rent-reporting" element={<EagerRentReportingPage />} />
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/pricing/business-credit" element={<BusinessCreditJourneyPage />} />
         <Route path="/pricing/:service" element={<PricingServicePage />} />
@@ -1421,10 +1444,7 @@ function AppInner() {
         <Route path="/debt-summons-help" element={<Navigate to="/pricing/debt-legal" replace />} />
         <Route path="/business-credit-solutions" element={<Navigate to="/pricing/business-credit" replace />} />
         <Route path="/funding-readiness" element={<Navigate to="/pricing/wealth-builder" replace />} />
-        <Route path="/diy-academy" element={<Navigate to="/resources" replace />} />
-        <Route path="/blog" element={<Navigate to="/resources" replace />} />
-        <Route path="/blog/:slug" element={<Navigate to="/resources" replace />} />
-        <Route path="/rent-reporting" element={<Navigate to="/resources" replace />} />
+        <Route path="/diy-academy" element={<Navigate to="/academy" replace />} />
         <Route path="/personal-credit" element={<PersonalCreditPage />} />
         {/* Stripe mock route removed for production */}
         <Route path="/resources" element={<ResourcesPage />} />

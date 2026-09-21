@@ -12,6 +12,7 @@ export function navHighlightId(pathname: string): string {
   if (p.startsWith('/affiliate')) return 'affiliate';
   if (p.startsWith('/contact')) return 'contact';
   if (p.startsWith('/enlightenment-session') || p.startsWith('/consultation')) return 'consultation';
+  if (p.startsWith('/kreyol') || p.startsWith('/haitian') || p.startsWith('/free-kreyol-guide')) return 'kreyol';
   if (p.startsWith('/pricing') || p.startsWith('/start')) return 'pricing';
   if (p.startsWith('/services') || p.startsWith('/business-credit')) return 'services';
   if (p.startsWith('/tradelines')) return 'tradelines';
@@ -21,7 +22,8 @@ export function navHighlightId(pathname: string): string {
 
 export function isCompanyNavOpen(pathname: string): boolean {
   const id = navHighlightId(pathname);
-  return COMPANY_VIEWS.includes(id as NavView) || id === 'consultation';
+  if (id === 'consultation' || id === 'kreyol') return false;
+  return COMPANY_VIEWS.includes(id as NavView);
 }
 
 export function isCompanyChildActive(pathname: string, child: NavView | 'consultation'): boolean {

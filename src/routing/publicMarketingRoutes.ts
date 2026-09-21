@@ -26,7 +26,9 @@ export type NavView =
   | 'faq'
   | 'terms'
   | 'privacy'
-  | 'disclaimer';
+  | 'disclaimer'
+  | 'kreyol'
+  | 'consultation_only';
 
 export const SERVICE_SLUGS = [
   'personal-credit',
@@ -82,6 +84,14 @@ export const PUBLIC_MARKETING_STATIC_PATHS: string[] = [
   '/terms',
   '/privacy',
   '/disclaimer',
+  '/disclosures',
+  '/free-restore-wealth',
+  '/refer',
+  '/partners',
+  '/partner',
+  '/portal',
+  '/academy',
+  '/meet',
   ...SERVICE_SLUGS.map((s) => `/services/${s}`),
   ...SERVICE_SLUGS.map((s) => `/pricing/${s}`),
 ];
@@ -106,6 +116,7 @@ const FORM_HEAVY = [
   '/enlightenment-session',
   '/consultation',
   '/free-guide',
+  '/free-restore-wealth',
   '/free-kreyol-guide',
   '/haitian',
   '/affiliate',
@@ -113,6 +124,10 @@ const FORM_HEAVY = [
   '/onboarding',
   '/login',
   '/signup',
+  '/privacy',
+  '/terms',
+  '/disclaimer',
+  '/disclosures',
 ];
 
 export function getPublicChromeProfile(pathname: string): PublicChromeProfile {
@@ -143,11 +158,16 @@ export function getPublicChromeProfile(pathname: string): PublicChromeProfile {
   const hideApprovalTicker =
     formHeavy ||
     marketingHeavy ||
+    p.startsWith('/tradelines') ||
+    p.startsWith('/business-credit') ||
+    p.startsWith('/pricing/business-credit') ||
     p.startsWith('/privacy') ||
     p.startsWith('/terms') ||
     p.startsWith('/disclaimer') ||
+    p.startsWith('/disclosures') ||
     p.startsWith('/contact') ||
-    p.startsWith('/enlightenment-session');
+    p.startsWith('/enlightenment-session') ||
+    p.startsWith('/consultation');
 
   return {
     chatLayout,
@@ -183,17 +203,17 @@ export function viewFromPath(pathname: string): NavView {
   if (pathname.startsWith('/faq')) return 'faq';
   if (pathname.startsWith('/enlightenment-session') || pathname.startsWith('/consultation')) return 'consultation';
   if (pathname.startsWith('/contact')) return 'contact';
-  if (pathname.startsWith('/haitian')) return 'contact';
+  if (
+    pathname.startsWith('/haitian') ||
+    pathname.startsWith('/kreyol') ||
+    pathname.startsWith('/free-kreyol-guide')
+  ) {
+    return 'kreyol';
+  }
   if (pathname.startsWith('/terms')) return 'terms';
   if (pathname.startsWith('/privacy')) return 'privacy';
   if (pathname.startsWith('/disclaimer')) return 'disclaimer';
-  if (
-    pathname.startsWith('/free-kreyol-guide') ||
-    pathname.startsWith('/free-guide') ||
-    pathname.startsWith('/kreyol')
-  ) {
-    return 'resources';
-  }
+  if (pathname.startsWith('/free-guide') || pathname.startsWith('/free-restore-wealth')) return 'resources';
   if (pathname.startsWith('/personal-credit')) return 'services';
   return 'landing';
 }
@@ -223,6 +243,8 @@ export function routeFromView(view: NavView): string {
     terms: '/terms',
     privacy: '/privacy',
     disclaimer: '/disclaimer',
+    kreyol: '/kreyol',
+    consultation_only: '/enlightenment-session',
   };
   return map[view] ?? '/';
 }

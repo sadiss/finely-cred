@@ -10,12 +10,15 @@ export function PageShell({
   subtitle,
   badge,
   back,
+  omitWorkspaceNav,
   children,
 }: {
   title: string;
   subtitle?: string;
   badge?: string;
   back?: { to?: string | number; label?: string; title?: string };
+  /** When true, skip portal/admin rails (e.g. public legal on /portal miss). */
+  omitWorkspaceNav?: boolean;
   children?: React.ReactNode;
 }) {
   const location = useLocation();
@@ -455,7 +458,7 @@ export function PageShell({
           isAppRoute ? 'flex flex-col' : ''
         }`}
       >
-        {isPortal && <PartnerPortalNav />}
+        {isPortal && !omitWorkspaceNav && <PartnerPortalNav />}
 
         {isAdmin ? (
           <div className="grid lg:grid-cols-[340px_1fr] gap-8">

@@ -666,6 +666,7 @@ export function MobileNav({ isOpen, onClose, onNavigate, currentView }: MobileNa
         { id: 'tradelines', label: 'Tradelines' },
         { id: 'testimonials', label: 'Testimonials' },
         { id: 'resources', label: 'Resources' },
+        { id: 'kreyol', label: 'Kreyòl / Haitian' },
         { id: 'events', label: 'Events' },
         { id: 'bookstore', label: 'Bookstore' },
       ],

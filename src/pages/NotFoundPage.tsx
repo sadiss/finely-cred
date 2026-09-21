@@ -7,11 +7,14 @@ export default function NotFoundPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const isPortalMiss = location.pathname.startsWith('/portal');
+
   return (
     <PageShell
       badge="404"
       title="Page not found"
       subtitle="That route doesn’t exist. Use the buttons below to get back to the live site."
+      omitWorkspaceNav={isPortalMiss}
     >
       <div className="space-y-4">
         <div className="rounded-2xl border border-white/10 bg-black/30 backdrop-blur-xl p-6 text-white/70">
@@ -33,10 +36,10 @@ export default function NotFoundPage() {
           </button>
           <button
             type="button"
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate(isPortalMiss ? '/portal/dashboard' : '/dashboard')}
             className="inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] text-white/70 font-black uppercase tracking-widest text-[10px] transition-all"
           >
-            <ArrowLeft size={14} /> Dashboard
+            <ArrowLeft size={14} /> {isPortalMiss ? 'Portal home' : 'Dashboard'}
           </button>
         </div>
       </div>

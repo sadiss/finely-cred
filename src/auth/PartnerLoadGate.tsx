@@ -12,7 +12,10 @@ export function PartnerLoadGate({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const { partner, loading, loadTimedOut, refresh } = usePartnerSession();
 
-  const path = location.pathname;
+  const path = location.pathname.split('?')[0];
+  const isPortalRoot = path === '/portal' || path === '/portal/';
+  if (isPortalRoot) return <>{children}</>;
+
   const isPortal = path.startsWith('/portal') && !path.startsWith('/portal/select-partner');
 
   if (!isPortal) return <>{children}</>;
