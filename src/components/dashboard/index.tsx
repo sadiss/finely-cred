@@ -21,6 +21,9 @@ import { runWorkflow } from '../../automation/runWorkflows';
 import { KpiCard } from '../ui/KpiCards';
 import { bucketCountsByDay } from '../../utils/timeSeries';
 import { BASE_LENDER_PRESETS } from '../../data/localLenders';
+import { prefetchRoutePrefix } from '../../routing/routePrefetch';
+
+const warmRoute = (path: string) => () => prefetchRoutePrefix(path);
 
 // --- LENDER LOGIC ENGINE ---
 interface LenderLogicEngineProps {
@@ -1000,6 +1003,8 @@ export function MasteryOSDashboard({ user, onLogout }: MasteryOSDashboardProps) 
                     ].map((x) => (
                       <button
                         key={x.path}
+                        onMouseEnter={warmRoute(x.path)}
+                        onFocus={warmRoute(x.path)}
                         onClick={() => navigate(x.path)}
                         className="w-full flex items-center gap-3 px-3 py-2 rounded-2xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.07] text-white/75 hover:text-white transition-all"
                       >
@@ -1009,6 +1014,8 @@ export function MasteryOSDashboard({ user, onLogout }: MasteryOSDashboardProps) 
                     ))}
                     {isAdmin && (
                       <button
+                        onMouseEnter={warmRoute('/admin')}
+                        onFocus={warmRoute('/admin')}
                         onClick={() => navigate('/admin')}
                         className="w-full flex items-center gap-3 px-3 py-2 rounded-2xl border border-amber-500/30 bg-amber-500/5 hover:bg-amber-500/10 text-white/80 transition-all"
                       >

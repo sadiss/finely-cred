@@ -8,6 +8,8 @@ import { BrowserRouter, Routes, Route, useLocation, useNavigate, Navigate } from
 import { Button, Reveal, Toast, LiveApprovalTicker, MobileNav, AppErrorBoundary } from './components/ui';
 import { lazyRoute } from './routing/lazyRoute';
 import { ScrollToTop } from './routing/ScrollToTop';
+import { PartnerLoadGate } from './auth/PartnerLoadGate';
+import './routing/dashboardPrefetch';
 import { 
   HeroSection, ViolationLiveFeed, TradelineMarketplace, 
   PhysicalEbook, MasteryOSSection, TestimonialDossier,
@@ -1307,6 +1309,7 @@ function AppInner() {
       />
 
       <AppErrorBoundary onHome={() => navigate('/')}>
+        <PartnerLoadGate>
           <Routes key={location.pathname}>
         <Route
           path="/"
@@ -2190,6 +2193,7 @@ function AppInner() {
           }
         />
           </Routes>
+        </PartnerLoadGate>
         </AppErrorBoundary>
     </div>
   );
