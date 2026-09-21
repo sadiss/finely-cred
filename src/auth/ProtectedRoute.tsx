@@ -3,17 +3,14 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from './AuthProvider';
 import { getOrCreatePartnerForSession, ADMIN_PARTNER_OVERRIDE_KEY } from '../portal/getOrCreatePartnerForSession';
 import { isAdminEmail } from './admin';
+import { RouteSkeleton } from '../routing/RouteSkeleton';
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isLoading, user } = useAuth();
   const location = useLocation();
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-[#0d1512] text-white flex items-center justify-center">
-        <div className="w-10 h-10 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <RouteSkeleton label="Checking your session…" />;
   }
 
   if (!user) {

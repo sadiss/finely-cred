@@ -69,9 +69,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setMockUser(saved);
           setSession(null);
         } else {
-          const { data } = await supabase.auth.getSession();
+          const SESSION_TIMEOUT_MS = 4000;
+          const sessionResult = await Promise.race([
+            supabase.auth.getSession(),
+            new Promise<null>((resolve) => window.setTimeout(() => resolve(null), SESSION_TIMEOUT_MS)),
+          ]);
           if (!mounted) return;
-          setSession(data.session ?? null);
+          if (sessionResult && typeof sessionResult === 'object' && 'data' in sessionResult) {
+            setSession(sessionResult.data.session ?? null);
+          }
         }
       } finally {
         if (mounted) setIsLoading(false);

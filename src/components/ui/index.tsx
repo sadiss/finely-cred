@@ -182,17 +182,32 @@ export function Reveal({ children, delay = 0, direction = 'up' }: RevealProps) {
   useEffect(() => {
     const node = ref.current;
     if (!node) return;
+
+    const reveal = () => setIsVisible(true);
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          setIsVisible(true);
+          reveal();
           observer.unobserve(node);
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0.05, rootMargin: '40px' }
     );
     observer.observe(node);
-    return () => observer.disconnect();
+
+    // SPA navigations can skip IO callbacks; never leave content invisible.
+    const raf = requestAnimationFrame(() => {
+      const rect = node.getBoundingClientRect();
+      if (rect.top < window.innerHeight && rect.bottom > 0) reveal();
+    });
+    const timeout = window.setTimeout(reveal, 900);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      window.clearTimeout(timeout);
+      observer.disconnect();
+    };
   }, []);
 
   const transforms: Record<string, string> = {
