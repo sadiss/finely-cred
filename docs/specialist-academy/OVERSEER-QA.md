@@ -14,7 +14,8 @@ Use this checklist before merge. **PR:** [#28](https://github.com/sadiss/finely-
 | 6 | MEETING-COACH video quiz | [MEETING-COACH.md](./MEETING-COACH.md) |
 | 7 | README maps tracks A–G | [README.md](./README.md) · [TRACKS-A-E-OVERVIEW.md](./TRACKS-A-E-OVERVIEW.md) |
 | 8 | Compliance footer on every doc | Spot-check `docs/specialist-academy/**` |
-| 9 | No production breakage; docs-only | No `src/` changes in PR |
+| 9 | Additive product hooks | `AdminSpecialistAcademyPage` + `trainingAcademy.ts`; Courses untouched |
+| 9b | UI navigation | `/admin/specialist-academy` (admin auth) |
 | 10 | PR body: file list + Sanz trainee runbook | GitHub PR description |
 
 ## File inventory (33 academy + handoff)
