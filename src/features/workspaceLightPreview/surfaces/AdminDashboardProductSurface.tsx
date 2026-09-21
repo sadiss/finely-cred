@@ -3,6 +3,7 @@ import { AlertTriangle, RefreshCcw } from 'lucide-react';
 import { WlAppShell } from '../components';
 import { useAdminDashboardData } from '../hooks/useAdminDashboardData';
 import { useWorkspaceLightPreview } from '../useWorkspaceLightPreview';
+import { CommandIntelligenceHome } from '../../commandIntelligence/CommandIntelligenceHome';
 import { AdminCommandCenterProduct } from '../product/admin/AdminCommandCenterProduct';
 import { ADMIN_COMMAND_CENTER_DEMO } from '../product/data/workspacePreviewFixtures';
 import type { AdminCommandCenterModel } from '../product/data/workspacePreviewModels';
@@ -118,6 +119,7 @@ export function AdminDashboardProductBody({ dataMode }: { dataMode: 'demo' | 're
 
   return (
     <>
+      <CommandIntelligenceHome />
       {statsError && dataMode === 'real' ? (
         <div className="fc-wlp-panel" data-accent="rose" style={{ marginBottom: 18 }}>
           <div className="fc-wlp-panel-body" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>

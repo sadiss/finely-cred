@@ -382,3 +382,45 @@ export async function searchGoogleCse(args: {
 }): Promise<PublicDataResult<PublicNewsHits>> {
   return invokePublicData<PublicNewsHits>('google_cse', 'search', { query: args.query });
 }
+
+export type GeoHit = { label: string; lat: string; lon: string; type: string };
+export type NearbyPlace = { name: string; lat: number | null; lon: number | null };
+export type YoutubeHit = { videoId: string; title: string; channel: string; publishedAt: string };
+export type CorridorStat = {
+  name: string | null;
+  population: string | null;
+  medianHouseholdIncome: string | null;
+  year: number;
+  note: string;
+};
+
+export function searchNominatim(q: string) {
+  return invokePublicData<{ hits: GeoHit[] }>('nominatim', 'search', { q });
+}
+
+export function nearbyPlaces(lat: number, lon: number) {
+  return invokePublicData<{ hits: NearbyPlace[] }>('overpass', 'nearby', { lat, lon });
+}
+
+export function currentWeather(lat: number, lon: number) {
+  return invokePublicData<{ temperatureC: number | null; weatherCode: number | null; timezone: string | null }>(
+    'open_meteo',
+    'current',
+    { lat, lon },
+  );
+}
+
+export function searchYoutube(q: string) {
+  return invokePublicData<{ hits: YoutubeHit[] }>('youtube', 'search', { q });
+}
+
+export function censusStateStat(state: string) {
+  return invokePublicData<CorridorStat>('census_acs', 'state', { state });
+}
+
+export function fdicBanks(state: string) {
+  return invokePublicData<unknown>('fdic', 'institutions', {
+    filters: `STALP:${state} AND ACTIVE:1`,
+    limit: 8,
+  });
+}

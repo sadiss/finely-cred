@@ -100,7 +100,7 @@ export function FinelyAdminSimpleNav({ onShowFullNav }: { onShowFullNav: () => v
         <button
           type="button"
           onClick={onShowFullNav}
-          className="fc-admin-nav-mode-toggle text-[10px] font-black uppercase tracking-widest text-white/55 hover:text-white transition-colors"
+          className="fc-admin-nav-mode-toggle text-[10px] font-black uppercase tracking-widest text-fc-muted hover:text-fc-ink transition-colors"
         >
           Show full nav
         </button>
