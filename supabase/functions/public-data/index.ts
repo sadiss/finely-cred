@@ -52,6 +52,11 @@ const SOURCE_BUCKET: Record<string, CacheBucket> = {
   guardian: 'news',
   brave_search: 'news',
   google_cse: 'news',
+  nominatim: 'geocode',
+  overpass: 'general',
+  open_meteo: 'general',
+  youtube: 'news',
+  census_acs: 'general',
 };
 
 const cache = new Map<string, CacheEntry>();
@@ -742,6 +747,150 @@ async function handleGoogleCse(action: string, params: Record<string, unknown>):
   };
 }
 
+async function handleNominatim(action: string, params: Record<string, unknown>): Promise<HandlerResult> {
+  if (action !== 'search') throw new Error('nominatim action must be search');
+  const q = strParam(params, 'q').slice(0, 160);
+  if (q.length < 2) throw new Error('nominatim requires params.q');
+  const url = new URL('https://nominatim.openstreetmap.org/search');
+  url.searchParams.set('q', q);
+  url.searchParams.set('format', 'jsonv2');
+  url.searchParams.set('addressdetails', '1');
+  url.searchParams.set('limit', '5');
+  const res = await fetchWithTimeout(url, {
+    headers: { 'User-Agent': FINELY_UA, Accept: 'application/json' },
+  });
+  if (!res.ok) throw new Error(`nominatim HTTP ${res.status}`);
+  const rows = (await res.json()) as Array<Record<string, unknown>>;
+  return {
+    data: {
+      hits: (Array.isArray(rows) ? rows : []).slice(0, 5).map((row) => ({
+        label: String(row.display_name ?? ''),
+        lat: String(row.lat ?? ''),
+        lon: String(row.lon ?? ''),
+        type: String(row.type ?? ''),
+      })),
+    },
+    endpoint: 'https://nominatim.openstreetmap.org/search',
+  };
+}
+
+async function handleOverpass(action: string, params: Record<string, unknown>): Promise<HandlerResult> {
+  if (action !== 'nearby') throw new Error('overpass action must be nearby');
+  const lat = Number(params.lat);
+  const lon = Number(params.lon);
+  if (!Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) {
+    throw new Error('overpass requires numeric lat and lon');
+  }
+  const query = `[out:json][timeout:12];node(around:700,${lat.toFixed(5)},${lon.toFixed(5)})["name"];out 8;`;
+  const res = await fetchWithTimeout('https://overpass-api.de/api/interpreter', {
+    method: 'POST',
+    headers: { 'User-Agent': FINELY_UA, 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `data=${encodeURIComponent(query)}`,
+  });
+  if (!res.ok) throw new Error(`overpass HTTP ${res.status}`);
+  const data = await res.json();
+  const elements = Array.isArray(data?.elements) ? data.elements : [];
+  return {
+    data: {
+      hits: elements.slice(0, 8).map((el: Record<string, unknown>) => ({
+        name: String((el.tags as Record<string, unknown> | undefined)?.name ?? 'Unnamed place'),
+        lat: el.lat ?? null,
+        lon: el.lon ?? null,
+      })),
+    },
+    endpoint: 'https://overpass-api.de/api/interpreter',
+  };
+}
+
+async function handleOpenMeteo(action: string, params: Record<string, unknown>): Promise<HandlerResult> {
+  if (action !== 'current') throw new Error('open_meteo action must be current');
+  const lat = Number(params.lat);
+  const lon = Number(params.lon);
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) throw new Error('open_meteo requires lat and lon');
+  const url = new URL('https://api.open-meteo.com/v1/forecast');
+  url.searchParams.set('latitude', lat.toFixed(4));
+  url.searchParams.set('longitude', lon.toFixed(4));
+  url.searchParams.set('current', 'temperature_2m,weather_code');
+  const res = await fetchWithTimeout(url, { headers: govHeaders() });
+  if (!res.ok) throw new Error(`open_meteo HTTP ${res.status}`);
+  const data = await res.json();
+  return {
+    data: {
+      temperatureC: data?.current?.temperature_2m ?? null,
+      weatherCode: data?.current?.weather_code ?? null,
+      timezone: data?.timezone ?? null,
+    },
+    endpoint: url.toString(),
+  };
+}
+
+async function handleYoutube(action: string, params: Record<string, unknown>): Promise<HandlerResult> {
+  if (action !== 'search') throw new Error('youtube action must be search');
+  const key = envKey('YOUTUBE_API_KEY');
+  if (!key) return notWired('Set YOUTUBE_API_KEY on the public-data function. No sample videos are invented.', 'env:YOUTUBE_API_KEY');
+  const q = strParam(params, 'q').slice(0, 120);
+  if (q.length < 2) throw new Error('youtube requires params.q');
+  const url = new URL('https://www.googleapis.com/youtube/v3/search');
+  url.searchParams.set('part', 'snippet');
+  url.searchParams.set('type', 'video');
+  url.searchParams.set('maxResults', '5');
+  url.searchParams.set('q', q);
+  url.searchParams.set('key', key);
+  const res = await fetchWithTimeout(url, { headers: govHeaders() });
+  if (!res.ok) throw new Error(`youtube HTTP ${res.status}`);
+  const data = await res.json();
+  const items = Array.isArray(data?.items) ? data.items : [];
+  return {
+    data: {
+      hits: items.map((item: Record<string, unknown>) => {
+        const id = item.id as Record<string, unknown> | undefined;
+        const snippet = item.snippet as Record<string, unknown> | undefined;
+        return {
+          videoId: String(id?.videoId ?? ''),
+          title: String(snippet?.title ?? ''),
+          channel: String(snippet?.channelTitle ?? ''),
+          publishedAt: String(snippet?.publishedAt ?? ''),
+        };
+      }).filter((hit: { videoId: string }) => hit.videoId),
+    },
+    endpoint: 'https://www.googleapis.com/youtube/v3/search',
+  };
+}
+
+const CENSUS_STATE_FIPS: Record<string, string> = {
+  AL: '01', AK: '02', AZ: '04', AR: '05', CA: '06', CO: '08', CT: '09', DE: '10', DC: '11', FL: '12',
+  GA: '13', HI: '15', ID: '16', IL: '17', IN: '18', IA: '19', KS: '20', KY: '21', LA: '22', ME: '23',
+  MD: '24', MA: '25', MI: '26', MN: '27', MS: '28', MO: '29', MT: '30', NE: '31', NV: '32', NH: '33',
+  NJ: '34', NM: '35', NY: '36', NC: '37', ND: '38', OH: '39', OK: '40', OR: '41', PA: '42', RI: '44',
+  SC: '45', SD: '46', TN: '47', TX: '48', UT: '49', VT: '50', VA: '51', WA: '53', WV: '54', WI: '55', WY: '56',
+};
+
+async function handleCensusAcs(action: string, params: Record<string, unknown>): Promise<HandlerResult> {
+  if (action !== 'state') throw new Error('census_acs action must be state');
+  const state = strParam(params, 'state').toUpperCase().slice(0, 2);
+  const fips = CENSUS_STATE_FIPS[state];
+  if (!fips) throw new Error('census_acs requires params.state as a US postal code');
+  const url = new URL('https://api.census.gov/data/2022/acs/acs5');
+  url.searchParams.set('get', 'NAME,B01003_001E,B19013_001E');
+  url.searchParams.set('for', `state:${fips}`);
+  const res = await fetchWithTimeout(url, { headers: govHeaders() });
+  if (!res.ok) throw new Error(`census_acs HTTP ${res.status}`);
+  const rows = (await res.json()) as unknown[];
+  const header = Array.isArray(rows?.[0]) ? (rows[0] as string[]) : [];
+  const values = Array.isArray(rows?.[1]) ? (rows[1] as string[]) : [];
+  const pick = (name: string) => values[header.indexOf(name)] ?? null;
+  return {
+    data: {
+      name: pick('NAME'),
+      population: pick('B01003_001E'),
+      medianHouseholdIncome: pick('B19013_001E'),
+      year: 2022,
+      note: 'ACS 5-year published estimate. Not a credit score.',
+    },
+    endpoint: url.toString(),
+  };
+}
+
 const HANDLERS: Record<
   string,
   (action: string, params: Record<string, unknown>) => Promise<HandlerResult> | HandlerResult
@@ -763,6 +912,11 @@ const HANDLERS: Record<
   guardian: handleGuardian,
   brave_search: handleBraveSearch,
   google_cse: handleGoogleCse,
+  nominatim: handleNominatim,
+  overpass: handleOverpass,
+  open_meteo: handleOpenMeteo,
+  youtube: handleYoutube,
+  census_acs: handleCensusAcs,
 };
 
 function geocodeCacheParams(params: Record<string, unknown>): Record<string, unknown> {

@@ -6,7 +6,7 @@ export type BiblicalName = { firstName: string; lastName: string; portraitGender
 
 const MALE: BiblicalName[] = [
   { firstName: 'Daniel', lastName: 'Benjamin', portraitGender: 'masculine' },
-  { firstName: 'Samuel', lastName: 'David', portraitGender: 'masculine' },
+  { firstName: 'Gideon', lastName: 'Asher', portraitGender: 'masculine' },
   { firstName: 'Joseph', lastName: 'Solomon', portraitGender: 'masculine' },
   { firstName: 'Joshua', lastName: 'Caleb', portraitGender: 'masculine' },
   { firstName: 'Ethan', lastName: 'Nathan', portraitGender: 'masculine' },

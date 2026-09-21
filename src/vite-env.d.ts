@@ -3,6 +3,8 @@
 interface ImportMetaEnv {
   readonly VITE_SUPABASE_URL?: string;
   readonly VITE_SUPABASE_ANON_KEY?: string;
+  readonly VITE_ZOHO_PARTNER_EMAIL?: string;
+  readonly VITE_NORA_CAPITAL_URL?: string;
 }
 
 interface ImportMeta {

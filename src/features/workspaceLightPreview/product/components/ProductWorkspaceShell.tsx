@@ -17,6 +17,7 @@ import { PortalChatWidget } from '../../../../components/chat/PortalChatWidget';
 import { openCommunicationHub } from '../../../../components/chat/communicationHubModel';
 import { WorkCommandPalette } from '../../../work/components/WorkCommandPalette';
 import type { WorkspaceProductAccent, WorkspaceProductRole } from '../workspaceProductTokens';
+import { buildAdminIa } from '../adminIa';
 import {
   getWorkspaceProductNav,
   getWorkspaceProductNavByService,
@@ -56,7 +57,9 @@ function isItemActive(
   if (pathname === target) return true;
   if (navigationMode === 'preview' && target.includes('/preview/workspace-light')) return pathname === target;
   if (navigationMode === 'live') {
-    if (target === '/admin') return false;
+    if (target === '/admin' || target === '/admin/') {
+      return pathname === '/admin' || pathname === '/admin/';
+    }
     return pathname === target || pathname.startsWith(`${target}/`);
   }
   return pathname.startsWith(item.path.split('?')[0]);
@@ -142,6 +145,10 @@ export function ProductWorkspaceShell({
 
   const allItems = getWorkspaceProductNav(role);
   const primary = allItems.filter((item) => item.group === 'primary');
+  const adminIa = React.useMemo(
+    () => (role === 'admin' ? buildAdminIa(allItems) : { groups: [], more: [] }),
+    [allItems, role],
+  );
   const mobilePartnerNavItems = React.useMemo(() => {
     const itemById = new Map(allItems.map((item) => [item.id, item]));
     return PARTNER_MOBILE_NAV_IDS.flatMap((id) => {
@@ -325,33 +332,95 @@ export function ProductWorkspaceShell({
                 <span className="fc-wlp-rail-dept-kicker">Operations</span>
                 <span className="fc-wlp-rail-dept-live">Live</span>
               </div>
-              <nav className="fc-wlp-rail-nav">
-                <div className="fc-wlp-rail-label">Workspace</div>
-                {primary.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      className="fc-wlp-rail-item"
-                      data-accent={item.accent}
-                      data-active={isItemActive(pathname, item, navigationMode) ? 'true' : undefined}
-                      aria-current={isItemActive(pathname, item, navigationMode) ? 'page' : undefined}
-                      onClick={() => go(item)}
-                      title={item.label}
-                    >
-                      <span className="fc-wlp-rail-icon">
-                        <Icon size={17} strokeWidth={2.05} />
-                      </span>
-                      <span className="fc-wlp-rail-item-label">{item.label}</span>
-                    </button>
-                  );
-                })}
+              <nav className="fc-wlp-rail-nav" aria-label="Admin groups">
+                {adminRailCollapsed
+                  ? adminIa.groups.map((group) => {
+                      const lead = group.items[0];
+                      if (!lead) return null;
+                      const Icon = lead.icon;
+                      const active = group.items.some((item) => isItemActive(pathname, item, navigationMode));
+                      return (
+                        <button
+                          key={group.id}
+                          type="button"
+                          className="fc-wlp-rail-item"
+                          data-accent={lead.accent}
+                          data-active={active ? 'true' : undefined}
+                          onClick={() => go(lead)}
+                          title={group.label}
+                        >
+                          <span className="fc-wlp-rail-icon">
+                            <Icon size={17} strokeWidth={2.05} />
+                          </span>
+                          <span className="sr-only">{group.label}</span>
+                        </button>
+                      );
+                    })
+                  : adminIa.groups.map((group) => {
+                      const open =
+                        group.defaultOpen || group.items.some((item) => isItemActive(pathname, item, navigationMode));
+                      return (
+                        <details key={group.id} className="fc-wlp-ia" open={open}>
+                          <summary className="fc-wlp-rail-label">{group.label}</summary>
+                          {group.items.map((item) => {
+                            const Icon = item.icon;
+                            const active = isItemActive(pathname, item, navigationMode);
+                            return (
+                              <button
+                                key={item.id}
+                                type="button"
+                                className="fc-wlp-rail-item"
+                                data-accent={item.accent}
+                                data-active={active ? 'true' : undefined}
+                                aria-current={active ? 'page' : undefined}
+                                onClick={() => go(item)}
+                                title={item.description}
+                              >
+                                <span className="fc-wlp-rail-icon">
+                                  <Icon size={17} strokeWidth={2.05} />
+                                </span>
+                                <span className="fc-wlp-rail-item-label">{item.label}</span>
+                              </button>
+                            );
+                          })}
+                        </details>
+                      );
+                    })}
+                {adminRailCollapsed ? null : (
+                  <details
+                    className="fc-wlp-ia fc-wlp-ia-more"
+                    open={adminIa.more.some((item) => isItemActive(pathname, item, navigationMode))}
+                  >
+                    <summary className="fc-wlp-rail-label">More</summary>
+                    {adminIa.more.map((item) => {
+                      const Icon = item.icon;
+                      const active = isItemActive(pathname, item, navigationMode);
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          className="fc-wlp-rail-item"
+                          data-accent={item.accent}
+                          data-active={active ? 'true' : undefined}
+                          aria-current={active ? 'page' : undefined}
+                          onClick={() => go(item)}
+                          title={item.description}
+                        >
+                          <span className="fc-wlp-rail-icon">
+                            <Icon size={17} strokeWidth={2.05} />
+                          </span>
+                          <span className="fc-wlp-rail-item-label">{item.label}</span>
+                        </button>
+                      );
+                    })}
+                  </details>
+                )}
                 <button
                   type="button"
                   className="fc-wlp-rail-item"
                   data-open={allToolsOpen ? 'true' : undefined}
                   onClick={() => setAllToolsOpen(true)}
+                  title="Search every admin tool"
                 >
                   <span className="fc-wlp-rail-icon">
                     <MoreHorizontal size={17} strokeWidth={2.1} />
@@ -558,16 +627,35 @@ export function ProductWorkspaceShell({
       <ProductDrawer
         open={mobileNavOpen}
         title={role === 'admin' ? 'Admin navigation' : 'Partner navigation'}
-        subtitle={role === 'admin' ? 'Open a primary workspace.' : 'Open a core room or browse every tool.'}
+        subtitle={role === 'admin' ? 'Home, clients, training, marketing, money, settings.' : 'Open a core room or browse every tool.'}
         onClose={() => setMobileNavOpen(false)}
       >
         <div className="fc-wlp-list">
           {role === 'admin'
-            ? primary.map((item) => <ToolRow key={item.id} item={item} onClick={() => go(item)} />)
+            ? adminIa.groups.map((group) => (
+                <div key={group.id} className="fc-admin-ia-mobile-group">
+                  <div className="fc-wlp-rail-label">{group.label}</div>
+                  {group.items.map((item) => (
+                    <ToolRow key={item.id} item={item} onClick={() => go(item)} />
+                  ))}
+                </div>
+              ))
             : topNavItems.map(({ item, locked }) => (
                 <ToolRow key={item.id} item={item} onClick={() => go(item)} locked={locked} />
               ))}
         </div>
+        {role === 'admin' ? (
+          <button
+            type="button"
+            className="fc-wlp-service-unlock"
+            onClick={() => {
+              setMobileNavOpen(false);
+              setAllToolsOpen(true);
+            }}
+          >
+            <MoreHorizontal size={14} /> More and advanced tools
+          </button>
+        ) : null}
         {role === 'partner' ? (
           <button
             type="button"

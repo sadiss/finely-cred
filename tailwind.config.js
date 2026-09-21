@@ -30,7 +30,11 @@ export default {
           chrome: 'var(--fc-bg-chrome)',
           elevated: 'var(--fc-bg-elevated)',
           input: 'var(--fc-bg-input)',
-          ink: 'var(--fc-ink-on-gold)',
+          ink: 'var(--fc-ink)',
+          cream: 'var(--fc-cream)',
+          muted: 'var(--fc-muted)',
+          'on-light': 'var(--fc-ink-on-light)',
+          gold: 'var(--fc-gold)',
         },
         surface: {
           1: 'rgba(255,255,255,0.03)',

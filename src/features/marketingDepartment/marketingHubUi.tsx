@@ -9,11 +9,9 @@ import {
 import { MarketingHelpButton } from './MarketingHelpModal';
 
 /** Frosted content bed for marketing hub tab bodies */
-export const MARKETING_HUB_CONTENT_SHELL =
-  'rounded-2xl border border-white/22 bg-white/[0.08] backdrop-blur-md p-4 sm:p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]';
+export const MARKETING_HUB_CONTENT_SHELL = 'fc-contrast-card rounded-2xl p-4 sm:p-5';
 
-export const MARKETING_HUB_TAB_STRIP =
-  'rounded-2xl border border-white/25 bg-white/[0.1] backdrop-blur-md p-2 sm:p-2.5';
+export const MARKETING_HUB_TAB_STRIP = 'fc-contrast-card rounded-2xl p-2 sm:p-2.5';
 
 const VIVID_ACCENT: Record<
   FinelyOsDeckAccent,

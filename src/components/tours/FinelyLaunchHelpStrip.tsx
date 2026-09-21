@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Languages, Mic, Send, Sparkles, Square, Volume2 } from 'lucide-react';
+import { Languages, Mic, Send, Square, Volume2 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   FINELY_PUBLIC_COMPLIANCE_LINE,
@@ -18,6 +18,7 @@ import {
 } from '../../lib/publicChatI18n';
 import { FINELY_OS_SECONDARY_BTN } from '../../features/os/finelyOsLightUi';
 import { PUBLIC_DEMO_VIDEOS_ENABLED } from '../../config/publicMediaPolicy';
+import { FinelyAssistantAvatar } from '../brand/FinelyAssistantAvatar';
 
 export type FinelyLaunchPrompt = {
   label: string;
@@ -257,7 +258,7 @@ export function FinelyLaunchHelpStrip({
             isIvory ? 'text-[#0a1628]' : 'text-white/90'
           }`}
         >
-          <Sparkles size={14} className={isIvory ? 'text-emerald-600' : 'text-amber-300/90'} aria-hidden />
+          <FinelyAssistantAvatar size="sm" />
           Ask Finely
         </span>
       </div>

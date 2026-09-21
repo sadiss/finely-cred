@@ -24,6 +24,7 @@ import { TimeSeriesAreaChart } from '../../../../components/ui';
 import { FinelyNoticedStrip } from '../../../../components/tours/FinelyNoticedStrip';
 import { FinelyNowDoThisStrip } from '../../../../components/tours/FinelyNowDoThisStrip';
 import { FinelyOsAlertBanner } from '../../../../features/os/FinelyOsAlertBanner';
+import { CommandIntelligenceHome } from '../../../commandIntelligence/CommandIntelligenceHome';
 import { FinelyOsDataErrorBanner } from '../../../../features/os/FinelyOsDataErrorBanner';
 import { FINELY_OS_PRIMARY_BTN } from '../../../../features/os/finelyOsLightUi';
 import { AdminPlatformEventsFeed } from '../../../admin/AdminPlatformEventsFeed';
@@ -327,6 +328,7 @@ function AdminDashboardCommandDeck({
   return (
     <div className="fc-admin-deck-root">
       <div className="fc-admin-deck-briefing">
+        <CommandIntelligenceHome />
         {statsError && dataMode === 'real' ? (
           <FinelyOsDataErrorBanner
             message={statsError}

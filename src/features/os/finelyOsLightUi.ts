@@ -186,7 +186,7 @@ export const FINELY_OS_BADGE_LIVE =
   'px-3 py-1.5 rounded-lg border border-emerald-500/35 bg-emerald-500/15 text-xs font-bold text-emerald-200 uppercase tracking-wide whitespace-nowrap shrink-0';
 
 export const FINELY_OS_BADGE_MUTED =
-  'px-2 py-1 rounded-full border border-white/15 bg-white/[0.07] text-xs font-bold text-white/55 uppercase tracking-wide whitespace-nowrap';
+  'px-2 py-1 rounded-full border border-[color:var(--fc-card-border)] bg-[color:var(--fc-card-dark)] text-xs font-bold text-[color:var(--fc-muted)] uppercase tracking-wide whitespace-nowrap';
 
 export const FINELY_OS_BADGE_WARN =
   'px-2 py-1 rounded-full border border-fuchsia-500/35 bg-fuchsia-500/15 text-xs font-bold text-fuchsia-200 uppercase tracking-wide whitespace-nowrap';
@@ -447,7 +447,7 @@ export const FINELY_OS_COLUMN_HEADER_COUNT =
 export const FINELY_OS_COMMS_BANNER =
   'rounded-2xl border border-fuchsia-500/25 bg-[radial-gradient(900px_320px_at_0%_0%,rgba(217,70,239,0.12)_0%,transparent_60%)] p-5 backdrop-blur-md';
 
-export const FINELY_OS_BACK_LINK = 'inline-flex items-center gap-2 text-sm text-white/55 hover:text-white transition-colors';
+export const FINELY_OS_BACK_LINK = 'inline-flex items-center gap-2 text-sm text-[color:var(--fc-muted)] hover:text-[color:var(--fc-ink)] transition-colors';
 
 export const FINELY_OS_PRIMARY_BTN = 'fc-button-brand';
 
@@ -585,20 +585,20 @@ export const FINELY_OS_SIDE_RAIL_GLOW =
 
 export const FINELY_OS_SIDE_RAIL_GROUP = 'rounded-2xl border border-white/[0.08] bg-fc-elevated/35 overflow-hidden';
 
-export const FINELY_OS_SIDE_RAIL_LABEL = 'text-xs uppercase tracking-[0.34em] text-violet-300/80 font-black';
+export const FINELY_OS_SIDE_RAIL_LABEL = 'text-xs uppercase tracking-[0.18em] text-[color:var(--fc-ink)] font-black';
 
 export const FINELY_OS_SIDE_RAIL_TITLE = 'text-white font-semibold text-sm';
 
-export const FINELY_OS_SIDE_RAIL_HINT = 'text-xs text-white/55';
+export const FINELY_OS_SIDE_RAIL_HINT = 'text-xs text-[color:var(--fc-muted)]';
 
 export const FINELY_OS_SIDE_RAIL_BADGE =
-  'px-2.5 py-1 rounded-full border border-white/[0.08] bg-fc-elevated/40 text-xs font-black uppercase tracking-widest text-white/65';
+  'px-2.5 py-1 rounded-full border border-[color:var(--fc-card-border)] bg-[color:var(--fc-card-dark)] text-xs font-black uppercase tracking-widest text-[color:var(--fc-ink)]';
 
 export function finelyOsSideRailNavItem(active: boolean) {
   return `w-full text-left inline-flex items-center gap-3 px-3 py-2.5 rounded-2xl border transition-all ${
     active
-      ? 'bg-gradient-to-r from-violet-600/90 to-fuchsia-600/90 text-white border-violet-400/40 shadow-md ring-1 ring-violet-400/25'
-      : 'bg-fc-section/70 text-white/78 border-white/[0.08] hover:bg-fc-elevated/50 hover:text-white hover:border-white/20'
+      ? 'bg-[linear-gradient(135deg,#ffeaa7_0%,#f39c12_48%,#d68910_100%)] text-[#14120b] border-[#f6e2a8] shadow-md'
+      : 'bg-[color:var(--fc-card-dark)] text-[color:var(--fc-ink)] border-[color:var(--fc-card-border)] hover:border-[#e8b84a]'
   }`;
 }
 

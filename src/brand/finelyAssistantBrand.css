@@ -1,0 +1,8 @@
+.fc-assistant-mark {
+  display: block;
+  object-fit: contain;
+  border-radius: 14px;
+  background: #faf6ee;
+  padding: 4px;
+  flex: 0 0 auto;
+}
