@@ -127,6 +127,28 @@ export const personalCreditPackages: PricingPackage[] = [
     entitlementKeys: ['personal_free'],
   },
   {
+    id: 'start_restore_147',
+    category: 'personal_credit',
+    name: 'Start Restore',
+    tagline: 'Roadmap + first actions + strategy call (starter)',
+    description:
+      'Consumer starter: personalized restore roadmap, first-action plan, and a 15–20 minute strategy call. Not full multi-month Core/DFY restore. $147 credited toward eligible Core upgrade within 7 days.',
+    highlights: [
+      'Restore roadmap + first actions',
+      '15–20 min strategy call',
+      '$147 credited to Core if you upgrade within 7 days',
+      'Credit restore (not “credit repair”) — educational + structured next steps',
+    ],
+    priceAmount: 14700, // $147 — separate from Core Membership ($49/mo) and DFY restore tiers
+    interval: 'one_time',
+    rail: 'stripe',
+    delivery: 'HYBRID',
+    isPublic: false, // Sold via /start — not mixed into Core pricing grid
+    sortOrder: 0.88,
+    badge: 'Start today',
+    entitlementKeys: ['personal_starter', 'start_restore_147'],
+  },
+  {
     id: 'personal_core',
     category: 'personal_credit',
     name: 'Core Membership',

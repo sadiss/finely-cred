@@ -4,6 +4,7 @@ import { MessageCircle, ShieldCheck } from 'lucide-react';
 import { PageShell } from '../../components/layout/PageShell';
 import { submitLeadCapture } from '../../data/leadsRepo';
 import { HAITIAN_KIT_PATH } from '../../lib/haitianCompanionDesk';
+import { startRestoreCopyEn, startRestoreCopyHt } from '../../copy/startRestoreOffer';
 
 /** Live `/haitian` and `/kreyol` — community desk + chat/lead capture. */
 export default function HaitianCompanionPublicPage() {
@@ -85,6 +86,18 @@ export default function HaitianCompanionPublicPage() {
                 </button>
               </>
             )}
+          </div>
+
+          <div className="rounded-2xl border border-emerald-500/25 bg-emerald-500/5 p-5 space-y-2">
+            <div className="text-emerald-200 font-semibold text-sm">
+              {ht ? startRestoreCopyHt.headline : startRestoreCopyEn.headline}
+            </div>
+            <p className="text-white/70 text-xs leading-relaxed">
+              {ht ? startRestoreCopyHt.subhead : startRestoreCopyEn.subhead}
+            </p>
+            <Link to="/start" className="inline-flex text-amber-300 text-sm font-semibold underline">
+              {ht ? startRestoreCopyHt.ctaPrimary : startRestoreCopyEn.ctaPrimary}
+            </Link>
           </div>
 
           <Link to={HAITIAN_KIT_PATH} className="text-amber-300 text-sm underline">

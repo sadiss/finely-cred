@@ -12,7 +12,6 @@ import { PartnerLoadGate } from './auth/PartnerLoadGate';
 import './routing/dashboardPrefetch';
 import './routing/publicPrefetch';
 import { prefetchPublicCtasOnIdle } from './routing/publicPrefetch';
-import { prefetchRoutePrefix } from './routing/routePrefetch';
 import { scheduleStaffAutomationSync } from './lib/bootStaffAutomationSync';
 import { syncPwaServiceWorkerWithPath } from './lib/pwaRegister';
 import { 
@@ -144,6 +143,7 @@ const SellerListingsPage = lazyRoute(() => import('./pages/seller/SellerListings
 const SellerContractsPage = lazyRoute(() => import('./pages/seller/SellerContractsPage'));
 const SellerPayoutsPage = lazyRoute(() => import('./pages/seller/SellerPayoutsPage'));
 const ConsultationPage = lazyRoute(() => import('./pages/ConsultationPage'));
+const StartRestorePage = lazyRoute(() => import('./pages/StartRestorePage'), { prefetchPath: '/start' });
 const EnlightenmentSessionPage = lazyRoute(() => import('./pages/EnlightenmentSessionPage'));
 const FreeKreyolGuidePage = lazyRoute(() => import('./pages/public/FreeKreyolGuidePage'));
 const HaitianCompanionPublicPage = lazyRoute(() => import('./pages/public/HaitianCompanionPublicPage'));
@@ -236,9 +236,10 @@ function viewFromPath(pathname: string): NavView {
   return 'landing';
 }
 
-function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, onVisitAffiliate, onViewPricing }: {
+function LandingRoute({ onGetStarted, onViewTradelines, onStartRestore, onNavigate, addToCart, onVisitAffiliate, onViewPricing }: {
   onGetStarted: () => void;
   onViewTradelines: () => void;
+  onStartRestore?: () => void;
   onNavigate: (view: NavView) => void;
   addToCart: (item: any) => void;
   onVisitAffiliate?: () => void;
@@ -252,7 +253,7 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
       </div>
 
       {/* 1. HERO SECTION */}
-      <HeroSection onGetStarted={onGetStarted} onViewTradelines={onViewTradelines} />
+      <HeroSection onGetStarted={onGetStarted} onViewTradelines={onViewTradelines} onStartRestore={onStartRestore} />
 
       {/* 1.5 PRICING RANGES */}
       <section className="py-20 bg-[#0f1a16]">
@@ -1342,6 +1343,7 @@ function AppInner() {
             <LandingRoute
               onGetStarted={() => navigate('/onboarding')}
               onViewTradelines={() => navigate('/tradelines')}
+              onStartRestore={() => navigate('/start')}
               onNavigate={(v) => navigate(routeFromView(v))}
               addToCart={addToCart}
               onVisitAffiliate={() => navigate('/affiliate')}
@@ -1356,6 +1358,7 @@ function AppInner() {
             <LandingRoute
               onGetStarted={() => navigate('/onboarding')}
               onViewTradelines={() => navigate('/tradelines')}
+              onStartRestore={() => navigate('/start')}
               onNavigate={(v) => navigate(routeFromView(v))}
               addToCart={addToCart}
               onVisitAffiliate={() => navigate('/affiliate')}
@@ -1370,6 +1373,7 @@ function AppInner() {
             <LandingRoute
               onGetStarted={() => navigate('/login?auth=login')}
               onViewTradelines={() => navigate('/tradelines')}
+              onStartRestore={() => navigate('/start')}
               onNavigate={(v) => navigate(routeFromView(v))}
               addToCart={addToCart}
               onVisitAffiliate={() => navigate('/affiliate')}
@@ -1383,6 +1387,7 @@ function AppInner() {
             <LandingRoute
               onGetStarted={() => navigate('/signup?auth=signup')}
               onViewTradelines={() => navigate('/tradelines')}
+              onStartRestore={() => navigate('/start')}
               onNavigate={(v) => navigate(routeFromView(v))}
               addToCart={addToCart}
               onVisitAffiliate={() => navigate('/affiliate')}
@@ -1396,6 +1401,7 @@ function AppInner() {
             <LandingRoute
               onGetStarted={() => navigate('/forgot-password?auth=forgot')}
               onViewTradelines={() => navigate('/tradelines')}
+              onStartRestore={() => navigate('/start')}
               onNavigate={(v) => navigate(routeFromView(v))}
               addToCart={addToCart}
               onVisitAffiliate={() => navigate('/affiliate')}
@@ -1409,6 +1415,7 @@ function AppInner() {
         <Route path="/services" element={<PricingPage />} />
         <Route path="/services/tradelines" element={<Navigate to="/tradelines" replace />} />
         <Route path="/services/:service" element={<PricingServicePage />} />
+        <Route path="/start" element={<StartRestorePage />} />
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/pricing/:service" element={<PricingServicePage />} />
         {/* Legacy marketing slugs (resolve to real pricing/service views) */}

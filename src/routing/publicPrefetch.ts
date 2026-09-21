@@ -7,6 +7,7 @@ const PUBLIC_CTA_PREFETCH: Record<string, () => Promise<unknown>> = {
   '/free-guide': () => import('../pages/public/FreeKreyolGuidePage'),
   '/haitian': () => import('../pages/public/HaitianCompanionPublicPage'),
   '/resources': () => import('../pages/ResourcesPage'),
+  '/start': () => import('../pages/StartRestorePage'),
   '/pricing': () => import('../pages/PricingPage'),
 };
 

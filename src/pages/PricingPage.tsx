@@ -17,6 +17,7 @@ import {
   type PricingCategory,
 } from '../config/pricingCatalog';
 import { AgencyTierCard, PackageCard, variantForTierIndex } from '../components/pricing/PricingCards';
+import { startRestoreCopyEn } from '../copy/startRestoreOffer';
 
 type TabKey = PricingCategory | 'agency' | 'banking_reports';
 type DeliveryMode = 'DIY' | 'DFY';
@@ -248,6 +249,26 @@ export default function PricingPage() {
           </div>
         </div>
 
+        <div className="rounded-3xl border border-emerald-500/25 bg-gradient-to-br from-emerald-500/5 to-black/30 p-6 md:p-7">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div className="text-[10px] font-black uppercase tracking-widest text-emerald-300/90">Need momentum today?</div>
+              <div className="text-white text-xl font-semibold mt-1">
+                {startRestoreCopyEn.headline} — {startRestoreCopyEn.priceLine}
+              </div>
+              <p className="text-white/60 text-sm mt-2 max-w-2xl">{startRestoreCopyEn.subhead}</p>
+              <p className="text-white/50 text-xs mt-2">{startRestoreCopyEn.creditBody}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate('/start')}
+              className="shrink-0 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-emerald-500 text-black font-black uppercase tracking-widest text-[11px] hover:brightness-110"
+            >
+              View Start Restore <ArrowRight size={16} />
+            </button>
+          </div>
+        </div>
+
         {/* In-House Financing Promo Banner */}
         <div className="fc-panel p-5 text-sm flex items-start gap-3 border-emerald-500/30 bg-emerald-500/10">
           <Sparkles size={18} className="mt-0.5 text-emerald-400" />
@@ -259,7 +280,7 @@ export default function PricingPage() {
               <span className="text-emerald-400 font-semibold">“In‑House Financing”</span> button on eligible packages.
             </p>
             <p className="mt-2 text-white/60">
-              We can also connect you to lenders and funding pathways when your profile is ready (bureau-pull dependent).
+              Funding pathways (including Nora Capital) are introduced only after you have clarity and ask — not as a day-one pitch.
             </p>
           </div>
         </div>

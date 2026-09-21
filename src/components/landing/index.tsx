@@ -351,9 +351,10 @@ export function CreditCardAsset({
 interface HeroSectionProps {
   onGetStarted: () => void;
   onViewTradelines: () => void;
+  onStartRestore?: () => void;
 }
 
-export function HeroSection({ onGetStarted, onViewTradelines }: HeroSectionProps) {
+export function HeroSection({ onGetStarted, onViewTradelines, onStartRestore }: HeroSectionProps) {
   const tenant = useMemo(() => getActiveTenant(), []);
   const brand = (tenant.settings.brandName || tenant.name || 'Finely Cred').trim();
   const heroKicker = (tenant.settings.content?.landingHeroKicker || 'Full Credit Solution Company').trim();
@@ -414,8 +415,8 @@ export function HeroSection({ onGetStarted, onViewTradelines }: HeroSectionProps
                 <Button variant="gold" onClick={onGetStarted} size="lg">
                   Learn More <ArrowRight size={18} />
                 </Button>
-                <Button variant="platinum" onClick={onViewTradelines} size="lg">
-                  View Tradelines
+                <Button variant="platinum" onClick={onStartRestore ?? onViewTradelines} size="lg">
+                  {onStartRestore ? 'Start Restore — $147' : 'View Tradelines'}
                 </Button>
               </div>
             </Reveal>

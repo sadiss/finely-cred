@@ -4,6 +4,7 @@ import { BookOpen, Download, MessageCircle, ShieldCheck } from 'lucide-react';
 import { PageShell } from '../../components/layout/PageShell';
 import { submitLeadCapture } from '../../data/leadsRepo';
 import { HAITIAN_DESK_LIVE_PATH } from '../../lib/haitianCompanionDesk';
+import { startRestoreCopyHt } from '../../copy/startRestoreOffer';
 
 /**
  * Public Kreyòl unlock funnel — stays on this route (does NOT redirect to /haitian).
@@ -95,6 +96,15 @@ export default function FreeKreyolGuidePage() {
             </p>
           </div>
         )}
+
+        <div className="rounded-2xl border border-emerald-500/25 bg-emerald-500/5 p-5 space-y-2">
+          <div className="text-emerald-200 font-semibold text-sm">{startRestoreCopyHt.headline}</div>
+          <p className="text-white/70 text-xs leading-relaxed">{startRestoreCopyHt.subhead}</p>
+          <p className="text-white/55 text-xs">{startRestoreCopyHt.depositLine}</p>
+          <Link to="/start" className="inline-flex text-amber-300 text-sm font-semibold underline">
+            {startRestoreCopyHt.ctaPrimary}
+          </Link>
+        </div>
 
         <div className="flex flex-wrap gap-3">
           <Link
