@@ -12,6 +12,7 @@ import type {
   PricingControls,
   WorkboardSettings,
   WebhookConfig,
+  AcademyTraineeSettings,
 } from '../domain/settings';
 import { DEFAULT_SETTINGS, nowIso } from '../domain/settings';
 import { loadJson, saveJson } from './localJsonStore';
@@ -39,6 +40,7 @@ export function loadSettings(): PlatformSettings {
     features: { ...DEFAULT_SETTINGS.features, ...stored.features },
     pricing: { ...DEFAULT_SETTINGS.pricing, ...(stored as any).pricing },
     workboard: { ...DEFAULT_SETTINGS.workboard, ...(stored as any).workboard },
+    academyTrainee: { ...DEFAULT_SETTINGS.academyTrainee, ...(stored as any).academyTrainee },
     denefitsContracts: stored.denefitsContracts ?? [],
     webhooks: stored.webhooks ?? [],
   };
@@ -136,6 +138,22 @@ export function updateCommsSettings(patch: Partial<CommsSettings>): CommsSetting
   settings.comms = { ...settings.comms, ...patch };
   saveSettings(settings);
   return settings.comms;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Specialist Academy trainee emails
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function getAcademyTraineeSettings(): AcademyTraineeSettings {
+  const s = loadSettings();
+  return { ...DEFAULT_SETTINGS.academyTrainee!, ...(s.academyTrainee ?? {}) };
+}
+
+export function updateAcademyTraineeSettings(patch: Partial<AcademyTraineeSettings>): AcademyTraineeSettings {
+  const settings = loadSettings();
+  settings.academyTrainee = { ...getAcademyTraineeSettings(), ...patch };
+  saveSettings(settings);
+  return settings.academyTrainee!;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

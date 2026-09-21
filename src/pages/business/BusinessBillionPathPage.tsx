@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { ArrowLeft, ArrowRight, Crown, FileText, LayoutGrid, Target, Users, Building2, Plus, Trash2, Download, Sparkles, TrendingUp, Shield, Calendar } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Building2, Crown, FileText, Plus, Trash2, Download, Sparkles, TrendingUp, Shield, Calendar, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
@@ -21,12 +21,7 @@ import {
 } from '../../data/capitalReadinessRepo';
 import { downloadText } from '../../utils/download';
 import { KpiCard } from '../../components/ui/KpiCards';
-
-function navBtn(active: boolean) {
-  return `px-4 py-2 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ${
-    active ? 'bg-amber-500 text-black border-amber-400' : 'bg-white/5 text-white/70 border-white/10 hover:bg-white/10 hover:text-white'
-  }`;
-}
+import { BusinessJourneyShell } from '../../components/business/BusinessJourneyShell';
 
 function tabBtn(active: boolean) {
   return `px-4 py-2 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ${
@@ -124,6 +119,7 @@ export default function BusinessBillionPathPage() {
       title="Billion Path • Capital Readiness OS"
       subtitle="Boardroom-grade readiness: multi-entity structure, underwriting document discipline, and bank/lender relationship tracking. No guarantees—just a clean system that reduces underwriting friction."
     >
+      <BusinessJourneyShell activeStepId="docs_funding">
       <div className="space-y-6">
         <button
           type="button"
@@ -133,27 +129,6 @@ export default function BusinessBillionPathPage() {
         >
           <ArrowLeft size={16} /> Back
         </button>
-
-        <div className="flex flex-wrap gap-3">
-          <button className={navBtn(false)} onClick={() => navigate('/business/dashboard')}>
-            <LayoutGrid size={12} className="inline mr-2" /> Dashboard
-          </button>
-          <button className={navBtn(false)} onClick={() => navigate('/business/profile')}>
-            <Building2 size={12} className="inline mr-2" /> Profile
-          </button>
-          <button className={navBtn(false)} onClick={() => navigate('/business/vendors')}>
-            <Users size={12} className="inline mr-2" /> Vendors
-          </button>
-          <button className={navBtn(false)} onClick={() => navigate('/business/lender-logic')}>
-            <Target size={12} className="inline mr-2" /> Lender Logic
-          </button>
-          <button className={navBtn(false)} onClick={() => navigate('/business/documents')}>
-            <FileText size={12} className="inline mr-2" /> Documents
-          </button>
-          <button className={navBtn(true)} onClick={() => navigate('/business/billion-path')}>
-            <Crown size={12} className="inline mr-2" /> Billion Path
-          </button>
-        </div>
 
         <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.03] via-amber-500/6 to-emerald-500/10 backdrop-blur-xl p-6 overflow-hidden relative">
           <div className="absolute inset-0 pointer-events-none opacity-60"
@@ -581,6 +556,7 @@ export default function BusinessBillionPathPage() {
           </>
         )}
       </div>
+      </BusinessJourneyShell>
     </PageShell>
   );
 }

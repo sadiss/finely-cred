@@ -1,0 +1,250 @@
+/**
+ * Canonical list + chrome profile for public marketing routes (no portal/admin).
+ */
+
+export type PublicChatLayout = 'standard' | 'compact' | 'minimal';
+export type NavView =
+  | 'landing'
+  | 'tradelines'
+  | 'tradelines_primary'
+  | 'tradelines_au'
+  | 'checkout'
+  | 'events'
+  | 'about'
+  | 'onboarding'
+  | 'dashboard'
+  | 'services'
+  | 'services_tradelines'
+  | 'resources'
+  | 'pricing'
+  | 'testimonials'
+  | 'bookstore'
+  | 'affiliate'
+  | 'agents'
+  | 'contact'
+  | 'consultation'
+  | 'faq'
+  | 'terms'
+  | 'privacy'
+  | 'disclaimer'
+  | 'kreyol'
+  | 'consultation_only';
+
+export const SERVICE_SLUGS = [
+  'personal-credit',
+  'personal-credit-restore',
+  'personal-credit-building',
+  'business-credit',
+  'debt-legal',
+  'wealth-builder',
+  'privacy-id',
+  'bundles',
+  'tradelines',
+  'agencies',
+] as const;
+
+/** Static marketing paths (for docs / audits). Dynamic segments noted separately. */
+export const PUBLIC_MARKETING_STATIC_PATHS: string[] = [
+  '/',
+  '/onboarding',
+  '/login',
+  '/signup',
+  '/forgot-password',
+  '/pricing',
+  '/services',
+  '/start',
+  '/free-guide',
+  '/free-kreyol-guide',
+  '/kreyol',
+  '/haitian',
+  '/tradelines',
+  '/checkout',
+  '/about',
+  '/personal-credit',
+  '/fix-my-credit',
+  '/build-my-credit',
+  '/debt-summons-help',
+  '/business-credit-solutions',
+  '/business-credit',
+  '/funding-readiness',
+  '/diy-academy',
+  '/blog',
+  '/rent-reporting',
+  '/resources',
+  '/events',
+  '/testimonials',
+  '/bookstore',
+  '/affiliate',
+  '/agents',
+  '/contact',
+  '/enlightenment-session',
+  '/consultation',
+  '/faq',
+  '/claim',
+  '/terms',
+  '/privacy',
+  '/disclaimer',
+  '/disclosures',
+  '/free-restore-wealth',
+  '/refer',
+  '/partners',
+  '/partner',
+  '/portal',
+  '/academy',
+  '/meet',
+  ...SERVICE_SLUGS.map((s) => `/services/${s}`),
+  ...SERVICE_SLUGS.map((s) => `/pricing/${s}`),
+];
+
+const WORKSPACE_PREFIXES = ['/portal', '/admin', '/business', '/au', '/seller', '/dashboard'];
+
+export function isPublicMarketingPath(pathname: string): boolean {
+  const p = (pathname || '/').split('?')[0] || '/';
+  return !WORKSPACE_PREFIXES.some((prefix) => p === prefix || p.startsWith(`${prefix}/`));
+}
+
+export type PublicChromeProfile = {
+  chatLayout: PublicChatLayout;
+  hideApprovalTicker: boolean;
+  formHeavy: boolean;
+  /** CSS length for PageShell bottom pad + float clearance */
+  safeBottom: string;
+};
+
+const FORM_HEAVY = [
+  '/contact',
+  '/enlightenment-session',
+  '/consultation',
+  '/free-guide',
+  '/free-restore-wealth',
+  '/free-kreyol-guide',
+  '/haitian',
+  '/affiliate',
+  '/agents',
+  '/onboarding',
+  '/login',
+  '/signup',
+  '/privacy',
+  '/terms',
+  '/disclaimer',
+  '/disclosures',
+];
+
+export function getPublicChromeProfile(pathname: string): PublicChromeProfile {
+  const p = (pathname || '/').split('?')[0] || '/';
+  const formHeavy = FORM_HEAVY.some((x) => p === x || p.startsWith(`${x}/`));
+
+  const marketingHeavy =
+    p.startsWith('/services') ||
+    p.startsWith('/pricing') ||
+    p.startsWith('/business-credit') ||
+    p === '/personal-credit' ||
+    p.startsWith('/start') ||
+    p.startsWith('/about') ||
+    p.startsWith('/faq');
+
+  const heroHeavy =
+    p === '/' ||
+    p.startsWith('/tradelines') ||
+    p.startsWith('/privacy') ||
+    p.startsWith('/terms') ||
+    p.startsWith('/disclaimer') ||
+    p.startsWith('/testimonials');
+
+  let chatLayout: PublicChatLayout = 'standard';
+  if (formHeavy) chatLayout = 'minimal';
+  else if (heroHeavy || marketingHeavy) chatLayout = 'compact';
+
+  const hideApprovalTicker =
+    formHeavy ||
+    marketingHeavy ||
+    p.startsWith('/tradelines') ||
+    p.startsWith('/business-credit') ||
+    p.startsWith('/pricing/business-credit') ||
+    p.startsWith('/privacy') ||
+    p.startsWith('/terms') ||
+    p.startsWith('/disclaimer') ||
+    p.startsWith('/disclosures') ||
+    p.startsWith('/contact') ||
+    p.startsWith('/enlightenment-session') ||
+    p.startsWith('/consultation');
+
+  return {
+    chatLayout,
+    hideApprovalTicker,
+    formHeavy,
+    safeBottom: formHeavy ? '11rem' : marketingHeavy ? '10rem' : heroHeavy ? '9rem' : '7rem',
+  };
+}
+
+export function viewFromPath(pathname: string): NavView {
+  if (pathname.startsWith('/tradelines')) return 'tradelines';
+  if (pathname.startsWith('/checkout')) return 'checkout';
+  if (pathname.startsWith('/events')) return 'events';
+  if (pathname.startsWith('/about')) return 'about';
+  if (pathname.startsWith('/onboarding') || pathname.startsWith('/login') || pathname.startsWith('/signup')) {
+    return 'onboarding';
+  }
+  if (pathname.startsWith('/dashboard')) return 'dashboard';
+  if (
+    pathname.startsWith('/services/business-credit') ||
+    pathname.startsWith('/pricing/business-credit') ||
+    pathname === '/business-credit'
+  ) {
+    return 'services';
+  }
+  if (pathname.startsWith('/services')) return 'services';
+  if (pathname.startsWith('/resources') || pathname.startsWith('/blog')) return 'resources';
+  if (pathname.startsWith('/pricing') || pathname.startsWith('/start')) return 'pricing';
+  if (pathname.startsWith('/testimonials')) return 'testimonials';
+  if (pathname.startsWith('/bookstore')) return 'bookstore';
+  if (pathname.startsWith('/affiliate')) return 'affiliate';
+  if (pathname.startsWith('/agents')) return 'agents';
+  if (pathname.startsWith('/faq')) return 'faq';
+  if (pathname.startsWith('/enlightenment-session') || pathname.startsWith('/consultation')) return 'consultation';
+  if (pathname.startsWith('/contact')) return 'contact';
+  if (
+    pathname.startsWith('/haitian') ||
+    pathname.startsWith('/kreyol') ||
+    pathname.startsWith('/free-kreyol-guide')
+  ) {
+    return 'kreyol';
+  }
+  if (pathname.startsWith('/terms')) return 'terms';
+  if (pathname.startsWith('/privacy')) return 'privacy';
+  if (pathname.startsWith('/disclaimer')) return 'disclaimer';
+  if (pathname.startsWith('/free-guide') || pathname.startsWith('/free-restore-wealth')) return 'resources';
+  if (pathname.startsWith('/personal-credit')) return 'services';
+  return 'landing';
+}
+
+export function routeFromView(view: NavView): string {
+  const map: Record<NavView, string> = {
+    landing: '/',
+    tradelines: '/tradelines',
+    tradelines_primary: '/tradelines?focus=primary',
+    tradelines_au: '/tradelines?focus=au',
+    checkout: '/checkout',
+    events: '/events',
+    about: '/about',
+    onboarding: '/onboarding',
+    dashboard: '/dashboard',
+    services: '/services',
+    services_tradelines: '/services/tradelines',
+    resources: '/resources',
+    pricing: '/pricing',
+    testimonials: '/testimonials',
+    bookstore: '/bookstore',
+    affiliate: '/affiliate',
+    agents: '/agents',
+    contact: '/contact',
+    consultation: '/enlightenment-session',
+    faq: '/faq',
+    terms: '/terms',
+    privacy: '/privacy',
+    disclaimer: '/disclaimer',
+    kreyol: '/kreyol',
+    consultation_only: '/enlightenment-session',
+  };
+  return map[view] ?? '/';
+}

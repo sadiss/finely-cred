@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, Building2, FileText, LayoutGrid, Target, Users, Crown, BookOpen, AlertTriangle } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { EntityDetailShell } from '../../components/layout/EntityDetailShell';
 import { useAuth } from '../../auth/AuthProvider';
@@ -10,6 +10,7 @@ import { getFieldLayout } from '../../data/fieldLayoutsRepo';
 import { getCustomFieldValues, upsertCustomFieldValues } from '../../data/customFieldValuesRepo';
 import { FieldLayoutRenderer } from '../../components/fields/FieldLayoutRenderer';
 import { FINELY_TENANT_ID } from '../../domain/tenants';
+import { BusinessJourneyShell } from '../../components/business/BusinessJourneyShell';
 
 export default function BusinessProfilePage() {
   const navigate = useNavigate();
@@ -48,28 +49,8 @@ export default function BusinessProfilePage() {
           <ArrowLeft size={16} /> Back
         </button>
       }
-      tabs={[
-        { key: 'dashboard', label: 'Dashboard', icon: <LayoutGrid size={12} className="inline mr-2" /> },
-        { key: 'profile', label: 'Profile', icon: <Building2 size={12} className="inline mr-2" /> },
-        { key: 'vendors', label: 'Vendors', icon: <Users size={12} className="inline mr-2" /> },
-        { key: 'bureaus', label: 'Bureaus & Scores', icon: <BookOpen size={12} className="inline mr-2" /> },
-        { key: 'lender_logic', label: 'Lender Logic', icon: <Target size={12} className="inline mr-2" /> },
-        { key: 'disputes', label: 'Disputes', icon: <AlertTriangle size={12} className="inline mr-2" /> },
-        { key: 'documents', label: 'Documents', icon: <FileText size={12} className="inline mr-2" /> },
-        { key: 'billion_path', label: 'Billion Path', icon: <Crown size={12} className="inline mr-2" /> },
-      ]}
-      activeTabKey="profile"
-      onTabChange={(k) => {
-        if (k === 'dashboard') navigate('/business/dashboard');
-        if (k === 'profile') navigate('/business/profile');
-        if (k === 'vendors') navigate('/business/vendors');
-        if (k === 'bureaus') navigate('/business/bureaus');
-        if (k === 'lender_logic') navigate('/business/lender-logic');
-        if (k === 'disputes') navigate('/business/disputes');
-        if (k === 'documents') navigate('/business/documents');
-        if (k === 'billion_path') navigate('/business/billion-path');
-      }}
     >
+      <BusinessJourneyShell>
       <div className="grid lg:grid-cols-12 gap-6">
           <div className="lg:col-span-7 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xl p-6 space-y-4">
             <p className="text-[10px] uppercase tracking-widest text-white/40">Business profile (auto-filled when possible)</p>
@@ -175,6 +156,7 @@ export default function BusinessProfilePage() {
           />
         </div>
       </div>
+      </BusinessJourneyShell>
     </EntityDetailShell>
   );
 }

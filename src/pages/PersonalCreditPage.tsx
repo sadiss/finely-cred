@@ -55,7 +55,7 @@ export default function PersonalCreditPage() {
     <PageShell
       badge="Personal Credit"
       title="Restore Your Credit. Reclaim Your Future."
-      subtitle="Professional credit restoration with a proven system. We handle the disputes — you focus on your goals."
+      subtitle="Educational credit restore with evidence-backed disputes — you stay focused on your goals."
     >
       <div className="space-y-12">
         {/* Stats Bar */}

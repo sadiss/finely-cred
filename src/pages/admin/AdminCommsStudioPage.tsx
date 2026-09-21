@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Bot, Mail, Plus, Save, Send, ToggleLeft, ToggleRight, Trash2, Users } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import type { CommsChannel, CommsTemplate } from '../../domain/comms';
 import type { SupportTopic } from '../../domain/support';
@@ -110,9 +110,17 @@ export default function AdminCommsStudioPage() {
     <PageShell badge="Admin" title="Comms Studio" subtitle="Reusable message templates + partner delivery. (Portal now; email/SMS next.)">
       <div className="space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <button onClick={() => navigate('/admin')} className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors text-sm">
-            <ArrowLeft size={16} /> Admin Dashboard
-          </button>
+          <div className="flex flex-wrap items-center gap-3">
+            <button onClick={() => navigate('/admin')} className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors text-sm">
+              <ArrowLeft size={16} /> Admin Dashboard
+            </button>
+            <Link
+              to="/admin/marketing"
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-amber-500/30 text-amber-300 text-xs font-semibold hover:bg-amber-500/10"
+            >
+              Marketing HQ floors
+            </Link>
+          </div>
           <button
             type="button"
             onClick={() => setDryRun((x) => !x)}

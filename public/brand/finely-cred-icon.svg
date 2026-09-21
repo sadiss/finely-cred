@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="Finely Cred">
+  <defs>
+    <linearGradient id="fc-gold-metal" x1="6" y1="58" x2="58" y2="6" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#d68910"/>
+      <stop offset="15%" stop-color="#f39c12"/>
+      <stop offset="35%" stop-color="#fdcb6e"/>
+      <stop offset="50%" stop-color="#ffeaa7"/>
+      <stop offset="65%" stop-color="#fdcb6e"/>
+      <stop offset="85%" stop-color="#f39c12"/>
+      <stop offset="100%" stop-color="#d68910"/>
+    </linearGradient>
+    <radialGradient id="fc-gold-shine" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(28 26) rotate(35) scale(30 28)">
+      <stop offset="0%" stop-color="#fffef5" stop-opacity="0.92"/>
+      <stop offset="38%" stop-color="#ffeaa7" stop-opacity="0.42"/>
+      <stop offset="100%" stop-color="#d68910" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="#060908"/>
+  <circle cx="30" cy="30" r="22" fill="url(#fc-gold-metal)"/>
+  <circle cx="30" cy="30" r="22" fill="url(#fc-gold-shine)"/>
+  <text x="14" y="38" font-family="Inter,Segoe UI,Helvetica Neue,Arial,sans-serif" font-size="22" font-weight="200" letter-spacing="0.08em" fill="#ffffff">F</text>
+  <text x="14" y="56" font-family="Inter,Segoe UI,Helvetica Neue,Arial,sans-serif" font-size="14" font-weight="300" fill="#ffffff" opacity="0.92">Cred</text>
+</svg>

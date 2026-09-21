@@ -1,11 +1,23 @@
-import React, { Suspense, lazy, useEffect, useState } from 'react';
+import React, { startTransition, useEffect, useState } from 'react';
 import { 
   Shield, Zap, Library, Trophy, UserCheck, ShoppingBag, ArrowRight, Menu
 } from 'lucide-react';
 import { BrowserRouter, Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 
 // Import all components
-import { Button, Reveal, Toast, LiveApprovalTicker, MobileNav, FullPageLoader, AppErrorBoundary } from './components/ui';
+import { Button, Reveal, Toast, MobileNav, AppErrorBoundary } from './components/ui';
+import { lazyRoute } from './routing/lazyRoute';
+import { ScrollToTop } from './routing/ScrollToTop';
+import { PartnerLoadGate } from './auth/PartnerLoadGate';
+import './routing/dashboardPrefetch';
+import './routing/publicPrefetch';
+import { prefetchPublicCtasOnIdle } from './routing/publicPrefetch';
+import { navIntentProps, warmPublicNavTargets } from './routing/navIntent';
+import { PUBLIC_SERVICE_PATHS } from './routing/publicNavPaths';
+import { prefetchRoutePrefix } from './routing/routePrefetch';
+import { PublicBrandMark } from './components/public/PublicBrandMark';
+import { scheduleStaffAutomationSync } from './lib/bootStaffAutomationSync';
+import { syncPwaServiceWorkerWithPath } from './lib/pwaRegister';
 import { 
   HeroSection, ViolationLiveFeed, TradelineMarketplace, 
   PhysicalEbook, MasteryOSSection, TestimonialDossier,
@@ -14,12 +26,17 @@ import {
   Footer
 } from './components/landing';
 import { SovereignPortal } from './components/portal';
-import { MasteryOSDashboard } from './components/dashboard';
+const MasteryOSDashboard = lazyRoute(
+  () => import('./components/dashboard').then((m) => ({ default: m.MasteryOSDashboard })),
+  { label: 'Loading your dashboard…' }
+);
 import { AuthProvider, useAuth } from './auth/AuthProvider';
 import { ProtectedRoute } from './auth/ProtectedRoute';
 import { ProtectedAdminRoute } from './auth/ProtectedAdminRoute';
 import { PortalChatWidget } from './components/chat/PortalChatWidget';
-import { PublicChatWidget } from './components/chat/PublicChatWidget';
+import { PublicFloatingChrome } from './components/public/PublicFloatingChrome';
+import { viewFromPath, routeFromView, type NavView } from './routing/publicMarketingRoutes';
+import { isCompanyChildActive, isCompanyNavOpen, navHighlightId } from './routing/navActive';
 import { isSupabaseConfigured } from './lib/supabaseClient';
 import { installGlobalErrorReporting } from './lib/errorReporting';
 import { getOrCreatePartnerForSession } from './portal/getOrCreatePartnerForSession';
@@ -28,198 +45,150 @@ import { tradelinePromoPackages } from './config/pricingCatalog';
 import { PackageCard, variantForTierIndex } from './components/pricing/PricingCards';
 
 // Route-level code splitting (keeps main bundle lean)
-const PartnerReportsPage = lazy(() => import('./pages/portal/PartnerReportsPage'));
-const PartnerAnalysisVaultPage = lazy(() => import('./pages/portal/PartnerAnalysisVaultPage'));
-const PartnerDisputesPage = lazy(() => import('./pages/portal/PartnerDisputesPage'));
-const PartnerTasksPage = lazy(() => import('./pages/portal/PartnerTasksPage'));
-const PartnerDashboardPage = lazy(() => import('./pages/portal/PartnerDashboardPage'));
-const PartnerChecklistPage = lazy(() => import('./pages/portal/PartnerChecklistPage'));
-const PartnerDocumentsPage = lazy(() => import('./pages/portal/PartnerDocumentsPage'));
-const PartnerDisputeDetailPage = lazy(() => import('./pages/portal/PartnerDisputeDetailPage'));
-const PartnerEducationPage = lazy(() => import('./pages/portal/PartnerEducationPage'));
-const PartnerMessagesPage = lazy(() => import('./pages/portal/PartnerMessagesPage'));
-const PartnerLettersPage = lazy(() => import('./pages/portal/PartnerLettersPage'));
-const PartnerLettersVaultPage = lazy(() => import('./pages/portal/PartnerLettersVaultPage'));
-const PartnerBillingPage = lazy(() => import('./pages/portal/PartnerBillingPage'));
-const PartnerCalendarPage = lazy(() => import('./pages/portal/PartnerCalendarPage'));
-const PartnerProjectsPage = lazy(() => import('./pages/portal/PartnerProjectsPage'));
-const PartnerWorkPage = lazy(() => import('./pages/portal/PartnerWorkPage'));
-const PartnerDebtPage = lazy(() => import('./pages/portal/PartnerDebtPage'));
-const PartnerDebtDetailPage = lazy(() => import('./pages/portal/PartnerDebtDetailPage'));
-const PartnerBuildPage = lazy(() => import('./pages/portal/PartnerBuildPage'));
-const PartnerIdentityTheftPage = lazy(() => import('./pages/portal/PartnerIdentityTheftPage'));
-const PartnerEscalationsPage = lazy(() => import('./pages/portal/PartnerEscalationsPage'));
-const PartnerCheckoutPage = lazy(() => import('./pages/portal/PartnerCheckoutPage'));
-const PartnerWealthPathsPage = lazy(() => import('./pages/portal/PartnerWealthPathsPage'));
-const PartnerCoursesPage = lazy(() => import('./pages/portal/PartnerCoursesPage'));
-const PartnerCoursePage = lazy(() => import('./pages/portal/PartnerCoursePage'));
-const PartnerBarterPage = lazy(() => import('./pages/portal/PartnerBarterPage'));
-const PortalPartnerSelectPage = lazy(() => import('./pages/portal/PortalPartnerSelectPage'));
+const PartnerReportsPage = lazyRoute(() => import('./pages/portal/PartnerReportsPage'));
+const PartnerAnalysisVaultPage = lazyRoute(() => import('./pages/portal/PartnerAnalysisVaultPage'));
+const PartnerDisputesPage = lazyRoute(() => import('./pages/portal/PartnerDisputesPage'));
+const PartnerTasksPage = lazyRoute(() => import('./pages/portal/PartnerTasksPage'));
+const PartnerDashboardPage = lazyRoute(() => import('./pages/portal/PartnerDashboardPage'));
+const PartnerChecklistPage = lazyRoute(() => import('./pages/portal/PartnerChecklistPage'));
+const PartnerDocumentsPage = lazyRoute(() => import('./pages/portal/PartnerDocumentsPage'));
+const PartnerDisputeDetailPage = lazyRoute(() => import('./pages/portal/PartnerDisputeDetailPage'));
+const PartnerEducationPage = lazyRoute(() => import('./pages/portal/PartnerEducationPage'));
+const PartnerMessagesPage = lazyRoute(() => import('./pages/portal/PartnerMessagesPage'));
+const PartnerLettersPage = lazyRoute(() => import('./pages/portal/PartnerLettersPage'));
+const PartnerLettersVaultPage = lazyRoute(() => import('./pages/portal/PartnerLettersVaultPage'));
+const PartnerBillingPage = lazyRoute(() => import('./pages/portal/PartnerBillingPage'));
+const PartnerCalendarPage = lazyRoute(() => import('./pages/portal/PartnerCalendarPage'));
+const PartnerProjectsPage = lazyRoute(() => import('./pages/portal/PartnerProjectsPage'));
+const PartnerWorkPage = lazyRoute(() => import('./pages/portal/PartnerWorkPage'));
+const PartnerDebtPage = lazyRoute(() => import('./pages/portal/PartnerDebtPage'));
+const PartnerDebtDetailPage = lazyRoute(() => import('./pages/portal/PartnerDebtDetailPage'));
+const PartnerBuildPage = lazyRoute(() => import('./pages/portal/PartnerBuildPage'));
+const PartnerIdentityTheftPage = lazyRoute(() => import('./pages/portal/PartnerIdentityTheftPage'));
+const PartnerEscalationsPage = lazyRoute(() => import('./pages/portal/PartnerEscalationsPage'));
+const PartnerCheckoutPage = lazyRoute(() => import('./pages/portal/PartnerCheckoutPage'));
+const PartnerWealthPathsPage = lazyRoute(() => import('./pages/portal/PartnerWealthPathsPage'));
+const PartnerCoursesPage = lazyRoute(() => import('./pages/portal/PartnerCoursesPage'));
+const PartnerCoursePage = lazyRoute(() => import('./pages/portal/PartnerCoursePage'));
+const PartnerBarterPage = lazyRoute(() => import('./pages/portal/PartnerBarterPage'));
+const PortalPartnerSelectPage = lazyRoute(() => import('./pages/portal/PortalPartnerSelectPage'));
 
-const PartnersListPage = lazy(() => import('./pages/admin/PartnersListPage'));
-const PartnerDetailPage = lazy(() => import('./pages/admin/PartnerDetailPage'));
-const AdminPartnerImportPage = lazy(() => import('./pages/admin/AdminPartnerImportPage'));
-const CasesPage = lazy(() => import('./pages/admin/CasesPage'));
-const AdminDashboardPage = lazy(() => import('./pages/admin/AdminDashboardPage'));
-const AdminAccessCenterPage = lazy(() => import('./pages/admin/AdminAccessCenterPage'));
-const AdminSettingsPage = lazy(() => import('./pages/admin/AdminSettingsPage'));
-const AdminLeadsPage = lazy(() => import('./pages/admin/AdminLeadsPage'));
-const AdminBillingPage = lazy(() => import('./pages/admin/AdminBillingPage'));
-const ParsingLabPage = lazy(() => import('./pages/admin/ParsingLabPage'));
-const AdminSupportInboxPage = lazy(() => import('./pages/admin/AdminSupportInboxPage'));
-const AdminWorkflowQueuePage = lazy(() => import('./pages/admin/AdminWorkflowQueuePage'));
-const AdminAutomationsPage = lazy(() => import('./pages/admin/AdminAutomationsPage'));
-const AdminCommsStudioPage = lazy(() => import('./pages/admin/AdminCommsStudioPage'));
-const AdminTemplatesPage = lazy(() => import('./pages/admin/AdminTemplatesPage'));
-const AdminVendorsPage = lazy(() => import('./pages/admin/AdminVendorsPage'));
-const AdminResourcesPage = lazy(() => import('./pages/admin/AdminResourcesPage'));
-const AdminBookstorePage = lazy(() => import('./pages/admin/AdminBookstorePage'));
-const AdminTestimonialsPage = lazy(() => import('./pages/admin/AdminTestimonialsPage'));
-const AdminOpsAgentPage = lazy(() => import('./pages/admin/AdminOpsAgentPage'));
-const AdminTeamRolesPage = lazy(() => import('./pages/admin/AdminTeamRolesPage'));
-const AdminRolePreviewPage = lazy(() => import('./pages/admin/AdminRolePreviewPage'));
-const AdminTenantsPage = lazy(() => import('./pages/admin/AdminTenantsPage'));
-const AdminAuSellersPage = lazy(() => import('./pages/admin/AdminAuSellersPage'));
-const AdminCalendarPage = lazy(() => import('./pages/admin/AdminCalendarPage'));
-const AdminProjectsPage = lazy(() => import('./pages/admin/AdminProjectsPage'));
-const AdminProjectDetailPage = lazy(() => import('./pages/admin/AdminProjectDetailPage'));
-const AdminTasksPage = lazy(() => import('./pages/admin/AdminTasksPage'));
-const AdminGuidePage = lazy(() => import('./pages/admin/AdminGuidePage'));
+const PartnersListPage = lazyRoute(() => import('./pages/admin/PartnersListPage'));
+const PartnerDetailPage = lazyRoute(() => import('./pages/admin/PartnerDetailPage'));
+const AdminPartnerImportPage = lazyRoute(() => import('./pages/admin/AdminPartnerImportPage'));
+const CasesPage = lazyRoute(() => import('./pages/admin/CasesPage'));
+const AdminDashboardPage = lazyRoute(() => import('./pages/admin/AdminDashboardPage'));
+const AdminAccessCenterPage = lazyRoute(() => import('./pages/admin/AdminAccessCenterPage'));
+const AdminSettingsPage = lazyRoute(() => import('./pages/admin/AdminSettingsPage'));
+const AdminLeadsPage = lazyRoute(() => import('./pages/admin/AdminLeadsPage'));
+const AdminBillingPage = lazyRoute(() => import('./pages/admin/AdminBillingPage'));
+const ParsingLabPage = lazyRoute(() => import('./pages/admin/ParsingLabPage'));
+const AdminSupportInboxPage = lazyRoute(() => import('./pages/admin/AdminSupportInboxPage'));
+const AdminWorkflowQueuePage = lazyRoute(() => import('./pages/admin/AdminWorkflowQueuePage'));
+const AdminAutomationsPage = lazyRoute(() => import('./pages/admin/AdminAutomationsPage'));
+const AdminCommsStudioPage = lazyRoute(() => import('./pages/admin/AdminCommsStudioPage'));
+const MarketingHqPage = lazyRoute(() => import('./pages/admin/MarketingHqPage'), { prefetchPath: '/admin/marketing' });
+const AdminTemplatesPage = lazyRoute(() => import('./pages/admin/AdminTemplatesPage'));
+const AdminVendorsPage = lazyRoute(() => import('./pages/admin/AdminVendorsPage'));
+const AdminResourcesPage = lazyRoute(() => import('./pages/admin/AdminResourcesPage'));
+const AdminBookstorePage = lazyRoute(() => import('./pages/admin/AdminBookstorePage'));
+const AdminTestimonialsPage = lazyRoute(() => import('./pages/admin/AdminTestimonialsPage'));
+const AdminOpsAgentPage = lazyRoute(() => import('./pages/admin/AdminOpsAgentPage'));
+const AdminTeamRolesPage = lazyRoute(() => import('./pages/admin/AdminTeamRolesPage'));
+const AdminRolePreviewPage = lazyRoute(() => import('./pages/admin/AdminRolePreviewPage'));
+const AdminTenantsPage = lazyRoute(() => import('./pages/admin/AdminTenantsPage'));
+const AdminAuSellersPage = lazyRoute(() => import('./pages/admin/AdminAuSellersPage'));
+const AdminCalendarPage = lazyRoute(() => import('./pages/admin/AdminCalendarPage'));
+const AdminProjectsPage = lazyRoute(() => import('./pages/admin/AdminProjectsPage'));
+const AdminProjectDetailPage = lazyRoute(() => import('./pages/admin/AdminProjectDetailPage'));
+const AdminTasksPage = lazyRoute(() => import('./pages/admin/AdminTasksPage'));
+const AdminGuidePage = lazyRoute(() => import('./pages/admin/AdminGuidePage'));
 // AdminTaskCreatorPage removed: task creation is unified into Projects/Tasks pages
-const AdminCoursesPage = lazy(() => import('./pages/admin/AdminCoursesPage'));
-const AdminCourseEditorPage = lazy(() => import('./pages/admin/AdminCourseEditorPage'));
-const AdminSecretVaultPage = lazy(() => import('./pages/admin/AdminSecretVaultPage'));
-const AdminFinanceAllocatorPage = lazy(() => import('./pages/admin/AdminFinanceAllocatorPage'));
-const AdminMonitoringPage = lazy(() => import('./pages/admin/AdminMonitoringPage'));
-const AdminCrmPage = lazy(() => import('./pages/admin/AdminCrmPage'));
-const AdminLeadIntelPage = lazy(() => import('./pages/admin/AdminLeadIntelPage'));
-const AdminMediaStudioPage = lazy(() => import('./pages/admin/AdminMediaStudioPage'));
-const AdminNoraCapitalPage = lazy(() => import('./pages/admin/AdminNoraCapitalPage'));
-const AdminProductsPage = lazy(() => import('./pages/admin/AdminProductsPage'));
-const AdminCmsPage = lazy(() => import('./pages/admin/AdminCmsPage'));
-const AdminAnalyticsPage = lazy(() => import('./pages/admin/AdminAnalyticsPage'));
+const AdminCoursesPage = lazyRoute(() => import('./pages/admin/AdminCoursesPage'));
+const AdminCourseEditorPage = lazyRoute(() => import('./pages/admin/AdminCourseEditorPage'));
+const AdminSpecialistAcademyPage = lazyRoute(() => import('./pages/admin/AdminSpecialistAcademyPage'));
+const AdminSpecialistLoungePage = lazyRoute(() => import('./pages/admin/AdminSpecialistLoungePage'));
+const PartnerCommunityWaitlistPage = lazyRoute(() => import('./pages/PartnerCommunityWaitlistPage'));
+const AdminSecretVaultPage = lazyRoute(() => import('./pages/admin/AdminSecretVaultPage'));
+const AdminFinanceAllocatorPage = lazyRoute(() => import('./pages/admin/AdminFinanceAllocatorPage'));
+const AdminMonitoringPage = lazyRoute(() => import('./pages/admin/AdminMonitoringPage'));
+const AdminCrmPage = lazyRoute(() => import('./pages/admin/AdminCrmPage'));
+const AdminLeadIntelPage = lazyRoute(() => import('./pages/admin/AdminLeadIntelPage'));
+const AdminMediaStudioPage = lazyRoute(() => import('./pages/admin/AdminMediaStudioPage'));
+const AdminNoraCapitalPage = lazyRoute(() => import('./pages/admin/AdminNoraCapitalPage'));
+const AdminProductsPage = lazyRoute(() => import('./pages/admin/AdminProductsPage'));
+const AdminCmsPage = lazyRoute(() => import('./pages/admin/AdminCmsPage'));
+const AdminAnalyticsPage = lazyRoute(() => import('./pages/admin/AdminAnalyticsPage'));
 
-const BusinessDashboardPage = lazy(() => import('./pages/business/BusinessDashboardPage'));
-const BusinessProfilePage = lazy(() => import('./pages/business/BusinessProfilePage'));
-const BusinessVendorsPage = lazy(() => import('./pages/business/BusinessVendorsPage'));
-const BusinessFundingPage = lazy(() => import('./pages/business/BusinessFundingPage'));
-const BusinessDocumentsPage = lazy(() => import('./pages/business/BusinessDocumentsPage'));
-const BusinessBillionPathPage = lazy(() => import('./pages/business/BusinessBillionPathPage'));
-const BusinessBureausPage = lazy(() => import('./pages/business/BusinessBureausPage'));
-const BusinessDisputesPage = lazy(() => import('./pages/business/BusinessDisputesPage'));
-const BusinessDisputeDetailPage = lazy(() => import('./pages/business/BusinessDisputeDetailPage'));
+const BusinessDashboardPage = lazyRoute(() => import('./pages/business/BusinessDashboardPage'));
+const BusinessProfilePage = lazyRoute(() => import('./pages/business/BusinessProfilePage'));
+const BusinessVendorsPage = lazyRoute(() => import('./pages/business/BusinessVendorsPage'));
+const BusinessFundingPage = lazyRoute(() => import('./pages/business/BusinessFundingPage'));
+const BusinessDocumentsPage = lazyRoute(() => import('./pages/business/BusinessDocumentsPage'));
+const BusinessBillionPathPage = lazyRoute(() => import('./pages/business/BusinessBillionPathPage'));
+const BusinessBureausPage = lazyRoute(() => import('./pages/business/BusinessBureausPage'));
+const BusinessDisputesPage = lazyRoute(() => import('./pages/business/BusinessDisputesPage'));
+const BusinessDisputeDetailPage = lazyRoute(() => import('./pages/business/BusinessDisputeDetailPage'));
 
-const AuMarketplacePage = lazy(() => import('./pages/au/AuMarketplacePage'));
-const AuRequestPage = lazy(() => import('./pages/au/AuRequestPage'));
-const AuOrdersPage = lazy(() => import('./pages/au/AuOrdersPage'));
+const AuMarketplacePage = lazyRoute(() => import('./pages/au/AuMarketplacePage'));
+const AuRequestPage = lazyRoute(() => import('./pages/au/AuRequestPage'));
+const AuOrdersPage = lazyRoute(() => import('./pages/au/AuOrdersPage'));
 
-const ResourcesPage = lazy(() => import('./pages/ResourcesPage'));
-const BookstorePage = lazy(() => import('./pages/BookstorePage'));
-const BookstoreProductPage = lazy(() => import('./pages/BookstoreProductPage'));
-const PricingPage = lazy(() => import('./pages/PricingPage'));
-const PricingServicePage = lazy(() => import('./pages/PricingServicePage'));
-const PersonalCreditPage = lazy(() => import('./pages/PersonalCreditPage'));
-const TestimonialsPage = lazy(() => import('./pages/TestimonialsPage'));
-const EventsPage = lazy(() => import('./pages/EventsPage'));
-const CheckoutPage = lazy(() => import('./pages/CheckoutPage'));
-const ContactPage = lazy(() => import('./pages/ContactPage'));
-const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
-const SellerDashboardPage = lazy(() => import('./pages/seller/SellerDashboardPage'));
-const SellerListingsPage = lazy(() => import('./pages/seller/SellerListingsPage'));
-const SellerContractsPage = lazy(() => import('./pages/seller/SellerContractsPage'));
-const SellerPayoutsPage = lazy(() => import('./pages/seller/SellerPayoutsPage'));
-const ConsultationPage = lazy(() => import('./pages/ConsultationPage'));
-const EnlightenmentSessionPage = lazy(() => import('./pages/EnlightenmentSessionPage'));
-const FaqPage = lazy(() => import('./pages/FaqPage'));
-const ClaimPartnerProfilePage = lazy(() => import('./pages/ClaimPartnerProfilePage'));
-const TermsPage = lazy(() => import('./pages/legal/TermsPage'));
-const PrivacyPage = lazy(() => import('./pages/legal/PrivacyPage'));
-const DisclaimerPage = lazy(() => import('./pages/legal/DisclaimerPage'));
-const AffiliatePage = lazy(() => import('./pages/AffiliatePage'));
-const AgentsPage = lazy(() => import('./pages/AgentsPage'));
-const AgencySignupPage = lazy(() => import('./pages/agency/AgencySignupPage'));
+const ResourcesPage = lazyRoute(() => import('./pages/ResourcesPage'));
+const BookstorePage = lazyRoute(() => import('./pages/BookstorePage'));
+const BookstoreProductPage = lazyRoute(() => import('./pages/BookstoreProductPage'));
+import EagerPricingPage from './pages/PricingPage';
+import EagerServicesHubPage from './pages/ServicesHubPage';
+import EagerStartRestorePage from './pages/StartRestorePage';
+import EagerFreeGuideLandingPage from './pages/public/FreeGuideLandingPage';
+import EagerKreyolHubPage from './pages/public/KreyolHubPage';
+import EagerFreeKreyolGuidePage from './pages/public/FreeKreyolGuidePage';
+import EagerPricingServicePage from './pages/PricingServicePage';
+import EagerBusinessCreditJourneyPage from './pages/public/BusinessCreditJourneyPage';
+import EagerFreeRestoreWealthPage from './pages/public/FreeRestoreWealthPage';
+import EagerWarmReferLandingPage from './pages/public/WarmReferLandingPage';
+import EagerPublicPartnersHubPage from './pages/public/PublicPartnersHubPage';
+import EagerPortalEntryPage from './pages/portal/PortalEntryPage';
+import EagerDisclosuresPage from './pages/legal/DisclosuresPage';
+import EagerPublicAcademyTeaserPage from './pages/public/PublicAcademyTeaserPage';
+import EagerRentReportingPage from './pages/public/RentReportingPage';
+import EagerBlogIndexPage from './pages/public/BlogIndexPage';
 
-type NavView =
-  | 'landing'
-  | 'tradelines'
-  | 'tradelines_primary'
-  | 'tradelines_au'
-  | 'checkout'
-  | 'events'
-  | 'about'
-  | 'onboarding'
-  | 'dashboard'
-  // Landing/footer links (unification: map to real routes / placeholders)
-  | 'services'
-  | 'services_tradelines'
-  | 'resources'
-  | 'pricing'
-  | 'testimonials'
-  | 'bookstore'
-  | 'affiliate'
-  | 'agents'
-  | 'contact'
-  | 'consultation'
-  | 'faq'
-  | 'terms'
-  | 'privacy'
-  | 'disclaimer';
+const PricingPage = EagerPricingPage;
+const ServicesHubPage = EagerServicesHubPage;
+const StartRestorePage = EagerStartRestorePage;
+const FreeGuideLandingPage = EagerFreeGuideLandingPage;
+const KreyolHubPage = EagerKreyolHubPage;
+const FreeKreyolGuidePage = EagerFreeKreyolGuidePage;
+const BusinessCreditJourneyPage = EagerBusinessCreditJourneyPage;
+const PricingServicePage = EagerPricingServicePage;
+const PersonalCreditPage = lazyRoute(() => import('./pages/PersonalCreditPage'));
+const TestimonialsPage = lazyRoute(() => import('./pages/TestimonialsPage'));
+const EventsPage = lazyRoute(() => import('./pages/EventsPage'));
+const CheckoutPage = lazyRoute(() => import('./pages/CheckoutPage'));
+const ContactPage = lazyRoute(() => import('./pages/ContactPage'));
+const NotFoundPage = lazyRoute(() => import('./pages/NotFoundPage'));
+const SellerDashboardPage = lazyRoute(() => import('./pages/seller/SellerDashboardPage'));
+const SellerListingsPage = lazyRoute(() => import('./pages/seller/SellerListingsPage'));
+const SellerContractsPage = lazyRoute(() => import('./pages/seller/SellerContractsPage'));
+const SellerPayoutsPage = lazyRoute(() => import('./pages/seller/SellerPayoutsPage'));
+const EnlightenmentSessionPage = lazyRoute(() => import('./pages/EnlightenmentSessionPage'));
+const HaitianCompanionPublicPage = lazyRoute(() => import('./pages/public/HaitianCompanionPublicPage'));
+const GuestMeetingJoinPage = lazyRoute(() => import('./pages/GuestMeetingJoinPage'));
+const VideoMeetingRoomPage = lazyRoute(() => import('./pages/VideoMeetingRoomPage'));
+const FaqPage = lazyRoute(() => import('./pages/FaqPage'));
+const ClaimPartnerProfilePage = lazyRoute(() => import('./pages/ClaimPartnerProfilePage'));
+const TermsPage = lazyRoute(() => import('./pages/legal/TermsPage'));
+const PrivacyPage = lazyRoute(() => import('./pages/legal/PrivacyPage'));
+const DisclaimerPage = lazyRoute(() => import('./pages/legal/DisclaimerPage'));
+const AffiliatePage = lazyRoute(() => import('./pages/AffiliatePage'));
+const AgentsPage = lazyRoute(() => import('./pages/AgentsPage'));
+const AgencySignupPage = lazyRoute(() => import('./pages/agency/AgencySignupPage'));
 
-function routeFromView(view: NavView): string {
-  switch (view) {
-    case 'landing': return '/';
-    case 'tradelines': return '/tradelines';
-    case 'tradelines_primary': return '/tradelines?focus=primary';
-    case 'tradelines_au': return '/tradelines?focus=au';
-    case 'checkout': return '/checkout';
-    case 'events': return '/events';
-    case 'about': return '/about';
-    case 'onboarding': return '/onboarding';
-    case 'dashboard': return '/dashboard';
-    case 'services': return '/services';
-    case 'services_tradelines': return '/services/tradelines';
-    case 'resources': return '/resources';
-    case 'pricing': return '/pricing';
-    case 'testimonials': return '/testimonials';
-    case 'bookstore': return '/bookstore';
-    case 'affiliate': return '/affiliate';
-    case 'agents': return '/agents';
-    case 'contact': return '/contact';
-    case 'consultation': return '/enlightenment-session';
-    case 'faq': return '/faq';
-    case 'terms': return '/terms';
-    case 'privacy': return '/privacy';
-    case 'disclaimer': return '/disclaimer';
-    default: return '/';
-  }
-}
-
-function viewFromPath(pathname: string): NavView {
-  if (pathname.startsWith('/tradelines')) return 'tradelines';
-  if (pathname.startsWith('/checkout')) return 'checkout';
-  if (pathname.startsWith('/events')) return 'events';
-  if (pathname.startsWith('/about')) return 'about';
-  if (pathname.startsWith('/onboarding')) return 'onboarding';
-  if (pathname.startsWith('/dashboard')) return 'dashboard';
-  if (pathname.startsWith('/services')) return 'services';
-  if (pathname.startsWith('/resources')) return 'resources';
-  if (pathname.startsWith('/pricing')) return 'pricing';
-  if (pathname.startsWith('/testimonials')) return 'testimonials';
-  if (pathname.startsWith('/bookstore')) return 'bookstore';
-  if (pathname.startsWith('/affiliate')) return 'affiliate';
-  if (pathname.startsWith('/agents')) return 'agents';
-  if (pathname.startsWith('/contact')) return 'contact';
-  if (pathname.startsWith('/enlightenment-session') || pathname.startsWith('/consultation')) return 'consultation';
-  if (pathname.startsWith('/faq')) return 'faq';
-  if (pathname.startsWith('/terms')) return 'terms';
-  if (pathname.startsWith('/privacy')) return 'privacy';
-  if (pathname.startsWith('/disclaimer')) return 'disclaimer';
-  return 'landing';
-}
-
-function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, onVisitAffiliate, onViewPricing }: {
+function LandingRoute({ onGetStarted, onViewTradelines, onStartRestore, onNavigate, addToCart, onVisitAffiliate, onViewPricing }: {
   onGetStarted: () => void;
   onViewTradelines: () => void;
+  onStartRestore?: () => void;
   onNavigate: (view: NavView) => void;
   addToCart: (item: any) => void;
   onVisitAffiliate?: () => void;
@@ -233,7 +202,7 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
       </div>
 
       {/* 1. HERO SECTION */}
-      <HeroSection onGetStarted={onGetStarted} onViewTradelines={onViewTradelines} />
+      <HeroSection onGetStarted={onGetStarted} onViewTradelines={onViewTradelines} onStartRestore={onStartRestore} />
 
       {/* 1.5 PRICING RANGES */}
       <section className="py-20 bg-[#0f1a16]">
@@ -919,6 +888,7 @@ function AppInner() {
   const navigate = useNavigate();
   const location = useLocation();
   const currentView = viewFromPath(location.pathname);
+  const navActive = navHighlightId(location.pathname);
   const showPublicChrome =
     !location.pathname.startsWith('/portal') &&
     !location.pathname.startsWith('/admin') &&
@@ -973,6 +943,26 @@ function AppInner() {
   }, [auth.user?.id]);
 
   useEffect(() => {
+    syncPwaServiceWorkerWithPath(location.pathname);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (showPublicChrome) prefetchPublicCtasOnIdle();
+  }, [showPublicChrome]);
+
+  useEffect(() => {
+    const email =
+      (auth.user as any)?.email ||
+      (auth.user as any)?.user_metadata?.email ||
+      null;
+    scheduleStaffAutomationSync({
+      pathname: location.pathname,
+      userEmail: email ? String(email) : null,
+      authLoading: auth.isLoading,
+    });
+  }, [location.pathname, auth.user?.id, auth.isLoading, auth.user]);
+
+  useEffect(() => {
     if (!auth.user) return;
     if (
       location.pathname === '/onboarding' ||
@@ -1007,14 +997,13 @@ function AppInner() {
 
   const handleNavigate = (newView: string) => {
     // Supports both legacy view ids and direct paths (used by dropdowns).
-    if (newView.startsWith('/')) {
-      navigate(newView);
-    } else {
-      const next = newView as NavView;
-      navigate(routeFromView(next));
-    }
+    const path = newView.startsWith('/') ? newView : routeFromView(newView as NavView);
+    prefetchRoutePrefix(path);
+    startTransition(() => navigate(path));
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  const navWarm = (target: string) => navIntentProps(target);
 
   return (
     <div className="min-h-screen text-white font-sans bg-[#0d1512]">
@@ -1022,15 +1011,12 @@ function AppInner() {
       
       {showPublicChrome && (
         <>
-          {/* Live Approval Ticker - Desktop only */}
-          <LiveApprovalTicker />
-
           {/* Mobile Navigation */}
           <MobileNav 
             isOpen={mobileMenuOpen} 
             onClose={() => setMobileMenuOpen(false)}
             onNavigate={handleNavigate}
-            currentView={currentView}
+            currentView={navActive}
           />
 
           {/* Public Navigation */}
@@ -1051,17 +1037,24 @@ function AppInner() {
 
                 <div className="flex justify-center">
                   <button
+                    type="button"
                     onClick={() => handleNavigate('landing')}
-                    className="text-base sm:text-lg font-bold tracking-wider text-white hover:opacity-80 transition-opacity"
+                    {...navWarm('landing')}
+                    className="inline-flex items-center gap-2 text-base sm:text-lg font-bold tracking-wider text-white hover:opacity-80 transition-opacity"
                     aria-label="Go to home"
                   >
-                    FINELY <span className="text-amber-500">CRED</span>
+                    <PublicBrandMark className="h-7 w-7" size={28} />
+                    <span>
+                      FINELY <span className="text-amber-500">CRED</span>
+                    </span>
                   </button>
                 </div>
 
                 <div className="flex items-center justify-end gap-3">
                   <button
+                    type="button"
                     onClick={() => handleNavigate('checkout')}
+                    {...navWarm('checkout')}
                     className="relative p-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all"
                     title="Checkout"
                     aria-label="Open checkout"
@@ -1079,17 +1072,24 @@ function AppInner() {
               {/* Desktop header */}
               <div className="hidden lg:flex justify-between items-center">
                 <button
+                  type="button"
                   onClick={() => handleNavigate('landing')}
-                  className="text-xl font-bold tracking-wider text-white hover:opacity-80 transition-opacity"
+                  {...navWarm('landing')}
+                  className="inline-flex items-center gap-3 text-xl font-bold tracking-wider text-white hover:opacity-80 transition-opacity"
                   aria-label="Go to home"
                 >
-                  FINELY <span className="text-amber-500">CRED</span>
+                  <PublicBrandMark className="h-9 w-9" size={36} />
+                  <span>
+                    FINELY <span className="text-amber-500">CRED</span>
+                  </span>
                 </button>
 
                 {/* Desktop Navigation - pill buttons with readable text */}
                 <div className="flex items-center gap-3">
                 <button
+                  type="button"
                   onClick={() => handleNavigate('landing')}
+                  {...navWarm('landing')}
                   className={`px-5 py-2 rounded-xl border transition-all text-sm font-semibold ${
                     currentView === 'landing'
                       ? 'bg-amber-500 text-black border-amber-400 shadow-lg shadow-amber-900/20'
@@ -1100,9 +1100,14 @@ function AppInner() {
                 </button>
 
                 {/* Services dropdown (replaces Pricing in nav) */}
-                <div className="relative group">
+                <div
+                  className="relative group"
+                  onMouseEnter={() => warmPublicNavTargets(['/services', ...PUBLIC_SERVICE_PATHS])}
+                >
                   <button
+                    type="button"
                     onClick={() => handleNavigate('/services/personal-credit-restore')}
+                    {...navWarm('/services/personal-credit-restore')}
                     className={`px-5 py-2 rounded-xl border transition-all text-sm font-semibold ${
                       currentView === 'services'
                         ? 'bg-amber-500 text-black border-amber-400 shadow-lg shadow-amber-900/20'
@@ -1130,7 +1135,9 @@ function AppInner() {
                         ].map((x) => (
                           <button
                             key={x.path}
+                            type="button"
                             onClick={() => handleNavigate(x.path)}
+                            {...navWarm(x.path)}
                             className="text-left px-4 py-3 rounded-xl border border-white/10 bg-white/[0.02] hover:bg-white/[0.05] hover:border-amber-500/25 transition-all text-sm text-white/80"
                           >
                             <div className="font-semibold">{x.label}</div>
@@ -1141,7 +1148,9 @@ function AppInner() {
                       <div className="px-5 py-4 border-t border-white/10 bg-black/20 flex items-center justify-between">
                         <div className="text-white/60 text-xs">Pick a service to see the same card-style pricing.</div>
                         <button
+                          type="button"
                           onClick={() => handleNavigate('/services')}
+                          {...navWarm('/services')}
                           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/15 text-amber-200 text-[10px] font-black uppercase tracking-widest transition-all"
                         >
                           View all <ArrowRight size={12} />
@@ -1152,7 +1161,9 @@ function AppInner() {
                 </div>
 
                 <button
+                  type="button"
                   onClick={() => handleNavigate('tradelines')}
+                  {...navWarm('tradelines')}
                   className={`px-5 py-2 rounded-xl border transition-all text-sm font-semibold ${
                     currentView === 'tradelines'
                       ? 'bg-amber-500 text-black border-amber-400 shadow-lg shadow-amber-900/20'
@@ -1163,10 +1174,18 @@ function AppInner() {
                 </button>
 
                 {/* Learn dropdown */}
-                <div className="relative group">
+                <div
+                  className="relative group"
+                  onMouseEnter={() => warmPublicNavTargets(['resources', 'events', 'bookstore'])}
+                >
                   <button
+                    type="button"
+                    {...navWarm('resources')}
                     className={`px-5 py-2 rounded-xl border transition-all text-sm font-semibold ${
-                      currentView === 'resources' || currentView === 'events' || currentView === 'bookstore'
+                      currentView === 'resources' ||
+                      currentView === 'events' ||
+                      currentView === 'bookstore' ||
+                      currentView === 'kreyol'
                         ? 'bg-amber-500 text-black border-amber-400 shadow-lg shadow-amber-900/20'
                         : 'bg-white/5 text-white/80 border-white/10 hover:bg-white/10 hover:text-white'
                     }`}
@@ -1182,12 +1201,15 @@ function AppInner() {
                       <div className="p-2 space-y-1">
                         {[
                           { id: 'resources', label: 'Resources' },
+                          { id: 'kreyol', label: 'Kreyòl / Haitian' },
                           { id: 'events', label: 'Events' },
                           { id: 'bookstore', label: 'Bookstore' },
                         ].map((x) => (
                           <button
                             key={x.id}
+                            type="button"
                             onClick={() => handleNavigate(x.id)}
+                            {...navWarm(x.id)}
                             className="w-full text-left px-4 py-3 rounded-xl border border-white/10 bg-white/[0.02] hover:bg-white/[0.05] transition-all text-sm text-white/80"
                           >
                             {x.label}
@@ -1199,10 +1221,17 @@ function AppInner() {
                 </div>
 
                 {/* Company dropdown */}
-                <div className="relative group">
+                <div
+                  className="relative group"
+                  onMouseEnter={() =>
+                    warmPublicNavTargets(['about', 'testimonials', 'affiliate', 'contact', 'faq'])
+                  }
+                >
                   <button
+                    type="button"
+                    {...navWarm('about')}
                     className={`px-5 py-2 rounded-xl border transition-all text-sm font-semibold ${
-                      currentView === 'about' || currentView === 'testimonials' || currentView === 'affiliate' || currentView === 'contact'
+                      isCompanyNavOpen(location.pathname)
                         ? 'bg-amber-500 text-black border-amber-400 shadow-lg shadow-amber-900/20'
                         : 'bg-white/5 text-white/80 border-white/10 hover:bg-white/10 hover:text-white'
                     }`}
@@ -1225,8 +1254,14 @@ function AppInner() {
                         ].map((x) => (
                           <button
                             key={x.id}
+                            type="button"
                             onClick={() => handleNavigate(x.id)}
-                            className="w-full text-left px-4 py-3 rounded-xl border border-white/10 bg-white/[0.02] hover:bg-white/[0.05] transition-all text-sm text-white/80"
+                            {...navWarm(x.id)}
+                            className={`w-full text-left px-4 py-3 rounded-xl border transition-all text-sm ${
+                              isCompanyChildActive(location.pathname, x.id as NavView)
+                                ? 'bg-amber-500/15 text-amber-200 border-amber-500/35'
+                                : 'border-white/10 bg-white/[0.02] hover:bg-white/[0.05] text-white/80'
+                            }`}
                           >
                             {x.label}
                           </button>
@@ -1235,8 +1270,10 @@ function AppInner() {
                     </div>
                   </div>
                 </div>
-                <button 
-                  onClick={() => handleNavigate('onboarding')} 
+                <button
+                  type="button"
+                  onClick={() => handleNavigate('onboarding')}
+                  {...navWarm('onboarding')}
                   className={`px-5 py-2 rounded-xl border transition-all text-sm font-semibold ${
                     currentView === 'onboarding'
                       ? 'bg-amber-500 text-black border-amber-400 shadow-lg shadow-amber-900/20'
@@ -1249,7 +1286,9 @@ function AppInner() {
                 <div className="flex items-center gap-4">
                   {/* Cart */}
                   <button
+                    type="button"
                     onClick={() => handleNavigate('checkout')}
+                    {...navWarm('checkout')}
                     className="relative p-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all"
                     title="Checkout"
                     aria-label="Open checkout"
@@ -1273,8 +1312,7 @@ function AppInner() {
             </div>
           </nav>
 
-          {/* Public AI concierge (homepage + public routes) */}
-          <PublicChatWidget />
+          <PublicFloatingChrome pathname={location.pathname} />
         </>
       )}
 
@@ -1294,19 +1332,37 @@ function AppInner() {
         onComplete={(nextPath) => navigate(nextPath ?? '/dashboard')}
       />
 
-      <Suspense
-        fallback={
-          <FullPageLoader label="Loading the next module…" />
-        }
-      >
-        <AppErrorBoundary onHome={() => navigate('/')}>
+      <AppErrorBoundary onHome={() => navigate('/')}>
+        <PartnerLoadGate>
           <Routes>
+        {/* Public marketing routes first (eager — live SPA must not 404 or fall through to home) */}
+        <Route path="/start" element={<StartRestorePage />} />
+        <Route path="/free-restore-wealth" element={<EagerFreeRestoreWealthPage />} />
+        <Route path="/refer" element={<EagerWarmReferLandingPage />} />
+        <Route path="/partners" element={<EagerPublicPartnersHubPage />} />
+        <Route path="/partner" element={<Navigate to="/partners" replace />} />
+        <Route path="/portal" element={<EagerPortalEntryPage />} />
+        <Route path="/disclosures" element={<EagerDisclosuresPage />} />
+        <Route path="/academy" element={<EagerPublicAcademyTeaserPage />} />
+        <Route path="/meet" element={<Navigate to="/enlightenment-session" replace />} />
+        <Route path="/blog" element={<EagerBlogIndexPage />} />
+        <Route path="/blog/:slug" element={<EagerBlogIndexPage />} />
+        <Route path="/rent-reporting" element={<EagerRentReportingPage />} />
+        <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/pricing/business-credit" element={<BusinessCreditJourneyPage />} />
+        <Route path="/pricing/:service" element={<PricingServicePage />} />
+        <Route path="/services" element={<ServicesHubPage />} />
+        <Route path="/services/business-credit" element={<BusinessCreditJourneyPage />} />
+        <Route path="/services/tradelines" element={<Navigate to="/tradelines" replace />} />
+        <Route path="/services/:service" element={<PricingServicePage />} />
+        <Route path="/business-credit" element={<BusinessCreditJourneyPage />} />
         <Route
           path="/"
           element={
             <LandingRoute
               onGetStarted={() => navigate('/onboarding')}
               onViewTradelines={() => navigate('/tradelines')}
+              onStartRestore={() => navigate('/start')}
               onNavigate={(v) => navigate(routeFromView(v))}
               addToCart={addToCart}
               onVisitAffiliate={() => navigate('/affiliate')}
@@ -1321,6 +1377,7 @@ function AppInner() {
             <LandingRoute
               onGetStarted={() => navigate('/onboarding')}
               onViewTradelines={() => navigate('/tradelines')}
+              onStartRestore={() => navigate('/start')}
               onNavigate={(v) => navigate(routeFromView(v))}
               addToCart={addToCart}
               onVisitAffiliate={() => navigate('/affiliate')}
@@ -1335,6 +1392,7 @@ function AppInner() {
             <LandingRoute
               onGetStarted={() => navigate('/login?auth=login')}
               onViewTradelines={() => navigate('/tradelines')}
+              onStartRestore={() => navigate('/start')}
               onNavigate={(v) => navigate(routeFromView(v))}
               addToCart={addToCart}
               onVisitAffiliate={() => navigate('/affiliate')}
@@ -1348,6 +1406,7 @@ function AppInner() {
             <LandingRoute
               onGetStarted={() => navigate('/signup?auth=signup')}
               onViewTradelines={() => navigate('/tradelines')}
+              onStartRestore={() => navigate('/start')}
               onNavigate={(v) => navigate(routeFromView(v))}
               addToCart={addToCart}
               onVisitAffiliate={() => navigate('/affiliate')}
@@ -1361,6 +1420,7 @@ function AppInner() {
             <LandingRoute
               onGetStarted={() => navigate('/forgot-password?auth=forgot')}
               onViewTradelines={() => navigate('/tradelines')}
+              onStartRestore={() => navigate('/start')}
               onNavigate={(v) => navigate(routeFromView(v))}
               addToCart={addToCart}
               onVisitAffiliate={() => navigate('/affiliate')}
@@ -1368,25 +1428,23 @@ function AppInner() {
             />
           }
         />
+        <Route path="/free-guide" element={<FreeGuideLandingPage />} />
+        <Route path="/free-guide/:kitId" element={<FreeGuideLandingPage />} />
+        <Route path="/free-kreyol-guide" element={<FreeKreyolGuidePage />} />
+        <Route path="/free-kreyol-guide/:kitId" element={<FreeKreyolGuidePage />} />
+        <Route path="/kreyol" element={<KreyolHubPage />} />
+        <Route path="/haitian" element={<HaitianCompanionPublicPage />} />
+
         <Route path="/tradelines" element={<TradelinesRoute addToCart={addToCart} onNavigate={(v) => navigate(routeFromView(v))} />} />
         <Route path="/checkout" element={<CheckoutPage cart={cart} setCart={setCart} />} />
         <Route path="/about" element={<AboutRoute onNavigate={(v) => navigate(routeFromView(v))} />} />
-        <Route path="/services" element={<PricingPage />} />
-        <Route path="/services/tradelines" element={<Navigate to="/tradelines" replace />} />
-        <Route path="/services/:service" element={<PricingServicePage />} />
-        <Route path="/pricing" element={<PricingPage />} />
-        <Route path="/pricing/:service" element={<PricingServicePage />} />
         {/* Legacy marketing slugs (resolve to real pricing/service views) */}
         <Route path="/fix-my-credit" element={<Navigate to="/pricing/personal-credit-restore" replace />} />
         <Route path="/build-my-credit" element={<Navigate to="/pricing/personal-credit-building" replace />} />
         <Route path="/debt-summons-help" element={<Navigate to="/pricing/debt-legal" replace />} />
         <Route path="/business-credit-solutions" element={<Navigate to="/pricing/business-credit" replace />} />
-        <Route path="/business-credit" element={<Navigate to="/pricing/business-credit" replace />} />
         <Route path="/funding-readiness" element={<Navigate to="/pricing/wealth-builder" replace />} />
-        <Route path="/diy-academy" element={<Navigate to="/resources" replace />} />
-        <Route path="/blog" element={<Navigate to="/resources" replace />} />
-        <Route path="/blog/:slug" element={<Navigate to="/resources" replace />} />
-        <Route path="/rent-reporting" element={<Navigate to="/resources" replace />} />
+        <Route path="/diy-academy" element={<Navigate to="/academy" replace />} />
         <Route path="/personal-credit" element={<PersonalCreditPage />} />
         {/* Stripe mock route removed for production */}
         <Route path="/resources" element={<ResourcesPage />} />
@@ -1960,6 +2018,14 @@ function AppInner() {
           }
         />
         <Route
+          path="/admin/marketing/*"
+          element={
+            <ProtectedAdminRoute>
+              <MarketingHqPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
           path="/admin/comms"
           element={
             <ProtectedAdminRoute>
@@ -2028,6 +2094,48 @@ function AppInner() {
           element={
             <ProtectedAdminRoute>
               <AdminCourseEditorPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/specialist-academy"
+          element={
+            <ProtectedAdminRoute>
+              <AdminSpecialistAcademyPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/specialist-academy/quiz/:quizId"
+          element={
+            <ProtectedAdminRoute>
+              <AdminSpecialistAcademyPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/specialist-academy/:itemId"
+          element={
+            <ProtectedAdminRoute>
+              <AdminSpecialistAcademyPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/specialist-lounge"
+          element={
+            <ProtectedAdminRoute>
+              <AdminSpecialistLoungePage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route path="/partner-community" element={<PartnerCommunityWaitlistPage />} />
+        <Route path="/meet/:eventId" element={<GuestMeetingJoinPage />} />
+        <Route
+          path="/admin/meet/:eventId"
+          element={
+            <ProtectedAdminRoute>
+              <VideoMeetingRoomPage />
             </ProtectedAdminRoute>
           }
         />
@@ -2126,7 +2234,7 @@ function AppInner() {
         <Route path="/disclaimer" element={<DisclaimerPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/enlightenment-session" element={<EnlightenmentSessionPage />} />
-        <Route path="/consultation" element={<ConsultationPage />} />
+        <Route path="/consultation" element={<Navigate to="/enlightenment-session" replace />} />
         <Route path="/faq" element={<FaqPage />} />
         <Route path="/claim" element={<ClaimPartnerProfilePage />} />
 
@@ -2137,8 +2245,8 @@ function AppInner() {
           }
         />
           </Routes>
+        </PartnerLoadGate>
         </AppErrorBoundary>
-      </Suspense>
     </div>
   );
 }
@@ -2146,6 +2254,7 @@ function AppInner() {
 export default function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <AuthProvider>
         <PartnerSessionProvider>
           <AppInner />

@@ -18,17 +18,17 @@ export default function FaqPage() {
   const items = useMemo<FaqItem[]>(
     () => [
       {
-        id: 'what-is-credit-repair',
-        q: 'What is credit repair?',
-        searchText: 'what is credit repair definition disputes errors inaccuracies bureaus furnishers',
+        id: 'what-is-credit-restore',
+        q: 'What is credit restore?',
+        searchText: 'what is credit restore definition disputes errors inaccuracies bureaus furnishers credit repair',
         a: (
           <div className="space-y-2">
             <p>
-              Credit repair is the process of identifying potentially inaccurate, incomplete, duplicated, or outdated information on your credit
-              reports and challenging it through the appropriate channels (credit bureaus and/or furnishers).
+              Credit restore is the structured process of identifying potentially inaccurate, incomplete, duplicated, or outdated information on your credit
+              reports and challenging it through the appropriate channels (credit bureaus and/or furnishers) with evidence and deadlines.
             </p>
             <p className="text-white/60">
-              Important: accurate and properly verified information may remain on a report. Credit repair is not a promise of score increase or
+              Important: accurate and properly verified information may remain on a report. Credit restore is not a promise of score increase or
               deletion of accurate items.
             </p>
           </div>
@@ -112,7 +112,7 @@ export default function FaqPage() {
       },
       {
         id: 'how-long-does-it-take',
-        q: 'How long does credit repair take?',
+        q: 'How long does credit restore take?',
         searchText: 'timeline how long does it take 30 days 45 days rounds bureau response',
         a: (
           <div className="space-y-2">

@@ -7,6 +7,7 @@ import { FINELY_TENANT_ID } from '../domain/tenants';
 import { canAccessAdminArea, canManageTeam, canViewAllClients, getMembershipByUserAndTenant, isPlatformAdmin } from '../data/tenantsRepo';
 import { ensureFinelyPlatformAdminMembership } from '../data/tenantsRepo';
 import { getActiveTenantId } from '../tenancy/activeTenant';
+import { RouteSkeleton } from '../routing/RouteSkeleton';
 
 export function ProtectedAdminRoute({ children }: { children: React.ReactNode }) {
   const { isLoading, user } = useAuth();
@@ -14,11 +15,7 @@ export function ProtectedAdminRoute({ children }: { children: React.ReactNode })
   const navigate = useNavigate();
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-[#0d1512] text-white flex items-center justify-center">
-        <div className="w-10 h-10 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <RouteSkeleton label="Loading admin workspace…" />;
   }
 
   if (!user) {

@@ -11,6 +11,7 @@ import { nowIso } from '../domain/calendar';
 import { newId } from '../utils/ids';
 import { loadJson, saveJson } from './localJsonStore';
 import { createNotification } from './notificationsRepo';
+import { syncPublicCalendarEventToServer } from '../lib/calendarGuestSync';
 
 const KEY = 'finely.calendar.v1';
 
@@ -173,6 +174,7 @@ export function upsertCalendarEvent(ev: CalendarEvent): CalendarEvent {
   if (idx >= 0) store.events[idx] = next;
   else store.events.push(next);
   saveStore(store);
+  void syncPublicCalendarEventToServer(next);
   return next;
 }
 
@@ -229,6 +231,22 @@ export function createPublicCalendarEvent(args: {
     updatedAt: now,
   };
   return upsertCalendarEvent(ev);
+}
+
+export function rescheduleCalendarEvent(
+  id: string,
+  startAt: string,
+  endAt: string,
+): { event: CalendarEvent | null; previousStartAt?: string } {
+  const store = loadStore();
+  const idx = store.events.findIndex((e) => e.id === id);
+  if (idx < 0) return { event: null };
+  const prev = store.events[idx]!.startAt;
+  const next = { ...store.events[idx]!, startAt, endAt, updatedAt: nowIso() };
+  store.events[idx] = next;
+  saveStore(store);
+  void syncPublicCalendarEventToServer(next);
+  return { event: next, previousStartAt: prev };
 }
 
 export function setEventStatus(id: string, status: CalendarEventStatus): CalendarEvent | null {

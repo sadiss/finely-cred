@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, ArrowRight, Gavel, Settings, Users, BarChart3, FileText, Layout, Package, CreditCard, FlaskConical, MessageSquareText, Bell, Calendar, FolderKanban, BookOpen, Bot, Mail, Library, Crown, UserCog, Globe, BadgeCheck, ListChecks, GraduationCap, Lock, PiggyBank, Trophy, Activity, Target, Sparkles, Film, BriefcaseBusiness, Shield } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Gavel, Settings, Users, BarChart3, FileText, Layout, Package, CreditCard, FlaskConical, MessageSquareText, Bell, Calendar, FolderKanban, BookOpen, Bot, Mail, Library, Crown, UserCog, Globe, BadgeCheck, ListChecks, GraduationCap, Lock, PiggyBank, Trophy, Activity, Target, Sparkles, Film, BriefcaseBusiness, Shield, Building2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { fetchAllPartnersAsAdmin } from '../../data/partnersRepo';
@@ -166,6 +166,13 @@ export default function AdminDashboardPage() {
       stat: 'Review supply',
     },
     {
+      title: 'Marketing HQ',
+      description: 'Command floor — departments, channel desks (Email, Social, SMS…), campaigns & queues.',
+      path: '/admin/marketing',
+      icon: Building2,
+      stat: 'Office floors',
+    },
+    {
       title: 'Comms Studio',
       description: 'Reusable message templates + partner delivery (portal now; email/SMS next).',
       path: '/admin/comms',
@@ -185,6 +192,13 @@ export default function AdminDashboardPage() {
       path: '/admin/courses',
       icon: GraduationCap,
       stat: 'Teach',
+    },
+    {
+      title: 'Specialist Academy',
+      description: 'Restore methodology, SOPs 08–15, BUILD literacy, and Haitian desk twins (EN | HT).',
+      path: '/admin/specialist-academy',
+      icon: BookOpen,
+      stat: 'Train',
     },
     {
       title: 'AI Media Studio',
@@ -341,7 +355,7 @@ export default function AdminDashboardPage() {
         title: 'Comms & content',
         subtitle: 'Templates, resources, courses, and publishable assets.',
         defaultOpen: false,
-        cards: take(['/admin/comms', '/admin/resources', '/admin/courses', '/admin/templates', '/admin/testimonials', '/admin/guide']),
+        cards: take(['/admin/comms', '/admin/resources', '/admin/courses', '/admin/specialist-academy', '/admin/templates', '/admin/testimonials', '/admin/guide']),
       },
       {
         key: 'automation',

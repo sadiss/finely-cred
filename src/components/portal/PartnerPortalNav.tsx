@@ -26,6 +26,7 @@ import { listTasksByPartner } from '../../data/tasksRepo';
 import { unreadCount } from '../../data/notificationsRepo';
 import { ENTITLEMENT_KEYS } from '../../billing/entitlements';
 import { hasEntitlement } from '../../data/billingRepo';
+import { prefetchRoute } from '../../routing/routePrefetch';
 
 type NavIcon = React.ComponentType<{ size?: number; className?: string }>;
 
@@ -109,6 +110,8 @@ export function PartnerPortalNav() {
             return (
               <button
                 key={path}
+                onMouseEnter={() => prefetchRoute(path)}
+                onFocus={() => prefetchRoute(path)}
                 onClick={() => navigate(locked ? '/portal/billing' : path)}
                 className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl border text-[10px] font-bold uppercase tracking-widest whitespace-nowrap transition-all ${
                   active
@@ -164,6 +167,8 @@ export function PartnerPortalNav() {
                 return (
                   <button
                     key={path}
+                    onMouseEnter={() => prefetchRoute(path)}
+                    onFocus={() => prefetchRoute(path)}
                     onClick={() => navigate(locked ? '/portal/billing' : path)}
                     className={`w-full text-left inline-flex items-center gap-2 px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${
                       active

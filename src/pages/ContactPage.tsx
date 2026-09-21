@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { ArrowLeft, ArrowRight, Mail, Phone, Send, CheckCircle2, ShieldAlert } from 'lucide-react';
+import { ArrowRight, Mail, Phone, Send, CheckCircle2, ShieldAlert, Calendar, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../components/layout/PageShell';
 import { submitLeadCapture } from '../data/leadsRepo';
 import { addLeadNote } from '../data/leadOpsRepo';
 import { MarketingConsentBlock } from '../components/fields/MarketingConsentBlock';
+
+const SUPPORT_EMAIL = 'partnersupport@finelycred.com';
 
 export default function ContactPage() {
   const navigate = useNavigate();
@@ -73,25 +75,82 @@ export default function ContactPage() {
 
   return (
     <PageShell
-      badge="Public"
-      title="Contact"
-      subtitle="Get in touch for support, affiliate inquiries, or to start your credit and funding journey."
+      badge="Contact"
+      title="Talk to Finely Cred"
+      subtitle="Support, affiliates, and new restore clients — pick email, book a session, or send a message. Forms stay above the chat widget on every screen size."
     >
-      <div className="space-y-8">
-        <div className="flex flex-wrap items-center gap-4">
-          <button
-            onClick={() => navigate(-1)}
-            className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors text-sm"
-          >
-            <ArrowLeft size={16} /> Back
-          </button>
-          <a href="/" className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors text-sm">
-            <ArrowLeft size={16} /> Home
-          </a>
+      <div className="max-w-7xl mx-auto space-y-8">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-2xl border border-white/10 bg-black/30 p-5">
+            <div className="text-[10px] uppercase tracking-widest text-white/45">Email</div>
+            <div className="mt-2 text-lg font-semibold text-white truncate">{SUPPORT_EMAIL}</div>
+            <a
+              href={`mailto:${SUPPORT_EMAIL}?subject=Finely%20Cred%20Support`}
+              className="mt-3 inline-flex items-center gap-2 text-sm text-amber-400 hover:text-amber-300"
+            >
+              <Mail size={16} /> Send email
+            </a>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-black/30 p-5">
+            <div className="text-[10px] uppercase tracking-widest text-white/45">Partner line</div>
+            <div className="mt-2 text-lg font-semibold text-white">Callback by request</div>
+            <p className="mt-2 text-sm text-white/55">Include your phone in the form — we route by timezone and case type.</p>
+            <a href="tel:+18005550199" className="mt-3 inline-flex items-center gap-2 text-sm text-amber-400 hover:text-amber-300">
+              <Phone size={16} /> Request a call
+            </a>
+          </div>
+          <div className="rounded-2xl border border-amber-500/25 bg-amber-500/5 p-5">
+            <div className="text-[10px] uppercase tracking-widest text-amber-200/80">Fastest start</div>
+            <div className="mt-2 text-lg font-semibold text-white">Free enlightenment session</div>
+            <button
+              type="button"
+              onClick={() => navigate('/enlightenment-session')}
+              className="mt-3 fc-button-brand text-sm w-full justify-center"
+            >
+              <Calendar size={16} /> Book session
+            </button>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-black/30 p-5">
+            <div className="text-[10px] uppercase tracking-widest text-white/45">Apply</div>
+            <div className="mt-2 text-lg font-semibold text-white">Start restore intake</div>
+            <button type="button" onClick={() => navigate('/start')} className="mt-3 fc-button-soft text-sm w-full justify-center">
+              Start restore <ArrowRight size={16} />
+            </button>
+          </div>
         </div>
 
-        <div className="grid lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-7 fc-card p-6 space-y-4">
+        <div className="grid lg:grid-cols-12 gap-8 items-start">
+          <aside className="lg:col-span-4 order-2 lg:order-2 space-y-4">
+            <div className="fc-panel p-6 space-y-4">
+              <div className="inline-flex items-center gap-2 text-amber-400">
+                <MessageSquare size={18} />
+                <span className="text-xs font-semibold uppercase tracking-wider">Before you write</span>
+              </div>
+              <ul className="text-sm text-white/60 space-y-2 list-disc pl-4">
+                <li>Do not send full SSNs or account numbers in this form.</li>
+                <li>Partners: sign in and use the portal inbox for case updates.</li>
+                <li>Bureau letters: email attachments with your partner email in the subject.</li>
+              </ul>
+              <div className="flex flex-col gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => navigate('/faq')}
+                  className="fc-button-soft justify-between text-sm normal-case tracking-normal"
+                >
+                  FAQ <ArrowRight size={16} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate('/portal/messages')}
+                  className="fc-button-soft justify-between text-sm normal-case tracking-normal"
+                >
+                  Partner inbox <ArrowRight size={16} />
+                </button>
+              </div>
+            </div>
+          </aside>
+
+          <div className="lg:col-span-8 order-1 lg:order-1 fc-card p-6 sm:p-8 space-y-5">
             <div className="inline-flex items-center gap-2 text-amber-400">
               <Send size={18} />
               <span className="text-xs font-semibold uppercase tracking-wider">Send a message</span>
@@ -119,7 +178,7 @@ export default function ContactPage() {
                   <input
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                      className="fc-input"
+                    className="fc-input"
                     placeholder="Your name"
                     maxLength={120}
                     required
@@ -130,7 +189,7 @@ export default function ContactPage() {
                   <input
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                      className="fc-input"
+                    className="fc-input"
                     placeholder="you@email.com"
                     maxLength={180}
                     required
@@ -144,7 +203,7 @@ export default function ContactPage() {
                   <input
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                      className="fc-input"
+                    className="fc-input"
                     placeholder="(555) 555-5555"
                     maxLength={40}
                   />
@@ -154,7 +213,7 @@ export default function ContactPage() {
                   <input
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
-                      className="fc-input"
+                    className="fc-input"
                     placeholder="Billing, disputes, affiliate, etc."
                     maxLength={140}
                     required
@@ -169,7 +228,7 @@ export default function ContactPage() {
                   onChange={(e) => setMessage(e.target.value)}
                   rows={6}
                   className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white/80 placeholder:text-white/30 text-sm resize-y outline-none focus:border-[rgba(var(--brand-primary-rgb),0.55)] transition-colors"
-                  placeholder="Tell us what you need. Avoid sharing full SSNs or sensitive identifiers in this form."
+                  placeholder="Tell us what you need."
                   required
                 />
               </div>
@@ -182,81 +241,29 @@ export default function ContactPage() {
                   onChange={(e) => setConsent(e.target.checked)}
                 />
                 <span>
-                  I consent to be contacted about this request (email/in-app). I understand this is not legal or financial advice.
+                  I consent to be contacted about this request (email/in-app). I understand this is not legal or financial
+                  advice.
                 </span>
               </label>
 
               <MarketingConsentBlock value={marketingConsent} onChange={setMarketingConsent} phone={phone} />
 
-              <div className="flex flex-wrap items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3 pt-2">
                 <button
                   type="submit"
                   disabled={!canSend}
                   className="fc-button-brand disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  {status === 'sending' ? 'Sending…' : 'Send'} <ArrowRight size={14} />
+                  {status === 'sending' ? 'Sending…' : 'Send message'} <ArrowRight size={14} />
                 </button>
-                <button
-                  type="button"
-                  onClick={() => navigate('/onboarding')}
-                  className="fc-button-soft"
-                >
+                <button type="button" onClick={() => navigate('/onboarding')} className="fc-button-soft">
                   Apply instead <ArrowRight size={14} />
                 </button>
               </div>
             </form>
-          </div>
-
-          <div className="lg:col-span-5 space-y-4">
-            <div className="fc-panel p-6 space-y-4">
-              <div className="inline-flex items-center gap-2 text-amber-400">
-                <Mail size={18} />
-                <span className="text-xs font-semibold uppercase tracking-wider">Email</span>
-              </div>
-              <p className="text-white/60 text-sm">
-                For bureau letters or large attachments, email support and reference your partner email if you have one.
-              </p>
-              <a
-                href="mailto:partnersupport@finelycred.com?subject=Finely%20Cred%20Support"
-                className="fc-button-brand"
-              >
-                Email support <ArrowRight size={14} />
-              </a>
-            </div>
-
-            <div className="fc-card p-6 space-y-4">
-              <div className="inline-flex items-center gap-2 text-amber-400">
-                <Phone size={18} />
-                <span className="text-xs font-semibold uppercase tracking-wider">Quick links</span>
-              </div>
-              <div className="space-y-2">
-                <button
-                  type="button"
-                  onClick={() => navigate('/faq')}
-                  className="w-full fc-button-soft justify-between text-sm normal-case tracking-normal"
-                >
-                  FAQ <ArrowRight size={16} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => navigate('/portal/messages')}
-                  className="w-full fc-button-soft justify-between text-sm normal-case tracking-normal"
-                >
-                  Partner support inbox <ArrowRight size={16} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => navigate('/affiliate')}
-                  className="w-full fc-button-soft justify-between text-sm normal-case tracking-normal"
-                >
-                  Affiliate program <ArrowRight size={16} />
-                </button>
-              </div>
-            </div>
           </div>
         </div>
       </div>
     </PageShell>
   );
 }
-

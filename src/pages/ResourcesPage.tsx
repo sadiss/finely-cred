@@ -171,7 +171,10 @@ export default function ResourcesPage() {
       title="Resource Library"
       subtitle="Guides, templates, and references — built to keep your execution clean and your decisions informed."
     >
-      <div className="space-y-6">
+      <div className="space-y-6 -mt-2">
+        <div className="rounded-2xl border border-[#fbbf24]/25 bg-[#0b1110] px-5 py-4 text-white/75 text-sm">
+          Start with free guides, partner monitoring links, and video previews below — no empty hero; everything is actionable.
+        </div>
         {isAdmin && (
           <div className="rounded-3xl border border-amber-500/25 bg-amber-500/10 backdrop-blur-xl p-6 space-y-3">
             <div className="text-[10px] uppercase tracking-widest text-amber-200 font-black">Admin tools</div>

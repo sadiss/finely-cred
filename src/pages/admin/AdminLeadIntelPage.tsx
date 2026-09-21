@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ArrowRight, Sparkles, ShieldAlert, Search, Download, CheckCircle2, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
@@ -31,27 +31,27 @@ const TEMPLATES: Template[] = [
     location: 'United States',
   },
   {
-    label: 'Clients • Credit repair demand (US)',
+    label: 'Clients • Credit restore demand (US)',
     target: 'clients',
-    query: 'fix my credit help credit repair consultation',
+    query: 'fix my credit help credit restore consultation educational',
     location: 'United States',
   },
   {
     label: 'Affiliates • Finance/credit affiliate program',
     target: 'affiliates',
-    query: 'credit repair affiliate program partners',
+    query: 'credit restore affiliate program partners educational',
     location: 'United States',
   },
   {
-    label: 'Agents • Credit repair sales agent opportunity',
+    label: 'Agents • Credit restore sales agent opportunity',
     target: 'agents',
-    query: 'credit repair sales agent remote',
+    query: 'credit restore sales agent remote educational',
     location: 'United States',
   },
   {
     label: 'Teams • Marketing partners (B2B)',
     target: 'teams',
-    query: 'credit repair marketing agency partner',
+    query: 'credit restore marketing agency partner',
     location: 'United States',
   },
   {
@@ -81,14 +81,52 @@ export default function AdminLeadIntelPage() {
   const [location, setLocation] = useState('United States');
   const [limit, setLimit] = useState(10);
   const [enrich, setEnrich] = useState(true);
+  const [requireContact, setRequireContact] = useState(true);
+  const [batchMetros, setBatchMetros] = useState(
+    'Miami, FL\nAtlanta, GA\nHouston, TX\nDallas, TX\nCharlotte, NC',
+  );
 
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [results, setResults] = useState<IntelResult[]>([]);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [notice, setNotice] = useState<string | null>(null);
+  const [providers, setProviders] = useState<{
+    preferred?: string;
+    googleCse?: { configured: boolean; cx?: string; apiKeySet?: boolean };
+    serper?: { configured: boolean };
+    osmNominatim?: { configured: boolean; note?: string };
+  } | null>(null);
 
   const selectedCount = useMemo(() => Object.values(selected).filter(Boolean).length, [selected]);
+
+  useEffect(() => {
+    if (!features.leadIntel || !isSupabaseConfigured) return;
+    void supabase.functions
+      .invoke('lead-intel', { body: { ping: true } })
+      .then(({ data, error }) => {
+        if (error || !data?.ok) return;
+        setProviders(data.providers ?? null);
+      })
+      .catch(() => {
+        /* ignore ping failures in dev */
+      });
+  }, [features.leadIntel]);
+
+  const mergeResults = (prev: IntelResult[], incoming: IntelResult[]) => {
+    const byDomain = new Map<string, IntelResult>();
+    for (const r of [...prev, ...incoming]) {
+      const key = (r.domain || r.url).toLowerCase();
+      const cur = byDomain.get(key);
+      if (!cur || (r.score ?? 0) > (cur.score ?? 0)) byDomain.set(key, r);
+    }
+    return Array.from(byDomain.values()).sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+  };
+
+  const applyContactFilter = (rows: IntelResult[]) => {
+    if (!requireContact) return rows;
+    return rows.filter((r) => (r.emails?.length ?? 0) > 0 && (r.phones?.length ?? 0) > 0);
+  };
 
   const run = async () => {
     setBusy(true);
@@ -111,14 +149,67 @@ export default function AdminLeadIntelPage() {
       });
       if (error) throw new Error(error.message);
       if (!data?.ok) throw new Error(data?.error || 'Search failed.');
-      const out = (data.results ?? []) as IntelResult[];
+      let out = (data.results ?? []) as IntelResult[];
+      out = applyContactFilter(out);
       setResults(out);
       const nextSel: Record<string, boolean> = {};
       out.forEach((r) => (nextSel[r.url] = (r.score ?? 0) >= 40));
       setSelected(nextSel);
-      setNotice(`Found ${out.length} prospects. Pre-selected ${Object.values(nextSel).filter(Boolean).length} likely fits.`);
+      const via = data.searchProvider ? ` via ${String(data.searchProvider).replace(/_/g, ' ')}` : '';
+      setNotice(
+        `Found ${out.length} prospects${via}${requireContact ? ' (phone + email required)' : ''}. Pre-selected ${Object.values(nextSel).filter(Boolean).length} likely fits.`,
+      );
+      if (data.providers) setProviders(data.providers);
     } catch (e: any) {
       setErr(e?.message || 'Search failed.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const runMultiMetroBatch = async () => {
+    setBusy(true);
+    setErr(null);
+    setNotice(null);
+    try {
+      if (!features.leadIntel) throw new Error('Lead Intel is disabled (Feature Flags).');
+      if (!isSupabaseConfigured) throw new Error('Supabase is not configured.');
+      const q = query.trim();
+      if (!q) throw new Error('Enter a search query.');
+      const metros = batchMetros
+        .split('\n')
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .slice(0, 5);
+      if (!metros.length) throw new Error('Add at least one metro (one per line).');
+
+      let merged: IntelResult[] = [];
+      for (const metro of metros) {
+        const { data, error } = await supabase.functions.invoke('lead-intel', {
+          body: {
+            target,
+            query: q,
+            location: metro,
+            limit: clamp(limit, 1, 20),
+            enrich,
+            country: 'us',
+          },
+        });
+        if (error) throw new Error(error.message);
+        if (!data?.ok) throw new Error(data?.error || `Search failed for ${metro}.`);
+        merged = mergeResults(merged, (data.results ?? []) as IntelResult[]);
+        await new Promise((r) => setTimeout(r, 400));
+      }
+      merged = applyContactFilter(merged).slice(0, 50);
+      setResults(merged);
+      const nextSel: Record<string, boolean> = {};
+      merged.forEach((r) => (nextSel[r.url] = (r.score ?? 0) >= 40));
+      setSelected(nextSel);
+      setNotice(
+        `Batch: ${metros.length} metros → ${merged.length} unique domains (cap 50)${requireContact ? ', phone+email required' : ''}. Uses Google CSE when API key is set, else Serper, else OSM (no key).`,
+      );
+    } catch (e: any) {
+      setErr(e?.message || 'Batch search failed.');
     } finally {
       setBusy(false);
     }
@@ -194,7 +285,7 @@ export default function AdminLeadIntelPage() {
   return (
     <PageShell
       badge="Admin"
-      title="Lead Intelligence Agent"
+      title="Lead intelligence"
       subtitle="Discover and enrich qualified prospects using compliant search APIs + robots-respecting public-page enrichment. Results save into CRM → Prospects."
     >
       <div className="space-y-6">
@@ -219,6 +310,37 @@ export default function AdminLeadIntelPage() {
         {!features.leadIntel && (
           <div className="rounded-2xl border border-amber-500/25 bg-amber-500/10 p-5 text-white/75 text-sm">
             Lead Intelligence Agent is disabled. Enable it in <span className="text-white/90 font-semibold">Admin Settings → Feature Flags</span>.
+          </div>
+        )}
+
+        {providers && (
+          <div className="rounded-2xl border border-white/10 bg-black/30 p-4 text-sm text-white/70">
+            <div className="font-semibold text-white/90">Search providers</div>
+            <ul className="mt-2 space-y-1 text-xs">
+              <li>
+                Google CSE — cx{' '}
+                <span className="font-mono text-white/80">{providers.googleCse?.cx ?? '815aa44b612a64808'}</span>
+                {providers.googleCse?.configured ? (
+                  <span className="text-emerald-400 ml-2">active (API key set)</span>
+                ) : (
+                  <span className="text-white/50 ml-2">
+                    waiting for <span className="font-mono">GOOGLE_CSE_API_KEY</span> in Supabase secrets
+                  </span>
+                )}
+              </li>
+              <li>
+                Serper —{' '}
+                {providers.serper?.configured ? (
+                  <span className="text-emerald-400">configured (fallback)</span>
+                ) : (
+                  <span className="text-white/50">optional — not required to ship</span>
+                )}
+              </li>
+              <li>
+                OSM Nominatim — <span className="text-emerald-400">no API key</span>
+                <span className="text-white/50"> — {providers.osmNominatim?.note ?? 'fallback when paid search keys absent'}</span>
+              </li>
+            </ul>
           </div>
         )}
 
@@ -321,6 +443,22 @@ export default function AdminLeadIntelPage() {
             <input type="checkbox" checked={enrich} onChange={(e) => setEnrich(e.target.checked)} />
             Enrich public pages (extract emails/phones; best-effort respects robots.txt)
           </label>
+          <label className="flex items-center gap-3 text-sm text-white/70">
+            <input type="checkbox" checked={requireContact} onChange={(e) => setRequireContact(e.target.checked)} />
+            Require <strong className="text-white/90">both</strong> email and phone on results (qualified contact filter)
+          </label>
+
+          <div className="rounded-xl border border-white/10 bg-black/20 p-4 space-y-2">
+            <div className="text-[10px] uppercase tracking-widest text-white/40">Multi-metro batch (~50 partners)</div>
+            <textarea
+              value={batchMetros}
+              onChange={(e) => setBatchMetros(e.target.value)}
+              rows={4}
+              className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/80 font-mono"
+              placeholder="One metro per line: City, ST"
+            />
+            <p className="text-white/50 text-xs">Runs up to 5 metros × limit 20, dedupes by domain, caps at 50 rows.</p>
+          </div>
 
           <div className="flex flex-wrap gap-2">
             <button
@@ -329,7 +467,15 @@ export default function AdminLeadIntelPage() {
               disabled={busy || !features.leadIntel}
               className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all disabled:opacity-60"
             >
-              <Sparkles size={14} /> {busy ? 'Running…' : 'Run lead agent'}
+              <Sparkles size={14} /> {busy ? 'Running…' : 'Run search'}
+            </button>
+            <button
+              type="button"
+              onClick={() => void runMultiMetroBatch()}
+              disabled={busy || !features.leadIntel}
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-amber-500/40 bg-amber-500/10 text-amber-100 font-black uppercase tracking-widest text-[10px] hover:bg-amber-500/20 transition-all disabled:opacity-60"
+            >
+              <Sparkles size={14} /> {busy ? 'Batch…' : 'Run multi-metro batch'}
             </button>
             <button
               type="button"
@@ -413,7 +559,13 @@ export default function AdminLeadIntelPage() {
         <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 text-white/70 text-sm">
           <div className="font-semibold text-white">Compliance & quality notes</div>
           <ul className="mt-3 space-y-2 list-disc pl-5">
-            <li>Results come from a search API (not restricted platforms). Enrichment is limited to public pages and skips sites that disallow all crawling.</li>
+            <li>
+              Results use <strong className="text-white/90">Google Custom Search</strong> when{' '}
+              <span className="font-mono">GOOGLE_CSE_API_KEY</span> is set (cx{' '}
+              <span className="font-mono">GOOGLE_CSE_CX</span> or default 815aa44b612a64808), else optional Serper, else{' '}
+              <strong className="text-white/90">OpenStreetMap Nominatim</strong> when no search API key is configured.
+            </li>
+            <li>Enrichment is limited to public pages and skips sites that disallow all crawling.</li>
             <li>Qualification score prioritizes reachable contacts (email/phone) and keyword relevance to the selected target.</li>
             <li>Outbound outreach is your responsibility. Follow CAN‑SPAM/TCPA and only contact where you have a lawful basis.</li>
           </ul>

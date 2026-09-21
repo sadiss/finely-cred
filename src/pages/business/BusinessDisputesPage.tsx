@@ -1,17 +1,12 @@
 import React, { useMemo, useState } from 'react';
-import { ArrowLeft, ArrowRight, Building2, FileText, LayoutGrid, Target, Users, Crown, AlertTriangle, Scale, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, AlertTriangle, Plus, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { createBusinessDispute, deleteBusinessDispute, listBusinessDisputes, upsertBusinessDispute } from '../../data/businessCreditRepo';
 import type { BusinessBureau } from '../../domain/businessCredit';
-
-function navBtn(active: boolean) {
-  return `px-4 py-2 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ${
-    active ? 'bg-amber-500 text-black border-amber-400' : 'bg-white/5 text-white/70 border-white/10 hover:bg-white/10 hover:text-white'
-  }`;
-}
+import { BusinessJourneyShell } from '../../components/business/BusinessJourneyShell';
 
 export default function BusinessDisputesPage() {
   const navigate = useNavigate();
@@ -28,6 +23,7 @@ export default function BusinessDisputesPage() {
       title="Business Disputes"
       subtitle="Track negative items on business bureau files, attach evidence, generate letters, and mail from the Letters Vault."
     >
+      <BusinessJourneyShell activeStepId="docs_funding">
       <div className="space-y-6">
         <button
           type="button"
@@ -37,33 +33,6 @@ export default function BusinessDisputesPage() {
         >
           <ArrowLeft size={16} /> Back
         </button>
-
-        <div className="flex flex-wrap gap-3">
-          <button className={navBtn(false)} onClick={() => navigate('/business/dashboard')}>
-            <LayoutGrid size={12} className="inline mr-2" /> Dashboard
-          </button>
-          <button className={navBtn(false)} onClick={() => navigate('/business/profile')}>
-            <Building2 size={12} className="inline mr-2" /> Profile
-          </button>
-          <button className={navBtn(false)} onClick={() => navigate('/business/vendors')}>
-            <Users size={12} className="inline mr-2" /> Vendors
-          </button>
-          <button className={navBtn(false)} onClick={() => navigate('/business/bureaus')}>
-            <Scale size={12} className="inline mr-2" /> Bureaus & Scores
-          </button>
-          <button className={navBtn(false)} onClick={() => navigate('/business/lender-logic')}>
-            <Target size={12} className="inline mr-2" /> Lender Logic
-          </button>
-          <button className={navBtn(true)} onClick={() => navigate('/business/disputes')}>
-            <AlertTriangle size={12} className="inline mr-2" /> Disputes
-          </button>
-          <button className={navBtn(false)} onClick={() => navigate('/business/documents')}>
-            <FileText size={12} className="inline mr-2" /> Documents
-          </button>
-          <button className={navBtn(false)} onClick={() => navigate('/business/billion-path')}>
-            <Crown size={12} className="inline mr-2" /> Billion Path
-          </button>
-        </div>
 
         <div className="rounded-3xl border border-white/10 bg-black/30 backdrop-blur-xl p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
@@ -187,6 +156,7 @@ export default function BusinessDisputesPage() {
           </div>
         )}
       </div>
+      </BusinessJourneyShell>
     </PageShell>
   );
 }

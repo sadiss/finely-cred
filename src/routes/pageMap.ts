@@ -105,6 +105,7 @@ export const ADMIN_ROUTES: RouteSpec[] = [
   { path: '/admin/lead-intel', title: 'Lead Intelligence Agent', badge: 'Admin' },
   { path: '/admin/workflow', title: 'Workflow Queue', badge: 'Admin' },
   { path: '/admin/courses', title: 'Courses', badge: 'Admin' },
+  { path: '/admin/specialist-academy', title: 'Specialist Academy', badge: 'Admin' },
   { path: '/admin/media-studio', title: 'AI Media Studio', badge: 'Admin' },
   { path: '/admin/nora-capital', title: 'Nora Capital Group API', badge: 'Admin' },
   { path: '/admin/vault', title: 'Secret Vault', badge: 'Admin' },

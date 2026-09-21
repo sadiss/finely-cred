@@ -51,6 +51,7 @@ import {
   getDenefitsContracts,
   setDenefitsContract,
   removeDenefitsContract,
+  updateAcademyTraineeSettings,
 } from '../../data/settingsRepo';
 import type {
   PlatformSettings,
@@ -1285,10 +1286,10 @@ export default function AdminSettingsPage() {
                     description="Partner-to-admin messaging in portal"
                   />
                   <Toggle
-                    label="Public Chat Widget"
+                    label="Public site chat"
                     checked={settings.features.publicChat}
                     onChange={(v) => handleFeatureChange({ publicChat: v })}
-                    description="AI concierge on public pages"
+                    description="Show the Finely Cred chat launcher on public pages (session booking + routing)."
                   />
                   <Toggle
                     label="Comms Delivery (Email/SMS)"
@@ -1303,10 +1304,10 @@ export default function AdminSettingsPage() {
                     description="Enable AI routing via Supabase Edge Functions (OpenAI/Gemini/Anthropic)."
                   />
                   <Toggle
-                    label="Portal Chat"
+                    label="Portal assistant"
                     checked={settings.features.portalChat}
                     onChange={(v) => handleFeatureChange({ portalChat: v })}
-                    description="Show AI chat widget inside partner dashboard (context-aware)."
+                    description="Show the in-portal assistant for partners (uploads, disputes, timelines)."
                   />
                 </div>
 
@@ -1322,7 +1323,7 @@ export default function AdminSettingsPage() {
                     label="Lead Intelligence Agent"
                     checked={settings.features.leadIntel}
                     onChange={(v) => handleFeatureChange({ leadIntel: v })}
-                    description="Enable web discovery + enrichment for qualified prospecting (admin-only; requires search API key server-side)."
+                    description="Admin-only lead discovery and public-page contact enrichment (requires server-side search API)."
                   />
                   <Toggle
                     label="AU Marketplace"
@@ -1389,6 +1390,32 @@ export default function AdminSettingsPage() {
                     description="Enable REST API for integrations"
                   />
                 </div>
+              </div>
+
+              <div className="rounded-2xl border border-violet-500/20 bg-violet-500/5 backdrop-blur-xl p-6 space-y-4">
+                <div className="text-xs font-semibold uppercase tracking-wider text-violet-200">Specialist Academy — trainee emails</div>
+                <p className="text-white/60 text-sm">
+                  Lifecycle emails to <strong className="text-white/80">logged-in specialists</strong> (welcome, module progress, quiz scores).
+                  Requires outbound email to be enabled; otherwise messages queue in the academy outbox.
+                </p>
+                <Toggle
+                  label="Trainee lifecycle emails"
+                  checked={Boolean(settings.academyTrainee?.traineeEmailsEnabled)}
+                  onChange={(v) => {
+                    updateAcademyTraineeSettings({ traineeEmailsEnabled: v });
+                    setSettings(loadSettings());
+                  }}
+                  description="Welcome, module complete, quiz pass/retry, course complete"
+                />
+                <Toggle
+                  label="Weekly progress digest"
+                  checked={Boolean(settings.academyTrainee?.weeklyDigestEnabled)}
+                  onChange={(v) => {
+                    updateAcademyTraineeSettings({ weeklyDigestEnabled: v });
+                    setSettings(loadSettings());
+                  }}
+                  description="Optional weekly summary (trainee email only)"
+                />
               </div>
             </div>
           )}

@@ -3,11 +3,18 @@
 // - Uses a configured Search API (Serper) instead of scraping restricted platforms.
 // - Enriches only public web pages and best-effort respects robots.txt ("Disallow: /" for user-agent *).
 //
-// Secrets:
+// Secrets / config (Supabase Edge env — never commit API keys):
 // - SUPABASE_URL
 // - SUPABASE_ANON_KEY
 // - EDGE_ADMIN_EMAILS (comma-separated allowlist)
-// - SERPER_API_KEY
+// - GOOGLE_CSE_API_KEY (optional until Sanz adds via secrets)
+// - GOOGLE_CSE_CX (optional; default search engine id below when unset)
+// - SERPER_API_KEY (optional fallback)
+//
+// Provider order: Google Custom Search → Serper → OpenStreetMap Nominatim (no API key).
+
+/** Public Custom Search Engine id (not a secret). Override with GOOGLE_CSE_CX env if needed. */
+const DEFAULT_GOOGLE_CSE_CX = '815aa44b612a64808';
 
 import { corsHeaders } from '../_shared/cors.ts';
 import { json, logEdgeEvent, rateLimit, requireAllowlistedEmail, requireAuth } from '../_shared/edgeGuard.ts';
@@ -16,11 +23,13 @@ type Target = 'clients' | 'affiliates' | 'agents' | 'teams' | 'au_sellers' | 'b2
 
 type ReqBody = {
   target: Target;
-  query: string;
+  query?: string;
   location?: string;
   country?: string; // e.g. "us"
   limit?: number; // <= 20 recommended
   enrich?: boolean;
+  /** Return configured search providers without running a query. */
+  ping?: boolean;
 };
 
 type SearchResult = {
@@ -148,6 +157,103 @@ function scoreProspect(args: { target: Target; html?: string; emails: string[]; 
   return score;
 }
 
+function resolveSearchConfig() {
+  const googleApiKey = (Deno.env.get('GOOGLE_CSE_API_KEY') || '').trim();
+  const googleCx = (Deno.env.get('GOOGLE_CSE_CX') || DEFAULT_GOOGLE_CSE_CX).trim();
+  const serperApiKey = (Deno.env.get('SERPER_API_KEY') || '').trim();
+  return { googleApiKey, googleCx, serperApiKey };
+}
+
+function providerStatus() {
+  const { googleApiKey, googleCx, serperApiKey } = resolveSearchConfig();
+  return {
+    googleCse: { configured: Boolean(googleApiKey && googleCx), cx: googleCx, apiKeySet: Boolean(googleApiKey) },
+    serper: { configured: Boolean(serperApiKey) },
+    osmNominatim: { configured: true, note: 'No API key — geographic / POI fallback; enrich for contacts.' },
+    preferred: googleApiKey && googleCx ? 'google_cse' : serperApiKey ? 'serper' : 'osm_nominatim',
+  };
+}
+
+async function googleCseSearch(args: { apiKey: string; cx: string; q: string; num: number }): Promise<SearchResult[]> {
+  const params = new URLSearchParams({
+    key: args.apiKey,
+    cx: args.cx,
+    q: args.q,
+    num: String(Math.max(1, Math.min(10, args.num))),
+  });
+  const res = await fetch(`https://www.googleapis.com/customsearch/v1?${params.toString()}`);
+  const txt = await res.text();
+  if (!res.ok) throw new Error(`Google CSE error: ${res.status} ${txt.slice(0, 200)}`);
+  const json = JSON.parse(txt) as { items?: Array<{ title?: string; link?: string; snippet?: string }> };
+  const items = json?.items ?? [];
+  return items.map((o, i) => ({
+    title: o?.title,
+    link: o?.link,
+    snippet: o?.snippet,
+    position: i + 1,
+  }));
+}
+
+async function osmNominatimSearch(args: { q: string; location?: string; num: number }): Promise<SearchResult[]> {
+  const fullQ = [args.q, args.location].filter(Boolean).join(' ');
+  const limit = Math.max(1, Math.min(20, args.num));
+  const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=${limit}&q=${encodeURIComponent(fullQ)}`;
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'User-Agent': 'FinelyCredLeadIntel/1.0 (compliant partner prospecting; +https://finelycred.com)',
+      Accept: 'application/json',
+    },
+  });
+  const txt = await res.text();
+  if (!res.ok) throw new Error(`OSM Nominatim error: ${res.status}`);
+  const data = JSON.parse(txt) as Array<{
+    display_name?: string;
+    name?: string;
+    type?: string;
+    class?: string;
+    osm_type?: string;
+    osm_id?: number;
+    extratags?: Record<string, string>;
+  }>;
+  return (data ?? []).map((item, i) => {
+    const rawWeb = item.extratags?.website || item.extratags?.['contact:website'] || '';
+    let link = '';
+    if (rawWeb) {
+      link = rawWeb.startsWith('http') ? rawWeb : `https://${rawWeb}`;
+    } else if (item.osm_type && item.osm_id) {
+      link = `https://www.openstreetmap.org/${item.osm_type}/${item.osm_id}`;
+    }
+    return {
+      title: item.name || item.display_name,
+      link,
+      snippet: [item.type, item.class].filter(Boolean).join(' · ') || 'OpenStreetMap result',
+      position: i + 1,
+    };
+  });
+}
+
+async function runWebSearch(args: { q: string; location?: string; gl: string; num: number }) {
+  const { googleApiKey, googleCx, serperApiKey } = resolveSearchConfig();
+  const fullQ = args.location ? `${args.q} ${args.location}` : args.q;
+  if (googleApiKey && googleCx) {
+    const results = await googleCseSearch({ apiKey: googleApiKey, cx: googleCx, q: fullQ, num: args.num });
+    return { results, provider: 'google_cse' as const };
+  }
+  if (serperApiKey) {
+    const results = await serperSearch({
+      apiKey: serperApiKey,
+      q: args.q,
+      location: args.location || undefined,
+      gl: args.gl,
+      num: args.num,
+    });
+    return { results, provider: 'serper' as const };
+  }
+  const results = await osmNominatimSearch({ q: args.q, location: args.location, num: args.num });
+  return { results, provider: 'osm_nominatim' as const };
+}
+
 async function serperSearch(args: { apiKey: string; q: string; location?: string; gl?: string; num: number }): Promise<SearchResult[]> {
   const res = await fetch('https://google.serper.dev/search', {
     method: 'POST',
@@ -194,19 +300,26 @@ Deno.serve(async (req) => {
     return json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
+  if (body?.ping) {
+    return json({ ok: true, providers: providerStatus() });
+  }
+
   const target = (body?.target || 'clients') as Target;
-  const query = norm(body?.query);
+  const query = norm(body?.query || '');
   const location = norm(body?.location || '');
   const gl = norm(body?.country || 'us') || 'us';
   const limit = Math.max(1, Math.min(20, Number(body?.limit ?? 10)));
   const enrich = body?.enrich !== false;
   if (!query) return json({ error: 'Missing query' }, { status: 400 });
 
-  const apiKey = (Deno.env.get('SERPER_API_KEY') || '').trim();
-  if (!apiKey) return json({ error: 'SERPER_API_KEY missing' }, { status: 500 });
-
   try {
-    const results = await serperSearch({ apiKey, q: query, location: location || undefined, gl, num: limit });
+    const { results: searchHits, provider } = await runWebSearch({
+      q: query,
+      location: location || undefined,
+      gl,
+      num: limit,
+    });
+    const results = searchHits;
     const enriched: any[] = [];
 
     for (const r of results) {
@@ -257,7 +370,16 @@ Deno.serve(async (req) => {
       meta: { userId: ctx.user.id, ip: ctx.ip, target, query, location: location || null, country: gl, limit, returned: enriched.length },
     });
 
-    return json({ ok: true, target, query, location: location || null, country: gl, results: enriched });
+    return json({
+      ok: true,
+      target,
+      query,
+      location: location || null,
+      country: gl,
+      searchProvider: provider,
+      providers: providerStatus(),
+      results: enriched,
+    });
   } catch (e) {
     await logEdgeEvent({
       namespace: 'lead-intel',

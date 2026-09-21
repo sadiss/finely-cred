@@ -1,156 +1,135 @@
-import React, { useMemo } from 'react';
-import { ArrowRight, Building2, FileText, LayoutGrid, Target, Users, Crown, Sparkles, ShieldCheck, Layers, BookOpen, AlertTriangle } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { ArrowRight, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { BusinessReadinessChecklist } from '../../components/business/BusinessReadinessChecklist';
-import { useAuth } from '../../auth/AuthProvider';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { BusinessCreditLadderPanel } from '../../components/business/BusinessCreditLadderPanel';
 import { BusinessCreditRoadmapPanel } from '../../components/business/BusinessCreditRoadmapPanel';
-
-function navBtn(active: boolean) {
-  return `px-4 py-2 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ${
-    active ? 'bg-amber-500 text-black border-amber-400' : 'bg-white/5 text-white/70 border-white/10 hover:bg-white/10 hover:text-white'
-  }`;
-}
+import { BusinessJourneyShell } from '../../components/business/BusinessJourneyShell';
+import { BUSINESS_CREDIT_JOURNEY_STEPS, journeyPortalHref } from '../../domain/businessCreditJourney';
+import { getBusinessCreditProfile } from '../../data/businessCreditRepo';
 
 export default function BusinessDashboardPage() {
   const navigate = useNavigate();
-  const auth = useAuth();
   const { partner } = usePartnerSession();
+  const [version, setVersion] = useState(0);
+
+  const profile = useMemo(
+    () => (partner ? getBusinessCreditProfile(partner.id) : null),
+    [partner?.id, version],
+  );
+
+  React.useEffect(() => {
+    const onStore = () => setVersion((v) => v + 1);
+    window.addEventListener('finely:store', onStore as EventListener);
+    return () => window.removeEventListener('finely:store', onStore as EventListener);
+  }, []);
+
+  const doneCount = BUSINESS_CREDIT_JOURNEY_STEPS.filter((s) => profile?.journey?.[s.id]?.done).length;
+  const pct = Math.round((doneCount / BUSINESS_CREDIT_JOURNEY_STEPS.length) * 100);
+  const focus = BUSINESS_CREDIT_JOURNEY_STEPS.find((s) => !profile?.journey?.[s.id]?.done) ?? BUSINESS_CREDIT_JOURNEY_STEPS[0];
+  const blockers = BUSINESS_CREDIT_JOURNEY_STEPS.filter((s) => !profile?.journey?.[s.id]?.done).map((s) => s.title);
+
   return (
     <PageShell
       badge="Business Portal"
-      title="Business Dashboard"
-      subtitle="Fundability, structure, and vendor sequencing. This is the entry point for EIN-focused builds and business funding readiness."
+      title="Business credit journey"
+      subtitle="Your execution home — follow the seven-step rail. Progress and marks save to your partner profile when signed in."
     >
-      <div className="space-y-6">
-        <div className="flex flex-wrap gap-3">
-          <button className={navBtn(true)} onClick={() => navigate('/business/dashboard')}>
-            <LayoutGrid size={12} className="inline mr-2" /> Dashboard
-          </button>
-          <button className={navBtn(false)} onClick={() => navigate('/business/profile')}>
-            <Building2 size={12} className="inline mr-2" /> Profile
-          </button>
-          <button className={navBtn(false)} onClick={() => navigate('/business/vendors')}>
-            <Users size={12} className="inline mr-2" /> Vendors
-          </button>
-          <button className={navBtn(false)} onClick={() => navigate('/business/bureaus')}>
-            <BookOpen size={12} className="inline mr-2" /> Bureaus & Scores
-          </button>
-          <button className={navBtn(false)} onClick={() => navigate('/business/lender-logic')}>
-            <Target size={12} className="inline mr-2" /> Lender Logic
-          </button>
-          <button className={navBtn(false)} onClick={() => navigate('/business/disputes')}>
-            <AlertTriangle size={12} className="inline mr-2" /> Disputes
-          </button>
-          <button className={navBtn(false)} onClick={() => navigate('/business/documents')}>
-            <FileText size={12} className="inline mr-2" /> Documents
-          </button>
-          <button className={navBtn(false)} onClick={() => navigate('/business/billion-path')}>
-            <Crown size={12} className="inline mr-2" /> Billion Path
-          </button>
+      <BusinessJourneyShell showStepGuide={false}>
+        <div className="grid md:grid-cols-4 gap-4">
+          <Kpi label="Progress" value={`${pct}%`} hint={`${doneCount} of ${BUSINESS_CREDIT_JOURNEY_STEPS.length} steps`} />
+          <Kpi label="Current step" value={`${focus.step}`} hint={focus.title} accent />
+          <Kpi label="Open blockers" value={String(blockers.length)} hint={blockers.length ? 'See list below' : 'All clear'} />
+          <Kpi label="Next action" value="Go" hint={focus.subtitle} />
         </div>
 
-        <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-amber-500/10 via-white/[0.03] to-emerald-500/10 backdrop-blur-xl p-6 md:p-8">
+        <div className="rounded-2xl border border-[#fbbf24]/30 bg-gradient-to-br from-[#0b1110] to-[#060908] p-6 md:p-8">
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-            <div className="space-y-3 max-w-3xl">
-              <div className="inline-flex items-center gap-2 text-amber-300">
-                <Sparkles size={18} />
-                <span className="text-[10px] font-black uppercase tracking-widest">Business Credit OS</span>
+            <div className="space-y-2 max-w-2xl">
+              <div className="text-[10px] font-black uppercase tracking-[0.35em] text-[#fbbf24]">Next action</div>
+              <div className="text-2xl md:text-3xl font-semibold text-white">
+                Step {focus.step}: {focus.title}
               </div>
-              <div className="text-3xl md:text-4xl font-light text-white leading-tight">
-                Build EIN fundability with <span className="text-amber-500">sequencing</span>, not luck.
-              </div>
-              <div className="text-white/60 text-sm leading-relaxed">
-                This portal is your execution layer: profile hygiene → vendor stacking → lender logic → underwriting docs → relationship tracking (Billion Path).
-              </div>
+              <p className="text-white/75 text-sm leading-relaxed">{focus.why}</p>
             </div>
-            <div className="flex flex-wrap gap-3">
-              <button onClick={() => navigate('/business/profile')} className="fc-button-brand">
-                Start with profile <ArrowRight size={14} />
-              </button>
-              <button
-                onClick={() => navigate('/consultation?lane=' + encodeURIComponent('Business Credit'))}
-                className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-white/10 bg-black/30 hover:bg-white/[0.03] text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
-              >
-                Book free enlightenment session <ArrowRight size={14} />
-              </button>
-            </div>
-          </div>
-
-          <div className="mt-6 grid md:grid-cols-3 gap-4">
-            {[
-              { icon: Layers, t: 'Foundation', d: 'Entity + address hygiene + compliance signals' },
-              { icon: ShieldCheck, t: 'Sequence', d: 'Vendor stack → credit products when ready' },
-              { icon: Crown, t: 'Capital readiness', d: 'Docs + relationships + underwriting package' },
-            ].map((x) => {
-              const Icon = x.icon;
-              return (
-                <div key={x.t} className="rounded-2xl border border-white/10 bg-black/30 p-5">
-                  <div className="flex items-center gap-2 text-amber-300">
-                    <Icon size={16} />
-                    <div className="text-xs font-semibold uppercase tracking-wider">{x.t}</div>
-                  </div>
-                  <div className="mt-2 text-white/70 text-sm">{x.d}</div>
-                </div>
-              );
-            })}
+            <button
+              type="button"
+              onClick={() => navigate(journeyPortalHref(focus))}
+              className="fc-button-brand shrink-0"
+            >
+              Open step workspace <ArrowRight size={14} />
+            </button>
           </div>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6">
-          <div className="fc-card p-6 space-y-3">
-            <p className="text-[10px] uppercase tracking-widest text-white/40">What this portal does</p>
-            <ul className="list-disc pl-5 text-white/70 text-sm space-y-2">
-              <li>Turns your business into a “person” with its own fundability signals and operating profile.</li>
-              <li>Keeps sequencing clean: profile → vendors → lender logic → documents.</li>
-              <li>Gives you a single checklist you can execute without guessing.</li>
+        {blockers.length ? (
+          <div className="rounded-2xl border border-amber-500/25 bg-amber-500/5 p-5">
+            <div className="flex items-center gap-2 text-amber-200 text-sm font-semibold">
+              <AlertTriangle size={16} /> Blockers (incomplete steps)
+            </div>
+            <ul className="mt-3 space-y-2">
+              {blockers.map((t) => (
+                <li key={t} className="text-white/80 text-sm flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                  {t}
+                </li>
+              ))}
             </ul>
           </div>
-          <div className="fc-panel p-6 space-y-3">
-            <p className="text-[10px] uppercase tracking-widest text-white/40">Fast actions</p>
-            <div className="grid gap-3">
-              <button
-                onClick={() => navigate('/business/profile')}
-                className="text-left rounded-xl border border-white/10 bg-white/[0.02] hover:bg-white/[0.04] transition-all p-5"
-              >
-                <div className="text-white font-semibold">Complete business profile</div>
-                <div className="mt-1 text-white/60 text-sm">Entity, address, NAICS, compliance signals, and reporting readiness.</div>
-                <div className="mt-3 inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/50">
-                  Open profile <ArrowRight size={12} />
-                </div>
-              </button>
-              <button
-                onClick={() => navigate('/business/vendors')}
-                className="text-left rounded-xl border border-white/10 bg-white/[0.02] hover:bg-white/[0.04] transition-all p-5"
-              >
-                <div className="text-white font-semibold">Vendor center</div>
-                <div className="mt-1 text-white/60 text-sm">Sequenced vendor stack with readiness discipline.</div>
-                <div className="mt-3 inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/50">
-                  Open vendors <ArrowRight size={12} />
-                </div>
-              </button>
+        ) : (
+          <div className="rounded-2xl border border-emerald-500/25 bg-emerald-500/5 p-5 flex items-center gap-3 text-emerald-100 text-sm">
+            <CheckCircle2 size={20} /> All seven steps marked complete. Maintain files and re-run lender logic before new applications.
+          </div>
+        )}
 
-              <button
-                onClick={() => navigate('/business/lender-logic')}
-                className="text-left rounded-xl border border-white/10 bg-white/[0.02] hover:bg-white/[0.04] transition-all p-5"
-              >
-                <div className="text-white font-semibold">Run Lender Logic</div>
-                <div className="mt-1 text-white/60 text-sm">Model lender fit and generate next-best actions from your inputs.</div>
-                <div className="mt-3 inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/50">
-                  Open engine <ArrowRight size={12} />
-                </div>
-              </button>
+        <details className="rounded-2xl border border-white/15 bg-[#0b1110] p-5">
+          <summary className="cursor-pointer text-white font-semibold">Step guide — {focus.title}</summary>
+          <div className="mt-4 grid md:grid-cols-2 gap-4 text-sm text-white/80">
+            <div>
+              <div className="text-[10px] uppercase tracking-widest text-emerald-200 font-bold">Do</div>
+              <ul className="mt-2 list-disc pl-4 space-y-1">
+                {focus.do.map((x) => (
+                  <li key={x}>{x}</li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <div className="text-[10px] uppercase tracking-widest text-amber-200 font-bold">Avoid</div>
+              <ul className="mt-2 list-disc pl-4 space-y-1">
+                {focus.avoid.map((x) => (
+                  <li key={x}>{x}</li>
+                ))}
+              </ul>
             </div>
           </div>
-        </div>
+        </details>
 
         {partner ? <BusinessCreditLadderPanel partnerId={partner.id} /> : null}
         {partner ? <BusinessCreditRoadmapPanel partnerId={partner.id} /> : null}
         <BusinessReadinessChecklist />
-      </div>
+      </BusinessJourneyShell>
     </PageShell>
   );
 }
 
+function Kpi({
+  label,
+  value,
+  hint,
+  accent,
+}: {
+  label: string;
+  value: string;
+  hint: string;
+  accent?: boolean;
+}) {
+  return (
+    <div className="rounded-2xl border border-white/15 bg-[#0b1110] p-5">
+      <div className="text-[10px] uppercase tracking-widest text-white/50">{label}</div>
+      <div className={`text-2xl font-bold mt-1 ${accent ? 'text-[#fbbf24]' : 'text-white'}`}>{value}</div>
+      <div className="text-xs text-white/65 mt-1">{hint}</div>
+    </div>
+  );
+}

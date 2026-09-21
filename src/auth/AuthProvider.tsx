@@ -8,6 +8,8 @@ type AuthContextValue = {
   isConfigured: boolean;
   isDevAuthEnabled: boolean;
   isLoading: boolean;
+  /** True when getSession() exceeded the bootstrap timeout (slow/offline Supabase). */
+  sessionBootstrapTimedOut: boolean;
   session: Session | null;
   user: User | null;
   signUpWithEmail: (args: { email: string; password: string; metadata?: Record<string, any> }) => Promise<{ error?: string }>;
@@ -32,6 +34,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [mockUser, setMockUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [sessionBootstrapTimedOut, setSessionBootstrapTimedOut] = useState(false);
 
   const isDevAuthEnabled = import.meta.env.DEV && !isSupabaseConfigured;
 
@@ -63,15 +66,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     (async () => {
       try {
+        if (!isSupabaseConfigured && !isDevAuthEnabled) {
+          if (!mounted) return;
+          setSession(null);
+          setSessionBootstrapTimedOut(false);
+          return;
+        }
         if (isDevAuthEnabled) {
           const saved = safeParseJson<User>(localStorage.getItem(DEV_USER_STORAGE_KEY));
           if (!mounted) return;
           setMockUser(saved);
           setSession(null);
+          setSessionBootstrapTimedOut(false);
         } else {
-          const { data } = await supabase.auth.getSession();
+          const SESSION_TIMEOUT_MS = 5000;
+          const sessionResult = await Promise.race([
+            supabase.auth.getSession(),
+            new Promise<null>((resolve) => window.setTimeout(() => resolve(null), SESSION_TIMEOUT_MS)),
+          ]);
           if (!mounted) return;
-          setSession(data.session ?? null);
+          if (sessionResult && typeof sessionResult === 'object' && 'data' in sessionResult) {
+            setSession(sessionResult.data.session ?? null);
+            setSessionBootstrapTimedOut(false);
+          } else {
+            setSessionBootstrapTimedOut(true);
+          }
         }
       } finally {
         if (mounted) setIsLoading(false);
@@ -100,6 +119,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isConfigured: isSupabaseConfigured,
       isDevAuthEnabled,
       isLoading,
+      sessionBootstrapTimedOut,
       session,
       user,
       signUpWithEmail: async ({ email, password, metadata }) => {
@@ -198,7 +218,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       },
     };
-  }, [activeUser, isDevAuthEnabled, isLoading, session]);
+  }, [activeUser, isDevAuthEnabled, isLoading, session, sessionBootstrapTimedOut]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

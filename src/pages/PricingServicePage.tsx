@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Sparkles, Building2, Scale, Crown, Lock, Gift, Users } from 'lucide-react';
 import { PageShell } from '../components/layout/PageShell';
 import {
@@ -17,6 +17,7 @@ import {
   type PricingPackage,
 } from '../config/pricingCatalog';
 import { AgencyTierCard, PackageCard, variantForTierIndex } from '../components/pricing/PricingCards';
+import { PublicBrandMark } from '../components/public/PublicBrandMark';
 
 type ServiceSlug =
   | 'personal-credit'
@@ -78,7 +79,7 @@ function serviceMetaFromSlug(slugRaw: string | undefined): ServiceMeta | null {
     case 'tradelines':
       return { slug, category: 'tradeline_promo', title: categoryLabels.tradeline_promo, subtitle: categoryDescriptions.tradeline_promo };
     case 'agencies':
-      return { slug, category: 'agency', title: 'Agency Plans', subtitle: 'Tooling and operations tiers for credit repair agencies.' };
+      return { slug, category: 'agency', title: 'Agency Plans', subtitle: 'Tooling and operations tiers for credit restore agencies.' };
     default:
       return null;
   }
@@ -196,6 +197,13 @@ export default function PricingServicePage() {
   return (
     <PageShell badge="Services" title={title} subtitle={subtitle}>
       <div className="space-y-8">
+        <div className="rounded-2xl border border-[#fbbf24]/30 bg-gradient-to-br from-[#0b1110] to-[#060908] p-6 flex flex-wrap items-center gap-4">
+          <PublicBrandMark className="h-14 w-14" size={56} />
+          <div className="min-w-0 flex-1">
+            <div className="text-[10px] uppercase tracking-widest text-[#fbbf24] font-bold">Finely Cred services</div>
+            <p className="text-white/75 text-sm mt-1">{subtitle}</p>
+          </div>
+        </div>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <button
             onClick={() => navigate(basePath)}
@@ -291,6 +299,13 @@ export default function PricingServicePage() {
             ))}
           </div>
         )}
+
+        <footer className="rounded-2xl border border-white/10 bg-black/30 p-6 flex flex-wrap gap-4 text-sm text-white/70">
+          <Link to="/services" className="text-amber-400 hover:underline">All services</Link>
+          <Link to="/pricing" className="text-amber-400 hover:underline">Pricing</Link>
+          <Link to="/contact" className="text-amber-400 hover:underline">Contact</Link>
+          <Link to="/start" className="text-amber-400 hover:underline">Start Restore $147</Link>
+        </footer>
 
         <div className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xl p-6">
           <div className="text-[10px] uppercase tracking-widest text-white/40">How to choose</div>

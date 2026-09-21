@@ -1,0 +1,105 @@
+# Finely Cred — Specialist Academy
+
+Internal curriculum for specialists who run **restore** the way Finely Cred actually practices it: debt and collection risk first, validation discipline, bureau restore rounds, measured escalation, and litigation-ready files — not generic “credit repair” fluff.
+
+## Who this is for
+
+- New specialists onboarding to partner files
+- Haitian desk trainees (sit-together, Kreyòl-first explanations; **bureau letters stay English**)
+- Coaches running live video reviews with Sanz (see [MEETING-COACH.md](./MEETING-COACH.md))
+
+## Academy tracks (full program)
+
+| Track | Focus | Primary doc |
+| --- | --- | --- |
+| **A** | Onboarding, consent, portal hygiene | [Tracks A–E overview](./TRACKS-A-E-OVERVIEW.md) § A |
+| **B** | Partner communication & expectations | [Tracks A–E overview](./TRACKS-A-E-OVERVIEW.md) § B |
+| **C** | Haitian desk — Kreyòl-first, English letters | [TRACK F (HT)](./TRACK-F-credit-methodology-HT.md) · [A–E § C](./TRACKS-A-E-OVERVIEW.md) |
+| **D** | Evidence, reports, Credit Intel | [SOP-13](./sops/SOP-13-ocr-evidence-checklist.md) · TRACK F § F10 |
+| **E** | Letters, templates, OCR-safe variation | [SOP-13](./sops/SOP-13-ocr-evidence-checklist.md) · [A–E § E](./TRACKS-A-E-OVERVIEW.md) |
+| **F** | **Credit methodology (Sanz doctrine) + BUILD** | [TRACK F (EN)](./TRACK-F-credit-methodology-EN.md) |
+| **G** | Nora soft handoff | [SOP-15](./sops/SOP-15-funding-readiness-checklist.md) § D · TRACK F § F13 |
+| **H** | **Compliance & consumer law** (Metro 2, FCRA, FDCPA, CFPB, TILA, RESPA, UCC, repo, foreclosure) | [Curriculum map](./TRACK-H-COMPLIANCE-CURRICULUM.md) · SOPs [16–20](./sops/SOP-16-metro2-factual-dispute.md) |
+
+**Coach / QA:** [MEETING-COACH.md](./MEETING-COACH.md) · [WORKFLOW-MAP.md](./WORKFLOW-MAP.md) · [OVERSEER-QA.md](./OVERSEER-QA.md)
+
+### Haitian desk (quick norms)
+
+- Explain process in **Kreyòl**; read key English phrases on letters when the client asks.
+- Never promise deletion, score jumps, or Nora approval.
+- Validation and bureau disputes are **sequenced** — debt/collection/summons risk gates restore when needed.
+
+### Nora soft handoff (quick norms)
+
+- Finely Cred restores and documents; **Nora Capital Group** (when configured) is a separate funding pathway.
+- Language: “funding-readiness conversation,” not “you’re approved.”
+- Wealth Paths unlock is program-dependent — see pricing / entitlements in product; do not invent guarantees.
+
+## In-app UI (admin)
+
+- **Route:** `/admin/specialist-academy` — Library (all tracks, EN|HT) + **Quizzes** tab (methodology, compliance, debt/legal, BUILD).
+- **Start here:** lesson `f-consumer-power` · quiz `/admin/specialist-academy/quiz/methodology`.
+- Registry: `src/domain/trainingAcademy.ts` · quizzes: `src/specialistAcademy/academyQuizzes.ts`.
+
+## Partner prospecting (growth)
+
+- Audit: [PARTNER_PROSPECTING_AUDIT.md](../PARTNER_PROSPECTING_AUDIT.md) · Phase 2 spec: [PARTNER_PROSPECTING_IMPLEMENTATION_SPEC.md](../PARTNER_PROSPECTING_IMPLEMENTATION_SPEC.md).
+- **Lead Intel** (`/admin/lead-intel`): multi-metro batch (up to 5 metros × 20, dedupe, cap 50), optional **phone + email required**.
+
+## Track F — credit methodology (core)
+
+1. Read [Consumer power](./lessons/en/00-consumer-power-system.md) then [TRACK-F-credit-methodology-EN.md](./TRACK-F-credit-methodology-EN.md) end-to-end.
+2. Memorize [cards](./cards/README.md) F01–F14 and **F-Build** (quiz in meetings).
+3. Run cases using [SOPs](./sops/) 08–15 in order when applicable.
+4. Coach **restore + BUILD in parallel** per TRACK F § F-Build (underwriting literacy — no loan/card guarantees).
+5. Hang [WORKFLOW-MAP.md](./WORKFLOW-MAP.md) on your wall (digital or print).
+
+## SOP index (F-track operations)
+
+| SOP | Title |
+| --- | --- |
+| [SOP-08](./sops/SOP-08-debt-triage.md) | Debt triage — when restore must wait |
+| [SOP-09](./sops/SOP-09-validation-send.md) | Validation send (FDCPA §809 framing) |
+| [SOP-10](./sops/SOP-10-summons-awareness.md) | Summons awareness & counsel escalation |
+| [SOP-11](./sops/SOP-11-restore-rounds.md) | Bureau restore rounds (FCRA accuracy) |
+| [SOP-12](./sops/SOP-12-complaints-ladder.md) | Complaints ladder (CFPB / AG / etc.) |
+| [SOP-13](./sops/SOP-13-ocr-evidence-checklist.md) | OCR-safe letters + evidence checklist |
+| [SOP-14](./sops/SOP-14-prior-company-intake.md) | Prior-company / mid-round intake |
+| [SOP-15](./sops/SOP-15-funding-readiness-checklist.md) | Funding-readiness (pre–Nora soft handoff) |
+
+## Product touchpoints (where work happens)
+
+| Area | Product surface | Domain / templates |
+| --- | --- | --- |
+| Debt & summons | Partner **Debt & Summons Center** | `debtLegal.ts`, `debtLetterTemplates.ts` |
+| Collections on report | Collections tab + evidence | `negativePlaybooks.ts` (collection) |
+| Bureau disputes | Disputes / Letters / Credit Intel timeline | Round 1 → mail → follow-up |
+| Templates | Admin Templates (OCR-friendly variants) | `starterPack.ts`, `litigationAdvanced.ts` |
+
+## Training progression (suggested)
+
+1. **Week 1:** Tracks A + F cards F01–F06 + SOP-08/09 + shadow one debt triage.
+2. **Week 2:** F07–F11 + SOP-10/11 + draft one validation packet (coach review).
+3. **Week 3:** F12–F14 + F-BUILD + SOP-12/13/14 + co-run Round 1 with evidence checklist.
+4. **Week 4:** SOP-15 funding-readiness dry run; Nora soft-handoff script (no approval language).
+5. **Ongoing:** [MEETING-COACH.md](./MEETING-COACH.md) quizzes before solo file ownership.
+
+## In-app navigation (product UI)
+
+**Admin → Specialist Academy** (`/admin/specialist-academy`)
+
+- Sidebar browse for tracks A–G, SOPs 08–15, and deep lessons
+- **EN | HT** toggle where Kreyòl twins exist
+- Long-form layout with example callouts and local progress checkmarks
+- Also linked from Admin Dashboard → **Specialist Academy** card
+
+Registry: `src/domain/trainingAcademy.ts` (additive lesson IDs; does not replace Courses builder).
+
+## Maintainer notes
+
+- Docs under `docs/specialist-academy/` are loaded at build time via `import.meta.glob`.
+- Do not remove existing Courses modules when extending training links.
+
+---
+
+*Educational only. Not legal advice. No guaranteed deletions, scores, loan approvals, or credit card approvals. Debt may remain after restore. Nora funding is separate; no approval promised.*
