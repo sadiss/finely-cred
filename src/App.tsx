@@ -12,7 +12,10 @@ import { PartnerLoadGate } from './auth/PartnerLoadGate';
 import './routing/dashboardPrefetch';
 import './routing/publicPrefetch';
 import { prefetchPublicCtasOnIdle } from './routing/publicPrefetch';
+import { navIntentProps, warmPublicNavTargets } from './routing/navIntent';
+import { PUBLIC_SERVICE_PATHS } from './routing/publicNavPaths';
 import { prefetchRoutePrefix } from './routing/routePrefetch';
+import { PublicBrandMark } from './components/public/PublicBrandMark';
 import { scheduleStaffAutomationSync } from './lib/bootStaffAutomationSync';
 import { syncPwaServiceWorkerWithPath } from './lib/pwaRegister';
 import { 
@@ -235,6 +238,16 @@ function viewFromPath(pathname: string): NavView {
   if (pathname.startsWith('/terms')) return 'terms';
   if (pathname.startsWith('/privacy')) return 'privacy';
   if (pathname.startsWith('/disclaimer')) return 'disclaimer';
+  if (pathname.startsWith('/start')) return 'pricing';
+  if (pathname.startsWith('/personal-credit')) return 'services';
+  if (
+    pathname.startsWith('/free-kreyol-guide') ||
+    pathname.startsWith('/free-guide') ||
+    pathname.startsWith('/haitian') ||
+    pathname.startsWith('/kreyol')
+  ) {
+    return 'resources';
+  }
   return 'landing';
 }
 
@@ -1055,6 +1068,8 @@ function AppInner() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const navWarm = (target: string) => navIntentProps(target);
+
   return (
     <div className="min-h-screen text-white font-sans bg-[#0d1512]">
       {toast && <Toast message={toast} onClose={() => setToast(null)} />}
@@ -1090,17 +1105,24 @@ function AppInner() {
 
                 <div className="flex justify-center">
                   <button
+                    type="button"
                     onClick={() => handleNavigate('landing')}
-                    className="text-base sm:text-lg font-bold tracking-wider text-white hover:opacity-80 transition-opacity"
+                    {...navWarm('landing')}
+                    className="inline-flex items-center gap-2 text-base sm:text-lg font-bold tracking-wider text-white hover:opacity-80 transition-opacity"
                     aria-label="Go to home"
                   >
-                    FINELY <span className="text-amber-500">CRED</span>
+                    <PublicBrandMark className="h-7 w-7" size={28} />
+                    <span>
+                      FINELY <span className="text-amber-500">CRED</span>
+                    </span>
                   </button>
                 </div>
 
                 <div className="flex items-center justify-end gap-3">
                   <button
+                    type="button"
                     onClick={() => handleNavigate('checkout')}
+                    {...navWarm('checkout')}
                     className="relative p-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all"
                     title="Checkout"
                     aria-label="Open checkout"
@@ -1118,17 +1140,24 @@ function AppInner() {
               {/* Desktop header */}
               <div className="hidden lg:flex justify-between items-center">
                 <button
+                  type="button"
                   onClick={() => handleNavigate('landing')}
-                  className="text-xl font-bold tracking-wider text-white hover:opacity-80 transition-opacity"
+                  {...navWarm('landing')}
+                  className="inline-flex items-center gap-3 text-xl font-bold tracking-wider text-white hover:opacity-80 transition-opacity"
                   aria-label="Go to home"
                 >
-                  FINELY <span className="text-amber-500">CRED</span>
+                  <PublicBrandMark className="h-9 w-9" size={36} />
+                  <span>
+                    FINELY <span className="text-amber-500">CRED</span>
+                  </span>
                 </button>
 
                 {/* Desktop Navigation - pill buttons with readable text */}
                 <div className="flex items-center gap-3">
                 <button
+                  type="button"
                   onClick={() => handleNavigate('landing')}
+                  {...navWarm('landing')}
                   className={`px-5 py-2 rounded-xl border transition-all text-sm font-semibold ${
                     currentView === 'landing'
                       ? 'bg-amber-500 text-black border-amber-400 shadow-lg shadow-amber-900/20'
@@ -1139,9 +1168,14 @@ function AppInner() {
                 </button>
 
                 {/* Services dropdown (replaces Pricing in nav) */}
-                <div className="relative group">
+                <div
+                  className="relative group"
+                  onMouseEnter={() => warmPublicNavTargets(['/services', ...PUBLIC_SERVICE_PATHS])}
+                >
                   <button
+                    type="button"
                     onClick={() => handleNavigate('/services/personal-credit-restore')}
+                    {...navWarm('/services/personal-credit-restore')}
                     className={`px-5 py-2 rounded-xl border transition-all text-sm font-semibold ${
                       currentView === 'services'
                         ? 'bg-amber-500 text-black border-amber-400 shadow-lg shadow-amber-900/20'
@@ -1169,7 +1203,9 @@ function AppInner() {
                         ].map((x) => (
                           <button
                             key={x.path}
+                            type="button"
                             onClick={() => handleNavigate(x.path)}
+                            {...navWarm(x.path)}
                             className="text-left px-4 py-3 rounded-xl border border-white/10 bg-white/[0.02] hover:bg-white/[0.05] hover:border-amber-500/25 transition-all text-sm text-white/80"
                           >
                             <div className="font-semibold">{x.label}</div>
@@ -1180,7 +1216,9 @@ function AppInner() {
                       <div className="px-5 py-4 border-t border-white/10 bg-black/20 flex items-center justify-between">
                         <div className="text-white/60 text-xs">Pick a service to see the same card-style pricing.</div>
                         <button
+                          type="button"
                           onClick={() => handleNavigate('/services')}
+                          {...navWarm('/services')}
                           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/15 text-amber-200 text-[10px] font-black uppercase tracking-widest transition-all"
                         >
                           View all <ArrowRight size={12} />
@@ -1191,7 +1229,9 @@ function AppInner() {
                 </div>
 
                 <button
+                  type="button"
                   onClick={() => handleNavigate('tradelines')}
+                  {...navWarm('tradelines')}
                   className={`px-5 py-2 rounded-xl border transition-all text-sm font-semibold ${
                     currentView === 'tradelines'
                       ? 'bg-amber-500 text-black border-amber-400 shadow-lg shadow-amber-900/20'
@@ -1202,8 +1242,13 @@ function AppInner() {
                 </button>
 
                 {/* Learn dropdown */}
-                <div className="relative group">
+                <div
+                  className="relative group"
+                  onMouseEnter={() => warmPublicNavTargets(['resources', 'events', 'bookstore'])}
+                >
                   <button
+                    type="button"
+                    {...navWarm('resources')}
                     className={`px-5 py-2 rounded-xl border transition-all text-sm font-semibold ${
                       currentView === 'resources' || currentView === 'events' || currentView === 'bookstore'
                         ? 'bg-amber-500 text-black border-amber-400 shadow-lg shadow-amber-900/20'
@@ -1226,7 +1271,9 @@ function AppInner() {
                         ].map((x) => (
                           <button
                             key={x.id}
+                            type="button"
                             onClick={() => handleNavigate(x.id)}
+                            {...navWarm(x.id)}
                             className="w-full text-left px-4 py-3 rounded-xl border border-white/10 bg-white/[0.02] hover:bg-white/[0.05] transition-all text-sm text-white/80"
                           >
                             {x.label}
@@ -1238,8 +1285,15 @@ function AppInner() {
                 </div>
 
                 {/* Company dropdown */}
-                <div className="relative group">
+                <div
+                  className="relative group"
+                  onMouseEnter={() =>
+                    warmPublicNavTargets(['about', 'testimonials', 'affiliate', 'contact', 'faq'])
+                  }
+                >
                   <button
+                    type="button"
+                    {...navWarm('about')}
                     className={`px-5 py-2 rounded-xl border transition-all text-sm font-semibold ${
                       currentView === 'about' || currentView === 'testimonials' || currentView === 'affiliate' || currentView === 'contact'
                         ? 'bg-amber-500 text-black border-amber-400 shadow-lg shadow-amber-900/20'
@@ -1264,7 +1318,9 @@ function AppInner() {
                         ].map((x) => (
                           <button
                             key={x.id}
+                            type="button"
                             onClick={() => handleNavigate(x.id)}
+                            {...navWarm(x.id)}
                             className="w-full text-left px-4 py-3 rounded-xl border border-white/10 bg-white/[0.02] hover:bg-white/[0.05] transition-all text-sm text-white/80"
                           >
                             {x.label}
@@ -1274,8 +1330,10 @@ function AppInner() {
                     </div>
                   </div>
                 </div>
-                <button 
-                  onClick={() => handleNavigate('onboarding')} 
+                <button
+                  type="button"
+                  onClick={() => handleNavigate('onboarding')}
+                  {...navWarm('onboarding')}
                   className={`px-5 py-2 rounded-xl border transition-all text-sm font-semibold ${
                     currentView === 'onboarding'
                       ? 'bg-amber-500 text-black border-amber-400 shadow-lg shadow-amber-900/20'
@@ -1288,7 +1346,9 @@ function AppInner() {
                 <div className="flex items-center gap-4">
                   {/* Cart */}
                   <button
+                    type="button"
                     onClick={() => handleNavigate('checkout')}
+                    {...navWarm('checkout')}
                     className="relative p-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all"
                     title="Checkout"
                     aria-label="Open checkout"

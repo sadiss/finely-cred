@@ -75,7 +75,7 @@ export default function ContactPage() {
     <PageShell
       badge="Public"
       title="Contact"
-      subtitle="Get in touch for support, affiliate inquiries, or to start your credit and funding journey."
+      subtitle="Get in touch for support, affiliate inquiries, or to start your credit restore and funding journey."
     >
       <div className="space-y-8">
         <div className="flex flex-wrap items-center gap-4">

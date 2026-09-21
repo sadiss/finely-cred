@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CheckCircle2, Sparkles, Menu, X } from 'lucide-react';
+import { navIntentProps } from '../../routing/navIntent';
 export { FullPageLoader } from './FullPageLoader';
 export { AppErrorBoundary } from './AppErrorBoundary';
 export { KpiCard, Sparkline } from './KpiCards';
@@ -730,6 +731,8 @@ export function MobileNav({ isOpen, onClose, onNavigate, currentView }: MobileNa
                 {section.links.map((link) => (
                   <button
                     key={link.id}
+                    type="button"
+                    {...navIntentProps(link.id)}
                     onClick={() => {
                       onNavigate(link.id);
                       onClose();

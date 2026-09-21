@@ -78,7 +78,7 @@ function serviceMetaFromSlug(slugRaw: string | undefined): ServiceMeta | null {
     case 'tradelines':
       return { slug, category: 'tradeline_promo', title: categoryLabels.tradeline_promo, subtitle: categoryDescriptions.tradeline_promo };
     case 'agencies':
-      return { slug, category: 'agency', title: 'Agency Plans', subtitle: 'Tooling and operations tiers for credit repair agencies.' };
+      return { slug, category: 'agency', title: 'Agency Plans', subtitle: 'Tooling and operations tiers for credit restore agencies.' };
     default:
       return null;
   }

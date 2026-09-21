@@ -7,6 +7,8 @@ import {
   BadgeCheck, Lock, FileText, AlertCircle
 } from 'lucide-react';
 import { CARD_CONFIGS, Button, Reveal, FlashyIcon, AnimatedCounter, LoopingTypingHeader } from '../ui';
+import { PublicBrandMark } from '../public/PublicBrandMark';
+import { navIntentProps } from '../../routing/navIntent';
 import { loadSettings, getPricingControls } from '../../data/settingsRepo';
 import { listAuSellersByTenant } from '../../data/auSellerRepo';
 import { getActiveTenant, getActiveTenantId } from '../../tenancy/activeTenant';
@@ -384,7 +386,7 @@ export function HeroSection({ onGetStarted, onViewTradelines, onStartRestore }: 
           <div className="space-y-8 text-center lg:text-left">
             <Reveal>
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400">
-                <Shield size={16} />
+                <PublicBrandMark className="h-5 w-5" size={20} />
                 <span className="text-xs font-semibold uppercase tracking-wider">{heroKicker}</span>
               </div>
             </Reveal>
@@ -513,8 +515,8 @@ export function ViolationLiveFeed() {
             </span>
             <span className="text-xs text-white/50 uppercase tracking-wider">{v.msg}</span>
             <span className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              <span className="text-[10px] text-emerald-400 font-semibold">{v.status}</span>
+              <span className="w-2 h-2 rounded-full bg-amber-500" />
+              <span className="text-[10px] text-amber-300 font-semibold">{v.status}</span>
             </span>
             <span className="text-white/20">|</span>
           </div>
@@ -543,9 +545,9 @@ export function QualifyFundingSection() {
           </p>
         </Reveal>
         <Reveal delay={300}>
-          <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-emerald-500/10 border border-emerald-500/30">
-            <Zap size={20} className="text-emerald-400" />
-            <span className="text-emerald-400 font-semibold">Get a debt + fundability gameplan in as little as 24 hours.</span>
+          <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-amber-500/10 border border-amber-500/30">
+            <Zap size={20} className="text-amber-400" />
+            <span className="text-amber-200 font-semibold">Get a debt + fundability gameplan in as little as 24 hours.</span>
           </div>
         </Reveal>
       </div>
@@ -562,19 +564,22 @@ export function ServicesSection({ onNavigate }: { onNavigate: (page: string) => 
       icon: Building2, 
       title: "Business Credit", 
       desc: "Build your EIN credit separate from your SSN for stronger approvals and long-term fundability.",
-      color: "amber" as const
+      color: "amber" as const,
+      path: '/services/business-credit',
     },
     { 
       icon: CreditCard, 
       title: "Personal Credit", 
       desc: "Restore and optimize your personal credit profile for better rates and approvals.",
-      color: "green" as const
+      color: "green" as const,
+      path: '/services/personal-credit-restore',
     },
     { 
       icon: DollarSign, 
       title: "Debt Kill", 
       desc: "Organize collections/summons, build a payoff & dispute strategy, and track the path to relief.",
-      color: "blue" as const
+      color: "blue" as const,
+      path: '/services/debt-legal',
     },
   ];
 
@@ -594,7 +599,11 @@ export function ServicesSection({ onNavigate }: { onNavigate: (page: string) => 
           {services.map((service, i) => (
             <Reveal key={i} delay={i * 100}>
               <div 
-                onClick={() => onNavigate('services')}
+                role="button"
+                tabIndex={0}
+                onClick={() => onNavigate(service.path)}
+                onKeyDown={(e) => e.key === 'Enter' && onNavigate(service.path)}
+                {...navIntentProps(service.path)}
                 className="group cursor-pointer p-8 rounded-2xl bg-white/[0.02] border border-white/10 hover:border-amber-500/30 hover:bg-amber-500/5 transition-all duration-300"
               >
                 <FlashyIcon icon={service.icon} color={service.color} />
@@ -629,7 +638,7 @@ export function TradelineDualSection({
           <Reveal>
             <p className="text-xs font-bold tracking-[0.3em] text-amber-500 uppercase mb-4">Premium Tradelines</p>
             <h2 className="text-3xl lg:text-5xl font-light text-white mb-6">
-              Choose your lane — <span className="text-amber-500">AU</span> or <span className="text-emerald-400">Primary</span>
+              Choose your lane — <span className="text-amber-500">AU</span> or <span className="text-sky-300">Primary</span>
             </h2>
             <p className="text-white/50 max-w-2xl mx-auto">
               One section. Two options. If you want an instant AU boost, shop inventory. If you need a primary tradeline,
@@ -642,15 +651,19 @@ export function TradelineDualSection({
           {/* Primary Tradelines */}
           <Reveal delay={100}>
             <div 
+              role="button"
+              tabIndex={0}
               onClick={() => onNavigate('tradelines_primary')}
-              className="group cursor-pointer relative p-8 rounded-3xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 to-transparent hover:border-emerald-500/40 transition-all duration-300"
+              onKeyDown={(e) => e.key === 'Enter' && onNavigate('tradelines_primary')}
+              {...navIntentProps('tradelines_primary')}
+              className="group cursor-pointer relative p-8 rounded-3xl border border-sky-500/20 bg-gradient-to-br from-sky-500/5 to-transparent hover:border-sky-400/40 transition-all duration-300"
             >
-              <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30">
-                <span className="text-[10px] font-bold text-emerald-400 uppercase">Available</span>
+              <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-sky-500/20 border border-sky-500/30">
+                <span className="text-[10px] font-bold text-sky-300 uppercase">Available</span>
               </div>
               
-              <div className="w-14 h-14 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center mb-6">
-                <CreditCard size={28} className="text-emerald-400" />
+              <div className="w-14 h-14 rounded-2xl bg-sky-500/20 border border-sky-500/30 flex items-center justify-center mb-6">
+                <CreditCard size={28} className="text-sky-300" />
               </div>
               
               <h3 className="text-2xl font-medium text-white mb-3">Primary Tradelines</h3>
@@ -659,7 +672,7 @@ export function TradelineDualSection({
                 credit building and lender readiness — not debt swapping.
               </p>
               
-              <div className="flex items-center gap-2 text-emerald-400 font-medium">
+              <div className="flex items-center gap-2 text-sky-300 font-medium">
                 Explore Options <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
               </div>
             </div>
@@ -1793,7 +1806,7 @@ export function AffiliateSection({ onVisitAffiliate }: { onVisitAffiliate?: () =
             }}>
               Become
             </span>{' '}
-            <span className="text-emerald-400 font-medium">Affiliated</span>
+            <span className="text-amber-400 font-medium">Affiliated</span>
           </h2>
           
           {/* Quote with platinum styling */}
@@ -1812,7 +1825,7 @@ export function AffiliateSection({ onVisitAffiliate }: { onVisitAffiliate?: () =
             <div className="absolute -bottom-4 -right-4 text-6xl text-white/10 font-serif rotate-180">"</div>
           </div>
           
-          <p className="text-emerald-400 font-semibold mb-2">— Sanz St Louis</p>
+          <p className="text-amber-300 font-semibold mb-2">— Sanz St Louis</p>
           <p className="text-sm uppercase tracking-wider mb-10"
             style={{
               background: 'linear-gradient(180deg, #c0c0c0 0%, #808080 100%)',
@@ -1835,10 +1848,9 @@ export function AffiliateSection({ onVisitAffiliate }: { onVisitAffiliate?: () =
             <span className="text-[#1a1a1a]">Visit Affiliate Portal</span>
             <ArrowRight size={18} className="text-[#1a1a1a] group-hover:translate-x-1 transition-transform" />
             
-            {/* Green glow on hover */}
             <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
               style={{
-                boxShadow: '0 0 30px rgba(16,185,129,0.4), 0 0 60px rgba(16,185,129,0.2)'
+                boxShadow: '0 0 30px rgba(245,158,11,0.35), 0 0 60px rgba(245,158,11,0.15)'
               }} />
           </button>
         </Reveal>
@@ -1910,11 +1922,14 @@ export function Footer({ onNavigate }: { onNavigate: (page: string) => void }) {
         <div className="grid md:grid-cols-4 gap-12 mb-12">
           {/* Brand */}
           <div className="space-y-4">
-            <span className="text-xl font-bold tracking-wider text-white">
-              FINELY <span className="text-amber-500">CRED</span>
-            </span>
-            <p className="text-white/40 text-sm leading-relaxed">
-              Full Credit Solution Company providing institutional-grade credit services.
+            <div className="inline-flex items-center gap-3">
+              <PublicBrandMark className="h-10 w-10" size={40} />
+              <span className="text-xl font-bold tracking-wider text-white">
+                FINELY <span className="text-amber-500">CRED</span>
+              </span>
+            </div>
+            <p className="text-white/55 text-sm leading-relaxed">
+              Full Credit Solution Company — personal restore, business credit, debt strategy, and tradelines with education-first workflows.
             </p>
             <div className="flex gap-3">
               {socials.length > 0 ? (
@@ -1945,11 +1960,22 @@ export function Footer({ onNavigate }: { onNavigate: (page: string) => void }) {
           {/* Services */}
           <div className="space-y-4">
             <p className="text-sm font-semibold text-white uppercase tracking-wider">Services</p>
-            <ul className="space-y-3 text-sm text-white/40">
-              {['Personal Restore', 'Personal Building', 'Business Credit', 'Debt & Legal', 'Tradelines'].map(item => (
-                <li key={item}>
-                  <button onClick={() => onNavigate('services')} className="hover:text-amber-500 transition-colors">
-                    {item}
+            <ul className="space-y-3 text-sm text-white/55">
+              {[
+                { label: 'Personal Restore', path: '/services/personal-credit-restore' },
+                { label: 'Personal Building', path: '/services/personal-credit-building' },
+                { label: 'Business Credit', path: '/services/business-credit' },
+                { label: 'Debt & Legal', path: '/services/debt-legal' },
+                { label: 'Tradelines', path: '/tradelines' },
+              ].map((item) => (
+                <li key={item.path}>
+                  <button
+                    type="button"
+                    onClick={() => onNavigate(item.path)}
+                    {...navIntentProps(item.path)}
+                    className="hover:text-amber-400 transition-colors text-left"
+                  >
+                    {item.label}
                   </button>
                 </li>
               ))}
@@ -1959,24 +1985,44 @@ export function Footer({ onNavigate }: { onNavigate: (page: string) => void }) {
           {/* Resources */}
           <div className="space-y-4">
             <p className="text-sm font-semibold text-white uppercase tracking-wider">Resources</p>
-            <ul className="space-y-3 text-sm text-white/40">
+            <ul className="space-y-3 text-sm text-white/55">
               <li>
-                <button onClick={() => onNavigate('bookstore')} className="hover:text-amber-500 transition-colors">
+                <button
+                  type="button"
+                  onClick={() => onNavigate('bookstore')}
+                  {...navIntentProps('bookstore')}
+                  className="hover:text-amber-400 transition-colors"
+                >
                   e-Books
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('resources')} className="hover:text-amber-500 transition-colors">
-                  Videos
+                <button
+                  type="button"
+                  onClick={() => onNavigate('resources')}
+                  {...navIntentProps('resources')}
+                  className="hover:text-amber-400 transition-colors"
+                >
+                  Videos &amp; guides
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('resources')} className="hover:text-amber-500 transition-colors">
-                  DIY
+                <button
+                  type="button"
+                  onClick={() => onNavigate('/start')}
+                  {...navIntentProps('/start')}
+                  className="hover:text-amber-400 transition-colors"
+                >
+                  Start Restore ($147)
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('faq')} className="hover:text-amber-500 transition-colors">
+                <button
+                  type="button"
+                  onClick={() => onNavigate('faq')}
+                  {...navIntentProps('faq')}
+                  className="hover:text-amber-400 transition-colors"
+                >
                   FAQs
                 </button>
               </li>
@@ -1986,7 +2032,7 @@ export function Footer({ onNavigate }: { onNavigate: (page: string) => void }) {
           {/* Contact */}
           <div className="space-y-4">
             <p className="text-sm font-semibold text-white uppercase tracking-wider">Contact</p>
-            <ul className="space-y-3 text-sm text-white/40">
+            <ul className="space-y-3 text-sm text-white/55">
               <li className="flex items-center gap-2">
                 <Phone size={14} className="text-amber-500" />
                 {site.supportPhone || '800-307-4057'}
@@ -2025,9 +2071,9 @@ export function Footer({ onNavigate }: { onNavigate: (page: string) => void }) {
             <span className="font-mono text-amber-500/70" title={`${brand} build version`}>
               Build: {brand} · v1.0.0
             </span>
-            <button onClick={() => onNavigate('privacy')} className="hover:text-white transition-colors">Privacy Policy</button>
-            <button onClick={() => onNavigate('terms')} className="hover:text-white transition-colors">Terms & Conditions</button>
-            <button onClick={() => onNavigate('disclaimer')} className="hover:text-white transition-colors">Disclaimer</button>
+            <button type="button" onClick={() => onNavigate('privacy')} {...navIntentProps('privacy')} className="hover:text-white transition-colors">Privacy Policy</button>
+            <button type="button" onClick={() => onNavigate('terms')} {...navIntentProps('terms')} className="hover:text-white transition-colors">Terms &amp; Conditions</button>
+            <button type="button" onClick={() => onNavigate('disclaimer')} {...navIntentProps('disclaimer')} className="hover:text-white transition-colors">Disclaimer</button>
           </div>
         </div>
       </div>
