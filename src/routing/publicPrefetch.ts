@@ -28,7 +28,7 @@ const PUBLIC_ROUTE_PREFETCH: Record<string, () => Promise<unknown>> = {
   '/disclaimer': () => import('../pages/legal/DisclaimerPage'),
   '/start': () => import('../pages/StartRestorePage'),
   '/free-kreyol-guide': () => import('../pages/public/FreeKreyolGuidePage'),
-  '/free-guide': () => import('../pages/public/FreeKreyolGuidePage'),
+  '/free-guide': () => import('../pages/public/FreeGuideLandingPage'),
   '/haitian': () => import('../pages/public/HaitianCompanionPublicPage'),
   '/kreyol': () => import('../pages/public/HaitianCompanionPublicPage'),
 };

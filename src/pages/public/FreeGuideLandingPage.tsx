@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Download, BookOpen } from 'lucide-react';
 import { PageShell } from '../../components/layout/PageShell';
+import { GuideCoverImage } from '../../components/public/GuideCoverImage';
 import { submitLeadCapture } from '../../data/leadsRepo';
 
 const PREVIEW_PAGES = [
@@ -52,12 +53,10 @@ export default function FreeGuideLandingPage() {
     >
       <div className="max-w-4xl mx-auto grid lg:grid-cols-2 gap-8 items-start">
         <div className="rounded-2xl border border-amber-500/30 bg-black/40 p-6">
-          <img
+          <GuideCoverImage
+            alt="Finely Cred guide cover"
             src="/brand/finely-cred-mark.png"
-            alt=""
             className="w-24 h-24 rounded-full object-cover mx-auto mb-4"
-            width={96}
-            height={96}
           />
           <p className="text-center text-white/80 text-sm">Official Finely Cred medallion cover — digital guide pack</p>
           <div className="mt-6 flex items-center justify-center gap-3 text-white">

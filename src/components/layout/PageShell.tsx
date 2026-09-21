@@ -162,6 +162,15 @@ export function PageShell({
     !pathname.startsWith('/au') &&
     !pathname.startsWith('/dashboard');
   const topPad = useLargeTopPad ? 'pt-28' : 'pt-10';
+  const isPublicMarketing =
+    useLargeTopPad &&
+    !pathname.startsWith('/onboarding') &&
+    !pathname.startsWith('/login') &&
+    !pathname.startsWith('/signup') &&
+    !pathname.startsWith('/forgot-password');
+  const publicBottomPad = isPublicMarketing
+    ? 'pb-[var(--fc-public-safe-bottom,7rem)] max-md:pb-[calc(var(--fc-public-safe-bottom,7rem)+1.5rem)]'
+    : 'pb-28 md:pb-20';
   const isAdmin = pathname.startsWith('/admin');
   const isPortal = pathname.startsWith('/portal');
   const isAppRoute =
@@ -336,7 +345,7 @@ export function PageShell({
     <div
       data-fc-pageshell-root="1"
       data-fc-pathname={pathname}
-      className={`relative bg-[#0b1110] text-white ${topPad} min-h-screen pb-28 md:pb-20`}
+      className={`relative bg-[#0b1110] text-white ${topPad} min-h-screen ${publicBottomPad}`}
     >
       {debugUi ? (
         <div

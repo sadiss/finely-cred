@@ -62,6 +62,52 @@ samp {
   --fc-card: rgba(255, 255, 255, 0.06);
   --fc-border: rgba(255, 255, 255, 0.10);
   --fc-text-dim: rgba(255, 255, 255, 0.60);
+
+  /* Public floating chrome (toast + Ask Finely) — updated per route in PublicFloatingChrome */
+  --fc-public-safe-bottom: 7rem;
+}
+
+body[data-fc-public-form='1'] {
+  --fc-public-safe-bottom: 11rem;
+}
+
+.fc-public-chat-launcher {
+  right: 1rem;
+}
+@media (min-width: 640px) {
+  .fc-public-chat-launcher--standard {
+    right: 1.5rem;
+  }
+}
+
+.fc-public-chat-launcher--standard {
+  bottom: max(1.25rem, calc(var(--fc-public-safe-bottom, 7rem) - 5.5rem));
+}
+.fc-public-chat-launcher--compact {
+  bottom: max(5.5rem, calc(var(--fc-public-safe-bottom, 7rem) - 3rem));
+}
+.fc-public-chat-launcher--minimal {
+  bottom: var(--fc-public-safe-bottom, 11rem);
+  right: 1rem;
+}
+
+.fc-public-chat-panel--standard {
+  bottom: max(1.25rem, calc(var(--fc-public-safe-bottom, 7rem) - 5.5rem));
+  right: 1rem;
+}
+@media (min-width: 640px) {
+  .fc-public-chat-panel--standard {
+    right: 1.5rem;
+  }
+}
+.fc-public-chat-panel--compact {
+  bottom: max(5.5rem, calc(var(--fc-public-safe-bottom, 7rem) - 3rem));
+  right: 1rem;
+}
+.fc-public-chat-panel--minimal {
+  bottom: var(--fc-public-safe-bottom, 11rem);
+  right: 1rem;
+  width: min(360px, calc(100vw - 2rem));
 }
 
 @layer components {

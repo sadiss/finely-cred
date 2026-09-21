@@ -5,7 +5,7 @@ import {
 import { BrowserRouter, Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 
 // Import all components
-import { Button, Reveal, Toast, LiveApprovalTicker, MobileNav, AppErrorBoundary } from './components/ui';
+import { Button, Reveal, Toast, MobileNav, AppErrorBoundary } from './components/ui';
 import { lazyRoute } from './routing/lazyRoute';
 import { ScrollToTop } from './routing/ScrollToTop';
 import { PartnerLoadGate } from './auth/PartnerLoadGate';
@@ -34,7 +34,8 @@ import { AuthProvider, useAuth } from './auth/AuthProvider';
 import { ProtectedRoute } from './auth/ProtectedRoute';
 import { ProtectedAdminRoute } from './auth/ProtectedAdminRoute';
 import { PortalChatWidget } from './components/chat/PortalChatWidget';
-import { PublicChatWidget } from './components/chat/PublicChatWidget';
+import { PublicFloatingChrome } from './components/public/PublicFloatingChrome';
+import { viewFromPath, routeFromView, type NavView } from './routing/publicMarketingRoutes';
 import { isSupabaseConfigured } from './lib/supabaseClient';
 import { installGlobalErrorReporting } from './lib/errorReporting';
 import { getOrCreatePartnerForSession } from './portal/getOrCreatePartnerForSession';
@@ -172,101 +173,6 @@ const DisclaimerPage = lazyRoute(() => import('./pages/legal/DisclaimerPage'));
 const AffiliatePage = lazyRoute(() => import('./pages/AffiliatePage'));
 const AgentsPage = lazyRoute(() => import('./pages/AgentsPage'));
 const AgencySignupPage = lazyRoute(() => import('./pages/agency/AgencySignupPage'));
-
-type NavView =
-  | 'landing'
-  | 'tradelines'
-  | 'tradelines_primary'
-  | 'tradelines_au'
-  | 'checkout'
-  | 'events'
-  | 'about'
-  | 'onboarding'
-  | 'dashboard'
-  // Landing/footer links (unification: map to real routes / placeholders)
-  | 'services'
-  | 'services_tradelines'
-  | 'resources'
-  | 'pricing'
-  | 'testimonials'
-  | 'bookstore'
-  | 'affiliate'
-  | 'agents'
-  | 'contact'
-  | 'consultation'
-  | 'faq'
-  | 'terms'
-  | 'privacy'
-  | 'disclaimer';
-
-function routeFromView(view: NavView): string {
-  switch (view) {
-    case 'landing': return '/';
-    case 'tradelines': return '/tradelines';
-    case 'tradelines_primary': return '/tradelines?focus=primary';
-    case 'tradelines_au': return '/tradelines?focus=au';
-    case 'checkout': return '/checkout';
-    case 'events': return '/events';
-    case 'about': return '/about';
-    case 'onboarding': return '/onboarding';
-    case 'dashboard': return '/dashboard';
-    case 'services': return '/services';
-    case 'services_tradelines': return '/services/tradelines';
-    case 'resources': return '/resources';
-    case 'pricing': return '/pricing';
-    case 'testimonials': return '/testimonials';
-    case 'bookstore': return '/bookstore';
-    case 'affiliate': return '/affiliate';
-    case 'agents': return '/agents';
-    case 'contact': return '/contact';
-    case 'consultation': return '/enlightenment-session';
-    case 'faq': return '/faq';
-    case 'terms': return '/terms';
-    case 'privacy': return '/privacy';
-    case 'disclaimer': return '/disclaimer';
-    default: return '/';
-  }
-}
-
-function viewFromPath(pathname: string): NavView {
-  if (pathname.startsWith('/tradelines')) return 'tradelines';
-  if (pathname.startsWith('/checkout')) return 'checkout';
-  if (pathname.startsWith('/events')) return 'events';
-  if (pathname.startsWith('/about')) return 'about';
-  if (pathname.startsWith('/onboarding')) return 'onboarding';
-  if (pathname.startsWith('/dashboard')) return 'dashboard';
-  if (
-    pathname.startsWith('/services/business-credit') ||
-    pathname.startsWith('/pricing/business-credit') ||
-    pathname === '/business-credit'
-  ) {
-    return 'services';
-  }
-  if (pathname.startsWith('/services')) return 'services';
-  if (pathname.startsWith('/resources')) return 'resources';
-  if (pathname.startsWith('/pricing')) return 'pricing';
-  if (pathname.startsWith('/testimonials')) return 'testimonials';
-  if (pathname.startsWith('/bookstore')) return 'bookstore';
-  if (pathname.startsWith('/affiliate')) return 'affiliate';
-  if (pathname.startsWith('/agents')) return 'agents';
-  if (pathname.startsWith('/contact')) return 'contact';
-  if (pathname.startsWith('/enlightenment-session')) return 'consultation';
-  if (pathname.startsWith('/faq')) return 'faq';
-  if (pathname.startsWith('/terms')) return 'terms';
-  if (pathname.startsWith('/privacy')) return 'privacy';
-  if (pathname.startsWith('/disclaimer')) return 'disclaimer';
-  if (pathname.startsWith('/start')) return 'pricing';
-  if (pathname.startsWith('/personal-credit')) return 'services';
-  if (
-    pathname.startsWith('/free-kreyol-guide') ||
-    pathname.startsWith('/free-guide') ||
-    pathname.startsWith('/kreyol')
-  ) {
-    return 'resources';
-  }
-  if (pathname.startsWith('/haitian')) return 'contact';
-  return 'landing';
-}
 
 function LandingRoute({ onGetStarted, onViewTradelines, onStartRestore, onNavigate, addToCart, onVisitAffiliate, onViewPricing }: {
   onGetStarted: () => void;
@@ -1087,26 +993,12 @@ function AppInner() {
 
   const navWarm = (target: string) => navIntentProps(target);
 
-  const publicChatLayout =
-    location.pathname.startsWith('/tradelines') ||
-    location.pathname.startsWith('/privacy') ||
-    location.pathname.startsWith('/terms') ||
-    location.pathname.startsWith('/disclaimer') ||
-    location.pathname.startsWith('/contact') ||
-    location.pathname.startsWith('/testimonials') ||
-    location.pathname.startsWith('/enlightenment-session')
-      ? 'compact'
-      : 'default';
-
   return (
     <div className="min-h-screen text-white font-sans bg-[#0d1512]">
       {toast && <Toast message={toast} onClose={() => setToast(null)} />}
       
       {showPublicChrome && (
         <>
-          {/* Live Approval Ticker - Desktop only */}
-          <LiveApprovalTicker />
-
           {/* Mobile Navigation */}
           <MobileNav 
             isOpen={mobileMenuOpen} 
@@ -1404,8 +1296,7 @@ function AppInner() {
             </div>
           </nav>
 
-          {/* Public AI concierge (homepage + public routes) */}
-          <PublicChatWidget layout={publicChatLayout} />
+          <PublicFloatingChrome pathname={location.pathname} />
         </>
       )}
 

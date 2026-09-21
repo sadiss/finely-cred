@@ -579,7 +579,10 @@ export function LiveApprovalTicker() {
   if (dismissed) return null;
 
   return (
-    <div className="fixed bottom-28 left-4 sm:left-6 z-[70] hidden lg:block pointer-events-none">
+    <div
+      className="fixed left-4 sm:left-6 z-[70] hidden lg:block pointer-events-none"
+      style={{ bottom: 'max(6rem, var(--fc-public-safe-bottom, 7rem))' }}
+    >
       <div
         className={`pointer-events-auto bg-[#0d1512]/95 backdrop-blur-xl border border-[#fbbf24]/25 rounded-2xl p-4 shadow-2xl max-w-xs transition-all duration-500 ${
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3 pointer-events-none'

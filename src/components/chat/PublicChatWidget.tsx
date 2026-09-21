@@ -15,12 +15,14 @@ function sanitize(s: string) {
   return (s || '').trim();
 }
 
+export type PublicChatWidgetLayout = 'standard' | 'compact' | 'minimal';
+
 export function PublicChatWidget({
   defaultOpen = false,
-  layout = 'default',
+  layout = 'standard',
 }: {
   defaultOpen?: boolean;
-  layout?: 'default' | 'compact';
+  layout?: PublicChatWidgetLayout;
 }) {
   const [open, setOpen] = useState(defaultOpen);
   const [sending, setSending] = useState(false);
@@ -144,8 +146,26 @@ export function PublicChatWidget({
     }
   };
 
+  const launcherClass =
+    layout === 'minimal'
+      ? 'fc-public-chat-launcher fc-public-chat-launcher--minimal px-2.5 py-2.5'
+      : layout === 'compact'
+        ? 'fc-public-chat-launcher fc-public-chat-launcher--compact px-3 py-2.5'
+        : 'fc-public-chat-launcher fc-public-chat-launcher--standard px-4 py-3';
+
+  const panelClass =
+    layout === 'minimal'
+      ? 'fc-public-chat-panel fc-public-chat-panel--minimal'
+      : layout === 'compact'
+        ? 'fc-public-chat-panel fc-public-chat-panel--compact'
+        : 'fc-public-chat-panel fc-public-chat-panel--standard';
+
   return (
-    <div className="finely-public-chat-widget" data-fc-public-chat-widget="1">
+    <div
+      className="finely-public-chat-widget"
+      data-fc-public-chat-widget="1"
+      data-fc-chat-layout={layout}
+    >
       {/* Launcher */}
       {!open && (
         <button
@@ -154,28 +174,30 @@ export function PublicChatWidget({
             setOpen(true);
             scrollToBottom();
           }}
-          className={`fixed z-[85] inline-flex items-center gap-2 rounded-2xl border border-amber-500/30 bg-[#0d1512]/95 backdrop-blur-xl shadow-2xl hover:shadow-[0_18px_50px_-18px_rgba(245,158,11,0.35)] transition-all ${
-            layout === 'compact' ? 'bottom-24 right-4 px-3 py-2.5' : 'bottom-6 right-6 px-4 py-3'
-          }`}
+          className={`fixed z-[85] inline-flex items-center gap-2 rounded-2xl border border-amber-500/30 bg-[#0d1512]/95 backdrop-blur-xl shadow-2xl hover:shadow-[0_18px_50px_-18px_rgba(245,158,11,0.35)] transition-all ${launcherClass}`}
           title="Chat with Finely Cred"
         >
-          <div className="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center">
-            <MessageCircle size={18} className="text-amber-300" />
+          <div
+            className={`rounded-xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center ${
+              layout === 'minimal' ? 'w-8 h-8' : 'w-9 h-9'
+            }`}
+          >
+            <MessageCircle size={layout === 'minimal' ? 16 : 18} className="text-amber-300" />
           </div>
+          {layout !== 'minimal' ? (
             <div className="text-left hidden sm:block">
               <div className="text-[10px] font-black uppercase tracking-[0.35em] text-white/70">FINELY</div>
-              <div className="text-xs text-white/60">{layout === 'compact' ? 'Ask Finely' : 'Questions? Start here'}</div>
+              <div className="text-xs text-white/60">
+                {layout === 'compact' ? 'Ask Finely' : 'Questions? Start here'}
+              </div>
             </div>
+          ) : null}
         </button>
       )}
 
       {/* Panel */}
       {open && (
-        <div
-          className={`fixed z-[85] w-[360px] max-w-[calc(100vw-32px)] ${
-            layout === 'compact' ? 'bottom-24 right-4' : 'bottom-6 right-6'
-          }`}
-        >
+        <div className={`fixed z-[85] w-[360px] max-w-[calc(100vw-32px)] ${panelClass}`}>
           <div className="rounded-3xl border border-white/10 bg-[#0d1512]/95 backdrop-blur-2xl shadow-2xl overflow-hidden">
             <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between gap-3">
               <div className="min-w-0">
