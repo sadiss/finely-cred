@@ -40,11 +40,11 @@ export function BusinessCreditLadderPanel({ partnerId }: { partnerId: string }) 
         <div>
           <div className="inline-flex items-center gap-2 text-amber-300">
             <TrendingUp size={18} />
-            <span className="text-[10px] font-black uppercase tracking-widest">4-step ladder</span>
+            <span className="text-[10px] font-black uppercase tracking-widest">7-step ladder</span>
           </div>
           <div className="mt-2 text-2xl font-light text-white">Business Credit Ladder</div>
           <div className="mt-1 text-white/60 text-sm">
-            Fundability → Reports → Initial trade → Revolving/Fleet/Cash. This drives tasks and keeps sequencing clean.
+            Foundation → Profile → Bureaus → Tier-1 vendors → Revolving/fleet → Docs/funding → Personal link. Tasks mirror the journey rail.
           </div>
         </div>
         <div className="min-w-[220px]">

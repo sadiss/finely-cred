@@ -140,6 +140,8 @@ export type BusinessDispute = {
 export type BusinessCreditProfile = {
   partnerId: string;
   roadmap: Partial<Record<BusinessRoadmapStepId, { done: boolean; doneAt?: string }>>;
+  /** Canonical 7-step journey marks (portal rail). */
+  journey?: Partial<Record<string, { done: boolean; doneAt?: string }>>;
   scores: BusinessScoreSnapshot[];
   disputes: BusinessDispute[];
   updatedAt: string;

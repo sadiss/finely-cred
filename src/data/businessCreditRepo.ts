@@ -6,6 +6,9 @@ import type {
   BusinessRoadmapStepId,
   BusinessScoreSnapshot,
 } from '../domain/businessCredit';
+import type { BusinessJourneyStepId } from '../domain/businessCreditJourney';
+import { JOURNEY_TO_ROADMAP } from '../domain/businessCreditJourney';
+import { setJourneyStepComplete } from './businessCreditJourneyProgress';
 
 const KEY = 'finely.business_credit.v1';
 const VERSION = 1;
@@ -28,6 +31,7 @@ function defaultProfile(partnerId: string): BusinessCreditProfile {
   return {
     partnerId,
     roadmap: {},
+    journey: {},
     scores: [],
     disputes: [],
     updatedAt: nowIso(),
@@ -134,5 +138,23 @@ export function upsertBusinessDispute(dispute: BusinessDispute): BusinessDispute
 export function deleteBusinessDispute(partnerId: string, disputeId: string) {
   const p = getBusinessCreditProfile(partnerId);
   return upsertBusinessCreditProfile({ ...p, disputes: (p.disputes ?? []).filter((d) => d.id !== disputeId) });
+}
+
+export function setJourneyStepDonePortal(args: { partnerId: string; stepId: BusinessJourneyStepId; done: boolean }) {
+  let p = getBusinessCreditProfile(args.partnerId);
+  const nextJourney = {
+    ...(p.journey ?? {}),
+    [args.stepId]: args.done ? { done: true, doneAt: nowIso() } : { done: false },
+  };
+  p = upsertBusinessCreditProfile({ ...p, journey: nextJourney });
+
+  const roadmapIds = JOURNEY_TO_ROADMAP[args.stepId] ?? [];
+  for (const rid of roadmapIds) {
+    p = setRoadmapStepDone({ partnerId: args.partnerId, stepId: rid as BusinessRoadmapStepId, done: args.done });
+  }
+
+  setJourneyStepComplete(args.stepId, args.done);
+  window.dispatchEvent(new CustomEvent('finely:store'));
+  return p;
 }
 

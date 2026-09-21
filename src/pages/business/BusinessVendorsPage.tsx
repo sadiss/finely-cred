@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Building2, ExternalLink, FileText, LayoutGrid, Target, Users, Crown, Lock, CheckCircle2, Circle } from 'lucide-react';
+import { ExternalLink, Lock, CheckCircle2, Circle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { BusinessReadinessChecklist } from '../../components/business/BusinessReadinessChecklist';
@@ -10,12 +10,7 @@ import { listVendors } from '../../data/vendorsRepo';
 import { listVendorProgress, setVendorProgress } from '../../data/vendorProgressRepo';
 import { KpiCard } from '../../components/ui/KpiCards';
 import type { Vendor, VendorTier } from '../../domain/vendors';
-
-function navBtn(active: boolean) {
-  return `px-4 py-2 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ${
-    active ? 'bg-amber-500 text-black border-amber-400' : 'bg-white/5 text-white/70 border-white/10 hover:bg-white/10 hover:text-white'
-  }`;
-}
+import { BusinessJourneyShell } from '../../components/business/BusinessJourneyShell';
 
 function tierBadge(tier: VendorTier) {
   if (tier === 1) return { label: 'Tier 1', cls: 'bg-emerald-500/15 border-emerald-500/30 text-emerald-200' };
@@ -76,27 +71,8 @@ export default function BusinessVendorsPage() {
       subtitle="Sequenced vendors and accounts that build business credit the right way — aligned to fundability signals and reporting."
       back={{ to: -1 }}
     >
+      <BusinessJourneyShell activeStepId="tier1_vendors">
       <div className="space-y-6">
-        <div className="flex flex-wrap gap-3">
-          <button className={navBtn(false)} onClick={() => navigate('/business/dashboard')}>
-            <LayoutGrid size={12} className="inline mr-2" /> Dashboard
-          </button>
-          <button className={navBtn(false)} onClick={() => navigate('/business/profile')}>
-            <Building2 size={12} className="inline mr-2" /> Profile
-          </button>
-          <button className={navBtn(true)} onClick={() => navigate('/business/vendors')}>
-            <Users size={12} className="inline mr-2" /> Vendors
-          </button>
-          <button className={navBtn(false)} onClick={() => navigate('/business/lender-logic')}>
-            <Target size={12} className="inline mr-2" /> Lender Logic
-          </button>
-          <button className={navBtn(false)} onClick={() => navigate('/business/documents')}>
-            <FileText size={12} className="inline mr-2" /> Documents
-          </button>
-          <button className={navBtn(false)} onClick={() => navigate('/business/billion-path')}>
-            <Crown size={12} className="inline mr-2" /> Billion Path
-          </button>
-        </div>
 
         {!partner ? (
           <div className="rounded-2xl border border-white/10 bg-black/30 backdrop-blur-xl p-6 text-white/60">
@@ -274,6 +250,7 @@ export default function BusinessVendorsPage() {
 
         <BusinessReadinessChecklist title="Sequencing + readiness (track progress)" compact />
       </div>
+      </BusinessJourneyShell>
     </PageShell>
   );
 }

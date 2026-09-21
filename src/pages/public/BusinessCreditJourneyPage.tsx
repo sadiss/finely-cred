@@ -11,6 +11,7 @@ import { PageShell } from '../../components/layout/PageShell';
 import { PublicBrandMark } from '../../components/public/PublicBrandMark';
 import {
   BUSINESS_CREDIT_JOURNEY_STEPS,
+  journeyPortalHref,
   journeyStepFromParam,
   type BusinessJourneyStepId,
 } from '../../domain/businessCreditJourney';
@@ -64,7 +65,7 @@ export default function BusinessCreditJourneyPage() {
     <PageShell
       badge="Business credit"
       title="Build business credit — guided journey"
-      subtitle="Six honest steps from entity foundation to monitoring. Educational only — no guaranteed scores, approvals, or funding."
+      subtitle="Seven honest steps from entity foundation to personal-credit handoff. Educational only — no guaranteed scores, approvals, or funding."
     >
       <div className="max-w-7xl mx-auto space-y-8">
         <div className="rounded-2xl border border-[#fbbf24]/35 bg-gradient-to-br from-[#0b1110] via-[#060908] to-[#0b1110] p-6 sm:p-8">
@@ -156,24 +157,20 @@ export default function BusinessCreditJourneyPage() {
               </div>
 
               <div className="flex flex-wrap gap-3">
-                <button type="button" onClick={() => navigate(step.primaryCta.path)} className="fc-button-brand">
-                  {step.primaryCta.label} <ArrowRight size={14} />
+                <button
+                  type="button"
+                  onClick={() => navigate(step.publicCta?.path ?? journeyPortalHref(step))}
+                  className="fc-button-brand"
+                >
+                  {step.publicCta?.label ?? 'Open in portal'} <ArrowRight size={14} />
                 </button>
-                {step.secondaryCta ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (step.secondaryCta!.path.startsWith('?')) {
-                        setSearchParams({ step: step.secondaryCta!.path.replace('?step=', '') });
-                      } else {
-                        navigate(step.secondaryCta!.path);
-                      }
-                    }}
-                    className="fc-button-soft"
-                  >
-                    {step.secondaryCta.label}
-                  </button>
-                ) : null}
+                <button
+                  type="button"
+                  onClick={() => navigate('/consultation?lane=' + encodeURIComponent('Business Credit'))}
+                  className="fc-button-soft"
+                >
+                  Book consult
+                </button>
                 {step.step < BUSINESS_CREDIT_JOURNEY_STEPS.length ? (
                   <button
                     type="button"
@@ -186,7 +183,7 @@ export default function BusinessCreditJourneyPage() {
               </div>
             </article>
 
-            {step.id === 'tradelines_vendors' || step.id === 'monitoring' ? (
+            {step.id === 'tier1_vendors' || step.id === 'docs_funding' ? (
               <section className="space-y-4">
                 <h3 className="text-lg font-bold text-white">Business credit packages (DIY + DFY)</h3>
                 <p className="text-white/65 text-sm">Choose a lane — no approval guarantees.</p>

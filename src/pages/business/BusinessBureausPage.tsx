@@ -1,17 +1,12 @@
 import React, { useMemo, useState } from 'react';
-import { ArrowLeft, ArrowRight, BookOpen, Building2, FileText, LayoutGrid, Target, Users, Crown, ShieldCheck, Trash2, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ShieldCheck, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { deleteBusinessScoreSnapshot, listBusinessScoreSnapshots, upsertBusinessScoreSnapshot } from '../../data/businessCreditRepo';
 import type { BusinessBureau, BusinessScoreType } from '../../domain/businessCredit';
-
-function navBtn(active: boolean) {
-  return `px-4 py-2 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ${
-    active ? 'bg-amber-500 text-black border-amber-400' : 'bg-white/5 text-white/70 border-white/10 hover:bg-white/10 hover:text-white'
-  }`;
-}
+import { BusinessJourneyShell } from '../../components/business/BusinessJourneyShell';
 
 export default function BusinessBureausPage() {
   const navigate = useNavigate();
@@ -33,6 +28,7 @@ export default function BusinessBureausPage() {
       title="Business Bureaus & Scores"
       subtitle="Guided knowledge for D&B, Experian Business, and Equifax Business. Learn what matters, what to avoid, and how to align your profile across the board."
     >
+      <BusinessJourneyShell activeStepId="bureau_files">
       <div className="space-y-6">
         <button
           type="button"
@@ -42,33 +38,6 @@ export default function BusinessBureausPage() {
         >
           <ArrowLeft size={16} /> Back
         </button>
-
-        <div className="flex flex-wrap gap-3">
-          <button className={navBtn(false)} onClick={() => navigate('/business/dashboard')}>
-            <LayoutGrid size={12} className="inline mr-2" /> Dashboard
-          </button>
-          <button className={navBtn(false)} onClick={() => navigate('/business/profile')}>
-            <Building2 size={12} className="inline mr-2" /> Profile
-          </button>
-          <button className={navBtn(false)} onClick={() => navigate('/business/vendors')}>
-            <Users size={12} className="inline mr-2" /> Vendors
-          </button>
-          <button className={navBtn(true)} onClick={() => navigate('/business/bureaus')}>
-            <BookOpen size={12} className="inline mr-2" /> Bureaus & Scores
-          </button>
-          <button className={navBtn(false)} onClick={() => navigate('/business/lender-logic')}>
-            <Target size={12} className="inline mr-2" /> Lender Logic
-          </button>
-          <button className={navBtn(false)} onClick={() => navigate('/business/disputes')}>
-            <AlertTriangle size={12} className="inline mr-2" /> Disputes
-          </button>
-          <button className={navBtn(false)} onClick={() => navigate('/business/documents')}>
-            <FileText size={12} className="inline mr-2" /> Documents
-          </button>
-          <button className={navBtn(false)} onClick={() => navigate('/business/billion-path')}>
-            <Crown size={12} className="inline mr-2" /> Billion Path
-          </button>
-        </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
           <div className="rounded-2xl border border-white/10 bg-black/30 backdrop-blur-xl p-6 space-y-3">
@@ -306,6 +275,7 @@ export default function BusinessBureausPage() {
           </div>
         </div>
       </div>
+      </BusinessJourneyShell>
     </PageShell>
   );
 }

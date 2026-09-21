@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { BUSINESS_CREDIT_JOURNEY_STEPS } from '../../domain/businessCreditJourney';
 import { getJourneyProgress, journeyPercentComplete } from '../../data/businessCreditJourneyProgress';
 
-/** Staff view — same 6 steps as public /business-credit journey. */
+/** Staff view — same 7 steps as public /business-credit journey. */
 export function BusinessCreditJourneyCoachPanel() {
   const [version, setVersion] = useState(0);
   const progress = useMemo(() => getJourneyProgress(), [version]);

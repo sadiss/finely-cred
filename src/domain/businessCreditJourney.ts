@@ -1,12 +1,13 @@
-/** Public 6-step business credit journey (aligned with portal roadmap — honest, no score guarantees). */
+/** Canonical 7-step business credit journey (public + portal + ladder + roadmap). */
 
 export type BusinessJourneyStepId =
   | 'foundation'
-  | 'profile'
-  | 'bureau_file'
-  | 'tradelines_vendors'
-  | 'personal_link'
-  | 'monitoring';
+  | 'profile_industry'
+  | 'bureau_files'
+  | 'tier1_vendors'
+  | 'revolving_fleet'
+  | 'docs_funding'
+  | 'personal_link';
 
 export type BusinessJourneyStep = {
   id: BusinessJourneyStepId;
@@ -14,9 +15,11 @@ export type BusinessJourneyStep = {
   title: string;
   subtitle: string;
   why: string;
+  do: string[];
+  avoid: string[];
   checklist: string[];
-  primaryCta: { label: string; path: string };
-  secondaryCta?: { label: string; path: string };
+  portalPath: string;
+  publicCta?: { label: string; path: string };
 };
 
 export const BUSINESS_CREDIT_JOURNEY_STEPS: BusinessJourneyStep[] = [
@@ -26,99 +29,102 @@ export const BUSINESS_CREDIT_JOURNEY_STEPS: BusinessJourneyStep[] = [
     title: 'Foundation',
     subtitle: 'Entity, EIN, and address discipline',
     why:
-      'Lenders and vendors verify that your business exists as one consistent identity. Mismatched addresses or entity names are the silent #1 rejection trigger.',
-    checklist: [
-      'Legal name + suffix match on SOS filing and bank docs',
-      'One standardized business address (format suite/unit the same everywhere)',
-      'EIN confirmation letter (CP 575) saved in your vault',
-      'Dedicated business phone listed consistently',
+      'Your business must exist as one verifiable identity. Mismatched addresses, phones, or entity names are the #1 silent fundability killer.',
+    do: [
+      'Match legal name + suffix on SOS, bank, and vendor apps',
+      'Pick one address format and use it everywhere',
+      'Store EIN letter (CP 575) in Documents',
     ],
-    primaryCta: { label: 'Open business profile (portal)', path: '/business/profile' },
-    secondaryCta: { label: 'Save & continue to step 2', path: '?step=2' },
+    avoid: ['Mixing personal and business addresses randomly', 'Changing entity details mid-sequence', 'Using unlisted VOIP as sole phone'],
+    checklist: ['SOS filing current', 'EIN on file', 'Address standardized', 'Business phone listed'],
+    portalPath: '/business/profile',
+    publicCta: { label: 'Start in portal', path: '/business/profile' },
   },
   {
-    id: 'profile',
+    id: 'profile_industry',
     step: 2,
-    title: 'Business profile & industry',
-    subtitle: 'NAICS, structure, and operating story',
-    why:
-      'Industry codes and entity type shape which vendors report and which underwriting paths are realistic. Honest classification beats hype.',
-    checklist: [
-      'NAICS / industry code documented',
-      'Ownership structure recorded (single-member LLC, corp, etc.)',
-      'Website or domain email matches public listings',
-      'Business description ready for vendor applications',
-    ],
-    primaryCta: { label: 'Business dashboard', path: '/business/dashboard' },
-    secondaryCta: { label: 'Save & continue to step 3', path: '?step=3' },
+    title: 'Profile & industry',
+    subtitle: 'NAICS, structure, operating story',
+    why: 'Industry and entity type determine which vendors report and which underwriting paths are realistic.',
+    do: ['Document NAICS', 'Record ownership structure', 'Use domain email on applications'],
+    avoid: ['Misclassified NAICS to “game” vendors', 'Inconsistent owner names across bureaus'],
+    checklist: ['NAICS recorded', 'Ownership documented', 'Domain email live', 'Elevator pitch for lenders'],
+    portalPath: '/business/profile',
   },
   {
-    id: 'bureau_file',
+    id: 'bureau_files',
     step: 3,
-    title: 'Business credit file setup',
-    subtitle: 'D&B, Experian Business, Equifax Business — education only',
+    title: 'Bureau files',
+    subtitle: 'D&B, Experian Business, Equifax / SBFE — education only',
     why:
-      'Commercial bureaus are not consumer FICO. PAYDEX, Intelliscore, and SBSS serve different purposes — we teach what each measures without promising scores.',
-    checklist: [
-      'Understand DUNS / D&B registration basics',
-      'Know difference between consumer vs business pulls',
-      'List which bureaus your target vendors report to',
-      'No fake “instant 80 PAYDEX” claims — document real steps',
-    ],
-    primaryCta: { label: 'Business bureaus desk', path: '/business/bureaus' },
-    secondaryCta: { label: 'Save & continue to step 4', path: '?step=4' },
+      'Commercial bureaus are not consumer FICO. PAYDEX, Intelliscore, and SBSS measure different things — we document; we do not promise scores.',
+    do: ['Register/maintain DUNS where appropriate', 'Pull baseline business files', 'Log scores as snapshots (no hype)'],
+    avoid: ['Fake instant PAYDEX claims', 'Ignoring mismatched principals on file'],
+    checklist: ['D&B profile reviewed', 'Experian Biz checked', 'Equifax Biz checked', 'Snapshots saved'],
+    portalPath: '/business/bureaus',
+    publicCta: { label: 'Book session', path: '/enlightenment-session' },
   },
   {
-    id: 'tradelines_vendors',
+    id: 'tier1_vendors',
     step: 4,
-    title: 'Tradelines & net-30 vendors',
-    subtitle: 'Sequenced vendor path — not random accounts',
-    why:
-      'Fundability grows from reporting tradelines and disciplined net-30/vendor relationships. Sequence matters more than volume.',
-    checklist: [
-      'Tier-1 starter vendors identified (reporting, realistic for your file)',
-      'Payment cadence calendar (pay before due, keep utilization sane)',
-      'Separate business accounts from personal mixing',
-      'Authorized user / personal tradelines only when strategy allows',
-    ],
-    primaryCta: { label: 'Vendor workspace', path: '/business/vendors' },
-    secondaryCta: { label: 'View AU tradelines (education)', path: '/tradelines' },
+    title: 'Tier-1 vendors / net-30',
+    subtitle: 'Reporting-first vendor sequence',
+    why: 'Reported payment history builds the file. Sequence beats volume — Tier-1 before prestige accounts.',
+    do: ['Open starter vendors that report', 'Pay early or on time', 'Keep invoices in Documents'],
+    avoid: ['Applying for Tier-3 before file exists', 'Late payments on net terms'],
+    checklist: ['Tier-1 list approved', 'First orders placed', 'Payment calendar set'],
+    portalPath: '/business/vendors',
+  },
+  {
+    id: 'revolving_fleet',
+    step: 5,
+    title: 'Revolving & fleet',
+    subtitle: 'Only when signals are clean',
+    why: 'Revolving, fleet, and cash products come after reporting history and banking behavior support them.',
+    do: ['Run lender logic before applying', 'Match product to file age', 'Keep utilization disciplined'],
+    avoid: ['Hard-pull spree', 'Applying while personal file is unstable'],
+    checklist: ['Lender logic run', 'Bank statements organized', 'Product fit documented'],
+    portalPath: '/business/funding',
+  },
+  {
+    id: 'docs_funding',
+    step: 6,
+    title: 'Docs & funding package',
+    subtitle: 'Underwriting-ready vault',
+    why: 'Approvals improve with coherent docs, banking narrative, and dispute hygiene on the business file.',
+    do: ['Upload entity docs + statements', 'Track disputes on business negatives', 'Prepare funding package folder'],
+    avoid: ['No-doc optimism', 'Missing tax/entity alignment'],
+    checklist: ['Entity docs uploaded', 'Bank statements current', 'Disputes triaged', 'Package checklist complete'],
+    portalPath: '/business/documents',
+    publicCta: { label: 'Funding readiness', path: '/funding-readiness' },
   },
   {
     id: 'personal_link',
-    step: 5,
-    title: 'Personal guarantee & personal file',
-    subtitle: 'Link to Finely personal restore when PG risk is high',
+    step: 7,
+    title: 'Personal credit link',
+    subtitle: 'PG / personal file — Finely restore handoff',
     why:
-      'Many business products still touch personal credit. Stabilize personal reports before aggressive business applications when PG is likely.',
-    checklist: [
-      'Know which apps require personal guarantee',
-      'Personal utilization and collections triaged first if risky',
-      'Start Restore $147 roadmap if personal file blocks business path',
-      'Document consent and expectations — no approval guarantees',
-    ],
-    primaryCta: { label: 'Start Restore — $147', path: '/start' },
-    secondaryCta: { label: 'Personal credit services', path: '/services/personal-credit-restore' },
-  },
-  {
-    id: 'monitoring',
-    step: 6,
-    title: 'Monitoring & next actions',
-    subtitle: 'Funding readiness without hype',
-    why:
-      'Underwriters review trends, banking behavior, and file consistency over time. Monitoring keeps you ready — it does not guarantee capital.',
-    checklist: [
-      'Quarterly bureau/vendor review scheduled',
-      'Banking behavior narrative documented',
-      'Funding readiness checklist (wealth builder path) reviewed',
-      'Specialist huddle if file is complex',
-    ],
-    primaryCta: { label: 'Funding readiness path', path: '/funding-readiness' },
-    secondaryCta: { label: 'Book enlightenment session', path: '/enlightenment-session' },
+      'Many business products still require personal guarantee. Stabilize personal credit before aggressive business apps when PG risk is high.',
+    do: ['Identify PG-required products', 'Triage personal collections/utilization', 'Use Start Restore for roadmap'],
+    avoid: ['Promising business approval via personal deletes alone'],
+    checklist: ['PG exposure mapped', 'Personal restore path chosen', 'Consent documented'],
+    portalPath: '/start',
+    publicCta: { label: 'Start Restore $147', path: '/start' },
   },
 ];
 
 export const JOURNEY_STEP_COUNT = BUSINESS_CREDIT_JOURNEY_STEPS.length;
+
+/** Legacy roadmap step ids completed when a journey step is marked done. */
+export const JOURNEY_TO_ROADMAP: Record<BusinessJourneyStepId, string[]> = {
+  foundation: ['foundation_identity', 'address_consistency', 'phone_411', 'ein_entity'],
+  profile_industry: ['domain_email'],
+  bureau_files: ['duns_setup', 'bureau_checks'],
+  tier1_vendors: ['vendor_tier1'],
+  revolving_fleet: ['vendor_tier2', 'funding_package'],
+  docs_funding: ['funding_package'],
+  personal_link: [],
+};
 
 export function journeyStepFromParam(raw: string | null | undefined): BusinessJourneyStepId {
   const n = Number(raw);
@@ -127,4 +133,28 @@ export function journeyStepFromParam(raw: string | null | undefined): BusinessJo
   }
   const byId = BUSINESS_CREDIT_JOURNEY_STEPS.find((s) => s.id === raw);
   return byId?.id ?? 'foundation';
+}
+
+export function journeyPortalHref(step: BusinessJourneyStep): string {
+  if (step.portalPath === '/business/profile') {
+    return `/business/profile?journey=${step.id}`;
+  }
+  if (step.portalPath.startsWith('/business')) return step.portalPath;
+  return '/business/dashboard';
+}
+
+export function journeyStepForPath(pathname: string, journeyQuery?: string | null): BusinessJourneyStepId | null {
+  if (journeyQuery && BUSINESS_CREDIT_JOURNEY_STEPS.some((s) => s.id === journeyQuery)) {
+    return journeyQuery as BusinessJourneyStepId;
+  }
+  const p = pathname.split('?')[0];
+  if (p.startsWith('/business/profile')) return 'foundation';
+  if (p.startsWith('/business/bureaus')) return 'bureau_files';
+  if (p.startsWith('/business/vendors')) return 'tier1_vendors';
+  if (p.startsWith('/business/funding') || p.startsWith('/business/lender-logic')) return 'revolving_fleet';
+  if (p.startsWith('/business/documents') || p.startsWith('/business/disputes')) return 'docs_funding';
+  if (p.startsWith('/business/billion-path')) return 'docs_funding';
+  if (p.startsWith('/business/dashboard')) return null;
+  if (p.startsWith('/business/')) return 'foundation';
+  return null;
 }
