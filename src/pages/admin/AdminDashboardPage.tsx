@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, ArrowRight, Gavel, Settings, Users, BarChart3, FileText, Layout, Package, CreditCard, FlaskConical, MessageSquareText, Bell, Calendar, FolderKanban, BookOpen, Bot, Mail, Library, Crown, UserCog, Globe, BadgeCheck, ListChecks, GraduationCap, Lock, PiggyBank, Trophy, Activity, Target, Sparkles, Film, BriefcaseBusiness, Shield } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Gavel, Settings, Users, BarChart3, FileText, Layout, Package, CreditCard, FlaskConical, MessageSquareText, Bell, Calendar, FolderKanban, BookOpen, Bot, Mail, Library, Crown, UserCog, Globe, BadgeCheck, ListChecks, GraduationCap, Lock, PiggyBank, Trophy, Activity, Target, Sparkles, Film, BriefcaseBusiness, Shield, Building2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { fetchAllPartnersAsAdmin } from '../../data/partnersRepo';
@@ -164,6 +164,13 @@ export default function AdminDashboardPage() {
       path: '/admin/au-sellers',
       icon: BadgeCheck,
       stat: 'Review supply',
+    },
+    {
+      title: 'Marketing HQ',
+      description: 'Command floor — departments, channel desks (Email, Social, SMS…), campaigns & queues.',
+      path: '/admin/marketing',
+      icon: Building2,
+      stat: 'Office floors',
     },
     {
       title: 'Comms Studio',
