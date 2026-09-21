@@ -2,6 +2,8 @@
 
 The **Fair Debt Collection Practices Act** governs **third-party debt collectors** (not every original creditor in every situation—education level only). Sanz doctrine puts **validation (§809)** early on collector debt. This module deepens what specialists may **explain** and what requires **counsel**.
 
+**Consumer power:** You can **push back in writing**—request validation, dispute inaccurate details, document harassment patterns, and stop contact under §805(c) when appropriate (with lead review). That is lawful strength, not “ignore your debts.”
+
 ## Why it matters
 
 Partners receive scary calls. Specialists calm the file with **process**: validation, documented contacts, bureau accuracy work—without posing as attorneys or promising lawsuits.

@@ -14,8 +14,10 @@ Use this checklist before merge. **PR:** [#28](https://github.com/sadiss/finely-
 | 6 | MEETING-COACH video quiz | [MEETING-COACH.md](./MEETING-COACH.md) |
 | 7 | README maps tracks A–G | [README.md](./README.md) · [TRACKS-A-E-OVERVIEW.md](./TRACKS-A-E-OVERVIEW.md) |
 | 8 | Compliance footer on every doc | Spot-check `docs/specialist-academy/**` |
-| 9 | Additive product hooks | `AdminSpecialistAcademyPage` + `trainingAcademy.ts`; Courses untouched |
-| 9b | UI navigation | `/admin/specialist-academy` (admin auth) |
+| 9 | Additive product hooks | `AdminSpecialistAcademyPage` + `UnifiedTrainingPanel` + `AcademyQuizPanel` + `trainingAcademy.ts`; Courses untouched |
+| 9b | UI navigation | `/admin/specialist-academy` · Quizzes tab · `/admin/specialist-academy/quiz/:quizId` · EN\|HT query param |
+| 9c | Consumer-power framing | `lessons/en|ht/00-consumer-power-system.md`, `09-debt-legal-litigation-command.md`, TRACK F § F0–F1, compliance EN 01–09 lenses |
+| 9d | Lead Intel batch | `AdminLeadIntelPage` multi-metro + `requireContact`; docs `PARTNER_PROSPECTING_*` |
 | 10 | PR body: file list + Sanz trainee runbook | GitHub PR description |
 
 ## File inventory (33 academy + handoff)
@@ -35,11 +37,12 @@ docs/specialist-academy/cards/F01 … F14, F-BUILD-01 … 05, cards/README.md
 
 ## Sanz — trainee session tomorrow (60 min)
 
-1. **5 min** — [MEETING-COACH](./MEETING-COACH.md) opening + compliance script.
-2. **10 min** — Trainee walks [WORKFLOW-MAP](./WORKFLOW-MAP.md) debt → validation → summons fork.
-3. **15 min** — Flash drill: [F01–F08](./cards/README.md) + one [F-BUILD](./cards/README.md).
-4. **20 min** — Live scrubbed file: SOP-08 triage → SOP-09 or SOP-13 evidence → parallel BUILD talk (SOP-15 § B).
-5. **10 min** — Scorecard; assign homework cards missed + SOP read.
+1. **5 min** — Admin Academy → **Quizzes** → pass methodology quiz (or review misses).
+2. **5 min** — [MEETING-COACH](./MEETING-COACH.md) opening + compliance script.
+3. **10 min** — Library: [Consumer power](./lessons/en/00-consumer-power-system.md) + [WORKFLOW-MAP](./WORKFLOW-MAP.md) debt → validation → summons fork.
+4. **15 min** — Flash drill: [F01–F08](./cards/README.md) + one [F-BUILD](./cards/README.md).
+5. **20 min** — Live scrubbed file: SOP-08 triage → SOP-09 or SOP-13 evidence → parallel BUILD talk (SOP-15 § B).
+6. **5 min** — Optional: Lead Intel multi-metro batch demo (audit doc if edge batch deferred).
 
 ---
 

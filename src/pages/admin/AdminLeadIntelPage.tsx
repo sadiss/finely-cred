@@ -81,6 +81,10 @@ export default function AdminLeadIntelPage() {
   const [location, setLocation] = useState('United States');
   const [limit, setLimit] = useState(10);
   const [enrich, setEnrich] = useState(true);
+  const [requireContact, setRequireContact] = useState(true);
+  const [batchMetros, setBatchMetros] = useState(
+    'Miami, FL\nAtlanta, GA\nHouston, TX\nDallas, TX\nCharlotte, NC',
+  );
 
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -89,6 +93,21 @@ export default function AdminLeadIntelPage() {
   const [notice, setNotice] = useState<string | null>(null);
 
   const selectedCount = useMemo(() => Object.values(selected).filter(Boolean).length, [selected]);
+
+  const mergeResults = (prev: IntelResult[], incoming: IntelResult[]) => {
+    const byDomain = new Map<string, IntelResult>();
+    for (const r of [...prev, ...incoming]) {
+      const key = (r.domain || r.url).toLowerCase();
+      const cur = byDomain.get(key);
+      if (!cur || (r.score ?? 0) > (cur.score ?? 0)) byDomain.set(key, r);
+    }
+    return Array.from(byDomain.values()).sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+  };
+
+  const applyContactFilter = (rows: IntelResult[]) => {
+    if (!requireContact) return rows;
+    return rows.filter((r) => (r.emails?.length ?? 0) > 0 && (r.phones?.length ?? 0) > 0);
+  };
 
   const run = async () => {
     setBusy(true);
@@ -111,14 +130,65 @@ export default function AdminLeadIntelPage() {
       });
       if (error) throw new Error(error.message);
       if (!data?.ok) throw new Error(data?.error || 'Search failed.');
-      const out = (data.results ?? []) as IntelResult[];
+      let out = (data.results ?? []) as IntelResult[];
+      out = applyContactFilter(out);
       setResults(out);
       const nextSel: Record<string, boolean> = {};
       out.forEach((r) => (nextSel[r.url] = (r.score ?? 0) >= 40));
       setSelected(nextSel);
-      setNotice(`Found ${out.length} prospects. Pre-selected ${Object.values(nextSel).filter(Boolean).length} likely fits.`);
+      setNotice(
+        `Found ${out.length} prospects${requireContact ? ' (phone + email required)' : ''}. Pre-selected ${Object.values(nextSel).filter(Boolean).length} likely fits.`,
+      );
     } catch (e: any) {
       setErr(e?.message || 'Search failed.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const runMultiMetroBatch = async () => {
+    setBusy(true);
+    setErr(null);
+    setNotice(null);
+    try {
+      if (!features.leadIntel) throw new Error('Lead Intel is disabled (Feature Flags).');
+      if (!isSupabaseConfigured) throw new Error('Supabase is not configured.');
+      const q = query.trim();
+      if (!q) throw new Error('Enter a search query.');
+      const metros = batchMetros
+        .split('\n')
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .slice(0, 5);
+      if (!metros.length) throw new Error('Add at least one metro (one per line).');
+
+      let merged: IntelResult[] = [];
+      for (const metro of metros) {
+        const { data, error } = await supabase.functions.invoke('lead-intel', {
+          body: {
+            target,
+            query: q,
+            location: metro,
+            limit: clamp(limit, 1, 20),
+            enrich,
+            country: 'us',
+          },
+        });
+        if (error) throw new Error(error.message);
+        if (!data?.ok) throw new Error(data?.error || `Search failed for ${metro}.`);
+        merged = mergeResults(merged, (data.results ?? []) as IntelResult[]);
+        await new Promise((r) => setTimeout(r, 400));
+      }
+      merged = applyContactFilter(merged).slice(0, 50);
+      setResults(merged);
+      const nextSel: Record<string, boolean> = {};
+      merged.forEach((r) => (nextSel[r.url] = (r.score ?? 0) >= 40));
+      setSelected(nextSel);
+      setNotice(
+        `Batch: ${metros.length} metros → ${merged.length} unique domains (cap 50)${requireContact ? ', phone+email required' : ''}.`,
+      );
+    } catch (e: any) {
+      setErr(e?.message || 'Batch search failed.');
     } finally {
       setBusy(false);
     }
@@ -321,6 +391,22 @@ export default function AdminLeadIntelPage() {
             <input type="checkbox" checked={enrich} onChange={(e) => setEnrich(e.target.checked)} />
             Enrich public pages (extract emails/phones; best-effort respects robots.txt)
           </label>
+          <label className="flex items-center gap-3 text-sm text-white/70">
+            <input type="checkbox" checked={requireContact} onChange={(e) => setRequireContact(e.target.checked)} />
+            Require <strong className="text-white/90">both</strong> email and phone on results (Sanz ICP)
+          </label>
+
+          <div className="rounded-xl border border-white/10 bg-black/20 p-4 space-y-2">
+            <div className="text-[10px] uppercase tracking-widest text-white/40">Multi-metro batch (~50 partners)</div>
+            <textarea
+              value={batchMetros}
+              onChange={(e) => setBatchMetros(e.target.value)}
+              rows={4}
+              className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/80 font-mono"
+              placeholder="One metro per line: City, ST"
+            />
+            <p className="text-white/50 text-xs">Runs up to 5 metros × limit 20, dedupes by domain, caps at 50 rows.</p>
+          </div>
 
           <div className="flex flex-wrap gap-2">
             <button
@@ -330,6 +416,14 @@ export default function AdminLeadIntelPage() {
               className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all disabled:opacity-60"
             >
               <Sparkles size={14} /> {busy ? 'Running…' : 'Run lead agent'}
+            </button>
+            <button
+              type="button"
+              onClick={() => void runMultiMetroBatch()}
+              disabled={busy || !features.leadIntel}
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-amber-500/40 bg-amber-500/10 text-amber-100 font-black uppercase tracking-widest text-[10px] hover:bg-amber-500/20 transition-all disabled:opacity-60"
+            >
+              <Sparkles size={14} /> {busy ? 'Batch…' : 'Run multi-metro batch'}
             </button>
             <button
               type="button"

@@ -2,6 +2,10 @@
 
 The **Real Estate Settlement Procedures Act** touches **mortgage servicing**, escrow, and loss-mitigation communications. When partners have **mortgage tradelines**, late payments, or **foreclosure risk**, specialists need vocabulary—not foreclosure law practice.
 
+## Consumer power lens
+
+Homeowners can **demand servicing records in writing**, escalate servicer errors through formal channels, and pursue loss-mitigation programs the servicer must disclose. Finely helps **organize mail and credit reporting**; counsel handles foreclosure defense.
+
 ## Why it matters
 
 Confusing “one late payment” with “foreclosure started” creates panic or false calm. Finely documents **reporting** and coaches partners to use **servicer written channels**; we do not file foreclosure answers.

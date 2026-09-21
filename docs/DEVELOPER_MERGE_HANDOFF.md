@@ -20,6 +20,10 @@ Quick pointers for non-code deliverables that ship with the product.
 
 **Product alignment:** Letter types and scenarios mirror `src/domain/debtLegal.ts` and `src/legal/debtLetterTemplates.ts`. Dispute rounds and escalation language align with Credit Intel timelines (evidence → Round 1 → mail → Round 2/3 → complaints when appropriate).
 
+**UI:** `AdminSpecialistAcademyPage` + `UnifiedTrainingPanel` (library + quizzes) + routes in `App.tsx`. Quizzes: `src/specialistAcademy/academyQuizzes.ts` (4 modules, multi-question).
+
+**Partner prospecting:** [PARTNER_PROSPECTING_AUDIT.md](./PARTNER_PROSPECTING_AUDIT.md) · [PARTNER_PROSPECTING_IMPLEMENTATION_SPEC.md](./PARTNER_PROSPECTING_IMPLEMENTATION_SPEC.md) · client-side multi-metro batch on `AdminLeadIntelPage`.
+
 ---
 
 *Educational only. Not legal advice. No guaranteed deletions, scores, loan approvals, or credit card approvals. Debt may remain after restore. Nora funding is separate; no approval promised.*

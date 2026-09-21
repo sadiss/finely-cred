@@ -35,9 +35,20 @@ Internal curriculum for specialists who run **restore** the way Finely Cred actu
 - Language: “funding-readiness conversation,” not “you’re approved.”
 - Wealth Paths unlock is program-dependent — see pricing / entitlements in product; do not invent guarantees.
 
+## In-app UI (admin)
+
+- **Route:** `/admin/specialist-academy` — Library (all tracks, EN|HT) + **Quizzes** tab (methodology, compliance, debt/legal, BUILD).
+- **Start here:** lesson `f-consumer-power` · quiz `/admin/specialist-academy/quiz/methodology`.
+- Registry: `src/domain/trainingAcademy.ts` · quizzes: `src/specialistAcademy/academyQuizzes.ts`.
+
+## Partner prospecting (growth)
+
+- Audit: [PARTNER_PROSPECTING_AUDIT.md](../PARTNER_PROSPECTING_AUDIT.md) · Phase 2 spec: [PARTNER_PROSPECTING_IMPLEMENTATION_SPEC.md](../PARTNER_PROSPECTING_IMPLEMENTATION_SPEC.md).
+- **Lead Intel** (`/admin/lead-intel`): multi-metro batch (up to 5 metros × 20, dedupe, cap 50), optional **phone + email required**.
+
 ## Track F — credit methodology (core)
 
-1. Read [TRACK-F-credit-methodology-EN.md](./TRACK-F-credit-methodology-EN.md) end-to-end.
+1. Read [Consumer power](./lessons/en/00-consumer-power-system.md) then [TRACK-F-credit-methodology-EN.md](./TRACK-F-credit-methodology-EN.md) end-to-end.
 2. Memorize [cards](./cards/README.md) F01–F14 and **F-Build** (quiz in meetings).
 3. Run cases using [SOPs](./sops/) 08–15 in order when applicable.
 4. Coach **restore + BUILD in parallel** per TRACK F § F-Build (underwriting literacy — no loan/card guarantees).

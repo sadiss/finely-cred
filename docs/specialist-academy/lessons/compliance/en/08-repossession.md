@@ -2,6 +2,10 @@
 
 Repossession affects **collateral** (usually a vehicle) and **credit reporting**. Finely educates partners on **notices**, **accounting**, and **credit aftermath**—and documents for counsel when legal action appears.
 
+## Consumer power lens
+
+Consumers can **save every notice**, demand **accounting of sale and deficiency**, and dispute **wrong balances or dates** on credit reports with exhibits. State redemption/reinstatement rights may exist—counsel for case facts; Finely documents and disputes reporting accuracy.
+
 ## Why it matters
 
 Repo tradelines are data-heavy: sale date, deficiency balance, status codes. Product playbook (`repossession` in `negativePlaybooks.ts`) asks for **disposition and accounting**—specialists execute that with empathy.

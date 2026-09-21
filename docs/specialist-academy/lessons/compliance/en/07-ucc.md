@@ -2,6 +2,10 @@
 
 The **Uniform Commercial Code** governs many **secured transactions** (especially auto loans). Product copy in Debt Center references **burden of proof** and assignment themes—specialists stay **high-level** and **factual**.
 
+## Consumer power lens
+
+Consumers can **challenge who is collecting**, request **validation and assignment proof**, and dispute **inaccurate secured-loan reporting** on the bureau file. That is lawful pushback—not hiding collateral or inventing fraud.
+
 ## Why it matters
 
 Repo and collector cases often involve “who owns the note?” Finely does not litigate UCC Article 9—but we can request **verification** and **documentation** without overclaiming.

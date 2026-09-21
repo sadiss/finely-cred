@@ -2,6 +2,10 @@
 
 The **Consumer Financial Protection Bureau** complaint portal is a **structured escalation** tool—not a first-day weapon. Finely uses it **after** restore rounds fail when facts support a coherent story (**SOP-12**, **SOP-19**).
 
+## Consumer power lens
+
+Consumers have a **right to complain** when furnishers or bureaus mishandle investigations—if the file tells a dated, factual story. Teaching power means showing partners how a **single, exhibit-backed narrative** beats rage-posting. The CFPB is not a magic eraser; it is a **documented push** that often re-opens stalled furnisher responses when Round 2 mail already failed.
+
 ## Why it matters
 
 Emotional spam complaints hurt partner credibility and waste regulator attention. A **clean Vault** + **timeline** makes CFPB appropriate when furnishers or bureaus stall.

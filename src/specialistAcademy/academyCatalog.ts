@@ -188,6 +188,15 @@ export const ACADEMY_GROUPS: AcademyGroup[] = [
     labelHt: 'Trac F — metodoloji',
     items: [
       {
+        id: 'f-consumer-power',
+        track: 'F',
+        title: 'Consumer power — how the system works',
+        titleHt: 'Pouvwa konsomatè — sistèm nan',
+        pathEn: p('lessons/en/00-consumer-power-system.md'),
+        pathHt: p('lessons/ht/00-consumer-power-system.md'),
+        minutes: 22,
+      },
+      {
         id: 'f-doctrine',
         track: 'F',
         title: 'Sanz doctrine (full sequence)',
@@ -249,6 +258,15 @@ export const ACADEMY_GROUPS: AcademyGroup[] = [
         pathEn: p('lessons/en/07-build-funding-readiness.md'),
         pathHt: p('lessons/ht/07-build-funding-readiness.md'),
         minutes: 22,
+      },
+      {
+        id: 'f-debt-legal',
+        track: 'F',
+        title: 'Debt & Legal — Litigation Command',
+        titleHt: 'Dèt ak legal — Litigation Command',
+        pathEn: p('lessons/en/09-debt-legal-litigation-command.md'),
+        pathHt: p('lessons/ht/09-debt-legal-litigation-command.md'),
+        minutes: 24,
       },
       {
         id: 'f-track-en',

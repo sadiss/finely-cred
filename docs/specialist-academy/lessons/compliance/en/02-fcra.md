@@ -2,6 +2,8 @@
 
 The **Fair Credit Reporting Act** frames how consumer reporting agencies and furnishers handle **accuracy** and **disputes**. Finely restore work lives here for **bureau rounds**—always educational, never a promise to delete accurate debts.
 
+**Consumer power:** You have the right to dispute what is **incomplete or inaccurate** and to receive the results of investigation. Bureaus are businesses that sell reports—they must follow investigation rules. Use that right with **evidence**, not fairy tales.
+
 ## Why it matters
 
 Partners trust us when we speak precisely: “We are requesting an **investigation** of what is reported, with **evidence**.” That matches Finely’s litigation-ready file standard and differs from scam “erase everything” language.

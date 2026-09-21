@@ -2041,6 +2041,14 @@ function AppInner() {
           }
         />
         <Route
+          path="/admin/specialist-academy/quiz/:quizId"
+          element={
+            <ProtectedAdminRoute>
+              <AdminSpecialistAcademyPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
           path="/admin/specialist-academy/:itemId"
           element={
             <ProtectedAdminRoute>

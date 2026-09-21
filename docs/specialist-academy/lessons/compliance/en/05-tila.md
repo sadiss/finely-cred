@@ -2,6 +2,10 @@
 
 **TILA** requires clear disclosure of credit terms in many consumer credit transactions. Finely specialists are **not loan officers**—but partners ask about APR, payment shocks, and “what did I sign?” during **BUILD** and funding-readiness talks.
 
+## Consumer power lens
+
+Borrowers can **request disclosures**, compare **APR** across offers, and refuse predatory terms before signing. Teaching power means partners know they can **read and question** loan paperwork—not that Finely will rewrite their contract or guarantee funding.
+
 ## Why it matters
 
 Restore-for-wealth includes honest money conversations. Mis-explaining TILA sounds like unauthorized lending advice. We teach **awareness**: read disclosures, compare APR, ask servicer/lender—not Finely—for contract copies.

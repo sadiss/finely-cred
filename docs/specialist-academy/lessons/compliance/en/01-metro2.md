@@ -2,6 +2,8 @@
 
 Metro 2 is the **industry data format** many furnishers use when they send account information to credit bureaus. Specialists do **not** need to be programmers—but you **do** need to know how **coding errors** show up on a consumer report so Finely disputes stay **factual** under FCRA.
 
+**Consumer power:** When the published report shows contradictions (status vs payment grid, wrong dates), that is **your leverage**—request investigation and method of verification through the bureau dispute channel (often routed via **e-OSCAR** to the furnisher). You are not begging; you are invoking a process.
+
 ## Why it matters for restore-for-wealth
 
 Partners often say “they’re reporting me wrong.” Sometimes the **human-readable** tradeline is inconsistent with status codes, dates, or payment history grids. Pointing to those inconsistencies—with screenshots—is stronger than repeating “delete per Metro 2” without facts.

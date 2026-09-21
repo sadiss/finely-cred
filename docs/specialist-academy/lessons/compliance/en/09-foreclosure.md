@@ -2,6 +2,10 @@
 
 **Foreclosure** is a **legal process** on real property—not a single late mortgage payment. Finely specialists provide **literacy**, **documentation**, and **credit reporting disputes**—never foreclosure defense representation.
 
+## Consumer power lens
+
+Homeowners can **calendar every deadline**, **answer or appear** when required (with counsel), and challenge **inaccurate foreclosure-related tradelines** after the fact. Ignoring court mail forfeits power—teach partners to act on paper, not panic in silence.
+
 ## Why it matters
 
 Partners may face loss of housing; tone must be compassionate and precise. Wrong promises cause harm. Align with `negativePlaybooks.ts` **foreclosure** tasks: timeline verification, notices in Vault.

@@ -8,9 +8,11 @@ This track teaches how credit reporting works in plain language, then how Finely
 
 ## F0 — Mindset: restore ≠ “credit repair TikTok”
 
-- We teach **process discipline** and **factual accuracy** under FCRA/FACTA framing for bureau disputes, and **validation/dispute literacy** for collector debt — not shortcuts, not guaranteed deletions.
+- We teach **consumer power**: what partners **can** do lawfully—validation, factual disputes with exhibits, complaint ladders, calendars for court, BUILD discipline—not a lecture on what they “can’t.”
+- **Process discipline** and **factual accuracy** under FCRA/FACTA for bureau disputes, and **validation/dispute literacy** for collector debt — not shortcuts, not guaranteed deletions.
 - A clean file is one a reasonable reviewer (bureau, regulator, or counsel) can follow without guessing what we did or why.
 - **Debt may remain** after restore work. Scores move unpredictably. Funding is a separate conversation (Nora).
+- Deep dive: [Consumer power — how the system works](./lessons/en/00-consumer-power-system.md) · [Debt & Legal / Litigation Command](./lessons/en/09-debt-legal-litigation-command.md).
 
 ---
 
@@ -22,8 +24,22 @@ This track teaches how credit reporting works in plain language, then how Finely
 | --- | --- |
 | **Consumer** | The person whose file is reported. |
 | **Furnisher** | Lender, servicer, or collector who reports account data to bureaus. |
-| **CRA (bureau)** | Equifax, Experian, TransUnion — assemble and sell consumer reports. |
-| **Debt collector** | Entity collecting on alleged debt; may or may not own the debt. |
+| **CRA (bureau)** | Equifax, Experian, TransUnion — **businesses** that compile and **sell** consumer reports; they publish what furnishers certify after investigations. |
+| **Debt collector** | Entity collecting on alleged debt; may or may not own the debt. Third-party collectors carry **FDCPA-shaped tools** (validation, dispute, documentation). |
+
+### Pipeline specialists must explain (fair, factual)
+
+1. Furnishers report in industry formats (commonly **Metro 2** fields).
+2. Consumer disputes trigger bureau investigation; many routes run **furnisher ↔ bureaus via e-OSCAR**.
+3. **Wrong fields or dates** on the human-readable report are **factual dispute ammunition**—not secret “deletion codes.”
+4. **Original creditor** vs **debt buyer/collector** changes which letters and proofs matter first (debt track vs bureau track).
+
+### What consumers can do (teach this before boundaries)
+
+- Request **debt validation in writing** before paying unknown collectors (see F4, SOP-09).
+- Dispute **inaccurate or unverifiable** bureau lines with **screenshot exhibits** (FCRA track).
+- Escalate with **documented** CFPB complaints after disciplined rounds—not day-one spam.
+- **Never ignore court mail**; use Debt Center / Litigation Command literacy and counsel when served.
 
 ### What appears on a report
 
