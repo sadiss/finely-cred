@@ -197,6 +197,15 @@ export const ACADEMY_GROUPS: AcademyGroup[] = [
         minutes: 22,
       },
       {
+        id: 'f-visual-walkthrough',
+        track: 'F',
+        title: 'Visual walkthrough — restore → mail',
+        titleHt: 'Chemen vizyèl — restore → mail',
+        pathEn: p('lessons/en/08-visual-product-walkthrough.md'),
+        pathHt: p('lessons/ht/08-visual-product-walkthrough.md'),
+        minutes: 28,
+      },
+      {
         id: 'f-doctrine',
         track: 'F',
         title: 'Sanz doctrine (full sequence)',

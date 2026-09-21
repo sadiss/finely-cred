@@ -89,6 +89,8 @@ const AdminGuidePage = lazy(() => import('./pages/admin/AdminGuidePage'));
 const AdminCoursesPage = lazy(() => import('./pages/admin/AdminCoursesPage'));
 const AdminCourseEditorPage = lazy(() => import('./pages/admin/AdminCourseEditorPage'));
 const AdminSpecialistAcademyPage = lazy(() => import('./pages/admin/AdminSpecialistAcademyPage'));
+const AdminSpecialistLoungePage = lazy(() => import('./pages/admin/AdminSpecialistLoungePage'));
+const PartnerCommunityWaitlistPage = lazy(() => import('./pages/PartnerCommunityWaitlistPage'));
 const AdminSecretVaultPage = lazy(() => import('./pages/admin/AdminSecretVaultPage'));
 const AdminFinanceAllocatorPage = lazy(() => import('./pages/admin/AdminFinanceAllocatorPage'));
 const AdminMonitoringPage = lazy(() => import('./pages/admin/AdminMonitoringPage'));
@@ -2056,6 +2058,15 @@ function AppInner() {
             </ProtectedAdminRoute>
           }
         />
+        <Route
+          path="/admin/specialist-lounge"
+          element={
+            <ProtectedAdminRoute>
+              <AdminSpecialistLoungePage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route path="/partner-community" element={<PartnerCommunityWaitlistPage />} />
         <Route
           path="/admin/vault"
           element={

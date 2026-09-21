@@ -11,10 +11,12 @@ export function getAcademyProgress(): Set<string> {
   }
 }
 
-export function markAcademyItemComplete(id: string): void {
+export function markAcademyItemComplete(id: string): boolean {
   const set = getAcademyProgress();
+  if (set.has(id)) return false;
   set.add(id);
   localStorage.setItem(KEY, JSON.stringify([...set]));
+  return true;
 }
 
 export function clearAcademyProgress(): void {

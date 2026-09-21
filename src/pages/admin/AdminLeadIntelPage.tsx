@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ArrowRight, Sparkles, ShieldAlert, Search, Download, CheckCircle2, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
@@ -91,8 +91,27 @@ export default function AdminLeadIntelPage() {
   const [results, setResults] = useState<IntelResult[]>([]);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [notice, setNotice] = useState<string | null>(null);
+  const [providers, setProviders] = useState<{
+    preferred?: string;
+    googleCse?: { configured: boolean; cx?: string; apiKeySet?: boolean };
+    serper?: { configured: boolean };
+    osmNominatim?: { configured: boolean; note?: string };
+  } | null>(null);
 
   const selectedCount = useMemo(() => Object.values(selected).filter(Boolean).length, [selected]);
+
+  useEffect(() => {
+    if (!features.leadIntel || !isSupabaseConfigured) return;
+    void supabase.functions
+      .invoke('lead-intel', { body: { ping: true } })
+      .then(({ data, error }) => {
+        if (error || !data?.ok) return;
+        setProviders(data.providers ?? null);
+      })
+      .catch(() => {
+        /* ignore ping failures in dev */
+      });
+  }, [features.leadIntel]);
 
   const mergeResults = (prev: IntelResult[], incoming: IntelResult[]) => {
     const byDomain = new Map<string, IntelResult>();
@@ -136,9 +155,11 @@ export default function AdminLeadIntelPage() {
       const nextSel: Record<string, boolean> = {};
       out.forEach((r) => (nextSel[r.url] = (r.score ?? 0) >= 40));
       setSelected(nextSel);
+      const via = data.searchProvider ? ` via ${String(data.searchProvider).replace(/_/g, ' ')}` : '';
       setNotice(
-        `Found ${out.length} prospects${requireContact ? ' (phone + email required)' : ''}. Pre-selected ${Object.values(nextSel).filter(Boolean).length} likely fits.`,
+        `Found ${out.length} prospects${via}${requireContact ? ' (phone + email required)' : ''}. Pre-selected ${Object.values(nextSel).filter(Boolean).length} likely fits.`,
       );
+      if (data.providers) setProviders(data.providers);
     } catch (e: any) {
       setErr(e?.message || 'Search failed.');
     } finally {
@@ -185,7 +206,7 @@ export default function AdminLeadIntelPage() {
       merged.forEach((r) => (nextSel[r.url] = (r.score ?? 0) >= 40));
       setSelected(nextSel);
       setNotice(
-        `Batch: ${metros.length} metros → ${merged.length} unique domains (cap 50)${requireContact ? ', phone+email required' : ''}.`,
+        `Batch: ${metros.length} metros → ${merged.length} unique domains (cap 50)${requireContact ? ', phone+email required' : ''}. Uses Google CSE when API key is set, else Serper, else OSM (no key).`,
       );
     } catch (e: any) {
       setErr(e?.message || 'Batch search failed.');
@@ -289,6 +310,37 @@ export default function AdminLeadIntelPage() {
         {!features.leadIntel && (
           <div className="rounded-2xl border border-amber-500/25 bg-amber-500/10 p-5 text-white/75 text-sm">
             Lead Intelligence Agent is disabled. Enable it in <span className="text-white/90 font-semibold">Admin Settings → Feature Flags</span>.
+          </div>
+        )}
+
+        {providers && (
+          <div className="rounded-2xl border border-white/10 bg-black/30 p-4 text-sm text-white/70">
+            <div className="font-semibold text-white/90">Search providers</div>
+            <ul className="mt-2 space-y-1 text-xs">
+              <li>
+                Google CSE — cx{' '}
+                <span className="font-mono text-white/80">{providers.googleCse?.cx ?? '815aa44b612a64808'}</span>
+                {providers.googleCse?.configured ? (
+                  <span className="text-emerald-400 ml-2">active (API key set)</span>
+                ) : (
+                  <span className="text-white/50 ml-2">
+                    waiting for <span className="font-mono">GOOGLE_CSE_API_KEY</span> in Supabase secrets
+                  </span>
+                )}
+              </li>
+              <li>
+                Serper —{' '}
+                {providers.serper?.configured ? (
+                  <span className="text-emerald-400">configured (fallback)</span>
+                ) : (
+                  <span className="text-white/50">optional — not required to ship</span>
+                )}
+              </li>
+              <li>
+                OSM Nominatim — <span className="text-emerald-400">no API key</span>
+                <span className="text-white/50"> — {providers.osmNominatim?.note ?? 'fallback when paid search keys absent'}</span>
+              </li>
+            </ul>
           </div>
         )}
 
@@ -507,7 +559,13 @@ export default function AdminLeadIntelPage() {
         <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 text-white/70 text-sm">
           <div className="font-semibold text-white">Compliance & quality notes</div>
           <ul className="mt-3 space-y-2 list-disc pl-5">
-            <li>Results come from a search API (not restricted platforms). Enrichment is limited to public pages and skips sites that disallow all crawling.</li>
+            <li>
+              Results use <strong className="text-white/90">Google Custom Search</strong> when{' '}
+              <span className="font-mono">GOOGLE_CSE_API_KEY</span> is set (cx{' '}
+              <span className="font-mono">GOOGLE_CSE_CX</span> or default 815aa44b612a64808), else optional Serper, else{' '}
+              <strong className="text-white/90">OpenStreetMap Nominatim</strong> (no key). Bing signup deferred per Sanz.
+            </li>
+            <li>Enrichment is limited to public pages and skips sites that disallow all crawling.</li>
             <li>Qualification score prioritizes reachable contacts (email/phone) and keyword relevance to the selected target.</li>
             <li>Outbound outreach is your responsibility. Follow CAN‑SPAM/TCPA and only contact where you have a lawful basis.</li>
           </ul>

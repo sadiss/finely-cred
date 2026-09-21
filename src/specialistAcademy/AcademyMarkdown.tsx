@@ -29,12 +29,21 @@ function inlineFormat(text: string): React.ReactNode[] {
   return parts;
 }
 
+function slugHeading(text: string) {
+  return text
+    .replace(/\*\*/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
 type Block =
-  | { kind: 'h1' | 'h2' | 'h3'; text: string }
+  | { kind: 'h1' | 'h2' | 'h3'; text: string; id?: string }
   | { kind: 'p'; text: string }
   | { kind: 'ul' | 'ol'; items: string[] }
   | { kind: 'hr' }
   | { kind: 'table'; rows: string[][] }
+  | { kind: 'img'; alt: string; src: string }
   | { kind: 'quote'; lines: string[]; variant: 'example' | 'compliance' | 'mistake' | 'default' };
 
 function parseMarkdown(md: string): Block[] {
@@ -61,10 +70,18 @@ function parseMarkdown(md: string): Block[] {
       if (rows.length) blocks.push({ kind: 'table', rows });
       continue;
     }
+    const img = /^!\[([^\]]*)\]\(([^)]+)\)\s*$/.exec(line.trim());
+    if (img) {
+      blocks.push({ kind: 'img', alt: img[1], src: img[2] });
+      i++;
+      continue;
+    }
     const h = /^(#{1,3})\s+(.+)$/.exec(line);
     if (h) {
       const level = h[1].length;
-      blocks.push({ kind: level === 1 ? 'h1' : level === 2 ? 'h2' : 'h3', text: h[2] });
+      const text = h[2];
+      const kind = level === 1 ? 'h1' : level === 2 ? 'h2' : 'h3';
+      blocks.push({ kind, text, id: level >= 2 ? slugHeading(text) : undefined });
       i++;
       continue;
     }
@@ -163,16 +180,34 @@ export function AcademyMarkdown({ markdown, className }: { markdown: string; cla
         }
         if (b.kind === 'h2') {
           return (
-            <h2 key={idx} className="text-xl md:text-2xl font-semibold text-white mt-8 border-b border-white/10 pb-2">
+            <h2
+              key={idx}
+              id={b.id ? `academy-${b.id}` : undefined}
+              className="text-xl md:text-2xl font-semibold text-white mt-8 border-b border-white/10 pb-2 scroll-mt-28"
+            >
               {inlineFormat(b.text)}
             </h2>
           );
         }
         if (b.kind === 'h3') {
           return (
-            <h3 key={idx} className="text-lg font-semibold text-amber-100/95 mt-6">
+            <h3
+              key={idx}
+              id={b.id ? `academy-${b.id}` : undefined}
+              className="text-lg font-semibold text-amber-100/95 mt-6 scroll-mt-28"
+            >
               {inlineFormat(b.text)}
             </h3>
+          );
+        }
+        if (b.kind === 'img') {
+          return (
+            <figure key={idx} className="rounded-2xl border border-white/10 overflow-hidden bg-black/30">
+              <img src={b.src} alt={b.alt} className="w-full h-auto" loading="lazy" />
+              {b.alt ? (
+                <figcaption className="px-4 py-3 text-white/55 text-sm border-t border-white/10">{b.alt}</figcaption>
+              ) : null}
+            </figure>
           );
         }
         if (b.kind === 'p') {

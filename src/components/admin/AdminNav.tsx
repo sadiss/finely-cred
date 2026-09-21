@@ -53,6 +53,7 @@ const GROUPS: NavGroup[] = [
       { path: '/admin/resources', label: 'Resources', icon: Library, hint: 'Public guides' },
       { path: '/admin/courses', label: 'Courses', icon: GraduationCap, hint: 'Course builder' },
       { path: '/admin/specialist-academy', label: 'Specialist Academy', icon: BookOpen, hint: 'Restore methodology training' },
+      { path: '/admin/specialist-lounge', label: 'Specialist Lounge', icon: Users, hint: 'Social hub for desk' },
       { path: '/admin/testimonials', label: 'Testimonials', icon: Trophy, hint: 'Social proof' },
     ],
   },

@@ -2,6 +2,8 @@ import React, { useMemo, useState } from 'react';
 import { MessageCircle, Send, Sparkles, X } from 'lucide-react';
 import { callAiGateway, type AiGatewayMessage } from '../../lib/aiClient';
 import { isFeatureEnabled } from '../../data/settingsRepo';
+import { buildAgentSystemPrompt } from '../../lib/knowledgeBase/agentPersonas';
+import { detectKbLang, retrieveKnowledgeSync } from '../../lib/knowledgeBaseRouter';
 
 export function PortalChatWidget(args: { partnerId?: string; lane?: string; journeyStage?: string }) {
   const enabled = isFeatureEnabled('portalChat') && isFeatureEnabled('aiGateway');
@@ -33,7 +35,9 @@ export function PortalChatWidget(args: { partnerId?: string; lane?: string; jour
     const next: AiGatewayMessage[] = [...messages, { role: 'user' as const, content: text }];
     setMessages(next);
     try {
-      const system = `You are Finely Cred's in-portal coach. Be concise, actionable, and specific. Ask 1 clarifying question when needed. Provide step-by-step next actions. If user asks legal advice, disclaim and focus on process.`;
+      const replyLang = detectKbLang(text);
+      const kb = retrieveKnowledgeSync(text, replyLang);
+      const system = buildAgentSystemPrompt('portal_coach', kb, replyLang);
       const res = await callAiGateway({
         taskType: 'portal_chat',
         messages: [{ role: 'system', content: system }, ...next],

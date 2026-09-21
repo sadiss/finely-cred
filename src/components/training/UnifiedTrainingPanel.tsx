@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { BookOpen, ClipboardCheck, GraduationCap } from 'lucide-react';
-import { ACADEMY_GROUPS, ACADEMY_ITEMS, TRACK_LABELS, type AcademyItem } from '../../specialistAcademy/academyCatalog';
+import { ACADEMY_GROUPS, ACADEMY_ITEMS, TRACK_LABELS, type AcademyItem, type AcademyTrackId } from '../../specialistAcademy/academyCatalog';
 import { ACADEMY_QUIZZES } from '../../specialistAcademy/academyQuizzes';
 import { getQuizPasses } from './AcademyQuizPanel';
 
@@ -26,9 +26,22 @@ export function UnifiedTrainingPanel({
   activeQuizId?: string | null;
 }) {
   const quizPasses = getQuizPasses();
+  const [trackFilter, setTrackFilter] = useState<AcademyTrackId | 'all'>('all');
+
+  const visibleGroups = useMemo(() => {
+    if (trackFilter === 'all') return ACADEMY_GROUPS;
+    return ACADEMY_GROUPS.filter((g) => g.track === trackFilter || (trackFilter === 'F' && g.id === 'sops'));
+  }, [trackFilter]);
+
+  const trackChips: { id: AcademyTrackId | 'all'; label: string }[] = [
+    { id: 'all', label: 'All' },
+    { id: 'F', label: 'F' },
+    { id: 'H', label: 'H' },
+    { id: 'hub', label: 'Hub' },
+  ];
 
   return (
-    <aside className="lg:sticky lg:top-24 space-y-4 max-h-[calc(100vh-8rem)] overflow-y-auto fc-scroll-area pr-1">
+    <aside className="lg:sticky lg:top-24 space-y-4 pr-1">
       <div className="rounded-2xl border border-white/10 bg-black/30 p-2 flex gap-1">
         <button
           type="button"
@@ -52,20 +65,39 @@ export function UnifiedTrainingPanel({
 
       {activeTab === 'library' ? (
         <>
+          <div className="flex flex-wrap gap-1">
+            {trackChips.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => setTrackFilter(c.id)}
+                className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${
+                  trackFilter === c.id ? 'bg-white/15 text-white' : 'text-white/45 hover:text-white/70'
+                }`}
+              >
+                {c.label}
+              </button>
+            ))}
+          </div>
           <div className="rounded-2xl border border-violet-500/25 bg-violet-500/10 p-4">
             <div className="flex items-center gap-2 text-violet-100 font-semibold text-sm">
-              <GraduationCap size={16} /> Consumer-power curriculum
+              <GraduationCap size={16} /> Official course library
             </div>
             <p className="mt-2 text-white/60 text-xs leading-relaxed">
               Teach rights + how reporting really works. Start with <strong className="text-white/80">f-consumer-power</strong> in Track F.
             </p>
           </div>
-          {ACADEMY_GROUPS.map((g) => (
-            <div key={g.id} className="rounded-2xl border border-white/10 bg-black/25 p-3">
-              <div className="text-[10px] uppercase tracking-widest text-white/45 font-black px-1 mb-2">
-                {lang === 'ht' && g.labelHt ? g.labelHt : g.label}
-              </div>
-              <div className="space-y-1">
+          {visibleGroups.map((g) => (
+            <details
+              key={g.id}
+              open={g.track === 'F' || g.track === 'H' || g.id === 'hub'}
+              className="rounded-2xl border border-white/10 bg-black/25 p-3 group"
+            >
+              <summary className="cursor-pointer select-none text-[10px] uppercase tracking-widest text-white/55 font-black px-1 mb-2 list-none flex items-center justify-between">
+                <span>{lang === 'ht' && g.labelHt ? g.labelHt : g.label}</span>
+                <span className="text-white/30 group-open:rotate-180 transition-transform">▾</span>
+              </summary>
+              <div className="space-y-1 mt-2">
                 {g.items.map((item) => {
                   const done = progress.has(item.id);
                   const isActive = item.id === activeLessonId;
@@ -86,7 +118,7 @@ export function UnifiedTrainingPanel({
                   );
                 })}
               </div>
-            </div>
+            </details>
           ))}
         </>
       ) : (

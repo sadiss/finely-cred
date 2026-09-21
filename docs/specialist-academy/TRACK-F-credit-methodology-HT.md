@@ -8,16 +8,21 @@ Dokiman sa a se **kouche sans** pou biwo Ayisyen an: eksplike ak kliyan an nan K
 
 ## F0 — Mentalite
 
+- Nou anseye **pouvwa konsomatè**: ki **dwa** patnè genyen, ki **aksyon** legal yo ka pran jodi a — pa yon lis “ou pa ka fè anyen.”
 - Sa pa “credit repair” sou rezo sosyal. Se **pwosesis**, **prèv**, ak **dat** — pa garanti.
 - Dèt ka rete sou dosye a menm apre travay restore. Nòt kredi ka chanje. **Nora / finansman** se yon chemen **apa**.
+- Li plis: [Pouvwa konsomatè](./lessons/ht/00-consumer-power-system.md) · [Dèt ak legal](./lessons/ht/09-debt-legal-litigation-command.md).
 
 ---
 
 ## F1 — Kijan rapò kredi mache (senp)
 
-- **Biwo (CRA):** Equifax, Experian, TransUnion — yo ranmase enfòmasyon.
-- **Founisè / kolektè:** moun ki rapòte oswa kolekte dèt.
+- **Biwo (CRA):** Equifax, Experian, TransUnion — **biznis** ki vann rapò konsomatè; yo pibliye sa founisè yo sètifye apre envestigasyon.
+- **Founisè / kolektè:** moun ki rapòte oswa kolekte dèt. Kolektè twazyèm pati gen zouti **FDCPA** (validasyon, dispute, dosye).
+- **Metro 2 / e-OSCAR:** done ale nan fòma endistri; dispute souvan pase **founisè ↔ biwo** — erè dat/estati sou rapò a se **prèv faktik**.
 - Sou rapò a gen **kont**, **koleksyon**, **demann (inquiry)**, enfòmasyon pèsonèl.
+
+**Kisa patnè ka fè (anseye anvan limit):** mande **validasyon** an ekri; dispute **erè** sou biwo ak screenshot; plent CFPB **apre** round ki echwe; pa ignore **somasyon** — kalandriye + avoka lè sa nesesè.
 
 **Restore nan Finely:** nou konteste **erè ak bagay ki pa verifye** sou fichye biwo a (FCRA — edikasyon). Pou koleksyon/dèt, nou swiv **validasyon** ak lèt dispute anvan nou foure tout bagay nan “Round 1” aveg.
 

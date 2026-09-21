@@ -1,6 +1,7 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, XCircle, RotateCcw } from 'lucide-react';
 import type { AcademyQuiz } from '../../specialistAcademy/academyQuizzes';
+import { fireAcademyConfetti } from './academy/AcademyMotion';
 
 const QUIZ_PROGRESS_KEY = 'finely.specialistAcademy.quiz.v1';
 
@@ -21,9 +22,13 @@ export function saveQuizPass(quizId: string, score: number, passed: boolean) {
 export function AcademyQuizPanel({
   quiz,
   lang,
+  reduceMotion = false,
+  onFinished,
 }: {
   quiz: AcademyQuiz;
   lang: 'en' | 'ht';
+  reduceMotion?: boolean;
+  onFinished?: (args: { passed: boolean; score: number }) => void;
 }) {
   const [idx, setIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
@@ -61,8 +66,15 @@ export function AcademyQuizPanel({
       const didPass = finalScore >= quiz.passPercent;
       setDone(true);
       saveQuizPass(quiz.id, finalScore, didPass);
+      if (didPass) fireAcademyConfetti(reduceMotion);
+      onFinished?.({ passed: didPass, score: finalScore });
     }
   };
+
+  const [qAnim, setQAnim] = useState(0);
+  useEffect(() => {
+    setQAnim((n) => n + 1);
+  }, [idx]);
 
   const reset = () => {
     setIdx(0);
@@ -72,7 +84,7 @@ export function AcademyQuizPanel({
 
   if (done) {
     return (
-      <div className="rounded-2xl border border-white/10 bg-black/30 p-8 text-center space-y-4">
+      <div className={`rounded-2xl border border-white/10 bg-black/30 p-8 text-center space-y-4 ${reduceMotion ? '' : 'animate-slide-up-fade'}`}>
         <div className={`text-4xl font-bold ${passed ? 'text-emerald-300' : 'text-amber-300'}`}>{score}%</div>
         <div className="text-white font-semibold text-lg">
           {passed ? 'Passed — great work.' : `Keep studying — pass mark is ${quiz.passPercent}%.`}
@@ -96,7 +108,7 @@ export function AcademyQuizPanel({
   const correct = answered && selected === q.answerIndex;
 
   return (
-    <div className="space-y-6">
+    <div key={qAnim} className={`space-y-6 ${reduceMotion ? '' : 'animate-slide-up-fade'}`}>
       <div className="flex items-center justify-between text-[10px] uppercase tracking-widest text-white/50 font-black">
         <span>Question {idx + 1} of {total}</span>
         <span>{quiz.title}</span>

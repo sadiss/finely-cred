@@ -1,0 +1,93 @@
+/* Specialist Academy — Finely LMS surfaces (gold = foil accent only) */
+
+.academy-lms {
+  --academy-ink: #0b1110;
+  --academy-emerald: #10b981;
+  --academy-violet: #a78bfa;
+  --academy-sky: #38bdf8;
+  --academy-rose: #fb7185;
+  --academy-platinum: rgba(255, 255, 255, 0.92);
+  --academy-gold-foil: #fbbf24;
+}
+
+.academy-lms .academy-foil-border {
+  border-color: rgba(251, 191, 36, 0.28);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06) inset, 0 24px 64px -48px rgba(251, 191, 36, 0.15);
+}
+
+.academy-progress-pulse {
+  animation: academy-progress-pulse 2.5s ease-in-out infinite;
+}
+
+@keyframes academy-progress-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    filter: brightness(1);
+  }
+  50% {
+    opacity: 0.92;
+    filter: brightness(1.08);
+  }
+}
+
+.academy-hotspot-pulse {
+  animation: academy-hotspot-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes academy-hotspot-pulse {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.04);
+  }
+}
+
+.academy-card-lift {
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.35s ease;
+}
+
+.academy-card-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px -24px rgba(16, 185, 129, 0.2);
+}
+
+.academy-confetti-piece {
+  position: fixed;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  pointer-events: none;
+  z-index: 9999;
+  animation: academy-confetti-fall 1.2s ease-out forwards;
+}
+
+@keyframes academy-confetti-fall {
+  0% {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(120px) rotate(360deg);
+  }
+}
+
+.academy-lms.academy-reduce-motion .academy-progress-pulse,
+.academy-lms.academy-reduce-motion .academy-hotspot-pulse,
+.academy-lms.academy-reduce-motion .academy-confetti-piece {
+  animation: none !important;
+}
+
+.academy-lms.academy-reduce-motion .academy-card-lift:hover {
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .academy-progress-pulse,
+  .academy-hotspot-pulse {
+    animation: none !important;
+  }
+}

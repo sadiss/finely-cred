@@ -117,6 +117,14 @@ export interface SecuritySettings {
   adminEmails: string[];
 }
 
+/** Specialist Academy trainee lifecycle emails (not partner prospecting). */
+export interface AcademyTraineeSettings {
+  /** Master toggle — requires commsDelivery + SendGrid edge for live send. */
+  traineeEmailsEnabled: boolean;
+  /** Optional weekly progress digest to the logged-in trainee. */
+  weeklyDigestEnabled: boolean;
+}
+
 /**
  * Feature flags for enabling/disabling functionality
  */
@@ -233,6 +241,7 @@ export interface PlatformSettings {
   pricing: PricingControls;
   workboard: WorkboardSettings;
   webhooks: WebhookConfig[];
+  academyTrainee?: AcademyTraineeSettings;
   updatedAt: string;
   updatedBy?: string;
 }
@@ -296,6 +305,10 @@ export const DEFAULT_SETTINGS: PlatformSettings = {
     tradelineAuMarkupPct: 0,
     tradelineAuDiscountPct: 0,
     packageOverrides: {},
+  },
+  academyTrainee: {
+    traineeEmailsEnabled: false,
+    weeklyDigestEnabled: false,
   },
   workboard: {
     projectStages: [
