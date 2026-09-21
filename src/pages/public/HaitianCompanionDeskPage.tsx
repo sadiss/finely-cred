@@ -10,6 +10,7 @@ import { finelyCtaNavigate } from '../../lib/finelyCtaIntent';
 import {
   HAITIAN_DESK_LIVE_PATH,
   HAITIAN_HEAR_IT_LINES,
+  HAITIAN_KIT_PATH,
   HAITIAN_LETTER_SAMPLES,
   HAITIAN_PLACE_CARDS,
   HAITIAN_STAFF_IDS,
@@ -87,6 +88,9 @@ export default function HaitianCompanionDeskPage() {
               <button type="button" className="ht-desk-btn-secondary" onClick={bookSession}>
                 Book a session
               </button>
+              <Link className="ht-desk-btn-secondary" to={HAITIAN_KIT_PATH}>
+                {HT_PUBLIC.kitsCta} <ArrowRight size={16} aria-hidden />
+              </Link>
             </div>
             <p className="ht-desk-compliance">
               Results vary · not legal advice · funding subject to underwriting · Rezilta yo varye
@@ -192,6 +196,22 @@ export default function HaitianCompanionDeskPage() {
                 score. We never pretend to be the court.
               </p>
               <p>Yon liy angle. Yon biwo. Apre sa nou kanpe. Se pa yon seri tout lannwit.</p>
+            </div>
+          </div>
+        </section>
+
+        <section className="ht-desk-section" id="ht-kits">
+          <div className="ht-desk-inner">
+            <p className="ht-desk-kicker">{HT_PUBLIC.kitsKicker}</p>
+            <h2 className="ht-desk-h2">{HT_PUBLIC.kitsH2}</h2>
+            <p className="ht-desk-lede">{HT_PUBLIC.kitsLede}</p>
+            <div className="ht-desk-actions ht-desk-actions--start">
+              <Link className="ht-desk-btn-primary" to={HAITIAN_KIT_PATH}>
+                {HT_PUBLIC.kitsCta} <ArrowRight size={16} aria-hidden />
+              </Link>
+              <Link className="ht-desk-btn-secondary" to={HAITIAN_KIT_PATH}>
+                {HT_PUBLIC.kitsCtaHt}
+              </Link>
             </div>
           </div>
         </section>
