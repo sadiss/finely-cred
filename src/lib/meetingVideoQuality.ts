@@ -1,6 +1,6 @@
 /**
  * Meeting video defaults — WebRTC constraints + Jitsi config overlays.
- * Touch-up v1: center-weighted matte + filters (not MediaPipe/BodyPix). See meetingBeautyPipeline.ts.
+ * Touch-up v1: center-weighted matte + filters (not ML segmentation). See meetingBeautyPipeline.ts.
  */
 
 export type MeetingVideoMode = 'hd' | 'smooth';
@@ -37,6 +37,14 @@ export const ACADEMY_HUDDLE_VIDEO_DEFAULTS: MeetingVideoPrefs = {
   ...LOUNGE_HOST_VIDEO_DEFAULTS,
   virtualBackground: 'finely_soft_office',
 };
+
+export function hasLobbyVisualEffects(prefs: MeetingVideoPrefs): boolean {
+  return prefs.beautyEnabled || prefs.virtualBackground !== 'none';
+}
+
+export function outboundVideoFps(prefs: MeetingVideoPrefs): number {
+  return prefs.videoMode === 'hd' ? 30 : 24;
+}
 
 export function buildVideoConstraints(mode: MeetingVideoMode): MediaTrackConstraints {
   const hd = mode === 'hd';
@@ -75,6 +83,7 @@ export function jitsiConfigOverwrite(prefs: MeetingVideoPrefs) {
     enableWelcomePage: false,
     p2p: { enabled: false },
     analytics: { disabled: true },
+    disableVirtualBackground: false,
   };
 }
 

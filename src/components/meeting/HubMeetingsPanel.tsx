@@ -35,10 +35,17 @@ export function HubMeetingsPanel({
               <div className="mt-2 flex flex-wrap gap-2">
                 <button
                   type="button"
+                  onClick={() => navigate(`/admin/meet/${e.id}?ctx=lounge&lang=${lang}`)}
+                  className="px-2 py-1 rounded-lg bg-amber-500/20 text-amber-100 border border-amber-500/30 text-[10px] font-bold uppercase"
+                >
+                  Host join
+                </button>
+                <button
+                  type="button"
                   onClick={() => navigate(buildGuestMeetingJoinPath(e.id))}
                   className="px-2 py-1 rounded-lg bg-sky-500/20 text-sky-100 border border-sky-500/30 text-[10px] font-bold uppercase"
                 >
-                  Pre-join lobby
+                  Guest lobby
                 </button>
                 {e.meetingUrl ? (
                   <a

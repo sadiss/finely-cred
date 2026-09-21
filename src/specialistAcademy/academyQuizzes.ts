@@ -29,6 +29,7 @@ export const ACADEMY_QUIZZES: AcademyQuiz[] = [
       {
         id: 'm1',
         prompt: 'When collection risk exists, what runs first in Sanz doctrine?',
+        promptHt: 'Lè gen risk koleksyon, ki sa ki premye nan doktrin Sanz?',
         choices: ['Mass Round 1 bureau deletes', 'Debt-first triage and validation on collectors', 'CFPB complaint', 'Nora funding application'],
         answerIndex: 1,
         explain: 'Debt-first + validation (SOP-08/09) gates restore when collector or summons risk is present.',
@@ -36,6 +37,7 @@ export const ACADEMY_QUIZZES: AcademyQuiz[] = [
       {
         id: 'm2',
         prompt: 'Validation under FDCPA §809 (educational) empowers the consumer to:',
+        promptHt: 'Validasyon anba FDCPA §809 (edikasyon) pèmèt konsomatè:',
         choices: ['Demand proof before continued collection in the statutory framework', 'Automatically delete all tradelines', 'Skip court if sued', 'Guarantee a 100-point score increase'],
         answerIndex: 0,
         explain: 'Validation is a consumer tool to request verification—not a score guarantee.',
@@ -43,6 +45,7 @@ export const ACADEMY_QUIZZES: AcademyQuiz[] = [
       {
         id: 'm3',
         prompt: 'A partner was served a summons yesterday. Best immediate Finely action?',
+        promptHt: 'Yon patnè resevwa somasyon yè. Premye aksyon Finely?',
         choices: ['Mail Round 1 to all bureaus tonight', 'Upload summons, calendar answer deadline, pause blind bureau spam', 'Ignore court until deletions land', 'File CFPB first'],
         answerIndex: 1,
         explain: 'SOP-10: court literacy and documentation; counsel when needed.',
@@ -50,6 +53,7 @@ export const ACADEMY_QUIZZES: AcademyQuiz[] = [
       {
         id: 'm4',
         prompt: 'Round 2 differs from Round 1 because it:',
+        promptHt: 'Round 2 diferan de Round 1 paske li:',
         choices: ['Repeats the same letter with a new date', 'Uses bureau/furnisher responses and tightens factual contradictions', 'Only works for inquiries', 'Replaces validation'],
         answerIndex: 1,
         explain: 'Round 2 is response-driven with exhibits.',
@@ -57,6 +61,7 @@ export const ACADEMY_QUIZZES: AcademyQuiz[] = [
       {
         id: 'm5',
         prompt: 'When is CFPB appropriate?',
+        promptHt: 'Ki lè CFPB apwopriye?',
         choices: ['Day one before any mail', 'After disciplined rounds with a clean Vault narrative', 'Whenever the client is angry', 'Instead of validation'],
         answerIndex: 1,
         explain: 'SOP-12/19: after failed rounds when warranted.',
@@ -64,6 +69,7 @@ export const ACADEMY_QUIZZES: AcademyQuiz[] = [
       {
         id: 'm6',
         prompt: 'OCR discipline means:',
+        promptHt: 'Disiplin OCR vle di:',
         choices: ['Send identical letters to every account', 'Vary structure while keeping facts truthful', 'Never mail certified', 'Only use one template forever'],
         answerIndex: 1,
         explain: 'SOP-13: avoid cookie-cutter bulk patterns.',
@@ -71,6 +77,7 @@ export const ACADEMY_QUIZZES: AcademyQuiz[] = [
       {
         id: 'm7',
         prompt: 'Prior company sent Round 2 last month. Finely should:',
+        promptHt: 'Konpayi anvan te voye Round 2. Finely dwe:',
         choices: ['Restart Round 1 boilerplate', 'Intake PDFs and continue at the correct round stage', 'Hide prior letters from the file', 'Promise deletion in 30 days'],
         answerIndex: 1,
         explain: 'SOP-14: never blind Round 1 restart.',
@@ -78,6 +85,7 @@ export const ACADEMY_QUIZZES: AcademyQuiz[] = [
       {
         id: 'm8',
         prompt: 'BUILD coaching during restore should:',
+        promptHt: 'Kouch BUILD pandan restore dwe:',
         choices: ['Promise Nora approval', 'Teach mix/utilization literacy without loan guarantees', 'Replace debt triage', 'Skip payment discipline'],
         answerIndex: 1,
         explain: 'SOP-15: underwriting education, not lender policy.',
@@ -85,6 +93,7 @@ export const ACADEMY_QUIZZES: AcademyQuiz[] = [
       {
         id: 'm9',
         prompt: 'Evidence for a collection dispute must show:',
+        promptHt: 'Prèv pou disput koleksyon dwe montre:',
         choices: ['FICO score only', 'The actual collection/tradeline on the report', 'A social media post', 'Nothing—letters alone are enough'],
         answerIndex: 1,
         explain: 'SOP-13: per-account screenshots.',
@@ -92,6 +101,7 @@ export const ACADEMY_QUIZZES: AcademyQuiz[] = [
       {
         id: 'm10',
         prompt: 'Finely’s voice with partners should emphasize:',
+        promptHt: 'Vwa Finely ak patnè dwe mete aksan sou:',
         choices: ['Guaranteed deletions and funding', 'Process, rights, documentation, and honest limits', 'Ignoring collectors', 'Legal representation by Finely'],
         answerIndex: 1,
         explain: 'Consumer-power framing: empower within compliance bounds.',
@@ -108,6 +118,7 @@ export const ACADEMY_QUIZZES: AcademyQuiz[] = [
       {
         id: 'c1',
         prompt: 'Metro 2 is best described as:',
+        promptHt: 'Metro 2 is best described as: (HT)',
         choices: ['A magic deletion code', 'A furnisher data format—errors on the report are factual dispute ammo', 'A court filing system', 'A Nora funding API'],
         answerIndex: 1,
         explain: 'Transparent mechanics + FCRA disputes—not “codes.”',
@@ -115,6 +126,7 @@ export const ACADEMY_QUIZZES: AcademyQuiz[] = [
       {
         id: 'c2',
         prompt: 'Bureaus (CRAs) are:',
+        promptHt: 'Bureaus (CRAs) are: (HT)',
         choices: ['Government courts', 'Businesses that compile and sell consumer reports', 'Collectors only', 'Loan approval engines'],
         answerIndex: 1,
         explain: 'Understanding the system helps consumers push back factually.',
@@ -122,6 +134,7 @@ export const ACADEMY_QUIZZES: AcademyQuiz[] = [
       {
         id: 'c3',
         prompt: 'Many bureau disputes route to furnishers via:',
+        promptHt: 'Many bureau disputes route to furnishers via: (HT)',
         choices: ['e-OSCAR (industry dispute network)', 'Only notarized court orders', 'Social media', 'Random email'],
         answerIndex: 0,
         explain: 'Knowing the flow explains investigation timing.',
@@ -129,6 +142,7 @@ export const ACADEMY_QUIZZES: AcademyQuiz[] = [
       {
         id: 'c4',
         prompt: 'FCRA disputes at Finely focus on:',
+        promptHt: 'FCRA disputes at Finely focus on: (HT)',
         choices: ['Inventing fraud stories', 'Accuracy and verification with exhibits', 'Harassing callers', 'Guaranteed deletion'],
         answerIndex: 1,
         explain: 'Investigation + MOFV language.',
@@ -136,6 +150,7 @@ export const ACADEMY_QUIZZES: AcademyQuiz[] = [
       {
         id: 'c5',
         prompt: 'FDCPA validation empowers consumers to:',
+        promptHt: 'FDCPA validation empowers consumers to: (HT)',
         choices: ['Request verification of alleged collector debt in writing', 'Erase mortgages instantly', 'Avoid all payments legally without review', 'Get automatic lawsuit wins'],
         answerIndex: 0,
         explain: 'Pair with SOP-09; educational framing.',
@@ -143,6 +158,7 @@ export const ACADEMY_QUIZZES: AcademyQuiz[] = [
       {
         id: 'c6',
         prompt: 'A collector must generally identify itself as collecting a debt (educational “mini-Miranda”). Specialists should:',
+        promptHt: 'A collector must generally identify itself as collecting a debt (educational “mi (HT)',
         choices: ['Coach partners to document calls and use validation/dispute tracks', 'Tell partners to threaten collectors', 'Promise arrests of collectors', 'Skip documentation'],
         answerIndex: 0,
         explain: 'Consumer-power = paper trail + rights tools.',
@@ -150,6 +166,7 @@ export const ACADEMY_QUIZZES: AcademyQuiz[] = [
       {
         id: 'c7',
         prompt: 'TILA literacy for specialists means:',
+        promptHt: 'TILA literacy for specialists means: (HT)',
         choices: ['Originate loans for partners', 'Explain disclosure awareness; refer contract questions to lenders/counsel', 'Set APR for clients', 'Replace restore work'],
         answerIndex: 1,
         explain: 'Funding conversations stay in scope.',
@@ -157,6 +174,7 @@ export const ACADEMY_QUIZZES: AcademyQuiz[] = [
       {
         id: 'c8',
         prompt: 'Foreclosure on a report vs one late payment:',
+        promptHt: 'Foreclosure on a report vs one late payment: (HT)',
         choices: ['Same thing', 'Different—foreclosure is a legal process; disputes target inaccurate reporting with proof', 'Always deleted by Round 1', 'Ignored by Finely'],
         answerIndex: 1,
         explain: 'Track H foreclosure module; counsel for legal process.',
@@ -164,6 +182,7 @@ export const ACADEMY_QUIZZES: AcademyQuiz[] = [
       {
         id: 'c9',
         prompt: 'Repo tradeline disputes should include:',
+        promptHt: 'Repo tradeline disputes should include: (HT)',
         choices: ['Disposition/accounting docs + playbook tasks', 'Only emotional language', 'No exhibits', 'Guaranteed repo removal promise'],
         answerIndex: 0,
         explain: 'negativePlaybooks repossession + SOP-20.',
@@ -171,6 +190,7 @@ export const ACADEMY_QUIZZES: AcademyQuiz[] = [
       {
         id: 'c10',
         prompt: '“Expose the system” at Finely means:',
+        promptHt: '“Expose the system” at Finely means: (HT)',
         choices: ['Illegal shortcuts', 'Teach transparent industry mechanics + lawful consumer tools', 'Conspiracy theories', 'Harassment campaigns'],
         answerIndex: 1,
         explain: 'Educational consumer-power framing.',
@@ -187,6 +207,7 @@ export const ACADEMY_QUIZZES: AcademyQuiz[] = [
       {
         id: 'd1',
         prompt: 'Debt buyer lawsuits often hinge on:',
+        promptHt: 'Debt buyer lawsuits often hinge on: (HT)',
         choices: ['Proof of assignment and account documentation', 'Finely deleting TikTok codes', 'Ignoring mail', 'CFPB before validation'],
         answerIndex: 0,
         explain: 'Validation + documentation; counsel for answers.',
@@ -194,6 +215,7 @@ export const ACADEMY_QUIZZES: AcademyQuiz[] = [
       {
         id: 'd2',
         prompt: 'Answer deadlines on summons are:',
+        promptHt: 'Answer deadlines on summons are: (HT)',
         choices: ['Optional suggestions', 'Calendar facts—document immediately (SOP-10)', 'Ignored if disputing bureaus', 'Always 90 days everywhere'],
         answerIndex: 1,
         explain: 'Never “ignore court.”',
@@ -201,6 +223,7 @@ export const ACADEMY_QUIZZES: AcademyQuiz[] = [
       {
         id: 'd3',
         prompt: 'Affidavits in debt/court context may be required when:',
+        promptHt: 'Affidavits in debt/court context may be required when: (HT)',
         choices: ['Jurisdiction/rules call for sworn responses—escalate to counsel', 'Never', 'Only for Round 1 bureau mail', 'Only for BUILD'],
         answerIndex: 0,
         explain: 'Trainees document; attorneys file strategy.',
@@ -208,6 +231,7 @@ export const ACADEMY_QUIZZES: AcademyQuiz[] = [
       {
         id: 'd4',
         prompt: 'Debt Center + Litigation Command on the portal support:',
+        promptHt: 'Debt Center + Litigation Command on the portal support: (HT)',
         choices: ['Validation, dispute letters, summons outlines, legal basis education', 'Guaranteed lawsuit wins', 'Automatic court filing by Finely', 'Skipping Vault uploads'],
         answerIndex: 0,
         explain: 'Align product workflows with training.',
@@ -215,6 +239,7 @@ export const ACADEMY_QUIZZES: AcademyQuiz[] = [
       {
         id: 'd5',
         prompt: 'Cease contact letters should be used:',
+        promptHt: 'Cease contact letters should be used: (HT)',
         choices: ['With lead review and accurate facts—not rage spam', 'Before any validation ever', 'To threaten violence', 'As first step instead of evidence'],
         answerIndex: 0,
         explain: 'FDCPA tools used disciplined.',
@@ -222,6 +247,7 @@ export const ACADEMY_QUIZZES: AcademyQuiz[] = [
       {
         id: 'd6',
         prompt: 'Time-barred debt (SOL educational) means specialists:',
+        promptHt: 'Time-barred debt (SOL educational) means specialists: (HT)',
         choices: ['Coach consumers to get state-specific legal advice; document; use product templates appropriately', 'Promise collectors cannot sue in every case without review', 'Invent dates', 'Skip triage'],
         answerIndex: 0,
         explain: 'Counsel for legal conclusions.',
@@ -229,6 +255,7 @@ export const ACADEMY_QUIZZES: AcademyQuiz[] = [
       {
         id: 'd7',
         prompt: 'Collector vs original creditor (educational):',
+        promptHt: 'Collector vs original creditor (educational): (HT)',
         choices: ['Always the same rights and letters', 'Different roles—validation often targets collectors; accuracy disputes may involve furnishers', 'Only bureaus matter', 'Only Nora matters'],
         answerIndex: 1,
         explain: 'Sequence matters in Sanz doctrine.',
@@ -236,6 +263,7 @@ export const ACADEMY_QUIZZES: AcademyQuiz[] = [
       {
         id: 'd8',
         prompt: 'Partner uploads summons PDF. You should:',
+        promptHt: 'Partner uploads summons PDF. You should: (HT)',
         choices: ['Create tasks for deadlines and notify lead', 'Delete it', 'Only mail Round 1', 'Promise dismissal'],
         answerIndex: 0,
         explain: 'Litigation-ready file posture.',
@@ -243,6 +271,7 @@ export const ACADEMY_QUIZZES: AcademyQuiz[] = [
       {
         id: 'd9',
         prompt: 'What should you NOT promise?',
+        promptHt: 'What should you NOT promise? (HT)',
         choices: ['Court outcomes, guaranteed deletions, or Finely acting as their lawyer', 'That you will document mail dates', 'That you will use validation when appropriate', 'That you will upload to Vault'],
         answerIndex: 0,
         explain: 'Compliance boundaries.',
@@ -250,6 +279,7 @@ export const ACADEMY_QUIZZES: AcademyQuiz[] = [
       {
         id: 'd10',
         prompt: 'Haitian desk best practice:',
+        promptHt: 'Haitian desk best practice: (HT)',
         choices: ['Kreyòl explanations; English collector/bureau letters', 'Kreyòl letters to Equifax only', 'No documentation', 'Skip validation'],
         answerIndex: 0,
         explain: 'Track C norms.',
@@ -266,6 +296,7 @@ export const ACADEMY_QUIZZES: AcademyQuiz[] = [
       {
         id: 'b1',
         prompt: 'BUILD targets (educational) often include:',
+        promptHt: 'BUILD targets (educational) often include: (HT)',
         choices: ['2+ revolving in good standing, mix awareness, healthy installment', '10 new cards this week', 'Guaranteed 800 score', 'No payments needed'],
         answerIndex: 0,
         explain: 'Industry teaching targets—not laws.',
@@ -273,6 +304,7 @@ export const ACADEMY_QUIZZES: AcademyQuiz[] = [
       {
         id: 'b2',
         prompt: 'Authorized user tradelines:',
+        promptHt: 'Authorized user tradelines: (HT)',
         choices: ['May help sometimes; impact limited/conditional—no approval promise', 'Guarantee black card approval', 'Replace validation', 'Are illegal'],
         answerIndex: 0,
         explain: 'AU honesty card.',
@@ -280,6 +312,7 @@ export const ACADEMY_QUIZZES: AcademyQuiz[] = [
       {
         id: 'b3',
         prompt: 'Utilization coaching focuses on:',
+        promptHt: 'Utilization coaching focuses on: (HT)',
         choices: ['Revolving balances vs limits (model-dependent)', 'Deleting all debt by magic', 'Ignoring payments', 'Court answers'],
         answerIndex: 0,
         explain: 'FICO-style education ~30% bucket.',
@@ -287,6 +320,7 @@ export const ACADEMY_QUIZZES: AcademyQuiz[] = [
       {
         id: 'b4',
         prompt: 'Before Nora language, complete:',
+        promptHt: 'Before Nora language, complete: (HT)',
         choices: ['SOP-15 funding-readiness checklist', 'Round 0 spam', 'CFPB only', 'Nothing'],
         answerIndex: 0,
         explain: 'Soft handoff discipline.',
@@ -294,6 +328,7 @@ export const ACADEMY_QUIZZES: AcademyQuiz[] = [
       {
         id: 'b5',
         prompt: 'Finely vs Nora:',
+        promptHt: 'Finely vs Nora: (HT)',
         choices: ['Finely restores/documents; Nora/lenders decide funding separately', 'Same company guarantees loans', 'Nora deletes bureaus', 'Finely is the court'],
         answerIndex: 0,
         explain: 'Track G.',
@@ -301,6 +336,7 @@ export const ACADEMY_QUIZZES: AcademyQuiz[] = [
       {
         id: 'b6',
         prompt: 'During active summons clock, BUILD should:',
+        promptHt: 'During active summons clock, BUILD should: (HT)',
         choices: ['Not push reckless new credit apps; prioritize court/debt gates', 'Open five cards immediately', 'Stop all documentation', 'Ignore debt'],
         answerIndex: 0,
         explain: 'Parallel BUILD with gates.',
@@ -308,6 +344,7 @@ export const ACADEMY_QUIZZES: AcademyQuiz[] = [
       {
         id: 'b7',
         prompt: 'Payment history in classic score education is about:',
+        promptHt: 'Payment history in classic score education is about: (HT)',
         choices: ['~35% weight—on-time payments matter', '0%—scores are random', 'Only inquiries matter', 'Only AU matters'],
         answerIndex: 0,
         explain: 'Educational shorthand.',
@@ -315,9 +352,130 @@ export const ACADEMY_QUIZZES: AcademyQuiz[] = [
       {
         id: 'b8',
         prompt: 'Aspirational “premium card” talk is OK when:',
+        promptHt: 'Aspirational “premium card” talk is OK when: (HT)',
         choices: ['Labeled as aspirational education—not a Finely promise', 'Promised as guaranteed', 'Used to skip restore', 'Replacing compliance footer'],
         answerIndex: 0,
         explain: 'Track F BUILD section.',
+      },
+    ],
+  },
+  {
+    id: 'fico-literacy',
+    title: 'FICO & score model literacy',
+    titleHt: 'FICO ak modèl nòt',
+    module: 'methodology',
+    passPercent: 80,
+    questions: [
+      {
+        id: 'f1',
+        prompt: 'A partner quotes “720” from a free app. Your first coaching question should establish:',
+        promptHt: 'Yon patnè di “720” nan yon app gratis. Premye kesyon ou:',
+        choices: [
+          'Model + bureau + purpose + soft vs hard inquiry',
+          'Whether FICO 5.8 is on the report',
+          'That Vantage always equals FICO 8',
+          'Guaranteed mortgage rate at that number',
+        ],
+        choicesHt: [
+          'Modèl + biwo + objektif + soft vs hard',
+          'Si FICO 5.8 sou rapò a',
+          'Vantage toujou menm ak FICO 8',
+          'To garanti pou nòt la',
+        ],
+        answerIndex: 0,
+        explain: 'Never sell a naked number — model, bureau, purpose, inquiry type.',
+        explainHt: 'Pa vann yon nòt san kontèks — modèl, biwo, objektif, tip rechèch.',
+      },
+      {
+        id: 'f2',
+        prompt: 'Classic mortgage tri-merge (educational) commonly maps to:',
+        promptHt: 'Tri-merge ipotèk klasik (edikasyon) souvan:',
+        choices: [
+          'EQ Beacon 5.0, EX FICO 2, TU FICO 4 — often middle score',
+          'FICO 10T on all three bureaus only',
+          'Vantage 3.0 median for every lender',
+          'UltraFICO as the default mortgage score',
+        ],
+        answerIndex: 0,
+        explain: 'Older FICO generations per bureau; median/middle score is common shorthand.',
+      },
+      {
+        id: 'f3',
+        prompt: '“FICO 5.8” in partner slang should be taught as:',
+        promptHt: '“FICO 5.8” nan lang patnè a:',
+        choices: [
+          'Not a real model — common 5 + 8 mashup confusion',
+          'Official Equifax mortgage product name',
+          'Same as FICO 10T trended score',
+          'Required for auto loans nationwide',
+        ],
+        answerIndex: 0,
+        explain: 'Research lock: do not teach FICO 5.8 as a product.',
+      },
+      {
+        id: 'f4',
+        prompt: '“FICO 5.4” vs Equifax Beacon 5.0 — Finely should:',
+        promptHt: '“FICO 5.4” vs Beacon 5.0 — Finely dwe:',
+        choices: [
+          'Teach Beacon 5.0; do not assert “FICO 5.4” as official jargon',
+          'Guarantee Beacon 5.0 matches app Vantage 3.0',
+          'Tell partners to demand FICO 5.4 deletions',
+          'Replace middle-score rule with highest score',
+        ],
+        answerIndex: 0,
+        explain: '5.4 is unverified jargon in the wild.',
+      },
+      {
+        id: 'f5',
+        prompt: 'VantageScore 3.0 vs 4.0 — accurate Finely framing:',
+        promptHt: 'VantageScore 3.0 vs 4.0:',
+        choices: [
+          '3.0 common on free apps; 4.0 on some GSE paths — neither is FICO',
+          'Both are identical to FICO 9',
+          '4.0 is only for collections',
+          '3.0 is the legal mortgage score everywhere',
+        ],
+        answerIndex: 0,
+        explain: 'App scores ≠ lender pull; adoption varies.',
+      },
+      {
+        id: 'f6',
+        prompt: 'FICO 10 vs FICO 10T (educational):',
+        promptHt: 'FICO 10 vs FICO 10T (edikasyon):',
+        choices: [
+          '10T uses trended data; adoption not universal — ask what was pulled',
+          '10T replaced FICO 8 on all cards in 2019',
+          '10 is mortgage-only; 10T is auto-only',
+          'Both are Vantage rebrands',
+        ],
+        answerIndex: 0,
+        explain: 'FICO 8/9/10/10T adoption varies by creditor.',
+      },
+      {
+        id: 'f7',
+        prompt: 'FICO Auto / Bankcard industry scores:',
+        promptHt: 'FICO Auto / Bankcard:',
+        choices: [
+          'Industry-specific variants — numbers differ from generic FICO',
+          'Always the same as FICO 8 on Credit Karma',
+          'Illegal to mention to consumers',
+          'Replace validation under FDCPA',
+        ],
+        answerIndex: 0,
+        explain: 'Purpose-specific models change the number.',
+      },
+      {
+        id: 'f8',
+        prompt: 'UltraFICO is best described as:',
+        promptHt: 'UltraFICO se:',
+        choices: [
+          'Opt-in program linking deposit behavior — not default for everyone',
+          'Mandatory for every mortgage',
+          'A bureau deletion product',
+          'The same as Beacon 5.0',
+        ],
+        answerIndex: 0,
+        explain: 'Optional uplift path; not universal.',
       },
     ],
   },

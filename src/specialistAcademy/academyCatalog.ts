@@ -269,6 +269,14 @@ export const ACADEMY_GROUPS: AcademyGroup[] = [
         minutes: 22,
       },
       {
+        id: 'fico-01',
+        track: 'F',
+        title: 'FICO-01 — Score talk-track',
+        titleHt: 'FICO-01 — Pale sou nòt',
+        pathEn: p('cards/FICO-01-score-talk-track.md'),
+        minutes: 8,
+      },
+      {
         id: 'f-debt-legal',
         track: 'F',
         title: 'Debt & Legal — Litigation Command',

@@ -64,7 +64,7 @@ export default function AdminSpecialistLoungePage() {
     try {
       const replyLang = detectKbLang(text);
       const kb = retrieveKnowledgeSync(text, replyLang);
-      const system = buildAgentSystemPrompt('academy_coach', kb, replyLang);
+      const system = buildAgentSystemPrompt('lounge_helper', kb, replyLang);
       const res = await callAiGateway({
         taskType: 'lounge_ask_desk',
         messages: [

@@ -11,6 +11,7 @@ import {
   scheduleEventFromRequest,
   scheduleEventFromPublicRequest,
   setEventStatus,
+  rescheduleCalendarEvent,
   setEventMeetingNotes,
   setRequestStatus,
   setPublicRequestStatus,
@@ -31,6 +32,33 @@ function fmtWhen(iso: string) {
   } catch {
     return iso;
   }
+}
+
+async function rescheduleEventAndNotifyGuest(e: CalendarEvent) {
+  const startLocal = window.prompt('New start (local datetime YYYY-MM-DDTHH:mm)', e.startAt.slice(0, 16));
+  if (!startLocal) return;
+  const durationMs = Date.parse(e.endAt) - Date.parse(e.startAt);
+  const startAt = new Date(startLocal).toISOString();
+  const endAt = new Date(Date.parse(startAt) + durationMs).toISOString();
+  const { event: updated, previousStartAt } = rescheduleCalendarEvent(e.id, startAt, endAt);
+  if (!updated) return;
+  const email = extractGuestEmailFromEventDescription(updated.description);
+  const nameMatch = String(updated.description || '').match(/Consultation:.*?—\s*([^\n]+)/);
+  const guestName = nameMatch?.[1]?.trim() || 'Guest';
+  if (!email) return;
+  const origin = window.location.origin;
+  await sendMeetingLifecycleEmail({
+    intent: 'reschedule',
+    toEmail: email,
+    guestName,
+    eventId: updated.id,
+    title: updated.title,
+    startAt: updated.startAt,
+    endAt: updated.endAt,
+    timezone: updated.timezone,
+    previousStartAt,
+    joinUrl: `${origin}${buildGuestMeetingJoinPath(updated.id)}`,
+  });
 }
 
 async function cancelEventAndNotifyGuest(e: CalendarEvent) {
@@ -702,6 +730,13 @@ export default function AdminCalendarPage() {
                           className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/25 hover:bg-emerald-500/15 text-[10px] font-black uppercase tracking-widest text-emerald-200 transition-all"
                         >
                           Confirm
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void rescheduleEventAndNotifyGuest(e)}
+                          className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-sky-500/25 bg-sky-500/10 hover:bg-sky-500/15 text-[10px] font-black uppercase tracking-widest text-sky-200 transition-all"
+                        >
+                          Reschedule + email
                         </button>
                         <button
                           type="button"

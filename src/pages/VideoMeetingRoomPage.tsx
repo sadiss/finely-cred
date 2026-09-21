@@ -3,7 +3,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { PageShell } from '../components/layout/PageShell';
 import { listCalendarEvents } from '../data/calendarRepo';
 import { MeetingPreJoinLobby } from '../components/meeting/MeetingPreJoinLobby';
-import { useJitsiMeetingApi } from '../hooks/useJitsiMeetingApi';
+import { FinelyJitsiMeetingRoom } from '../components/meeting/FinelyJitsiMeetingRoom';
 import { buildGuestMeetingJoinPath, meetingRoomName } from '../lib/meetingUrls';
 import type { MeetingHostContext } from '../lib/meetingVideoPrefs';
 import type { MeetingVideoPrefs } from '../lib/meetingVideoQuality';
@@ -17,11 +17,10 @@ export default function VideoMeetingRoomPage() {
   const auth = useAuth();
   const ctx = (searchParams.get('ctx') as MeetingHostContext) || 'lounge';
   const lang = searchParams.get('lang') === 'ht' ? 'ht' : 'en';
-  const [displayName, setDisplayName] = useState(
-    () => auth.user?.email?.split('@')[0] || 'Host',
-  );
+  const [displayName, setDisplayName] = useState(() => auth.user?.email?.split('@')[0] || 'Host');
   const [joined, setJoined] = useState(false);
-  const { join, loading, error } = useJitsiMeetingApi();
+  const [joinPrefs, setJoinPrefs] = useState<MeetingVideoPrefs | null>(null);
+  const [outboundStream, setOutboundStream] = useState<MediaStream | null>(null);
 
   const event = useMemo(() => {
     if (!eventId) return null;
@@ -42,24 +41,17 @@ export default function VideoMeetingRoomPage() {
   const room = meetingRoomName(eventId);
   const guestPath = buildGuestMeetingJoinPath(eventId);
 
-  const onJoin = (prefs: MeetingVideoPrefs) => {
+  const onJoin = (prefs: MeetingVideoPrefs, stream: MediaStream | null) => {
+    setJoinPrefs(prefs);
+    setOutboundStream(stream);
     setJoined(true);
-    void join({
-      roomName: room,
-      displayName: displayName.trim(),
-      subject: event?.title,
-      email: auth.user?.email,
-      prefs,
-      containerId: 'finely-jitsi-host-container',
-      onLeave: () => navigate('/admin/specialist-lounge'),
-    });
   };
 
   return (
     <PageShell
       badge="Host room"
       title={event?.title ?? 'Video huddle'}
-      subtitle="Premium pre-join defaults for Specialist Lounge & academy huddles."
+      subtitle="Host pre-join defaults for Specialist Lounge & academy huddles."
     >
       <div className="max-w-5xl mx-auto space-y-4">
         <p className="text-white/50 text-xs">
@@ -68,7 +60,7 @@ export default function VideoMeetingRoomPage() {
             {guestPath}
           </button>
         </p>
-        {!joined ? (
+        <div className={joined ? 'hidden' : undefined}>
           <MeetingPreJoinLobby
             lang={lang}
             hostContext={hostContext}
@@ -77,13 +69,18 @@ export default function VideoMeetingRoomPage() {
             onJoin={onJoin}
             joinLabel={lang === 'ht' ? 'Kòmanse kòm host' : 'Join as host'}
           />
-        ) : (
-          <div className="space-y-3">
-            {loading ? <p className="text-white/50 text-sm">Connecting…</p> : null}
-            {error ? <p className="text-rose-200 text-sm">{error}</p> : null}
-            <div id="finely-jitsi-host-container" className="rounded-2xl overflow-hidden border border-white/10 min-h-[70vh] bg-black" />
-          </div>
-        )}
+        </div>
+        {joined && joinPrefs ? (
+          <FinelyJitsiMeetingRoom
+            roomName={room}
+            displayName={displayName.trim()}
+            subject={event?.title}
+            email={auth.user?.email}
+            prefs={joinPrefs}
+            outboundStream={outboundStream}
+            onLeave={() => navigate('/admin/specialist-lounge')}
+          />
+        ) : null}
       </div>
     </PageShell>
   );

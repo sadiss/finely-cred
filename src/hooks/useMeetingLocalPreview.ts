@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { drawBeautyFrame } from '../lib/meetingBeautyPipeline';
+import { buildOutboundStreamFromCanvas } from '../lib/meetingOutboundVideo';
 import type { MeetingVideoPrefs } from '../lib/meetingVideoQuality';
 import { buildAudioConstraints, buildVideoConstraints } from '../lib/meetingVideoQuality';
 
@@ -61,5 +62,12 @@ export function useMeetingLocalPreview(prefs: MeetingVideoPrefs) {
 
   useEffect(() => () => stop(), [stop]);
 
-  return { videoRef, canvasRef, start, stop, error, ready, streamRef, gpuNote, prefs };
+  const getOutboundStream = useCallback((): MediaStream | null => {
+    const canvas = canvasRef.current;
+    const mic = streamRef.current;
+    if (!canvas || !mic) return null;
+    return buildOutboundStreamFromCanvas(canvas, mic, prefs);
+  }, [prefs]);
+
+  return { videoRef, canvasRef, start, stop, error, ready, streamRef, gpuNote, prefs, getOutboundStream };
 }

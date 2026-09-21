@@ -133,6 +133,8 @@ const SellerContractsPage = lazy(() => import('./pages/seller/SellerContractsPag
 const SellerPayoutsPage = lazy(() => import('./pages/seller/SellerPayoutsPage'));
 const ConsultationPage = lazy(() => import('./pages/ConsultationPage'));
 const EnlightenmentSessionPage = lazy(() => import('./pages/EnlightenmentSessionPage'));
+const FreeKreyolGuidePage = lazy(() => import('./pages/public/FreeKreyolGuidePage'));
+const HaitianCompanionPublicPage = lazy(() => import('./pages/public/HaitianCompanionPublicPage'));
 const GuestMeetingJoinPage = lazy(() => import('./pages/GuestMeetingJoinPage'));
 const VideoMeetingRoomPage = lazy(() => import('./pages/VideoMeetingRoomPage'));
 const FaqPage = lazy(() => import('./pages/FaqPage'));
@@ -2173,6 +2175,10 @@ function AppInner() {
         <Route path="/disclaimer" element={<DisclaimerPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/enlightenment-session" element={<EnlightenmentSessionPage />} />
+        <Route path="/free-kreyol-guide" element={<FreeKreyolGuidePage />} />
+        <Route path="/free-kreyol-guide/:kitId" element={<FreeKreyolGuidePage />} />
+        <Route path="/haitian" element={<HaitianCompanionPublicPage />} />
+        <Route path="/kreyol" element={<HaitianCompanionPublicPage />} />
         <Route path="/consultation" element={<ConsultationPage />} />
         <Route path="/faq" element={<FaqPage />} />
         <Route path="/claim" element={<ClaimPartnerProfilePage />} />

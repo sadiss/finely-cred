@@ -5,6 +5,7 @@ import type { MeetingVideoPrefs, VirtualBackgroundId } from '../../lib/meetingVi
 import { VIRTUAL_BACKGROUNDS } from '../../lib/meetingVideoQuality';
 import { getMeetingVideoPrefs, saveMeetingVideoPrefs, type MeetingHostContext } from '../../lib/meetingVideoPrefs';
 import { virtualBackgroundLabel } from '../../lib/meetingBeautyPipeline';
+import { hasLobbyVisualEffects } from '../../lib/meetingVideoQuality';
 
 export function MeetingPreJoinLobby({
   lang,
@@ -18,11 +19,12 @@ export function MeetingPreJoinLobby({
   hostContext: MeetingHostContext;
   displayName: string;
   onDisplayNameChange: (n: string) => void;
-  onJoin: (prefs: MeetingVideoPrefs) => void;
+  onJoin: (prefs: MeetingVideoPrefs, outboundStream: MediaStream | null) => void;
   joinLabel?: string;
 }) {
   const [prefs, setPrefs] = useState<MeetingVideoPrefs>(() => getMeetingVideoPrefs(hostContext));
-  const { videoRef, canvasRef, start, error, ready, gpuNote } = useMeetingLocalPreview(prefs);
+  const { videoRef, canvasRef, start, error, ready, gpuNote, getOutboundStream } = useMeetingLocalPreview(prefs);
+  const effectsOn = hasLobbyVisualEffects(prefs);
 
   useEffect(() => {
     void start();
@@ -42,6 +44,13 @@ export function MeetingPreJoinLobby({
           <div className="absolute inset-0 flex items-center justify-center text-white/50 text-sm">Starting camera…</div>
         ) : null}
         {error ? <div className="absolute inset-0 flex items-center justify-center text-rose-200 text-sm p-4">{error}</div> : null}
+        {effectsOn ? (
+          <div className="absolute top-3 left-3 right-3 text-[10px] text-amber-100/90 bg-black/70 border border-amber-500/30 rounded-lg px-2 py-1">
+            {lang === 'ht'
+              ? 'Preview touch-up — lè w antre, videyo voye soti nan canvas (pa kamera brit).'
+              : 'Touch-up preview — when you join, outbound video uses the processed canvas stream (not raw camera).'}
+          </div>
+        ) : null}
         <div className="absolute bottom-3 left-3 right-3 flex flex-wrap gap-2 text-[10px] uppercase tracking-widest font-bold">
           <span className="px-2 py-1 rounded-lg bg-black/60 text-emerald-200 border border-emerald-500/30">
             {prefs.videoMode === 'hd' ? 'HD' : 'Smooth'}
@@ -144,7 +153,7 @@ export function MeetingPreJoinLobby({
           disabled={!canJoin}
           onClick={() => {
             saveMeetingVideoPrefs(prefs);
-            onJoin(prefs);
+            onJoin(prefs, getOutboundStream());
           }}
           className="w-full py-3 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-xs disabled:opacity-40 inline-flex items-center justify-center gap-2"
         >

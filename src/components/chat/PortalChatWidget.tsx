@@ -37,7 +37,8 @@ export function PortalChatWidget(args: { partnerId?: string; lane?: string; jour
     try {
       const replyLang = detectKbLang(text);
       const kb = retrieveKnowledgeSync(text, replyLang);
-      const system = buildAgentSystemPrompt('portal_coach', kb, replyLang);
+      const persona = replyLang === 'ht' ? 'haitian_desk' : 'portal_coach';
+      const system = buildAgentSystemPrompt(persona, kb, replyLang);
       const res = await callAiGateway({
         taskType: 'portal_chat',
         messages: [{ role: 'system', content: system }, ...next],

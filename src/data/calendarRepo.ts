@@ -233,6 +233,22 @@ export function createPublicCalendarEvent(args: {
   return upsertCalendarEvent(ev);
 }
 
+export function rescheduleCalendarEvent(
+  id: string,
+  startAt: string,
+  endAt: string,
+): { event: CalendarEvent | null; previousStartAt?: string } {
+  const store = loadStore();
+  const idx = store.events.findIndex((e) => e.id === id);
+  if (idx < 0) return { event: null };
+  const prev = store.events[idx]!.startAt;
+  const next = { ...store.events[idx]!, startAt, endAt, updatedAt: nowIso() };
+  store.events[idx] = next;
+  saveStore(store);
+  void syncPublicCalendarEventToServer(next);
+  return { event: next, previousStartAt: prev };
+}
+
 export function setEventStatus(id: string, status: CalendarEventStatus): CalendarEvent | null {
   const store = loadStore();
   const idx = store.events.findIndex((e) => e.id === id);

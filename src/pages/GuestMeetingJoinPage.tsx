@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { MeetingPreJoinLobby } from '../components/meeting/MeetingPreJoinLobby';
-import { useJitsiMeetingApi } from '../hooks/useJitsiMeetingApi';
+import { FinelyJitsiMeetingRoom } from '../components/meeting/FinelyJitsiMeetingRoom';
 import { lookupGuestCalendarEvent } from '../lib/calendarGuestLookup';
 import { meetingRoomName, meetingProviderLabel } from '../lib/meetingUrls';
 import type { MeetingVideoPrefs } from '../lib/meetingVideoQuality';
@@ -15,10 +15,11 @@ export default function GuestMeetingJoinPage() {
   const lang = searchParams.get('lang') === 'ht' ? 'ht' : 'en';
   const [displayName, setDisplayName] = useState(() => (searchParams.get('name') || '').trim());
   const [joined, setJoined] = useState(false);
-  const { join, loading, error } = useJitsiMeetingApi();
+  const [joinPrefs, setJoinPrefs] = useState<MeetingVideoPrefs | null>(null);
+  const [outboundStream, setOutboundStream] = useState<MediaStream | null>(null);
   const [event, setEvent] = useState<CalendarEvent | null>(null);
   const [demoWarning, setDemoWarning] = useState<string | null>(null);
-  const [lookupSource, setLookupSource] = useState<string | null>(null);
+  const [blockJoin, setBlockJoin] = useState(false);
   const [cancelled, setCancelled] = useState(false);
 
   useEffect(() => {
@@ -26,7 +27,7 @@ export default function GuestMeetingJoinPage() {
     void lookupGuestCalendarEvent(eventId).then((res) => {
       setEvent(res.event);
       setDemoWarning(res.demoWarning ?? null);
-      setLookupSource(res.source);
+      setBlockJoin(Boolean(res.blockJoin));
       setCancelled(Boolean(res.cancelled));
     });
   }, [eventId]);
@@ -42,16 +43,10 @@ export default function GuestMeetingJoinPage() {
     );
   }
 
-  const onJoin = (prefs: MeetingVideoPrefs) => {
+  const onJoin = (prefs: MeetingVideoPrefs, stream: MediaStream | null) => {
+    setJoinPrefs(prefs);
+    setOutboundStream(stream);
     setJoined(true);
-    void join({
-      roomName: room,
-      displayName: displayName.trim(),
-      subject: event?.title,
-      prefs,
-      containerId: 'finely-jitsi-container',
-      onLeave: () => navigate('/'),
-    });
   };
 
   return (
@@ -63,11 +58,6 @@ export default function GuestMeetingJoinPage() {
           </div>
           <h1 className="text-lg font-semibold truncate">{event?.title ?? 'Strategy session'}</h1>
           {event?.startAt ? <p className="text-white/50 text-sm">{new Date(event.startAt).toLocaleString()}</p> : null}
-          {lookupSource === 'server' ? (
-            <p className="text-emerald-400/80 text-[10px] uppercase tracking-widest mt-1">Server calendar</p>
-          ) : lookupSource === 'local_demo' ? (
-            <p className="text-amber-400/80 text-[10px] uppercase tracking-widest mt-1">Demo calendar (this browser)</p>
-          ) : null}
         </div>
         <button type="button" onClick={() => navigate('/enlightenment-session')} className="text-xs text-white/60 hover:text-white">
           Book a session
@@ -83,29 +73,30 @@ export default function GuestMeetingJoinPage() {
           </div>
         ) : null}
         {demoWarning ? (
-          <div className="rounded-2xl border border-amber-500/25 bg-amber-500/10 p-4 text-amber-100/90 text-xs leading-relaxed">
+          <div className="rounded-2xl border border-amber-500/25 bg-amber-500/10 p-4 text-amber-100/90 text-xs leading-relaxed whitespace-pre-wrap">
             {demoWarning}
           </div>
         ) : null}
-        <p className="text-white/40 text-[11px]">
-          {lang === 'ht'
-            ? 'Touch-up v1: amelyorasyon limyè/souf — pa segmentation AI pwofesyonèl.'
-            : 'Touch-up v1: soft light/smoothing — not professional AI segmentation.'}
-        </p>
-        {!joined && !cancelled ? (
-          <MeetingPreJoinLobby
-            lang={lang}
-            hostContext="guest"
-            displayName={displayName}
-            onDisplayNameChange={setDisplayName}
-            onJoin={onJoin}
-          />
-        ) : joined ? (
-          <div className="space-y-3">
-            {loading ? <p className="text-white/50 text-sm">Connecting…</p> : null}
-            {error ? <p className="text-rose-200 text-sm">{error}</p> : null}
-            <div id="finely-jitsi-container" className="rounded-2xl overflow-hidden border border-white/10 min-h-[70vh] bg-black" />
+        {!cancelled && !blockJoin ? (
+          <div className={joined ? 'hidden' : undefined}>
+            <MeetingPreJoinLobby
+              lang={lang}
+              hostContext="guest"
+              displayName={displayName}
+              onDisplayNameChange={setDisplayName}
+              onJoin={onJoin}
+            />
           </div>
+        ) : null}
+        {joined && joinPrefs ? (
+          <FinelyJitsiMeetingRoom
+            roomName={room}
+            displayName={displayName.trim()}
+            subject={event?.title}
+            prefs={joinPrefs}
+            outboundStream={outboundStream}
+            onLeave={() => navigate('/')}
+          />
         ) : null}
       </main>
     </div>
