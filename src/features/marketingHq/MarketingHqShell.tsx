@@ -25,10 +25,10 @@ export function MarketingHqShell({ children }: { children: React.ReactNode }) {
       <header className={`border-b border-[#fbbf24]/20 ${PANEL}`}>
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <img src="/brand/finely-cred-icon.svg" alt="Finely Cred" className="h-10 w-10" width={40} height={40} />
+            <img src="/brand/finely-cred-mark.png" alt="Finely Cred" className="h-11 w-11 rounded-full object-cover" width={44} height={44} />
             <div>
-              <div className="text-[10px] font-black uppercase tracking-[0.35em] text-[#fbbf24]/80">Marketing Command</div>
-              <h1 className="text-xl font-semibold text-white tracking-tight">Office Floor HQ</h1>
+              <div className="text-[11px] font-black uppercase tracking-[0.35em] text-[#fbbf24]">Marketing Command</div>
+              <h1 className="text-2xl font-bold text-white tracking-tight">Office Floor HQ</h1>
             </div>
           </div>
           <div className="flex flex-wrap gap-2 text-xs">

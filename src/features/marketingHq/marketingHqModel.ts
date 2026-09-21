@@ -19,6 +19,8 @@ export type MarketingChannelDesk = {
   id: MarketingChannelId;
   label: string;
   short: string;
+  /** Plain-English: what this desk is for (beginner-friendly). */
+  deskGuide: string;
   comingSoon?: boolean;
 };
 
@@ -72,11 +74,36 @@ export const MARKETING_DEPARTMENTS: MarketingDepartment[] = [
     floorLabel: 'Floor 1',
     tagline: 'Demand, starters, and top-of-funnel conversion.',
     channels: [
-      { id: 'email', label: 'Email Desk', short: 'Email' },
-      { id: 'social', label: 'Social Desk', short: 'Social' },
-      { id: 'sms', label: 'SMS Desk', short: 'SMS' },
-      { id: 'paid', label: 'Paid Ads Desk', short: 'Paid' },
-      { id: 'content', label: 'SEO & Content Desk', short: 'Content' },
+      {
+        id: 'email',
+        label: 'Email Desk',
+        short: 'Email',
+        deskGuide: 'Long-form nurture & broadcasts — copy from 21-day pack, paste into your ESP manually.',
+      },
+      {
+        id: 'social',
+        label: 'Social Desk',
+        short: 'Social',
+        deskGuide: 'Captions + short posts — use SMS/caption files; schedule in Meta/IG yourself.',
+      },
+      {
+        id: 'sms',
+        label: 'SMS Desk',
+        short: 'SMS',
+        deskGuide: 'Text-sized scripts from the same 21-day pack — never auto-blast from HQ.',
+      },
+      {
+        id: 'paid',
+        label: 'Paid Ads Desk',
+        short: 'Paid',
+        deskGuide: 'Paid creative briefs & hooks — wire to Lead Intel before spending.',
+      },
+      {
+        id: 'content',
+        label: 'SEO & Content Desk',
+        short: 'Content',
+        deskGuide: 'One-sheets, landing copy, and HTML handouts for site + partners.',
+      },
     ],
   },
   {
@@ -85,9 +112,24 @@ export const MARKETING_DEPARTMENTS: MarketingDepartment[] = [
     floorLabel: 'Floor 2',
     tagline: 'Agents, affiliates, and partner-sourced demand.',
     channels: [
-      { id: 'email', label: 'Email Desk', short: 'Email' },
-      { id: 'social', label: 'Social Desk', short: 'Social' },
-      { id: 'content', label: 'Partner Playbooks', short: 'Content' },
+      {
+        id: 'email',
+        label: 'Email Desk',
+        short: 'Email',
+        deskGuide: 'Partner-facing email templates — co-marketing, not consumer blast.',
+      },
+      {
+        id: 'social',
+        label: 'Social Desk',
+        short: 'Social',
+        deskGuide: 'Partner social snippets and co-brand reminders (Finely medallion only).',
+      },
+      {
+        id: 'content',
+        label: 'Partner Playbooks',
+        short: 'Content',
+        deskGuide: 'One-sheets & vertical playbooks affiliates can print or forward.',
+      },
     ],
   },
   {
@@ -96,10 +138,30 @@ export const MARKETING_DEPARTMENTS: MarketingDepartment[] = [
     floorLabel: 'Floor 3',
     tagline: 'Kreyòl-first community desk and kit funnels.',
     channels: [
-      { id: 'email', label: 'Email Desk', short: 'Email' },
-      { id: 'social', label: 'Social Desk', short: 'Social' },
-      { id: 'sms', label: 'SMS Desk', short: 'SMS' },
-      { id: 'content', label: 'Kreyòl Content', short: 'Content' },
+      {
+        id: 'email',
+        label: 'Email Desk',
+        short: 'Email',
+        deskGuide: 'Kreyòl/English hybrid nurture — community tone, manual send.',
+      },
+      {
+        id: 'social',
+        label: 'Social Desk',
+        short: 'Social',
+        deskGuide: 'Haitian corridor posts + kit links (/free-kreyol-guide).',
+      },
+      {
+        id: 'sms',
+        label: 'SMS Desk',
+        short: 'SMS',
+        deskGuide: 'Short Kreyòl-friendly SMS — copy/paste only.',
+      },
+      {
+        id: 'content',
+        label: 'Kreyòl Content',
+        short: 'Content',
+        deskGuide: 'Kit covers & immigration-vertical one-sheets.',
+      },
     ],
   },
   {
@@ -108,9 +170,24 @@ export const MARKETING_DEPARTMENTS: MarketingDepartment[] = [
     floorLabel: 'Floor 4',
     tagline: 'Sequences, onboarding, and upgrade paths.',
     channels: [
-      { id: 'email', label: 'Email Desk', short: 'Email' },
-      { id: 'sms', label: 'SMS Desk', short: 'SMS' },
-      { id: 'content', label: 'Lifecycle Content', short: 'Content' },
+      {
+        id: 'email',
+        label: 'Email Desk',
+        short: 'Email',
+        deskGuide: 'Full 21-day sequence + upgrade paths after Start Restore.',
+      },
+      {
+        id: 'sms',
+        label: 'SMS Desk',
+        short: 'SMS',
+        deskGuide: 'Lifecycle SMS from nurture pack — manual only.',
+      },
+      {
+        id: 'content',
+        label: 'Lifecycle Content',
+        short: 'Content',
+        deskGuide: 'Mid/late funnel one-sheets (readiness, evidence).',
+      },
     ],
   },
   {
@@ -119,9 +196,24 @@ export const MARKETING_DEPARTMENTS: MarketingDepartment[] = [
     floorLabel: 'Floor 5',
     tagline: 'Visual system, media studio, and brand lock.',
     channels: [
-      { id: 'content', label: 'Brand & Copy', short: 'Content' },
-      { id: 'social', label: 'Social Templates', short: 'Social' },
-      { id: 'email', label: 'Email Templates', short: 'Email' },
+      {
+        id: 'content',
+        label: 'Brand & Copy',
+        short: 'Content',
+        deskGuide: 'Brand kit lock, footers, and guide covers — read before any creative.',
+      },
+      {
+        id: 'social',
+        label: 'Social Templates',
+        short: 'Social',
+        deskGuide: 'Approved social framing — gold on ink, no Nora on Finely cold art.',
+      },
+      {
+        id: 'email',
+        label: 'Email Templates',
+        short: 'Email',
+        deskGuide: 'Email shells that match brand lock — use with Comms Studio.',
+      },
     ],
   },
   {
@@ -130,9 +222,24 @@ export const MARKETING_DEPARTMENTS: MarketingDepartment[] = [
     floorLabel: 'Floor 6',
     tagline: 'Attribution, experiments, and funnel health.',
     channels: [
-      { id: 'content', label: 'Reporting & SEO', short: 'Content' },
-      { id: 'paid', label: 'Paid Performance', short: 'Paid' },
-      { id: 'email', label: 'Email Analytics', short: 'Email' },
+      {
+        id: 'content',
+        label: 'Reporting & SEO',
+        short: 'Content',
+        deskGuide: 'Funnel notes & SEO — pair with Lead Intel exports.',
+      },
+      {
+        id: 'paid',
+        label: 'Paid Performance',
+        short: 'Paid',
+        deskGuide: 'Paid experiment log — no spend controls here yet.',
+      },
+      {
+        id: 'email',
+        label: 'Email Analytics',
+        short: 'Email',
+        deskGuide: 'Which nurture days performed — manual tracking until ESP wire.',
+      },
     ],
   },
   {
@@ -141,7 +248,15 @@ export const MARKETING_DEPARTMENTS: MarketingDepartment[] = [
     floorLabel: 'Floor 7',
     tagline: 'Physical mail — partner network & vendor connect (planned).',
     comingSoon: true,
-    channels: [{ id: 'direct-mail', label: 'Direct Mail Room', short: 'Mail', comingSoon: true }],
+    channels: [
+      {
+        id: 'direct-mail',
+        label: 'Direct Mail Room',
+        short: 'Mail',
+        deskGuide: 'Future: print mail with vetted partners — not live yet.',
+        comingSoon: true,
+      },
+    ],
   },
 ];
 

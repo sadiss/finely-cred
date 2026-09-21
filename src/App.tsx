@@ -135,7 +135,20 @@ const AuOrdersPage = lazyRoute(() => import('./pages/au/AuOrdersPage'));
 const ResourcesPage = lazyRoute(() => import('./pages/ResourcesPage'));
 const BookstorePage = lazyRoute(() => import('./pages/BookstorePage'));
 const BookstoreProductPage = lazyRoute(() => import('./pages/BookstoreProductPage'));
-const PricingPage = lazyRoute(() => import('./pages/PricingPage'));
+import EagerPricingPage from './pages/PricingPage';
+import EagerServicesHubPage from './pages/ServicesHubPage';
+import EagerStartRestorePage from './pages/StartRestorePage';
+import EagerFreeGuideLandingPage from './pages/public/FreeGuideLandingPage';
+import EagerKreyolHubPage from './pages/public/KreyolHubPage';
+import EagerFreeKreyolGuidePage from './pages/public/FreeKreyolGuidePage';
+
+const PricingPage = EagerPricingPage;
+const ServicesHubPage = EagerServicesHubPage;
+const StartRestorePage = EagerStartRestorePage;
+const FreeGuideLandingPage = EagerFreeGuideLandingPage;
+const KreyolHubPage = EagerKreyolHubPage;
+const FreeKreyolGuidePage = EagerFreeKreyolGuidePage;
+
 const PricingServicePage = lazyRoute(() => import('./pages/PricingServicePage'));
 const PersonalCreditPage = lazyRoute(() => import('./pages/PersonalCreditPage'));
 const TestimonialsPage = lazyRoute(() => import('./pages/TestimonialsPage'));
@@ -147,10 +160,7 @@ const SellerDashboardPage = lazyRoute(() => import('./pages/seller/SellerDashboa
 const SellerListingsPage = lazyRoute(() => import('./pages/seller/SellerListingsPage'));
 const SellerContractsPage = lazyRoute(() => import('./pages/seller/SellerContractsPage'));
 const SellerPayoutsPage = lazyRoute(() => import('./pages/seller/SellerPayoutsPage'));
-const ConsultationPage = lazyRoute(() => import('./pages/ConsultationPage'));
-const StartRestorePage = lazyRoute(() => import('./pages/StartRestorePage'), { prefetchPath: '/start' });
 const EnlightenmentSessionPage = lazyRoute(() => import('./pages/EnlightenmentSessionPage'));
-const FreeKreyolGuidePage = lazyRoute(() => import('./pages/public/FreeKreyolGuidePage'));
 const HaitianCompanionPublicPage = lazyRoute(() => import('./pages/public/HaitianCompanionPublicPage'));
 const GuestMeetingJoinPage = lazyRoute(() => import('./pages/GuestMeetingJoinPage'));
 const VideoMeetingRoomPage = lazyRoute(() => import('./pages/VideoMeetingRoomPage'));
@@ -225,6 +235,13 @@ function viewFromPath(pathname: string): NavView {
   if (pathname.startsWith('/about')) return 'about';
   if (pathname.startsWith('/onboarding')) return 'onboarding';
   if (pathname.startsWith('/dashboard')) return 'dashboard';
+  if (
+    pathname.startsWith('/services/business-credit') ||
+    pathname.startsWith('/pricing/business-credit') ||
+    pathname === '/business-credit'
+  ) {
+    return 'services';
+  }
   if (pathname.startsWith('/services')) return 'services';
   if (pathname.startsWith('/resources')) return 'resources';
   if (pathname.startsWith('/pricing')) return 'pricing';
@@ -233,7 +250,7 @@ function viewFromPath(pathname: string): NavView {
   if (pathname.startsWith('/affiliate')) return 'affiliate';
   if (pathname.startsWith('/agents')) return 'agents';
   if (pathname.startsWith('/contact')) return 'contact';
-  if (pathname.startsWith('/enlightenment-session') || pathname.startsWith('/consultation')) return 'consultation';
+  if (pathname.startsWith('/enlightenment-session')) return 'consultation';
   if (pathname.startsWith('/faq')) return 'faq';
   if (pathname.startsWith('/terms')) return 'terms';
   if (pathname.startsWith('/privacy')) return 'privacy';
@@ -243,11 +260,11 @@ function viewFromPath(pathname: string): NavView {
   if (
     pathname.startsWith('/free-kreyol-guide') ||
     pathname.startsWith('/free-guide') ||
-    pathname.startsWith('/haitian') ||
     pathname.startsWith('/kreyol')
   ) {
     return 'resources';
   }
+  if (pathname.startsWith('/haitian')) return 'contact';
   return 'landing';
 }
 
@@ -1070,6 +1087,17 @@ function AppInner() {
 
   const navWarm = (target: string) => navIntentProps(target);
 
+  const publicChatLayout =
+    location.pathname.startsWith('/tradelines') ||
+    location.pathname.startsWith('/privacy') ||
+    location.pathname.startsWith('/terms') ||
+    location.pathname.startsWith('/disclaimer') ||
+    location.pathname.startsWith('/contact') ||
+    location.pathname.startsWith('/testimonials') ||
+    location.pathname.startsWith('/enlightenment-session')
+      ? 'compact'
+      : 'default';
+
   return (
     <div className="min-h-screen text-white font-sans bg-[#0d1512]">
       {toast && <Toast message={toast} onClose={() => setToast(null)} />}
@@ -1295,7 +1323,11 @@ function AppInner() {
                     type="button"
                     {...navWarm('about')}
                     className={`px-5 py-2 rounded-xl border transition-all text-sm font-semibold ${
-                      currentView === 'about' || currentView === 'testimonials' || currentView === 'affiliate' || currentView === 'contact'
+                      currentView === 'about' ||
+                      currentView === 'testimonials' ||
+                      currentView === 'affiliate' ||
+                      currentView === 'contact' ||
+                      currentView === 'faq'
                         ? 'bg-amber-500 text-black border-amber-400 shadow-lg shadow-amber-900/20'
                         : 'bg-white/5 text-white/80 border-white/10 hover:bg-white/10 hover:text-white'
                     }`}
@@ -1373,7 +1405,7 @@ function AppInner() {
           </nav>
 
           {/* Public AI concierge (homepage + public routes) */}
-          <PublicChatWidget />
+          <PublicChatWidget layout={publicChatLayout} />
         </>
       )}
 
@@ -1468,21 +1500,29 @@ function AppInner() {
             />
           }
         />
-        <Route path="/tradelines" element={<TradelinesRoute addToCart={addToCart} onNavigate={(v) => navigate(routeFromView(v))} />} />
-        <Route path="/checkout" element={<CheckoutPage cart={cart} setCart={setCart} />} />
-        <Route path="/about" element={<AboutRoute onNavigate={(v) => navigate(routeFromView(v))} />} />
-        <Route path="/services" element={<PricingPage />} />
+        {/* Public marketing routes (eager — avoid chunk 404 → “homepage” confusion on live) */}
+        <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/pricing/:service" element={<PricingServicePage />} />
+        <Route path="/services" element={<ServicesHubPage />} />
         <Route path="/services/tradelines" element={<Navigate to="/tradelines" replace />} />
         <Route path="/services/:service" element={<PricingServicePage />} />
         <Route path="/start" element={<StartRestorePage />} />
-        <Route path="/pricing" element={<PricingPage />} />
-        <Route path="/pricing/:service" element={<PricingServicePage />} />
+        <Route path="/free-guide" element={<FreeGuideLandingPage />} />
+        <Route path="/free-guide/:kitId" element={<FreeGuideLandingPage />} />
+        <Route path="/free-kreyol-guide" element={<FreeKreyolGuidePage />} />
+        <Route path="/free-kreyol-guide/:kitId" element={<FreeKreyolGuidePage />} />
+        <Route path="/kreyol" element={<KreyolHubPage />} />
+        <Route path="/haitian" element={<HaitianCompanionPublicPage />} />
+
+        <Route path="/tradelines" element={<TradelinesRoute addToCart={addToCart} onNavigate={(v) => navigate(routeFromView(v))} />} />
+        <Route path="/checkout" element={<CheckoutPage cart={cart} setCart={setCart} />} />
+        <Route path="/about" element={<AboutRoute onNavigate={(v) => navigate(routeFromView(v))} />} />
         {/* Legacy marketing slugs (resolve to real pricing/service views) */}
         <Route path="/fix-my-credit" element={<Navigate to="/pricing/personal-credit-restore" replace />} />
         <Route path="/build-my-credit" element={<Navigate to="/pricing/personal-credit-building" replace />} />
         <Route path="/debt-summons-help" element={<Navigate to="/pricing/debt-legal" replace />} />
         <Route path="/business-credit-solutions" element={<Navigate to="/pricing/business-credit" replace />} />
-        <Route path="/business-credit" element={<Navigate to="/pricing/business-credit" replace />} />
+        <Route path="/business-credit" element={<Navigate to="/services/business-credit" replace />} />
         <Route path="/funding-readiness" element={<Navigate to="/pricing/wealth-builder" replace />} />
         <Route path="/diy-academy" element={<Navigate to="/resources" replace />} />
         <Route path="/blog" element={<Navigate to="/resources" replace />} />
@@ -2277,13 +2317,7 @@ function AppInner() {
         <Route path="/disclaimer" element={<DisclaimerPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/enlightenment-session" element={<EnlightenmentSessionPage />} />
-        <Route path="/free-guide" element={<Navigate to="/free-kreyol-guide" replace />} />
-        <Route path="/free-guide/:kitId" element={<Navigate to="/free-kreyol-guide" replace />} />
-        <Route path="/free-kreyol-guide" element={<FreeKreyolGuidePage />} />
-        <Route path="/free-kreyol-guide/:kitId" element={<FreeKreyolGuidePage />} />
-        <Route path="/haitian" element={<HaitianCompanionPublicPage />} />
-        <Route path="/kreyol" element={<HaitianCompanionPublicPage />} />
-        <Route path="/consultation" element={<ConsultationPage />} />
+        <Route path="/consultation" element={<Navigate to="/enlightenment-session" replace />} />
         <Route path="/faq" element={<FaqPage />} />
         <Route path="/claim" element={<ClaimPartnerProfilePage />} />
 

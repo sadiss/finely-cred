@@ -6,9 +6,10 @@
   "description": "Finely Cred — Sovereign Supreme build: full enhanced app (landing, admin, portal, dispute reasons, credit reports)",
   "type": "module",
   "scripts": {
-    "dev": "vite --host 127.0.0.1 --port 5175 --strictPort",
+    "dev": "npm run sync:packs && vite --host 127.0.0.1 --port 5175 --strictPort",
     "dev:host": "vite --host 0.0.0.0 --port 5175 --strictPort",
-    "build": "tsc && vite build",
+    "sync:packs": "node scripts/sync-marketing-packs.mjs",
+    "build": "npm run sync:packs && tsc && vite build",
     "preview": "vite preview",
     "start": "serve -s dist -l 8080"
   },

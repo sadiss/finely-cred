@@ -1,0 +1,105 @@
+/* Finely brand kit lock — sales packs / one-sheets / guide v2 */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@200;400;600&display=swap');
+
+:root {
+  --fc-primary: #fbbf24;
+  --fc-shell: #0b1110;
+  --fc-shell-deep: #060908;
+  --fc-text: #f8faf9;
+  --fc-ink-on-gold: #1a1400;
+  --fc-cta-gradient: linear-gradient(
+    135deg,
+    #ffeaa7 0%,
+    #fdcb6e 28%,
+    #f39c12 62%,
+    #d68910 100%
+  );
+  --fc-font: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --fc-tracking-finely: 0.14em;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body.fc-brand {
+  margin: 0;
+  font-family: var(--fc-font);
+  font-weight: 400;
+  color: var(--fc-text);
+  background: radial-gradient(ellipse 120% 80% at 50% -20%, #122018 0%, var(--fc-shell) 45%, var(--fc-shell-deep) 100%);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+.fc-wordmark-finely {
+  font-weight: 200;
+  letter-spacing: var(--fc-tracking-finely);
+  text-transform: uppercase;
+  font-size: 1.75rem;
+  color: var(--fc-text);
+}
+
+.fc-wordmark-cred {
+  font-weight: 200;
+  font-size: 1.5rem;
+  color: var(--fc-primary);
+  margin-left: 0.12em;
+}
+
+.fc-sheet {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2.5rem 1.75rem 3rem;
+}
+
+.fc-card {
+  border: 1px solid rgba(251, 191, 36, 0.22);
+  background: rgba(6, 9, 8, 0.72);
+  border-radius: 1.25rem;
+  padding: 1.5rem 1.75rem;
+  margin: 1.25rem 0;
+}
+
+.fc-kicker {
+  color: var(--fc-primary);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.fc-h1 {
+  font-weight: 200;
+  font-size: 1.85rem;
+  margin: 0.5rem 0 1rem;
+  line-height: 1.2;
+}
+
+.fc-cta {
+  display: inline-block;
+  margin-top: 1.25rem;
+  padding: 0.85rem 1.5rem;
+  border-radius: 0.75rem;
+  background: var(--fc-cta-gradient);
+  color: var(--fc-ink-on-gold);
+  font-weight: 600;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: none;
+}
+
+.fc-footer {
+  margin-top: 2rem;
+  font-size: 0.7rem;
+  color: rgba(248, 250, 249, 0.55);
+}
+
+.fc-logo img,
+.fc-logo svg {
+  height: 48px;
+  width: auto;
+  display: block;
+}

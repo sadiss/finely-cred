@@ -3,7 +3,7 @@ import { registerRoutePrefetch } from './routePrefetch';
 const PUBLIC_ROUTE_PREFETCH: Record<string, () => Promise<unknown>> = {
   '/checkout': () => import('../pages/CheckoutPage'),
   '/events': () => import('../pages/EventsPage'),
-  '/services': () => import('../pages/PricingPage'),
+  '/services': () => import('../pages/ServicesHubPage'),
   '/services/personal-credit-restore': () => import('../pages/PricingServicePage'),
   '/services/personal-credit-building': () => import('../pages/PricingServicePage'),
   '/services/business-credit': () => import('../pages/PricingServicePage'),

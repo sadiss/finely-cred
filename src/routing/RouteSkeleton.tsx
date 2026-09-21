@@ -4,7 +4,7 @@ import React from 'react';
 export function RouteSkeleton(props: { label?: string }) {
   return (
     <div
-      className="w-full min-h-[calc(100dvh-5rem)] bg-[#0d1512] px-4 sm:px-6 py-8"
+      className="w-full min-h-[50vh] bg-transparent px-4 sm:px-6 py-8"
       role="status"
       aria-live="polite"
       aria-busy="true"

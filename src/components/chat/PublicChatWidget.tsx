@@ -15,7 +15,13 @@ function sanitize(s: string) {
   return (s || '').trim();
 }
 
-export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolean }) {
+export function PublicChatWidget({
+  defaultOpen = false,
+  layout = 'default',
+}: {
+  defaultOpen?: boolean;
+  layout?: 'default' | 'compact';
+}) {
   const [open, setOpen] = useState(defaultOpen);
   const [sending, setSending] = useState(false);
 
@@ -148,22 +154,28 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
             setOpen(true);
             scrollToBottom();
           }}
-          className="fixed bottom-5 right-5 z-[120] inline-flex items-center gap-2 rounded-2xl border border-amber-500/30 bg-[#0d1512]/95 backdrop-blur-xl px-4 py-3 shadow-2xl hover:shadow-[0_18px_50px_-18px_rgba(245,158,11,0.35)] transition-all"
+          className={`fixed z-[85] inline-flex items-center gap-2 rounded-2xl border border-amber-500/30 bg-[#0d1512]/95 backdrop-blur-xl shadow-2xl hover:shadow-[0_18px_50px_-18px_rgba(245,158,11,0.35)] transition-all ${
+            layout === 'compact' ? 'bottom-24 right-4 px-3 py-2.5' : 'bottom-6 right-6 px-4 py-3'
+          }`}
           title="Chat with Finely Cred"
         >
           <div className="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center">
             <MessageCircle size={18} className="text-amber-300" />
           </div>
-          <div className="text-left">
-            <div className="text-[10px] font-black uppercase tracking-[0.35em] text-white/70">FINELY</div>
-            <div className="text-xs text-white/60">Questions? Start here</div>
-          </div>
+            <div className="text-left hidden sm:block">
+              <div className="text-[10px] font-black uppercase tracking-[0.35em] text-white/70">FINELY</div>
+              <div className="text-xs text-white/60">{layout === 'compact' ? 'Ask Finely' : 'Questions? Start here'}</div>
+            </div>
         </button>
       )}
 
       {/* Panel */}
       {open && (
-        <div className="fixed bottom-5 right-5 z-[120] w-[360px] max-w-[calc(100vw-40px)]">
+        <div
+          className={`fixed z-[85] w-[360px] max-w-[calc(100vw-32px)] ${
+            layout === 'compact' ? 'bottom-24 right-4' : 'bottom-6 right-6'
+          }`}
+        >
           <div className="rounded-3xl border border-white/10 bg-[#0d1512]/95 backdrop-blur-2xl shadow-2xl overflow-hidden">
             <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between gap-3">
               <div className="min-w-0">

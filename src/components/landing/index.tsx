@@ -1152,7 +1152,7 @@ export function MasteryOSSection() {
                     muted 
                     playsInline
                     className="absolute inset-0 w-full h-full object-cover"
-                    poster="/videos/finely-poster.jpg"
+                    poster="/brand/finely-cred-mark.png"
                   >
                     <source src="/videos/finely-promo.mp4" type="video/mp4" />
                     <source src="/videos/finely-promo.webm" type="video/webm" />

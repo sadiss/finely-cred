@@ -293,40 +293,31 @@ interface LoopingTypingHeaderProps {
 
 export function LoopingTypingHeader({ phrases, className = "" }: LoopingTypingHeaderProps) {
   const [index, setIndex] = useState(0);
-  const [subIndex, setSubIndex] = useState(0);
-  const [reverse, setReverse] = useState(false);
+  const [visible, setVisible] = useState(true);
 
   useEffect(() => {
-    if (subIndex === phrases[index].length + 1 && !reverse) {
-      const timeout = setTimeout(() => setReverse(true), 2500);
-      return () => clearTimeout(timeout);
-    }
-    if (subIndex === 0 && reverse) {
-      setReverse(false);
-      setIndex((prev) => (prev + 1) % phrases.length);
-      return;
-    }
-    const timeout = setTimeout(() => {
-      setSubIndex((prev) => prev + (reverse ? -1 : 1));
-    }, reverse ? 40 : 80);
-    return () => clearTimeout(timeout);
-  }, [subIndex, index, reverse, phrases]);
+    const rotateMs = 3800;
+    const fadeMs = 280;
+    const id = window.setInterval(() => {
+      setVisible(false);
+      window.setTimeout(() => {
+        setIndex((prev) => (prev + 1) % phrases.length);
+        setVisible(true);
+      }, fadeMs);
+    }, rotateMs);
+    return () => window.clearInterval(id);
+  }, [phrases.length]);
 
-  const currentPhrase = phrases[index].substring(0, subIndex);
-  const highlightWords = ["Credit.", "Wealth.", "Future.", "Control.", "Funding.", "Freedom."];
+  const phrase = phrases[index] ?? phrases[0] ?? '';
 
   return (
-    <span className={className}>
-      {currentPhrase.split(' ').map((word, i, arr) => {
-        const isHighlight = highlightWords.includes(word);
-        return (
-          <React.Fragment key={i}>
-            <span className={isHighlight ? "text-amber-500 drop-shadow-[0_0_10px_rgba(245,158,11,0.5)]" : ""}>{word}</span>
-            {i < arr.length - 1 && ' '}
-          </React.Fragment>
-        );
-      })}
-      <span className="animate-pulse border-r-2 border-amber-500 ml-1 shadow-[0_0_10px_rgba(245,158,11,0.6)]">&nbsp;</span>
+    <span
+      className={`${className} inline-block transition-opacity duration-300 text-amber-500 ${
+        visible ? 'opacity-100' : 'opacity-0'
+      }`}
+      aria-live="polite"
+    >
+      {phrase}
     </span>
   );
 }
@@ -547,18 +538,21 @@ const APPROVALS: ApprovalItem[] = makeApprovals();
 
 export function LiveApprovalTicker() {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isVisible, setIsVisible] = useState(true);
+  const [isVisible, setIsVisible] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    // Less frequent + readable: pop in, stay, pop out, wait, then rotate.
-    const VISIBLE_MS = 6800;
-    const HIDDEN_MS = 14000;
+    if (dismissed) return;
+    const VISIBLE_MS = 6500;
+    const HIDDEN_MS = 16000;
+    const INITIAL_DELAY_MS = 12000;
     let mounted = true;
-    let t1: any = null;
-    let t2: any = null;
+    let t0: ReturnType<typeof setTimeout> | null = null;
+    let t1: ReturnType<typeof setTimeout> | null = null;
+    let t2: ReturnType<typeof setTimeout> | null = null;
 
     const cycle = () => {
-      if (!mounted) return;
+      if (!mounted || dismissed) return;
       setIsVisible(true);
       t1 = window.setTimeout(() => {
         if (!mounted) return;
@@ -571,41 +565,46 @@ export function LiveApprovalTicker() {
       }, VISIBLE_MS);
     };
 
-    cycle();
+    t0 = window.setTimeout(() => cycle(), INITIAL_DELAY_MS);
     return () => {
       mounted = false;
+      if (t0) window.clearTimeout(t0);
       if (t1) window.clearTimeout(t1);
       if (t2) window.clearTimeout(t2);
     };
-  }, []);
+  }, [dismissed]);
 
   const approval = APPROVALS[currentIndex];
 
+  if (dismissed) return null;
+
   return (
-    <div className="fixed bottom-6 left-6 z-50 hidden lg:block">
+    <div className="fixed bottom-28 left-4 sm:left-6 z-[70] hidden lg:block pointer-events-none">
       <div
-        className={`bg-[#0d1512]/95 backdrop-blur-xl border border-emerald-500/20 rounded-2xl p-4 shadow-2xl max-w-xs transition-all duration-500 ${
+        className={`pointer-events-auto bg-[#0d1512]/95 backdrop-blur-xl border border-[#fbbf24]/25 rounded-2xl p-4 shadow-2xl max-w-xs transition-all duration-500 ${
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3 pointer-events-none'
         }`}
       >
-        <button 
-          onClick={() => setIsVisible(false)}
+        <button
+          type="button"
+          onClick={() => setDismissed(true)}
           className="absolute -top-2 -right-2 w-6 h-6 bg-[#1a2b26] border border-white/10 rounded-full flex items-center justify-center text-white/40 hover:text-white text-xs"
+          aria-label="Dismiss approval notice"
         >
           ×
         </button>
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
-            <CheckCircle2 size={18} className="text-emerald-500" />
+          <div className="w-10 h-10 rounded-full bg-[#fbbf24]/20 flex items-center justify-center flex-shrink-0">
+            <CheckCircle2 size={18} className="text-[#fbbf24]" />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Just Approved</span>
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[10px] font-bold text-amber-200 uppercase tracking-wider">Just Approved</span>
+              <div className="w-1.5 h-1.5 rounded-full bg-[#fbbf24] animate-pulse" />
             </div>
             <p className="text-sm text-white truncate">
               <span className="font-semibold">{approval.name}</span> got{' '}
-              <span className="text-emerald-400 font-bold">{approval.amount}</span>
+              <span className="text-[#fbbf24] font-bold">{approval.amount}</span>
             </p>
             <p className="text-[11px] text-white/50 truncate">
               {approval.bank} • {approval.type}
