@@ -171,10 +171,11 @@ export default function AdminSpecialistAcademyPage() {
             <div className="rounded-2xl border border-white/10 bg-black/30 p-10 text-center text-white/60">Loading academy…</div>
           ) : hub ? (
             <div className="space-y-6">
-              <div className="grid md:grid-cols-4 gap-4">
+              <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-4">
                 <Kpi label="Lessons & SOPs" value={String(ACADEMY_ITEMS.length)} hint="In this pack" tone="amber" />
                 <Kpi label="Your progress" value={`${progressPct}%`} hint="Local checklist" tone="violet" />
-                <Kpi label="Track F core" value="7" hint="Deep lessons" tone="emerald" />
+                <Kpi label="Track H compliance" value="9" hint="Consumer law literacy" tone="emerald" />
+                <Kpi label="Track F core" value="7" hint="Methodology lessons" tone="emerald" />
                 <Kpi label="Workflow" value="1" hint="Visual map" tone="amber" />
               </div>
               <div className="grid md:grid-cols-2 gap-4">

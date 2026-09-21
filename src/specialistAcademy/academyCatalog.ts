@@ -3,7 +3,7 @@
  * Content files live under docs/specialist-academy/ (loaded at build time).
  */
 
-export type AcademyTrackId = 'hub' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G';
+export type AcademyTrackId = 'hub' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H';
 
 export type AcademyItem = {
   id: string;
@@ -55,6 +55,130 @@ export const ACADEMY_GROUPS: AcademyGroup[] = [
         pathHt: p('lessons/ht/tracks-a-e-overview.md'),
         minutes: 15,
       },
+    ],
+  },
+  {
+    id: 'track-h-compliance',
+    track: 'H',
+    label: 'Track H — Compliance & consumer law',
+    labelHt: 'Trac H — Konfòmite & lwa konsomatè',
+    items: [
+      {
+        id: 'h-curriculum',
+        track: 'H',
+        title: 'Curriculum map (interleave with F)',
+        titleHt: 'Plan etid (melanje ak F)',
+        pathEn: p('TRACK-H-COMPLIANCE-CURRICULUM.md'),
+        minutes: 8,
+      },
+      {
+        id: 'h-metro2',
+        track: 'H',
+        title: '1. Metro 2 furnisher reporting',
+        titleHt: '1. Metro 2',
+        pathEn: p('lessons/compliance/en/01-metro2.md'),
+        pathHt: p('lessons/compliance/ht/01-metro2.md'),
+        minutes: 18,
+      },
+      {
+        id: 'h-fcra',
+        track: 'H',
+        title: '2. FCRA accuracy & disputes',
+        titleHt: '2. FCRA',
+        pathEn: p('lessons/compliance/en/02-fcra.md'),
+        pathHt: p('lessons/compliance/ht/02-fcra.md'),
+        minutes: 20,
+      },
+      {
+        id: 'h-fdcpa',
+        track: 'H',
+        title: '3. FDCPA collection literacy',
+        titleHt: '3. FDCPA',
+        pathEn: p('lessons/compliance/en/03-fdcpa.md'),
+        pathHt: p('lessons/compliance/ht/03-fdcpa.md'),
+        minutes: 22,
+      },
+      {
+        id: 'h-cfpb',
+        track: 'H',
+        title: '4. CFPB factual complaints',
+        titleHt: '4. CFPB',
+        pathEn: p('lessons/compliance/en/04-cfpb.md'),
+        pathHt: p('lessons/compliance/ht/04-cfpb.md'),
+        minutes: 16,
+      },
+      {
+        id: 'h-tila',
+        track: 'H',
+        title: '5. TILA funding literacy',
+        titleHt: '5. TILA',
+        pathEn: p('lessons/compliance/en/05-tila.md'),
+        pathHt: p('lessons/compliance/ht/05-tila.md'),
+        minutes: 14,
+      },
+      {
+        id: 'h-respa',
+        track: 'H',
+        title: '6. RESPA mortgage servicing',
+        titleHt: '6. RESPA',
+        pathEn: p('lessons/compliance/en/06-respa.md'),
+        pathHt: p('lessons/compliance/ht/06-respa.md'),
+        minutes: 16,
+      },
+      {
+        id: 'h-ucc',
+        track: 'H',
+        title: '7. UCC secured transactions',
+        titleHt: '7. UCC',
+        pathEn: p('lessons/compliance/en/07-ucc.md'),
+        pathHt: p('lessons/compliance/ht/07-ucc.md'),
+        minutes: 14,
+      },
+      {
+        id: 'h-repo',
+        track: 'H',
+        title: '8. Repossession education',
+        titleHt: '8. Repossession',
+        pathEn: p('lessons/compliance/en/08-repossession.md'),
+        pathHt: p('lessons/compliance/ht/08-repossession.md'),
+        minutes: 18,
+      },
+      {
+        id: 'h-foreclosure',
+        track: 'H',
+        title: '9. Foreclosure literacy',
+        titleHt: '9. Foreclosure',
+        pathEn: p('lessons/compliance/en/09-foreclosure.md'),
+        pathHt: p('lessons/compliance/ht/09-foreclosure.md'),
+        minutes: 18,
+      },
+    ],
+  },
+  {
+    id: 'compliance-sops',
+    track: 'H',
+    label: 'Compliance SOPs 16–20',
+    labelHt: 'SOP konfòmite 16–20',
+    items: [
+      { id: 'sop-16', track: 'H', title: 'SOP-16: Metro 2 factual disputes', pathEn: p('sops/SOP-16-metro2-factual-dispute.md'), minutes: 10 },
+      { id: 'sop-17', track: 'H', title: 'SOP-17: FCRA investigation package', pathEn: p('sops/SOP-17-fcra-investigation-package.md'), minutes: 10 },
+      { id: 'sop-18', track: 'H', title: 'SOP-18: FDCPA contact log', pathEn: p('sops/SOP-18-fdcpa-contact-documentation.md'), minutes: 10 },
+      { id: 'sop-19', track: 'H', title: 'SOP-19: CFPB factual complaint', pathEn: p('sops/SOP-19-cfpb-factual-complaint.md'), minutes: 12 },
+      { id: 'sop-20', track: 'H', title: 'SOP-20: Housing & auto specialty docs', pathEn: p('sops/SOP-20-housing-auto-specialty-docs.md'), minutes: 12 },
+    ],
+  },
+  {
+    id: 'compliance-cards',
+    track: 'H',
+    label: 'Compliance flash cards',
+    labelHt: 'Kat konfòmite',
+    items: [
+      { id: 'c-metro2', track: 'H', title: 'Card C-METRO2-01', pathEn: p('cards/C-METRO2-01.md'), minutes: 3 },
+      { id: 'c-fcra', track: 'H', title: 'Card C-FCRA-01', pathEn: p('cards/C-FCRA-01.md'), minutes: 3 },
+      { id: 'c-fdcpa', track: 'H', title: 'Card C-FDCPA-01', pathEn: p('cards/C-FDCPA-01.md'), minutes: 3 },
+      { id: 'c-cfpb', track: 'H', title: 'Card C-CFPB-01', pathEn: p('cards/C-CFPB-01.md'), minutes: 3 },
+      { id: 'c-repo', track: 'H', title: 'Card C-REPO-01', pathEn: p('cards/C-REPO-01.md'), minutes: 3 },
+      { id: 'c-foreclosure', track: 'H', title: 'Card C-FORECLOSURE-01', pathEn: p('cards/C-FORECLOSURE-01.md'), minutes: 3 },
     ],
   },
   {
@@ -210,4 +334,5 @@ export const TRACK_LABELS: Record<AcademyTrackId, string> = {
   E: 'Track E — Letters & OCR',
   F: 'Track F — Methodology',
   G: 'Track G — Nora',
+  H: 'Track H — Compliance & consumer law',
 };

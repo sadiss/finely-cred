@@ -20,6 +20,17 @@ Use for self-study and [MEETING-COACH](../MEETING-COACH.md) quizzes.
 | F13 | Haitian desk language | [F13.md](./F13.md) |
 | F14 | Nora handoff | [F14.md](./F14.md) |
 
+### Track H — Compliance cards
+
+| Card | Topic | File |
+| --- | --- | --- |
+| C-METRO2-01 | Metro 2 factual vs magic | [C-METRO2-01.md](./C-METRO2-01.md) |
+| C-FCRA-01 | FCRA investigation framing | [C-FCRA-01.md](./C-FCRA-01.md) |
+| C-FDCPA-01 | Validation priority | [C-FDCPA-01.md](./C-FDCPA-01.md) |
+| C-CFPB-01 | Complaint timing | [C-CFPB-01.md](./C-CFPB-01.md) |
+| C-REPO-01 | Repo documentation | [C-REPO-01.md](./C-REPO-01.md) |
+| C-FORECLOSURE-01 | Foreclosure boundaries | [C-FORECLOSURE-01.md](./C-FORECLOSURE-01.md) |
+
 ### F-Build (credit BUILD — parallel to restore)
 
 | Card | Topic | File |

@@ -19,6 +19,7 @@ Internal curriculum for specialists who run **restore** the way Finely Cred actu
 | **E** | Letters, templates, OCR-safe variation | [SOP-13](./sops/SOP-13-ocr-evidence-checklist.md) · [A–E § E](./TRACKS-A-E-OVERVIEW.md) |
 | **F** | **Credit methodology (Sanz doctrine) + BUILD** | [TRACK F (EN)](./TRACK-F-credit-methodology-EN.md) |
 | **G** | Nora soft handoff | [SOP-15](./sops/SOP-15-funding-readiness-checklist.md) § D · TRACK F § F13 |
+| **H** | **Compliance & consumer law** (Metro 2, FCRA, FDCPA, CFPB, TILA, RESPA, UCC, repo, foreclosure) | [Curriculum map](./TRACK-H-COMPLIANCE-CURRICULUM.md) · SOPs [16–20](./sops/SOP-16-metro2-factual-dispute.md) |
 
 **Coach / QA:** [MEETING-COACH.md](./MEETING-COACH.md) · [WORKFLOW-MAP.md](./WORKFLOW-MAP.md) · [OVERSEER-QA.md](./OVERSEER-QA.md)
 
