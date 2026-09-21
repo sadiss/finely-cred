@@ -10,6 +10,11 @@ import { lazyRoute } from './routing/lazyRoute';
 import { ScrollToTop } from './routing/ScrollToTop';
 import { PartnerLoadGate } from './auth/PartnerLoadGate';
 import './routing/dashboardPrefetch';
+import './routing/publicPrefetch';
+import { prefetchPublicCtasOnIdle } from './routing/publicPrefetch';
+import { prefetchRoutePrefix } from './routing/routePrefetch';
+import { scheduleStaffAutomationSync } from './lib/bootStaffAutomationSync';
+import { syncPwaServiceWorkerWithPath } from './lib/pwaRegister';
 import { 
   HeroSection, ViolationLiveFeed, TradelineMarketplace, 
   PhysicalEbook, MasteryOSSection, TestimonialDossier,
@@ -985,6 +990,26 @@ function AppInner() {
     if (!isSupabaseConfigured) return;
     return installGlobalErrorReporting();
   }, [auth.user?.id]);
+
+  useEffect(() => {
+    syncPwaServiceWorkerWithPath(location.pathname);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (showPublicChrome) prefetchPublicCtasOnIdle();
+  }, [showPublicChrome]);
+
+  useEffect(() => {
+    const email =
+      (auth.user as any)?.email ||
+      (auth.user as any)?.user_metadata?.email ||
+      null;
+    scheduleStaffAutomationSync({
+      pathname: location.pathname,
+      userEmail: email ? String(email) : null,
+      authLoading: auth.isLoading,
+    });
+  }, [location.pathname, auth.user?.id, auth.isLoading, auth.user]);
 
   useEffect(() => {
     if (!auth.user) return;
@@ -2178,6 +2203,8 @@ function AppInner() {
         <Route path="/disclaimer" element={<DisclaimerPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/enlightenment-session" element={<EnlightenmentSessionPage />} />
+        <Route path="/free-guide" element={<Navigate to="/free-kreyol-guide" replace />} />
+        <Route path="/free-guide/:kitId" element={<Navigate to="/free-kreyol-guide" replace />} />
         <Route path="/free-kreyol-guide" element={<FreeKreyolGuidePage />} />
         <Route path="/free-kreyol-guide/:kitId" element={<FreeKreyolGuidePage />} />
         <Route path="/haitian" element={<HaitianCompanionPublicPage />} />

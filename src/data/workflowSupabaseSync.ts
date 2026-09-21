@@ -3,6 +3,7 @@ import type { EvidenceItem } from '../domain/evidence';
 import type { LetterRecord } from '../domain/letters';
 import type { DisputeCase } from '../domain/cases';
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient';
+import { isSupabaseCircuitOpen } from '../lib/supabaseAuthGuard';
 import { replaceEvidenceSnapshotForPartner } from './evidenceRepo';
 import { replaceLettersSnapshotForPartner } from './lettersRepo';
 import { replaceReportsSnapshotForPartner } from './reportsRepo';
@@ -16,7 +17,7 @@ export async function pullWorkflowSnapshotFromSupabase(args: { partnerId: string
   try {
     const partnerId = safeStr(args.partnerId);
     if (!partnerId) return;
-    if (!isSupabaseConfigured) return;
+    if (!isSupabaseConfigured || isSupabaseCircuitOpen()) return;
 
     const [reportsRes, evidenceRes, lettersRes, casesRes] = await Promise.all([
       supabase.from('credit_reports').select('*').eq('partner_id', partnerId).order('received_at', { ascending: false }).limit(200),

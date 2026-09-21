@@ -67,6 +67,20 @@ There is **no** `new Promise(() => {})` or equivalent non-settling await.
 5. **Prefetch:** Hover “Reports” in portal nav → chunk request in Network before click.
 6. **Build:** `npm run build` exit 0.
 
+## Live audit (finelycred.com, Sep 2026)
+
+Observed on production (launch-style `main.tsx` boot):
+
+| Finding | Evidence | Fix on PR #28 |
+|--------|----------|----------------|
+| Public boot fans out to staff/automation tables | Network: `human_staff_*`, `social_autopilot_config`, `comms_send_logs`, `email_webhook_events`, `nurture_enrollments`, `staff_platform_state` (~0.9–1.1s each) | `bootSyncGate.ts` + `scheduleStaffAutomationSync()` only on workspace path + admin email; **no** sync in `main.tsx` |
+| `automation_rules` upsert 401 “No API key” | REST without `apikey` / bad env → retry storm | `supabaseClient` global `fetch` always sets `apikey`; `supabaseAuthGuard` opens circuit on 401 (log once) |
+| Service worker race | `index.html` unregisters all SW; `pwaRegister.ts` re-registers on load → `FetchEvent` rejections on navigations | `syncPwaServiceWorkerWithPath()` — **unregister on marketing**, register only on `/portal`, `/admin`, `/dashboard`, etc.; `public/sw.js` catches all fetch errors |
+| Lazy route URL ahead of paint | Strategy CTA → `/enlightenment-session` shows prior page briefly | `publicPrefetch.ts` idle + hover prefetch; per-route `RouteSkeleton` |
+| Auth/partner hang | Slow Supabase | 5s auth + partner timeouts (prior commit) |
+
+**Merge note:** When combining with `launch/ready-sovereign-supreme`, **remove** eager `void ensureHumanStaffSyncedOnce()` (etc.) from `main.tsx` and register those functions in `src/lib/staffAutomationSyncRunners.ts` instead.
+
 ## Build
 
 ```bash

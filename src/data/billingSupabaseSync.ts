@@ -1,6 +1,7 @@
 import type { Agreement, Entitlement } from '../domain/billing';
 import { FINELY_TENANT_ID } from '../domain/billing';
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient';
+import { isSupabaseCircuitOpen } from '../lib/supabaseAuthGuard';
 import { replaceBillingSnapshotForPartner } from './billingRepo';
 
 function nowIso() {
@@ -15,7 +16,7 @@ export async function pullBillingSnapshotFromSupabase(args: { partnerId: string 
   try {
     const partnerId = safeStr(args.partnerId);
     if (!partnerId) return;
-    if (!isSupabaseConfigured) return;
+    if (!isSupabaseConfigured || isSupabaseCircuitOpen()) return;
 
     const [agreementsRes, entRes] = await Promise.all([
       supabase
