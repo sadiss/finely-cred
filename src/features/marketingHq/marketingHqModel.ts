@@ -82,9 +82,9 @@ export const MARKETING_DEPARTMENTS: MarketingDepartment[] = [
       },
       {
         id: 'social',
-        label: 'Social Desk',
-        short: 'Social',
-        deskGuide: 'Captions + short posts — use SMS/caption files; schedule in Meta/IG yourself.',
+        label: 'Social Media Desk',
+        short: 'Social Media',
+        deskGuide: 'Facebook & YouTube captions from the 21-day pack — manual paste only (Instagram paused).',
       },
       {
         id: 'sms',
@@ -120,9 +120,9 @@ export const MARKETING_DEPARTMENTS: MarketingDepartment[] = [
       },
       {
         id: 'social',
-        label: 'Social Desk',
-        short: 'Social',
-        deskGuide: 'Partner social snippets and co-brand reminders (Finely medallion only).',
+        label: 'Social Media Desk',
+        short: 'Social Media',
+        deskGuide: 'Partner social snippets for Facebook/YouTube — Finely medallion only; manual paste.',
       },
       {
         id: 'content',
@@ -146,9 +146,9 @@ export const MARKETING_DEPARTMENTS: MarketingDepartment[] = [
       },
       {
         id: 'social',
-        label: 'Social Desk',
-        short: 'Social',
-        deskGuide: 'Haitian corridor posts + kit links (/free-kreyol-guide).',
+        label: 'Social Media Desk',
+        short: 'Social Media',
+        deskGuide: 'Kreyòl corridor posts for Facebook/YouTube + kit links (/free-kreyol-guide).',
       },
       {
         id: 'sms',
@@ -204,9 +204,9 @@ export const MARKETING_DEPARTMENTS: MarketingDepartment[] = [
       },
       {
         id: 'social',
-        label: 'Social Templates',
-        short: 'Social',
-        deskGuide: 'Approved social framing — gold on ink, no Nora on Finely cold art.',
+        label: 'Social Media Desk',
+        short: 'Social Media',
+        deskGuide: 'Approved Facebook/YouTube framing — gold on ink, no Nora on Finely cold art.',
       },
       {
         id: 'email',

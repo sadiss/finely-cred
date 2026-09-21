@@ -23,7 +23,7 @@ export class RouteChunkErrorBoundary extends React.Component<Props, State> {
   render() {
     if (!this.state.hasError) return this.props.children;
     return (
-      <div className="w-full min-h-[calc(100dvh-5rem)] bg-[#0d1512] px-6 py-12 flex items-start justify-center">
+      <div className="w-full min-h-[40vh] bg-transparent px-6 py-12 flex items-start justify-center">
         <div className="max-w-md w-full rounded-2xl border border-amber-500/25 bg-black/40 p-8 space-y-4 text-center">
           <div className="text-white font-semibold text-lg">Couldn’t load this page</div>
           <p className="text-white/60 text-sm">{this.state.message}</p>

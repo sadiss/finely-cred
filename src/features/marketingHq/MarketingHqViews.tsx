@@ -27,6 +27,7 @@ import {
   getAllPackAssetsGrouped,
   getPackAssetsForRoom,
 } from './finelyPackCatalog';
+import { SocialMediaDesk } from './SocialMediaDesk';
 
 const channelIcon: Record<MarketingChannelId, React.ReactNode> = {
   email: <Mail size={20} />,
@@ -94,7 +95,7 @@ export function MarketingCommandFloor() {
 
       <FullPackLibrarySection />
 
-      <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
         {MARKETING_DEPARTMENTS.map((d) => (
           <button
             key={d.id}
@@ -278,9 +279,15 @@ export function MarketingChannelRoom() {
     );
   }
 
+  const isSocial = ch.id === 'social';
+
   return (
     <div className="space-y-8">
-      <RoomHeader dept={dept} ch={ch} />
+      {isSocial ? (
+        <SocialMediaDesk floorName={dept.name} />
+      ) : (
+        <RoomHeader dept={dept} ch={ch} />
+      )}
       <ManualSendBanner />
       {(dept.id === 'growth-acquisition' && (ch.id === 'email' || ch.id === 'social')) && <MarketingStartHereStrip />}
 

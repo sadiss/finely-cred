@@ -14,7 +14,9 @@ Admin dashboard tile: **Marketing HQ** → `/admin/marketing`
 
 ## Beginner guide (< 30 seconds)
 
-1. Open **`/admin/marketing`** and tap **Start here** (Social / Email / Partner one-sheet).
+1. Open **`/admin/marketing`** and tap **Start here** (Social Media / Guides / Email / Partner one-sheet).
+
+**Naming:** **Social Media Desk** = Facebook & YouTube posts from Finely packs (manual paste). **Specialist Lounge** = staff community & meetings (`/admin/specialist-lounge`) — not the marketing desk.
 2. In a room, use **Ready to use** cards: **Preview** (new tab or viewer), **Copy** (clipboard), **Download** (file).
 3. **Manual send only** — HQ never auto-sends. Paste into Comms Studio, ESP, or social scheduler yourself.
 4. **Ready** = approved to use; **Hold** = do not publish until a Director clears it.
@@ -24,7 +26,7 @@ Admin dashboard tile: **Marketing HQ** → `/admin/marketing`
 
 - Command floor: `/admin/marketing`
 - Growth email (21-day + Start Restore): `/admin/marketing/growth-acquisition/email`
-- Growth social (SMS + captions): `/admin/marketing/growth-acquisition/social`
+- Growth Social Media (FB/YouTube captions): `/admin/marketing/growth-acquisition/social`
 - Partner one-sheet: `/admin/marketing/partner-referral/content`
 
 ## Sales pack source of truth

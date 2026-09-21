@@ -36,6 +36,7 @@ import { ProtectedAdminRoute } from './auth/ProtectedAdminRoute';
 import { PortalChatWidget } from './components/chat/PortalChatWidget';
 import { PublicFloatingChrome } from './components/public/PublicFloatingChrome';
 import { viewFromPath, routeFromView, type NavView } from './routing/publicMarketingRoutes';
+import { isCompanyChildActive, isCompanyNavOpen, navHighlightId } from './routing/navActive';
 import { isSupabaseConfigured } from './lib/supabaseClient';
 import { installGlobalErrorReporting } from './lib/errorReporting';
 import { getOrCreatePartnerForSession } from './portal/getOrCreatePartnerForSession';
@@ -142,6 +143,8 @@ import EagerStartRestorePage from './pages/StartRestorePage';
 import EagerFreeGuideLandingPage from './pages/public/FreeGuideLandingPage';
 import EagerKreyolHubPage from './pages/public/KreyolHubPage';
 import EagerFreeKreyolGuidePage from './pages/public/FreeKreyolGuidePage';
+import EagerPricingServicePage from './pages/PricingServicePage';
+import EagerBusinessCreditJourneyPage from './pages/public/BusinessCreditJourneyPage';
 
 const PricingPage = EagerPricingPage;
 const ServicesHubPage = EagerServicesHubPage;
@@ -149,8 +152,8 @@ const StartRestorePage = EagerStartRestorePage;
 const FreeGuideLandingPage = EagerFreeGuideLandingPage;
 const KreyolHubPage = EagerKreyolHubPage;
 const FreeKreyolGuidePage = EagerFreeKreyolGuidePage;
-
-const PricingServicePage = lazyRoute(() => import('./pages/PricingServicePage'));
+const BusinessCreditJourneyPage = EagerBusinessCreditJourneyPage;
+const PricingServicePage = EagerPricingServicePage;
 const PersonalCreditPage = lazyRoute(() => import('./pages/PersonalCreditPage'));
 const TestimonialsPage = lazyRoute(() => import('./pages/TestimonialsPage'));
 const EventsPage = lazyRoute(() => import('./pages/EventsPage'));
@@ -877,6 +880,7 @@ function AppInner() {
   const navigate = useNavigate();
   const location = useLocation();
   const currentView = viewFromPath(location.pathname);
+  const navActive = navHighlightId(location.pathname);
   const showPublicChrome =
     !location.pathname.startsWith('/portal') &&
     !location.pathname.startsWith('/admin') &&
@@ -1004,7 +1008,7 @@ function AppInner() {
             isOpen={mobileMenuOpen} 
             onClose={() => setMobileMenuOpen(false)}
             onNavigate={handleNavigate}
-            currentView={currentView}
+            currentView={navActive}
           />
 
           {/* Public Navigation */}
@@ -1215,11 +1219,7 @@ function AppInner() {
                     type="button"
                     {...navWarm('about')}
                     className={`px-5 py-2 rounded-xl border transition-all text-sm font-semibold ${
-                      currentView === 'about' ||
-                      currentView === 'testimonials' ||
-                      currentView === 'affiliate' ||
-                      currentView === 'contact' ||
-                      currentView === 'faq'
+                      isCompanyNavOpen(location.pathname)
                         ? 'bg-amber-500 text-black border-amber-400 shadow-lg shadow-amber-900/20'
                         : 'bg-white/5 text-white/80 border-white/10 hover:bg-white/10 hover:text-white'
                     }`}
@@ -1245,7 +1245,11 @@ function AppInner() {
                             type="button"
                             onClick={() => handleNavigate(x.id)}
                             {...navWarm(x.id)}
-                            className="w-full text-left px-4 py-3 rounded-xl border border-white/10 bg-white/[0.02] hover:bg-white/[0.05] transition-all text-sm text-white/80"
+                            className={`w-full text-left px-4 py-3 rounded-xl border transition-all text-sm ${
+                              isCompanyChildActive(location.pathname, x.id as NavView)
+                                ? 'bg-amber-500/15 text-amber-200 border-amber-500/35'
+                                : 'border-white/10 bg-white/[0.02] hover:bg-white/[0.05] text-white/80'
+                            }`}
                           >
                             {x.label}
                           </button>
@@ -1319,6 +1323,16 @@ function AppInner() {
       <AppErrorBoundary onHome={() => navigate('/')}>
         <PartnerLoadGate>
           <Routes>
+        {/* Public marketing routes first (eager — live SPA must not 404 or fall through to home) */}
+        <Route path="/start" element={<StartRestorePage />} />
+        <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/pricing/business-credit" element={<BusinessCreditJourneyPage />} />
+        <Route path="/pricing/:service" element={<PricingServicePage />} />
+        <Route path="/services" element={<ServicesHubPage />} />
+        <Route path="/services/business-credit" element={<BusinessCreditJourneyPage />} />
+        <Route path="/services/tradelines" element={<Navigate to="/tradelines" replace />} />
+        <Route path="/services/:service" element={<PricingServicePage />} />
+        <Route path="/business-credit" element={<BusinessCreditJourneyPage />} />
         <Route
           path="/"
           element={
@@ -1391,13 +1405,6 @@ function AppInner() {
             />
           }
         />
-        {/* Public marketing routes (eager — avoid chunk 404 → “homepage” confusion on live) */}
-        <Route path="/pricing" element={<PricingPage />} />
-        <Route path="/pricing/:service" element={<PricingServicePage />} />
-        <Route path="/services" element={<ServicesHubPage />} />
-        <Route path="/services/tradelines" element={<Navigate to="/tradelines" replace />} />
-        <Route path="/services/:service" element={<PricingServicePage />} />
-        <Route path="/start" element={<StartRestorePage />} />
         <Route path="/free-guide" element={<FreeGuideLandingPage />} />
         <Route path="/free-guide/:kitId" element={<FreeGuideLandingPage />} />
         <Route path="/free-kreyol-guide" element={<FreeKreyolGuidePage />} />
@@ -1413,7 +1420,6 @@ function AppInner() {
         <Route path="/build-my-credit" element={<Navigate to="/pricing/personal-credit-building" replace />} />
         <Route path="/debt-summons-help" element={<Navigate to="/pricing/debt-legal" replace />} />
         <Route path="/business-credit-solutions" element={<Navigate to="/pricing/business-credit" replace />} />
-        <Route path="/business-credit" element={<Navigate to="/services/business-credit" replace />} />
         <Route path="/funding-readiness" element={<Navigate to="/pricing/wealth-builder" replace />} />
         <Route path="/diy-academy" element={<Navigate to="/resources" replace />} />
         <Route path="/blog" element={<Navigate to="/resources" replace />} />

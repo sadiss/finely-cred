@@ -119,25 +119,41 @@ export function getPublicChromeProfile(pathname: string): PublicChromeProfile {
   const p = (pathname || '/').split('?')[0] || '/';
   const formHeavy = FORM_HEAVY.some((x) => p === x || p.startsWith(`${x}/`));
 
+  const marketingHeavy =
+    p.startsWith('/services') ||
+    p.startsWith('/pricing') ||
+    p.startsWith('/business-credit') ||
+    p === '/personal-credit' ||
+    p.startsWith('/start') ||
+    p.startsWith('/about') ||
+    p.startsWith('/faq');
+
   const heroHeavy =
     p === '/' ||
     p.startsWith('/tradelines') ||
     p.startsWith('/privacy') ||
     p.startsWith('/terms') ||
     p.startsWith('/disclaimer') ||
-    p.startsWith('/testimonials') ||
-    p.startsWith('/contact') ||
-    p.startsWith('/enlightenment-session');
+    p.startsWith('/testimonials');
 
   let chatLayout: PublicChatLayout = 'standard';
   if (formHeavy) chatLayout = 'minimal';
-  else if (heroHeavy) chatLayout = 'compact';
+  else if (heroHeavy || marketingHeavy) chatLayout = 'compact';
+
+  const hideApprovalTicker =
+    formHeavy ||
+    marketingHeavy ||
+    p.startsWith('/privacy') ||
+    p.startsWith('/terms') ||
+    p.startsWith('/disclaimer') ||
+    p.startsWith('/contact') ||
+    p.startsWith('/enlightenment-session');
 
   return {
     chatLayout,
-    hideApprovalTicker: formHeavy || p.startsWith('/privacy') || p.startsWith('/terms') || p.startsWith('/disclaimer'),
+    hideApprovalTicker,
     formHeavy,
-    safeBottom: formHeavy ? '11rem' : heroHeavy ? '9rem' : '7rem',
+    safeBottom: formHeavy ? '11rem' : marketingHeavy ? '10rem' : heroHeavy ? '9rem' : '7rem',
   };
 }
 
@@ -164,9 +180,10 @@ export function viewFromPath(pathname: string): NavView {
   if (pathname.startsWith('/bookstore')) return 'bookstore';
   if (pathname.startsWith('/affiliate')) return 'affiliate';
   if (pathname.startsWith('/agents')) return 'agents';
-  if (pathname.startsWith('/contact') || pathname.startsWith('/haitian')) return 'contact';
-  if (pathname.startsWith('/enlightenment-session')) return 'consultation';
   if (pathname.startsWith('/faq')) return 'faq';
+  if (pathname.startsWith('/enlightenment-session') || pathname.startsWith('/consultation')) return 'consultation';
+  if (pathname.startsWith('/contact')) return 'contact';
+  if (pathname.startsWith('/haitian')) return 'contact';
   if (pathname.startsWith('/terms')) return 'terms';
   if (pathname.startsWith('/privacy')) return 'privacy';
   if (pathname.startsWith('/disclaimer')) return 'disclaimer';

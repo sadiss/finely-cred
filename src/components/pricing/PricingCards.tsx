@@ -236,7 +236,7 @@ export function AgencyTierCard({ tier, onSelect }: { tier: AgencyTier; onSelect:
   return (
     <div
       className={`relative rounded-2xl border p-6 flex flex-col h-full transition-all hover:border-amber-500/50 ${
-        tier.badge ? 'border-amber-500/40 bg-amber-500/5' : 'border-white/10 bg-black/30'
+        tier.badge ? 'border-amber-500/40 bg-[#0b1110]' : 'border-white/15 bg-[#0b1110]'
       }`}
     >
       <div className="space-y-2 mb-4">

@@ -71,6 +71,16 @@ body[data-fc-public-form='1'] {
   --fc-public-safe-bottom: 11rem;
 }
 
+/* Admin / dashboard readable contrast (gold accents, ink body text) */
+[data-fc-pageshell-root='1'] .text-white\/50,
+[data-fc-pageshell-root='1'] .text-white\/55,
+[data-fc-pageshell-root='1'] .text-white\/60 {
+  color: rgba(248, 250, 249, 0.72) !important;
+}
+[data-fc-pathname^='/admin'] .text-white\/40 {
+  color: rgba(248, 250, 249, 0.58) !important;
+}
+
 .fc-public-chat-launcher {
   right: 1rem;
 }

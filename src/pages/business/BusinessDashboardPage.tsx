@@ -7,6 +7,7 @@ import { useAuth } from '../../auth/AuthProvider';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { BusinessCreditLadderPanel } from '../../components/business/BusinessCreditLadderPanel';
 import { BusinessCreditRoadmapPanel } from '../../components/business/BusinessCreditRoadmapPanel';
+import { BusinessCreditJourneyCoachPanel } from '../../components/business/BusinessCreditJourneyCoachPanel';
 
 function navBtn(active: boolean) {
   return `px-4 py-2 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ${
@@ -146,6 +147,7 @@ export default function BusinessDashboardPage() {
           </div>
         </div>
 
+        <BusinessCreditJourneyCoachPanel />
         {partner ? <BusinessCreditLadderPanel partnerId={partner.id} /> : null}
         {partner ? <BusinessCreditRoadmapPanel partnerId={partner.id} /> : null}
         <BusinessReadinessChecklist />
