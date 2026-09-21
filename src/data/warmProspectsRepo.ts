@@ -57,6 +57,34 @@ export function patchWarmProspect(id: string, patch: Partial<WarmProspect>): War
   return upsertWarmProspect({ ...cur, ...patch, id: cur.id, createdAt: cur.createdAt });
 }
 
+/** Library case for Anna Charlotin playbook — not a site form lead. */
+export function ensureAnnaCharlotinLibraryCase() {
+  const tag = 'anna-charlotin-playbook';
+  const existing = loadStore().prospects.find((p) => p.libraryTag === tag);
+  if (existing) return existing;
+  const id = newId('wprospect');
+  return upsertWarmProspect({
+    id,
+    createdAt: nowWarmIso(),
+    updatedAt: nowWarmIso(),
+    heat: 'warm',
+    source: 'library',
+    libraryTag: tag,
+    fullName: 'Anna Charlotin',
+    email: undefined,
+    phone: undefined,
+    company: 'Apparel / design-tech concept',
+    title: 'Partner playbook case',
+    notes: [
+      'Warm→hot pipeline library entry — partner coaching case, NOT inbound form capture.',
+      'Tracks: restore (AUs logged), Nora fundability handoff, business build / concept studio.',
+      'See docs/partners/ANNA-CHARLOTIN-PLAYBOOK.md',
+    ],
+    sequenceDraftId: 'warm-intro-educational',
+    nextAction: { label: 'Review Partner Playbook tab + restore AU log', dueAt: undefined },
+  });
+}
+
 export function importWarmProspectsFromRows(
   rows: Array<Record<string, string>>,
   meta: { source: WarmProspectSource; libraryTag: string },

@@ -32,5 +32,5 @@ export const LOUNGE_CHANNELS: { id: LoungeChannelId; label: string; labelHt: str
   { id: 'module_huddle', label: 'Module huddles', labelHt: 'Modil', hint: 'Per-track threads' },
   { id: 'wins', label: 'Wins & reviews', labelHt: 'Viktwa', hint: 'Celebrate progress (no score promises)' },
   { id: 'meeting_lobby', label: 'Meeting lobby', labelHt: 'Reyinyon', hint: 'Upcoming meets & recaps' },
-  { id: 'resources', label: 'Resources shelf', labelHt: 'Resous', hint: 'SOPs & links' },
+  { id: 'resources', label: 'Resources shelf', labelHt: 'Resous', hint: 'Academy SOPs — not Marketing HQ Social Media' },
 ];

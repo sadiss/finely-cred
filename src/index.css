@@ -71,6 +71,18 @@ body[data-fc-public-form='1'] {
   --fc-public-safe-bottom: 11rem;
 }
 
+@layer components {
+  .fc-page-section {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 space-y-6 md:space-y-8;
+  }
+  .fc-card-grid {
+    @apply grid gap-4 md:gap-6;
+  }
+  .fc-surface-card {
+    @apply rounded-2xl border border-white/15 bg-[#0b1110] p-5 sm:p-6;
+  }
+}
+
 /* Admin / dashboard readable contrast (gold accents, ink body text) */
 [data-fc-pageshell-root='1'] .text-white\/50,
 [data-fc-pageshell-root='1'] .text-white\/55,

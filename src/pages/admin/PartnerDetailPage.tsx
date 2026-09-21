@@ -14,6 +14,7 @@ import {
   ExternalLink,
   RefreshCcw,
   ListChecks,
+  BookOpen,
   Bell,
   PlayCircle,
   CheckCircle2,
@@ -93,9 +94,10 @@ import { listEntitlementsByPartner } from '../../data/billingRepo';
 import { ENTITLEMENT_KEYS, type EntitlementKey, ensurePartnerEntitlements } from '../../billing/entitlements';
 import { TASK_PROGRESS_STAGES, WorkBoardShell, WorkCalendarView, WorkKanbanBoard, WorkListView, type WorkBoardItem } from '../../components/workboard';
 import type { WorkStageDefinition } from '../../domain/settings';
+import { PartnerPlaybookPanel } from '../../components/partner/PartnerPlaybookPanel';
 import type { TaskStatus } from '../../domain/tasks';
 
-type TabKey = 'overview' | 'reports' | 'evidence' | 'disputes' | 'letters' | 'tasks' | 'notes' | 'debt';
+type TabKey = 'overview' | 'reports' | 'evidence' | 'disputes' | 'letters' | 'tasks' | 'notes' | 'playbook' | 'debt';
 
 function tabBtn(active: boolean) {
   return `px-4 py-2 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ${
@@ -991,6 +993,7 @@ function PartnerDetailPageInner() {
           icon: <ListChecks size={12} className="inline mr-2" />,
         },
         { key: 'notes', label: 'Notes', icon: <ScrollText size={12} className="inline mr-2" /> },
+        { key: 'playbook', label: 'Playbook', icon: <BookOpen size={12} className="inline mr-2" /> },
         { key: 'debt', label: 'Debt & Summons', icon: <Scale size={12} className="inline mr-2" /> },
       ]}
       activeTabKey={tab}
@@ -2268,6 +2271,10 @@ function PartnerDetailPageInner() {
               </div>
             </div>
           </div>
+        )}
+
+        {tab === 'playbook' && partner && (
+          <PartnerPlaybookPanel partnerId={partner.id} partnerName={partner.profile.fullName} />
         )}
 
         {tab === 'debt' && (

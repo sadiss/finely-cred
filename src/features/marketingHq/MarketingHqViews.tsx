@@ -86,9 +86,15 @@ export function MarketingCommandFloor() {
           Finely Marketing HQ mirrors Nora-style sales packs — but <strong className="text-white">Finely gold + medallion only</strong> on cold creatives.
           Departments are floors; desks are rooms with ready-to-use copy.
         </p>
-        <div className="grid sm:grid-cols-3 gap-4 mt-8">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
           <KpiCard label="Departments" value={String(MARKETING_DEPARTMENTS.length)} hint="Active floors" />
           <KpiCard label="Pack assets" value={String(FINELY_PACK_ASSETS.length)} hint="Full Finely library" />
+          <KpiCard
+            label="Marketing Desk"
+            value="Find"
+            hint="Grok-style partner intel"
+            onClick={() => navigate('/admin/marketing-desk?tab=desk&helper=find')}
+          />
           <KpiCard label="Comms wire" value="Studio" hint="/admin/comms" onClick={() => navigate('/admin/comms')} />
         </div>
       </div>
@@ -152,6 +158,10 @@ export function MarketingDepartmentFloor() {
     return <p className="text-white/70">Unknown department.</p>;
   }
 
+  const channelCount = dept.channels.length;
+  const channelGridCols =
+    channelCount <= 4 ? 'sm:grid-cols-2 lg:grid-cols-2' : 'sm:grid-cols-2 lg:grid-cols-3';
+
   return (
     <div className="space-y-6">
       {dept.id === 'growth-acquisition' && <MarketingStartHereStrip />}
@@ -167,7 +177,7 @@ export function MarketingDepartmentFloor() {
       </div>
 
       <div className="text-xs font-black uppercase tracking-widest text-white/55">Channel rooms on this floor</div>
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className={`grid ${channelGridCols} gap-4 md:gap-6`}>
         {dept.channels.map((ch) => (
           <button
             key={ch.id}
@@ -191,21 +201,21 @@ export function MarketingDepartmentFloor() {
 function FullPackLibrarySection({ compact }: { compact?: boolean }) {
   const groups = useMemo(() => getAllPackAssetsGrouped(), []);
   return (
-    <section className="rounded-2xl border border-[#fbbf24]/30 bg-[#060908] p-6 sm:p-8 space-y-6">
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 space-y-6 md:space-y-8">
       <div>
         <h3 className="text-2xl font-bold text-white">Full Finely pack library</h3>
         <p className="text-white/70 text-sm mt-2 max-w-3xl">
-          Every asset from <span className="font-mono text-white/80">docs/sales-packs/finely</span> (bundled for copy) and{' '}
-          <span className="font-mono text-white/80">public/marketing-packs/finely</span> (HTML preview after sync).{' '}
-          {FINELY_PACK_ASSETS.length} items — manual send only.
+          Every asset from <span className="font-mono text-white/80">docs/sales-packs/finely</span> and{' '}
+          <span className="font-mono text-white/80">public/marketing-packs/finely</span>. {FINELY_PACK_ASSETS.length} items — manual
+          send only.
         </p>
       </div>
       {groups.map((g) => (
-        <details key={g.id} className="rounded-xl border border-white/10 bg-black/30 p-4" open={!compact && g.id === 'offers'}>
+        <details key={g.id} className="rounded-2xl border border-white/15 bg-[#0b1110] p-5 sm:p-6" open={!compact && g.id === 'offers'}>
           <summary className="cursor-pointer select-none text-white font-semibold">
-            {g.label} <span className="text-white/45 font-normal">({g.assets.length})</span>
+            {g.label} <span className="text-white/55 font-normal">({g.assets.length})</span>
           </summary>
-          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4 mt-4">
+          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 mt-6">
             {g.assets.map((asset) => (
               <MarketingReadyAssetCard key={asset.id} asset={asset} />
             ))}
@@ -227,14 +237,14 @@ function ReadyToUseSection({
   const all = useMemo(() => getPackAssetsForRoom(departmentId, channelId), [departmentId, channelId]);
 
   return (
-    <section className="rounded-2xl border border-[#fbbf24]/25 bg-[#060908] p-6 sm:p-8 space-y-4">
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 space-y-6">
       <div>
         <h3 className="text-xl font-bold text-white">Ready to use — full library ({all.length})</h3>
         <p className="text-white/70 text-sm mt-1">
           Room-relevant assets sort first. Scroll for every email, SMS, HTML one-sheet, guide, and Start Restore $147.
         </p>
       </div>
-      <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+      <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
         {all.map((asset) => (
           <MarketingReadyAssetCard key={asset.id} asset={asset} />
         ))}

@@ -1,7 +1,12 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Clipboard, Download, Flame, Import, Snowflake, Sun } from 'lucide-react';
 import type { WarmProspectHeat, WarmProspectSource } from '../../domain/warmProspects';
-import { importWarmProspectsFromRows, listWarmProspects, patchWarmProspect } from '../../data/warmProspectsRepo';
+import {
+  ensureAnnaCharlotinLibraryCase,
+  importWarmProspectsFromRows,
+  listWarmProspects,
+  patchWarmProspect,
+} from '../../data/warmProspectsRepo';
 import { WARM_SEQUENCE_DRAFTS, getWarmSequenceDraft } from '../../data/warmProspectSequences';
 import { KpiCard } from '../../components/ui';
 
@@ -35,6 +40,9 @@ const HEAT: { value: WarmProspectHeat | 'all'; label: string }[] = [
 ];
 
 export function WarmProspectsPanel() {
+  useEffect(() => {
+    ensureAnnaCharlotinLibraryCase();
+  }, []);
   const [version, setVersion] = useState(0);
   const [q, setQ] = useState('');
   const [heat, setHeat] = useState<WarmProspectHeat | 'all'>('all');
