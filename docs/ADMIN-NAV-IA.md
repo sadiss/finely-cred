@@ -30,3 +30,11 @@ Seven groups in `src/config/adminNavLanes.ts`. Home, Learn & train, and Marketin
 The live product sidebar uses `src/features/workspaceLightPreview/product/adminIa.ts` with the same groups plus a More nest for anything not listed. Active state for marketing is exact `/admin/marketing` or `/admin/marketing/…`. `/admin` matches Overview only.
 
 Start here on the admin home is Command Intelligence: Courses, onboarding, Marketing Desk, partners, business credit, and playbooks. The Business OS orb repeats those doors.
+
+## Assistant identity
+
+Status: **SHIPPED**.
+
+Chat, the Communication Hub assistant, Ask Finely, and Command Intelligence share one brand: name **Finely**, avatar `/brand/finely-cred-icon.svg`, alt text **Finely assistant**. A chosen specialist keeps that person’s own portrait and name. The default assistant does not borrow a duty-staff photo.
+
+Samuel Augustin stays the weekend walkthrough helper on the Haitian desk. He is not the chat face. Autonomous hires no longer draw the first name Samuel, so a second Samuel portrait cannot appear next to him.

@@ -1,12 +1,6 @@
-/** One assistant mark for Command Intelligence. Staff portraits stay in chat. */
+import { FinelyAssistantAvatar } from '../../components/brand/FinelyAssistantAvatar';
+
+/** Command Intelligence uses the same medallion as chat and Ask Finely. */
 export function FinelyAssistantMark() {
-  return (
-    <img
-      src="/brand/finely-cred-icon.svg"
-      alt=""
-      width={44}
-      height={44}
-      className="fc-cmd-mark"
-    />
-  );
+  return <FinelyAssistantAvatar size="md" />;
 }

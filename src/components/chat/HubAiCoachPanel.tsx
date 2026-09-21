@@ -19,8 +19,9 @@ import {
   listAllMessageableStaff,
 } from '../../data/staffRoster';
 import { staffMemberFullName, type StaffMember } from '../../domain/staffMember';
+import { FinelyAssistantAvatar } from '../brand/FinelyAssistantAvatar';
+import { FINELY_ASSISTANT_NAME } from '../../brand/finelyAssistantBrand';
 import { StaffPortraitImg } from '../staff/StaffPortraitImg';
-import { STAFF_PORTRAIT_PHOTO_CLASS } from '../../lib/staffPortrait';
 import {
   buildAiAssistSystemPrompt,
   resolveChatStaffPresentation,
@@ -613,15 +614,15 @@ export function HubAiCoachPanel({
         <div className="flex items-center gap-3">
           {connecting ? (
             <div className="w-10 h-10 rounded-full border-2 border-emerald-400/40 border-t-emerald-300 animate-spin" />
-          ) : activeStaff ? (
-            <StaffPortraitImg staff={activeStaff} className="w-10 h-10 rounded-full border border-emerald-400/30" />
+          ) : activeStaffId && activeStaff ? (
+            <StaffPortraitImg staff={activeStaff} className="w-10 h-10 rounded-full border border-emerald-400/30" alt={`${activeStaff.firstName} ${activeStaff.lastName}`.trim()} />
           ) : (
-            <img src={presentation.avatarUrl} alt="" className={`w-10 h-10 rounded-full border border-emerald-400/30 ${STAFF_PORTRAIT_PHOTO_CLASS}`} />
+            <FinelyAssistantAvatar size="md" />
           )}
           <div className="min-w-0 flex-1">
             <div className="text-xs uppercase tracking-widest text-emerald-300/90 font-black inline-flex items-center gap-1.5 flex-wrap">
               <Sparkles size={11} />
-              {connecting ? 'Connecting…' : `${presentation.firstName} · ${displayTitle}`}
+              {connecting ? 'Connecting…' : `${activeStaffId && activeStaff ? activeStaff.firstName : FINELY_ASSISTANT_NAME} · ${activeStaffId && activeStaff ? displayTitle : 'Finely assistant'}`}
               {!connecting ? (
                 <span className="text-xs px-1.5 py-0.5 rounded-full text-violet-100 border border-violet-400/35 bg-violet-500/15 normal-case tracking-normal font-bold">
                   {aiAssistBadgeLabel}
@@ -711,16 +712,16 @@ export function HubAiCoachPanel({
             className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start gap-2.5'}`}
           >
             {m.role === 'assistant' ? (
-              <img
-                src={presentation.avatarUrl}
-                alt=""
-                className={`w-8 h-8 rounded-full shrink-0 mt-0.5 border border-emerald-400/25 ${STAFF_PORTRAIT_PHOTO_CLASS}`}
-              />
+              activeStaffId && activeStaff ? (
+                <StaffPortraitImg staff={activeStaff} className="w-8 h-8 rounded-full shrink-0 mt-0.5 border border-emerald-400/25" alt={`${activeStaff.firstName} ${activeStaff.lastName}`.trim()} />
+              ) : (
+                <FinelyAssistantAvatar size="sm" className="mt-0.5" />
+              )
             ) : null}
             <div className="max-w-[92%] space-y-1">
               {m.role === 'assistant' ? (
                 <div className={`text-xs font-bold ${FINELY_OS_ENTITY_SUBLABEL} px-1 flex flex-wrap items-center gap-2`}>
-                  <span>{presentation.firstName} · {displayTitle}</span>
+                  <span>{activeStaffId && activeStaff ? activeStaff.firstName : FINELY_ASSISTANT_NAME} · {activeStaffId && activeStaff ? displayTitle : 'Finely assistant'}</span>
                   <span className="text-xs px-1.5 py-0.5 rounded-full text-violet-100 border border-violet-400/35 bg-violet-500/15 uppercase tracking-wider">
                     {aiAssistBadgeLabel}
                   </span>
