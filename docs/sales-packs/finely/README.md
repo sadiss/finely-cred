@@ -1,27 +1,20 @@
 # Finely brand-locked sales packs (21-day nurture)
 
-**Brand lock (required):** [BRAND-KIT-LOCK.md](./BRAND-KIT-LOCK.md) · shared CSS [`_brand/finely-brand.css`](./_brand/finely-brand.css)  
-**Logos:** `public/brand/finely-cred-logo.svg`, `finely-cred-logo-dark.png`, `finely-cred-mark.png`
+**Brand lock:** [BRAND-KIT-LOCK.md](./BRAND-KIT-LOCK.md) · [`_brand/finely-brand.css`](./_brand/finely-brand.css)  
+**21-day manifest (all SHIPPED):** [21-day/MANIFEST.md](./21-day/MANIFEST.md)
 
-**Status:** Manifest + HTML one-sheets + guide v2 covers on PR #28; remaining days 2–21 stubs in [21-day/MANIFEST.md](./21-day/MANIFEST.md).
+## Contents
 
-## Score literacy (all outbound footers)
+| Type | Location |
+| --- | --- |
+| Partner emails (days 1–21) | `21-day/emails/day-XX.md` |
+| SMS + social captions | `21-day/sms/day-XX.txt` |
+| HTML one-sheets (19) | `html-one-sheets/*.html` |
+| Guide v2 covers | `guides/v2-cover-*.html` |
+| Score footer | [SCORE-LITERACY-FOOTER.md](./SCORE-LITERACY-FOOTER.md) |
 
-Use [SCORE-LITERACY-FOOTER.md](./SCORE-LITERACY-FOOTER.md) on every pack touch — no naked scores, no fake guarantees.
+Vertical rotation: tax, BHPH, realtor, mortgage, Haitian/immigration, church/community, general.
 
-## Day 1 sample
-
-See [day-01-welcome.md](./day-01-welcome.md).
-
-## Partner one-sheets
-
-- [Restore → funding-readiness](./partner-one-sheets/restore-to-funding-readiness.md) (markdown)
-- [HTML — logo embedded](./html-one-sheets/restore-to-funding-readiness.html)
-- [HTML — score literacy](./html-one-sheets/score-literacy-partner.html)
-
-## Guide v2 covers
-
-- [Kreyòl kit](./guides/v2-cover-kreyol-kit.html)
-- [Score intelligence](./guides/v2-cover-score-intelligence.html)
+Regenerate from script (optional): `_scripts/generate-21-day-pack.py`
 
 *Educational only. Not legal advice.*

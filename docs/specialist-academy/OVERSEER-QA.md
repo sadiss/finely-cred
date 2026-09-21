@@ -1,30 +1,22 @@
 # Overseer QA — PR #28 Platform OS
 
-**PR:** [#28](https://github.com/sadiss/finely-cred/pull/28) · **Branch:** `cursor/specialist-credit-methodology-04e1`  
-**Base:** `main` today — for full Haitian kit studio + voice + 21-day pack tree, **prefer merge/rebase onto `launch/ready-sovereign-supreme`** when that is the ship lane.
+**PR:** [#28](https://github.com/sadiss/finely-cred/pull/28) · **Branch:** `cursor/specialist-credit-methodology-04e1`
 
-**Rule:** Additive only — Haitian desk, Public/Portal chat, partner LMS/courses untouched unless noted.
+**Rule:** Additive only.
 
 ## SHIPPED / PARTIAL / MISSING
 
 | Area | Status | Evidence / notes |
 | --- | --- | --- |
-| `/free-kreyol-guide` unlock funnel | **SHIPPED** | `FreeKreyolGuidePage` — no auto-redirect to `/haitian` |
-| `/haitian` + `/kreyol` desk + capture | **SHIPPED** | `HaitianCompanionPublicPage` + `PublicChatWidget` |
-| **Track I — Credit score intelligence** | **SHIPPED** | `score-intelligence/` lessons EN+HT, cards FICO-01 / SCI-02 / SCI-03, quizzes `fico-literacy` + `score-intelligence`, academy nav track **I** |
-| KB score snippets | **SHIPPED** | `fico-score-models-literacy`, `credit-score-intelligence-overview` (EN+HT); `knowledgeBaseRouter` pins on FICO/Vantage queries |
-| Meeting touch-up → live Jitsi | **SHIPPED** (scoped) | `MeetingPipelineKeepAlive` + `jitsiLibConference` when `hasLobbyVisualEffects`; iframe path when effects off. **Not** ML beauty / not iframe processed video |
-| Host meeting CTA | **SHIPPED** | `HubMeetingsPanel` — “Host — pre-join + live touch-up” |
-| Meeting honesty docs | **SHIPPED** | `PLATFORM-OS.md` §4, `MEETING-COACH.md` pre-call note |
-| Specialist Academy UI | **SHIPPED** | `AdminSpecialistAcademyPage`, academy components |
-| Trainee outbox enterprise | **PARTIAL** | migration + edge; browser `localStorage` interim |
-| KB vector / pgvector | **MISSING** | stub only |
-| Guest calendar lookup | **PARTIAL** | server row + migration for cross-device guests |
-| 21-day sales packs | **PARTIAL** | [BRAND-KIT-LOCK](../../sales-packs/finely/BRAND-KIT-LOCK.md), 3 HTML one-sheets, 2 guide v2 covers, `21-day/MANIFEST.md`; days 2–21 TODO |
-| Brand kit lock | **SHIPPED** | `public/brand/*` official logos; `_brand/finely-brand.css`; no `#39ff14` primary / no shield-F |
-| Voice Studio | **MISSING** | launch / reconcile branch |
-| PublicChatWidget | **SHIPPED** | not KB-routed |
-| PortalChatWidget | **SHIPPED** | KB router + `haitian_desk` when HT |
+| `/free-kreyol-guide` + `/haitian` | **SHIPPED** | `FreeKreyolGuidePage`, `HaitianCompanionPublicPage` |
+| Track I — Credit score intelligence | **SHIPPED** | `score-intelligence/`, quizzes, KB pin |
+| Meeting touch-up → live Jitsi | **SHIPPED** (scoped) | `MeetingPipelineKeepAlive`, lib-jitsi path |
+| **21-day sales packs** | **SHIPPED** | [21-day/MANIFEST.md](../../sales-packs/finely/21-day/MANIFEST.md) — 21 emails, 21 SMS/captions, **19** HTML one-sheets |
+| **Brand kit lock** | **SHIPPED** | [BRAND-KIT-LOCK.md](../../sales-packs/finely/BRAND-KIT-LOCK.md), `public/brand/*`, `finely-brand.css` — real prose days 1–21 (no TODO stubs) |
+| Guide v2 covers | **SHIPPED** | `guides/v2-cover-kreyol-kit.html`, `v2-cover-score-intelligence.html` |
+| KB vector | **MISSING** | stub |
+| Voice Studio | **MISSING** | launch branch |
+| Trainee outbox | **PARTIAL** | migration + edge |
 
 ## Build gate
 
@@ -32,32 +24,23 @@
 npm run build
 ```
 
+## Brand kit verification
+
+| Check | Pass |
+| --- | --- |
+| Days 2–21 full email + SMS prose | `21-day/emails/`, `21-day/sms/` |
+| ≥14 HTML one-sheets + official logo | `html-one-sheets/` (19 files) |
+| Score literacy footer / no FICO 5.8 | emails + HTML footers |
+| No Nora logo on Finely cold creatives | BRAND-KIT-LOCK + day 15/19 copy |
+| Primary `#fbbf24`, not `#39ff14` marketing | `_brand/finely-brand.css` |
+
 ## Content verification
 
-| # | Requirement | Pass location |
+| # | Requirement | Location |
 | --- | --- | --- |
-| 1 | Track I lessons | [score-intelligence/README.md](./score-intelligence/README.md) |
-| 2 | FICO research lock | [KB EN](../../knowledge-base/en/fico-score-models-literacy.md) · quizzes `fico-literacy`, `score-intelligence` |
-| 3 | Partner one-sheet | [restore-to-funding-readiness.md](../../sales-packs/finely/partner-one-sheets/restore-to-funding-readiness.md) |
-| 4 | Meeting processed stream honesty | [PLATFORM-OS.md](./PLATFORM-OS.md) §4 |
-| 5 | Brand kit on packs | [BRAND-KIT-LOCK.md](../../sales-packs/finely/BRAND-KIT-LOCK.md) · HTML one-sheets |
-
-## Brand kit (sales / one-sheets / guide v2)
-
-| Rule | Lock |
-| --- | --- |
-| Colors | Primary `#fbbf24`, shell `#0b1110`/`#060908`, text `#f8faf9`, CTA gradient metal, ink `#1a1400` |
-| Logo | `finely-cred-logo.svg`, `finely-cred-logo-dark.png`, `finely-cred-mark.png` only |
-| Typography | Inter; FINELY 0.14em wt 200; Cred title case |
-| Voice | Restore / file accuracy / wealth tool — not “credit repair” lead |
-| Nora | Text handoff only on Finely-primary cold creatives |
-
-## Sanz trainee session (60 min)
-
-1. Track **I** lesson → `score-intelligence` quiz.  
-2. Lounge → **Host — pre-join + live touch-up** → confirm outbound banner in room.  
-3. `/free-kreyol-guide` → `/haitian?lang=ht` capture.  
-4. Portal chat: ask “why is my mortgage score different?” — KB pin should surface score intel docs.
+| 1 | 21-day manifest | [MANIFEST.md](../../sales-packs/finely/21-day/MANIFEST.md) |
+| 2 | FICO lock | KB + Track I quizzes |
+| 3 | Partner restore→funding | HTML + markdown one-sheets |
 
 ---
 
