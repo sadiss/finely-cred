@@ -71,11 +71,19 @@ Use this checklist when Sanz (or a lead coach) runs a **live video** review. Goa
 
 ---
 
+## BUILD parallel (5 min)
+
+- [ ] Trainee names mix targets (2 revolving, mix awareness, 1 installment) as **education**, not law
+- [ ] AU honesty: limited/conditional — no score or card approval promise
+- [ ] Names two FICO-style buckets and typical teaching weights (rough %)
+- [ ] BUILD runs **parallel** to restore, not after fake “deletion guarantee”
+
 ## Nora / funding handoff (3 min)
 
+- [ ] SOP-15 checklist mentioned before Nora intro
 - [ ] Finely ≠ lender script
-- [ ] No approval promise
-- [ ] Funding-readiness = documented file, not score guess
+- [ ] No funding, score, or card approval promise
+- [ ] Funding-readiness = documented file + honest BUILD notes
 
 ---
 

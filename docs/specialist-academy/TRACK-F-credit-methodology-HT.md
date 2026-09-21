@@ -122,6 +122,50 @@ Gade [SOP-14](./sops/SOP-14-prior-company-intake.md).
 
 ---
 
+## F-Build — Restore + Build an paralèl
+
+**Restore** korije erè ak risk koleksyon/tribinal. **Build** montre kijan dosye yon konsomatè souvan parèt **pi fò pou underwriting** — an menm tan ak restore, pa olye de li. Se **edikasyon endistri**, pa pwodwi prè Finely, pa garanti kat, nòt, oswa Nora.
+
+Gade [SOP-15](./sops/SOP-15-funding-readiness-checklist.md) anvan soft handoff Nora.
+
+### Objektif mix (Sanz — edikasyon, pa lalwa)
+
+| Eleman | Sib tipik | Nòt |
+| --- | --- | --- |
+| **Revolving** | Omwen **2** kat (oswa revolving) an **bon pozisyon** | Peye alè; pa sature utilization. |
+| **Mix** | Plizyè kalite kredi — pa tout menm bagay | Chak lender diferan. |
+| **Installment** | **1** installment (oto, pèsonèl, etidyan, elatriye) | Istwa peman ki bon enpòtan. |
+| **Authorized user (AU)** | Kèk kont AU **ka** ede istwa/mix **pafwa** | **Onèt:** efè limite, pa tout lender konte AU; pa pwomèt nòt monte oswa apwobasyon. |
+
+**Aspiration:** Pale sou “premium liquidity” / gwo kat sèlman kòm **aspirasyon edikatif** — pa pwomès Finely.
+
+### Konpòtman pou coach
+
+- Peye alè sou tout obligasyon ouvè.
+- **Utilization:** balans vs limit — pi ba sou rapò souvan pi bon (selon modèl).
+- **Inquiries:** pa spam aplikasyon; eksplike hard inquiry.
+- Pa melanje istwa BUILD ki kontradik ak dispute bureau.
+
+Kat: [F-Build](./cards/README.md#f-build-credit-build--parallel-to-restore).
+
+---
+
+## F-Build — Faktè FICO-style (edikasyon)
+
+Poids klasik nan endistri a (pa fòmil Finely, pa menm tout modèl):
+
+| Faktè | ~Poids tipik | Pwen |
+| --- | --- | --- |
+| **Payment history** | ~35% | Dispute erè; pa negye peman ki vrè. |
+| **Amounts owed / utilization** | ~30% | Balans revolving. |
+| **Length of history** | ~15% | Laj kont; AU — onèt. |
+| **New credit / inquiries** | ~10% | Nouvo kont ak pull. |
+| **Credit mix** | ~10% | Revolving + installment. |
+
+**~100%** ansanm — rezime edikatif. **Apre nòt:** revni, DTI, rezèv, règ lender — Finely pa kontwole sa.
+
+---
+
 ## F12 — Biwo Ayisyen — sit together
 
 - Eksplike F2–F11 an Kreyòl; li fraz kle an Angle sou lèt la si kliyan mande.
@@ -131,8 +175,9 @@ Gade [SOP-14](./sops/SOP-14-prior-company-intake.md).
 
 ## F13 — Nora / finansman
 
+- Ranpli [SOP-15](./sops/SOP-15-funding-readiness-checklist.md) anvan Nora — BUILD pa vle di apwobasyon.
 - Finely **pa** bank / prete lajan.
-- Nora se chemen **apa**; pa pwomèt apwobasyon.
+- Nora se chemen **apa**; pa pwomèt apwobasyon, kat, oswa nòt.
 - Verifye akò / program nan portal anvan ou pale sou “Wealth Paths.”
 
 ---
@@ -145,4 +190,4 @@ Kat: [cards/README.md](./cards/README.md).
 
 ---
 
-*Edikasyon sèlman. Pa konsèy legal. Pa gen garanti pou efase, nòt, oswa apwobasyon prè. Dèt ka rete apre restore. Nora / finansman se pwosesis apa; pa gen pwomès apwobasyon.*
+*Edikasyon sèlman. Pa konsèy legal. Pa gen garanti pou efase, nòt, apwobasyon prè, oswa apwobasyon kat kredi. Dèt ka rete apre restore. BUILD se literati underwriting, pa règ lender. Nora / finansman se pwosesis apa; pa gen pwomès apwobasyon.*

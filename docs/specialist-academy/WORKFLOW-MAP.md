@@ -23,22 +23,25 @@ flowchart TD
   SUMMONS -->|No| GATE
   GATE --> EVIDENCE
 
+  EVIDENCE --> BUILD[Parallel: Credit BUILD education — mix, util, inquiries, AU honesty]
+  BUILD --> R1
   EVIDENCE --> R1[SOP-11: Restore Round 1 — FCRA factual disputes]
   R1 --> MAIL[Certified mail + save exhibits + tasks]
   MAIL --> RESP{Results within SLA?}
 
+  RESP -->|Resolved| READY
   RESP -->|Partial / none| R2[SOP-11: Round 2 — tightened facts + MOFV]
   R2 --> RESP2{Still unresolved?}
+  RESP2 -->|No| READY
   RESP2 -->|Yes| R3[Round 3 if file supports — no template spam]
-  RESP2 -->|No| FUND
-  RESP3 -->|Yes after round 2+| COMP[SOP-12: Complaints ladder — disciplined, warranted]
-  RESP3 -->|Resolved| FUND
-  COMP --> FUND
+  R3 --> RESP3{Still unresolved?}
+  RESP3 -->|No| READY
+  RESP3 -->|Yes| COMP[SOP-12: Complaints ladder — disciplined, warranted]
+  COMP --> READY
 
-  RESP -->|Resolved| FUND([Funding-readiness / Nora soft handoff — Track G])
-  R3 --> RESP3{Unresolved after R3?}
-
-  FUND --> NORA[Nora pathway separate — no approval promise]
+  READY[SOP-15: Funding-readiness checklist — BUILD + file hygiene]
+  READY --> FUND([Optional Nora soft handoff — Track G])
+  FUND --> NORA[Nora pathway separate — no loan/card approval promise]
 ```
 
 ## ASCII (fallback)
@@ -77,15 +80,20 @@ flowchart TD
                               ┌─────────────────┐
                               │ Complaints fork │
                               │  (SOP-12)       │
-                              │ after failed    │
-                              │ rounds when     │
-                              │ warranted       │
                               └────────┬────────┘
                                          v
                               ┌─────────────────┐
-                              │ Funding-readiness│
+                              │ SOP-15 readiness │
+                              │ BUILD + restore  │
+                              └────────┬────────┘
+                                         v
+                              ┌─────────────────┐
                               │ Nora soft handoff│
+                              │ (optional)       │
                               └─────────────────┘
+
+         Parallel during restore: BUILD coaching (mix, util, inquiries, AU)
+         from evidence phase through round wait windows — not instead of debt gates.
 ```
 
 ## Fork rules (memorize)
@@ -98,7 +106,9 @@ flowchart TD
 | Complaints | Consider **after** failed rounds (often post–Round 2), with a clean file — not revenge spam. |
 | OCR | Vary structure; no cookie-cutter walls of identical paragraphs across accounts. |
 | Prior company | Discover what was already mailed; **never** restart Round 1 blindly (SOP-14). |
+| BUILD parallel | Coach profile strength **while** restoring; defer heavy app sprees if debt/summons active. |
+| Nora | Only after **SOP-15**; no guaranteed funding, scores, or card approvals. |
 
 ---
 
-*Educational only. Not legal advice. No guaranteed deletions, scores, or loan approvals. Debt may remain after restore. Nora funding is separate; no approval promised.*
+*Educational only. Not legal advice. No guaranteed deletions, scores, loan approvals, or credit card approvals. Debt may remain after restore. BUILD is underwriting literacy, not lender policy. Nora funding is separate; no approval promised.*

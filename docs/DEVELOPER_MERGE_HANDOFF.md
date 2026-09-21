@@ -13,8 +13,8 @@ Quick pointers for non-code deliverables that ship with the product.
 | [TRACK F (HT)](./specialist-academy/TRACK-F-credit-methodology-HT.md) | Kreyòl meaning layer for Haitian desk |
 | [WORKFLOW-MAP](./specialist-academy/WORKFLOW-MAP.md) | Debt → validation → restore → complaints → funding handoff |
 | [MEETING-COACH](./specialist-academy/MEETING-COACH.md) | Sanz-style progress quiz for live video sessions |
-| [SOPs](./specialist-academy/sops/) | Operational checklists (08–14) |
-| [Cards](./specialist-academy/cards/) | F-track flash cards (F01–F14) |
+| [SOPs](./specialist-academy/sops/) | Operational checklists (08–15) |
+| [Cards](./specialist-academy/cards/) | F-track flash cards (F01–F14, F-Build) |
 
 **Product alignment:** Letter types and scenarios mirror `src/domain/debtLegal.ts` and `src/legal/debtLetterTemplates.ts`. Dispute rounds and escalation language align with Credit Intel timelines (evidence → Round 1 → mail → Round 2/3 → complaints when appropriate).
 

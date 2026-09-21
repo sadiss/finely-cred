@@ -20,6 +20,16 @@ Use for self-study and [MEETING-COACH](../MEETING-COACH.md) quizzes.
 | F13 | Haitian desk language | [F13.md](./F13.md) |
 | F14 | Nora handoff | [F14.md](./F14.md) |
 
+### F-Build (credit BUILD — parallel to restore)
+
+| Card | Topic | File |
+| --- | --- | --- |
+| F-BUILD-01 | Mix targets (2 rev / mix / 1 installment) | [F-BUILD-01-mix-targets.md](./F-BUILD-01-mix-targets.md) |
+| F-BUILD-02 | Authorized user honesty | [F-BUILD-02-au-honesty.md](./F-BUILD-02-au-honesty.md) |
+| F-BUILD-03 | Utilization | [F-BUILD-03-utilization.md](./F-BUILD-03-utilization.md) |
+| F-BUILD-04 | Inquiries | [F-BUILD-04-inquiries.md](./F-BUILD-04-inquiries.md) |
+| F-BUILD-05 | Installment | [F-BUILD-05-installment.md](./F-BUILD-05-installment.md) |
+
 ---
 
-*Educational only. Not legal advice. No guaranteed deletions, scores, or loan approvals. Debt may remain after restore. Nora funding is separate; no approval promised.*
+*Educational only. Not legal advice. No guaranteed deletions, scores, loan approvals, or credit card approvals. Debt may remain after restore. Nora funding is separate; no approval promised.*

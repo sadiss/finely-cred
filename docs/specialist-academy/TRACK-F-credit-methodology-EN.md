@@ -184,6 +184,61 @@ See [SOP-14](./sops/SOP-14-prior-company-intake.md).
 
 ---
 
+## F-Build — Restore + Build in parallel
+
+**Restore** fixes accuracy and collector/debt risk. **Build** teaches how a consumer file often looks **stronger to underwriters** — in parallel, not instead of restore. This is **educational industry literacy**, not a Finely loan product, not a guarantee of cards, scores, or Nora approval.
+
+See [SOP-15](./sops/SOP-15-funding-readiness-checklist.md) before any Nora soft handoff.
+
+### When to coach BUILD
+
+- After triage clears debt/summons gates (or while debt track is waiting on validation responses).
+- During Round 1–2 waiting periods — productive client education, not new dispute spam.
+- **Never** coach “open five cards tomorrow” while collections or court clocks are unmanaged.
+
+### Profile mix Sanz teaches (typical teaching targets)
+
+Industry education often points toward a **balanced** file. Finely uses these as **coaching targets**, not legal requirements or lender rules:
+
+| Element | Teaching target | Notes |
+| --- | --- | --- |
+| **Revolving** | At least **2** cards (or card-like revolving trades) in **good standing** | On-time payments; avoid maxed-out utilization. |
+| **Credit mix** | Awareness of **mixed** types — not only one product | Lenders often weigh variety; exact weight varies by model and product. |
+| **Installment** | **1** installment reporting (auto, personal, student-style, etc.) | Healthy payment history matters more than product branding. |
+| **Authorized user (AU)** | A few AU trades **may** help history/mix **sometimes** | **Honesty required:** AU impact is limited, conditional, and not all lenders count AU the same; never promise score jumps or automatic approvals. |
+
+**Aspirational framing (allowed with label):** Sanz may reference “premium liquidity” or high-tier card **education** as **aspiration** — label it explicitly as **aspirational education**, not a Finely deliverable or promised outcome.
+
+### Behaviors specialists coach (BUILD)
+
+- On-time payments on every open obligation (restore disputes do not replace payment discipline).
+- **Utilization:** industry teaching often stresses amounts owed vs limits — lower reported balances generally help; model-specific.
+- **Inquiries:** space new applications; explain hard inquiry education without fear-mongering.
+- **Installment:** steady paydown history; do not invent balances or “pay for delete” schemes.
+- Document BUILD notes separately from dispute letters — no contradictory stories to bureaus.
+
+Cards: [F-Build set](./cards/README.md#f-build-credit-build--parallel-to-restore).
+
+---
+
+## F-Build — FICO-style factor literacy (educational)
+
+Classic **industry teaching** for FICO-style models (not Finely’s proprietary formula, not identical across VantageScore or lender custom models):
+
+| Factor (common names) | Typical teaching weight | Specialist talking points |
+| --- | --- | --- |
+| **Payment history** | ~35% | Late pays hurt; dispute **inaccurate** lates via restore — do not dispute accurate payment history. |
+| **Amounts owed / utilization** | ~30% | Revolving balances vs limits; per-card and aggregate utilization concepts. |
+| **Length of history** | ~15% | Age of oldest, average age; AU may affect — see honesty rules. |
+| **New credit / inquiries** | ~10% | Recent accounts and hard pulls; plan applications. |
+| **Credit mix** | ~10% | Revolving + installment diversity. |
+
+**Together** these are commonly taught as accounting for **~100%** of classic score-model buckets — educational shorthand only.
+
+**Beyond score:** Underwriters use income, DTI, reserves, fraud checks, policy overlays, and product rules Finely does not control. Script: “Score is one column on the spreadsheet.”
+
+---
+
 ## F12 — Haitian desk overlay
 
 - Explain F2–F11 in **Kreyòl** during sit-together sessions.
@@ -196,9 +251,10 @@ Full Kreyòl meaning layer: [TRACK-F-credit-methodology-HT.md](./TRACK-F-credit-
 
 ## F13 — Nora / funding-readiness soft handoff
 
+- Complete [SOP-15](./sops/SOP-15-funding-readiness-checklist.md) **before** positioning Nora — restore/build education does not equal funding approval.
 - Finely Cred is **not** the lender. Nora Capital Group integration (when enabled) is a **separate** pathway.
 - Script: “Restore documents your file; funding partners review eligibility on their criteria.”
-- No promised approvals, rates, or timelines for Nora.
+- No promised approvals, rates, card approvals, or timelines for Nora.
 - Wealth Paths / program entitlements come from **signed agreement** — verify in portal before discussing unlocks.
 
 ---
@@ -211,18 +267,20 @@ Full Kreyòl meaning layer: [TRACK-F-credit-methodology-HT.md](./TRACK-F-credit-
 4. When is CFPB appropriate?
 5. What evidence do you attach for a collection row dispute?
 6. Client’s prior company sent Round 1 twice — what’s your intake action?
+7. Name two BUILD targets (mix) and one AU honesty rule.
+8. Why run BUILD coaching in parallel with restore instead of only after “deletions”?
 
-Answers align with cards [F01–F14](./cards/README.md).
+Answers align with cards [F01–F14](./cards/README.md) and [F-Build](./cards/README.md#f-build-credit-build--parallel-to-restore).
 
 ---
 
 ## Related SOPs and cards
 
-- SOPs: [08](./sops/SOP-08-debt-triage.md)–[14](./sops/SOP-14-prior-company-intake.md)
+- SOPs: [08](./sops/SOP-08-debt-triage.md)–[15](./sops/SOP-15-funding-readiness-checklist.md)
 - Cards: [cards/README.md](./cards/README.md)
 - Workflow: [WORKFLOW-MAP.md](./WORKFLOW-MAP.md)
 - Live coaching: [MEETING-COACH.md](./MEETING-COACH.md)
 
 ---
 
-*Educational only. Not legal advice. No guaranteed deletions, scores, or loan approvals. Debt may remain after restore. Nora funding is separate; no approval promised.*
+*Educational only. Not legal advice. No guaranteed deletions, scores, loan approvals, or credit card approvals. Debt may remain after restore. BUILD guidance is underwriting literacy, not a lender policy. Nora funding is separate; no approval promised.*

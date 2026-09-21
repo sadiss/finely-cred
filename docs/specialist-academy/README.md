@@ -35,9 +35,10 @@ Internal curriculum for specialists who run **restore** the way Finely Cred actu
 ## Track F — credit methodology (core)
 
 1. Read [TRACK-F-credit-methodology-EN.md](./TRACK-F-credit-methodology-EN.md) end-to-end.
-2. Memorize [cards](./cards/README.md) F01–F14 (quiz in meetings).
-3. Run cases using [SOPs](./sops/) 08–14 in order when applicable.
-4. Hang [WORKFLOW-MAP.md](./WORKFLOW-MAP.md) on your wall (digital or print).
+2. Memorize [cards](./cards/README.md) F01–F14 and **F-Build** (quiz in meetings).
+3. Run cases using [SOPs](./sops/) 08–15 in order when applicable.
+4. Coach **restore + BUILD in parallel** per TRACK F § F-Build (underwriting literacy — no loan/card guarantees).
+5. Hang [WORKFLOW-MAP.md](./WORKFLOW-MAP.md) on your wall (digital or print).
 
 ## SOP index (F-track operations)
 
@@ -50,6 +51,7 @@ Internal curriculum for specialists who run **restore** the way Finely Cred actu
 | [SOP-12](./sops/SOP-12-complaints-ladder.md) | Complaints ladder (CFPB / AG / etc.) |
 | [SOP-13](./sops/SOP-13-ocr-evidence-checklist.md) | OCR-safe letters + evidence checklist |
 | [SOP-14](./sops/SOP-14-prior-company-intake.md) | Prior-company / mid-round intake |
+| [SOP-15](./sops/SOP-15-funding-readiness-checklist.md) | Funding-readiness (pre–Nora soft handoff) |
 
 ## Product touchpoints (where work happens)
 
@@ -74,4 +76,4 @@ Internal curriculum for specialists who run **restore** the way Finely Cred actu
 
 ---
 
-*Educational only. Not legal advice. No guaranteed deletions, scores, or loan approvals. Debt may remain after restore. Nora funding is separate; no approval promised.*
+*Educational only. Not legal advice. No guaranteed deletions, scores, loan approvals, or credit card approvals. Debt may remain after restore. Nora funding is separate; no approval promised.*
