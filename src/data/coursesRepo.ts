@@ -11,24 +11,37 @@ type Store = {
   progress: CourseProgress[];
 };
 
+function seedStore(): Store {
+  return {
+    courses: [
+      {
+        ...newCourse({
+          title: 'Dispute Rounds Mastery',
+          desc: 'Round 1 → Round 2 → Round 3, evidence discipline, response handling, and clean follow-up cadence.',
+          tags: ['personal', 'disputes'],
+        }),
+        published: true,
+      },
+    ],
+    progress: [],
+  };
+}
+
 function loadStore(): Store {
-  return loadJson<Store>(
-    KEY,
-    {
-      courses: [
-        {
-          ...newCourse({
-            title: 'Dispute Rounds Mastery',
-            desc: 'Round 1 → Round 2 → Round 3, evidence discipline, response handling, and clean follow-up cadence.',
-            tags: ['personal', 'disputes'],
-          }),
-          published: true,
-        },
-      ],
-      progress: [],
-    },
-    1,
-  );
+  let shouldPersist = false;
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (!raw) shouldPersist = true;
+    else {
+      const parsed = JSON.parse(raw) as { v?: number };
+      if (!parsed || parsed.v !== 1) shouldPersist = true;
+    }
+  } catch {
+    shouldPersist = true;
+  }
+  const store = loadJson<Store>(KEY, seedStore(), 1);
+  if (shouldPersist) saveStore(store);
+  return store;
 }
 
 function saveStore(store: Store) {
