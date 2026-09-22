@@ -1,53 +1,32 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import {
-  ArrowLeft,
-  BookOpen,
-  Clapperboard,
-  GraduationCap,
-  Layers,
-  Plus,
-  Sparkles,
-  Trash2,
-  Wand2,
-  X,
-} from 'lucide-react';
+import { ArrowLeft, Plus } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { createCourse, deleteCourse, listAllCourses, upsertCourse } from '../../data/coursesRepo';
 import { createCourseFromTemplate, listCourseTemplates } from '../../data/courseTemplatesRepo';
-import { FinelyOsCatalogBrowser, type FinelyOsCatalogItem } from '../../features/os/FinelyOsCatalogBrowser';
-import { FinelyOsGlassPanel } from '../../features/os/FinelyOsGlassPanel';
-import { FinelyOsIconBadge } from '../../features/os/FinelyOsIconBadge';
-import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
-import { EDUCATION_AGENTS, EDUCATION_ENGINES } from '../../features/educationStudio/educationStudioModel';
 import { generateCourseFromPrompt } from '../../features/educationStudio/educationStudioPipeline';
 import { isFeatureEnabled } from '../../data/settingsRepo';
-import { nowIso } from '../../domain/courses';
+import { nowIso, type Course } from '../../domain/courses';
 import { newId } from '../../utils/ids';
-import {
-  FINELY_OS_BACK_LINK,
-  FINELY_OS_BANNER,
-  FINELY_OS_ENTITY_BODY,
-  FINELY_OS_ENTITY_INPUT,
-  FINELY_OS_ENTITY_SELECT,
-  FINELY_OS_ENTITY_SUBLABEL,
-  FINELY_OS_ENTITY_VALUE,
-  FINELY_OS_KPI_ACCENTS,
-  FINELY_OS_NOTICE_ERROR,
-  FINELY_OS_NOTICE_SUCCESS,
-  FINELY_OS_PAGE,
-  FINELY_OS_PRIMARY_BTN,
-  FINELY_OS_SECONDARY_BTN,
-  finelyOsCatalogCard,
-  finelyOsInlineListItem,
-} from '../../features/os/finelyOsLightUi';
 import type { CourseLevel } from '../../domain/educationStudio';
+
+function lessonCount(course: Course) {
+  return course.modules.reduce((n, module) => n + (module.lessons?.length ?? 0), 0);
+}
+
+const goldBtn =
+  'inline-flex items-center justify-center gap-2 rounded-xl bg-[#fbbf24] px-4 py-2.5 text-sm font-bold text-[#0b1110] hover:brightness-110 disabled:opacity-50';
+const ghostBtn =
+  'inline-flex items-center justify-center gap-2 rounded-xl border border-[#e8e8e8]/40 bg-[#0b1110] px-4 py-2.5 text-sm font-semibold text-[#e8e8e8] hover:border-[#fbbf24]';
 
 export function AdminCoursesWorkspace({ embedded = false }: { embedded?: boolean }) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [version, setVersion] = useState(0);
-  const [tplOpen, setTplOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [showIdea, setShowIdea] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [ideaPrompt, setIdeaPrompt] = useState('');
@@ -61,50 +40,24 @@ export function AdminCoursesWorkspace({ embedded = false }: { embedded?: boolean
   }, []);
 
   const courses = useMemo(() => listAllCourses(), [version]);
+  const templates = useMemo(() => listCourseTemplates(), [version, showTemplates]);
 
-  const templates = useMemo(() => listCourseTemplates(), [version, tplOpen]);
-
-  const stats = useMemo(
-    () => ({
-      total: courses.length,
-      published: courses.filter((c) => c.published).length,
-      modules: courses.reduce((n, c) => n + c.modules.length, 0),
-      aiGenerated: courses.filter((c) => c.studio?.generationPrompt).length,
-    }),
-    [courses],
-  );
-
-  const courseCatalogItems = useMemo((): FinelyOsCatalogItem[] =>
-    courses.map((c, i) => ({
-      id: c.id,
-      title: c.title,
-      subtitle: c.published ? 'Published' : 'Draft',
-      description: c.desc,
-      accentIndex: i,
-      meta: [`${c.modules.length} modules`, ...(c.studio?.level ? [c.studio.level] : [])],
-    })),
-  [courses]);
-
-  const templateCatalogItems = useMemo((): FinelyOsCatalogItem[] =>
-    templates.map((t, i) => ({
-      id: t.id,
-      title: t.title,
-      subtitle: t.category.replace(/_/g, ' '),
-      description: t.description,
-      accentIndex: i,
-      meta: [`${t.blueprint.modules.length} modules`, `${t.tags.length} tags`],
-    })),
-  [templates]);
-
-  const openCourse = (courseId: string) => {
+  const openCourse = (courseId: string, step?: 'teach') => {
     const productPath = pathname.startsWith('/preview/workspace-light')
       ? '/preview/workspace-light/admin/courses'
       : '/admin/courses';
+    const stepQuery = step ? `&step=${step}` : '';
     navigate(
       embedded
-        ? `${productPath}?courseId=${encodeURIComponent(courseId)}`
-        : `/admin/courses/${courseId}`,
+        ? `${productPath}?courseId=${encodeURIComponent(courseId)}${stepQuery}`
+        : `/admin/courses/${courseId}${step ? `?step=${step}` : ''}`,
     );
+  };
+
+  const startBlank = () => {
+    const course = createCourse({ title: 'New course' });
+    window.dispatchEvent(new Event('finely:store'));
+    openCourse(course.id);
   };
 
   const generateFromIdea = async () => {
@@ -114,237 +67,230 @@ export function AdminCoursesWorkspace({ embedded = false }: { embedded?: boolean
     setErr(null);
     setNotice(null);
     try {
-      if (!isFeatureEnabled('aiGateway')) throw new Error('Enable AI Gateway in Admin Settings → Features.');
+      if (!isFeatureEnabled('aiGateway')) throw new Error('Turn on AI Gateway in Admin Settings before generating a course.');
       const { course: blueprint, studio } = await generateCourseFromPrompt({ prompt, level: ideaLevel });
       const id = newId('course');
       const now = nowIso();
       const created = { ...blueprint, id, createdAt: now, updatedAt: now, studio };
       upsertCourse(created);
       window.dispatchEvent(new Event('finely:store'));
-      setNotice(`Generated “${created.title}” with ${created.modules.length} modules.`);
+      setNotice(`Created “${created.title}”.`);
       setIdeaPrompt('');
       openCourse(created.id);
-    } catch (e: any) {
-      setErr(e?.message || 'Generation failed.');
+    } catch (e: unknown) {
+      setErr(e instanceof Error ? e.message : 'Could not create that course.');
     } finally {
       setGenerating(false);
     }
   };
 
   const content = (
-      <div className={FINELY_OS_PAGE}>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          {embedded ? (
-            <div>
-              <div className={FINELY_OS_ENTITY_SUBLABEL}>Education production</div>
-              <div className={FINELY_OS_ENTITY_VALUE}>AI Education Studio</div>
-            </div>
-          ) : (
-            <button type="button" onClick={() => navigate('/admin')} className={FINELY_OS_BACK_LINK}>
-              <ArrowLeft size={16} /> Admin Dashboard
+    <div className="fc-admin-readable mx-auto max-w-7xl space-y-8 text-[#e8e8e8]">
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div className="max-w-3xl space-y-3">
+          {embedded ? null : (
+            <button type="button" onClick={() => navigate('/admin')} className={ghostBtn}>
+              <ArrowLeft size={16} /> Admin
             </button>
           )}
-          <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={() => setTplOpen(true)} className={FINELY_OS_SECONDARY_BTN}>
-              <Layers size={14} /> From template
+          <h1 className="text-4xl font-semibold tracking-tight text-[#e8e8e8]">Your courses</h1>
+          <p className="text-lg leading-relaxed text-[#e8e8e8]">
+            These are the courses in Finely. Open one to teach it, or edit its title and lessons.
+          </p>
+        </div>
+        <button
+          type="button"
+          className={goldBtn}
+          onClick={() => {
+            setCreating((open) => !open);
+            setShowTemplates(false);
+            setShowIdea(false);
+          }}
+        >
+          <Plus size={16} /> {creating ? 'Close' : 'Create course'}
+        </button>
+      </header>
+
+      {notice ? (
+        <p className="rounded-2xl border border-[#fbbf24]/40 bg-[#0b1110] px-5 py-4 text-base text-[#e8e8e8]">{notice}</p>
+      ) : null}
+      {err ? (
+        <p className="rounded-2xl border border-red-400/50 bg-[#0b1110] px-5 py-4 text-base text-[#e8e8e8]">{err}</p>
+      ) : null}
+
+      {courses.length === 0 ? (
+        <section className="rounded-2xl border border-[#e8e8e8]/25 bg-[#0b1110] p-8">
+          <h2 className="text-2xl font-semibold text-[#e8e8e8]">No courses yet</h2>
+          <p className="mt-3 max-w-2xl text-lg leading-relaxed text-[#e8e8e8]">
+            Create a course to add lessons partners can take.
+          </p>
+          <button type="button" className={`${goldBtn} mt-6`} onClick={() => setCreating(true)}>
+            <Plus size={16} /> Create course
+          </button>
+        </section>
+      ) : (
+        <section className="grid gap-6 md:grid-cols-2">
+          {courses.map((course) => {
+            const lessons = lessonCount(course);
+            return (
+              <article key={course.id} className="flex flex-col gap-4 rounded-2xl border border-[#e8e8e8]/25 bg-[#0b1110] p-6">
+                <p className="text-sm font-bold uppercase tracking-wide text-[#fbbf24]">
+                  {course.published ? 'Published' : 'Draft'}
+                </p>
+                <h2 className="text-2xl font-semibold text-[#e8e8e8]">{course.title || 'Untitled course'}</h2>
+                <p className="text-base leading-relaxed text-[#e8e8e8]">{course.desc || 'No description yet.'}</p>
+                <p className="text-base text-[#e8e8e8]">
+                  {lessons} {lessons === 1 ? 'lesson' : 'lessons'}
+                </p>
+                <div className="mt-auto flex flex-wrap gap-3">
+                  <button type="button" className={goldBtn} onClick={() => openCourse(course.id, 'teach')}>
+                    Open
+                  </button>
+                  <button type="button" className={ghostBtn} onClick={() => openCourse(course.id)}>
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    className={ghostBtn}
+                    onClick={() => {
+                      upsertCourse({ ...course, published: !course.published });
+                      window.dispatchEvent(new Event('finely:store'));
+                      setVersion((v) => v + 1);
+                    }}
+                  >
+                    {course.published ? 'Unpublish' : 'Publish'}
+                  </button>
+                  {pendingDeleteId === course.id ? (
+                    <>
+                      <button
+                        type="button"
+                        className={ghostBtn}
+                        onClick={() => {
+                          deleteCourse(course.id);
+                          window.dispatchEvent(new Event('finely:store'));
+                          setPendingDeleteId(null);
+                          setVersion((v) => v + 1);
+                        }}
+                      >
+                        Confirm delete
+                      </button>
+                      <button type="button" className={ghostBtn} onClick={() => setPendingDeleteId(null)}>
+                        Cancel
+                      </button>
+                    </>
+                  ) : (
+                    <button type="button" className={ghostBtn} onClick={() => setPendingDeleteId(course.id)}>
+                      Delete
+                    </button>
+                  )}
+                </div>
+              </article>
+            );
+          })}
+        </section>
+      )}
+
+      {creating ? (
+        <section className="space-y-6 rounded-2xl border border-[#e8e8e8]/25 bg-[#0b1110] p-6">
+          <div>
+            <h2 className="text-2xl font-semibold text-[#e8e8e8]">Create a course</h2>
+            <p className="mt-2 max-w-3xl text-base leading-relaxed text-[#e8e8e8]">
+              Start blank, pick a starter, or describe the topic. The new course opens so you can edit it.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <button type="button" className={goldBtn} onClick={startBlank}>
+              Blank course
             </button>
             <button
               type="button"
+              className={ghostBtn}
               onClick={() => {
-                const c = createCourse({ title: 'New course' });
-                window.dispatchEvent(new Event('finely:store'));
-                openCourse(c.id);
+                setShowTemplates((open) => !open);
+                setShowIdea(false);
               }}
-              className={FINELY_OS_PRIMARY_BTN}
             >
-              <Plus size={14} /> Blank course
+              {showTemplates ? 'Hide starters' : 'Start from a template'}
+            </button>
+            <button
+              type="button"
+              className={ghostBtn}
+              onClick={() => {
+                setShowIdea((open) => !open);
+                setShowTemplates(false);
+              }}
+            >
+              {showIdea ? 'Hide topic form' : 'Write a topic'}
             </button>
           </div>
-        </div>
 
-        <div className={FINELY_OS_BANNER}>
-          <FinelyOsIconBadge icon={GraduationCap} accent="emerald" size={18} className="p-2.5 mt-0.5" />
-          <p className={`${FINELY_OS_ENTITY_BODY} leading-relaxed`}>
-            Type a topic — the studio generates curriculum, lessons, quizzes, video scenes, and marketing copy. Comparable to{' '}
-            <strong className="text-emerald-300">Kajabi + Teachable + Kling/Runway</strong> in one Finely OS workspace.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {[
-            { label: 'Courses', value: stats.total },
-            { label: 'Published', value: stats.published },
-            { label: 'Modules', value: stats.modules },
-            { label: 'AI generated', value: stats.aiGenerated },
-          ].map((m, i) => (
-            <div key={m.label} className={`rounded-xl border p-4 shadow-sm backdrop-blur-xl ${FINELY_OS_KPI_ACCENTS[i % FINELY_OS_KPI_ACCENTS.length]}`}>
-              <div className={FINELY_OS_ENTITY_SUBLABEL}>{m.label}</div>
-              <div className={`text-2xl font-bold mt-1 ${FINELY_OS_ENTITY_VALUE}`}>{m.value}</div>
-            </div>
-          ))}
-        </div>
-
-        {notice ? <div className={FINELY_OS_NOTICE_SUCCESS}>{notice}</div> : null}
-        {err ? <div className={FINELY_OS_NOTICE_ERROR}>{err}</div> : null}
-
-        <FinelyOsGlassPanel
-          icon={Wand2}
-          title="Generate complete course from idea"
-          subtitle="Curriculum Architect + Instructional Designer + Assessment Designer agents run in one pipeline."
-          accent="violet"
-          actions={
-            <button type="button" disabled={generating || !ideaPrompt.trim()} onClick={() => void generateFromIdea()} className={FINELY_OS_PRIMARY_BTN}>
-              <Sparkles size={14} /> {generating ? 'Producing…' : 'Produce course'}
-            </button>
-          }
-        >
-          <div className="grid lg:grid-cols-12 gap-4 items-end">
-            <div className="lg:col-span-9">
-              <div className={FINELY_OS_ENTITY_SUBLABEL}>Topic prompt</div>
-              <textarea
-                aria-label="Course topic prompt"
-                value={ideaPrompt}
-                onChange={(e) => setIdeaPrompt(e.target.value)}
-                rows={2}
-                placeholder='Example: "Create a complete course teaching Forex liquidity concepts for beginners."'
-                className={`${FINELY_OS_ENTITY_INPUT} resize-y`}
-              />
-            </div>
-            <div className="lg:col-span-3">
-              <div className={FINELY_OS_ENTITY_SUBLABEL}>Level</div>
-              <select aria-label="Course level" value={ideaLevel} onChange={(e) => setIdeaLevel(e.target.value as CourseLevel)} className={FINELY_OS_ENTITY_SELECT}>
-                <option value="beginner">Beginner</option>
-                <option value="intermediate">Intermediate</option>
-                <option value="advanced">Advanced</option>
-                <option value="expert">Expert</option>
-              </select>
-            </div>
-          </div>
-        </FinelyOsGlassPanel>
-
-        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {EDUCATION_ENGINES.map((engine, i) => (
-            <FinelyOsGlassPanel
-              key={engine.id}
-              icon={engine.id === 'video' ? Clapperboard : BookOpen}
-              title={engine.title}
-              subtitle={engine.description}
-              accent={(['violet', 'emerald', 'fuchsia', 'sky', 'rose'] as const)[i % 5]}
-              variant="inner"
-            >
-              <ul className={`space-y-1 ${FINELY_OS_ENTITY_BODY} text-xs`}>
-                {engine.outputs.map((o) => (
-                  <li key={o}>• {o}</li>
-                ))}
-              </ul>
-            </FinelyOsGlassPanel>
-          ))}
-        </div>
-
-        <FinelyOsGlassPanel icon={Sparkles} title="Specialized AI agents" subtitle="Ten agents collaborate across the production pipeline." accent="rose" variant="catalog">
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {EDUCATION_AGENTS.map((a) => (
-              <div key={a.id} className={finelyOsInlineListItem()}>
-                <div className={FINELY_OS_ENTITY_VALUE}>{a.label}</div>
-                <div className={`mt-1 ${FINELY_OS_ENTITY_BODY} text-xs`}>{a.role}</div>
-              </div>
-            ))}
-          </div>
-        </FinelyOsGlassPanel>
-
-        <FinelyOsGlassPanel icon={BookOpen} title="Course library" subtitle="Search, edit, publish, and open the full studio for any course." accent="emerald">
-          <FinelyOsCatalogBrowser
-            items={courseCatalogItems}
-            pageSize={9}
-            searchPlaceholder="Filter library…"
-            emptyMessage="No courses yet — generate from an idea or start blank."
-            initialView="grid"
-            onItemClick={openCourse}
-            renderTrailing={(item) => {
-              const c = courses.find((x) => x.id === item.id);
-              if (!c) return null;
-              return (
-                <div className="flex flex-wrap gap-1 mt-2">
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      upsertCourse({ ...c, published: !c.published });
-                      window.dispatchEvent(new Event('finely:store'));
-                      setVersion((v) => v + 1);
-                    }}
-                    className={FINELY_OS_SECONDARY_BTN}
-                  >
-                    {c.published ? 'Unpublish' : 'Publish'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteCourse(c.id);
-                      window.dispatchEvent(new Event('finely:store'));
-                      setVersion((v) => v + 1);
-                    }}
-                    className={FINELY_OS_SECONDARY_BTN}
-                  >
-                    <Trash2 size={12} /> Delete
-                  </button>
-                </div>
-              );
-            }}
-          />
-        </FinelyOsGlassPanel>
-
-        <FinelyOsPageFooter variant="hub" />
-
-        {tplOpen ? (
-          <div className="fixed inset-0 z-[80]">
-            <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setTplOpen(false)} />
-            <div
-              className={`absolute inset-x-0 top-[8vh] mx-auto w-[min(1100px,calc(100vw-24px))] ${finelyOsCatalogCard('violet')}`}
-              data-fc-accent="violet"
-              role="dialog"
-              aria-modal="true"
-              aria-label="Course template catalog"
-            >
-              <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
-                <div>
-                  <div className={FINELY_OS_ENTITY_SUBLABEL}>Course templates</div>
-                  <div className={FINELY_OS_ENTITY_VALUE}>Create from preset (30+)</div>
-                  <p className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>Instant draft courses you refine in the full studio.</p>
-                </div>
-                <button type="button" aria-label="Close course templates" onClick={() => setTplOpen(false)} className={FINELY_OS_SECONDARY_BTN}>
-                  <X size={16} />
+          {showTemplates ? (
+            <div className="grid gap-4 md:grid-cols-2">
+              {templates.map((template) => (
+                <button
+                  key={template.id}
+                  type="button"
+                  className="rounded-2xl border border-[#e8e8e8]/25 bg-[#070a0f] p-5 text-left text-[#e8e8e8] hover:border-[#fbbf24]"
+                  onClick={() => {
+                    const course = createCourseFromTemplate({ templateId: template.id });
+                    window.dispatchEvent(new Event('finely:store'));
+                    openCourse(course.id);
+                  }}
+                >
+                  <span className="block text-lg font-semibold text-[#e8e8e8]">{template.title}</span>
+                  <span className="mt-2 block text-base leading-relaxed text-[#e8e8e8]">{template.description}</span>
                 </button>
-              </div>
-              <FinelyOsCatalogBrowser
-                items={templateCatalogItems}
-                pageSize={12}
-                searchPlaceholder="Search templates…"
-                emptyMessage="No templates match."
-                initialView="grid"
-                onItemClick={(id) => {
-                  const c = createCourseFromTemplate({ templateId: id });
-                  window.dispatchEvent(new Event('finely:store'));
-                  setTplOpen(false);
-                  openCourse(c.id);
-                }}
-                renderTrailing={() => <span className="text-[10px] font-bold uppercase text-violet-700">Use →</span>}
-              />
+              ))}
             </div>
-          </div>
-        ) : null}
-      </div>
+          ) : null}
+
+          {showIdea ? (
+            <form
+              className="space-y-4"
+              onSubmit={(event) => {
+                event.preventDefault();
+                void generateFromIdea();
+              }}
+            >
+              <label className="block text-base font-semibold text-[#e8e8e8]">
+                Topic
+                <textarea
+                  aria-label="Course topic"
+                  value={ideaPrompt}
+                  onChange={(e) => setIdeaPrompt(e.target.value)}
+                  rows={3}
+                  placeholder="Example: Teach partners how to run a dispute round."
+                  className="mt-2 w-full rounded-xl border border-[#e8e8e8]/30 bg-[#070a0f] px-4 py-3 text-base text-[#e8e8e8] placeholder:text-[#e8e8e8]/55"
+                />
+              </label>
+              <label className="block max-w-xs text-base font-semibold text-[#e8e8e8]">
+                Level
+                <select
+                  aria-label="Course level"
+                  value={ideaLevel}
+                  onChange={(e) => setIdeaLevel(e.target.value as CourseLevel)}
+                  className="mt-2 w-full rounded-xl border border-[#e8e8e8]/30 bg-[#070a0f] px-4 py-3 text-base text-[#e8e8e8]"
+                >
+                  <option value="beginner">Beginner</option>
+                  <option value="intermediate">Intermediate</option>
+                  <option value="advanced">Advanced</option>
+                  <option value="expert">Expert</option>
+                </select>
+              </label>
+              <button type="submit" className={goldBtn} disabled={generating || !ideaPrompt.trim()}>
+                {generating ? 'Creating…' : 'Create this course'}
+              </button>
+            </form>
+          ) : null}
+        </section>
+      ) : null}
+    </div>
   );
 
   if (embedded) return content;
 
   return (
-    <PageShell
-      badge="Admin"
-      title="AI Education Studio"
-      subtitle="Enterprise educational production — curriculum, authoring, cinematic video, multimedia, and LMS in one pipeline."
-    >
+    <PageShell badge="Admin" title="Your courses" subtitle="Open a course or create one.">
       {content}
     </PageShell>
   );
