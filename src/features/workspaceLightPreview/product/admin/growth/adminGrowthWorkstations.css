@@ -2474,7 +2474,7 @@ html[data-fc-theme='dark'] .fc-wlp-growth-room-accent-band p {
 
 @media (min-width: 1100px) {
   .fc-wlp-growth-drop-workbench {
-    grid-template-columns: minmax(260px, 0.55fr) minmax(0, 1.45fr);
+    grid-template-columns: minmax(0, 1fr);
     align-items: start;
   }
 }

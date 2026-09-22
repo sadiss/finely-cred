@@ -7,12 +7,10 @@ import {
   Library,
   Sparkles,
   Video,
-  GraduationCap,
   ShoppingBag,
 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { listBookstoreProducts } from '../../../../data/bookstoreRepo';
-import { listAllCourses } from '../../../../data/coursesRepo';
 import { listResourceVideos } from '../../../../data/resourceVideosRepo';
 import { ALL_FREE_GUIDES } from '../../../../resources/freeGuides';
 import { TEMPLATE_BASES } from '../../../../templates';
@@ -34,7 +32,6 @@ type ResourceRoom = 'gallery' | 'playbook';
 
 type ResourceSnapshot = {
   guides: number;
-  courses: number;
   videos: number;
   templates: number;
   books: number;
@@ -67,13 +64,11 @@ export default function AdminResourcesProductSurface({ role, pageId, dataMode }:
     setLoading(true);
     try {
       const videos = listResourceVideos();
-      const courses = listAllCourses();
       const books = listBookstoreProducts({ includeUnpublished: true });
 
       if (!cancelled) {
         setSnapshot({
           guides: ALL_FREE_GUIDES.length,
-          courses: courses.length,
           videos: videos.length,
           templates: TEMPLATE_BASES.length,
           books: books.length,
@@ -99,12 +94,12 @@ export default function AdminResourcesProductSurface({ role, pageId, dataMode }:
         onClick: () => setActiveRoom('playbook'),
       },
       {
-        label: 'Courses',
-        value: snapshot?.courses ?? 0,
-        hint: 'Learning modules',
-        accent: 'violet',
-        icon: Library,
-        onClick: () => navigate(adminWorkspacePath(pathname, 'courses')),
+        label: 'Videos',
+        value: snapshot?.videos ?? 0,
+        hint: 'Uploaded clips',
+        accent: 'rose',
+        icon: Video,
+        onClick: () => navigate(adminWorkspacePath(pathname, 'media-studio')),
       },
       {
         label: 'Templates',
@@ -115,15 +110,15 @@ export default function AdminResourcesProductSurface({ role, pageId, dataMode }:
         onClick: () => navigate(adminWorkspacePath(pathname, 'communications', '?workspaceRoom=studio&room=templates')),
       },
       {
-        label: 'Videos',
-        value: snapshot?.videos ?? 0,
-        hint: 'Media studio projects',
-        accent: 'rose',
-        icon: Video,
-        onClick: () => navigate(adminWorkspacePath(pathname, 'media-studio')),
+        label: 'Books',
+        value: snapshot?.books ?? 0,
+        hint: 'Bookstore',
+        accent: 'violet',
+        icon: ShoppingBag,
+        onClick: () => navigate(adminWorkspacePath(pathname, 'bookstore')),
       },
     ],
-    [navigate, pathname, snapshot?.courses, snapshot?.guides, snapshot?.templates, snapshot?.videos],
+    [navigate, pathname, snapshot?.books, snapshot?.guides, snapshot?.templates, snapshot?.videos],
   );
 
   const categoryTiles = useMemo(
@@ -136,15 +131,6 @@ export default function AdminResourcesProductSurface({ role, pageId, dataMode }:
         icon: BookOpen,
         accent: 'emerald' as const,
         onClick: () => setActiveRoom('playbook'),
-      },
-      {
-        id: 'courses',
-        title: 'Courses',
-        count: snapshot?.courses ?? 0,
-        detail: 'Interactive learning modules',
-        icon: GraduationCap,
-        accent: 'violet' as const,
-        onClick: () => navigate(adminWorkspacePath(pathname, 'courses')),
       },
       {
         id: 'videos',
@@ -174,7 +160,7 @@ export default function AdminResourcesProductSurface({ role, pageId, dataMode }:
         onClick: () => navigate(adminWorkspacePath(pathname, 'bookstore')),
       },
     ],
-    [navigate, pathname, snapshot?.books, snapshot?.courses, snapshot?.guides, snapshot?.templates, snapshot?.videos],
+    [navigate, pathname, snapshot?.books, snapshot?.guides, snapshot?.templates, snapshot?.videos],
   );
 
   if (loading) {
@@ -203,7 +189,14 @@ export default function AdminResourcesProductSurface({ role, pageId, dataMode }:
         </button>
       }
     >
-      <section className="space-y-8" data-surface-layout="catalog-mosaic">
+      <section className="space-y-8 fc-admin-readable" data-surface-layout="catalog-mosaic">
+        <p className="max-w-3xl text-base leading-relaxed text-[#e8e8e8]">
+          Guides, letter templates, and uploaded videos live here. Courses you built are only in{' '}
+          <button type="button" className="font-semibold text-[#fbbf24] underline" onClick={() => navigate(adminWorkspacePath(pathname, 'courses'))}>
+            Admin Courses
+          </button>
+          .
+        </p>
         <div className={`${finelyOsCatalogCard('sky')} p-6 lg:p-8 space-y-5`} data-fc-accent="sky">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
@@ -212,8 +205,8 @@ export default function AdminResourcesProductSurface({ role, pageId, dataMode }:
                 <span>Catalog mosaic</span>
               </div>
               <p className={`mt-2 text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
-                {(snapshot?.guides ?? 0) + (snapshot?.courses ?? 0) + (snapshot?.videos ?? 0) + (snapshot?.templates ?? 0) + (snapshot?.books ?? 0)}{' '}
-                resources across five categories
+                {(snapshot?.guides ?? 0) + (snapshot?.videos ?? 0) + (snapshot?.templates ?? 0) + (snapshot?.books ?? 0)}{' '}
+                guides, videos, templates, and books
               </p>
             </div>
             <div className="flex flex-wrap gap-2" role="tablist" aria-label="Library views">
@@ -231,10 +224,10 @@ export default function AdminResourcesProductSurface({ role, pageId, dataMode }:
                     role="tab"
                     aria-selected={active}
                     onClick={() => setActiveRoom(tab.id)}
-                    className={`rounded-full border px-4 py-2 text-xs font-extrabold transition ${
+                    className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
                       active
-                        ? 'border-sky-400 bg-sky-500/15 text-sky-900'
-                        : 'border-black/10 bg-white/60 text-slate-800 hover:border-sky-300'
+                        ? 'border-[#fbbf24] bg-[#0b1110] text-[#fbbf24]'
+                        : 'border-white/20 bg-[#0b1110] text-[#e8e8e8] hover:border-[#fbbf24]'
                     }`}
                   >
                     {tab.label}

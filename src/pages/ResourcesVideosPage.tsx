@@ -207,14 +207,12 @@ export default function ResourcesVideosPage() {
               </div>
             </div>
           ) : isAdmin ? (
-            <div className={`${finelyOsCatalogCard('sky')}`} data-fc-accent="sky">
-              <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-sky-700`}>Video demos — admin only</div>
-              <p className={`mt-2 text-sm ${FINELY_OS_ENTITY_BODY}`}>
-                Walkthrough and promo videos are hidden from the public site until they are polished. Preview drafts in Tour Studio.
+            <div className="max-w-3xl space-y-3 rounded-2xl border border-white/15 bg-[#0b1110] p-6">
+              <h2 className="text-xl font-semibold text-[#e8e8e8]">Public videos are off</h2>
+              <p className="text-base leading-relaxed text-[#e8e8e8]">
+                This page is the public video library. It is not the course builder and it is not Tour Studio.
+                Courses you built live under Admin Courses. Walkthrough videos are built under Tour Studio in the admin menu.
               </p>
-              <button type="button" className={`${FINELY_OS_PRIMARY_BTN} mt-4`} onClick={() => navigate('/admin/tour-studio')}>
-                Open Tour Studio <ArrowRight size={14} />
-              </button>
             </div>
           ) : (
             <div className={`${FINELY_OS_LUXURY_EMPTY} ${finelyOsCatalogCard('violet')}`} data-fc-accent="violet">

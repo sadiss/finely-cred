@@ -62,7 +62,7 @@ export default function AdminTourStudioPage({ embedded = false }: AdminEmbeddabl
     <AdminWorkstationFrame embedded={embedded} kind="tour-studio-workstation"
       badge="Admin"
       title="Tour Studio"
-      subtitle="Manifest tours, step previews, and factory pipeline status — Part C Launch OS."
+      subtitle="Build short walkthrough videos that show partners how to use Finely."
     >
       <div className={`${FINELY_OS_PAGE} space-y-6`}>
         <div className={`${finelyOsCatalogCard('rose')} border-rose-500/30`} data-fc-accent="rose">

@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Plus, Save, Workflow } from 'lucide-react';
+import { ArrowLeft, Plus, Save, Workflow } from 'lucide-react';
 import { AutomationStudioShell } from '../automation/AutomationStudioShell';
 import { AutomationRuleEditor } from '../../components/automation/AutomationRuleEditor';
 import type { AutomationRule } from '../../domain/automationStudio';
@@ -28,7 +28,8 @@ export function AutomationRuleWorkstation() {
   const [version, setVersion] = useState(0);
   const [editorMode, setEditorMode] = useState<'canvas' | 'form'>('canvas');
   const rules = useMemo(() => listAutomationRules(), [version]);
-  const [selectedId, setSelectedId] = useState<string | null>(() => rules[0]?.id ?? null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
   const selected = rules.find((r) => r.id === selectedId) ?? rules[0] ?? null;
   const commsTemplates = useMemo(() => listCommsTemplates(), []);
 
@@ -39,6 +40,7 @@ export function AutomationRuleWorkstation() {
   function createRule() {
     const created = createAutomationRule(blankRule());
     setSelectedId(created.id);
+    setEditing(true);
     refresh();
   }
 
@@ -63,35 +65,38 @@ export function AutomationRuleWorkstation() {
         </p>
       </StudioSection>
 
-      <div className="grid gap-5 xl:grid-cols-[280px_minmax(0,1fr)]">
-        <div className="rounded-3xl border border-white/10 bg-black/30 p-3 space-y-2 max-h-[720px] overflow-auto">
-          <div className="px-2 py-1 text-[10px] uppercase tracking-widest text-white/35 font-black">Your rules ({rules.length})</div>
+      {!editing ? (
+        <div className="grid gap-4 md:grid-cols-2">
           {rules.length === 0 ? (
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm text-white/55">
+            <p className="rounded-2xl border border-white/15 bg-[#0b1110] p-6 text-base text-[#e8e8e8]">
               No rules yet. Create one or install a blueprint from the Scenarios tab.
-            </div>
+            </p>
           ) : null}
           {rules.map((r) => (
             <button
               key={r.id}
               type="button"
-              onClick={() => setSelectedId(r.id)}
-              className={`w-full text-left rounded-2xl border p-3 transition-all ${
-                selected?.id === r.id ? 'border-violet-400/50 bg-violet-500/10' : 'border-white/10 bg-white/[0.03] hover:bg-white/[0.06]'
-              }`}
+              onClick={() => {
+                setSelectedId(r.id);
+                setEditing(true);
+              }}
+              className="w-full rounded-2xl border border-white/15 bg-[#0b1110] p-5 text-left"
             >
               <div className="flex items-center gap-2">
-                <Workflow size={14} className="text-violet-300 shrink-0" />
-                <div className="font-bold text-white text-sm line-clamp-1">{r.name}</div>
+                <Workflow size={16} className="text-[#fbbf24] shrink-0" />
+                <div className="text-lg font-semibold text-[#e8e8e8]">{r.name}</div>
               </div>
-              <div className="mt-1 text-[10px] uppercase tracking-widest text-white/40">
-                {r.enabled ? 'Live' : 'Draft'} • {r.trigger.type.replace(/_/g, ' ')}
+              <div className="mt-2 text-base text-[#e8e8e8]">
+                {r.enabled ? 'Live' : 'Draft'} · {r.trigger.type.replace(/_/g, ' ')}
               </div>
             </button>
           ))}
         </div>
-
+      ) : (
         <div className="space-y-4 min-w-0">
+          <button type="button" className="fc-button-soft" onClick={() => setEditing(false)}>
+            <ArrowLeft size={14} /> All rules
+          </button>
           {selected ? (
             <>
               <div className="flex flex-wrap gap-2">
@@ -140,7 +145,7 @@ export function AutomationRuleWorkstation() {
             </div>
           )}
         </div>
-      </div>
+      )}
     </div>
   );
 }

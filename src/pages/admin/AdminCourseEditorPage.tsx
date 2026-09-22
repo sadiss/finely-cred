@@ -18,7 +18,7 @@ import {
   Users,
   Wand2,
 } from 'lucide-react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { getCourse, upsertCourse } from '../../data/coursesRepo';
 import type { Course, CourseLesson, CourseModule, LessonContentBlock } from '../../domain/courses';
@@ -101,7 +101,9 @@ export function AdminCourseEditorWorkspace({
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { id: routeId } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
   const id = courseId ?? routeId;
+  const requestedStep = searchParams.get('step');
   const embeddedCoursesPath = pathname.startsWith('/preview/workspace-light')
     ? '/preview/workspace-light/admin/courses'
     : '/admin/courses';
@@ -112,7 +114,12 @@ export function AdminCourseEditorWorkspace({
   const [saved, setSaved] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [commandStep, setCommandStep] = useState<CommandStep>('idea');
+  const [commandStep, setCommandStep] = useState<CommandStep>(
+    requestedStep === 'teach' || requestedStep === 'outline' || requestedStep === 'videos' || requestedStep === 'community'
+      ? requestedStep
+      : 'idea',
+  );
+  const [lessonOpen, setLessonOpen] = useState(requestedStep === 'teach');
 
   useEffect(() => {
     const onStore = () => setVersion((v) => v + 1);
@@ -658,37 +665,43 @@ export function AdminCourseEditorWorkspace({
           </FinelyOsGlassPanel>
         ) : null}
 
-        {commandStep === 'teach' ? (
-          <div className="grid lg:grid-cols-12 gap-4">
-            <div className="lg:col-span-4 space-y-3">
-              <FinelyOsGlassPanel icon={BookOpen} title="Lessons" subtitle="Pick a lesson to edit" accent="emerald" variant="inner" headerless>
-                <div className="space-y-2 max-h-[60vh] overflow-y-auto">
-                  {draft.modules.map((m) => (
-                    <div key={m.id} className="space-y-1">
-                      <div className={`${FINELY_OS_ENTITY_SUBLABEL} px-1`}>{m.title}</div>
-                      {m.lessons.map((l) => {
-                        const active = l.id === activeLessonId;
-                        return (
-                          <button
-                            key={l.id}
-                            type="button"
-                            onClick={() => {
-                              setActiveModuleId(m.id);
-                              setActiveLessonId(l.id);
-                            }}
-                            className={`${finelyOsDeckTile('violet', active)} w-full text-left`}
-                          >
-                            <div className={FINELY_OS_ENTITY_VALUE}>{l.title}</div>
-                            {l.summary ? <div className={`mt-1 truncate ${FINELY_OS_ENTITY_BODY}`}>{l.summary}</div> : null}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  ))}
-                </div>
-              </FinelyOsGlassPanel>
+        {commandStep === 'teach' && !lessonOpen ? (
+          <section className="space-y-4">
+            <h2 className="text-2xl font-semibold text-[#e8e8e8]">Lessons</h2>
+            <p className="max-w-3xl text-base text-[#e8e8e8]">Open one lesson. The editor replaces this list.</p>
+            <div className="grid gap-6 md:grid-cols-2">
+              {draft.modules.flatMap((m) =>
+                m.lessons.map((l) => (
+                  <button
+                    key={l.id}
+                    type="button"
+                    onClick={() => {
+                      setActiveModuleId(m.id);
+                      setActiveLessonId(l.id);
+                      setLessonOpen(true);
+                    }}
+                    className="rounded-2xl border border-white/15 bg-[#0b1110] p-6 text-left"
+                  >
+                    <div className="text-sm text-[#fbbf24]">{m.title}</div>
+                    <div className="mt-2 text-xl font-semibold text-[#e8e8e8]">{l.title}</div>
+                    {l.summary ? <div className="mt-2 text-base text-[#e8e8e8]">{l.summary}</div> : null}
+                  </button>
+                )),
+              )}
             </div>
-            <div className="lg:col-span-8">
+          </section>
+        ) : null}
+
+        {commandStep === 'teach' && lessonOpen ? (
+          <div className="space-y-4">
+            <button
+              type="button"
+              className={FINELY_OS_SECONDARY_BTN}
+              onClick={() => setLessonOpen(false)}
+            >
+              <ArrowLeft size={16} /> All lessons
+            </button>
+            <div>
               <FinelyOsGlassPanel
                 icon={BookOpen}
                 title={activeLesson ? activeLesson.title : 'Lesson editor'}

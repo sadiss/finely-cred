@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowRight, BookOpen, Check, ChevronRight, Star } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpen, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PARTNER_SUCCESS_MODULES } from '../../../../domain/partnerSuccessExperience';
 import {
@@ -16,14 +16,11 @@ import {
   FINELY_OS_NOTICE_SUCCESS,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
-  finelyOsCatalogCard,
 } from '../../../os/finelyOsLightUi';
 import type { WorkspaceProductSurfaceProps } from '../workspaceProductSurfaceRegistry';
 import { getWorkspaceProductArchetype } from '../workspaceProductArchetypes';
 import { getWorkspaceProductNavItem } from '../workspaceProductNav';
 import { ProductHubScaffold, ProductPagePrimaryAction } from '../components/ProductHubScaffold';
-
-const STAGE_ACCENTS = ['emerald', 'violet', 'sky', 'rose'] as const;
 
 export default function AdminPartnerSuccessProductSurface({ role, pageId }: WorkspaceProductSurfaceProps) {
   const navigate = useNavigate();
@@ -32,6 +29,7 @@ export default function AdminPartnerSuccessProductSurface({ role, pageId }: Work
   const accent = navItem?.accent ?? 'emerald';
 
   const [selectedId, setSelectedId] = useState(PARTNER_SUCCESS_MODULES[0]?.id ?? '');
+  const [editing, setEditing] = useState(false);
   const [version, setVersion] = useState(0);
   const modules = useMemo(() => {
     void version;
@@ -83,9 +81,9 @@ export default function AdminPartnerSuccessProductSurface({ role, pageId }: Work
     <ProductHubScaffold
       role={role}
       pageId={pageId}
-      eyebrow="Delivery"
-      title="Success content editor"
-      description="Edit success module copy and Training Academy links along the partner journey runway."
+      eyebrow="Success Edition"
+      title="Success Edition"
+      description="Edit the short success steps partners see — titles, descriptions, and the lesson each step opens."
       accent={accent}
       surfaceMode={navItem?.surfaceMode ?? 'light'}
       archetype={archetype}
@@ -104,70 +102,48 @@ export default function AdminPartnerSuccessProductSurface({ role, pageId }: Work
         { label: 'Types', value: String(new Set(modules.map((m) => m.type)).size), hint: 'Quiz, review, milestone…', accent: 'sky' },
         { label: 'Lanes', value: String(new Set(modules.flatMap((m) => m.lanes)).size), hint: 'Restore, debt, dispute…', accent: 'rose' },
       ]}
-      metricTitle="Success playbook"
-      metricDescription="Pick a stage on the runway, edit copy, then save or reset to defaults."
+      metricTitle="Success steps"
+      metricDescription="Open one step to edit it. The list stays out of the way while you write."
     >
       {notice ? <div className={FINELY_OS_NOTICE_SUCCESS}>{notice}</div> : null}
 
-      <section>
-        <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
-          <Star size={16} />
-          <span>Success journey runway</span>
-        </div>
-        <p className={`mt-2 ${FINELY_OS_ENTITY_BODY} max-w-3xl`}>
-          Each node is a partner success module. Select one to edit title, description, hub path, and academy lesson links.
+      <div className="fc-admin-readable space-y-8">
+      {!editing ? (
+      <section className="space-y-4">
+        <h2 className="text-2xl font-semibold text-[#e8e8e8]">Success steps</h2>
+        <p className="max-w-3xl text-base leading-relaxed text-[#e8e8e8]">
+          These are the steps partners follow. Open one to change its title, description, and lesson link.
         </p>
-
-        <div className="mt-6 overflow-x-auto pb-2">
-          <div className="flex min-w-max items-stretch gap-0">
-            {modules.map((m, index) => {
-              const active = m.id === selected?.id;
-              const stageAccent = STAGE_ACCENTS[index % STAGE_ACCENTS.length];
-              const hasOverride = Boolean(getPartnerSuccessModuleOverride(m.id));
-              return (
-                <React.Fragment key={m.id}>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedId(m.id)}
-                    className={`relative flex w-44 flex-col items-center rounded-2xl border-2 px-3 py-4 text-center transition ${
-                      active
-                        ? 'border-violet-400/60 bg-violet-500/15 shadow-lg shadow-violet-500/10'
-                        : 'border-white/10 bg-black/20 hover:border-white/25'
-                    }`}
-                    data-fc-accent={stageAccent}
-                  >
-                    <span
-                      className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-extrabold ${
-                        active ? 'bg-violet-500 text-white' : `bg-white/10 ${FINELY_OS_ENTITY_BODY} text-sm`
-                      }`}
-                    >
-                      {hasOverride ? <Check size={16} /> : index + 1}
-                    </span>
-                    <span className={`mt-3 text-sm font-bold leading-tight ${FINELY_OS_ENTITY_VALUE}`}>{m.title}</span>
-                    <span className={`mt-1 text-[10px] uppercase tracking-wide ${FINELY_OS_ENTITY_SUBLABEL}`}>
-                      {m.type}
-                    </span>
-                    {active ? (
-                      <span className="mt-2 rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-200">
-                        Editing
-                      </span>
-                    ) : null}
-                  </button>
-                  {index < modules.length - 1 ? (
-                    <div className="flex w-8 items-center justify-center" aria-hidden>
-                      <ChevronRight size={18} className="text-[color:var(--fc-os-entity-faint)]" />
-                    </div>
-                  ) : null}
-                </React.Fragment>
-              );
-            })}
-          </div>
+        <div className="grid gap-6 md:grid-cols-2">
+          {modules.map((m, index) => {
+            const hasOverride = Boolean(getPartnerSuccessModuleOverride(m.id));
+            return (
+              <article key={m.id} className="flex flex-col gap-3 rounded-2xl border border-white/15 bg-[#0b1110] p-6">
+                <div className="text-sm font-semibold text-[#fbbf24]">Step {index + 1}</div>
+                <h3 className="text-xl font-semibold text-[#e8e8e8]">{m.title}</h3>
+                <p className="text-base leading-relaxed text-[#e8e8e8]">{m.description}</p>
+                <div className="text-sm text-[#e8e8e8]">{hasOverride ? 'Custom copy saved' : m.type}</div>
+                <button
+                  type="button"
+                  className={`${FINELY_OS_PRIMARY_BTN} mt-auto w-fit`}
+                  onClick={() => {
+                    setSelectedId(m.id);
+                    setEditing(true);
+                  }}
+                >
+                  Edit {hasOverride ? <Check size={14} /> : null}
+                </button>
+              </article>
+            );
+          })}
         </div>
       </section>
-
-      {/* Active stage editor panel */}
-      {selected ? (
-        <section className={`${finelyOsCatalogCard('emerald')} p-6 lg:p-8 space-y-5`} data-fc-accent="emerald">
+      ) : selected ? (
+      <section className="space-y-5">
+        <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => setEditing(false)}>
+          <ArrowLeft size={16} /> All success steps
+        </button>
+        <div className="space-y-5 rounded-2xl border border-white/15 bg-[#0b1110] p-6 lg:p-8">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <div className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono normal-case tracking-normal`}>{selected.id}</div>
@@ -221,8 +197,10 @@ export default function AdminPartnerSuccessProductSurface({ role, pageId }: Work
               Reset to defaults
             </button>
           </div>
-        </section>
+        </div>
+      </section>
       ) : null}
+      </div>
 
       <p className="fc-wlp-section-description fc-wlp-compliance-line mt-6">
         Results vary · not legal advice · funding subject to underwriting

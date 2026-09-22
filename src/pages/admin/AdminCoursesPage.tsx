@@ -1,8 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ArrowLeft,
-  BookOpen,
-  Clapperboard,
   GraduationCap,
   Layers,
   Plus,
@@ -39,7 +37,6 @@ import {
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
   finelyOsCatalogCard,
-  finelyOsInlineListItem,
 } from '../../features/os/finelyOsLightUi';
 import type { CourseLevel } from '../../domain/educationStudio';
 
@@ -74,17 +71,6 @@ export function AdminCoursesWorkspace({ embedded = false }: { embedded?: boolean
     [courses],
   );
 
-  const courseCatalogItems = useMemo((): FinelyOsCatalogItem[] =>
-    courses.map((c, i) => ({
-      id: c.id,
-      title: c.title,
-      subtitle: c.published ? 'Published' : 'Draft',
-      description: c.desc,
-      accentIndex: i,
-      meta: [`${c.modules.length} modules`, ...(c.studio?.level ? [c.studio.level] : [])],
-    })),
-  [courses]);
-
   const templateCatalogItems = useMemo((): FinelyOsCatalogItem[] =>
     templates.map((t, i) => ({
       id: t.id,
@@ -96,14 +82,15 @@ export function AdminCoursesWorkspace({ embedded = false }: { embedded?: boolean
     })),
   [templates]);
 
-  const openCourse = (courseId: string) => {
+  const openCourse = (courseId: string, step?: 'teach') => {
     const productPath = pathname.startsWith('/preview/workspace-light')
       ? '/preview/workspace-light/admin/courses'
       : '/admin/courses';
+    const stepQuery = step ? `&step=${step}` : '';
     navigate(
       embedded
-        ? `${productPath}?courseId=${encodeURIComponent(courseId)}`
-        : `/admin/courses/${courseId}`,
+        ? `${productPath}?courseId=${encodeURIComponent(courseId)}${stepQuery}`
+        : `/admin/courses/${courseId}${step ? `?step=${step}` : ''}`,
     );
   };
 
@@ -136,8 +123,8 @@ export function AdminCoursesWorkspace({ embedded = false }: { embedded?: boolean
         <div className="flex flex-wrap items-center justify-between gap-3">
           {embedded ? (
             <div>
-              <div className={FINELY_OS_ENTITY_SUBLABEL}>Education production</div>
-              <div className={FINELY_OS_ENTITY_VALUE}>AI Education Studio</div>
+              <div className={FINELY_OS_ENTITY_SUBLABEL}>Admin Courses</div>
+              <div className={FINELY_OS_ENTITY_VALUE}>Courses you built</div>
             </div>
           ) : (
             <button type="button" onClick={() => navigate('/admin')} className={FINELY_OS_BACK_LINK}>
@@ -222,78 +209,83 @@ export function AdminCoursesWorkspace({ embedded = false }: { embedded?: boolean
           </div>
         </FinelyOsGlassPanel>
 
-        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {EDUCATION_ENGINES.map((engine, i) => (
-            <FinelyOsGlassPanel
-              key={engine.id}
-              icon={engine.id === 'video' ? Clapperboard : BookOpen}
-              title={engine.title}
-              subtitle={engine.description}
-              accent={(['violet', 'emerald', 'fuchsia', 'sky', 'rose'] as const)[i % 5]}
-              variant="inner"
-            >
-              <ul className={`space-y-1 ${FINELY_OS_ENTITY_BODY} text-xs`}>
-                {engine.outputs.map((o) => (
-                  <li key={o}>• {o}</li>
-                ))}
-              </ul>
-            </FinelyOsGlassPanel>
-          ))}
-        </div>
+        <section className="space-y-4">
+          <h2 className="text-2xl font-semibold text-[#e8e8e8]">Courses you built</h2>
+          <p className="max-w-3xl text-base leading-relaxed text-[#e8e8e8]">
+            This is the only admin home for courses. Edit a course or open its lessons.
+          </p>
+          {courses.length === 0 ? (
+            <p className="rounded-2xl border border-white/15 bg-[#0b1110] p-6 text-base text-[#e8e8e8]">
+              No courses yet. Start a blank course or generate one from a topic above.
+            </p>
+          ) : (
+            <div className="grid gap-6 md:grid-cols-2">
+              {courses.map((c) => (
+                <article key={c.id} className="flex flex-col gap-3 rounded-2xl border border-white/15 bg-[#0b1110] p-6">
+                  <div className="text-sm font-semibold text-[#fbbf24]">{c.published ? 'Published' : 'Draft'}</div>
+                  <h3 className="text-xl font-semibold text-[#e8e8e8]">{c.title || 'Untitled course'}</h3>
+                  <p className="text-base leading-relaxed text-[#e8e8e8]">{c.desc || 'No description yet.'}</p>
+                  <p className="text-sm text-[#e8e8e8]">{c.modules.length} modules</p>
+                  <div className="mt-auto flex flex-wrap gap-3">
+                    <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => openCourse(c.id)}>
+                      Edit
+                    </button>
+                    <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => openCourse(c.id, 'teach')}>
+                      Open lessons
+                    </button>
+                    <button
+                      type="button"
+                      className={FINELY_OS_SECONDARY_BTN}
+                      onClick={() => {
+                        upsertCourse({ ...c, published: !c.published });
+                        window.dispatchEvent(new Event('finely:store'));
+                        setVersion((v) => v + 1);
+                      }}
+                    >
+                      {c.published ? 'Unpublish' : 'Publish'}
+                    </button>
+                    <button
+                      type="button"
+                      className={FINELY_OS_SECONDARY_BTN}
+                      onClick={() => {
+                        deleteCourse(c.id);
+                        window.dispatchEvent(new Event('finely:store'));
+                        setVersion((v) => v + 1);
+                      }}
+                    >
+                      <Trash2 size={14} /> Delete
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
 
-        <FinelyOsGlassPanel icon={Sparkles} title="Specialized AI agents" subtitle="Ten agents collaborate across the production pipeline." accent="rose" variant="catalog">
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <section className="space-y-4">
+          <h2 className="text-2xl font-semibold text-[#e8e8e8]">Specialized agents</h2>
+          <p className="max-w-3xl text-base text-[#e8e8e8]">These agents write outline, lessons, scripts, and quizzes when you generate a course.</p>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {EDUCATION_AGENTS.map((a) => (
-              <div key={a.id} className={finelyOsInlineListItem()}>
-                <div className={FINELY_OS_ENTITY_VALUE}>{a.label}</div>
-                <div className={`mt-1 ${FINELY_OS_ENTITY_BODY} text-xs`}>{a.role}</div>
+              <div key={a.id} className="rounded-2xl border border-white/15 bg-[#0b1110] p-5">
+                <div className="text-lg font-semibold text-[#e8e8e8]">{a.label}</div>
+                <div className="mt-2 text-base leading-relaxed text-[#e8e8e8]">{a.role}</div>
               </div>
             ))}
           </div>
-        </FinelyOsGlassPanel>
+        </section>
 
-        <FinelyOsGlassPanel icon={BookOpen} title="Course library" subtitle="Search, edit, publish, and open the full studio for any course." accent="emerald">
-          <FinelyOsCatalogBrowser
-            items={courseCatalogItems}
-            pageSize={9}
-            searchPlaceholder="Filter library…"
-            emptyMessage="No courses yet — generate from an idea or start blank."
-            initialView="grid"
-            onItemClick={openCourse}
-            renderTrailing={(item) => {
-              const c = courses.find((x) => x.id === item.id);
-              if (!c) return null;
-              return (
-                <div className="flex flex-wrap gap-1 mt-2">
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      upsertCourse({ ...c, published: !c.published });
-                      window.dispatchEvent(new Event('finely:store'));
-                      setVersion((v) => v + 1);
-                    }}
-                    className={FINELY_OS_SECONDARY_BTN}
-                  >
-                    {c.published ? 'Unpublish' : 'Publish'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteCourse(c.id);
-                      window.dispatchEvent(new Event('finely:store'));
-                      setVersion((v) => v + 1);
-                    }}
-                    className={FINELY_OS_SECONDARY_BTN}
-                  >
-                    <Trash2 size={12} /> Delete
-                  </button>
-                </div>
-              );
-            }}
-          />
-        </FinelyOsGlassPanel>
+        <details className="rounded-2xl border border-white/15 bg-[#0b1110] p-6">
+          <summary className="cursor-pointer text-lg font-semibold text-[#e8e8e8]">What the studio can produce</summary>
+          <div className="mt-6 grid gap-6 md:grid-cols-2">
+            {EDUCATION_ENGINES.map((engine) => (
+              <div key={engine.id}>
+                <div className="text-lg font-semibold text-[#e8e8e8]">{engine.title}</div>
+                <p className="mt-2 text-base text-[#e8e8e8]">{engine.description}</p>
+              </div>
+            ))}
+          </div>
+        </details>
 
         <FinelyOsPageFooter variant="hub" />
 
@@ -342,8 +334,8 @@ export function AdminCoursesWorkspace({ embedded = false }: { embedded?: boolean
   return (
     <PageShell
       badge="Admin"
-      title="AI Education Studio"
-      subtitle="Enterprise educational production — curriculum, authoring, cinematic video, multimedia, and LMS in one pipeline."
+      title="Admin Courses"
+      subtitle="The courses you built. Edit one, or open its lessons."
     >
       {content}
     </PageShell>

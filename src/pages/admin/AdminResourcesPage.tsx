@@ -58,6 +58,7 @@ export default function AdminResourcesPage() {
   const guides = useMemo(() => listFreeGuidesEffective(), [storeVersion]);
   const videos = useMemo(() => listResourceVideos(), [storeVersion]);
   const [selectedId, setSelectedId] = useState<string>(() => guides[0]?.id ?? '');
+  const [guideOpen, setGuideOpen] = useState(false);
   const selected = useMemo(() => guides.find((g) => g.id === selectedId) ?? null, [guides, selectedId]);
 
   const guideCatalogItems = useMemo((): FinelyOsCatalogItem[] => {
@@ -433,21 +434,28 @@ export default function AdminResourcesPage() {
           </div>
         </div>
 
-        {adminTab === 'guides' ? (
-        <div className="grid lg:grid-cols-12 gap-6">
-          <div className={`lg:col-span-3 ${finelyOsCatalogCard('emerald')}`} data-fc-accent="emerald">
+        {adminTab === 'guides' && !guideOpen ? (
+          <div className={`${finelyOsCatalogCard('emerald')}`} data-fc-accent="emerald">
             <FinelyOsCatalogBrowser
               items={guideCatalogItems}
               pageSize={16}
               searchPlaceholder="Search guides by title or id…"
               emptyMessage="No guides match your search."
               initialView="grid"
-              selectedIds={new Set(selectedId ? [selectedId] : [])}
-              onItemClick={setSelectedId}
+              onItemClick={(id) => {
+                setSelectedId(id);
+                setGuideOpen(true);
+              }}
             />
           </div>
+        ) : null}
 
-          <div className={`lg:col-span-9 space-y-5 ${finelyOsCatalogCard('violet')}`}>
+        {adminTab === 'guides' && guideOpen ? (
+        <div className="space-y-5">
+          <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => setGuideOpen(false)}>
+            <ArrowLeft size={16} /> All guides
+          </button>
+          <div className={`space-y-5 ${finelyOsCatalogCard('violet')}`}>
             {!draft ? (
               <div className={FINELY_OS_ENTITY_BODY}>Select a guide to edit.</div>
             ) : (

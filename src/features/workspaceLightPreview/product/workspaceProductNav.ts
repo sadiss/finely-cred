@@ -419,7 +419,7 @@ export const ADMIN_PRODUCT_NAV: WorkspaceProductNavItem[] = [
   admin('dispute-collaboration', 'Dispute collaboration', '/admin/dispute-collaboration', Handshake, 'emerald', 'Shared dispute workspace between specialists and partners.', 'delivery', 'secondary', 'studio'),
   admin('parsing-lab', 'Parsing lab', '/admin/parsing-lab', FlaskConical, 'sky', 'Credit report parsing diagnostics and extraction QA.', 'delivery', 'secondary', 'studio'),
   admin('compliance-review', 'Compliance review', '/admin/compliance-review', Shield, 'rose', 'Letter and claim review before anything leaves the building.', 'delivery', 'secondary'),
-  admin('partner-success', 'Success content editor', '/admin/partner-success', Star, 'emerald', 'Edit success modules, milestones, and training links.', 'delivery', 'secondary'),
+  admin('partner-success', 'Success Edition', '/admin/partner-success', Star, 'emerald', 'Edit the partner success steps partners see in the portal.', 'delivery', 'secondary'),
   admin('calendar', 'Calendar', '/admin/calendar', Calendar, 'violet', 'Sessions, meetings, and team scheduling.', 'delivery', 'secondary'),
   admin('phone-hub', 'Phone hub', '/admin/phone-hub', PhoneCall, 'sky', 'Call routing, logs, and voice touchpoints.', 'delivery', 'secondary'),
   admin('projects-portfolio', 'Project portfolio', '/admin/projects/portfolio', SquareStack, 'violet', 'Portfolio-level view of every active project.', 'delivery', 'secondary', 'studio'),

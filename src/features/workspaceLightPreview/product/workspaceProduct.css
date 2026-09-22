@@ -57,9 +57,12 @@
 .fc-wlp *::after { box-sizing: border-box; }
 
 html[data-fc-theme="dark"] .fc-wlp {
-  --wlp-ink: #f1f5f9;
-  --wlp-muted: #cbd5e1;
-  --wlp-faint: #94a3b8;
+  --wlp-ink: #e8e8e8;
+  --wlp-muted: #e8e8e8;
+  --wlp-faint: #d4d4d4;
+  --fc-os-entity-ink: #e8e8e8;
+  --fc-os-entity-body: #e8e8e8;
+  --fc-os-entity-muted: #d8d8d8;
   --wlp-bed: #070a0f;
   --wlp-panel: #101722;
   --wlp-soft: #0b1119;
@@ -506,7 +509,7 @@ html[data-fc-theme="dark"] .fc-wlp .fc-wlp-panel-head .fc-wlp-eyebrow {
   border-radius: 11px;
   background: transparent;
   padding: 10px 11px;
-  color: rgba(255, 255, 255, 0.62);
+  color: #e8e8e8;
   font-size: var(--wlp-text-body);
   font-weight: 700;
   text-align: left;
@@ -573,7 +576,7 @@ html[data-fc-theme="dark"] .fc-wlp .fc-wlp-panel-head .fc-wlp-eyebrow {
   color: #fff;
   box-shadow: 0 10px 22px -12px rgba(var(--wlp-rail-accent), 0.95), inset 0 1px 0 rgba(255, 255, 255, 0.22);
 }
-.fc-wlp-rail-item-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fc-wlp-rail-item-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: normal; line-height: 1.25; }
 .fc-wlp-rail-footer { margin-top: auto; padding: 14px 8px 4px; }
 .fc-wlp-rail-account { display: flex; align-items: center; gap: 9px; color: rgba(255, 255, 255, 0.68); }.fc-wlp-avatar{
   display: inline-flex;
@@ -679,7 +682,8 @@ html[data-fc-theme="dark"] .fc-wlp .fc-theme-toggle-active {
 
 .fc-wlp-mobile-menu:hover,
 .fc-wlp-utility-action:hover { border-color: rgba(148, 101, 255, 0.32); color: var(--wlp-ink); transform: translateY(-1px); }
-.fc-wlp-rail-toggle { display: none; }
+.fc-wlp-rail-toggle { display: none; color: #fbbf24; }
+.fc-wlp-rail-toggle-label { font-size: 12px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: #fbbf24; }
 .fc-wlp-utility-action[data-accent="violet"] { border-color: rgba(148, 101, 255, 0.28); background: linear-gradient(145deg, rgba(148, 101, 255, 0.14), #fff); color: var(--wlp-violet); box-shadow: 0 13px 26px -19px rgba(99, 54, 209, 0.5), inset 0 1px 0 #fff; }
 /* Read-aloud sits beside Ask Finely, so it takes sky to stay distinct from the violet AI action.
    While speaking it inverts to a solid fill — a spoken page needs an obvious way to stop it. */
@@ -2679,15 +2683,27 @@ button.fc-wlp-intelligence:hover { border-color: rgba(117, 76, 211, 0.36); box-s
 .fc-wlp-loading-card { height: 112px; border: 1px solid var(--wlp-border); border-radius: 14px; background: var(--wlp-panel); padding: 16px; }
 
 @media (min-width: 1024px) {
-  .fc-wlp-admin-shell { --wlp-rail-w: 76px; grid-template-columns: var(--wlp-rail-w) minmax(0, 1fr); }
+  .fc-wlp-admin-shell { --wlp-rail-w: 244px; grid-template-columns: var(--wlp-rail-w) minmax(0, 1fr); }
   .fc-wlp-admin-rail { display: block; width: var(--wlp-rail-w); }
+  .fc-wlp-rail-toggle { display: inline-flex; }
   .fc-wlp-admin-rail .fc-wlp-rail-brand-copy,
   .fc-wlp-admin-rail .fc-wlp-rail-label,
   .fc-wlp-admin-rail .fc-wlp-rail-item-label,
-  .fc-wlp-admin-rail .fc-wlp-rail-dept,
-  .fc-wlp-admin-rail .fc-wlp-rail-account > div:last-child { display: none; }
+  .fc-wlp-admin-rail .fc-wlp-rail-account > div:last-child { display: block; }
+  .fc-wlp-admin-rail .fc-wlp-rail-dept { display: flex; }
   .fc-wlp-admin-rail .fc-wlp-rail-brand,
-  .fc-wlp-admin-rail .fc-wlp-rail-item { justify-content: center; padding-inline: 8px; }
+  .fc-wlp-admin-rail .fc-wlp-rail-item { justify-content: flex-start; padding-inline: 11px; }
+  .fc-wlp-admin-shell[data-rail-collapsed="true"] { --wlp-rail-w: 76px; grid-template-columns: var(--wlp-rail-w) minmax(0, 1fr); }
+  .fc-wlp-admin-shell[data-rail-collapsed="true"] .fc-wlp-admin-rail .fc-wlp-rail-brand-copy,
+  .fc-wlp-admin-shell[data-rail-collapsed="true"] .fc-wlp-admin-rail .fc-wlp-rail-label,
+  .fc-wlp-admin-shell[data-rail-collapsed="true"] .fc-wlp-admin-rail .fc-wlp-rail-item-label,
+  .fc-wlp-admin-shell[data-rail-collapsed="true"] .fc-wlp-admin-rail .fc-wlp-rail-dept,
+  .fc-wlp-admin-shell[data-rail-collapsed="true"] .fc-wlp-admin-rail .fc-wlp-rail-account > div:last-child { display: none; }
+  .fc-wlp-admin-shell[data-rail-collapsed="true"] .fc-wlp-admin-rail .fc-wlp-rail-brand,
+  .fc-wlp-admin-shell[data-rail-collapsed="true"] .fc-wlp-admin-rail .fc-wlp-rail-item {
+    justify-content: center;
+    padding-inline: 8px;
+  }
   .fc-wlp-mobile-menu { display: none; }
 }
 
@@ -3378,4 +3394,27 @@ html[data-fc-theme='light'] .fc-wlp :is(
 ):not(button):not(a) {
   color: rgba(255, 255, 255, 0.72) !important;
   -webkit-text-fill-color: rgba(255, 255, 255, 0.72) !important;
+}
+
+/* Dark admin chrome: utility controls were white chips with light ink. */
+html[data-fc-theme="dark"] .fc-wlp .fc-wlp-utility-action,
+html[data-fc-theme="dark"] .fc-wlp .fc-wlp-mobile-menu,
+html[data-fc-theme="dark"] .fc-wlp .fc-wlp-search-trigger {
+  background: #0b1110 !important;
+  color: #e8e8e8 !important;
+  border-color: rgba(232, 232, 232, 0.35) !important;
+  box-shadow: none !important;
+}
+html[data-fc-theme="dark"] .fc-wlp .fc-wlp-rail-toggle,
+html[data-fc-theme="dark"] .fc-wlp .fc-wlp-rail-toggle-label {
+  color: #fbbf24 !important;
+  border-color: rgba(251, 191, 36, 0.7) !important;
+}
+.fc-admin-readable,
+.fc-admin-readable p,
+.fc-admin-readable h2,
+.fc-admin-readable h3,
+.fc-admin-readable li,
+.fc-admin-readable label {
+  color: #e8e8e8;
 }

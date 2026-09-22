@@ -254,6 +254,7 @@ export function ProductWorkspaceShell({
             title={adminRailCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             {adminRailCollapsed ? <PanelLeftOpen size={17} /> : <PanelLeftClose size={17} />}
+            <span className="fc-wlp-rail-toggle-label">{adminRailCollapsed ? 'Menu' : 'Collapse'}</span>
           </button>
         </>
       ) : null}
@@ -521,22 +522,10 @@ export function ProductWorkspaceShell({
                   {unlocked ? line.description : upsellHeadline}
                 </p>
                 <div className="fc-wlp-list">
-                  {(line.id === 'growth' ? items.filter((item) => item.navTier === 'daily') : items).map((item) => (
+                  {items.map((item) => (
                     <ToolRow key={item.id} item={item} onClick={() => go(item)} locked={!unlocked} />
                   ))}
                 </div>
-                {line.id === 'growth' && items.some((item) => item.navTier !== 'daily') ? (
-                  <details className="fc-wlp-all-tools-more">
-                    <summary>More rooms</summary>
-                    <div className="fc-wlp-list" style={{ marginTop: 8 }}>
-                      {items
-                        .filter((item) => item.navTier !== 'daily')
-                        .map((item) => (
-                          <ToolRow key={`more-${item.id}`} item={item} onClick={() => go(item)} locked={!unlocked} />
-                        ))}
-                    </div>
-                  </details>
-                ) : null}
                 {!unlocked && upsellPath ? (
                   <button
                     type="button"
