@@ -86,7 +86,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroupDef[] = [
       { path: '/admin/launch-os', label: 'Launch OS', icon: BookOpen, hint: 'SOP help center' },
       { path: '/admin/courses', label: 'Courses', icon: GraduationCap, hint: 'Course builder' },
       { path: '/admin/testimonials', label: 'Testimonials', icon: Trophy, hint: 'Social proof' },
-      { path: '/admin/partner-success', label: 'Success Edition', icon: GraduationCap, hint: 'Partner success steps' },
+      { path: '/admin/partner-success', label: 'Success content editor', icon: GraduationCap, hint: 'Edit portal success modules' },
     ],
   },
   {

@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { ArrowLeft } from 'lucide-react';
 import { AdminWorkstationFrame, type AdminEmbeddablePageProps } from '../../features/workspaceLightPreview/product/admin/AdminWorkstationFrame';
+import { useMappedAdminNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { PARTNER_SUCCESS_MODULES } from '../../domain/partnerSuccessExperience';
 import {
   getPartnerSuccessModuleOverride,
@@ -11,7 +11,6 @@ import { FINELY_OS_ENTITY_BODY, FINELY_OS_PRIMARY_BTN, FINELY_OS_SECONDARY_BTN }
 
 export default function AdminPartnerSuccessEditorPage({ embedded = false }: AdminEmbeddablePageProps = {}) {
   const [selectedId, setSelectedId] = useState(PARTNER_SUCCESS_MODULES[0]?.id ?? '');
-  const [editing, setEditing] = useState(false);
   const [version, setVersion] = useState(0);
   const modules = useMemo(() => {
     void version;
@@ -48,53 +47,47 @@ export default function AdminPartnerSuccessEditorPage({ embedded = false }: Admi
   return (
     <AdminWorkstationFrame embedded={embedded} kind="partner-success-workstation"
       badge="Admin"
-      title="Success Edition"
-      subtitle="Edit the short success steps partners see — titles, descriptions, and the lesson each step opens."
+      title="Success content editor"
+      subtitle="Edit success module copy and Training Academy links — full module set preserved."
       back={{ to: -1 }}
     >
       <div className="space-y-6">
         {notice ? (
           <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">{notice}</div>
         ) : null}
-        {!editing ? (
-          <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid lg:grid-cols-3 gap-6">
+          <div className="space-y-2 max-h-[32rem] overflow-y-auto">
             {modules.map((m) => (
               <button
                 key={m.id}
                 type="button"
-                onClick={() => {
-                  setSelectedId(m.id);
-                  setEditing(true);
-                }}
-                className="w-full text-left rounded-2xl border border-white/15 bg-[#0b1110] p-6 space-y-2"
+                onClick={() => setSelectedId(m.id)}
+                className={`w-full text-left rounded-xl border p-3 transition ${
+                  selected?.id === m.id ? 'border-violet-400/40 bg-violet-500/10' : 'border-white/10 bg-black/25 hover:border-white/20'
+                }`}
               >
-                <div className="text-lg font-semibold text-[#e8e8e8]">{m.title}</div>
-                <div className="text-base text-[#e8e8e8]">{m.description}</div>
-                <div className="text-sm text-[#fbbf24]">Edit</div>
+                <div className="text-sm font-bold text-white">{m.title}</div>
+                <div className={`text-xs mt-1 ${FINELY_OS_ENTITY_BODY}`}>{m.type} · {m.lanes.join(', ')}</div>
               </button>
             ))}
           </div>
-        ) : selected ? (
-          <div className="space-y-5">
-            <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => setEditing(false)}>
-              <ArrowLeft size={16} /> All success steps
-            </button>
-            <div className="rounded-2xl border border-white/15 bg-[#0b1110] p-6 space-y-4">
-              <div className="text-sm text-[#e8e8e8]">{selected.id}</div>
+          {selected ? (
+            <div className="lg:col-span-2 rounded-2xl border border-white/10 bg-black/30 p-5 space-y-4">
+              <div className="text-[10px] uppercase tracking-widest text-white/40">{selected.id}</div>
               <label className="block">
-                <div className="text-sm font-semibold text-[#e8e8e8] mb-1">Title</div>
+                <div className="text-xs text-white/50 mb-1">Title</div>
                 <input value={title} onChange={(e) => setTitle(e.target.value)} className="fc-input w-full" />
               </label>
               <label className="block">
-                <div className="text-sm font-semibold text-[#e8e8e8] mb-1">Description</div>
+                <div className="text-xs text-white/50 mb-1">Description</div>
                 <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="fc-input w-full resize-y" />
               </label>
               <label className="block">
-                <div className="text-sm font-semibold text-[#e8e8e8] mb-1">Hub path</div>
+                <div className="text-xs text-white/50 mb-1">Hub path</div>
                 <input value={hubPath} onChange={(e) => setHubPath(e.target.value)} className="fc-input w-full" />
               </label>
               <label className="block">
-                <div className="text-sm font-semibold text-[#e8e8e8] mb-1">Training Academy lesson id</div>
+                <div className="text-xs text-white/50 mb-1">Training Academy lesson id</div>
                 <input value={trainingLessonId} onChange={(e) => setTrainingLessonId(e.target.value)} className="fc-input w-full" placeholder="e.g. core_l3_evidence" />
               </label>
               <div className="flex gap-2">
@@ -114,8 +107,8 @@ export default function AdminPartnerSuccessEditorPage({ embedded = false }: Admi
                 </button>
               </div>
             </div>
-          </div>
-        ) : null}
+          ) : null}
+        </div>
       </div>
     </AdminWorkstationFrame>
   );

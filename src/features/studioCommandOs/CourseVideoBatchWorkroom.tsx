@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, ArrowRight, BookOpen, Clapperboard, Film, Loader2, Sparkles } from 'lucide-react';
+import { ArrowRight, BookOpen, Clapperboard, Film, Loader2, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { listAllCourses } from '../../data/coursesRepo';
 import type { CourseLesson } from '../../domain/courses';
@@ -13,6 +13,7 @@ import {
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
   finelyOsCatalogCardCompact,
+  finelyOsDeckTile,
   finelyOsGlowKpi,
   finelyOsMicroStat,
 } from '../os/finelyOsLightUi';
@@ -55,7 +56,6 @@ export function CourseVideoBatchWorkroom({ courseId, lessonId }: Props) {
   const [notice, setNotice] = useState<string | null>(null);
   const [activeCourseId, setActiveCourseId] = useState<string | null>(courseId ?? null);
   const [activeLessonId, setActiveLessonId] = useState<string | null>(lessonId ?? null);
-  const [lessonOpen, setLessonOpen] = useState(Boolean(lessonId));
 
   useEffect(() => {
     const onStore = () => setVersion((v) => v + 1);
@@ -240,57 +240,65 @@ export function CourseVideoBatchWorkroom({ courseId, lessonId }: Props) {
         </div>
       </div>
 
-      {activeCourse && !lessonOpen ? (
-        <div className="space-y-3">
-          <div className="text-lg font-semibold text-[#e8e8e8]">Lessons</div>
-          <FinelyOsPaginatedStack
-            items={lessonRows}
-            pageSize={8}
-            emptyMessage="No lessons in this course yet."
-            itemSpacingClassName="grid gap-4 sm:grid-cols-2"
-            renderItem={(row) => (
-              <button
-                key={row.lessonId}
-                type="button"
-                onClick={() => {
-                  setActiveLessonId(row.lessonId);
-                  setLessonOpen(true);
-                }}
-                className="rounded-2xl border border-white/15 bg-[#0b1110] p-5 text-left"
-              >
-                <div className="text-sm text-[#fbbf24]">{row.moduleTitle}</div>
-                <div className="mt-2 text-lg font-semibold text-[#e8e8e8]">{row.title}</div>
-                <div className="mt-2 text-base text-[#e8e8e8]">
-                  {STAGE_LABELS[row.stage]}
-                  {row.sceneCount > 0 ? ` · ${row.sceneCount} scenes` : ''}
-                </div>
-              </button>
-            )}
-          />
-        </div>
-      ) : null}
+      {activeCourse ? (
+        <div className="grid lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] gap-3">
+          <div className="space-y-2">
+            <div className={FINELY_OS_ENTITY_SUBLABEL}>Lesson deck</div>
+            <FinelyOsPaginatedStack
+              items={lessonRows}
+              pageSize={8}
+              emptyMessage="No lessons in this course yet."
+              itemSpacingClassName="grid sm:grid-cols-2 gap-2"
+              renderItem={(row) => {
+                const active = (activeLessonId ?? activeRow?.lessonId) === row.lessonId;
+                return (
+                  <button
+                    key={row.lessonId}
+                    type="button"
+                    onClick={() => setActiveLessonId(row.lessonId)}
+                    className={`${finelyOsDeckTile('fuchsia', active)} p-3`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 text-left">
+                        <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{row.title}</div>
+                        <div className={`${FINELY_OS_ENTITY_SUBLABEL} truncate`}>{row.moduleTitle}</div>
+                      </div>
+                      <span className={finelyOsMicroStat(row.hasVideo ? 'emerald' : 'violet')}>{STAGE_LABELS[row.stage]}</span>
+                    </div>
+                    <div className={`mt-2 ${FINELY_OS_ENTITY_BODY} text-xs`}>
+                      {row.sceneCount > 0 ? `${row.sceneCount} scenes` : 'No scenes yet'}
+                      {row.hasVideo ? ' · video on' : ''}
+                    </div>
+                  </button>
+                );
+              }}
+            />
+          </div>
 
-      {activeCourse && lessonOpen && activeLesson && activeRow ? (
-        <div className="space-y-4 rounded-2xl border border-white/15 bg-[#0b1110] p-6">
-          <button
-            type="button"
-            className={FINELY_OS_SECONDARY_BTN}
-            onClick={() => setLessonOpen(false)}
-          >
-            <ArrowLeft size={16} /> All lessons
-          </button>
-          <h3 className="text-2xl font-semibold text-[#e8e8e8]">{activeLesson.title}</h3>
-          <p className="text-base text-[#e8e8e8]">
-            {activeRow.moduleTitle} · {STAGE_LABELS[activeRow.stage]}
-            {activeRow.hasVideo ? ' · video attached' : ''}
-          </p>
-          <button
-            type="button"
-            className={FINELY_OS_PRIMARY_BTN}
-            onClick={() => startLessonRender(activeCourse.id, activeLesson.id)}
-          >
-            <Clapperboard size={14} /> Render this lesson
-          </button>
+          <div className={`${finelyOsCatalogCardCompact('amber')} space-y-3`}>
+            <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-violet-200`}>
+              <Film size={14} />
+              <span>Focus</span>
+            </div>
+            {activeLesson && activeCourse && activeRow ? (
+              <>
+                <h3 className={FINELY_OS_ENTITY_TITLE}>{activeLesson.title}</h3>
+                <p className={FINELY_OS_ENTITY_BODY}>
+                  {activeRow.moduleTitle} · {STAGE_LABELS[activeRow.stage]}
+                  {activeRow.hasVideo ? ' · attached' : ''}
+                </p>
+                <button
+                  type="button"
+                  className={FINELY_OS_PRIMARY_BTN}
+                  onClick={() => startLessonRender(activeCourse.id, activeLesson.id)}
+                >
+                  <Clapperboard size={14} /> Render this lesson
+                </button>
+              </>
+            ) : (
+              <p className={FINELY_OS_ENTITY_BODY}>Select a lesson tile to focus render.</p>
+            )}
+          </div>
         </div>
       ) : null}
 

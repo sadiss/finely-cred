@@ -1438,23 +1438,28 @@ export function ContentStudioDepartmentPage({ composeLayout = false }: ContentSt
       ) : null}
 
       {composeLayout ? (
-        <div className="space-y-8 fc-admin-readable">
-          <div className="space-y-6">{composeToolRail}</div>
-          <section className="space-y-6">
-            <div>
-              <h2 className="text-3xl font-semibold text-[#e8e8e8]">
-                {studioView === 'home' ? 'Plan your clip' : activeWorkroomDef?.label ?? 'Production floor'}
-              </h2>
-              <p className="mt-2 max-w-3xl text-base leading-relaxed text-[#e8e8e8]">
-                {studioView === 'home'
-                  ? 'Describe your video or pick a starter — then open the wizard to render.'
-                  : activeWorkroomDef?.summary ?? 'Research, voice, review, and publish.'}
-              </p>
-            </div>
-            {studioView === 'home' ? homeStudioPanels : advancedStudioPanels}
-          </section>
+        <>
+          <div className="grid gap-6 lg:grid-cols-12 items-start">
+            <section className={`lg:col-span-8 space-y-6 ${finelyOsCatalogCard('violet')} p-6 lg:p-8`} data-fc-accent="violet">
+              <div>
+                <div className="text-xs font-black uppercase tracking-widest text-violet-300">Compose studio</div>
+                <h2 className="mt-2 text-3xl font-extrabold">
+                  {studioView === 'home' ? 'Plan your clip' : activeWorkroomDef?.label ?? 'Production floor'}
+                </h2>
+                <p className={`mt-2 text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
+                  {studioView === 'home'
+                    ? 'Describe your video or pick a starter — then open the wizard to render.'
+                    : activeWorkroomDef?.summary ?? 'Research, voice, courses, review, and publish bridges.'}
+                </p>
+              </div>
+              {studioView === 'home' ? homeStudioPanels : advancedStudioPanels}
+            </section>
+            <aside className={`lg:col-span-4 space-y-4 ${finelyOsCatalogCard('sky')} p-5 lg:p-6`} data-fc-accent="sky">
+              {composeToolRail}
+            </aside>
+          </div>
           {publishBridgeSection}
-        </div>
+        </>
       ) : studioView === 'home' ? (
         <FinelyUnifiedHubLayout
           eyebrow="Content Studio"

@@ -36,8 +36,8 @@ function StoryboardBoard({
     voiceover?: string;
   }>;
 }) {
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const selected = scenes.find((s) => s.id === selectedId) ?? null;
+  const [selectedId, setSelectedId] = useState<string | null>(scenes[0]?.id ?? null);
+  const selected = scenes.find((s) => s.id === selectedId) ?? scenes[0] ?? null;
   const pageSize = 8;
   const [page, setPage] = useState(0);
   const totalPages = Math.max(1, Math.ceil(scenes.length / pageSize));
@@ -48,36 +48,21 @@ function StoryboardBoard({
     return <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-white/55 text-sm">No scenes yet.</div>;
   }
 
-  if (selected) {
-    return (
-      <div className="space-y-4 rounded-2xl border border-white/15 bg-[#0b1110] p-5">
-        <button type="button" className="fc-button-soft" onClick={() => setSelectedId(null)}>
-          All shots
-        </button>
-        <h3 className="text-xl font-semibold text-[#e8e8e8]">{selected.beat}</h3>
-        <p className="text-base leading-relaxed text-[#e8e8e8]">{selected.visualPrompt}</p>
-        {selected.caption ? <p className="text-base text-[#e8e8e8]">Caption: {selected.caption}</p> : null}
-        {selected.voiceover ? (
-          <p className="inline-flex gap-2 text-base text-[#e8e8e8]">
-            <Mic2 size={16} className="text-[#fbbf24]" /> {selected.voiceover}
-          </p>
-        ) : null}
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-4">
+    <div className="grid lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] gap-3">
       <div className="space-y-2">
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid sm:grid-cols-2 gap-2">
           {slice.map((s, idx) => {
             const n = safePage * pageSize + idx + 1;
+            const active = selected?.id === s.id;
             return (
               <button
                 key={s.id}
                 type="button"
                 onClick={() => setSelectedId(s.id)}
-                className="rounded-2xl border border-white/15 bg-[#0b1110] p-4 text-left"
+                className={`rounded-2xl border p-3 text-left transition ${
+                  active ? 'border-violet-400/45 bg-violet-500/12' : 'border-white/10 bg-black/30 hover:bg-white/[0.04]'
+                }`}
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-violet-200 text-xs font-black uppercase tracking-widest">Shot {n}</span>
@@ -102,6 +87,23 @@ function StoryboardBoard({
               </button>
             </div>
           </div>
+        ) : null}
+      </div>
+      <div className="rounded-2xl border border-white/10 bg-black/35 p-4 space-y-3">
+        <div className="text-[10px] uppercase tracking-widest text-white/40">Focus beat</div>
+        {selected ? (
+          <>
+            <div className="text-white font-semibold">{selected.beat}</div>
+            <div className="text-sm text-white/60 leading-relaxed line-clamp-6">{selected.visualPrompt}</div>
+            {selected.caption ? (
+              <div className="rounded-xl border border-violet-400/15 bg-violet-500/10 p-2.5 text-violet-100 text-xs">Caption: {selected.caption}</div>
+            ) : null}
+            {selected.voiceover ? (
+              <div className="rounded-xl border border-sky-400/15 bg-sky-500/10 p-2.5 text-sky-100 text-xs inline-flex gap-2">
+                <Mic2 size={14} /> {selected.voiceover}
+              </div>
+            ) : null}
+          </>
         ) : null}
       </div>
     </div>
