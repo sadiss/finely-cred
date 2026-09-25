@@ -99,7 +99,10 @@ export function scoreLead(lead: LeadCapture): LeadScoreResult {
     lead.offer === 'agent_application' ||
     (lead.funnelPath ?? '').includes('credit-specialist');
 
-  if (isHaitianCommunity && lead.source === 'haitian_csv_import') {
+  const isColdHaitianImport =
+    lead.source === 'haitian_csv_import' && !lead.consentToContact && !lead.consentEmailMarketing;
+
+  if (isColdHaitianImport) {
     reasons.push('Haitian cold import — opt-in required before outreach');
   } else if (isHaitianCommunity) {
     score += 10;
@@ -151,7 +154,7 @@ export function scoreLead(lead: LeadCapture): LeadScoreResult {
                   ? 'seq_tradeline_funnel'
                   : 'seq_credit_funnel';
 
-  const suggestedAction = isHaitianCommunity && lead.source === 'haitian_csv_import'
+  const suggestedAction = isColdHaitianImport
     ? 'Cold Haitian import — do not email; wait for /free-kreyol-guide opt-in'
     : isHaitianCommunity
       ? band === 'qualified' || band === 'hot'

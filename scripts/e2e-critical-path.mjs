@@ -704,6 +704,13 @@ const haitianColdOk =
 console.log(`${haitianColdOk ? '✓' : '✗'} haitianColdImport: cold CSV path (no consent, no nurture)`);
 if (!haitianColdOk) failed += 1;
 
+const leadsRepo = fs.readFileSync(path.join(root, 'src/data/leadsRepo.ts'), 'utf8');
+const coldToHotOk =
+  leadsRepo.includes('findUpgradableColdHaitianLead') &&
+  leadsRepo.includes('upgradeColdHaitianLeadToHot');
+console.log(`${coldToHotOk ? '✓' : '✗'} leadsRepo: cold Haitian row upgrades on consented opt-in`);
+if (!coldToHotOk) failed += 1;
+
 const appRoutes = fs.readFileSync(path.join(root, 'src/App.tsx'), 'utf8');
 const kreyolFunnelOk =
   appRoutes.includes('KreyolGuideFunnelPage') &&

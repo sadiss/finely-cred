@@ -56,4 +56,4 @@ If prod secrets are missing on a cloud VM, ship the importer + dry-run proof onl
 
 Public funnel: **https://finelycred.com/free-kreyol-guide**
 
-On consented submit, `submitLeadCapture` runs the full pipeline and enrolls `seq_kreyol_funnel` (with Haitian template copy).
+On consented submit, `submitLeadCapture` **upgrades the existing cold row** (same lead id — no duplicate) and runs the full pipeline, enrolling `seq_kreyol_funnel` (with Haitian template copy).
