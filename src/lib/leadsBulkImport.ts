@@ -1,20 +1,9 @@
-import type { LeadCapture, LeadOffer, LeadSource } from '../domain/leads';
+import type { LeadCapture } from '../domain/leads';
 import { submitLeadCapture } from '../data/leadsRepo';
+import type { BulkLeadRow } from './leadsCsv';
 
-export type BulkLeadRow = {
-  fullName: string;
-  email: string;
-  phone?: string;
-  interest?: string;
-  offer?: LeadOffer;
-  source?: LeadSource;
-  funnelPath?: string;
-  consentToContact?: boolean;
-  consentEmailMarketing?: boolean;
-  utmSource?: string;
-  utmMedium?: string;
-  utmCampaign?: string;
-};
+export type { BulkLeadRow, ParseLeadsCsvOptions } from './leadsCsv';
+export { parseLeadsCsv } from './leadsCsv';
 
 export type BulkImportResult = {
   imported: number;
@@ -24,115 +13,22 @@ export type BulkImportResult = {
   leadIds: string[];
 };
 
-const HEADER_ALIASES: Record<string, keyof BulkLeadRow> = {
-  full_name: 'fullName',
-  fullname: 'fullName',
-  name: 'fullName',
-  email: 'email',
-  phone: 'phone',
-  mobile: 'phone',
-  interest: 'interest',
-  offer: 'offer',
-  source: 'source',
-  funnel_path: 'funnelPath',
-  funnelpath: 'funnelPath',
-  consent: 'consentToContact',
-  consent_to_contact: 'consentToContact',
-  consent_email: 'consentEmailMarketing',
-  utm_source: 'utmSource',
-  utm_medium: 'utmMedium',
-  utm_campaign: 'utmCampaign',
-};
-
-function parseCsvLine(line: string): string[] {
-  const out: string[] = [];
-  let cur = '';
-  let inQuotes = false;
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i];
-    if (ch === '"') {
-      if (inQuotes && line[i + 1] === '"') {
-        cur += '"';
-        i += 1;
-      } else inQuotes = !inQuotes;
-    } else if (ch === ',' && !inQuotes) {
-      out.push(cur.trim());
-      cur = '';
-    } else cur += ch;
-  }
-  out.push(cur.trim());
-  return out;
-}
-
-function normalizeHeader(h: string): keyof BulkLeadRow | null {
-  const key = h.trim().toLowerCase().replace(/\s+/g, '_');
-  return HEADER_ALIASES[key] ?? null;
-}
-
-function parseBool(v: string | undefined): boolean {
-  const s = (v ?? '').trim().toLowerCase();
-  return s === '1' || s === 'true' || s === 'yes' || s === 'y';
-}
-
-/** Parse CSV text into lead rows. First row may be headers. */
-export function parseLeadsCsv(text: string): { rows: BulkLeadRow[]; errors: string[] } {
-  const errors: string[] = [];
-  const lines = text
-    .split(/\r?\n/)
-    .map((l) => l.trim())
-    .filter(Boolean);
-  if (!lines.length) return { rows: [], errors: ['No rows found.'] };
-
-  const firstCells = parseCsvLine(lines[0]!);
-  const headerMap = firstCells.map(normalizeHeader);
-  const hasHeader = headerMap.some(Boolean);
-  const dataLines = hasHeader ? lines.slice(1) : lines;
-
-  const rows: BulkLeadRow[] = [];
-  for (let i = 0; i < dataLines.length; i++) {
-    const cells = parseCsvLine(dataLines[i]!);
-    let fullName = '';
-    let email = '';
-    const row: BulkLeadRow = { fullName: '', email: '' };
-
-    if (hasHeader) {
-      for (let c = 0; c < headerMap.length; c++) {
-        const field = headerMap[c];
-        if (!field) continue;
-        const val = cells[c] ?? '';
-        if (field === 'consentToContact' || field === 'consentEmailMarketing') {
-          (row as Record<string, unknown>)[field] = parseBool(val);
-        } else {
-          (row as Record<string, unknown>)[field] = val;
-        }
-      }
-      fullName = String(row.fullName ?? '').trim();
-      email = String(row.email ?? '').trim();
-    } else {
-      fullName = (cells[0] ?? '').trim();
-      email = (cells[1] ?? '').trim();
-      row.phone = (cells[2] ?? '').trim() || undefined;
-      row.interest = (cells[3] ?? '').trim() || undefined;
-    }
-
-    if (!email || !email.includes('@')) {
-      errors.push(`Row ${i + (hasHeader ? 2 : 1)}: invalid email "${email || '(empty)'}"`);
-      continue;
-    }
-    row.fullName = fullName || email.split('@')[0] || 'Imported Lead';
-    row.email = email;
-    rows.push(row);
-  }
-
-  return { rows, errors };
-}
+export type BulkImportMode = 'full_pipeline' | 'crm_only';
 
 const SAMPLE_CSV = `full_name,email,phone,interest,source,consent_to_contact
 Jordan Lee,jordan@example.com,5551234567,credit restore,agent,true
 Alex Kim,alex@example.com,,business funding,agent,true`;
 
+const HAITIAN_SAMPLE_CSV = `First name,Last name,Phone number,Email,Area code,State guess
+Marie,Example,3055550100,marie.example@example.com,305,FL
+Jean,Example,9545550199,,954,FL`;
+
 export function bulkImportSampleCsv() {
   return SAMPLE_CSV;
+}
+
+export function haitianColdImportSampleCsv() {
+  return HAITIAN_SAMPLE_CSV;
 }
 
 export async function bulkImportLeads(rows: BulkLeadRow[]): Promise<BulkImportResult> {

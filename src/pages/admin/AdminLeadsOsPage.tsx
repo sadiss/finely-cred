@@ -109,6 +109,14 @@ export default function AdminLeadsOsPage({
     if (embedded && mode === 'launcher') setMode('inbound');
   }, [embedded, mode, initialTab]);
 
+  useEffect(() => {
+    void import('../../data/crmServerSync').then(({ pullCrmSnapshotFromSupabase }) =>
+      pullCrmSnapshotFromSupabase().then((result) => {
+        if (result.ok) setVersion((v) => v + 1);
+      }),
+    );
+  }, []);
+
   const pipeline = CRM_PIPELINES.find((p) => p.id === 'inbound') ?? CRM_PIPELINES[0];
   const inboundRecords = useMemo(
     () =>
@@ -394,7 +402,7 @@ export default function AdminLeadsOsPage({
                           />
                         </FinelyOsGlassPanel>
                         <CrmRecordPanel record={selected} onClose={() => setSelected(null)} onUpdated={() => setVersion((v) => v + 1)} />
-                        <FinelyOsGlassPanel icon={Target} title="Bulk import" subtitle="CSV → capture pipeline" accent="sky">
+                        <FinelyOsGlassPanel icon={Target} title="Bulk import" subtitle="CSV → CRM (cold / no email by default)" accent="sky">
                           <LeadBulkImportPanel onImported={() => setVersion((v) => v + 1)} />
                         </FinelyOsGlassPanel>
                       </div>
