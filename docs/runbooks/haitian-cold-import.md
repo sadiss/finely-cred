@@ -27,7 +27,26 @@ npx tsx scripts/haitian-csv-import.ts --dry-run \
 npx tsx scripts/haitian-csv-import.ts --apply /path/to/finely-haitian-leads-cleaned.csv
 ```
 
-**Never commit PII CSVs to git.** Keep files outside the repo or in a secure bucket.
+**Never commit PII CSVs to git.** Keep files outside the repo or in a secure bucket. `.gitignore` blocks `*leads*.csv`, `*-outreach*.csv`, `finely-haitian-*.csv`, and `Documents/FinelyCredit` paths.
+
+## CSV schema (Haitian cold import)
+
+| Column (aliases accepted) | Required | Notes |
+|---------------------------|----------|-------|
+| `First name` / `first_name` | No | Combined with last name if `full_name` absent |
+| `Last name` / `last_name` | No | |
+| `Email` | **Yes** | Phone-only rows skipped |
+| `Phone number` / `phone` | No | Used for dedupe fallback |
+| `State guess` / `state` | No | Stored in `utmContent` |
+
+Redacted template (inline): use **Haitian cold CSV import → Load sample** in admin, or:
+
+```csv
+First name,Last name,Phone number,Email,Area code,State guess
+Example,Lead,5551234567,example.lead@example.com,555,FL
+```
+
+Legacy partner audit CSV (different import): see `data/legacy-migration/legacy-partners-audit.example.csv` — regenerate real audit via `node scripts/audit-legacy-sql.mjs` locally (output is gitignored).
 
 ## Row defaults (every import)
 

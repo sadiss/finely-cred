@@ -76,6 +76,14 @@ These fit Finely Cred’s partner email sequences (`cold_prospect`, `invite_opt_
 - FTC — [CAN-SPAM compliance](https://www.ftc.gov/business-guidance/resources/can-spam-act-compliance-guide-business)
 - FCC — [TCPA rules](https://www.fcc.gov/consumers/guides/stop-unwanted-robocalls-and-texts)
 
+## PII / git hygiene
+
+- **Never commit** lead CSVs, outreach lists, or `Documents/FinelyCredit` exports — see `.gitignore`
+- Haitian Documents CSVs were **never** added to this repository (confirmed in git history audit)
+- Tracked partner audit CSV removed; use `legacy-partners-audit.example.csv` for schema reference
+- **Residual risk:** git history may still contain deleted blobs (`legacy-partners-audit.csv`, `docs/warm-prospects/library-seed.csv`) until an owner-approved `git filter-repo` / BFG purge — this PR does **not** rewrite history
+- `legacy-partners-export-v1.json` still contains partner records for bundled admin import — owner should redact or move off-repo in a follow-up
+
 ## What we do **not** do
 
 - Scrape personal emails from social media, directories, or church member lists into CRM
