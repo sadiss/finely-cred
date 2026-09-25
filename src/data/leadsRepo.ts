@@ -6,6 +6,8 @@ import { newId } from '../utils/ids';
 import { loadJson, saveJson } from './localJsonStore';
 import { autoEnrollCrmRecordInDefaultSequence } from '../features/crm/sequences/autoEnrollCrmRecord';
 import { runLeadCapturePipeline } from '../lib/leadCapturePipeline';
+import { addLeadTags, setLeadStage } from './leadOpsRepo';
+import { syncLeadToCrmProspect } from '../lib/crmLeadSync';
 
 const KEY = 'finely.leads.v1';
 
@@ -112,9 +114,11 @@ export async function submitLeadCapture(
     guideId?: string;
     guideTitle?: string;
     funnelId?: string;
+    /** When true, skip nurture / welcome / trial hooks (cold CRM import). */
+    skipPipeline?: boolean;
   },
 ): Promise<LeadSubmitResult> {
-  const { guideId, guideTitle, funnelId, ...leadArgs } = args;
+  const { guideId, guideTitle, funnelId, skipPipeline, ...leadArgs } = args;
   const lead = createLeadCapture({
     ...leadArgs,
     fullName: sanitize(leadArgs.fullName),
@@ -122,9 +126,11 @@ export async function submitLeadCapture(
     phone: sanitize(leadArgs.phone),
   });
 
-  void runLeadCapturePipeline({ lead, guideId, guideTitle, funnelId }).catch(() => {
-    // non-blocking
-  });
+  if (!skipPipeline) {
+    void runLeadCapturePipeline({ lead, guideId, guideTitle, funnelId }).catch(() => {
+      // non-blocking
+    });
+  }
 
   if (!isSupabaseConfigured) return { lead, remote: 'not_configured' };
 
@@ -152,6 +158,99 @@ export async function submitLeadCapture(
     return { lead, remote: 'ok' };
   } catch (e: any) {
     return { lead, remote: 'failed', remoteError: e?.message || 'Unknown error' };
+  }
+}
+
+export type ColdLeadImportArgs = Omit<LeadCapture, 'id' | 'createdAt'> & {
+  tags?: string[];
+  existingLeadId?: string;
+};
+
+/**
+ * Cold CRM import — stores locally (+ Supabase when configured) without nurture or welcome email.
+ * Idempotent: pass existingLeadId to refresh metadata on re-import.
+ */
+export async function importColdLeadCapture(args: ColdLeadImportArgs): Promise<LeadSubmitResult> {
+  const store = loadStore();
+  const email = sanitize(args.email);
+  const existingIdx = args.existingLeadId
+    ? store.leads.findIndex((l) => l.id === args.existingLeadId)
+    : store.leads.findIndex((l) => (l.email || '').trim().toLowerCase() === email.toLowerCase());
+
+  let lead: LeadCapture;
+  if (existingIdx >= 0) {
+    const prev = store.leads[existingIdx]!;
+    lead = {
+      ...prev,
+      fullName: sanitize(args.fullName) || prev.fullName,
+      email,
+      phone: sanitize(args.phone) || prev.phone,
+      source: args.source,
+      offer: args.offer,
+      interest: args.interest,
+      consentToContact: false,
+      consentEmailMarketing: false,
+      consentSmsMarketing: false,
+      funnelPath: args.funnelPath,
+      funnelId: args.funnelId,
+      utmSource: args.utmSource,
+      utmMedium: args.utmMedium,
+      utmCampaign: args.utmCampaign,
+      utmContent: args.utmContent,
+    };
+    store.leads[existingIdx] = lead;
+    saveStore(store);
+  } else {
+    const { tags: _tags, existingLeadId: _existing, ...captureArgs } = args;
+    lead = createLeadCapture({
+      ...captureArgs,
+      fullName: sanitize(args.fullName),
+      email,
+      phone: sanitize(args.phone),
+      consentToContact: false,
+      consentEmailMarketing: false,
+      consentSmsMarketing: false,
+    });
+  }
+
+  setLeadStage(lead.id, 'new');
+  if (args.tags?.length) addLeadTags(lead.id, args.tags);
+
+  try {
+    syncLeadToCrmProspect(lead, args.funnelId);
+  } catch {
+    // non-blocking
+  }
+
+  if (!isSupabaseConfigured) return { lead, remote: 'not_configured' };
+
+  try {
+    const row = {
+      id: lead.id,
+      created_at: lead.createdAt,
+      source: lead.source,
+      offer: lead.offer,
+      interest: lead.interest ?? null,
+      full_name: lead.fullName,
+      email: lead.email,
+      phone: lead.phone,
+      consent_to_contact: false,
+      referral_code: lead.referralCode ?? null,
+      promoter_role: lead.promoterRole ?? null,
+      promo_type: lead.promoType ?? null,
+      promo_asset: lead.promoAsset ?? null,
+      utm_source: lead.utmSource ?? null,
+      utm_medium: lead.utmMedium ?? null,
+      utm_campaign: lead.utmCampaign ?? null,
+      funnel_path: lead.funnelPath ?? null,
+    };
+    const { error } = existingIdx >= 0
+      ? await supabase.from('lead_captures').upsert(row, { onConflict: 'id' })
+      : await supabase.from('lead_captures').insert(row);
+    if (error) return { lead, remote: 'failed', remoteError: error.message };
+    return { lead, remote: 'ok' };
+  } catch (e: unknown) {
+    return { lead, remote: 'failed', remoteError: (e as Error)?.message || 'Unknown error' };
   }
 }
 

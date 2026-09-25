@@ -50,6 +50,8 @@
     "syndication:publish": "node scripts/publish-seo-signals.mjs",
     "brand:logo": "node scripts/process-finely-logo.mjs",
     "generate:staff-portraits": "npx tsx scripts/fetch-staff-portraits.ts",
+    "haitian:import:dry-run": "npx tsx scripts/haitian-csv-import.ts --dry-run",
+    "haitian:import:apply": "npx tsx scripts/haitian-csv-import.ts --apply",
     "restore:haitian-portraits": "node scripts/restore-haitian-portraits.mjs",
     "e2e:smoke": "node scripts/e2e-critical-path.mjs",
     "hub:audit": "node scripts/audit-portal-unified-hub.mjs",

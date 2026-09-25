@@ -181,6 +181,18 @@ export function buildNurtureStepEmail(args: {
         return { subject: subjectDefault, text: `Hi ${firstName},\n\nPlaybook refresh: cite what is visible on bureau screenshots.\n\nResults vary · not legal advice.` };
       case 'specialist_keepwarm_day60':
         return { subject: subjectDefault, text: `Hi ${firstName},\n\nKeep-warm check-in for active specialists.\n\n${session}\n\nResults vary · not legal advice · not income guarantees.` };
+      case 'tpl_haitian_welcome_en':
+        return { subject: subjectDefault, text: `Hi ${firstName},\n\nHaitian community is open. We help with credit letters, collections, and a next step. Pale Kreyòl when you want to talk.\n\nOpen: ${appBaseUrl()}/haitian` };
+      case 'tpl_haitian_kit_en':
+        return { subject: subjectDefault, text: `Hi ${firstName},\n\nOne Haitian community piece — not thirty. Read this page, then take one English step.\n\nKits: ${appBaseUrl()}/free-kreyol-guide` };
+      case 'tpl_haitian_session_en':
+        return { subject: subjectDefault, text: `Hi ${firstName},\n\nBring the English letter or bureau page. We will explain it in Kreyòl. One next step after the call.\n\nBook: ${session}` };
+      case 'tpl_haitian_welcome_ht':
+        return { subject: subjectDefault, text: `Bonjou ${firstName},\n\nKominote ayisyen ouvè. Nou ede w ak dosye kredi, lèt, ak kolektè. Pale Kreyòl.\n\n${appBaseUrl()}/haitian` };
+      case 'tpl_haitian_kit_ht':
+        return { subject: subjectDefault, text: `Bonjou ${firstName},\n\nKit kredi ou yo pare. Yon sèl etap angle apre sa.\n\n${appBaseUrl()}/free-kreyol-guide` };
+      case 'tpl_haitian_session_ht':
+        return { subject: subjectDefault, text: `Bonjou ${firstName},\n\nPote lèt angle a. Nou pral di sans li.\n\n${session}` };
       default:
         return { subject: subjectDefault, text: `Hi ${firstName},\n\nFollow-up from ${args.sequence.name}.` };
     }

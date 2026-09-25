@@ -2,6 +2,7 @@ import type { NurtureSequenceDef } from '../domain/nurtureSequences';
 import { htmlFromPlainEmail } from '../comms/prebuiltHtmlEmailLayout';
 import { buildMarketingEmailFooter } from './commsUnsubscribeFooter';
 import { buildEnlightenmentSessionUrl, buildFunnelSuccessUrl, focusFromFunnelId } from './funnelPublicLinks';
+import { buildHaitianNurtureStepEmail, isHaitianNurtureTemplateId } from './haitianNurtureStepEmail';
 
 export type NurtureEmailContext = {
   firstName?: string;
@@ -30,6 +31,14 @@ export function buildNurtureStepEmail(args: {
     sequenceName: args.sequence.name,
   };
   const id = args.templateId;
+  if (isHaitianNurtureTemplateId(id)) {
+    return buildHaitianNurtureStepEmail({
+      templateId: id,
+      context: args.context,
+      stepSubject: args.stepSubject,
+      personaName: args.personaName,
+    });
+  }
   const email = String(args.context.email ?? '').trim();
   const funnelPath = String(args.context.funnelPath ?? '/free-guide');
   const sessionUrl = buildEnlightenmentSessionUrl({

@@ -529,5 +529,26 @@ function resolveFunnelCopy(args: {
     };
   }
 
+  if (id === 'kreyol_companion' || id === 'haitian_credit_kit') {
+    return {
+      subject: 'Haitian community is open — your credit kits are ready',
+      headline: `${first}, kominote ayisyen ouvè`,
+      heroHeadline: 'Kredi · Lèt · Pwochen etap',
+      heroSubline: 'Credit kits for Haitian Americans — Pale Kreyòl when you are ready',
+      subheadline: 'Four community kits: credit basics, letter meaning, helper guide, church flyer.',
+      preheader: 'Your Haitian community credit kits are ready — one piece at a time.',
+      intro: `Welcome to the Haitian community lane. Your <strong>${guide}</strong> is ready — we help with credit letters, collections, and one clear next step. Pale Kreyòl when you want to talk.`,
+      primaryCta: 'Open Haitian community',
+      secondaryCta: 'Book a free strategy session',
+      primaryHref: `${getPublicSiteOrigin()}/haitian`,
+      secondaryHref: session,
+      showAdvantageCards: false,
+      showAnalysisPreview: false,
+      headerTheme: 'emerald',
+      extraHtml: `<p style="margin:16px 0 0;font-size:14px;color:#475569;">Download your kits: <a href="${download || successPage}" style="color:#10b981;">${download || successPage}</a></p>`,
+      plainText: `Hi ${first},\n\nHaitian community credit kits are ready.\n\nOpen community: ${getPublicSiteOrigin()}/haitian\n\nDownload: ${download || successPage}\n\nBook session: ${session}`,
+    };
+  }
+
   return creditDefault;
 }

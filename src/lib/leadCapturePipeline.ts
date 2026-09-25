@@ -101,39 +101,43 @@ export async function runLeadCapturePipeline(args: LeadCapturePipelineArgs): Pro
     );
   }
 
-  enrollLeadInNurtureSequence({
-    leadId: lead.id,
-    sequenceId,
-    tenantId: 'finely_cred',
-    context: {
-      email: lead.email,
-      fullName: lead.fullName,
-      guideId: args.guideId,
-      guideTitle: args.guideTitle,
-      funnelPath: lead.funnelPath,
-      personaId: enrolledSequence.agentPersonaId,
-      immediateWelcomeSent: true,
-    },
-  });
+  const hasContactConsent = lead.consentToContact || lead.consentEmailMarketing;
 
-  if (lead.email?.trim()) {
-    startLeadMagnetTrial({ leadId: lead.id, email: lead.email.trim() });
-  }
-
-  await sendImmediateWelcomeEmail({
-    lead,
-    guideTitle: args.guideTitle,
-    downloadUrl: lead.funnelPath ? buildFunnelDownloadUrl(lead.funnelPath) : undefined,
-  });
-
-  void sendImmediateWelcomeSms({ lead });
-
-  void import('../features/marketingDesk/marketingDeskMail').then(({ autoEnrollMarketingInboundLead }) =>
-    autoEnrollMarketingInboundLead({
+  if (hasContactConsent) {
+    enrollLeadInNurtureSequence({
       leadId: lead.id,
-      email: lead.email,
-      fullName: lead.fullName,
-      recordId: `crm_lead_${lead.id}`,
-    }),
-  );
+      sequenceId,
+      tenantId: 'finely_cred',
+      context: {
+        email: lead.email,
+        fullName: lead.fullName,
+        guideId: args.guideId,
+        guideTitle: args.guideTitle,
+        funnelPath: lead.funnelPath,
+        personaId: enrolledSequence.agentPersonaId,
+        immediateWelcomeSent: true,
+      },
+    });
+
+    if (lead.email?.trim()) {
+      startLeadMagnetTrial({ leadId: lead.id, email: lead.email.trim() });
+    }
+
+    await sendImmediateWelcomeEmail({
+      lead,
+      guideTitle: args.guideTitle,
+      downloadUrl: lead.funnelPath ? buildFunnelDownloadUrl(lead.funnelPath) : undefined,
+    });
+
+    void sendImmediateWelcomeSms({ lead });
+
+    void import('../features/marketingDesk/marketingDeskMail').then(({ autoEnrollMarketingInboundLead }) =>
+      autoEnrollMarketingInboundLead({
+        leadId: lead.id,
+        email: lead.email,
+        fullName: lead.fullName,
+        recordId: `crm_lead_${lead.id}`,
+      }),
+    );
+  }
 }

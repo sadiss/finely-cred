@@ -317,6 +317,7 @@ const RealEstateGuideReaderPage = lazyWithRetry(() => import('./pages/leadmagnet
 const CaseDeskGuideLandingPage = lazyWithRetry(() => import('./pages/leadmagnet/CaseDeskGuideLandingPage'));
 const CaseDeskGuideReaderPage = lazyWithRetry(() => import('./pages/leadmagnet/CaseDeskGuideReaderPage'));
 const AffiliateToolkitFunnelPage = lazyWithRetry(() => import('./pages/leadmagnet/AffiliateToolkitFunnelPage'));
+const KreyolGuideFunnelPage = lazyWithRetry(() => import('./pages/leadmagnet/KreyolGuideFunnelPage'));
 const AffiliateToolkitGuideReaderPage = lazyWithRetry(() => import('./pages/leadmagnet/AffiliateToolkitGuideReaderPage'));
 const AdminSocialHubPage = lazyWithRetry(() => import('./pages/admin/AdminSocialHubPage'));
 const PartnerLibraryPage = lazyWithRetry(() => import('./pages/portal/PartnerLibraryPage'));
@@ -2819,7 +2820,7 @@ function AppInner() {
         <Route path="/real-estate-guide/read" element={<RealEstateGuideReaderPage />} />
         <Route path="/case-desk-guide" element={<CaseDeskGuideLandingPage />} />
         <Route path="/case-desk-guide/read" element={<CaseDeskGuideReaderPage />} />
-        <Route path="/free-kreyol-guide" element={<HaitianKitStudioPage />} />
+        <Route path="/free-kreyol-guide" element={<KreyolGuideFunnelPage />} />
         <Route path="/free-kreyol-guide/:kitId" element={<HaitianKitStudioPage />} />
         <Route path="/affiliate-toolkit" element={<AffiliateToolkitFunnelPage />} />
         <Route path="/affiliate-toolkit/read" element={<AffiliateToolkitGuideReaderPage />} />

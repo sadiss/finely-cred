@@ -696,9 +696,29 @@ const bulkOk = bulkImport.includes('parseLeadsCsv') && bulkImport.includes('bulk
 console.log(`${bulkOk ? '✓' : '✗'} leadsBulkImport: CSV parse + pipeline import`);
 if (!bulkOk) failed += 1;
 
+const haitianCold = fs.readFileSync(path.join(root, 'src/lib/haitianColdImport.ts'), 'utf8');
+const haitianColdOk =
+  haitianCold.includes('haitian_csv_import') &&
+  haitianCold.includes('consentToContact: false') &&
+  haitianCold.includes('bulkImportHaitianColdLeads');
+console.log(`${haitianColdOk ? '✓' : '✗'} haitianColdImport: cold CSV path (no consent, no nurture)`);
+if (!haitianColdOk) failed += 1;
+
+const appRoutes = fs.readFileSync(path.join(root, 'src/App.tsx'), 'utf8');
+const kreyolFunnelOk =
+  appRoutes.includes('KreyolGuideFunnelPage') &&
+  appRoutes.includes('path="/free-kreyol-guide" element={<KreyolGuideFunnelPage />}');
+console.log(`${kreyolFunnelOk ? '✓' : '✗'} free-kreyol-guide: public Kreyol funnel route`);
+if (!kreyolFunnelOk) failed += 1;
+
+const nurtureCopy = fs.readFileSync(path.join(root, 'src/lib/nurtureStepCopy.ts'), 'utf8');
+const haitianNurtureOk = nurtureCopy.includes('isHaitianNurtureTemplateId');
+console.log(`${haitianNurtureOk ? '✓' : '✗'} nurtureStepCopy: Haitian tpl_haitian_* dispatch`);
+if (!haitianNurtureOk) failed += 1;
+
 const scoring = fs.readFileSync(path.join(root, 'src/lib/leadScoring.ts'), 'utf8');
-const scoringOk = scoring.includes('Meta Lead Ad');
-console.log(`${scoringOk ? '✓' : '✗'} leadScoring: Meta lead signal`);
+const scoringOk = scoring.includes('Meta Lead Ad') && scoring.includes('seq_kreyol_funnel');
+console.log(`${scoringOk ? '✓' : '✗'} leadScoring: Meta + Haitian sequence signals`);
 if (!scoringOk) failed += 1;
 
 const handoff = fs.readFileSync(path.join(root, 'src/lib/agentHandoffBridge.ts'), 'utf8');
