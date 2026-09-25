@@ -692,14 +692,49 @@ console.log(`${errorOpsOk ? '✓' : '✗'} errorReportingBridge: client error op
 if (!errorOpsOk) failed += 1;
 
 const bulkImport = fs.readFileSync(path.join(root, 'src/lib/leadsBulkImport.ts'), 'utf8');
-const bulkOk = bulkImport.includes('parseLeadsCsv') && bulkImport.includes('bulkImportLeads');
-console.log(`${bulkOk ? '✓' : '✗'} leadsBulkImport: CSV parse + pipeline import`);
+const bulkOk =
+  bulkImport.includes('parseLeadsCsv') &&
+  bulkImport.includes('bulkImportLeads') &&
+  bulkImport.includes('consentToContact: row.consentToContact === true');
+console.log(`${bulkOk ? '✓' : '✗'} leadsBulkImport: CSV parse + explicit consent import`);
 if (!bulkOk) failed += 1;
 
+const haitianCold = fs.readFileSync(path.join(root, 'src/lib/haitianColdImport.ts'), 'utf8');
+const haitianColdOk =
+  haitianCold.includes('haitian_csv_import') &&
+  haitianCold.includes('consentToContact: false') &&
+  haitianCold.includes('bulkImportHaitianColdLeads');
+console.log(`${haitianColdOk ? '✓' : '✗'} haitianColdImport: cold CSV path (no consent, no nurture)`);
+if (!haitianColdOk) failed += 1;
+
+const leadsRepo = fs.readFileSync(path.join(root, 'src/data/leadsRepo.ts'), 'utf8');
+const coldToHotOk =
+  leadsRepo.includes('findUpgradableColdHaitianLead') &&
+  leadsRepo.includes('upgradeColdHaitianLeadToHot');
+console.log(`${coldToHotOk ? '✓' : '✗'} leadsRepo: cold Haitian row upgrades on consented opt-in`);
+if (!coldToHotOk) failed += 1;
+
+const haitianAppRoutes = fs.readFileSync(path.join(root, 'src/App.tsx'), 'utf8');
+const kreyolFunnelOk =
+  haitianAppRoutes.includes('KreyolGuideFunnelPage') &&
+  haitianAppRoutes.includes('path="/free-kreyol-guide" element={<KreyolGuideFunnelPage />}');
+console.log(`${kreyolFunnelOk ? '✓' : '✗'} free-kreyol-guide: public Kreyol funnel route`);
+if (!kreyolFunnelOk) failed += 1;
+
+const haitianNurtureCopy = fs.readFileSync(path.join(root, 'src/lib/nurtureStepCopy.ts'), 'utf8');
+const haitianNurtureOk = haitianNurtureCopy.includes('isHaitianNurtureTemplateId');
+console.log(`${haitianNurtureOk ? '✓' : '✗'} nurtureStepCopy: Haitian tpl_haitian_* dispatch`);
+if (!haitianNurtureOk) failed += 1;
+
 const scoring = fs.readFileSync(path.join(root, 'src/lib/leadScoring.ts'), 'utf8');
-const scoringOk = scoring.includes('Meta Lead Ad');
-console.log(`${scoringOk ? '✓' : '✗'} leadScoring: Meta lead signal`);
+const scoringOk = scoring.includes('Meta Lead Ad') && scoring.includes('seq_kreyol_funnel');
+console.log(`${scoringOk ? '✓' : '✗'} leadScoring: Meta + Haitian sequence signals`);
 if (!scoringOk) failed += 1;
+
+const ctaIntent = fs.readFileSync(path.join(root, 'src/lib/finelyCtaIntent.ts'), 'utf8');
+const haitianLaneOk = ctaIntent.includes("case 'haitian'") && ctaIntent.includes('/portal/haitian');
+console.log(`${haitianLaneOk ? '✓' : '✗'} finelyCtaIntent: Haitian onboarding lane resolves`);
+if (!haitianLaneOk) failed += 1;
 
 const handoff = fs.readFileSync(path.join(root, 'src/lib/agentHandoffBridge.ts'), 'utf8');
 const handoffOk = handoff.includes('saveAgentHandoff') && handoff.includes('consumeAgentHandoff') && handoff.includes('peekAgentHandoff');
@@ -879,8 +914,11 @@ console.log(`${courseAgentOk ? '✓' : '✗'} courseLessonAgent: narrate + check
 if (!courseAgentOk) failed += 1;
 
 const nurtureEngine = fs.readFileSync(path.join(root, 'src/lib/nurtureEngine.ts'), 'utf8');
-const nurturePersistOk = nurtureEngine.includes('finely.nurtureEnrollments.v1') && nurtureEngine.includes('saveStore');
-console.log(`${nurturePersistOk ? '✓' : '✗'} nurtureEngine: persisted enrollments`);
+const nurturePersistOk =
+  nurtureEngine.includes('finely.nurtureEnrollments.v1') &&
+  nurtureEngine.includes('saveStore') &&
+  nurtureEngine.includes('no_contact_consent');
+console.log(`${nurturePersistOk ? '✓' : '✗'} nurtureEngine: persisted enrollments + contact consent gate`);
 if (!nurturePersistOk) failed += 1;
 
 const nurtureSeq = fs.readFileSync(path.join(root, 'src/domain/nurtureSequences.ts'), 'utf8');

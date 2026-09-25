@@ -268,6 +268,66 @@ export const PUBLIC_SEO_CATALOG: PublicSeoRoute[] = [
     hasSchema: true,
   },
   {
+    path: '/haitian/miami',
+    title: 'Haitian community · Miami credit help',
+    description: 'Credit help for Haitian Americans in South Florida — letters, collections, Pale Kreyòl.',
+    hasSchema: true,
+  },
+  {
+    path: '/haitian/brooklyn',
+    title: 'Haitian community · Brooklyn credit help',
+    description: 'Credit help for Haitian Americans in New York — letters, collections, Pale Kreyòl.',
+    hasSchema: true,
+  },
+  {
+    path: '/haitian/boston',
+    title: 'Haitian community · Boston credit help',
+    description: 'Credit help for Haitian Americans in Boston — letters, collections, Pale Kreyòl.',
+    hasSchema: true,
+  },
+  {
+    path: '/haitian/houston',
+    title: 'Haitian community · Houston credit help',
+    description: 'Credit help for Haitian Americans in Houston — letters, collections, Pale Kreyòl.',
+    hasSchema: true,
+  },
+  {
+    path: '/haitian/atlanta',
+    title: 'Haitian community · Atlanta credit help',
+    description: 'Credit help for Haitian Americans in Atlanta — letters, collections, Pale Kreyòl.',
+    hasSchema: true,
+  },
+  {
+    path: '/haitian/washington',
+    title: 'Haitian community · Washington DC credit help',
+    description: 'Credit help for Haitian Americans in DC — letters, collections, Pale Kreyòl.',
+    hasSchema: true,
+  },
+  {
+    path: '/haitian/chicago',
+    title: 'Haitian community · Chicago credit help',
+    description: 'Credit help for Haitian Americans in Chicago — letters, collections, Pale Kreyòl.',
+    hasSchema: true,
+  },
+  {
+    path: '/haitian/philadelphia',
+    title: 'Haitian community · Philadelphia credit help',
+    description: 'Credit help for Haitian Americans in Philadelphia — letters, collections, Pale Kreyòl.',
+    hasSchema: true,
+  },
+  {
+    path: '/haitian/jacksonville',
+    title: 'Haitian community · Jacksonville credit help',
+    description: 'Credit help for Haitian Americans in Jacksonville — letters, collections, Pale Kreyòl.',
+    hasSchema: true,
+  },
+  {
+    path: '/haitian/new-jersey',
+    title: 'Haitian community · New Jersey credit help',
+    description: 'Credit help for Haitian Americans in New Jersey — letters, collections, Pale Kreyòl.',
+    hasSchema: true,
+  },
+  {
     path: '/case-desk-guide',
     title: 'Case Desk Operator Guide',
     description:

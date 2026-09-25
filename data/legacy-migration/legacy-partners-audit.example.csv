@@ -1,0 +1,3 @@
+partnersInfoId,userId,fullName,email,phone,isReal,skipReason,applicationStatus,applicationStatusLabel,journeyStage,docCount,reportCount,noteCount,letterCount,dateSignedUp
+1,100,Example Partner,partner.example@example.com,555-0100,true,,1,Account opened,intake,1,1,0,0,2024-01-15
+2,101,Demo Client,demo.client@example.com,555-0101,true,,5,CA sent,evidence,2,1,1,0,2024-03-20

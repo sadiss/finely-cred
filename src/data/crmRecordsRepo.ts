@@ -153,8 +153,15 @@ function leadToRecord(lead: LeadCapture, op: LeadOp): CrmRecord {
       ? ['credit-specialist', `offer:${lead.offer}`]
       : [];
   const haitianTags =
-    lead.offer === 'haitian_credit_kit' || /haitian|krey[oò]l/i.test(lead.interest ?? '')
-      ? ['haitian-community', 'offer:haitian_credit_kit']
+    lead.source === 'haitian_csv_import' ||
+    lead.offer === 'haitian_credit_kit' ||
+    lead.funnelId === 'kreyol_companion' ||
+    /haitian|krey[oò]l/i.test(lead.interest ?? '')
+      ? [
+          'haitian-community',
+          'offer:haitian_credit_kit',
+          ...(lead.source === 'haitian_csv_import' ? ['source:haitian_csv_import', 'cold', 'temperature:cold'] : []),
+        ]
       : [];
 
   return {

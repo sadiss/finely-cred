@@ -101,8 +101,10 @@ function parseCsvLine(line: string): string[] {
 
 function parseBool(v: string | undefined): boolean {
   const s = (v ?? '').trim().toLowerCase();
+  if (!s) return false;
+  if (s === 'true' || s === '1' || s === 'yes') return true;
   if (s === 'false' || s === '0' || s === 'no') return false;
-  return true;
+  return false;
 }
 
 export function parseCrmImportCsv(text: string): CrmImportRow[] {
@@ -172,7 +174,7 @@ export function importCrmRows(rows: CrmImportRow[]): CrmBulkImportResult {
           email: row.email,
           phone: row.phone,
           interest: row.interest,
-          consentToContact: row.consentToContact !== false,
+          consentToContact: row.consentToContact === true,
           referralCode: row.referralCode,
           source: 'contact' as LeadSource,
         });

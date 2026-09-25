@@ -82,6 +82,15 @@ export function scoreLead(lead: LeadCapture): LeadScoreResult {
     reasons.push('Bulk import — verify enrichment');
   }
 
+  const isHaitianCommunity =
+    lead.source === 'haitian_csv_import' ||
+    lead.offer === 'haitian_credit_kit' ||
+    interest.includes('haitian') ||
+    interest.includes('kreyol') ||
+    interest.includes('kreyòl') ||
+    (lead.funnelPath ?? '').includes('kreyol') ||
+    (lead.funnelPath ?? '').includes('haitian');
+
   const isSpecialistRecruit =
     interest.includes('credit_specialist') ||
     interest.includes('specialist') ||
@@ -89,6 +98,16 @@ export function scoreLead(lead: LeadCapture): LeadScoreResult {
     lead.offer === 'credit_specialist_guide' ||
     lead.offer === 'agent_application' ||
     (lead.funnelPath ?? '').includes('credit-specialist');
+
+  const isColdHaitianImport =
+    lead.source === 'haitian_csv_import' && !lead.consentToContact && !lead.consentEmailMarketing;
+
+  if (isColdHaitianImport) {
+    reasons.push('Haitian cold import — opt-in required before outreach');
+  } else if (isHaitianCommunity) {
+    score += 10;
+    reasons.push('Haitian community signal');
+  }
 
   if (isSpecialistRecruit) {
     score += 14;
@@ -121,19 +140,27 @@ export function scoreLead(lead: LeadCapture): LeadScoreResult {
   const suggestedSequenceId =
     interest.includes('meta_lead') || lead.utmSource === 'facebook' || lead.utmMedium === 'lead_ad'
       ? 'seq_meta_lead'
-      : isSpecialistRecruit
-        ? 'seq_specialist_apply_funnel'
-        : isFinancingPreapproval
-          ? 'seq_financing_preapproval'
-          : fit === 'debt'
-            ? 'seq_debt_funnel'
-            : fit === 'business'
-              ? 'seq_business_funnel'
-              : fit === 'tradelines'
-                ? 'seq_tradeline_funnel'
-                : 'seq_credit_funnel';
+      : isHaitianCommunity
+        ? 'seq_kreyol_funnel'
+        : isSpecialistRecruit
+          ? 'seq_specialist_apply_funnel'
+          : isFinancingPreapproval
+            ? 'seq_financing_preapproval'
+            : fit === 'debt'
+              ? 'seq_debt_funnel'
+              : fit === 'business'
+                ? 'seq_business_funnel'
+                : fit === 'tradelines'
+                  ? 'seq_tradeline_funnel'
+                  : 'seq_credit_funnel';
 
-  const suggestedAction = isSpecialistRecruit
+  const suggestedAction = isColdHaitianImport
+    ? 'Cold Haitian import — do not email; wait for /free-kreyol-guide opt-in'
+    : isHaitianCommunity
+      ? band === 'qualified' || band === 'hot'
+        ? 'Book Haitian community session · confirm Kreyòl voice preference'
+        : 'Enroll seq_kreyol_funnel · share credit kits'
+      : isSpecialistRecruit
     ? band === 'qualified' || band === 'hot'
       ? 'Route to Credit Specialists CRM · confirm 3-lead + 30-day commitment · book activation'
       : 'Enroll specialist nurture · send join / pricing hub'

@@ -26,7 +26,8 @@ const result = buildLegacyMigrationFromSql(sql, path.basename(sqlPath));
 const outDir = path.resolve(__dirname, '../data/legacy-migration');
 fs.mkdirSync(outDir, { recursive: true });
 
-const exportPath = path.join(outDir, 'legacy-partners-export-v1.json');
+/** Real PII exports — gitignored. Committed fixture is legacy-partners-export-v1.json (@example.com demo). */
+const exportPath = path.join(outDir, 'legacy-partners-export-v1.local.json');
 const auditPath = path.join(outDir, 'legacy-partners-audit.csv');
 const summaryPath = path.join(outDir, 'legacy-partners-audit-summary.json');
 

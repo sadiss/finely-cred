@@ -344,7 +344,7 @@ export const KREYOL_FUNNEL: LeadMagnetFunnelConfig = {
   agentDisplayName: 'Marie-Claire',
   agentRole: 'Haitian Community Guide',
   guideId: 'kreyol-companion-kit',
-  offer: 'kreyol_companion_kit',
+  offer: 'haitian_credit_kit',
   onboardingLane: 'haitian',
   metaTitle: 'Credit kits — Haitian community',
   metaDesc:

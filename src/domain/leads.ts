@@ -1,4 +1,16 @@
-export type LeadSource = 'resources' | 'chat' | 'contact' | 'affiliate' | 'agent' | 'consultation' | 'lead_magnet' | 'purchase' | 'agency' | 'heta_society';
+export type LeadSource =
+  | 'resources'
+  | 'chat'
+  | 'contact'
+  | 'affiliate'
+  | 'agent'
+  | 'consultation'
+  | 'lead_magnet'
+  | 'purchase'
+  | 'agency'
+  | 'heta_society'
+  /** Cold Haitian community CSV — never consented; opt-in only via /free-kreyol-guide */
+  | 'haitian_csv_import';
 
 export type LeadGoal = 'credit' | 'debt' | 'business' | 'tradelines' | 'general';
 

@@ -54,6 +54,13 @@ export function syncLeadToCrmProspect(lead: LeadCapture, funnelId?: string) {
     ...(lead.offer ? [`offer:${lead.offer}`] : []),
     ...(isCreditSpecialistLeadOffer(lead.offer) ? ['credit-specialist'] : []),
     ...(lead.offer === 'financing_preapproval' ? ['financing-preapproval', 'in-house-financing'] : []),
+    ...(lead.source === 'haitian_csv_import'
+      ? ['haitian-community', 'cold', 'audience:haitian_community', 'source:haitian_csv_import']
+      : lead.offer === 'haitian_credit_kit' ||
+          lead.funnelId === 'kreyol_companion' ||
+          /haitian|krey[oò]l/i.test(lead.interest ?? '')
+        ? ['haitian-community']
+        : []),
   ];
 
   return createProspect({

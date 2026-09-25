@@ -37,6 +37,8 @@ import { loadMetaIntegrationConfig, isMetaIntegrationLive } from '../../data/met
 import { scoreLead, kanbanStageForLead } from '../../lib/leadScoring';
 import { enrollLeadInNurtureSequence } from '../../lib/nurtureEngine';
 import { LeadBulkImportPanel } from '../../features/leadsOs/LeadBulkImportPanel';
+import { HaitianColdImportPanel } from '../../features/leadsOs/HaitianColdImportPanel';
+import { isHaitianColdImportedLead } from '../../lib/haitianColdImport';
 import { LeadScrapeSourcePicker } from '../../features/leadsOs/LeadScrapeSourcePicker';
 import { LeadTrashPanel } from '../../features/studioCommandOs/LeadTrashPanel';
 import { NurtureOpsStrip } from '../../features/leadsOs/NurtureOpsStrip';
@@ -135,14 +137,30 @@ export default function AdminLeadsOsPage({
     [version],
   );
   const [offerFilter, setOfferFilter] = useState<'all' | 'credit_specialist'>('all');
+  const [haitianColdFilter, setHaitianColdFilter] = useState(false);
   const scoredCaptures = useMemo(
     () =>
       captures
         .filter((c) => !isLeadTrashed(c.id))
         .filter((c) => (offerFilter === 'credit_specialist' ? isCreditSpecialistLeadOffer(c.offer) : true))
+        .filter((c) => (haitianColdFilter ? isHaitianColdImportedLead(c) : true))
         .map((c) => ({ lead: c, score: scoreLead(c), stage: kanbanStageForLead(c) })),
-    [captures, version, offerFilter],
+    [captures, version, offerFilter, haitianColdFilter],
   );
+  const haitianColdCount = useMemo(
+    () => captures.filter((c) => !isLeadTrashed(c.id) && isHaitianColdImportedLead(c)).length,
+    [captures, version],
+  );
+  const filteredInboundRecords = useMemo(() => {
+    if (!haitianColdFilter) return inboundRecords;
+    return inboundRecords.filter((r) => {
+      const leadId = r.sourceRef?.type === 'lead' ? r.sourceRef.id : r.id.replace(/^crm_lead_/, '');
+      const lead = captures.find((c) => c.id === leadId);
+      if (lead) return isHaitianColdImportedLead(lead);
+      const tags = r.tags ?? [];
+      return tags.some((t) => t.includes('haitian') || t.includes('haitian_csv_import') || t === 'cold');
+    });
+  }, [inboundRecords, haitianColdFilter, captures]);
   const csCaptureCount = useMemo(
     () => captures.filter((c) => !isLeadTrashed(c.id) && isCreditSpecialistLeadOffer(c.offer)).length,
     [captures, version],
@@ -337,6 +355,14 @@ export default function AdminLeadsOsPage({
                       >
                         Credit Specialists ({csCaptureCount})
                       </button>
+                      <button
+                        type="button"
+                        onClick={() => setHaitianColdFilter((v) => !v)}
+                        className={haitianColdFilter ? FINELY_OS_SUCCESS_BTN : FINELY_OS_SECONDARY_BTN}
+                        title="Filter cold Haitian CSV imports (source=haitian_csv_import)"
+                      >
+                        Haitian cold ({haitianColdCount})
+                      </button>
                       <button type="button" onClick={() => navigate('/admin/crm?pipeline=agents')} className={FINELY_OS_SECONDARY_BTN}>
                         Specialists CRM
                       </button>
@@ -348,7 +374,7 @@ export default function AdminLeadsOsPage({
                       <div className={`flex-1 min-w-0 ${FINELY_OS_BOARD_SHELL}`}>
                         <CrmPipelineBoard
                           pipelineId="inbound"
-                          records={inboundRecords}
+                          records={filteredInboundRecords}
                           onSelect={setSelected}
                           onStageChange={(recordId, stage) => {
                             setCrmRecordStage(recordId, stage as CrmRecordStage);
@@ -396,6 +422,9 @@ export default function AdminLeadsOsPage({
                         <CrmRecordPanel record={selected} onClose={() => setSelected(null)} onUpdated={() => setVersion((v) => v + 1)} />
                         <FinelyOsGlassPanel icon={Target} title="Bulk import" subtitle="CSV → capture pipeline" accent="sky">
                           <LeadBulkImportPanel onImported={() => setVersion((v) => v + 1)} />
+                          <div className="mt-4 border-t border-white/10 pt-4">
+                            <HaitianColdImportPanel onImported={() => setVersion((v) => v + 1)} />
+                          </div>
                         </FinelyOsGlassPanel>
                       </div>
                     </div>

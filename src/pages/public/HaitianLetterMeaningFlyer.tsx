@@ -156,7 +156,7 @@ export function HaitianLetterMeaningFlyer({ kit, haitianHref }: Props) {
       <section className="lm-gutter lm-capture" aria-label="Email this sheet">
         <img
           className="lm-cover"
-          src="/images/haitian-kits/letter-meaning-cover.png"
+          src="/images/haitian-kits/letter-meaning-cover.svg"
           alt="What this letter says — one-sheet cover"
           width={360}
           height={480}
