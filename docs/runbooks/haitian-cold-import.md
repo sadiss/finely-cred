@@ -46,7 +46,7 @@ First name,Last name,Phone number,Email,Area code,State guess
 Example,Lead,5551234567,example.lead@example.com,555,FL
 ```
 
-Legacy partner audit CSV (different import): see `data/legacy-migration/legacy-partners-audit.example.csv` — regenerate real audit via `node scripts/audit-legacy-sql.mjs` locally (output is gitignored).
+Legacy partner exports (different import): see [legacy-partner-import.md](./legacy-partner-import.md) — committed JSON is a redacted `@example.com` demo; real SQL exports go to `*.local.json` (gitignored).
 
 ## Row defaults (every import)
 

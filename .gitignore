@@ -55,6 +55,9 @@ NUL.css
 # Regenerate legacy audit locally: node scripts/audit-legacy-sql.mjs [path-to-sql]
 data/legacy-migration/legacy-partners-audit.csv
 data/legacy-migration/legacy-partners-audit-summary.json
+# Real legacy SQL exports (regenerate locally — never commit)
+data/legacy-migration/legacy-partners-export-v1.local.json
+data/legacy-migration/*.local.json
 
 # Haitian / FinelyCredit lead lists (owner Documents machine — keep outside repo)
 *leads*.csv

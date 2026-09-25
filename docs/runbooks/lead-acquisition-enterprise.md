@@ -82,7 +82,7 @@ These fit Finely Cred’s partner email sequences (`cold_prospect`, `invite_opt_
 - Haitian Documents CSVs were **never** added to this repository (confirmed in git history audit)
 - Tracked partner audit CSV removed; use `legacy-partners-audit.example.csv` for schema reference
 - **Residual risk:** git history may still contain deleted blobs (`legacy-partners-audit.csv`, `docs/warm-prospects/library-seed.csv`) until an owner-approved `git filter-repo` / BFG purge — this PR does **not** rewrite history
-- `legacy-partners-export-v1.json` still contains partner records for bundled admin import — owner should redact or move off-repo in a follow-up
+- `legacy-partners-export-v1.json` is now a redacted `@example.com` demo fixture; real exports → `legacy-partners-export-v1.local.json` (gitignored) — see [legacy-partner-import.md](./legacy-partner-import.md)
 
 ## What we do **not** do
 
