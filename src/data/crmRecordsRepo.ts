@@ -155,6 +155,7 @@ function leadToRecord(lead: LeadCapture, op: LeadOp): CrmRecord {
   const haitianTags =
     lead.source === 'haitian_csv_import' ||
     lead.offer === 'haitian_credit_kit' ||
+    lead.funnelId === 'kreyol_companion' ||
     /haitian|krey[oò]l/i.test(lead.interest ?? '')
       ? [
           'haitian-community',

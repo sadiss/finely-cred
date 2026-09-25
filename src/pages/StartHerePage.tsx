@@ -73,6 +73,8 @@ const PATHS = [
 ] as const;
 
 const MORE_LANES = [
+  { label: 'Haitian community · Pale Kreyòl', to: '/haitian' },
+  { label: 'Free Kreyòl credit kits', to: '/free-kreyol-guide' },
   { label: 'Score roadmap', to: '/free-score-roadmap' },
   { label: 'Tradeline guide', to: '/free-tradeline-guide' },
   { label: 'Agency guide', to: '/free-agency-guide' },
@@ -89,7 +91,7 @@ export default function StartHerePage() {
   usePublicSeoMeta({
     title: 'Start here',
     description:
-      'Pick your path — fix personal credit, handle debt, build business credit, earn as a Credit Specialist, or sign in.',
+      'Pick your path — fix personal credit, handle debt, build business credit, Haitian community (Pale Kreyòl), earn as a Credit Specialist, or sign in.',
     path: '/start-here',
   });
 

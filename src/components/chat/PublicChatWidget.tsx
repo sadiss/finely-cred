@@ -930,7 +930,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                   : '/free-guide',
         funnelId:
           haitianLead
-            ? 'haitian_credit_kit'
+            ? 'kreyol_companion'
             : goal === 'debt'
               ? 'debt_freedom'
               : goal === 'business'

@@ -188,6 +188,7 @@ function shouldSkipEnrollmentSend(enrollment: NurtureEnrollment): string | null 
   if (email) {
     const lead = listLeadCaptures().find((l) => (l.email || '').trim().toLowerCase() === email);
     if (lead && lead.consentEmailMarketing === false) return 'unsubscribed';
+    if (lead && !lead.consentToContact && lead.consentEmailMarketing !== true) return 'no_contact_consent';
     const suppression = checkSuppression({ email, channel: 'email' });
     if (suppression.suppressed) return `suppressed_${suppression.reason}`;
   }

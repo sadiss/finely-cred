@@ -131,6 +131,12 @@ export function resolveLaneOnboardingPath(lane: string, opts: LaneOnboardingOpts
     case 'tradeline':
     case 'tradelines':
       return resolveFinelyCtaPath('tradeline_intake', opts);
+    case 'haitian':
+    case 'kreyol':
+      return appendCtaExtras('/haitian', {
+        next: opts.next ?? '/portal/haitian',
+        ...opts,
+      });
     case 'personal_restore':
     default:
       return resolveFinelyCtaPath('lead_magnet', {

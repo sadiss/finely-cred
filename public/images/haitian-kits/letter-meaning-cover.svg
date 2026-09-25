@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="480" viewBox="0 0 360 480" role="img" aria-label="What this letter says  Haitian community credit kit">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#064e3b"/>
+      <stop offset="50%" stop-color="#022c22"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+    <linearGradient id="spine" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#6ee7b7"/>
+      <stop offset="50%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#047857"/>
+    </linearGradient>
+  </defs>
+  <rect width="360" height="480" fill="url(#bg)"/>
+  <rect x="0" y="0" width="12" height="480" fill="url(#spine)"/>
+  <text x="36" y="72" fill="#a7f3d0" font-family="system-ui, sans-serif" font-size="13" font-weight="600" letter-spacing="0.08em">HAITIAN COMMUNITY</text>
+  <text x="36" y="140" fill="#ecfdf5" font-family="Georgia, serif" font-size="28" font-weight="700">What this</text>
+  <text x="36" y="178" fill="#ecfdf5" font-family="Georgia, serif" font-size="28" font-weight="700">letter says</text>
+  <text x="36" y="220" fill="#6ee7b7" font-family="system-ui, sans-serif" font-size="16">Sa lèt la di</text>
+  <rect x="36" y="260" width="288" height="2" fill="#10b981" opacity="0.5"/>
+  <text x="36" y="300" fill="#d1fae5" font-family="system-ui, sans-serif" font-size="14" line-height="1.5">Collector &amp; bureau letters,</text>
+  <text x="36" y="322" fill="#d1fae5" font-family="system-ui, sans-serif" font-size="14">line by line  with Kreyòl meaning.</text>
+  <text x="36" y="420" fill="#6ee7b7" font-family="system-ui, sans-serif" font-size="12">finelycred.com/haitian</text>
+  <text x="36" y="444" fill="#a7f3d0" font-family="system-ui, sans-serif" font-size="11" opacity="0.8">Results vary · not legal advice</text>
+</svg>
