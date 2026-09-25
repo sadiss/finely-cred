@@ -1,4 +1,16 @@
-export type LeadSource = 'resources' | 'chat' | 'contact' | 'affiliate' | 'agent' | 'consultation' | 'lead_magnet' | 'purchase' | 'agency' | 'heta_society';
+export type LeadSource =
+  | 'resources'
+  | 'chat'
+  | 'contact'
+  | 'affiliate'
+  | 'agent'
+  | 'consultation'
+  | 'lead_magnet'
+  | 'purchase'
+  | 'agency'
+  | 'heta_society'
+  /** Admin CRM CSV import — visibility only; never an opt-in capture. */
+  | 'csv_import';
 
 export type LeadGoal = 'credit' | 'debt' | 'business' | 'tradelines' | 'general';
 

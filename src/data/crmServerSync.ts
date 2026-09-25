@@ -15,7 +15,10 @@ import { nowIso } from '../domain/crmProspects';
 import type { CrmRecord, CrmRecordContact, CrmTimelineEntry } from '../domain/crmRecords';
 import { listProspects, mergeProspectsFromServer } from './crmProspectsRepo';
 import { listCrmRecords, mergeCrmRecordsFromServer } from './crmRecordsRepo';
+import { mergeLeadCapturesFromServer } from './leadsRepo';
+import { addLeadTags } from './leadOpsRepo';
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient';
+import type { LeadCapture, LeadOffer, LeadSource } from '../domain/leads';
 
 const SERVER_TENANT_ID = 'finely_cred';
 const BACKFILL_FLAG_KEY = 'finely.crmServerSync.backfilledV1';
@@ -96,6 +99,25 @@ function prospectFromRow(r: Record<string, unknown>): Prospect {
   };
 }
 
+function leadCaptureFromRow(r: Record<string, unknown>): LeadCapture {
+  return {
+    id: safeStr(r.id),
+    createdAt: safeStr(r.created_at) || nowIso(),
+    source: (safeStr(r.source) as LeadSource) || 'csv_import',
+    offer: (safeStr(r.offer) as LeadOffer) || 'general_inquiry',
+    interest: safeStr(r.interest) || undefined,
+    fullName: safeStr(r.full_name) || safeStr(r.email) || 'Imported contact',
+    email: safeStr(r.email),
+    phone: safeStr(r.phone),
+    consentToContact: Boolean(r.consent_to_contact),
+    referralCode: safeStr(r.referral_code) || undefined,
+    utmSource: safeStr(r.utm_source) || undefined,
+    utmMedium: safeStr(r.utm_medium) || undefined,
+    utmCampaign: safeStr(r.utm_campaign) || undefined,
+    funnelPath: safeStr(r.funnel_path) || undefined,
+  };
+}
+
 function crmRecordFromRow(r: Record<string, unknown>): CrmRecord {
   return {
     id: safeStr(r.id),
@@ -136,15 +158,17 @@ export async function pullCrmSnapshotFromSupabase(): Promise<{
   ok: boolean;
   prospects: { added: number; updated: number };
   records: { cached: number };
+  leads: { added: number; updated: number };
   error?: string;
 }> {
-  const empty = { prospects: { added: 0, updated: 0 }, records: { cached: 0 } };
+  const empty = { prospects: { added: 0, updated: 0 }, records: { cached: 0 }, leads: { added: 0, updated: 0 } };
   if (!isSupabaseConfigured) return { ok: false, error: 'Supabase not configured', ...empty };
 
   try {
-    const [prospectsRes, recordsRes] = await Promise.all([
+    const [prospectsRes, recordsRes, leadsRes] = await Promise.all([
       supabase.from('crm_prospects').select('*').eq('tenant_id', SERVER_TENANT_ID).order('updated_at', { ascending: false }).limit(2000),
-      supabase.from('crm_records').select('*').eq('tenant_id', SERVER_TENANT_ID).order('updated_at', { ascending: false }).limit(2000),
+      supabase.from('crm_records').select('*').eq('tenant_id', SERVER_TENANT_ID).order('updated_at', { ascending: false }).limit(4000),
+      supabase.from('lead_captures').select('*').order('created_at', { ascending: false }).limit(4000),
     ]);
 
     if (prospectsRes.error) {
@@ -158,11 +182,22 @@ export async function pullCrmSnapshotFromSupabase(): Promise<{
 
     const prospects = (prospectsRes.data ?? []).map(prospectFromRow);
     const records = (recordsRes.data ?? []).map(crmRecordFromRow);
+    const leads = leadsRes.error ? [] : (leadsRes.data ?? []).map((row) => leadCaptureFromRow(row as Record<string, unknown>));
+    if (leadsRes.error) {
+      console.warn('Error fetching lead_captures from Supabase:', leadsRes.error.message);
+    }
 
     const prospectResult = mergeProspectsFromServer(prospects);
     const recordResult = mergeCrmRecordsFromServer(records);
+    const leadResult = mergeLeadCapturesFromServer(leads);
 
-    return { ok: true, prospects: prospectResult, records: recordResult };
+    for (const record of records) {
+      if (record.sourceRef?.type === 'lead' && record.tags?.length) {
+        addLeadTags(record.sourceRef.id, record.tags);
+      }
+    }
+
+    return { ok: true, prospects: prospectResult, records: recordResult, leads: leadResult };
   } catch (err: unknown) {
     console.warn('Error pulling CRM snapshot from Supabase:', (err as Error)?.message || String(err));
     return { ok: false, error: (err as Error)?.message ?? String(err), ...empty };

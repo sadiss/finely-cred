@@ -118,7 +118,9 @@
     "smoke:premium-spread-pdf": "npx tsx scripts/smoke-premium-spread-pdf.mjs",
     "smoke:litigation-address-scrape": "npx tsx scripts/smoke-litigation-address-scrape.mjs",
     "verify:creditor-contacts": "npx tsx scripts/verify-creditor-contact-extract.mjs",
-    "dispute:track:audit": "node scripts/audit-dispute-track-purity.mjs"
+    "dispute:track:audit": "node scripts/audit-dispute-track-purity.mjs",
+    "leads:import:haitian": "node scripts/import-haitian-community-leads.mjs",
+    "test:crm-import": "npx tsx --test src/lib/__tests__/crmSilentLeadImport.test.ts"
   },
   "devDependencies": {
     "@playwright/test": "^1.52.0",

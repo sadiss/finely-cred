@@ -24,6 +24,10 @@ dist-ssr
 *.sln
 *.sw?
 
+# Contact-list PII (Haitian community CSVs and similar) — never commit
+*haitian-leads*.csv
+data/private-imports/
+
 # Environment variables
 .env
 

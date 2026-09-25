@@ -45,6 +45,14 @@ export function LeadsInboxEmbeddedPanel() {
     return () => window.removeEventListener('finely:store', refresh as EventListener);
   }, []);
 
+  useEffect(() => {
+    void import('../../../../../data/crmServerSync').then(({ pullCrmSnapshotFromSupabase }) =>
+      pullCrmSnapshotFromSupabase().then((result) => {
+        if (result.ok) setVersion((v) => v + 1);
+      }),
+    );
+  }, []);
+
   const ops = useMemo(() => new Map(listLeadOps().map((op) => [op.leadId, op])), [version]);
 
   const queue = useMemo(() => {
@@ -58,7 +66,8 @@ export function LeadsInboxEmbeddedPanel() {
       })
       .filter((lead) => {
         if (!q) return true;
-        const hay = `${lead.fullName ?? ''} ${lead.email ?? ''} ${lead.source ?? ''} ${lead.offer ?? ''}`.toLowerCase();
+        const tags = (ops.get(lead.id)?.tags ?? []).join(' ');
+        const hay = `${lead.fullName ?? ''} ${lead.email ?? ''} ${lead.source ?? ''} ${lead.offer ?? ''} ${lead.interest ?? ''} ${lead.utmSource ?? ''} ${tags}`.toLowerCase();
         return hay.includes(q);
       })
       .sort((a, b) => a.createdAt.localeCompare(b.createdAt));

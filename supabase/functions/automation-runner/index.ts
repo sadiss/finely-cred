@@ -46,7 +46,7 @@ async function runCronSweep(args: { dryRun: boolean; userId: string }) {
 
   const { data: leads } = await admin
     .from('lead_captures')
-    .select('id, email, source, created_at')
+    .select('id, email, source, created_at, utm_source, consent_to_contact')
     .gte('created_at', since48)
     .order('created_at', { ascending: false })
     .limit(100);
@@ -66,6 +66,10 @@ async function runCronSweep(args: { dryRun: boolean; userId: string }) {
 
   const dispatches: Array<{ ruleId: string; eventType: string; entityId: string }> = [];
   for (const lead of leads ?? []) {
+    const source = String((lead as { source?: string }).source || '');
+    const utm = String((lead as { utm_source?: string }).utm_source || '');
+    // Cold CSV imports are CRM visibility only — never welcome-hook them.
+    if (source === 'csv_import' || utm === 'haitian_csv_import') continue;
     dispatches.push({
       ruleId: 'hook_lead_welcome',
       eventType: 'lead.created',

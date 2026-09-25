@@ -35,7 +35,70 @@ export function findLeadCapturesByEmail(email: string): LeadCapture[] {
   return loadStore().leads.filter((l) => (l.email || '').trim().toLowerCase() === normalized);
 }
 
-export function createLeadCapture(args: Omit<LeadCapture, 'id' | 'createdAt'> & { id?: string; createdAt?: string }): LeadCapture {
+function digitsOnly(phone: string): string {
+  let d = (phone || '').replace(/\D/g, '');
+  if (d.length === 11 && d.startsWith('1')) d = d.slice(1);
+  return d;
+}
+
+export function findLeadCapturesByPhone(phone: string): LeadCapture[] {
+  const normalized = digitsOnly(phone);
+  if (normalized.length < 10) return [];
+  return loadStore().leads.filter((l) => digitsOnly(l.phone || '') === normalized);
+}
+
+export function mergeLeadCapturesFromServer(serverLeads: LeadCapture[]): { added: number; updated: number } {
+  const store = loadStore();
+  let added = 0;
+  let updated = 0;
+  for (const incoming of serverLeads) {
+    const byId = store.leads.findIndex((l) => l.id === incoming.id);
+    if (byId >= 0) {
+      const prev = store.leads[byId];
+      store.leads[byId] = {
+        ...prev,
+        ...incoming,
+        consentToContact: prev.consentToContact,
+        consentEmailMarketing: prev.consentEmailMarketing,
+        consentSmsMarketing: prev.consentSmsMarketing,
+      };
+      updated += 1;
+      continue;
+    }
+    const email = (incoming.email || '').trim().toLowerCase();
+    const phone = digitsOnly(incoming.phone || '');
+    const byIdentity = store.leads.findIndex((l) => {
+      const e = (l.email || '').trim().toLowerCase();
+      if (email && e && e === email) return true;
+      if (phone.length >= 10 && digitsOnly(l.phone || '') === phone) return true;
+      return false;
+    });
+    if (byIdentity >= 0) {
+      const prev = store.leads[byIdentity];
+      store.leads[byIdentity] = {
+        ...prev,
+        fullName: prev.fullName || incoming.fullName,
+        phone: prev.phone || incoming.phone,
+        interest: incoming.interest || prev.interest,
+        utmSource: incoming.utmSource || prev.utmSource,
+        utmMedium: incoming.utmMedium || prev.utmMedium,
+        utmCampaign: incoming.utmCampaign || prev.utmCampaign,
+        funnelPath: incoming.funnelPath || prev.funnelPath,
+      };
+      updated += 1;
+      continue;
+    }
+    store.leads.push(incoming);
+    added += 1;
+  }
+  if (added || updated) saveStore(store);
+  return { added, updated };
+}
+
+export function createLeadCapture(
+  args: Omit<LeadCapture, 'id' | 'createdAt'> & { id?: string; createdAt?: string },
+  options?: { skipAutoEnroll?: boolean },
+): LeadCapture {
   const store = loadStore();
   const attr = getLeadAttribution();
   const lead: LeadCapture = {
@@ -65,7 +128,7 @@ export function createLeadCapture(args: Omit<LeadCapture, 'id' | 'createdAt'> & 
   };
   store.leads.push(lead);
   saveStore(store);
-  if (lead.consentToContact) {
+  if (lead.consentToContact && !options?.skipAutoEnroll) {
     try {
       autoEnrollCrmRecordInDefaultSequence(`crm_lead_${lead.id}`, { noteLabel: `[Sequence] Auto-enrolled on lead capture` });
     } catch {
@@ -93,6 +156,8 @@ export type LeadSubmitResult = {
   /** Whether the lead was also inserted into Supabase. */
   remote: 'ok' | 'failed' | 'not_configured';
   remoteError?: string;
+  /** Silent upsert: false when an existing email/phone row was updated. */
+  created?: boolean;
 };
 
 function sanitize(s: string) {
@@ -152,6 +217,76 @@ export async function submitLeadCapture(
     return { lead, remote: 'ok' };
   } catch (e: any) {
     return { lead, remote: 'failed', remoteError: e?.message || 'Unknown error' };
+  }
+}
+
+function leadCaptureRemoteRow(lead: LeadCapture) {
+  return {
+    id: lead.id,
+    created_at: lead.createdAt,
+    source: lead.source,
+    offer: lead.offer,
+    interest: lead.interest ?? null,
+    full_name: lead.fullName,
+    email: lead.email,
+    phone: lead.phone || null,
+    consent_to_contact: lead.consentToContact,
+    referral_code: lead.referralCode ?? null,
+    promoter_role: lead.promoterRole ?? null,
+    promo_type: lead.promoType ?? null,
+    promo_asset: lead.promoAsset ?? null,
+    utm_source: lead.utmSource ?? null,
+    utm_medium: lead.utmMedium ?? null,
+    utm_campaign: lead.utmCampaign ?? null,
+    funnel_path: lead.funnelPath ?? null,
+  };
+}
+
+/**
+ * CRM-only persist: local store + optional `lead_captures` upsert.
+ * Does **not** run the capture pipeline (no welcome email, SMS, or nurture enroll).
+ */
+export async function upsertLeadCaptureSilent(
+  args: Omit<LeadCapture, 'id' | 'createdAt'> & { id?: string; createdAt?: string },
+): Promise<LeadSubmitResult> {
+  const existing =
+    (args.id ? getLeadCaptureById(args.id) : null) ??
+    (args.email?.trim() ? findLeadCapturesByEmail(args.email)[0] : undefined) ??
+    (args.phone?.trim() ? findLeadCapturesByPhone(args.phone)[0] : undefined);
+
+  let lead: LeadCapture;
+  if (existing) {
+    const patched = patchLeadCapture(existing.id, {
+      fullName: sanitize(args.fullName) || existing.fullName,
+      email: sanitize(args.email) || existing.email,
+      phone: sanitize(args.phone) || existing.phone,
+      interest: args.interest ?? existing.interest,
+    });
+    lead = patched ?? existing;
+  } else {
+    lead = createLeadCapture(
+      {
+        ...args,
+        fullName: sanitize(args.fullName),
+        email: sanitize(args.email),
+        phone: sanitize(args.phone),
+        consentToContact: false,
+        consentEmailMarketing: false,
+        consentSmsMarketing: false,
+      },
+      { skipAutoEnroll: true },
+    );
+  }
+
+  const created = !existing;
+  if (!isSupabaseConfigured) return { lead, remote: 'not_configured', created };
+
+  try {
+    const { error } = await supabase.from('lead_captures').upsert(leadCaptureRemoteRow(lead), { onConflict: 'id' });
+    if (error) return { lead, remote: 'failed', remoteError: error.message, created };
+    return { lead, remote: 'ok', created };
+  } catch (e: any) {
+    return { lead, remote: 'failed', remoteError: e?.message || 'Unknown error', created };
   }
 }
 
