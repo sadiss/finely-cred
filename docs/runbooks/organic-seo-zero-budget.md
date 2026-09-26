@@ -396,7 +396,8 @@ Once a month, extra 15 minutes: read one of your own public pages on a phone (`/
 - New Reddit accounts
 - Cold email or SMS to scraped leads or to the Haitian cold CSV
 - Sending Haitian families to `/credit/miami-fl` style English stubs
-- Citing `/portal`, the 404 aliases, `/bookstore`, or `/resources/funding/tx` and `/resources/funding/ca`
+- Citing `/`, `/start-here`, `/portal`, `/bookstore`, bare `/pricing`, the 404 aliases, or `/resources/funding/tx` and `/resources/funding/ca`
+- Putting `/credit-specialist` on a church flyer, a family chat, or any cold board
 - Any directory submission or public post before QA posts PASS on the P0 dead-link fix
 - Promising a score, a deletion, or a court result
 - A site redesign as an SEO project
