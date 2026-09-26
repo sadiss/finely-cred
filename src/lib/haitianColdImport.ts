@@ -1,6 +1,12 @@
 import type { LeadCapture } from '../domain/leads';
 import { findLeadCapturesByEmail, importColdLeadCapture, listLeadCaptures } from '../data/leadsRepo';
 import { getLeadOp } from '../data/leadOpsRepo';
+import {
+  haitianCrmBucket,
+  isColdHaitianCapture,
+  isOptedInHaitianCapture,
+  type HaitianCrmBucket,
+} from './haitianLeadTags';
 
 export const HAITIAN_COLD_IMPORT_SOURCE = 'haitian_csv_import' as const;
 export const HAITIAN_COLD_AUDIENCE = 'haitian_community';
@@ -26,6 +32,8 @@ export type HaitianColdImportResult = {
   inserted: number;
   updated: number;
   skipped: number;
+  /** Consented rows left untouched so a re-import cannot demote a hot opt-in. */
+  preserved: number;
   failed: number;
   uniqueTotal: number;
   errors: string[];
@@ -185,6 +193,7 @@ export async function bulkImportHaitianColdLeads(
     inserted: 0,
     updated: 0,
     skipped: dedupeSkipped,
+    preserved: 0,
     failed: 0,
     uniqueTotal: unique.length,
     errors: [],
@@ -196,6 +205,13 @@ export async function bulkImportHaitianColdLeads(
       const email = row.email.trim();
       const existing =
         findLeadCapturesByEmail(email)[0] ?? (row.phone ? findLeadByPhone(row.phone) : null);
+      const alreadyConsented = Boolean(
+        existing && (existing.consentToContact || existing.consentEmailMarketing || existing.consentSmsMarketing),
+      );
+      if (alreadyConsented) {
+        result.preserved += 1;
+        continue;
+      }
       const isUpdate = Boolean(existing);
 
       if (dryRun) {
@@ -240,9 +256,15 @@ Example,Lead,5551234567,example.lead@example.com,555,FL`;
 }
 
 export function isHaitianColdImportedLead(lead: LeadCapture): boolean {
-  if (lead.source === HAITIAN_COLD_IMPORT_SOURCE) return true;
-  const op = getLeadOp(lead.id);
-  return (op.tags ?? []).some((t) => t === 'source:haitian_csv_import' || t === 'cold');
+  return isColdHaitianCapture(lead, getLeadOp(lead.id).tags ?? []);
+}
+
+export function isHaitianOptedInLead(lead: LeadCapture): boolean {
+  return isOptedInHaitianCapture(lead, getLeadOp(lead.id).tags ?? []);
+}
+
+export function haitianCrmBucketForLead(lead: LeadCapture): HaitianCrmBucket | null {
+  return haitianCrmBucket(lead, getLeadOp(lead.id).tags ?? []);
 }
 
 export function formatHaitianColdImportReport(result: HaitianColdImportResult): string {
@@ -252,6 +274,7 @@ export function formatHaitianColdImportReport(result: HaitianColdImportResult): 
     `inserted ${result.inserted}`,
     `updated ${result.updated}`,
     result.skipped ? `deduped ${result.skipped}` : '',
+    result.preserved ? `preserved ${result.preserved}` : '',
     result.failed ? `failed ${result.failed}` : '',
   ].filter(Boolean);
   return parts.join(' · ');

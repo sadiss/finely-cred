@@ -160,7 +160,12 @@ function leadToRecord(lead: LeadCapture, op: LeadOp): CrmRecord {
       ? [
           'haitian-community',
           'offer:haitian_credit_kit',
-          ...(lead.source === 'haitian_csv_import' ? ['source:haitian_csv_import', 'cold', 'temperature:cold'] : []),
+          ...(lead.source === 'haitian_csv_import' &&
+          !lead.consentToContact &&
+          !lead.consentEmailMarketing &&
+          !(op.tags ?? []).includes('hot-opt-in')
+            ? ['source:haitian_csv_import', 'cold', 'temperature:cold']
+            : []),
         ]
       : [];
 

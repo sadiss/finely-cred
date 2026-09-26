@@ -121,15 +121,12 @@ export function scoreLead(lead: LeadCapture): LeadScoreResult {
   else if (score >= 58) band = 'hot';
   else if (score >= 45) band = 'warm';
 
-  const suggestedPersonaId = isSpecialistRecruit
-    ? 'lead_converter'
-    : fit === 'debt'
-      ? 'debt_strategist'
-      : fit === 'business'
-        ? 'funding_strategist'
-        : fit === 'tradelines'
-          ? 'sales_closer'
-          : 'lead_converter';
+  // The kit offer string contains "credit", which would otherwise score a
+  // no-consent CSV row as warm. Cold imports stay cold until they opt in.
+  if (isColdHaitianImport) {
+    score = Math.min(score, 44);
+    band = 'cold';
+  }
 
   const isFinancingPreapproval =
     lead.offer === 'financing_preapproval' ||
@@ -137,11 +134,32 @@ export function scoreLead(lead: LeadCapture): LeadScoreResult {
     interest.includes('preapproval') ||
     interest.includes('pre-approval');
 
+  const isStrategySession =
+    lead.offer === 'enlightenment_session' ||
+    interest.includes('enlightenment_session') ||
+    interest.includes('strategy_call');
+
+  const suggestedPersonaId = isSpecialistRecruit
+    ? 'lead_converter'
+    : isStrategySession
+      ? 'finely_advisor'
+      : isHaitianCommunity
+        ? 'haitian_companion'
+        : fit === 'debt'
+          ? 'debt_strategist'
+          : fit === 'business'
+            ? 'funding_strategist'
+            : fit === 'tradelines'
+              ? 'sales_closer'
+              : 'lead_converter';
+
   const suggestedSequenceId =
     interest.includes('meta_lead') || lead.utmSource === 'facebook' || lead.utmMedium === 'lead_ad'
       ? 'seq_meta_lead'
-      : isHaitianCommunity
-        ? 'seq_kreyol_funnel'
+      : isStrategySession
+        ? 'seq_strategy_session'
+        : isHaitianCommunity
+          ? 'seq_kreyol_funnel'
         : isSpecialistRecruit
           ? 'seq_specialist_apply_funnel'
           : isFinancingPreapproval

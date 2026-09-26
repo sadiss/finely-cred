@@ -38,7 +38,7 @@ import { scoreLead, kanbanStageForLead } from '../../lib/leadScoring';
 import { enrollLeadInNurtureSequence } from '../../lib/nurtureEngine';
 import { LeadBulkImportPanel } from '../../features/leadsOs/LeadBulkImportPanel';
 import { HaitianColdImportPanel } from '../../features/leadsOs/HaitianColdImportPanel';
-import { isHaitianColdImportedLead } from '../../lib/haitianColdImport';
+import { haitianCrmBucketForLead, isHaitianColdImportedLead, isHaitianOptedInLead } from '../../lib/haitianColdImport';
 import { LeadScrapeSourcePicker } from '../../features/leadsOs/LeadScrapeSourcePicker';
 import { LeadTrashPanel } from '../../features/studioCommandOs/LeadTrashPanel';
 import { NurtureOpsStrip } from '../../features/leadsOs/NurtureOpsStrip';
@@ -137,30 +137,37 @@ export default function AdminLeadsOsPage({
     [version],
   );
   const [offerFilter, setOfferFilter] = useState<'all' | 'credit_specialist'>('all');
-  const [haitianColdFilter, setHaitianColdFilter] = useState(false);
+  const [haitianBucket, setHaitianBucket] = useState<'all' | 'cold' | 'opted_in'>('all');
   const scoredCaptures = useMemo(
     () =>
       captures
         .filter((c) => !isLeadTrashed(c.id))
         .filter((c) => (offerFilter === 'credit_specialist' ? isCreditSpecialistLeadOffer(c.offer) : true))
-        .filter((c) => (haitianColdFilter ? isHaitianColdImportedLead(c) : true))
+        .filter((c) => (haitianBucket === 'cold' ? isHaitianColdImportedLead(c) : true))
+        .filter((c) => (haitianBucket === 'opted_in' ? isHaitianOptedInLead(c) : true))
         .map((c) => ({ lead: c, score: scoreLead(c), stage: kanbanStageForLead(c) })),
-    [captures, version, offerFilter, haitianColdFilter],
+    [captures, version, offerFilter, haitianBucket],
   );
   const haitianColdCount = useMemo(
     () => captures.filter((c) => !isLeadTrashed(c.id) && isHaitianColdImportedLead(c)).length,
     [captures, version],
   );
+  const haitianOptedInCount = useMemo(
+    () => captures.filter((c) => !isLeadTrashed(c.id) && isHaitianOptedInLead(c)).length,
+    [captures, version],
+  );
   const filteredInboundRecords = useMemo(() => {
-    if (!haitianColdFilter) return inboundRecords;
+    if (haitianBucket === 'all') return inboundRecords;
     return inboundRecords.filter((r) => {
       const leadId = r.sourceRef?.type === 'lead' ? r.sourceRef.id : r.id.replace(/^crm_lead_/, '');
       const lead = captures.find((c) => c.id === leadId);
-      if (lead) return isHaitianColdImportedLead(lead);
+      if (lead) return haitianBucket === 'cold' ? isHaitianColdImportedLead(lead) : isHaitianOptedInLead(lead);
       const tags = r.tags ?? [];
-      return tags.some((t) => t.includes('haitian') || t.includes('haitian_csv_import') || t === 'cold');
+      if (haitianBucket === 'opted_in') return tags.includes('hot-opt-in') || tags.includes('temperature:hot');
+      const origin = tags.some((t) => t.includes('haitian') || t.includes('haitian_csv_import'));
+      return origin && (tags.includes('cold') || tags.includes('temperature:cold')) && !tags.includes('hot-opt-in');
     });
-  }, [inboundRecords, haitianColdFilter, captures]);
+  }, [inboundRecords, haitianBucket, captures]);
   const csCaptureCount = useMemo(
     () => captures.filter((c) => !isLeadTrashed(c.id) && isCreditSpecialistLeadOffer(c.offer)).length,
     [captures, version],
@@ -247,6 +254,8 @@ export default function AdminLeadsOsPage({
               <div className="mt-3 flex flex-wrap gap-2 text-xs">
                 <span className={`${FINELY_OS_ENTITY_SUBLABEL}`}>Inbound CRM {inboundRecords.length}</span>
                 <span className={`${FINELY_OS_ENTITY_SUBLABEL}`}>Captures {captures.filter((c) => !isLeadTrashed(c.id)).length}</span>
+                <span className={`${FINELY_OS_ENTITY_SUBLABEL}`}>Haitian cold {haitianColdCount}</span>
+                <span className={`${FINELY_OS_ENTITY_SUBLABEL}`}>Haitian opted-in {haitianOptedInCount}</span>
                 <span className={`${FINELY_OS_ENTITY_SUBLABEL}`}>Intel imports {intelImports.length}</span>
               </div>
             </div>
@@ -357,11 +366,19 @@ export default function AdminLeadsOsPage({
                       </button>
                       <button
                         type="button"
-                        onClick={() => setHaitianColdFilter((v) => !v)}
-                        className={haitianColdFilter ? FINELY_OS_SUCCESS_BTN : FINELY_OS_SECONDARY_BTN}
-                        title="Filter cold Haitian CSV imports (source=haitian_csv_import)"
+                        onClick={() => setHaitianBucket((v) => (v === 'cold' ? 'all' : 'cold'))}
+                        className={haitianBucket === 'cold' ? FINELY_OS_SUCCESS_BTN : FINELY_OS_SECONDARY_BTN}
+                        title="Haitian CSV rows with no opt-in. Consented rows stay on Haitian opted-in."
                       >
                         Haitian cold ({haitianColdCount})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setHaitianBucket((v) => (v === 'opted_in' ? 'all' : 'opted_in'))}
+                        className={haitianBucket === 'opted_in' ? FINELY_OS_SUCCESS_BTN : FINELY_OS_SECONDARY_BTN}
+                        title="Consented Haitian captures, including cold CSV rows that opted in"
+                      >
+                        Haitian opted-in ({haitianOptedInCount})
                       </button>
                       <button type="button" onClick={() => navigate('/admin/crm?pipeline=agents')} className={FINELY_OS_SECONDARY_BTN}>
                         Specialists CRM
@@ -392,14 +409,20 @@ export default function AdminLeadsOsPage({
                             pageSize={6}
                             emptyMessage="No web captures yet."
                             itemSpacingClassName="space-y-2"
-                            renderItem={({ lead, score, stage }) => (
+                            renderItem={({ lead, score, stage }) => {
+                              const bucket = haitianCrmBucketForLead(lead);
+                              return (
                               <div key={lead.id} className={`${finelyOsCatalogCard('sky')} fc-surface-harmony text-sm`} data-fc-accent="sky">
                                 <div className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{lead.fullName || lead.email}</div>
                                 <div className={`${FINELY_OS_ENTITY_SUBLABEL} mt-1`}>
                                   {leadOfferLabel(lead.offer)} · Score {score.score} · {score.band} · {stage}
+                                  {bucket === 'cold' ? ' · CRM cold' : bucket === 'opted_in' ? ' · CRM opted-in' : ''}
                                   {lead.funnelId ? ` · ${lead.funnelId}` : lead.funnelPath ? ` · ${lead.funnelPath}` : ''}
                                 </div>
                                 <div className={`${FINELY_OS_ENTITY_BODY} text-xs mt-1`}>{score.suggestedAction}</div>
+                                {bucket === 'cold' ? (
+                                  <div className={`${FINELY_OS_ENTITY_SUBLABEL} mt-2`}>Opt-in required before nurture</div>
+                                ) : (
                                 <button
                                   type="button"
                                   className={`${FINELY_OS_SECONDARY_BTN} mt-2 !text-[10px] !py-1`}
@@ -415,8 +438,10 @@ export default function AdminLeadsOsPage({
                                 >
                                   Enroll {score.suggestedSequenceId.replace('seq_', '')}
                                 </button>
+                                )}
                               </div>
-                            )}
+                              );
+                            }}
                           />
                         </FinelyOsGlassPanel>
                         <CrmRecordPanel record={selected} onClose={() => setSelected(null)} onUpdated={() => setVersion((v) => v + 1)} />

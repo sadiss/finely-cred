@@ -8,7 +8,7 @@ Finely Cred grows through **owned opt-in funnels** and **B2B partner referrals**
 |------|-----|
 | **No cold email/SMS** | TCPA, CAN-SPAM, and CROA risk; brand trust |
 | **Consent before nurture** | `consentToContact` or `consentEmailMarketing` must be true before `seq_kreyol_funnel` or any marketing sequence |
-| **Cold CSV stays cold** | Haitian imports use `haitian_csv_import` with both consent flags `false` — see [haitian-cold-import.md](./haitian-cold-import.md) |
+| **Cold CSV stays cold** | Haitian imports use `haitian_csv_import` with both consent flags `false` — see [haitian-cold-import.md](./haitian-cold-import.md) and the conversion plan [cold-to-hot-conversion.md](./cold-to-hot-conversion.md) |
 | **No PII in git** | Lead CSVs live outside the repo (secure bucket or owner machine only) |
 | **Partner-first language** | No score guarantees, no income promises — results vary |
 
@@ -35,7 +35,7 @@ These are the **only** paths that should convert cold Haitian community contacts
 - [ ] Dry-run Haitian CSV import; confirm `consentToContact=false` on all rows
 - [ ] Verify `/free-kreyol-guide` renders `KreyolGuideFunnelPage` (guest) and kit subpaths auth-gate
 - [ ] Test opt-in: submit form → same lead id upgraded (no duplicate) → `seq_kreyol_funnel` enrolled
-- [ ] Confirm admin **Haitian cold** filter shows imported rows
+- [ ] Confirm admin **Haitian cold** shows only unconsented imports, and **Haitian opted-in** shows consented rows (cold tags removed)
 - [ ] Sitemap includes `/haitian`, metros, `/free-kreyol-guide`
 - [ ] **Do not** run bulk import through generic Leads OS CSV without explicit `consentToContact=true` column
 
