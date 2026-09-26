@@ -50,8 +50,7 @@ import HaitianKitStudioPage from './pages/public/HaitianKitStudioPage';
 import { isAuthEntryPath, signupUrlForCareerPath } from './lib/onboardingRoleRouting';
 import { resolveAuthedOnboardingBouncePath } from './lib/packageCheckoutRouting';
 import { finelyCtaNavigate, resolveFinelyCtaPath } from './lib/finelyCtaIntent';
-import { ensureDefaultExperiments, assignFunnelVariant, getAssignedCtaDestination } from './data/funnelExperimentsRepo';
-import { persistCtaBridgeVariant } from './lib/funnelCtaBridge';
+import { ensureDefaultExperiments, assignFunnelVariant } from './data/funnelExperimentsRepo';
 import { clearOnboardingProgress, peekOnboardingRecommendedNextPath } from './lib/onboardingProgressStorage';
 import { AdminCommandPaletteHost } from './features/work/components/WorkCommandPalette';
 import { FinelySiteThemeProvider } from './features/os/FinelySiteThemeProvider';
@@ -528,10 +527,9 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
   }, []);
 
   const handleHeroGetStarted = () => {
-    const variant = assignFunnelVariant('homepage_hero');
-    const destination = getAssignedCtaDestination('homepage_hero', '/pricing/business-credit');
-    persistCtaBridgeVariant('homepage_hero', variant);
-    navigate(destination);
+    // Labeled "Business credit path" — do not follow the homepage_hero
+    // destination test (variant_a sends this click to personal restore).
+    navigate('/pricing/business-credit');
   };
 
   return (
@@ -737,7 +735,12 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
       </section>
 
       {/* 10. Footer */}
-      <Footer onNavigate={(page) => onNavigate(page as NavView)} />
+      <Footer
+        onNavigate={(page) => {
+          if (page.startsWith('/')) navigate(page);
+          else onNavigate(page as NavView);
+        }}
+      />
     </div>
   );
 }
@@ -753,7 +756,16 @@ function TradelinesRoute({ addToCart, onNavigate }: { addToCart: (item: any) => 
 }
 
 function AboutRoute({ onNavigate }: { onNavigate: (view: NavView) => void }) {
-  return <AboutPage onNavigate={onNavigate} onFooterNavigate={(page) => onNavigate(page as NavView)} />;
+  const navigate = useNavigate();
+  return (
+    <AboutPage
+      onNavigate={onNavigate}
+      onFooterNavigate={(page) => {
+        if (page.startsWith('/')) navigate(page);
+        else onNavigate(page as NavView);
+      }}
+    />
+  );
 }
 
 function MasteryDashboardRoute({
@@ -2830,11 +2842,16 @@ function AppInner() {
         <Route path="/solutions" element={<Navigate to="/services" replace />} />
         <Route path="/careers" element={<Navigate to="/credit-specialist" replace />} />
         <Route path="/dispute-guide" element={<Navigate to="/free-guide" replace />} />
+        <Route path="/dispute" element={<Navigate to="/free-guide" replace />} />
         <Route path="/strategy-call" element={<Navigate to="/enlightenment-session" replace />} />
         <Route path="/membership" element={<Navigate to="/pricing" replace />} />
         <Route path="/debt" element={<Navigate to="/pricing/debt-legal" replace />} />
         <Route path="/debt-relief" element={<Navigate to="/pricing/debt-legal" replace />} />
         <Route path="/app" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/funding" element={<Navigate to="/fundability-readiness" replace />} />
+        <Route path="/partners" element={<Navigate to="/agency-partners" replace />} />
+        <Route path="/restore" element={<Navigate to="/pricing/personal-credit-restore" replace />} />
+        <Route path="/letters" element={<Navigate to="/free-guide" replace />} />
         <Route path="/faq" element={<FaqPage />} />
         <Route path="/claim" element={<ClaimPartnerProfilePage />} />
         <Route path="/partner-setup" element={<PartnerSelfIntakePage />} />
