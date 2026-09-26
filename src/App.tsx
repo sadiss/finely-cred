@@ -783,6 +783,21 @@ function MasteryDashboardRoute({
   return <MasteryOSDashboard user={user} onLogout={onLogout} />;
 }
 
+/** Chase “Just Approved” proof stays off debt and Haitian panic pages, and off free-guide landings. */
+function shouldHideChaseApprovalTicker(pathname: string): boolean {
+  if (pathname.startsWith('/free-')) return true;
+  if (pathname.startsWith('/haitian') || pathname.startsWith('/kreyol')) return true;
+  if (
+    pathname.startsWith('/pricing/debt') ||
+    pathname.startsWith('/services/debt') ||
+    pathname === '/debt' ||
+    pathname.startsWith('/debt-')
+  ) {
+    return true;
+  }
+  return false;
+}
+
 function AppInner() {
   const auth = useAuth();
   const personalFreeTrialPath = resolveFinelyCtaPath('personal_free_trial', { isAuthed: Boolean(auth.user) });
@@ -870,7 +885,7 @@ function AppInner() {
     !location.pathname.startsWith('/claim') &&
     !location.pathname.startsWith('/partner-setup');
 
-  const hideApprovalTicker = location.pathname.startsWith('/free-');
+  const hideApprovalTicker = shouldHideChaseApprovalTicker(location.pathname);
 
   const hideFloatingHub =
     location.pathname.startsWith('/portal/messages') ||
@@ -1000,7 +1015,7 @@ function AppInner() {
       
       {showPublicChrome && (
         <>
-          {/* Live Approval Ticker — hidden on free-guide landings so it cannot cover the product */}
+          {/* Live Approval Ticker — delayed, and hidden on free-guide, debt, and Haitian pages */}
           {hideApprovalTicker ? null : <LiveApprovalTicker />}
 
           {/* Mobile Navigation */}
@@ -2639,6 +2654,14 @@ function AppInner() {
           element={
             <ProtectedAdminRoute>
               <ProductRoutedPage role="admin" pageId="analytics" legacy={<AdminAnalyticsPage />} />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/analytics-portfolio"
+          element={
+            <ProtectedAdminRoute>
+              <ProductRoutedPage role="admin" pageId="analytics-portfolio" legacy={<AdminPortfolioDashboardPage />} />
             </ProtectedAdminRoute>
           }
         />

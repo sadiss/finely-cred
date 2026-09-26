@@ -89,11 +89,31 @@ export default function BookstorePage() {
 
         {auth.user ? <CommsWorkspaceActions calendarLabel="Book strategy call" /> : null}
 
+        {products.length === 0 ? (
+          <div className={`${finelyOsCatalogCard('emerald')} space-y-4`} data-fc-accent="emerald" role="status">
+            <div className="inline-flex items-center gap-2 text-emerald-300">
+              <BookOpen size={18} />
+              <span className={FINELY_OS_ENTITY_SUBLABEL}>Catalog</span>
+            </div>
+            <h2 className="text-2xl font-extrabold text-white">Bookstore titles are not listed yet</h2>
+            <p className={`${FINELY_OS_ENTITY_BODY} text-base max-w-2xl`}>
+              Nothing is published in this session. Free guides and program pages stay available while the catalog is stocked.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => navigate('/resources')}>
+                Browse free resources <ArrowRight size={14} />
+              </button>
+              <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/pricing')}>
+                See programs
+              </button>
+            </div>
+          </div>
+        ) : (
         <FinelyOsPaginatedStack
           items={products}
           pageSize={6}
           itemSpacingClassName="grid grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center"
-          emptyMessage="No bookstore titles yet."
+          emptyMessage="Bookstore titles are not listed yet. Free resources stay open while the catalog is stocked."
           renderItem={(p, idx) => {
               const accent = (['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4];
               return (
@@ -116,6 +136,7 @@ export default function BookstorePage() {
               );
             }}
           />
+        )}
             </>
           )}
 

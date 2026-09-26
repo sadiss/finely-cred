@@ -12,9 +12,8 @@ function load(): Store {
   return loadJson(KEY, { overrides: {} }, 1);
 }
 
-function save(store: Store) {
-  saveJson(KEY, store, 1);
-  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('finely:store'));
+function save(store: Store): boolean {
+  return saveJson(KEY, store, 1);
 }
 
 export function getPartnerSuccessModuleOverride(moduleId: string) {
@@ -24,16 +23,27 @@ export function getPartnerSuccessModuleOverride(moduleId: string) {
 export function savePartnerSuccessModuleOverride(
   moduleId: string,
   patch: Partial<Pick<PartnerSuccessModule, 'title' | 'description' | 'hubPath' | 'trainingLessonId'>>,
-) {
+): boolean {
   const store = load();
-  store.overrides[moduleId] = { ...(store.overrides[moduleId] ?? {}), ...patch };
-  save(store);
+  const next = { ...(store.overrides[moduleId] ?? {}), ...patch };
+  const empty = !next.title && !next.description && !next.hubPath && !next.trainingLessonId;
+  if (empty) delete store.overrides[moduleId];
+  else store.overrides[moduleId] = next;
+  return save(store);
+}
+
+export function clearPartnerSuccessModuleOverride(moduleId: string): boolean {
+  const store = load();
+  delete store.overrides[moduleId];
+  return save(store);
 }
 
 export function listEffectivePartnerSuccessModules(): PartnerSuccessModule[] {
+  const base = Array.isArray(PARTNER_SUCCESS_MODULES) ? PARTNER_SUCCESS_MODULES : [];
   const overrides = load().overrides;
-  return PARTNER_SUCCESS_MODULES.map((m) => ({
+  return base.map((m) => ({
     ...m,
     ...(overrides[m.id] ?? {}),
+    lanes: Array.isArray(m.lanes) ? m.lanes : [],
   }));
 }

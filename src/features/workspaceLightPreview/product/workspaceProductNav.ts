@@ -485,7 +485,7 @@ export const ADMIN_PRODUCT_NAV: WorkspaceProductNavItem[] = [
   admin('vault', 'Secret vault', '/admin/vault', Vault, 'rose', 'Credentials and sensitive configuration.', 'platform', 'primary'),
   admin('sitewide-ux', 'Sitewide UX', '/admin/sitewide-ux', Wrench, 'sky', 'Global UX controls, banners, and experience flags.', 'platform', 'secondary', 'studio'),
   admin('role-preview', 'Role preview', '/admin/role-preview', Users, 'violet', 'See the product exactly as any role sees it.', 'platform', 'secondary'),
-  admin('analytics-portfolio', 'Portfolio analytics', '/admin/projects/portfolio', LineChart, 'emerald', 'Cross-portfolio outcome and delivery analytics.', 'platform', 'secondary', 'studio'),
+  admin('analytics-portfolio', 'Portfolio analytics', '/admin/analytics-portfolio', LineChart, 'emerald', 'Cross-portfolio outcome and delivery analytics.', 'platform', 'secondary', 'studio'),
 ];
 
 export const PARTNER_PRODUCT_NAV: WorkspaceProductNavItem[] = [

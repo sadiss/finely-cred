@@ -3,6 +3,7 @@ import { ArrowRight, BookOpen, Check, ChevronRight, Star } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PARTNER_SUCCESS_MODULES } from '../../../../domain/partnerSuccessExperience';
 import {
+  clearPartnerSuccessModuleOverride,
   getPartnerSuccessModuleOverride,
   listEffectivePartnerSuccessModules,
   savePartnerSuccessModuleOverride,
@@ -35,7 +36,11 @@ export default function AdminPartnerSuccessProductSurface({ role, pageId }: Work
   const [version, setVersion] = useState(0);
   const modules = useMemo(() => {
     void version;
-    return listEffectivePartnerSuccessModules();
+    try {
+      return listEffectivePartnerSuccessModules();
+    } catch {
+      return [];
+    }
   }, [version]);
   const selected = modules.find((m) => m.id === selectedId) ?? modules[0] ?? null;
   const selectedIndex = modules.findIndex((m) => m.id === selected?.id);
@@ -45,6 +50,7 @@ export default function AdminPartnerSuccessProductSurface({ role, pageId }: Work
   const [hubPath, setHubPath] = useState('');
   const [trainingLessonId, setTrainingLessonId] = useState('');
   const [notice, setNotice] = useState<string | null>(null);
+  const [storageUnavailable, setStorageUnavailable] = useState(false);
 
   useEffect(() => {
     if (!selected) return;
@@ -55,23 +61,31 @@ export default function AdminPartnerSuccessProductSurface({ role, pageId }: Work
     setTrainingLessonId(override?.trainingLessonId ?? selected.trainingLessonId ?? '');
   }, [selected?.id]);
 
+  const reportStorage = (ok: boolean, savedNotice: string) => {
+    if (!ok) {
+      setNotice(null);
+      setStorageUnavailable(true);
+      return;
+    }
+    setStorageUnavailable(false);
+    setVersion((v) => v + 1);
+    setNotice(savedNotice);
+  };
+
   const save = () => {
     if (!selected) return;
-    savePartnerSuccessModuleOverride(selected.id, {
+    const ok = savePartnerSuccessModuleOverride(selected.id, {
       title: title.trim() || selected.title,
       description: description.trim() || selected.description,
       hubPath: hubPath.trim() || selected.hubPath,
       trainingLessonId: trainingLessonId.trim() || undefined,
     });
-    setVersion((v) => v + 1);
-    setNotice(`Saved override for ${selected.id}`);
+    reportStorage(ok, `Saved override for ${selected.id}`);
   };
 
   const reset = () => {
     if (!selected) return;
-    savePartnerSuccessModuleOverride(selected.id, {});
-    setVersion((v) => v + 1);
-    setNotice('Reset to defaults');
+    reportStorage(clearPartnerSuccessModuleOverride(selected.id), 'Reset to defaults');
   };
 
   const overrideCount = useMemo(
@@ -107,7 +121,17 @@ export default function AdminPartnerSuccessProductSurface({ role, pageId }: Work
       metricTitle="Success playbook"
       metricDescription="Pick a stage on the runway, edit copy, then save or reset to defaults."
     >
+      {storageUnavailable ? (
+        <div role="status" className="rounded-xl border border-amber-400/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-950">
+          Offline — this browser can’t store success-module edits, so nothing was saved.
+        </div>
+      ) : null}
       {notice ? <div className={FINELY_OS_NOTICE_SUCCESS}>{notice}</div> : null}
+      {!modules.length ? (
+        <div role="status" className={`${finelyOsCatalogCard('violet')} text-sm`}>
+          Success modules aren’t available in this session. Nothing was changed.
+        </div>
+      ) : null}
 
       <section>
         <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
@@ -175,7 +199,7 @@ export default function AdminPartnerSuccessProductSurface({ role, pageId }: Work
                 Stage {selectedIndex + 1}: {selected.title}
               </h2>
               <p className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>
-                {selected.type} · lanes: {selected.lanes.join(', ')}
+                {selected.type} · lanes: {(selected.lanes ?? []).join(', ') || 'all'}
               </p>
             </div>
             <div className={`inline-flex items-center gap-2 rounded-xl border border-sky-500/30 bg-sky-500/10 px-3 py-2 text-xs font-bold text-sky-100`}>

@@ -1,7 +1,6 @@
 import React from 'react';
 import { ProductPageLayout } from '../../features/workspaceLightPreview/product/components/ProductPageLayout';
 import AdminDashboardProductAdapter from '../../features/workspaceLightPreview/product/admin/AdminDashboardProductAdapter';
-import { FinelyNowDoThisStrip } from '../../components/tours/FinelyNowDoThisStrip';
 import { FinelyNoticedStrip } from '../../components/tours/FinelyNoticedStrip';
 import { buildAdminNoticedItems } from '../../lib/finelyProactiveSignals';
 
@@ -38,7 +37,6 @@ export default function AdminDashboardPage() {
             goLiveBlocked,
           })}
         />
-        <FinelyNowDoThisStrip surface="light" />
         <AdminDashboardProductAdapter role="admin" pageId="dashboard" dataMode="real" />
       </ProductPageLayout>
     </div>

@@ -287,24 +287,36 @@ export function LoopingTypingHeader({ phrases, className = "" }: LoopingTypingHe
   const [index, setIndex] = useState(0);
   const [subIndex, setSubIndex] = useState(0);
   const [reverse, setReverse] = useState(false);
+  const phrasesKey = phrases.join('\u0001');
+  const phrasesRef = useRef(phrases);
+  phrasesRef.current = phrases;
 
   useEffect(() => {
-    if (subIndex === phrases[index].length + 1 && !reverse) {
+    setIndex(0);
+    setSubIndex(0);
+    setReverse(false);
+  }, [phrasesKey]);
+
+  useEffect(() => {
+    const list = phrasesRef.current;
+    if (!list.length) return;
+    const phrase = list[index] ?? list[0] ?? '';
+    if (subIndex === phrase.length + 1 && !reverse) {
       const timeout = setTimeout(() => setReverse(true), 2500);
       return () => clearTimeout(timeout);
     }
     if (subIndex === 0 && reverse) {
       setReverse(false);
-      setIndex((prev) => (prev + 1) % phrases.length);
+      setIndex((prev) => (prev + 1) % list.length);
       return;
     }
     const timeout = setTimeout(() => {
       setSubIndex((prev) => prev + (reverse ? -1 : 1));
     }, reverse ? 40 : 80);
     return () => clearTimeout(timeout);
-  }, [subIndex, index, reverse, phrases]);
+  }, [subIndex, index, reverse, phrasesKey]);
 
-  const currentPhrase = phrases[index].substring(0, subIndex);
+  const currentPhrase = (phrases[index] ?? '').substring(0, subIndex);
   const highlightWords = ["Credit.", "Wealth.", "Future.", "Control.", "Funding.", "Freedom."];
 
   return (
@@ -654,13 +666,15 @@ const APPROVALS: ApprovalItem[] = makeApprovals();
 
 export function LiveApprovalTicker() {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isVisible, setIsVisible] = useState(true);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    // Less frequent + readable: pop in, stay, pop out, wait, then rotate.
+    // Stay off the first paint so hero and package CTAs are clear, then cycle.
+    const START_DELAY_MS = 12000;
     const VISIBLE_MS = 6800;
     const HIDDEN_MS = 14000;
     let mounted = true;
+    let t0: any = null;
     let t1: any = null;
     let t2: any = null;
 
@@ -678,9 +692,10 @@ export function LiveApprovalTicker() {
       }, VISIBLE_MS);
     };
 
-    cycle();
+    t0 = window.setTimeout(cycle, START_DELAY_MS);
     return () => {
       mounted = false;
+      if (t0) window.clearTimeout(t0);
       if (t1) window.clearTimeout(t1);
       if (t2) window.clearTimeout(t2);
     };
@@ -689,9 +704,9 @@ export function LiveApprovalTicker() {
   const approval = APPROVALS[currentIndex];
 
   return (
-    <div className="fixed bottom-6 left-6 z-50 hidden lg:block">
+    <div className="fixed bottom-6 right-6 z-40 hidden lg:block pointer-events-none">
       <div
-        className={`bg-fc-section/95 backdrop-blur-xl border border-emerald-500/20 rounded-2xl p-4 shadow-2xl max-w-xs transition-all duration-500 ${
+        className={`pointer-events-auto bg-fc-section/95 backdrop-blur-xl border border-emerald-500/20 rounded-2xl p-4 shadow-2xl max-w-xs transition-all duration-500 ${
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3 pointer-events-none'
         }`}
       >

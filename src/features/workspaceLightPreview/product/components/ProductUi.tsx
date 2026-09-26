@@ -429,11 +429,14 @@ export function ProductActionList({
   items,
   emptyMessage = 'Nothing needs attention right now.',
   parentAccent,
+  hideLeadFeature = false,
 }: {
   items: ProductListItem[];
   emptyMessage?: string;
   /** Accent of the surface this list sits on/beside, if any — threaded into `accentAt` so the on-deck mosaic's rotation never lands on a colour that clashes with its container. */
   parentAccent?: WorkspaceProductAccent;
+  /** Website admin home omits the large “Start here” feature card. Desktop command decks keep it. */
+  hideLeadFeature?: boolean;
 }) {
   if (!items.length) {
     return (
@@ -445,12 +448,14 @@ export function ProductActionList({
     );
   }
 
-  const [primary, ...queued] = items;
+  const [primary, ...rest] = items;
+  const queued = hideLeadFeature ? items : rest;
   const primaryMeta = WORKSPACE_PRODUCT_STATUS[primary.status];
   const PrimaryIcon = primary.icon;
 
   return (
     <div className="fc-wlp-action-stage">
+      {hideLeadFeature ? null : (
       <article className="fc-wlp-action-feature" data-tone={primaryMeta.tone}>
         <div className="fc-wlp-action-feature-top">
           <span className="fc-wlp-action-order">01</span>
@@ -476,12 +481,17 @@ export function ProductActionList({
           ) : null}
         </div>
       </article>
+      )}
 
       {queued.length ? (
         <div className="fc-wlp-action-queue">
           <div className="fc-wlp-action-queue-label">
-            <span>On deck</span>
-            <span>{queued.length} step{queued.length === 1 ? '' : 's'} after this</span>
+            <span>{hideLeadFeature ? 'Priority queue' : 'On deck'}</span>
+            <span>
+              {hideLeadFeature
+                ? `${queued.length} open item${queued.length === 1 ? '' : 's'}`
+                : `${queued.length} step${queued.length === 1 ? '' : 's'} after this`}
+            </span>
           </div>
           <div className="fc-wlp-action-mosaic">
             {queued.map((item, index) => {
@@ -489,10 +499,11 @@ export function ProductActionList({
               const meta = WORKSPACE_PRODUCT_STATUS[item.status];
               const accent = accentAt(index, { parent: parentAccent });
               const fcmAccent = toFcmAccent(accent);
+              const order = hideLeadFeature ? index + 1 : index + 2;
               const content = (
                 <>
                   <ProductBoxSurface accent={fcmAccent} bed="light" tier="raised" />
-                  <span className="fc-wlp-action-mosaic-order">{String(index + 2).padStart(2, '0')}</span>
+                  <span className="fc-wlp-action-mosaic-order">{String(order).padStart(2, '0')}</span>
                   <span className="fc-wlp-action-mosaic-icon" data-accent={accent}>
                     <Icon size={22} strokeWidth={2.05} />
                   </span>

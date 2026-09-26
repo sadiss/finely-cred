@@ -105,7 +105,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroupDef[] = [
     items: [
       { path: '/admin/access', label: 'Control Center', icon: Shield, hint: 'Access + settings + roles' },
       { path: '/admin/role-preview', label: 'Role preview', icon: Eye, hint: 'View every role’s access & payouts' },
-      { path: '/admin/role-preview?role=heta_society', label: 'Head of Society', icon: Crown, hint: 'HOS member portal + program keys' },
+      { path: '/head-of-society', label: 'Head of Society', icon: Crown, hint: 'HOS member portal + program keys' },
       { path: '/admin/signup-ops', label: 'Signup & access', icon: KeyRound, hint: 'Passwords, welcome email, roles' },
       { path: '/admin/team', label: 'Team & Roles', icon: UserCog, hint: 'RBAC-lite' },
       { path: '/admin/tenants', label: 'Tenants', icon: Globe, hint: 'White-label' },

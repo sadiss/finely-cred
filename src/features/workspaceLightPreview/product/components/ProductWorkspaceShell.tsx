@@ -56,7 +56,7 @@ function isItemActive(
   if (pathname === target) return true;
   if (navigationMode === 'preview' && target.includes('/preview/workspace-light')) return pathname === target;
   if (navigationMode === 'live') {
-    if (target === '/admin') return false;
+    if (target === '/admin') return pathname === '/admin' || pathname === '/admin/';
     return pathname === target || pathname.startsWith(`${target}/`);
   }
   return pathname.startsWith(item.path.split('?')[0]);
