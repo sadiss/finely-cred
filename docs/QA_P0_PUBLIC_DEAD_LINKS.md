@@ -108,7 +108,15 @@ Expected touch list if the diff stays surgical: `src/App.tsx` route aliases and 
 
 All twelve aliases above, plus the three live controls (mobile Solutions, footer Payment plans, About Explore pricing). Header dropdown lane links, sitemap URLs, and the business-credit CTAs are not in that residual set.
 
-## Review of fix PR #39 (`cursor/fix-public-nav-routes-5940`, `b549c0d`)
+## Review of fix PR #39 (`cursor/fix-public-nav-routes-5940`)
+
+**First review (`b549c0d`): FAIL.** Surgical, but incomplete. See the note below.
+
+**Re-review (`e37875c`): PASS.** Posted on https://github.com/sadiss/finely-cred/pull/39. Solutions (label, mobile, `/solutions`) goes to `/start-here`. Footer Payment plans row is removed. `/dispute` and `/letters` go to `/free-guide`. `/funding` goes to `/fundability-readiness`. `/partners` goes to `/agency-partners`. `/restore` goes to `/pricing/personal-credit-restore`. `/portal` goes to `/portal/dashboard`, and guests hit signup with `next=/portal/dashboard`. `/pricing` and `/services` still render `PricingPage`. No CSS or layout restyle. Nothing to revert for look.
+
+Non-blocking: `/start-here` still highlights Resources, not the Solutions pill.
+
+### First-review record (`b549c0d`)
 
 **Verdict: FAIL.** The diff is surgical (no CSS, no new page, no visual restyle). No files to revert for look. It does not clear the dead-route bar.
 
