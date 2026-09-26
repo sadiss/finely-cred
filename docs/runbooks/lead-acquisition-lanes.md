@@ -48,6 +48,8 @@ That writes these **gitignored** files:
 
 Stdout prints counts and source errors. It does not print emails, phones, or organization names.
 
+Wave 2 counts, with no contact fields, are in [docs/qa/lead-discovery-wave2-report.md](../qa/lead-discovery-wave2-report.md).
+
 The script refuses to write if those paths are not gitignored.
 
 Orgs with a phone or website but no email stay in the JSON for in-person or QR follow-up. They are not given a fake email.
