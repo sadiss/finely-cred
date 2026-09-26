@@ -184,7 +184,7 @@ Example:
 
 ### E. One Haitian community board (you paste it)
 
-One group you already belong to: a Haitian Facebook group, a church WhatsApp, or a community board. One post. The Haitian link is `/haitian` only.
+One group you already belong to: a Haitian Facebook group, a church WhatsApp, or a community board. One post. After #39 is live, the Haitian link is `/haitian` or `/free-kreyol-guide`. Not before.
 
 Disclosure on every post: **“I work with Finely Cred.”**
 
@@ -300,7 +300,7 @@ Internal links that were already in good shape and were left alone: `/start-here
 
 ## 4. Keyword clusters
 
-Write the post for a person, not for a keyword list. After the gate, every link is one row from the allowlist. Haitian organic posts use `/haitian` only.
+Write the post for a person, not for a keyword list. After #39 is live on Bluehost, every link is one row from the allowlist. Haitian organic posts use `/haitian` or `/free-kreyol-guide`.
 
 ### Haitian credit help / Kreyòl
 
@@ -366,7 +366,7 @@ QA on PR #39 passed at `e37875c`. Placements still wait. Live `finelycred.com` s
 
 | Min | Action |
 |-----|--------|
-| 5 | Search Console: is `/free-guide` or `/free-debt-guide` indexed? Note it. Leave `/free-kreyol-guide` alone. |
+| 5 | Search Console: is `/free-guide`, `/free-debt-guide`, or `/free-kreyol-guide` indexed? Note it. |
 | 15 | One soft placement: a directory from section 1.C pointing at `/free-guide`, **or** one organic post. Haitian boards link `/haitian`. Other rooms use another allowlist URL. |
 | 10 | Reply only to people who answered that post. |
 | 5 | Write down which promote-safe URL you used. |
