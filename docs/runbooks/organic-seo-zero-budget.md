@@ -4,6 +4,10 @@ Owner runbook for finding Finely Cred without ads. Ordinary people, especially H
 
 Checked against the live site on **26 Sep 2026**. This file is the plan. The small on-page edits in the same pull request are **not live** until the owner asks for a Bluehost deploy.
 
+**Overnight work is soft placements only.** Profiles, directories you fill in by hand, and Haitian community boards. Every link is a URL already on the live sitemap. The default three are `/haitian`, `/kreyol`, and `/free-kreyol-guide`.
+
+The wider placement wave — more boards, more citations, metro URLs, and indexing requests across the full set — waits until those URLs are stable after the Bluehost refresh. That wave is still manual and still zero-dollar. It is not a directory blast, a bought-link campaign, or a copy-paste across groups.
+
 Related: [lead-acquisition-enterprise.md](./lead-acquisition-enterprise.md) (consent and cold CSV rules). This plan does **not** use the paid Meta ads step in that runbook.
 
 ## Rules
@@ -24,7 +28,7 @@ Public contact in the product is `partnersupport@finelycred.com`. The phone on t
 
 ## What is live right now
 
-`https://finelycred.com/sitemap.xml` already lists these URLs (112 total on 26 Sep 2026). Use them in posts **today**.
+`https://finelycred.com/sitemap.xml` already lists these URLs (112 total on 26 Sep 2026). Soft placements tonight use this list. Prefer the first three rows unless a person asked about a different live page.
 
 | Job | URL to share |
 |-----|----------------|
@@ -65,21 +69,24 @@ A fetch of the live HTML (no browser) returns the **same** title and description
 
 The app does set a unique title after it loads. Google often runs JavaScript, but it is slower and less reliable. Unique titles in the raw file need the prerender work in [PR #26](https://github.com/sadiss/finely-cred/pull/26), after the owner deploys. Until then, Search Console + the sitemap + off-site mentions are the levers that do not wait on Bluehost.
 
-## 1. Before the next deploy
+## 1. Overnight — soft placements only
 
-Do these in order. Stop when the hour is gone. Tomorrow’s weekly checklist continues the rest.
+Do these in order. One profile, one citation, one community board. Then stop. Save the wider wave for section 2, after Bluehost is serving a build you have clicked through.
+
+Hold until that refresh, even if the route answers today:
+
+- Metro desks (`/haitian/miami` and the other nine)
+- `/start-here` and `/pricing/business-credit` (missing from the live sitemap on 26 Sep 2026)
+- Requesting indexing on a stack of URLs
+- Posting the same note in more than one group
+- Any URL that is only in this pull request’s sitemap
 
 ### A. Search Console and Bing (first session, ~25 min)
 
 1. Open [Google Search Console](https://search.google.com/search-console) with the Google account that should own the property long-term.
 2. Add the **domain** property `finelycred.com` (DNS verification is the durable one). If DNS is annoying tonight, add the **URL-prefix** property `https://finelycred.com/` and verify by the method you can finish without a redeploy (DNS TXT, or an HTML file upload in Bluehost that does not require an app rebuild).
-3. Submit `https://finelycred.com/sitemap.xml`.
-4. Use URL Inspection on these five, then **Request indexing** only if the tool says the URL is not indexed. Do not request dozens. Google’s quota is small.
-   - `/haitian`
-   - `/free-kreyol-guide`
-   - `/pricing/debt-legal`
-   - `/resources/debt-defense-summons-answer`
-   - `/credit-specialist`
+3. Submit the sitemap that is live now: `https://finelycred.com/sitemap.xml`.
+4. Inspect **one** URL: `/haitian` or `/free-kreyol-guide`. Request indexing only if that one URL is missing. Leave the rest of the quota for after the refresh.
 5. Repeat the sitemap submit in [Bing Webmaster Tools](https://www.bing.com/webmasters). Bing can import a verified Search Console property.
 
 Check back in a week. Indexing is not instant. A “Discovered – currently not indexed” note is normal for a JavaScript site. It is not a reason to buy links.
@@ -111,11 +118,11 @@ Reviews: after a real session, you may send one personal note: “If the session
 
 If you cannot verify an address this month, skip Google Business. Do Search Console instead. A half-finished profile with the mock summons phone is worse than no profile.
 
-### C. Free citations (one per week, not a blast)
+### C. Free citations (one listing tonight)
 
-Use the **same** name, phone, and website on every listing. If you do not have the phone and address yet, do not start citations.
+Use the **same** name, phone, and website on every listing. Website on every overnight listing: `https://finelycred.com/haitian` (or `https://finelycred.com/free-kreyol-guide` if the form is “where do people start”). If you do not have the phone and address yet, skip citations and do the community board instead.
 
-Finish these yourself, in this order. Skip any site that wants a fee or a package of “500 directories”.
+Finish these yourself, in this order, **one per week** until the refresh. Skip any site that wants a fee or a package of “500 directories”.
 
 1. Google Business Profile (section B)
 2. Bing Places
@@ -123,11 +130,11 @@ Finish these yourself, in this order. Skip any site that wants a fee or a packag
 4. The Facebook Page **About** section (this is not an ad)
 5. One association or chamber you **already** belong to
 
-That is the list. Five accurate listings beat fifty abandoned ones.
+That is the overnight list. Five accurate listings beat fifty abandoned ones. More directories are section 2, and only if you will maintain them.
 
-### D. Partner one-sheets (no new design)
+### D. One partner handoff (optional, still soft)
 
-Hand these to people who already talk to your clients: a tax preparer, a realtor, a church secretary, a mortgage broker you know. You give them the PDF or the link. They do not give you their client list.
+One person you already know. One live URL from this menu. They do not give you their client list. The wider partner pass is section 2.
 
 | Who | Link |
 |-----|------|
@@ -154,7 +161,9 @@ UTM values to reuse (so you can see which post worked):
 Example:  
 `https://finelycred.com/pricing/debt-legal?utm_source=facebook&utm_medium=organic&utm_campaign=summons`
 
-### E. Community posts (you paste them; nobody else sends them)
+### E. One Haitian community board (you paste it)
+
+One group you already belong to: a Haitian Facebook group, a church WhatsApp, or a community board. One post. Link only `/haitian`, `/kreyol`, or `/free-kreyol-guide`.
 
 Disclosure on every post: **“I work with Finely Cred.”**
 
@@ -182,7 +191,57 @@ Kreyòl:
 > Yon lèt koleksyon pa menm bagay ak yon konvokasyon tribinal. Peye yon kolektè souvan pa efase liy nan dosye kredi a. Si w vle lèt angle a eksplike an Kreyòl: https://finelycred.com/kreyol  
 > Mwen travay ak Finely Cred. Rezilta yo varye. Sa a pa konsèy legal. Si w bezwen lajen, sa depann si yo apwouve w.
 
-Summons (use only when someone shows a court paper, not as a weekly blast):
+If someone in that same thread already showed a summons or asked about business credit, answer them and use the matching **live** URL from the table above. Do not go looking for those threads tonight. Templates for a later week are in section 2.
+
+#### Reddit (profile only, tonight)
+
+Subreddits that sometimes discuss this topic: `r/CRedit`, `r/personalfinance`, `r/smallbusiness`, `r/haiti`, and a city sub you actually live around. **Their rules win.** Most of them ban promotional links.
+
+- Tonight: put `https://finelycred.com/haitian` in the bio of the account you already have. Do not post a link thread.
+- Later, if you answer someone: explain the step in the comment. A link in the comment only when that subreddit’s rules allow it and you disclosed that you work with Finely Cred.
+- One account you already have. New accounts and the same paragraph in more than one subreddit stay off the plan.
+
+#### YouTube or TikTok you already run
+
+Tonight, if a video is already published, add one line. A second link waits for section 2.
+
+> Kreyòl credit help: https://finelycred.com/haitian  
+> Results vary. Not legal advice.
+
+The weekly video rhythm in `docs/GROWTH_WEEKLY_RHYTHM.md` still applies: you export and post it yourself.
+
+## 2. After the Bluehost refresh — wider placement wave
+
+This is the push that waits. Start it only when the owner has deployed PR #34, this pull request, and the UI fixes they want, and you have opened the new pages on `finelycred.com` yourself. URLs have to be the ones Google will keep.
+
+Still zero-dollar. Still you, posting and listing by hand. Still one board at a time, one listing at a time, and only URLs that are on the sitemap after the refresh. No paid ads, no bought links, no directory-submission software, no copied post across ten groups, no fake reviews.
+
+### A. Confirm the build, then tell Google
+
+1. Open `/haitian`, `/kreyol`, `/free-kreyol-guide`, `/start-here`, `/pricing/debt-legal`, and `/pricing/business-credit` in a private window. Confirm the browser tab titles match the checklist below.
+2. View the page source **or** Search Console’s rendered HTML. Until PR #26 (prerender) is also deployed, the raw source can still show the generic title. The rendered title is the one that matters for that check.
+3. In Search Console, resubmit `https://finelycred.com/sitemap.xml`. The new file should include `/start-here`, `/pricing/business-credit`, and `/haitian/miami` (plus the other metro desks).
+4. Request indexing for `/haitian`, `/free-kreyol-guide`, `/start-here`, `/pricing/business-credit`, `/pricing/debt-legal`, and **one** metro you will actually talk about that month. Add other metros in later weeks, not all ten in one day.
+5. Confirm canonicals in the rendered head:
+   - `/kreyol` → `https://finelycred.com/haitian` (share `/kreyol` in Kreyòl posts; Google should consolidate on `/haitian`)
+   - `/services/debt-legal` → `https://finelycred.com/pricing/debt-legal`
+   - `/services/business-credit` → `https://finelycred.com/pricing/business-credit`
+6. Leave cold imports on `consent=false`. People who arrive from these posts opt in on `/free-kreyol-guide`.
+
+### B. Wider citations and boards
+
+After step A, add placements you skipped overnight:
+
+- The rest of the five-listing list in section 1.C, if any are still empty, then at most one extra real directory per week (a chamber you belong to, Bing if Google was first). Each listing uses the same name, phone, and `https://finelycred.com/haitian`.
+- One additional community you already belong to per week. Rotate the live URL to match the room: Kreyòl desk, summons page, business-credit guide, or specialist offer. Disclose that you work with Finely Cred.
+- Metro URL only after that city’s page is in the sitemap you just resubmitted. Example: `https://finelycred.com/haitian/miami?utm_source=facebook&utm_medium=organic&utm_campaign=kreyol`.
+- Partner one-sheets from section 1.D, one partner you know per week. Same rule: they share the sheet, they do not hand over a client list.
+
+### C. Templates for the later weeks
+
+Same disclosure and compliance lines as section 1.E.
+
+Summons (when someone shows a court paper, or in one debt-topic group after the refresh):
 
 > If the paper says “summons” or “you are commanded,” the deadline matters more than the phone number on the letter. This page is the map, not a lawyer: https://finelycred.com/pricing/debt-legal  
 > I work with Finely Cred. Results vary. Not legal advice. Not a law firm. A licensed attorney files in court.
@@ -196,41 +255,6 @@ Credit specialist career (career groups, not family credit groups):
 
 > If you already sit with people on their credit files, this is the specialist path: you run the files, Finely supplies the method. No score promises in the pitch. https://finelycred.com/credit-specialist  
 > I work with Finely Cred.
-
-#### Reddit (stricter)
-
-Subreddits that sometimes discuss this topic: `r/CRedit`, `r/personalfinance`, `r/smallbusiness`, `r/haiti`, and a city sub you actually live around. **Their rules win.** Most of them ban promotional links.
-
-- Answer the person’s question in the comment. Explain the step (pull all three bureaus, do not ignore a summons deadline, business credit is not a personal score).
-- Do not put `finelycred.com` in the comment unless that subreddit’s rules allow a relevant link **and** you disclosed that you work there.
-- A better default: helpful comment, link in your Reddit profile bio to `https://finelycred.com/haitian`, and no URL in the thread.
-- One account you already have. Do not create accounts to post the link.
-- Do not post the same paragraph in more than one subreddit.
-
-#### YouTube or TikTok you already run
-
-Description line under an educational video (no boost):
-
-> Kreyòl credit help: https://finelycred.com/haitian  
-> Debt summons map: https://finelycred.com/pricing/debt-legal  
-> Results vary. Not legal advice.
-
-The weekly video rhythm in `docs/GROWTH_WEEKLY_RHYTHM.md` still applies: you export and post it yourself.
-
-## 2. After the next deploy
-
-Deploy means the owner merged the Haitian cold→hot work (PR #34), this pull request, and any UI fixes they want, then Bluehost is serving that build. Do not do this section against today’s live HTML.
-
-1. Open `/haitian`, `/kreyol`, `/free-kreyol-guide`, `/start-here`, `/pricing/debt-legal`, and `/pricing/business-credit` in a private window. Confirm the browser tab titles match the checklist below (they change only after the new build loads).
-2. View the page source **or** Search Console’s rendered HTML. Until PR #26 (prerender) is also deployed, the raw source can still show the generic title. The rendered title is the one that matters for that check.
-3. In Search Console, resubmit `https://finelycred.com/sitemap.xml`. The new file should include `/start-here`, `/pricing/business-credit`, and `/haitian/miami` (plus the other metro desks).
-4. Request indexing for `/start-here`, `/pricing/business-credit`, and **one** metro you will actually talk about this month (Miami if that is home). Add other metros in later weeks, not all ten in one day.
-5. Confirm canonicals in the rendered head:
-   - `/kreyol` → `https://finelycred.com/haitian` (share `/kreyol` in Kreyòl posts; Google should consolidate on `/haitian`)
-   - `/services/debt-legal` → `https://finelycred.com/pricing/debt-legal`
-   - `/services/business-credit` → `https://finelycred.com/pricing/business-credit`
-6. Only then put a metro URL in a local post, for example `https://finelycred.com/haitian/miami?utm_source=facebook&utm_medium=organic&utm_campaign=kreyol`.
-7. Leave cold imports on `consent=false`. People who arrive from these posts opt in on `/free-kreyol-guide`. That is the hot path.
 
 ## 3. On-page checklist
 
@@ -255,7 +279,7 @@ Internal links that were already in good shape and were left alone: `/start-here
 
 ## 4. Keyword clusters
 
-Write the post for a person, not for a keyword list. Use the **now** URL until deploy, then you may switch the Haitian geo posts to the metro URL.
+Write the post for a person, not for a keyword list. Overnight, the Haitian board post uses `/haitian`, `/kreyol`, or `/free-kreyol-guide` only. The other rows are for section 2, after the refresh, and only when that URL is on the live sitemap. Metro URLs wait until then.
 
 ### Haitian credit help / Kreyòl
 
@@ -308,14 +332,25 @@ No income promises. The page already says the specialist runs partner files and 
 
 ## 5. Weekly owner checklist (30–60 minutes)
 
-Pick one cluster per week. Rotate: Kreyòl → summons → business credit → specialist → Kreyòl.
+### Until the Bluehost refresh (soft)
 
 | Min | Action |
 |-----|--------|
-| 5 | Search Console: Coverage / Pages for the five URLs in section A. Note indexed vs not. Do not “fix” a not-indexed URL by buying links. |
-| 10 | One original post in **one** community you belong to, using a template from section E. Disclose that you work with Finely Cred. Include the compliance line. |
-| 10 | Reply to comments or messages from last week’s post. Invite them to the matching URL. Do not open a cold thread. |
-| 10 | One distribution asset: a one-sheet forwarded to one partner you know, **or** one Google Business post, **or** one directory from the list of five if NAP is ready. |
+| 5 | Search Console: is `/haitian` or `/free-kreyol-guide` indexed? Note it. Leave the other URLs alone. |
+| 15 | One soft placement: a profile/directory from section 1.C **or** one Haitian board post from section 1.E. Link `/haitian`, `/kreyol`, or `/free-kreyol-guide`. |
+| 10 | Reply only to people who answered that post. |
+| 5 | Write down which live URL you used. |
+
+### After URLs are stable (wider wave)
+
+Pick one cluster per week. Rotate: Kreyòl → summons → business credit → specialist → Kreyòl. One placement, not a batch.
+
+| Min | Action |
+|-----|--------|
+| 5 | Search Console: Coverage / Pages for the URLs you requested after the refresh. Note indexed vs not. |
+| 10 | One original post in **one** community you belong to, using a template from section 1.E or 2.C. Disclose that you work with Finely Cred. Include the compliance line. |
+| 10 | Reply to comments or messages from last week’s post. Invite them to the matching live URL. |
+| 10 | One distribution asset: a one-sheet to one partner you know, **or** one Google Business post, **or** the next directory on the list if NAP is ready. |
 | 5 | Write down the URL, the `utm_campaign`, and whether anyone opted in on `/free-kreyol-guide` (Leads OS, after you are in admin). |
 
 Once a month, extra 15 minutes: read one of your own public pages on a phone (`/haitian`, `/pricing/debt-legal`, `/free-kreyol-guide`) and fix a broken link if you see one. File that as a note. Do not redesign the page.
@@ -334,8 +369,8 @@ Once a month, extra 15 minutes: read one of your own public pages on a phone (`/
 
 ## Owner order when you are back
 
-1. This week, with the site as it is: Search Console, Bing, and one community post to `/haitian` or `/free-kreyol-guide`.
-2. Google Business only after the real phone and address are chosen.
+1. Tonight, soft only: Search Console, Bing, and one profile or one Haitian board post to `/haitian`, `/kreyol`, or `/free-kreyol-guide`.
+2. Google Business only after the real phone and address are chosen. The website field is `https://finelycred.com/haitian`.
 3. Merge and deploy when you want the new titles, canonicals, `/start-here` sitemap row, and metro pages. This pull request is a draft until you say so.
-4. After deploy, resubmit the sitemap and start using one metro URL.
+4. After the Bluehost refresh, and only after you have clicked the new pages: section 2. Resubmit the sitemap, then one metro URL, then the wider placements one per week.
 5. Prerender (PR #26) is the follow-up that puts those titles in the raw HTML crawlers download.
