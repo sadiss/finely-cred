@@ -843,7 +843,7 @@ export function MobileNav({ isOpen, onClose, onNavigate, showThemeToggle = false
             <button
               type="button"
               onClick={() => {
-                onNavigate('/pricing');
+                onNavigate('/start-here');
                 onClose();
               }}
               className={`w-full text-left fc-nav-pill-compact mb-1 ${matchSolutionsPath(location.pathname) ? 'fc-nav-pill-active' : ''}`}

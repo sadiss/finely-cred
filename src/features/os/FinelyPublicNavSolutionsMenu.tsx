@@ -14,6 +14,7 @@ export function FinelyPublicNavSolutionsMenu({
       label="Solutions"
       wide
       luxury
+      landingPath="/start-here"
       isActive={matchSolutionsPath(pathname)}
       sections={PUBLIC_SOLUTIONS_SECTIONS}
       onNavigate={onNavigate}

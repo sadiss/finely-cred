@@ -46,12 +46,10 @@ import { isAdminEmail } from './auth/admin';
 import { resolveHaitianCommunityHref } from './lib/haitianCompanionDesk';
 import HaitianCompanionDeskPage from './pages/public/HaitianCompanionDeskPage';
 import HaitianMetroDeskPage from './pages/public/HaitianMetroDeskPage';
-import HaitianKitStudioPage from './pages/public/HaitianKitStudioPage';
 import { isAuthEntryPath, signupUrlForCareerPath } from './lib/onboardingRoleRouting';
 import { resolveAuthedOnboardingBouncePath } from './lib/packageCheckoutRouting';
 import { finelyCtaNavigate, resolveFinelyCtaPath } from './lib/finelyCtaIntent';
-import { ensureDefaultExperiments, assignFunnelVariant, getAssignedCtaDestination } from './data/funnelExperimentsRepo';
-import { persistCtaBridgeVariant } from './lib/funnelCtaBridge';
+import { ensureDefaultExperiments, assignFunnelVariant } from './data/funnelExperimentsRepo';
 import { clearOnboardingProgress, peekOnboardingRecommendedNextPath } from './lib/onboardingProgressStorage';
 import { AdminCommandPaletteHost } from './features/work/components/WorkCommandPalette';
 import { FinelySiteThemeProvider } from './features/os/FinelySiteThemeProvider';
@@ -308,6 +306,7 @@ const TradelineGuideFunnelPage = lazyWithRetry(() => import('./pages/leadmagnet/
 const TradelineAdvantageGuideReaderPage = lazyWithRetry(() => import('./pages/leadmagnet/TradelineAdvantageGuideReaderPage'));
 const ScoreRoadmapFunnelPage = lazyWithRetry(() => import('./pages/leadmagnet/ScoreRoadmapFunnelPage'));
 const AgencyGuideFunnelPage = lazyWithRetry(() => import('./pages/leadmagnet/AgencyGuideFunnelPage'));
+const KreyolGuideFunnelPage = lazyWithRetry(() => import('./pages/leadmagnet/KreyolGuideFunnelPage'));
 const AgencyGuideReaderPage = lazyWithRetry(() => import('./pages/leadmagnet/AgencyGuideReaderPage'));
 const SpecialistApplyFunnelPage = lazyWithRetry(() => import('./pages/leadmagnet/SpecialistApplyFunnelPage'));
 const CreditSpecialistGuideLandingPage = lazyWithRetry(() => import('./pages/leadmagnet/CreditSpecialistGuideLandingPage'));
@@ -528,10 +527,9 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
   }, []);
 
   const handleHeroGetStarted = () => {
-    const variant = assignFunnelVariant('homepage_hero');
-    const destination = getAssignedCtaDestination('homepage_hero', '/pricing/business-credit');
-    persistCtaBridgeVariant('homepage_hero', variant);
-    navigate(destination);
+    // Labeled "Business credit path" — do not follow the homepage_hero
+    // destination test (variant_a sends this click to personal restore).
+    navigate('/pricing/business-credit');
   };
 
   return (
@@ -737,7 +735,12 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
       </section>
 
       {/* 10. Footer */}
-      <Footer onNavigate={(page) => onNavigate(page as NavView)} />
+      <Footer
+        onNavigate={(page) => {
+          if (page.startsWith('/')) navigate(page);
+          else onNavigate(page as NavView);
+        }}
+      />
     </div>
   );
 }
@@ -753,7 +756,16 @@ function TradelinesRoute({ addToCart, onNavigate }: { addToCart: (item: any) => 
 }
 
 function AboutRoute({ onNavigate }: { onNavigate: (view: NavView) => void }) {
-  return <AboutPage onNavigate={onNavigate} onFooterNavigate={(page) => onNavigate(page as NavView)} />;
+  const navigate = useNavigate();
+  return (
+    <AboutPage
+      onNavigate={onNavigate}
+      onFooterNavigate={(page) => {
+        if (page.startsWith('/')) navigate(page);
+        else onNavigate(page as NavView);
+      }}
+    />
+  );
 }
 
 function MasteryDashboardRoute({
@@ -1245,7 +1257,7 @@ function AppInner() {
         <Route path="/haitian" element={<HaitianCommunityRoute />} />
         <Route path="/haitian/:metro" element={<HaitianMetroDeskPage />} />
         <Route path="/kreyol" element={<HaitianCommunityRoute />} />
-        <Route path="/services" element={<Navigate to="/" replace />} />
+        <Route path="/services" element={<PricingPage />} />
         <Route path="/services/tradelines" element={<Navigate to="/tradelines" replace />} />
         <Route path="/services/finelycred" element={<FinelyCredServicesPage />} />
         <Route path="/services/business-credit" element={<BusinessCreditPreviewPage />} />
@@ -1253,7 +1265,7 @@ function AppInner() {
         <Route path="/services/personal-credit-restore" element={<PersonalCreditRestorePreviewPage />} />
         <Route path="/services/personal-credit-building" element={<PersonalCreditBuildPreviewPage />} />
         <Route path="/services/:service" element={<PricingServicePage />} />
-        <Route path="/pricing" element={<Navigate to="/" replace />} />
+        <Route path="/pricing" element={<PricingPage />} />
         <Route path="/pricing/tradelines" element={<Navigate to="/tradelines" replace />} />
         <Route path="/pricing/personal-credit-restore" element={<PersonalCreditRestorePreviewPage />} />
         <Route path="/personal-credit" element={<PersonalCreditRestorePreviewPage />} />
@@ -2753,6 +2765,7 @@ function AppInner() {
         <Route path="/portal/business" element={<Navigate to="/business/dashboard" replace />} />
         <Route path="/portal/readiness" element={<Navigate to="/portal/wealth-paths" replace />} />
         <Route path="/portal/identity" element={<Navigate to="/portal/identity-theft" replace />} />
+        <Route path="/portal" element={<Navigate to="/portal/dashboard" replace />} />
         <Route path="/portal/overview" element={<Navigate to="/portal/dashboard" replace />} />
         <Route path="/portal/partner" element={<Navigate to="/portal/dashboard" replace />} />
         <Route path="/admin/mail-letters" element={<Navigate to="/admin/mail" replace />} />
@@ -2819,13 +2832,27 @@ function AppInner() {
         <Route path="/real-estate-guide/read" element={<RealEstateGuideReaderPage />} />
         <Route path="/case-desk-guide" element={<CaseDeskGuideLandingPage />} />
         <Route path="/case-desk-guide/read" element={<CaseDeskGuideReaderPage />} />
-        <Route path="/free-kreyol-guide" element={<HaitianKitStudioPage />} />
-        <Route path="/free-kreyol-guide/:kitId" element={<HaitianKitStudioPage />} />
+        <Route path="/free-kreyol-guide" element={<KreyolGuideFunnelPage />} />
+        <Route path="/free-kreyol-guide/:kitId" element={<Navigate to="/free-kreyol-guide" replace />} />
         <Route path="/affiliate-toolkit" element={<AffiliateToolkitFunnelPage />} />
         <Route path="/affiliate-toolkit/read" element={<AffiliateToolkitGuideReaderPage />} />
         <Route path="/owners-guide" element={<ProtectedRoute><OwnersGuidePage /></ProtectedRoute>} />
         <Route path="/g/:code" element={<ShortReferralRedirectPage />} />
         <Route path="/consultation" element={<ConsultationCanonicalRedirect />} />
+        {/* Bare nav slugs and legacy bookmarks → pages that already exist. */}
+        <Route path="/solutions" element={<Navigate to="/start-here" replace />} />
+        <Route path="/careers" element={<Navigate to="/credit-specialist" replace />} />
+        <Route path="/dispute-guide" element={<Navigate to="/free-guide" replace />} />
+        <Route path="/dispute" element={<Navigate to="/free-guide" replace />} />
+        <Route path="/strategy-call" element={<Navigate to="/enlightenment-session" replace />} />
+        <Route path="/membership" element={<Navigate to="/pricing" replace />} />
+        <Route path="/debt" element={<Navigate to="/pricing/debt-legal" replace />} />
+        <Route path="/debt-relief" element={<Navigate to="/pricing/debt-legal" replace />} />
+        <Route path="/app" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/funding" element={<Navigate to="/fundability-readiness" replace />} />
+        <Route path="/partners" element={<Navigate to="/agency-partners" replace />} />
+        <Route path="/restore" element={<Navigate to="/pricing/personal-credit-restore" replace />} />
+        <Route path="/letters" element={<Navigate to="/free-guide" replace />} />
         <Route path="/faq" element={<FaqPage />} />
         <Route path="/claim" element={<ClaimPartnerProfilePage />} />
         <Route path="/partner-setup" element={<PartnerSelfIntakePage />} />

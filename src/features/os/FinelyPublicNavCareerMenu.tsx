@@ -22,6 +22,7 @@ export function FinelyPublicNavCareerMenu({
   return (
     <FinelyPublicNavDropdown
       label="Careers"
+      landingPath="/credit-specialist"
       isActive={matchCareersPath(pathname)}
       links={CAREER_LINKS}
       onNavigate={onNavigate}

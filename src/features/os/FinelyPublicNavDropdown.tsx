@@ -13,6 +13,11 @@ type Props = {
   wide?: boolean;
   /** Luxury glass mega panel (Solutions / Resources). */
   luxury?: boolean;
+  /**
+   * Real page for the label. Chevron still opens the menu.
+   * Used when the bare nav slug would otherwise 404.
+   */
+  landingPath?: string;
 };
 
 const ACCENT_DOT: Record<PublicNavAccent, string> = {
@@ -48,6 +53,7 @@ export function FinelyPublicNavDropdown({
   panelClassName = '',
   wide = false,
   luxury = false,
+  landingPath,
 }: Props) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -76,13 +82,37 @@ export function FinelyPublicNavDropdown({
     <div ref={rootRef} className="relative">
       <button
         type="button"
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => {
+          if (landingPath) {
+            onNavigate(landingPath);
+            setOpen(false);
+            return;
+          }
+          setOpen((v) => !v);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            setOpen(true);
+          }
+        }}
         className={`fc-nav-pill-compact inline-flex items-center gap-1 ${open || isActive ? 'fc-nav-pill-active' : ''}`}
-        aria-expanded={open}
-        aria-haspopup="menu"
+        aria-expanded={landingPath ? undefined : open}
+        aria-haspopup={landingPath ? undefined : 'menu'}
       >
         {label}
-        <ChevronDown size={13} className={`opacity-70 ${open ? 'rotate-180' : ''} transition-transform duration-200`} />
+        <span
+          className="inline-flex"
+          aria-label={`Open ${label} menu`}
+          aria-expanded={open}
+          aria-haspopup="menu"
+          onClick={(e) => {
+            e.stopPropagation();
+            setOpen((v) => !v);
+          }}
+        >
+          <ChevronDown size={13} className={`opacity-70 ${open ? 'rotate-180' : ''} transition-transform duration-200`} />
+        </span>
       </button>
       {open ? (
         <div
