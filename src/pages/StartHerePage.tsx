@@ -89,7 +89,7 @@ export default function StartHerePage() {
   const ActiveIcon = activePath.icon;
 
   usePublicSeoMeta({
-    title: 'Start here',
+    title: 'Start here: credit, debt, or Kreyòl',
     description:
       'Pick your path — fix personal credit, handle debt, build business credit, Haitian community (Pale Kreyòl), earn as a Credit Specialist, or sign in.',
     path: '/start-here',

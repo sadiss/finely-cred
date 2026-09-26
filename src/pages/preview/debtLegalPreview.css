@@ -657,6 +657,8 @@
     radial-gradient(ellipse 80% 55% at 100% 0%, rgba(3, 105, 161, 0.14) 0%, transparent 58%),
     #f8fcff;
 }
+.dl-prev-exit--emerald { border-color: rgba(4, 120, 87, 0.45); }
+
 .dl-prev-exit--navy {
   border-color: rgba(5, 150, 105, 0.4);
   background:

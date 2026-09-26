@@ -41,7 +41,7 @@ export default function HaitianCompanionDeskPage() {
   );
 
   usePublicSeoMeta({
-    title: 'Haitian community · Credit help for Haitian Americans',
+    title: 'Kreyòl credit help for Haitian Americans',
     description:
       'Credit help for Haitian Americans — restore, debt, building, and business credit. Pale Kreyòl. Book a session.',
     path: HAITIAN_DESK_LIVE_PATH,
@@ -177,6 +177,11 @@ export default function HaitianCompanionDeskPage() {
                 ),
               )}
             </div>
+            <nav className="ht-next-links" aria-label="Next steps">
+              <Link to="/free-kreyol-guide">Free Kreyòl kits</Link>
+              <Link to="/pricing/debt-legal">Debt summons desk</Link>
+              <Link to="/start-here">All lanes</Link>
+            </nav>
           </div>
         </section>
 

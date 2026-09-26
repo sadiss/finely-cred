@@ -186,6 +186,12 @@
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
+  <url>
+    <loc>https://finelycred.com/start-here</loc>
+    <lastmod>2026-09-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
   <url><loc>https://finelycred.com/haitian/miami</loc><lastmod>2026-09-10</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://finelycred.com/haitian/brooklyn</loc><lastmod>2026-09-10</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://finelycred.com/haitian/boston</loc><lastmod>2026-09-10</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
@@ -319,6 +325,12 @@
   <url>
     <loc>https://finelycred.com/pricing/debt-legal</loc>
     <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://finelycred.com/pricing/business-credit</loc>
+    <lastmod>2026-09-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>

@@ -101,9 +101,7 @@ export default function HaitianMetroDeskPage() {
   const desk = haitianMetroBySlug(metro);
 
   usePublicSeoMeta({
-    title: desk
-      ? `${desk.city} Haitian community · Credit help`
-      : 'Haitian community',
+    title: desk ? `${desk.city} Kreyòl credit help` : 'Kreyòl credit help',
     description: desk
       ? `${desk.jobEn} Pale Kreyòl. Book a session.`
       : 'Credit help for Haitian Americans.',
@@ -170,6 +168,11 @@ export default function HaitianMetroDeskPage() {
             <p className="ht-metro-kicker">Do this today</p>
             <h2 className="ht-metro-h2">{desk.actionEn}</h2>
             <p className="ht-metro-lede-ht">{desk.actionHt}</p>
+            <nav className="ht-next-links" aria-label="Next steps">
+              <Link to="/free-kreyol-guide">Free Kreyòl kits</Link>
+              <Link to="/pricing/debt-legal">Debt summons desk</Link>
+              <Link to="/haitian">All Haitian desks</Link>
+            </nav>
           </div>
         </section>
 
