@@ -46,7 +46,6 @@ import { isAdminEmail } from './auth/admin';
 import { resolveHaitianCommunityHref } from './lib/haitianCompanionDesk';
 import HaitianCompanionDeskPage from './pages/public/HaitianCompanionDeskPage';
 import HaitianMetroDeskPage from './pages/public/HaitianMetroDeskPage';
-import HaitianKitStudioPage from './pages/public/HaitianKitStudioPage';
 import { isAuthEntryPath, signupUrlForCareerPath } from './lib/onboardingRoleRouting';
 import { resolveAuthedOnboardingBouncePath } from './lib/packageCheckoutRouting';
 import { finelyCtaNavigate, resolveFinelyCtaPath } from './lib/finelyCtaIntent';
@@ -307,6 +306,7 @@ const TradelineGuideFunnelPage = lazyWithRetry(() => import('./pages/leadmagnet/
 const TradelineAdvantageGuideReaderPage = lazyWithRetry(() => import('./pages/leadmagnet/TradelineAdvantageGuideReaderPage'));
 const ScoreRoadmapFunnelPage = lazyWithRetry(() => import('./pages/leadmagnet/ScoreRoadmapFunnelPage'));
 const AgencyGuideFunnelPage = lazyWithRetry(() => import('./pages/leadmagnet/AgencyGuideFunnelPage'));
+const KreyolGuideFunnelPage = lazyWithRetry(() => import('./pages/leadmagnet/KreyolGuideFunnelPage'));
 const AgencyGuideReaderPage = lazyWithRetry(() => import('./pages/leadmagnet/AgencyGuideReaderPage'));
 const SpecialistApplyFunnelPage = lazyWithRetry(() => import('./pages/leadmagnet/SpecialistApplyFunnelPage'));
 const CreditSpecialistGuideLandingPage = lazyWithRetry(() => import('./pages/leadmagnet/CreditSpecialistGuideLandingPage'));
@@ -2832,8 +2832,8 @@ function AppInner() {
         <Route path="/real-estate-guide/read" element={<RealEstateGuideReaderPage />} />
         <Route path="/case-desk-guide" element={<CaseDeskGuideLandingPage />} />
         <Route path="/case-desk-guide/read" element={<CaseDeskGuideReaderPage />} />
-        <Route path="/free-kreyol-guide" element={<HaitianKitStudioPage />} />
-        <Route path="/free-kreyol-guide/:kitId" element={<HaitianKitStudioPage />} />
+        <Route path="/free-kreyol-guide" element={<KreyolGuideFunnelPage />} />
+        <Route path="/free-kreyol-guide/:kitId" element={<Navigate to="/free-kreyol-guide" replace />} />
         <Route path="/affiliate-toolkit" element={<AffiliateToolkitFunnelPage />} />
         <Route path="/affiliate-toolkit/read" element={<AffiliateToolkitGuideReaderPage />} />
         <Route path="/owners-guide" element={<ProtectedRoute><OwnersGuidePage /></ProtectedRoute>} />
