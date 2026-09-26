@@ -188,6 +188,61 @@ export default function DebtLegalPreviewPage() {
             </div>
           </header>
 
+          <section className="dl-prev-section" id="dl-prev-packages">
+            <div className="dl-prev-inner">
+              <p className="dl-prev-kicker">Packages</p>
+              <h2 className="dl-prev-h2">Pick a packet. See what you purchase.</h2>
+              <p className="dl-prev-lede">
+                Open a row to see who it is for, what is in the packet, and the price. A custom quote opens debt intake
+                instead of a public price.
+              </p>
+              <div className="dl-prev-queue" style={{ marginTop: '1.75rem' }}>
+                <div className="dl-prev-queue__list" role="listbox" aria-label="Debt packages">
+                  {packages.map((pkg) => (
+                    <button
+                      key={pkg.id}
+                      type="button"
+                      role="option"
+                      aria-selected={selected?.id === pkg.id}
+                      className="dl-prev-queue__item"
+                      onClick={() => setSelectedId(pkg.id)}
+                    >
+                      <strong>{pkg.name}</strong>
+                      <span>
+                        {priceLabel(pkg)}
+                        {pkg.debtBalanceGuidance?.label ? ` · ${pkg.debtBalanceGuidance.label}` : ''}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                {selected ? (
+                  <article className="dl-prev-showcase">
+                    <div className="dl-prev-showcase__price">{priceLabel(selected)}</div>
+                    <h3 className="dl-prev-showcase__name">{selected.name}</h3>
+                    <p className="dl-prev-showcase__fit">
+                      <span>Who it is for</span>
+                      {PACKAGE_FIT[selected.id] ?? selected.tagline}
+                    </p>
+                    <ul className="dl-prev-showcase__list">
+                      {(selected.highlights ?? []).slice(0, 5).map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                    <div className="dl-prev-showcase__actions">
+                      <button type="button" className="dl-prev-btn-primary" onClick={() => checkout(selected)}>
+                        {selected.isCustomQuote ? 'Start custom intake' : 'Select this packet'}{' '}
+                        <ArrowRight size={15} aria-hidden />
+                      </button>
+                      <button type="button" className="dl-prev-btn-secondary" onClick={() => setDetailPkg(selected)}>
+                        <Info size={14} aria-hidden /> What&apos;s included
+                      </button>
+                    </div>
+                  </article>
+                ) : null}
+              </div>
+            </div>
+          </section>
+
           <section className="dl-prev-section">
             <div className="dl-prev-inner">
               <Reveal>
@@ -403,61 +458,6 @@ export default function DebtLegalPreviewPage() {
                 </article>
               </div>
               <p className="dl-prev-compliance">Court dates still stand on their own calendar.</p>
-            </div>
-          </section>
-
-          <section className="dl-prev-section" id="dl-prev-packages">
-            <div className="dl-prev-inner">
-              <p className="dl-prev-kicker">Packages</p>
-              <h2 className="dl-prev-h2">Pick a packet. See what you purchase.</h2>
-              <p className="dl-prev-lede">
-                Open a row to see who it is for, what is in the packet, and the price. A custom quote opens debt intake
-                instead of a public price.
-              </p>
-              <div className="dl-prev-queue" style={{ marginTop: '1.75rem' }}>
-                <div className="dl-prev-queue__list" role="listbox" aria-label="Debt packages">
-                  {packages.map((pkg) => (
-                    <button
-                      key={pkg.id}
-                      type="button"
-                      role="option"
-                      aria-selected={selected?.id === pkg.id}
-                      className="dl-prev-queue__item"
-                      onClick={() => setSelectedId(pkg.id)}
-                    >
-                      <strong>{pkg.name}</strong>
-                      <span>
-                        {priceLabel(pkg)}
-                        {pkg.debtBalanceGuidance?.label ? ` · ${pkg.debtBalanceGuidance.label}` : ''}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-                {selected ? (
-                  <article className="dl-prev-showcase">
-                    <div className="dl-prev-showcase__price">{priceLabel(selected)}</div>
-                    <h3 className="dl-prev-showcase__name">{selected.name}</h3>
-                    <p className="dl-prev-showcase__fit">
-                      <span>Who it is for</span>
-                      {PACKAGE_FIT[selected.id] ?? selected.tagline}
-                    </p>
-                    <ul className="dl-prev-showcase__list">
-                      {(selected.highlights ?? []).slice(0, 5).map((item) => (
-                        <li key={item}>{item}</li>
-                      ))}
-                    </ul>
-                    <div className="dl-prev-showcase__actions">
-                      <button type="button" className="dl-prev-btn-primary" onClick={() => checkout(selected)}>
-                        {selected.isCustomQuote ? 'Start custom intake' : 'Select this packet'}{' '}
-                        <ArrowRight size={15} aria-hidden />
-                      </button>
-                      <button type="button" className="dl-prev-btn-secondary" onClick={() => setDetailPkg(selected)}>
-                        <Info size={14} aria-hidden /> What&apos;s included
-                      </button>
-                    </div>
-                  </article>
-                ) : null}
-              </div>
             </div>
           </section>
 

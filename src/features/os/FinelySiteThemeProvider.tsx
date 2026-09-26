@@ -6,10 +6,10 @@ import {
   canUseLightTheme,
   resolveEffectiveThemeForUser,
 } from '../../lib/finelyThemeAccess';
-import { isPublicMarketingPath } from '../../lib/publicSitePaths';
 import {
   persistThemePreference,
   readStoredThemePreference,
+  resolveForcedPublicTheme,
   type FinelySiteThemePreference,
   type FinelySiteThemeResolved,
 } from '../../lib/finelySiteTheme';
@@ -31,7 +31,7 @@ function applyTheme(pref: FinelySiteThemePreference, email?: string | null, path
   const clamped = clampThemePreference(pref, email);
   persistThemePreference(clamped);
   const path = pathname ?? (typeof window !== 'undefined' ? window.location.pathname : '/');
-  const effective = isPublicMarketingPath(path) ? 'dark' : resolveEffectiveThemeForUser(clamped, email);
+  const effective = resolveForcedPublicTheme(path) ?? resolveEffectiveThemeForUser(clamped, email);
   if (typeof document !== 'undefined') {
     document.documentElement.setAttribute('data-fc-theme', effective);
     document.documentElement.setAttribute('data-fc-theme-pref', clamped);
@@ -56,7 +56,7 @@ export function FinelySiteThemeProvider({ children }: { children: React.ReactNod
     clampThemePreference(readStoredThemePreference(), email),
   );
   const [effective, setEffective] = useState<FinelySiteThemeResolved>(() =>
-    isPublicMarketingPath(pathname) ? 'dark' : resolveEffectiveThemeForUser(readStoredThemePreference(), email),
+    resolveForcedPublicTheme(pathname) ?? resolveEffectiveThemeForUser(readStoredThemePreference(), email),
   );
 
   const apply = useCallback(
@@ -77,7 +77,7 @@ export function FinelySiteThemeProvider({ children }: { children: React.ReactNod
   useEffect(() => {
     const onStore = () => {
       const pref = clampThemePreference(readStoredThemePreference(), email);
-      const eff = isPublicMarketingPath(pathname) ? 'dark' : resolveEffectiveThemeForUser(pref, email);
+      const eff = resolveForcedPublicTheme(pathname) ?? resolveEffectiveThemeForUser(pref, email);
       setPreferenceState((cur) => (cur === pref ? cur : pref));
       setEffective((cur) => (cur === eff ? cur : eff));
       if (typeof document === 'undefined') return;
@@ -90,7 +90,7 @@ export function FinelySiteThemeProvider({ children }: { children: React.ReactNod
   }, [email, pathname]);
 
   useEffect(() => {
-    if (preference !== 'system' || !allowLight || isPublicMarketingPath(pathname)) return;
+    if (preference !== 'system' || !allowLight || resolveForcedPublicTheme(pathname)) return;
     const mq = window.matchMedia('(prefers-color-scheme: light)');
     const onChange = () => {
       const eff = resolveEffectiveThemeForUser('system', email);

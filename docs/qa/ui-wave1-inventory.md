@@ -20,3 +20,19 @@ Severity: **high** = blocks a primary action or shows the wrong surface; **mediu
 | `/admin/workflow` vs `/admin/inbox` | low | Both are real routes. Inbox is the workflow river’s inbox variant, not a redirect. Labels can read like two command centers next to Overview. | Keep both routes. If operators confuse them, rename the inbox label in the existing nav config only. |
 | Preview / light admin (`/preview/workspace-light`, layout preview) | low | These separate surfaces still have the OS chrome. Website `/admin` does not mount them. `AdminCommandCenterProduct.tsx` (used by `AdminDashboardProductSurface.tsx`) still renders `AdminStageHero` with family `command-intelligence` and the “Start here” feature card. Deprecated `AdminDashboardLightSurface.tsx` still renders `WlCommandHub` plus `FinelyNowDoThisStrip` and is not imported by a route. `AdminDashboardLayoutPreview.tsx` still renders `FinelyNowDoThisStrip`. `AdminStaffCommandCenterPage.tsx` is the staff route, not the website admin home, and does not render those blocks. | Leave them. Wave 1 only removes that chrome from the live website admin home. |
 | Public marketing pages other than debt / Haitian / free guides | low | “Just Approved” stays hidden for 12s, then sits bottom-right. It is fully suppressed on `/pricing/debt*`, `/services/debt*`, `/debt`, `/debt-*`, `/haitian`, `/kreyol`, and `/free-*`. | Leave the delay. Do not redesign the toast. |
+
+## Checklist IDs deferred (not Wave 1 P0)
+
+Soft SEO and Buffer stay held. Do not invent a new page for these.
+
+| ID | Route | Symptom | Suggested enhance-in-place fix |
+|---|---|---|---|
+| P-10 | `/haitian` | Pale Kreyòl payoff and a price the page refuses to show. Chase toast is already suppressed on this route. | Keep the existing Haitian desk. Strengthen the Kreyòl payoff line in the current copy only if a real next step already exists. Do not invent a price. |
+| P-12 | `/affiliate` | Apply submit and Ask Finely chrome were not browser-passed. Chase toast can still appear after 12s. | Confirm the existing form’s success and error banners. Hide the toast on `/affiliate` only if it covers the submit button. |
+| P-13 | `/credit-specialist` | Header can still show a client “Start free trial” control beside the specialist pricing page. `/careers` now redirects (covered by #39) instead of 404. | If the trial control is the public site CTA, leave it. If it implies the visitor is already a client, hide that one control on this route. |
+| P-16 | Funding region pages | Known CORS / empty data. | Do not add a new data source. Show the existing empty state when the request fails. |
+| A-04 | Admin preview lanes | Some preview URLs 404 or stay unfinished. | Hide or redirect only the preview links that have no route. Do not rebuild the preview shell. |
+| A-05 | Client dashboard gate | The partner/client home still feels half-ready (see `/dashboard` and `/portal/dashboard` rows above). | One next-step strip. Keep the KPI mosaic. |
+| E-04 | `/free-debt-guide` | Kept as the gold-standard magnet. Empty/error polish was not required to ship the signup desks. | Only if a guide step renders a raw error, swap in the existing empty-state copy. |
+| E-07 | Global | Unfinished public nav should stay hidden until the destination exists. #39 already aliases the known 404s. | Do not add new pages. Hide a link only when its route is still missing. |
+| E-08 | Magnets | Consent and success states, plus mobile skim, were not reworked. | Use the existing capture form’s consent checkbox and success step. Do not add a new form. |
