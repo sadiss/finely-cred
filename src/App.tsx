@@ -2765,6 +2765,7 @@ function AppInner() {
         <Route path="/portal/business" element={<Navigate to="/business/dashboard" replace />} />
         <Route path="/portal/readiness" element={<Navigate to="/portal/wealth-paths" replace />} />
         <Route path="/portal/identity" element={<Navigate to="/portal/identity-theft" replace />} />
+        <Route path="/portal" element={<Navigate to="/portal/dashboard" replace />} />
         <Route path="/portal/overview" element={<Navigate to="/portal/dashboard" replace />} />
         <Route path="/portal/partner" element={<Navigate to="/portal/dashboard" replace />} />
         <Route path="/admin/mail-letters" element={<Navigate to="/admin/mail" replace />} />
