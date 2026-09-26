@@ -102,16 +102,27 @@ export function scoreLead(lead: LeadCapture): LeadScoreResult {
   const isColdHaitianImport =
     lead.source === 'haitian_csv_import' && !lead.consentToContact && !lead.consentEmailMarketing;
 
+  const isColdDirectoryImport =
+    lead.source === 'directory_cold_import' && !lead.consentToContact && !lead.consentEmailMarketing;
+
+  const isColdNoOutreach = isColdHaitianImport || isColdDirectoryImport;
+
   if (isColdHaitianImport) {
     reasons.push('Haitian cold import — opt-in required before outreach');
+  } else if (isColdDirectoryImport) {
+    reasons.push('Directory cold import — do not email or text');
   } else if (isHaitianCommunity) {
     score += 10;
     reasons.push('Haitian community signal');
   }
 
-  if (isSpecialistRecruit) {
+  if (isSpecialistRecruit && !isColdNoOutreach) {
     score += 14;
     reasons.push('Credit Specialist recruiting signal');
+  }
+
+  if (isColdNoOutreach) {
+    score = Math.min(score, 39);
   }
 
   score = clamp(score, 0, 100);
@@ -137,8 +148,9 @@ export function scoreLead(lead: LeadCapture): LeadScoreResult {
     interest.includes('preapproval') ||
     interest.includes('pre-approval');
 
-  const suggestedSequenceId =
-    interest.includes('meta_lead') || lead.utmSource === 'facebook' || lead.utmMedium === 'lead_ad'
+  const suggestedSequenceId = isColdNoOutreach
+    ? ''
+    : interest.includes('meta_lead') || lead.utmSource === 'facebook' || lead.utmMedium === 'lead_ad'
       ? 'seq_meta_lead'
       : isHaitianCommunity
         ? 'seq_kreyol_funnel'
@@ -154,8 +166,10 @@ export function scoreLead(lead: LeadCapture): LeadScoreResult {
                   ? 'seq_tradeline_funnel'
                   : 'seq_credit_funnel';
 
-  const suggestedAction = isColdHaitianImport
-    ? 'Cold Haitian import — do not email; wait for /free-kreyol-guide opt-in'
+  const suggestedAction = isColdNoOutreach
+    ? isColdHaitianImport
+      ? 'Cold Haitian import — do not email; wait for /free-kreyol-guide opt-in'
+      : 'Directory cold import — do not email, text, or enroll nurture'
     : isHaitianCommunity
       ? band === 'qualified' || band === 'hot'
         ? 'Book Haitian community session · confirm Kreyòl voice preference'

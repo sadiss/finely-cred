@@ -39,11 +39,18 @@ export function syncLeadToCrmProspect(lead: LeadCapture, funnelId?: string) {
   }
 
   if (existing) return existing;
-  const target = isCreditSpecialistLeadOffer(lead.offer)
-    ? 'agents'
-    : scored.fit === 'business'
-      ? 'b2b_partners'
-      : 'clients';
+  const coldNoOutreach =
+    !lead.consentToContact &&
+    !lead.consentEmailMarketing &&
+    (lead.source === 'haitian_csv_import' || lead.source === 'directory_cold_import');
+  const target =
+    lead.offer === 'affiliate_application'
+      ? 'affiliates'
+      : isCreditSpecialistLeadOffer(lead.offer)
+        ? 'agents'
+        : scored.fit === 'business'
+          ? 'b2b_partners'
+          : 'clients';
 
   const tags = [
     'inbound',
@@ -55,18 +62,28 @@ export function syncLeadToCrmProspect(lead: LeadCapture, funnelId?: string) {
     ...(isCreditSpecialistLeadOffer(lead.offer) ? ['credit-specialist'] : []),
     ...(lead.offer === 'financing_preapproval' ? ['financing-preapproval', 'in-house-financing'] : []),
     ...(lead.source === 'haitian_csv_import'
-      ? ['haitian-community', 'cold', 'audience:haitian_community', 'source:haitian_csv_import']
-      : lead.offer === 'haitian_credit_kit' ||
-          lead.funnelId === 'kreyol_companion' ||
-          /haitian|krey[oò]l/i.test(lead.interest ?? '')
-        ? ['haitian-community']
-        : []),
+      ? ['haitian-community', 'cold', 'audience:haitian_community', 'source:haitian_csv_import', 'no-outreach']
+      : lead.source === 'directory_cold_import'
+        ? [
+            'temperature:cold',
+            'no-outreach',
+            'source:directory_cold_import',
+            ...(/haitian|krey[oò]l/i.test(`${lead.interest ?? ''} ${lead.funnelPath ?? ''}`)
+              ? ['haitian-community', 'cold']
+              : []),
+          ]
+        : lead.offer === 'haitian_credit_kit' ||
+            lead.funnelId === 'kreyol_companion' ||
+            /haitian|krey[oò]l/i.test(lead.interest ?? '')
+          ? ['haitian-community']
+          : []),
   ];
 
   return createProspect({
     target,
     source: 'lead_capture',
     score: scored.score,
+    autoEnroll: !coldNoOutreach,
     tags,
     contact: {
       name: lead.fullName,
@@ -74,6 +91,9 @@ export function syncLeadToCrmProspect(lead: LeadCapture, funnelId?: string) {
       phones: lead.phone ? [lead.phone] : [],
     },
     company: {
+      name: lead.source === 'directory_cold_import' ? lead.fullName : undefined,
+      website: lead.source === 'directory_cold_import' ? lead.promoAsset : undefined,
+      location: lead.source === 'directory_cold_import' ? lead.utmContent : undefined,
       description: lead.interest ?? lead.offer,
     },
   });

@@ -10,7 +10,12 @@ export type LeadSource =
   | 'agency'
   | 'heta_society'
   /** Cold Haitian community CSV — never consented; opt-in only via /free-kreyol-guide */
-  | 'haitian_csv_import';
+  | 'haitian_csv_import'
+  /**
+   * Cold public-directory import (affiliates, counseling agencies, employer postings).
+   * Never consented. Do not email or text. See docs/runbooks/lead-acquisition-lanes.md.
+   */
+  | 'directory_cold_import';
 
 export type LeadGoal = 'credit' | 'debt' | 'business' | 'tradelines' | 'general';
 

@@ -8,8 +8,8 @@ Finely Cred grows through **owned opt-in funnels** and **B2B partner referrals**
 |------|-----|
 | **No cold email/SMS** | TCPA, CAN-SPAM, and CROA risk; brand trust |
 | **Consent before nurture** | `consentToContact` or `consentEmailMarketing` must be true before `seq_kreyol_funnel` or any marketing sequence |
-| **Cold CSV stays cold** | Haitian imports use `haitian_csv_import` with both consent flags `false` — see [haitian-cold-import.md](./haitian-cold-import.md) |
-| **No PII in git** | Lead CSVs live outside the repo (secure bucket or owner machine only) |
+| **Cold CSV stays cold** | Haitian imports use `haitian_csv_import` with both consent flags `false` — see [haitian-cold-import.md](./haitian-cold-import.md). Affiliate, specialist, job-demand, and Haitian-organization pulls use `directory_cold_import` — see [lead-acquisition-lanes.md](./lead-acquisition-lanes.md). |
+| **No PII in git** | Lead CSVs live outside the repo or in gitignored `*.local.csv` / `*.local.json` files |
 | **Partner-first language** | No score guarantees, no income promises — results vary |
 
 ## Haitian / Kreyòl owned funnels (cold → hot)
@@ -84,8 +84,20 @@ These fit Finely Cred’s partner email sequences (`cold_prospect`, `invite_opt_
 - **Residual risk:** git history may still contain deleted blobs (`legacy-partners-audit.csv`, `docs/warm-prospects/library-seed.csv`) until an owner-approved `git filter-repo` / BFG purge — this PR does **not** rewrite history
 - `legacy-partners-export-v1.json` is now a redacted `@example.com` demo fixture; real exports → `legacy-partners-export-v1.local.json` (gitignored) — see [legacy-partner-import.md](./legacy-partner-import.md)
 
+## Directory lanes (affiliates, specialists, jobs, Haitian orgs)
+
+Public-directory pulls for partner offices and employer postings are documented in [lead-acquisition-lanes.md](./lead-acquisition-lanes.md).
+
+```bash
+npm run leads:discover
+npx tsx scripts/lane-cold-import.ts --dry-run data/lead-discovery/cold-import.local.csv
+```
+
+**Do not email those rows.** HUD agency inboxes and nonprofit names are cold. Job APIs contribute employer postings, not candidate resumes. Indeed, LinkedIn, and NMLS stay manual.
+
 ## What we do **not** do
 
+- Email or text a `haitian_csv_import` or `directory_cold_import` row before that person or organization opts in
 - Scrape personal emails from social media, directories, or church member lists into CRM
 - Run `bulkImportLeads()` on cold Haitian CSVs (use `bulkImportHaitianColdLeads` only)
 - Set `consentToContact=true` by default on import (blank = false)
