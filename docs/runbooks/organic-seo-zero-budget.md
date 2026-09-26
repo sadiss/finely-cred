@@ -11,7 +11,7 @@ Checked against the live site on **26 Sep 2026**. This file is the plan. The sma
 
 As of this update, fix draft [PR #39](https://github.com/sadiss/finely-cred/pull/39) exists and the review on PR #35 is **FAIL**. The gate is closed. Until it opens, this document is research and a draft placement plan only.
 
-When the gate opens, overnight work is still soft placements only: profiles, directories you fill in by hand, and Haitian community boards. Every link comes from the promote-safe list below. The default three are `/haitian`, `/kreyol`, and `/free-kreyol-guide`. Also allowed after the gate: `/free-debt-guide`, `/pricing/debt-legal`, and `/credit-specialist` (warm conversations only).
+When the gate opens, overnight work is still soft placements only: profiles, directories you fill in by hand, and one community board. Every link comes from the reconciled allowlist below. `/haitian` is for organic posts only. `/credit-specialist` is warm only.
 
 The wider placement wave — more boards, more citations, metro URLs, and indexing requests across the full safe set — waits until those URLs are stable after the Bluehost refresh. That wave is still manual and still zero-dollar. It is not a directory blast, a bought-link campaign, or a copy-paste across groups.
 
@@ -29,33 +29,26 @@ Related: [lead-acquisition-enterprise.md](./lead-acquisition-enterprise.md) (con
 | Email or text someone who opted in on the site | Cold email or SMS to a scraped or imported list |
 | Say results vary and this is not legal advice | Promise a score, a deletion, or a court outcome |
 
-Cold Haitian CSV rows stay `consent=false`. Organic visitors become leads only when they opt in on a funnel (usually `/free-kreyol-guide`).
+Cold Haitian CSV rows stay `consent=false`. Do not send those rows a link. Promotions do not use `/free-kreyol-guide` while that URL sends guests to `/haitian`.
 
 Public contact in the product is `partnersupport@finelycred.com`. The phone on the debt summons **sample** (`(305) 555-0148`) is a mock document, not the business number. Do not put it on Google, a flyer, or a directory.
 
 ## Promote-safe URLs
 
-Use only this list in the draft, and only after the gate above opens. These are pages that already render for a guest. Prefer the first rows.
+Mastermind and this plan agree on one allowlist. Use it only after the gate above opens. Anything not in the table stays off posts, directories, and profile website fields.
 
-| Job | URL |
-|-----|-----|
-| Haitian desk | https://finelycred.com/haitian |
-| Short Kreyòl link (same desk) | https://finelycred.com/kreyol |
-| Free kits (the opt-in) | https://finelycred.com/free-kreyol-guide |
-| Book a session | https://finelycred.com/enlightenment-session |
-| Personal restore pricing | https://finelycred.com/pricing/personal-credit-restore |
-| Credit building pricing | https://finelycred.com/pricing/personal-credit-building |
-| Business credit pricing | https://finelycred.com/pricing/business-credit |
-| Debt / summons pricing | https://finelycred.com/pricing/debt-legal |
-| Free debt guide | https://finelycred.com/free-debt-guide |
-| Credit specialist offer | https://finelycred.com/credit-specialist |
-| Wealth builder pricing | https://finelycred.com/pricing/wealth-builder |
-| Privacy pricing | https://finelycred.com/pricing/privacy-id |
-| Bundles pricing | https://finelycred.com/pricing/bundles |
+| Job | URL | Where it may go |
+|-----|-----|-----------------|
+| Free debt guide | https://finelycred.com/free-debt-guide | Posts and directories |
+| Debt / summons pricing | https://finelycred.com/pricing/debt-legal | Posts and directories |
+| Free dispute guide | https://finelycred.com/free-guide | Posts and directories. Default website field on a profile. |
+| Free business-credit guide | https://finelycred.com/free-business-guide | Posts and directories |
+| Haitian desk | https://finelycred.com/haitian | **Organic posts only.** Not a directory website. |
+| Personal restore pricing | https://finelycred.com/pricing/personal-credit-restore | Posts and directories |
+| Credit specialist offer | https://finelycred.com/credit-specialist | **Warm only.** Someone already asked about joining. |
+| Affiliate toolkit | https://finelycred.com/affiliate-toolkit | People who already want a referral kit. |
 
-`/credit-specialist` is **warm only**. Use it when someone already asked about joining as a specialist (a career chat you are already in). Keep it off church flyers, family WhatsApp, and Haitian community boards.
-
-Kit subpages on the same funnel, when you need a narrower link: `/free-kreyol-guide/what-is-credit`, `/free-kreyol-guide/letter-meaning`, `/free-kreyol-guide/helper`, `/free-kreyol-guide/community-flyer`.
+`/credit-specialist` stays off church flyers, family WhatsApp, and Haitian community boards.
 
 ### Avoid
 
@@ -63,8 +56,10 @@ Do not cite these, including after the gate:
 
 | URL | Why |
 |-----|-----|
-| `/` | Homepage is not a placement target. Directory and profile website fields use `/haitian`. |
+| `/` | Homepage is not a placement target. Directory and profile website fields use `/free-guide`. |
 | `/start-here` | Off the promote list. |
+| `/free-kreyol-guide` and its kit subpaths | Not a real guide for guests yet. QA #35: guests are sent to `/haitian`. Do not promote it until a guest who opens it stays on the guide. |
+| `/kreyol` | Not on the reconciled list. Organic Haitian posts use `/haitian`. |
 | `/portal` and anything under it | App login. QA still records `/portal` as no route. |
 | `/bookstore` | Empty public catalog. |
 | `/pricing` (bare index only) | Home bounce on the live base. Lane pages such as `/pricing/debt-legal` stay on the allowlist. |
@@ -77,9 +72,7 @@ Do not cite these, including after the gate:
 
 `https://finelycred.com/sitemap.xml` listed 112 URLs on 26 Sep 2026. A URL in that file is not automatically promote-safe. The exclude table wins.
 
-Section 2 may add these after the gate and the refresh, one at a time, because they are real public pages and they are not on the avoid list: `/resources/debt-defense-summons-answer`, `/free-guide`, `/free-business-guide`, `/resources/personal-credit-restore-sheet`, `/resources/business-credit-one-sheets`, `/resources/business-credit-tier-matrix`, `/resources`. `/free-debt-guide` and `/credit-specialist` are already on the allowlist above (`/credit-specialist` stays warm only). `/credit-specialist-guide` and `/credit-specialist-apply` stay off public boards.
-
-`/pricing/business-credit` renders today (QA on the launch base marked that CTA a pass) and is already in the promote-safe table. This pull request adds `/start-here` to the repo sitemap for the next deploy. `/start-here` stays off the promote list anyway.
+The reconciled list is closed. One-sheets, metro desks, `/kreyol`, `/enlightenment-session`, other pricing lanes, and `/credit-specialist-guide` are not placement URLs. This pull request still adds `/start-here` to the repo sitemap for a later deploy. `/start-here` stays off the promote list.
 
 ### What Google sees before JavaScript
 
@@ -99,6 +92,7 @@ When the gate opens, do these in order. One profile, one citation, one community
 
 Still hold until that refresh, even after the dead-link QA passes:
 
+- `/free-kreyol-guide` until a guest stays on a real guide
 - Metro desks (`/haitian/miami` and the other nine)
 - `/`, `/start-here`, `/portal`, `/bookstore`, and bare `/pricing`
 - `/resources/funding/tx`, `/resources/funding/ca`
@@ -111,7 +105,7 @@ Still hold until that refresh, even after the dead-link QA passes:
 1. Open [Google Search Console](https://search.google.com/search-console) with the Google account that should own the property long-term.
 2. Add the **domain** property `finelycred.com` (DNS verification is the durable one). If DNS is annoying tonight, add the **URL-prefix** property `https://finelycred.com/` and verify by the method you can finish without a redeploy (DNS TXT, or an HTML file upload in Bluehost that does not require an app rebuild).
 3. Submit the sitemap that is live now: `https://finelycred.com/sitemap.xml`.
-4. Inspect **one** URL: `/haitian` or `/free-kreyol-guide`. Request indexing only if that one URL is missing. Leave the rest of the quota for after the refresh.
+4. Inspect **one** allowlist URL, `/free-guide` or `/free-debt-guide`. Request indexing only if that one URL is missing. Leave the rest of the quota for after the refresh. Do not inspect `/free-kreyol-guide`.
 5. Repeat the sitemap submit in [Bing Webmaster Tools](https://www.bing.com/webmasters). Bing can import a verified Search Console property.
 
 Check back in a week. Indexing is not instant. A “Discovered – currently not indexed” note is normal for a JavaScript site. It is not a reason to buy links.
@@ -133,9 +127,9 @@ Business description (paste, then trim if the form is shorter):
 
 > Finely Cred helps people read credit reports, collection letters, and business credit files. Haitian Americans can start in English with a Kreyòl explanation. We also teach debt-letter workflows and business credit sequencing. Educational services. Results vary. Not legal advice. Not a law firm.
 
-Website: `https://finelycred.com/haitian`
+Website: `https://finelycred.com/free-guide`
 
-First Google post (after the profile is verified): link to `https://finelycred.com/free-kreyol-guide`.
+First Google post (after the profile is verified): link to `https://finelycred.com/free-guide`. Haitian community posts, not this profile, use `https://finelycred.com/haitian`.
 
 Photos: logo and a real photo of you or the team. No stock “happy family with a 850 score” images. No before/after score graphics that name a result you cannot document.
 
@@ -145,7 +139,7 @@ If you cannot verify an address this month, skip Google Business. Do Search Cons
 
 ### C. Free citations (one listing tonight)
 
-Use the **same** name, phone, and website on every listing. Website on every overnight listing: `https://finelycred.com/haitian` (or `https://finelycred.com/free-kreyol-guide` if the form is “where do people start”). If you do not have the phone and address yet, skip citations and do the community board instead.
+Use the **same** name, phone, and website on every listing. Website on every listing: `https://finelycred.com/free-guide`. If you do not have the phone and address yet, skip citations. Community posts are separate and may use `/haitian`.
 
 Finish these yourself, in this order, **one per week** until the refresh. Skip any site that wants a fee or a package of “500 directories”.
 
@@ -166,14 +160,14 @@ One person you already know. One live URL from this menu. They do not give you t
 | Business owner / tax preparer | https://finelycred.com/resources/business-credit-one-sheets |
 | Someone with a bureau file | https://finelycred.com/resources/personal-credit-restore-sheet |
 | Someone with a collector letter | https://finelycred.com/free-debt-guide |
-| Haitian church or family helper | https://finelycred.com/free-kreyol-guide/community-flyer and https://finelycred.com/haitian |
+| Haitian church or family helper | https://finelycred.com/haitian |
 
 Add this line under your signature when you forward a sheet:
 
 > Results vary. Not legal advice. Funding is subject to underwriting. Families can start here: https://finelycred.com/haitian
 
 QR codes, if you print the flyer kit:  
-`https://finelycred.com/free-kreyol-guide?utm_source=church&utm_medium=qr&utm_campaign=kreyol`
+`https://finelycred.com/haitian?utm_source=church&utm_medium=qr&utm_campaign=kreyol`
 
 UTM values to reuse (so you can see which post worked):
 
@@ -188,7 +182,7 @@ Example:
 
 ### E. One Haitian community board (you paste it)
 
-One group you already belong to: a Haitian Facebook group, a church WhatsApp, or a community board. One post. Link only `/haitian`, `/kreyol`, or `/free-kreyol-guide`.
+One group you already belong to: a Haitian Facebook group, a church WhatsApp, or a community board. One post. The Haitian link is `/haitian` only.
 
 Disclosure on every post: **“I work with Finely Cred.”**
 
@@ -213,7 +207,7 @@ English:
 
 Kreyòl:
 
-> Yon lèt koleksyon pa menm bagay ak yon konvokasyon tribinal. Peye yon kolektè souvan pa efase liy nan dosye kredi a. Si w vle lèt angle a eksplike an Kreyòl: https://finelycred.com/kreyol  
+> Yon lèt koleksyon pa menm bagay ak yon konvokasyon tribinal. Peye yon kolektè souvan pa efase liy nan dosye kredi a. Si w vle lèt angle a eksplike an Kreyòl: https://finelycred.com/haitian  
 > Mwen travay ak Finely Cred. Rezilta yo varye. Sa a pa konsèy legal. Si w bezwen lajen, sa depann si yo apwouve w.
 
 If someone in that same thread already showed a summons or asked about business credit, answer them and use the matching **live** URL from the table above. Do not go looking for those threads tonight. Templates for a later week are in section 2.
@@ -222,7 +216,7 @@ If someone in that same thread already showed a summons or asked about business 
 
 Subreddits that sometimes discuss this topic: `r/CRedit`, `r/personalfinance`, `r/smallbusiness`, `r/haiti`, and a city sub you actually live around. **Their rules win.** Most of them ban promotional links.
 
-- Tonight: put `https://finelycred.com/haitian` in the bio of the account you already have. Do not post a link thread.
+- Tonight the gate is closed, so do not edit the bio yet. After PASS, the bio may use `https://finelycred.com/haitian` (organic) or `https://finelycred.com/free-guide`. Do not post a link thread.
 - Later, if you answer someone: explain the step in the comment. A link in the comment only when that subreddit’s rules allow it and you disclosed that you work with Finely Cred.
 - One account you already have. New accounts and the same paragraph in more than one subreddit stay off the plan.
 
@@ -243,23 +237,23 @@ Still zero-dollar. Still you, posting and listing by hand. Still one board at a 
 
 ### A. Confirm the build, then tell Google
 
-1. Open `/haitian`, `/kreyol`, `/free-kreyol-guide`, `/start-here`, `/pricing/debt-legal`, and `/pricing/business-credit` in a private window. Confirm the browser tab titles match the checklist below.
+1. Open each allowlist URL in a private window: `/free-debt-guide`, `/pricing/debt-legal`, `/free-guide`, `/free-business-guide`, `/haitian`, `/pricing/personal-credit-restore`, `/credit-specialist`, `/affiliate-toolkit`. Also open `/free-kreyol-guide` once. If it still sends a guest to `/haitian`, leave it off the allowlist.
 2. View the page source **or** Search Console’s rendered HTML. Until PR #26 (prerender) is also deployed, the raw source can still show the generic title. The rendered title is the one that matters for that check.
 3. In Search Console, resubmit `https://finelycred.com/sitemap.xml`. The new file should include `/start-here`, `/pricing/business-credit`, and `/haitian/miami` (plus the other metro desks).
-4. Request indexing for `/haitian`, `/free-kreyol-guide`, `/free-debt-guide`, `/pricing/debt-legal`, `/pricing/business-credit`, and **one** metro you will actually talk about that month. Add other metros in later weeks, not all ten in one day. Skip `/`, `/start-here`, `/bookstore`, and bare `/pricing`.
+4. Request indexing only for allowlist URLs, a few per week: `/free-guide`, `/free-debt-guide`, `/free-business-guide`, `/pricing/debt-legal`, `/pricing/personal-credit-restore`, `/haitian`, `/affiliate-toolkit`. Skip `/free-kreyol-guide`, `/`, `/start-here`, `/bookstore`, bare `/pricing`, and metro URLs.
 5. Confirm canonicals in the rendered head:
-   - `/kreyol` → `https://finelycred.com/haitian` (share `/kreyol` in Kreyòl posts; Google should consolidate on `/haitian`)
+   - `/kreyol` → `https://finelycred.com/haitian` (do not share `/kreyol`; organic posts use `/haitian`)
    - `/services/debt-legal` → `https://finelycred.com/pricing/debt-legal`
    - `/services/business-credit` → `https://finelycred.com/pricing/business-credit`
-6. Leave cold imports on `consent=false`. People who arrive from these posts opt in on `/free-kreyol-guide`.
+6. Leave cold imports on `consent=false`. Do not point those rows at `/free-kreyol-guide`.
 
 ### B. Wider citations and boards
 
 After step A, add placements you skipped overnight:
 
-- The rest of the five-listing list in section 1.C, if any are still empty, then at most one extra real directory per week (a chamber you belong to, Bing if Google was first). Each listing uses the same name, phone, and `https://finelycred.com/haitian`.
-- One additional community you already belong to per week. Rotate the live URL to match the room: Kreyòl desk, summons page, business-credit guide, or specialist offer. Disclose that you work with Finely Cred.
-- Metro URL only after that city’s page is in the sitemap you just resubmitted. Example: `https://finelycred.com/haitian/miami?utm_source=facebook&utm_medium=organic&utm_campaign=kreyol`.
+- The rest of the five-listing list in section 1.C, if any are still empty, then at most one extra real directory per week (a chamber you belong to, Bing if Google was first). Each listing uses the same name, phone, and `https://finelycred.com/free-guide`.
+- One additional community you already belong to per week. The link is one allowlist URL: debt guide, debt pricing, dispute guide, business guide, `/haitian` for an organic Haitian post, restore pricing, or `/affiliate-toolkit` for someone who already wants a referral kit. `/credit-specialist` only if they already asked. Disclose that you work with Finely Cred.
+- No metro URLs. They are not on the reconciled list.
 - Partner one-sheets from section 1.D, one partner you know per week. Same rule: they share the sheet, they do not hand over a client list.
 
 ### C. Templates for the later weeks
@@ -289,7 +283,7 @@ Titles below are the **app** titles (what the browser tab should say after this 
 |-----|-----------|-------------------|
 | `/haitian` | Tab title did not say Kreyòl. No links to the free kits or the summons desk. | Title `Kreyòl credit help for Haitian Americans`. Links to `/free-kreyol-guide`, `/pricing/debt-legal`, `/start-here`. Canonical path stays `/haitian`. |
 | `/kreyol` | Same page as `/haitian`, short URL. Catalog title was 17 characters (“Haitian community”). | Catalog title aligned. Rendered canonical is `/haitian` so the two URLs do not compete. |
-| `/free-kreyol-guide` | Title was “Credit kits — Haitian community” and the description was 177 characters (Google cuts near 160). | Title `Free Kreyòl credit kits`. Description shortened and still says results vary / not legal advice. |
+| `/free-kreyol-guide` | Title was “Credit kits — Haitian community” and the description was 177 characters (Google cuts near 160). Guests on the live site are still sent to `/haitian`. | Title and description updated in this branch. **Not a promote URL** until a guest stays on a real guide. |
 | `/haitian/:metro` | Titles did not say Kreyòl. No link to the kit or the summons desk. Not on the **live** sitemap yet. | Title pattern `{City} Kreyòl credit help` for Miami, Brooklyn, Boston, Houston, Atlanta, Washington, Chicago, Philadelphia, Jacksonville, New Jersey. Next-step links added. Ships when this branch is deployed. |
 | `/start-here` | Title was “Start here”. Missing from `publicSeoCatalog` and from the live sitemap. | Title `Start here: credit, debt, or Kreyòl`. Added to the catalog and `public/sitemap.xml`. |
 | `/pricing/debt-legal` | Title did not say summons. No link to the summons article. | Title `Debt summons and collections \| Finely Cred`. Exit link to `/resources/debt-defense-summons-answer`. |
@@ -304,7 +298,7 @@ Internal links that were already in good shape and were left alone: `/start-here
 
 ## 4. Keyword clusters
 
-Write the post for a person, not for a keyword list. Overnight, the Haitian board post uses `/haitian`, `/kreyol`, or `/free-kreyol-guide` only. The other rows are for section 2, after the refresh, and only when that URL is on the live sitemap. Metro URLs wait until then.
+Write the post for a person, not for a keyword list. After the gate, every link is one row from the allowlist. Haitian organic posts use `/haitian` only.
 
 ### Haitian credit help / Kreyòl
 
@@ -312,9 +306,8 @@ People searching: “haitian credit help”, “kreyol credit repair”, “èd 
 
 | Intent | Now | After metro pages are on the live sitemap |
 |--------|-----|--------------------------------------------|
-| Explain my letter in Kreyòl | `/haitian` or `/kreyol` | `/haitian` plus `/haitian/{city}` for that city |
-| Send me the free kit | `/free-kreyol-guide` | same |
-| I am helping my parent | `/free-kreyol-guide/helper` | same |
+| Explain my letter in Kreyòl | `/haitian` (organic post) | same — no metro URL, no `/kreyol`, no `/free-kreyol-guide` |
+| Dispute letters, not the Kreyòl kit | `/free-guide` | same |
 
 Say “credit help” and “Kreyòl”. Do not say “guaranteed 100-point increase”.
 
@@ -339,7 +332,7 @@ People searching: “build business credit”, “EIN credit file”, “net 30 
 | Free map | `/free-business-guide` |
 | Offer / one-sheet for a partner | `/resources/business-credit-one-sheets` |
 | Tier explanation | `/resources/business-credit-tier-matrix` |
-| The program | `/pricing/business-credit` (renders today; cite it only after the dead-link QA pass) |
+| The free map on the allowlist | `/free-business-guide` |
 
 Funding is subject to underwriting. Say that.
 
@@ -368,8 +361,8 @@ No income promises. The page already says the specialist runs partner files and 
 
 | Min | Action |
 |-----|--------|
-| 5 | Search Console: is `/haitian` or `/free-kreyol-guide` indexed? Note it. Leave the other URLs alone. |
-| 15 | One soft placement: a profile/directory from section 1.C **or** one Haitian board post from section 1.E. Link `/haitian`, `/kreyol`, or `/free-kreyol-guide`. |
+| 5 | Search Console: is `/free-guide` or `/free-debt-guide` indexed? Note it. Leave `/free-kreyol-guide` alone. |
+| 15 | One soft placement: a directory from section 1.C pointing at `/free-guide`, **or** one organic post. Haitian boards link `/haitian`. Other rooms use another allowlist URL. |
 | 10 | Reply only to people who answered that post. |
 | 5 | Write down which promote-safe URL you used. |
 
@@ -383,9 +376,9 @@ Pick one cluster per week. Rotate: Kreyòl → summons → business credit → s
 | 10 | One original post in **one** community you belong to, using a template from section 1.E or 2.C. Disclose that you work with Finely Cred. Include the compliance line. |
 | 10 | Reply to comments or messages from last week’s post. Invite them to the matching live URL. |
 | 10 | One distribution asset: a one-sheet to one partner you know, **or** one Google Business post, **or** the next directory on the list if NAP is ready. |
-| 5 | Write down the URL, the `utm_campaign`, and whether anyone opted in on `/free-kreyol-guide` (Leads OS, after you are in admin). |
+| 5 | Write down the allowlist URL and the `utm_campaign`. |
 
-Once a month, extra 15 minutes: read one of your own public pages on a phone (`/haitian`, `/pricing/debt-legal`, `/free-kreyol-guide`) and fix a broken link if you see one. File that as a note. Do not redesign the page.
+Once a month, extra 15 minutes: read `/haitian`, `/free-debt-guide`, and `/pricing/debt-legal` on a phone. Open `/free-kreyol-guide` only to see if a guest still lands on `/haitian`. File a note. Do not redesign the page.
 
 ## What we will not do
 
@@ -396,7 +389,7 @@ Once a month, extra 15 minutes: read one of your own public pages on a phone (`/
 - New Reddit accounts
 - Cold email or SMS to scraped leads or to the Haitian cold CSV
 - Sending Haitian families to `/credit/miami-fl` style English stubs
-- Citing `/`, `/start-here`, `/portal`, `/bookstore`, bare `/pricing`, the 404 aliases, or `/resources/funding/tx` and `/resources/funding/ca`
+- Citing `/`, `/start-here`, `/portal`, `/bookstore`, bare `/pricing`, `/free-kreyol-guide`, `/kreyol`, the 404 aliases, or `/resources/funding/tx` and `/resources/funding/ca`
 - Putting `/credit-specialist` on a church flyer, a family chat, or any cold board
 - Any directory submission or public post before QA posts PASS on the P0 dead-link fix
 - Promising a score, a deletion, or a court result
@@ -405,7 +398,7 @@ Once a month, extra 15 minutes: read one of your own public pages on a phone (`/
 ## Owner order when you are back
 
 1. Tonight: nothing public. PR #39 is the dead-link fix draft and PR #35’s review is FAIL. This runbook stays a draft until a later QA comment says PASS.
-2. After that PASS: one soft placement to `/haitian`, `/kreyol`, or `/free-kreyol-guide`, plus Search Console and Bing if you have not verified the property. Google Business only after the real phone and address are chosen. The website field is `https://finelycred.com/haitian`.
+2. After that PASS: one soft placement from the allowlist. Directories use `https://finelycred.com/free-guide`. An organic Haitian post uses `https://finelycred.com/haitian`. Do not post `/free-kreyol-guide`. Google Business only after the real phone and address are chosen.
 3. Merge and deploy when you want the new titles, canonicals, `/start-here` sitemap row, and metro pages. This pull request is a draft until you say so.
 4. After the Bluehost refresh, and only after you have clicked the new pages: section 2. Resubmit the sitemap, then one metro URL, then the wider placements one per week. Still skip `/bookstore` and funding TX/CA.
 5. Prerender (PR #26) is the follow-up that puts those titles in the raw HTML crawlers download.
