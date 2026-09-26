@@ -60,7 +60,7 @@ Legacy partner exports (different import): see [legacy-partner-import.md](./lega
 | `funnelPath` | `/free-kreyol-guide` |
 | Tags | `cold`, `haitian-community`, `source:haitian_csv_import`, `temperature:cold` |
 
-Re-run is **idempotent** (updates metadata on existing email / phone match).
+Re-run updates metadata on an existing **unconsented** email / phone match. Rows that already have `consentToContact`, `consentEmailMarketing`, or `consentSmsMarketing` are left alone and counted as `preserved` (dry-run included). A second import must not clear an opt-in.
 
 ## Supabase production
 
@@ -75,4 +75,8 @@ If prod secrets are missing on a cloud VM, ship the importer + dry-run proof onl
 
 Public funnel: **https://finelycred.com/free-kreyol-guide**
 
-On consented submit, `submitLeadCapture` **upgrades the existing cold row** (same lead id — no duplicate) and runs the full pipeline, enrolling `seq_kreyol_funnel` (with Haitian template copy).
+On consented submit, `submitLeadCapture` **upgrades the existing cold row** (same lead id — no duplicate), strips `cold` and `temperature:cold`, adds `hot-opt-in`, `temperature:warm`, `temperature:hot`, and `source:free_kreyol_opt_in`, and runs the pipeline (`seq_kreyol_funnel`) only because consent is now true. A later strategy-call submit with the same email updates that row again.
+
+Operator plan (nurture copy, booking, coverage when the owner is out, CRM buckets): [cold-to-hot-conversion.md](./cold-to-hot-conversion.md).
+
+Do not send that sequence until the owner approves after the funnel is deployed. Admin **Enroll** is hidden on rows that are still cold.

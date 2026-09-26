@@ -6,7 +6,9 @@ import { newId } from '../utils/ids';
 import { loadJson, saveJson } from './localJsonStore';
 import { autoEnrollCrmRecordInDefaultSequence } from '../features/crm/sequences/autoEnrollCrmRecord';
 import { runLeadCapturePipeline } from '../lib/leadCapturePipeline';
-import { addLeadTags, setLeadStage } from './leadOpsRepo';
+import { emitPlatformEvent } from '../domain/platformEvents';
+import { HAITIAN_COLD_TEMPERATURE_TAGS, HAITIAN_HOT_OPT_IN_TAGS } from '../lib/haitianLeadTags';
+import { addLeadTags, getLeadOp, removeLeadTags, setLeadStage } from './leadOpsRepo';
 import { syncLeadToCrmProspect } from '../lib/crmLeadSync';
 
 const KEY = 'finely.leads.v1';
@@ -101,16 +103,29 @@ function sanitize(s: string) {
   return (s || '').trim();
 }
 
-function findUpgradableColdHaitianLead(email: string): LeadCapture | null {
-  const matches = findLeadCapturesByEmail(email);
+function isHaitianIdentityLead(lead: LeadCapture): boolean {
+  const tags = getLeadOp(lead.id).tags ?? [];
   return (
-    matches.find(
-      (l) =>
-        l.source === 'haitian_csv_import' &&
-        !l.consentToContact &&
-        !l.consentEmailMarketing,
-    ) ?? null
+    tags.includes('hot-opt-in') ||
+    tags.includes('source:free_kreyol_opt_in') ||
+    tags.includes('source:haitian_csv_import') ||
+    lead.source === 'haitian_csv_import' ||
+    lead.offer === 'haitian_credit_kit' ||
+    lead.funnelId === 'kreyol_companion' ||
+    (lead.funnelPath ?? '').includes('kreyol') ||
+    (lead.funnelPath ?? '').includes('haitian')
   );
+}
+
+/** Same email stays one Haitian row: cold CSV upgrade, then later session/magnet submits. */
+function findHaitianLeadForConsentedSubmit(email: string): LeadCapture | null {
+  const matches = findLeadCapturesByEmail(email);
+  const cold = matches.find(
+    (l) => l.source === 'haitian_csv_import' && !l.consentToContact && !l.consentEmailMarketing,
+  );
+  if (cold) return cold;
+  const ranked = matches.filter(isHaitianIdentityLead);
+  return ranked.find((l) => (getLeadOp(l.id).tags ?? []).includes('hot-opt-in')) ?? ranked[0] ?? null;
 }
 
 function leadCaptureRow(lead: LeadCapture) {
@@ -135,7 +150,7 @@ function leadCaptureRow(lead: LeadCapture) {
   };
 }
 
-/** Upgrade a cold Haitian CSV row to a consented hot capture — same lead id, no duplicate. */
+/** Merge a consented Haitian capture onto the existing row — same lead id, no duplicate. */
 function upgradeColdHaitianLeadToHot(
   existing: LeadCapture,
   args: Omit<LeadCapture, 'id' | 'createdAt'>,
@@ -143,6 +158,7 @@ function upgradeColdHaitianLeadToHot(
   const store = loadStore();
   const idx = store.leads.findIndex((l) => l.id === existing.id);
   if (idx < 0) throw new Error('Lead not found');
+  const wasCold = !existing.consentToContact && !existing.consentEmailMarketing;
 
   const lead: LeadCapture = {
     ...existing,
@@ -171,10 +187,28 @@ function upgradeColdHaitianLeadToHot(
   store.leads[idx] = lead;
   saveStore(store);
 
-  addLeadTags(lead.id, ['hot-opt-in', 'temperature:warm', 'source:free_kreyol_opt_in']);
-  setLeadStage(lead.id, 'contacted');
+  if (wasCold) {
+    removeLeadTags(lead.id, [...HAITIAN_COLD_TEMPERATURE_TAGS]);
+    addLeadTags(lead.id, [...HAITIAN_HOT_OPT_IN_TAGS]);
+    setLeadStage(lead.id, 'contacted');
+    emitPlatformEvent({
+      type: 'automation.triggered',
+      tenantId: 'finely_cred',
+      leadId: lead.id,
+      entityType: 'lead',
+      entityId: lead.id,
+      payload: {
+        kind: 'haitian_cold_to_hot',
+        from: 'temperature:cold',
+        to: 'temperature:hot',
+        funnelPath: lead.funnelPath ?? null,
+        consentEmailMarketing: lead.consentEmailMarketing,
+        consentSmsMarketing: Boolean(lead.consentSmsMarketing),
+      },
+    });
+  }
 
-  if (lead.consentToContact) {
+  if (wasCold && lead.consentToContact) {
     try {
       autoEnrollCrmRecordInDefaultSequence(`crm_lead_${lead.id}`, {
         noteLabel: '[Sequence] Auto-enrolled on Haitian cold→hot opt-in',
@@ -213,11 +247,11 @@ export async function submitLeadCapture(
   const { guideId, guideTitle, funnelId, skipPipeline, ...leadArgs } = args;
   const email = sanitize(leadArgs.email);
   const hasConsent = Boolean(leadArgs.consentToContact || leadArgs.consentEmailMarketing);
-  const coldUpgrade =
-    hasConsent && !skipPipeline ? findUpgradableColdHaitianLead(email) : null;
+  const haitianMerge =
+    hasConsent && !skipPipeline ? findHaitianLeadForConsentedSubmit(email) : null;
 
-  const lead = coldUpgrade
-    ? upgradeColdHaitianLeadToHot(coldUpgrade, {
+  const lead = haitianMerge
+    ? upgradeColdHaitianLeadToHot(haitianMerge, {
         ...leadArgs,
         fullName: sanitize(leadArgs.fullName),
         email,
@@ -240,7 +274,7 @@ export async function submitLeadCapture(
 
   try {
     const row = leadCaptureRow(lead);
-    const { error } = coldUpgrade
+    const { error } = haitianMerge
       ? await supabase.from('lead_captures').upsert(row, { onConflict: 'id' })
       : await supabase.from('lead_captures').insert(row);
     if (error) return { lead, remote: 'failed', remoteError: error.message };

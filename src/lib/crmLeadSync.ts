@@ -1,6 +1,7 @@
 import type { LeadCapture } from '../domain/leads';
-import { createProspect, listProspects } from '../data/crmProspectsRepo';
-import { addLeadTags, setLeadStage } from '../data/leadOpsRepo';
+import { createProspect, listProspects, patchProspect } from '../data/crmProspectsRepo';
+import { addLeadTags, getLeadOp, setLeadStage } from '../data/leadOpsRepo';
+import { HAITIAN_COLD_TEMPERATURE_TAGS, HAITIAN_HOT_OPT_IN_TAGS } from './haitianLeadTags';
 import { scoreLead, leadOpsStageForLead } from './leadScoring';
 import { isCreditSpecialistLeadOffer } from './leadOfferLabels';
 
@@ -32,13 +33,30 @@ export function syncLeadToCrmProspect(lead: LeadCapture, funnelId?: string) {
   const existing = listProspects().find((p) => (p.contact.emails ?? []).some((e) => normEmail(e) === email));
 
   const scored = scoreLead(lead);
+  const opTags = getLeadOp(lead.id).tags ?? [];
+  const optedIn = opTags.includes('hot-opt-in') || opTags.includes('temperature:hot');
   if (isSessionBookedLeadOffer(lead.offer)) {
     syncInboundLeadSessionBooked(lead, funnelId);
   } else {
     setLeadStage(lead.id, leadOpsStageForLead(lead));
   }
 
-  if (existing) return existing;
+  if (existing) {
+    if (optedIn) {
+      const drop = new Set<string>(HAITIAN_COLD_TEMPERATURE_TAGS);
+      patchProspect(existing.id, {
+        score: scored.score,
+        tags: Array.from(
+          new Set([
+            ...(existing.tags ?? []).filter((t) => !drop.has(t)),
+            ...HAITIAN_HOT_OPT_IN_TAGS,
+            'haitian-community',
+          ]),
+        ),
+      });
+    }
+    return existing;
+  }
   const target = isCreditSpecialistLeadOffer(lead.offer)
     ? 'agents'
     : scored.fit === 'business'
@@ -54,12 +72,13 @@ export function syncLeadToCrmProspect(lead: LeadCapture, funnelId?: string) {
     ...(lead.offer ? [`offer:${lead.offer}`] : []),
     ...(isCreditSpecialistLeadOffer(lead.offer) ? ['credit-specialist'] : []),
     ...(lead.offer === 'financing_preapproval' ? ['financing-preapproval', 'in-house-financing'] : []),
-    ...(lead.source === 'haitian_csv_import'
-      ? ['haitian-community', 'cold', 'audience:haitian_community', 'source:haitian_csv_import']
+    ...(lead.source === 'haitian_csv_import' && !optedIn
+      ? ['haitian-community', 'cold', 'audience:haitian_community', 'source:haitian_csv_import', 'temperature:cold']
       : lead.offer === 'haitian_credit_kit' ||
           lead.funnelId === 'kreyol_companion' ||
-          /haitian|krey[oò]l/i.test(lead.interest ?? '')
-        ? ['haitian-community']
+          /haitian|krey[oò]l/i.test(lead.interest ?? '') ||
+          optedIn
+        ? ['haitian-community', ...(optedIn ? [...HAITIAN_HOT_OPT_IN_TAGS] : [])]
         : []),
   ];
 

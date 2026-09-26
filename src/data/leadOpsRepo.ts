@@ -65,3 +65,10 @@ export function addLeadTags(leadId: string, tags: string[]): LeadOp {
   return upsertLeadOp({ ...op, tags: next });
 }
 
+export function removeLeadTags(leadId: string, tags: string[]): LeadOp {
+  const op = getLeadOp(leadId);
+  const drop = new Set(tags.map((t) => t.trim()).filter(Boolean));
+  const next = (op.tags ?? []).filter((t) => !drop.has(t));
+  return upsertLeadOp({ ...op, tags: next });
+}
+
