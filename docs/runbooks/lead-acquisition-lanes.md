@@ -10,10 +10,10 @@ Real contact files stay on the machine that ran the collector. Git stores the ca
 
 | Lane | What the collector keeps | What it does not keep | Opt-in page |
 |------|--------------------------|------------------------|-------------|
-| `affiliates` | HUD counseling agencies, credit-counseling nonprofits, Haitian chambers/associations (public org identity) | Member lists, personal social profiles | `/affiliate` |
+| `affiliates` | HUD counseling agencies, credit-counseling nonprofits, chambers/associations, and referral-relevant NTEE codes (public org identity) across the catalog metros and focus states | Member lists, personal social profiles | `/affiliate` |
 | `specialists` | Counseling **offices** with HUD financial/credit services (FBC, FBW) or “credit counseling” nonprofit names | Individual loan-officer or dispute-agent resumes | `/credit-specialist` |
-| `jobs` | Employer **job postings** whose titles match credit, loan, debt, or housing-counselor roles | Job-seeker names, emails, or resumes | `/credit-specialist` |
-| `haitian_orgs` | IRS-exempt orgs matched on “haitian”, plus HUD agencies that publish Haitian Creole (`CRE`) | Church member rolls, personal phones scraped off websites | `/free-kreyol-guide` |
+| `jobs` | Employer **job postings** whose titles match credit, loan, debt, housing-counselor, or financial-coach roles | Job-seeker names, emails, or resumes | `/credit-specialist` |
+| `haitian_orgs` | IRS-exempt orgs matched on Haitian, Haiti, Kreyol, and filtered Creole names, plus HUD agencies that publish Haitian Creole (`CRE`) | Church member rolls, personal phones scraped off websites | `/free-kreyol-guide` |
 
 Individual NMLS lookups, Indeed, and LinkedIn are **manual queries** in `scripts/lead_discovery/catalog.json`. The collector does not automate them.
 
@@ -23,9 +23,9 @@ All of these are public APIs meant to be queried:
 
 | Source | What comes back | Email? |
 |--------|-----------------|--------|
-| [ProPublica Nonprofit Explorer](https://projects.propublica.org/nonprofits/api) | Org name, EIN, city, state, NTEE. FL/NY/NJ/MA, capped pages. | No |
-| [HUD housing counselor locator](https://data.hud.gov/Housing_Counselor/searchByLocation) | Agency name, city, public phone, public email, website, services, languages. 25-mile radius around FL/NY metros plus Newark and Boston. Kept only when language is `CRE` or services include `FBC`/`FBW`. | Often, published by HUD |
-| [Remotive](https://remotive.com/remote-jobs/api), [Remote OK](https://remoteok.com/api), [Arbeitnow](https://www.arbeitnow.com/api/job-board-api) | Job title, company, location, posting URL. Title filter only (descriptions are ignored so “credit card” inside a software job does not match). | No |
+| [ProPublica Nonprofit Explorer](https://projects.propublica.org/nonprofits/api) | Org name, EIN, city, state, NTEE. Focus states FL, NY, NJ, MA, GA, TX, PA, MD, DC, IL, NC, CA, CT, RI, LA, plus a national pass. Pages run until the API’s `num_pages` (or the catalog page cap). Noisy keywords (creole, caribbean) keep a name filter. | No |
+| [HUD housing counselor locator](https://data.hud.gov/Housing_Counselor/searchByLocation) | Agency name, city, public phone, public email, website, services, languages. 25-mile radius around the catalog metros (South Florida, Northeast Haitian corridors, and other large counseling markets). Kept when language is `CRE`, services include `FBC`/`FBW`, or the agency name is a credit-counseling office. | Often, published by HUD |
+| [Remotive](https://remotive.com/remote-jobs/api), [Remote OK](https://remoteok.com/api), [Arbeitnow](https://www.arbeitnow.com/api/job-board-api) | Job title, company, location, posting URL. Broader title filter (credit, housing, debt, financial coach, loan officer). Descriptions are ignored so “credit card” inside a software job does not match. | No |
 
 Manual query strings (Indeed, LinkedIn, USAJOBS, NMLS Consumer Access, NCUA locator, Google) live in the same catalog. Run those in a browser. Do not bulk-export NMLS.
 
@@ -37,13 +37,14 @@ From the repo root:
 npm run leads:discover
 ```
 
-That writes three **gitignored** files:
+That writes these **gitignored** files:
 
 | File | Contents |
 |------|----------|
 | `data/lead-discovery/collected.local.json` | Full org directory plus employer postings. System of record, including rows with no email. |
 | `data/lead-discovery/cold-import.local.csv` | CRM slice. Same columns as the Haitian cold importer, plus Lane, Organization, Website, Source, Source URL. **Only rows with a public email.** |
 | `data/lead-discovery/last-run-counts.local.json` | Counts only. |
+| `data/lead-discovery/summary.local.md` | Same counts plus output paths. Gitignored. |
 
 Stdout prints counts and source errors. It does not print emails, phones, or organization names.
 
