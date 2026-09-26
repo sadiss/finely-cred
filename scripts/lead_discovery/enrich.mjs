@@ -738,6 +738,14 @@ export function summarize({ queueRows, priorRows, hostResults, skippedReasons })
   const newRows = discovered.filter((r) => !priorEmails.has(r.email));
   const newAddresses = new Set(newRows.map((r) => r.email));
   const knownAttached = discovered.filter((r) => priorEmails.has(r.email));
+  const blankIds = new Set(
+    queueRows
+      .filter((r) => !String(r.email ?? '').includes('@'))
+      .map((r) => rowKey(r.organization, '', r.city, r.state)),
+  );
+  const newOnBlank = new Set(
+    newRows.filter((r) => blankIds.has(rowKey(r.org, '', r.city, r.state))).map((r) => r.email),
+  );
 
   const hosts = Object.values(hostResults || {});
   const attemptedWebsites = hosts.length;
@@ -786,6 +794,8 @@ export function summarize({ queueRows, priorRows, hostResults, skippedReasons })
     attemptedOrgRows,
     newEmailsFound: newAddresses.size,
     newEmailRows: newRows.length,
+    newEmailsOnPreviouslyBlankOrgs: newOnBlank.size,
+    newEmailsOnlyOnOrgsThatAlreadyHadOne: newAddresses.size - newOnBlank.size,
     alreadyHadEmail: priorRows.length,
     alreadyHadEmailAddresses: priorEmails.size,
     knownAddressAttachedRows: knownAttached.length,
@@ -826,6 +836,8 @@ function renderReport(summary, generatedAt) {
     `| Attempted websites (unique hosts) | ${summary.attemptedWebsites} |`,
     `| Attempted org rows | ${summary.attemptedOrgRows} |`,
     `| New emails found (unique addresses not in the prior set) | ${summary.newEmailsFound} |`,
+    `| New emails on orgs that previously had none | ${summary.newEmailsOnPreviouslyBlankOrgs} |`,
+    `| New emails only on orgs that already had one | ${summary.newEmailsOnlyOnOrgsThatAlreadyHadOne} |`,
     `| New email rows (org + new address) | ${summary.newEmailRows} |`,
     `| Already had email (rows preserved) | ${summary.alreadyHadEmail} |`,
     `| Orgs that gained a published email | ${summary.orgsGainedEmail} |`,
@@ -1054,6 +1066,8 @@ function selfCheck() {
   assert(summary.alreadyHadEmail === 1, 'prior row preserved');
   assert(summary.rows.some((r) => r.email === 'info@alpha.org' && r.source_page === 'prior-wave'), 'prior source marked');
   assert(summary.newEmailsFound === 1, 'shared known address is not a new email');
+  assert(summary.newEmailsOnPreviouslyBlankOrgs === 1, 'new address on a blank org counted');
+  assert(summary.newEmailsOnlyOnOrgsThatAlreadyHadOne === 0, 'no extra address on an org that already had email');
   assert(summary.newEmailsFound === new Set(['hello@betacdc.org']).size, 'beta address counted once');
   assert(summary.rows.filter((r) => r.email === 'hello@betacdc.org').length === 1, 'one row for the new address');
   assert(summary.orgsGainedEmail === 2, 'orlando office gained the known address and beta gained a new one');
