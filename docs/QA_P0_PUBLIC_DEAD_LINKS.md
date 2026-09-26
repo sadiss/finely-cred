@@ -107,3 +107,15 @@ Expected touch list if the diff stays surgical: `src/App.tsx` route aliases and 
 ## Residual gaps this baseline still leaves open
 
 All twelve aliases above, plus the three live controls (mobile Solutions, footer Payment plans, About Explore pricing). Header dropdown lane links, sitemap URLs, and the business-credit CTAs are not in that residual set.
+
+## Review of fix PR #39 (`cursor/fix-public-nav-routes-5940`, `b549c0d`)
+
+**Verdict: FAIL.** The diff is surgical (no CSS, no new page, no visual restyle). No files to revert for look. It does not clear the dead-route bar.
+
+Posted on https://github.com/sadiss/finely-cred/pull/39.
+
+Passes: `/pricing` and `/services` render existing `PricingPage` (no home bounce). `/solutions` → `/services`. `/careers` → `/credit-specialist`. `/dispute-guide` → `/free-guide`. `/strategy-call` → `/enlightenment-session`. `/membership` → `/pricing`. Business-credit links were not retargeted to restore.
+
+Fails still open: `/dispute`, `/funding`, `/partners`, `/restore`, `/letters`, `/portal` (no routes). Footer Payment plans still uses view key `pricing`, so it opens the catalog on the Personal / Restore lane instead of a payment-plan action. The Solutions label opens that same restore-default catalog. Guest `/free-kreyol-guide` still redirects to `/haitian`; the PR says that was left as-is, so it is not a false “fixed” claim.
+
+`tsc` was not re-run in this checkout (`node_modules` absent). The PR author reports `tsc --noEmit` passed.
