@@ -367,7 +367,7 @@ QA on PR #39 passed at `e37875c`. Placements still wait. Live `finelycred.com` s
 | Min | Action |
 |-----|--------|
 | 5 | Search Console: is `/free-guide`, `/free-debt-guide`, or `/free-kreyol-guide` indexed? Note it. |
-| 15 | One soft placement: a directory from section 1.C pointing at `/free-guide`, **or** one organic post. Haitian boards link `/haitian`. Other rooms use another allowlist URL. |
+| 15 | One soft placement: a directory from section 1.C pointing at `/free-guide`, **or** one organic post. Haitian boards link `/haitian` or `/free-kreyol-guide`. Other rooms use another allowlist URL. |
 | 10 | Reply only to people who answered that post. |
 | 5 | Write down which promote-safe URL you used. |
 
