@@ -135,6 +135,41 @@
         "q": "housing counselor",
         "lanes": ["specialists", "affiliates"],
         "nameMustMatch": "hous|counsel|home"
+      },
+      {
+        "q": "ayiti",
+        "lanes": ["haitian_orgs"],
+        "nameMustMatch": "ayiti|haiti"
+      },
+      {
+        "q": "little haiti",
+        "lanes": ["haitian_orgs"],
+        "nameMustMatch": "haiti"
+      },
+      {
+        "q": "haitian american",
+        "lanes": ["haitian_orgs"],
+        "nameMustMatch": "haiti"
+      },
+      {
+        "q": "neighborhood housing",
+        "lanes": ["specialists", "affiliates"],
+        "nameMustMatch": "hous|neighborhood"
+      },
+      {
+        "q": "housing partnership",
+        "lanes": ["specialists", "affiliates"],
+        "nameMustMatch": "hous|partnership"
+      },
+      {
+        "q": "financial empowerment",
+        "lanes": ["specialists", "affiliates"],
+        "nameMustMatch": "financ|empower"
+      },
+      {
+        "q": "refugee services",
+        "lanes": ["affiliates"],
+        "nameMustMatch": "refugee"
       }
     ]
   },
@@ -198,7 +233,32 @@
       { "id": "new-orleans", "label": "New Orleans, LA", "lat": 29.9511, "lng": -90.0715 },
       { "id": "los-angeles", "label": "Los Angeles, CA", "lat": 34.0522, "lng": -118.2437 },
       { "id": "long-beach", "label": "Long Beach, CA", "lat": 33.7701, "lng": -118.1937 },
-      { "id": "oakland", "label": "Oakland, CA", "lat": 37.8044, "lng": -122.2712 }
+      { "id": "oakland", "label": "Oakland, CA", "lat": 37.8044, "lng": -122.2712 },
+      { "id": "phoenix", "label": "Phoenix, AZ", "lat": 33.4484, "lng": -112.074 },
+      { "id": "detroit", "label": "Detroit, MI", "lat": 42.3314, "lng": -83.0458 },
+      { "id": "seattle", "label": "Seattle, WA", "lat": 47.6062, "lng": -122.3321 },
+      { "id": "baltimore", "label": "Baltimore, MD", "lat": 39.2904, "lng": -76.6122 },
+      { "id": "cleveland", "label": "Cleveland, OH", "lat": 41.4993, "lng": -81.6944 },
+      { "id": "columbus", "label": "Columbus, OH", "lat": 39.9612, "lng": -82.9988 },
+      { "id": "san-diego", "label": "San Diego, CA", "lat": 32.7157, "lng": -117.1611 },
+      { "id": "austin", "label": "Austin, TX", "lat": 30.2672, "lng": -97.7431 },
+      { "id": "san-antonio", "label": "San Antonio, TX", "lat": 29.4241, "lng": -98.4936 },
+      { "id": "minneapolis", "label": "Minneapolis, MN", "lat": 44.9778, "lng": -93.265 },
+      { "id": "denver", "label": "Denver, CO", "lat": 39.7392, "lng": -104.9903 },
+      { "id": "pittsburgh", "label": "Pittsburgh, PA", "lat": 40.4406, "lng": -79.9959 },
+      { "id": "indianapolis", "label": "Indianapolis, IN", "lat": 39.7684, "lng": -86.1581 },
+      { "id": "nashville", "label": "Nashville, TN", "lat": 36.1627, "lng": -86.7816 },
+      { "id": "sacramento", "label": "Sacramento, CA", "lat": 38.5816, "lng": -121.4944 },
+      { "id": "portland", "label": "Portland, OR", "lat": 45.5152, "lng": -122.6784 },
+      { "id": "st-louis", "label": "St. Louis, MO", "lat": 38.627, "lng": -90.1994 },
+      { "id": "kansas-city", "label": "Kansas City, MO", "lat": 39.0997, "lng": -94.5786 },
+      { "id": "las-vegas", "label": "Las Vegas, NV", "lat": 36.1699, "lng": -115.1398 },
+      { "id": "milwaukee", "label": "Milwaukee, WI", "lat": 43.0389, "lng": -87.9065 },
+      { "id": "memphis", "label": "Memphis, TN", "lat": 35.1495, "lng": -90.049 },
+      { "id": "richmond", "label": "Richmond, VA", "lat": 37.5407, "lng": -77.436 },
+      { "id": "virginia-beach", "label": "Virginia Beach, VA", "lat": 36.8529, "lng": -75.978 },
+      { "id": "birmingham", "label": "Birmingham, AL", "lat": 33.5207, "lng": -86.8025 },
+      { "id": "louisville", "label": "Louisville, KY", "lat": 38.2527, "lng": -85.7585 }
     ]
   },
   "jobs": {
