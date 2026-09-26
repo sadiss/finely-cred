@@ -405,4 +405,4 @@ Once a month, extra 15 minutes: read `/haitian`, `/free-debt-guide`, and `/prici
 3. After that live build: one soft placement from the allowlist. Directories use `https://finelycred.com/free-guide`. An organic Haitian post uses `https://finelycred.com/haitian`. Do not post `/free-kreyol-guide`. Google Business only after the real phone and address are chosen.
 4. This SEO pull request stays a draft until you ask to merge it. It is separate from #39.
 5. After the new build has been up long enough that those URLs stay put: section 2, one placement a week. Still skip `/bookstore`, funding TX/CA, `/`, `/start-here`, `/portal`, and bare `/pricing`.
-5. Prerender (PR #26) is the follow-up that puts those titles in the raw HTML crawlers download.
+6. Prerender (PR #26) is the follow-up that puts those titles in the raw HTML crawlers download.
