@@ -11,7 +11,7 @@ Checked against the live site on **26 Sep 2026**. This file is the plan. The sma
 
 As of this update, fix draft [PR #39](https://github.com/sadiss/finely-cred/pull/39) exists and the review on PR #35 is **FAIL**. The gate is closed. Until it opens, this document is research and a draft placement plan only.
 
-When the gate opens, overnight work is still soft placements only: profiles, directories you fill in by hand, and Haitian community boards. Every link comes from the promote-safe list below. The default three are `/haitian`, `/kreyol`, and `/free-kreyol-guide`.
+When the gate opens, overnight work is still soft placements only: profiles, directories you fill in by hand, and Haitian community boards. Every link comes from the promote-safe list below. The default three are `/haitian`, `/kreyol`, and `/free-kreyol-guide`. Also allowed after the gate: `/free-debt-guide`, `/pricing/debt-legal`, and `/credit-specialist` (warm conversations only).
 
 The wider placement wave — more boards, more citations, metro URLs, and indexing requests across the full safe set — waits until those URLs are stable after the Bluehost refresh. That wave is still manual and still zero-dollar. It is not a directory blast, a bought-link campaign, or a copy-paste across groups.
 
@@ -47,33 +47,39 @@ Use only this list in the draft, and only after the gate above opens. These are 
 | Credit building pricing | https://finelycred.com/pricing/personal-credit-building |
 | Business credit pricing | https://finelycred.com/pricing/business-credit |
 | Debt / summons pricing | https://finelycred.com/pricing/debt-legal |
+| Free debt guide | https://finelycred.com/free-debt-guide |
+| Credit specialist offer | https://finelycred.com/credit-specialist |
 | Wealth builder pricing | https://finelycred.com/pricing/wealth-builder |
 | Privacy pricing | https://finelycred.com/pricing/privacy-id |
 | Bundles pricing | https://finelycred.com/pricing/bundles |
 
+`/credit-specialist` is **warm only**. Use it when someone already asked about joining as a specialist (a career chat you are already in). Keep it off church flyers, family WhatsApp, and Haitian community boards.
+
 Kit subpages on the same funnel, when you need a narrower link: `/free-kreyol-guide/what-is-credit`, `/free-kreyol-guide/letter-meaning`, `/free-kreyol-guide/helper`, `/free-kreyol-guide/community-flyer`.
 
-Other live resource URLs (summons article, free guides, one-sheets, `/credit-specialist`) stay in the draft for section 2. They are not the overnight default.
+### Avoid
 
-### Do not promote
+Do not cite these, including after the gate:
 
-| URL | Why it stays off the list |
-|-----|---------------------------|
-| `/portal` and anything under it | App login, not a public landing page. QA still records `/portal` as no route. |
+| URL | Why |
+|-----|-----|
+| `/` | Homepage is not a placement target. Directory and profile website fields use `/haitian`. |
+| `/start-here` | Off the promote list. |
+| `/portal` and anything under it | App login. QA still records `/portal` as no route. |
+| `/bookstore` | Empty public catalog. |
+| `/pricing` (bare index only) | Home bounce on the live base. Lane pages such as `/pricing/debt-legal` stay on the allowlist. |
 | `/dispute`, `/funding`, `/partners`, `/restore`, `/letters` | 404 aliases. Still failing on PR #39. |
-| `/solutions`, `/careers`, `/dispute-guide`, `/strategy-call`, `/membership` | 404 on the live base. PR #39 aliases some of them; do not cite them until QA posts PASS. |
-| `/pricing` and `/services` (the indexes, not the lane pages) | Home bounce on the live base. Lane pages in the table above are the ones that render. |
-| `/bookstore` | Empty public catalog. Not a promote target. |
-| `/resources/funding/tx`, `/resources/funding/ca`, and `/resources/funding` (it redirects to Texas) | Broken funding pages. Not promote targets. |
+| `/solutions`, `/careers`, `/dispute-guide`, `/strategy-call`, `/membership` | 404 on the live base. PR #39 aliases some of them; leave them off until QA posts PASS. |
+| `/services` (the index) | Home bounce on the live base. |
+| `/resources/funding/tx`, `/resources/funding/ca`, and `/resources/funding` | Broken funding pages. |
 | `/haitian/miami` and the other metro desks | Not on the live sitemap yet. Section 2, after the refresh and a QA pass. |
-| `/start-here` | Missing from the live sitemap on 26 Sep 2026. Draft only until it is on the sitemap Google fetches. |
 | `/credit/miami-fl` and the other English `/credit/:city` stubs | Wrong page for Haitian posts. |
 
 `https://finelycred.com/sitemap.xml` listed 112 URLs on 26 Sep 2026. A URL in that file is not automatically promote-safe. The exclude table wins.
 
-Section 2 may add these after the gate and the refresh, one at a time, because they are real public pages and they are not on the exclude list: `/resources/debt-defense-summons-answer`, `/free-debt-guide`, `/free-guide`, `/free-business-guide`, `/resources/personal-credit-restore-sheet`, `/resources/business-credit-one-sheets`, `/resources/business-credit-tier-matrix`, `/credit-specialist`, `/credit-specialist-guide`, `/resources`.
+Section 2 may add these after the gate and the refresh, one at a time, because they are real public pages and they are not on the avoid list: `/resources/debt-defense-summons-answer`, `/free-guide`, `/free-business-guide`, `/resources/personal-credit-restore-sheet`, `/resources/business-credit-one-sheets`, `/resources/business-credit-tier-matrix`, `/resources`. `/free-debt-guide` and `/credit-specialist` are already on the allowlist above (`/credit-specialist` stays warm only). `/credit-specialist-guide` and `/credit-specialist-apply` stay off public boards.
 
-`/pricing/business-credit` renders today (QA on the launch base marked that CTA a pass) and is already in the promote-safe table. `/start-here` and `/resources/one-sheets` were missing from the live sitemap on 26 Sep 2026. This pull request adds `/start-here` and `/pricing/business-credit` to the repo sitemap for the next deploy. Do not cite `/start-here` until that sitemap is what Google fetches.
+`/pricing/business-credit` renders today (QA on the launch base marked that CTA a pass) and is already in the promote-safe table. This pull request adds `/start-here` to the repo sitemap for the next deploy. `/start-here` stays off the promote list anyway.
 
 ### What Google sees before JavaScript
 
@@ -94,9 +100,9 @@ When the gate opens, do these in order. One profile, one citation, one community
 Still hold until that refresh, even after the dead-link QA passes:
 
 - Metro desks (`/haitian/miami` and the other nine)
-- `/start-here` until it is on the live sitemap
-- `/bookstore`, `/resources/funding/tx`, `/resources/funding/ca`
-- `/portal` and the 404 aliases in the exclude table
+- `/`, `/start-here`, `/portal`, `/bookstore`, and bare `/pricing`
+- `/resources/funding/tx`, `/resources/funding/ca`
+- The 404 aliases in the avoid table
 - Requesting indexing on a stack of URLs
 - Posting the same note in more than one group
 
@@ -240,7 +246,7 @@ Still zero-dollar. Still you, posting and listing by hand. Still one board at a 
 1. Open `/haitian`, `/kreyol`, `/free-kreyol-guide`, `/start-here`, `/pricing/debt-legal`, and `/pricing/business-credit` in a private window. Confirm the browser tab titles match the checklist below.
 2. View the page source **or** Search Console’s rendered HTML. Until PR #26 (prerender) is also deployed, the raw source can still show the generic title. The rendered title is the one that matters for that check.
 3. In Search Console, resubmit `https://finelycred.com/sitemap.xml`. The new file should include `/start-here`, `/pricing/business-credit`, and `/haitian/miami` (plus the other metro desks).
-4. Request indexing for `/haitian`, `/free-kreyol-guide`, `/start-here`, `/pricing/business-credit`, `/pricing/debt-legal`, and **one** metro you will actually talk about that month. Add other metros in later weeks, not all ten in one day.
+4. Request indexing for `/haitian`, `/free-kreyol-guide`, `/free-debt-guide`, `/pricing/debt-legal`, `/pricing/business-credit`, and **one** metro you will actually talk about that month. Add other metros in later weeks, not all ten in one day. Skip `/`, `/start-here`, `/bookstore`, and bare `/pricing`.
 5. Confirm canonicals in the rendered head:
    - `/kreyol` → `https://finelycred.com/haitian` (share `/kreyol` in Kreyòl posts; Google should consolidate on `/haitian`)
    - `/services/debt-legal` → `https://finelycred.com/pricing/debt-legal`
@@ -270,7 +276,7 @@ Business credit:
 > Business credit is the company file (EIN, vendors that report, business bureaus), not your personal score with a new name. The free guide is here: https://finelycred.com/free-business-guide  
 > I work with Finely Cred. Results vary. Funding is subject to underwriting.
 
-Credit specialist career (career groups, not family credit groups):
+Credit specialist (warm only — someone already asked about joining; not a church or family board):
 
 > If you already sit with people on their credit files, this is the specialist path: you run the files, Finely supplies the method. No score promises in the pitch. https://finelycred.com/credit-specialist  
 > I work with Finely Cred.
@@ -343,9 +349,8 @@ People searching: “credit repair business opportunity”, “how to start a cr
 
 | Intent | URL |
 |--------|-----|
-| The offer | `/credit-specialist` |
-| The free playbook | `/credit-specialist-guide` |
-| Apply | `/credit-specialist-apply` |
+| The offer (warm only) | `/credit-specialist` |
+| Playbook and apply | Leave `/credit-specialist-guide` and `/credit-specialist-apply` off public boards |
 
 No income promises. The page already says the specialist runs partner files and Finely supplies the method.
 
