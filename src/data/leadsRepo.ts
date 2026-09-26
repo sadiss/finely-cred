@@ -286,6 +286,8 @@ export async function importColdLeadCapture(args: ColdLeadImportArgs): Promise<L
       utmMedium: args.utmMedium,
       utmCampaign: args.utmCampaign,
       utmContent: args.utmContent,
+      promoType: args.promoType ?? prev.promoType,
+      promoAsset: args.promoAsset ?? prev.promoAsset,
     };
     store.leads[existingIdx] = lead;
     saveStore(store);

@@ -113,6 +113,8 @@ export function createProspect(args: {
   company?: Partial<Prospect['company']>;
   contact?: Partial<Prospect['contact']>;
   intel?: Prospect['intel'];
+  /** Default true. Cold directory / Haitian CSV imports pass false so nurture does not start. */
+  autoEnroll?: boolean;
 }): Prospect {
   const now = nowIso();
   const p: Prospect = {
@@ -143,10 +145,12 @@ export function createProspect(args: {
     touches: [touch('enriched', { via: args.source })],
   };
   const next = upsertProspect(p);
-  try {
-    autoEnrollCrmRecordInDefaultSequence(`crm_prospect_${next.id}`, { noteLabel: `[Sequence] Auto-enrolled on prospect create` });
-  } catch {
-    // non-blocking
+  if (args.autoEnroll !== false) {
+    try {
+      autoEnrollCrmRecordInDefaultSequence(`crm_prospect_${next.id}`, { noteLabel: `[Sequence] Auto-enrolled on prospect create` });
+    } catch {
+      // non-blocking
+    }
   }
   return next;
 }

@@ -1,0 +1,3 @@
+Full name,Phone number,Email,State guess,Lane,Organization,Website,Source,Source URL
+Example Housing Agency,5551234567,example.agency@example.com,FL,affiliates|haitian_orgs,Example Housing Agency,https://example.org,hud_housing_counselor,https://data.hud.gov/Housing_Counselor
+Example Credit Nonprofit,,example.credit@example.com,NY,specialists|affiliates,Example Credit Nonprofit,https://example.org,propublica_nonprofit,https://projects.propublica.org/nonprofits

@@ -59,6 +59,10 @@ data/legacy-migration/legacy-partners-audit-summary.json
 data/legacy-migration/legacy-partners-export-v1.local.json
 data/legacy-migration/*.local.json
 
+# Public-directory lead pulls (real agency emails/phones — never commit)
+data/lead-discovery/*.local.json
+data/lead-discovery/*.local.csv
+
 # Haitian / FinelyCredit lead lists (owner Documents machine — keep outside repo)
 *leads*.csv
 *-outreach*.csv

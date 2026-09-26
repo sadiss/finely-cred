@@ -707,6 +707,15 @@ const haitianColdOk =
 console.log(`${haitianColdOk ? '✓' : '✗'} haitianColdImport: cold CSV path (no consent, no nurture)`);
 if (!haitianColdOk) failed += 1;
 
+const laneCold = fs.readFileSync(path.join(root, 'src/lib/laneColdImport.ts'), 'utf8');
+const laneColdOk =
+  laneCold.includes('directory_cold_import') &&
+  laneCold.includes('consentToContact: false') &&
+  laneCold.includes('no-outreach') &&
+  laneCold.includes('bulkImportDirectoryColdLeads');
+console.log(`${laneColdOk ? '✓' : '✗'} laneColdImport: directory cold CSV (no consent, no nurture)`);
+if (!laneColdOk) failed += 1;
+
 const leadsRepo = fs.readFileSync(path.join(root, 'src/data/leadsRepo.ts'), 'utf8');
 const coldToHotOk =
   leadsRepo.includes('findUpgradableColdHaitianLead') &&

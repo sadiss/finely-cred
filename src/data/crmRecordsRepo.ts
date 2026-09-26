@@ -152,6 +152,10 @@ function leadToRecord(lead: LeadCapture, op: LeadOp): CrmRecord {
     lead.offer === 'credit_specialist_join' || lead.offer === 'credit_specialist_guide'
       ? ['credit-specialist', `offer:${lead.offer}`]
       : [];
+  const directoryColdTags =
+    lead.source === 'directory_cold_import'
+      ? ['source:directory_cold_import', 'temperature:cold', 'no-outreach']
+      : [];
   const haitianTags =
     lead.source === 'haitian_csv_import' ||
     lead.offer === 'haitian_credit_kit' ||
@@ -160,7 +164,8 @@ function leadToRecord(lead: LeadCapture, op: LeadOp): CrmRecord {
       ? [
           'haitian-community',
           'offer:haitian_credit_kit',
-          ...(lead.source === 'haitian_csv_import' ? ['source:haitian_csv_import', 'cold', 'temperature:cold'] : []),
+          ...(lead.source === 'haitian_csv_import' ? ['source:haitian_csv_import', 'cold', 'temperature:cold', 'no-outreach'] : []),
+          ...(lead.source === 'directory_cold_import' ? ['source:directory_cold_import', 'temperature:cold', 'no-outreach'] : []),
         ]
       : [];
 
@@ -170,7 +175,7 @@ function leadToRecord(lead: LeadCapture, op: LeadOp): CrmRecord {
     target,
     stage: op.stage,
     source: lead.source,
-    tags: Array.from(new Set([...(op.tags ?? []), ...csTags, ...haitianTags])),
+    tags: Array.from(new Set([...(op.tags ?? []), ...csTags, ...haitianTags, ...directoryColdTags])),
     contact: {
       fullName: lead.fullName,
       email: lead.email,

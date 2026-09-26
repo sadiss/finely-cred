@@ -1,0 +1,17 @@
+{
+  "policy": "Employer posting sample only. Not a job-seeker. Do not email.",
+  "postings": [
+    {
+      "recordKind": "employer_posting",
+      "lane": "jobs",
+      "title": "Credit Counselor",
+      "organization": "Example Housing Nonprofit",
+      "location": "Miami, FL",
+      "url": "https://example.org/jobs/credit-counselor",
+      "sourceId": "manual",
+      "email": null,
+      "cold": true,
+      "outreach": "do_not_contact"
+    }
+  ]
+}
