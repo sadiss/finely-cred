@@ -9,9 +9,11 @@ This is a plan and a map of what the product already does. It is not permission 
 | Stop | What it means in this repo |
 |------|----------------------------|
 | No cold blast | CSV import sets `consentToContact=false` and `consentEmailMarketing=false`. Nurture send returns `no_contact_consent` until one of those is true. |
-| No outreach until Jireh approves | Do not turn on Admin `commsDelivery`, do not click **Enroll** on a cold row, do not run Phone Hub texts, and do not enable `MISSED_CALL_TEXTBACK_ENABLED` for this list until the funnel is on production and Jireh says send. |
+| No outreach until Jireh approves | Do not turn on Admin `commsDelivery`, do not click **Enroll** on a cold row, and do not text this list until the funnel is on production and Jireh says send. |
+| No live dialer overnight | Do not place calls, arm a voice agent, turn on auto-call, or dial out from Phone Hub while Jireh is asleep. Scripts in this file are text only. They are not loaded into Twilio, Phone Hub, or any voice route. |
+| Dialer gate | A live dialer or voice agent waits until Jireh has approved **these scripts** and written **calling hours** in the blank table below. Both. A yes on one does not cover the other. |
 | No PII in git | Keep CSVs off the repo. Sample row is `example.lead@example.com` only. |
-| No invented phone closer | There is no AI that dials a lead and closes. Phone Hub is Twilio SMS/voice for a human operator. Haitian companions are chat, email, and portal personas. |
+| No invented phone closer | There is no AI that dials a lead and closes. Haitian companions are chat, email, and portal personas. `haitian_companion` has no voice channel and no phone route. |
 
 Import mechanics stay in [haitian-cold-import.md](./haitian-cold-import.md). Enterprise consent rules stay in [lead-acquisition-enterprise.md](./lead-acquisition-enterprise.md).
 
@@ -182,13 +184,13 @@ Weekday order: Marie-Claire Baptiste (Community Guide), Jean-Marc Toussaint (Des
 
 These are product staff profiles for chat assignment. A chat reply is not a booked call and is not Jireh on the phone.
 
-### Human phone (only after approval, only with SMS consent)
+### Phone Hub exists and stays idle
 
-Admin **Phone Hub** (`AdminPhoneHubPage`): outbound SMS via `sendSms` when `commsDelivery` is on, call log, missed-call list, voicemail notes. Twilio webhook records inbound voice/SMS. Missed-call text-back is a separate secret (`MISSED_CALL_TEXTBACK_ENABLED`) and is off unless set.
+Admin **Phone Hub** can send SMS when `commsDelivery` is on, and it can log calls. Twilio can receive inbound voice and SMS. Missed-call text-back is a separate secret (`MISSED_CALL_TEXTBACK_ENABLED`). Leave that secret unset for this list.
 
-`PHONE_AGENT_ROUTES` routes interest to sales, support, debt, co-owner voicemail, affiliate, or CRM intake. **There is no Haitian companion route.** `resolvePhoneRoute` will not hand a Haitian lead to Marie-Claire.
+`PHONE_AGENT_ROUTES` covers sales, support, debt, co-owner voicemail, affiliate, and CRM intake. There is no Haitian companion route. `resolvePhoneRoute` will not hand a Haitian lead to Marie-Claire.
 
-Do not text the CSV from Phone Hub. Cold rows have no SMS consent. Opted-in rows have SMS consent only if they checked marketing **and** left a real phone.
+Overnight: do not open the dialer, do not send SMS, and do not flip the text-back secret. Cold rows have no SMS consent. Opted-in rows have SMS consent only if they checked marketing and left a real phone. Even then, texting waits for Jireh.
 
 ---
 
@@ -201,7 +203,7 @@ Use what is already built. Say what it is.
 | Someone wants to talk now | Pale Kreyòl or the success-panel chat. On-duty companion above. | That a human picked up a phone, or that chat will close a package. |
 | Someone is ready for a time | `/enlightenment-session`. Slot is confirmed in the calendar. Host comes from calendar settings. | That the Haitian companion persona joins the video call. It does not. |
 | They already have a portal login | `/portal/calendar` and the video room on that event. | A second public checkout. |
-| A call is missed | Phone Hub missed-call list. Text-back only if the secret is on **and** Jireh has approved SMS for opted-in numbers. | An AI callback that sells. |
+| A call is missed overnight | Leave it on the Phone Hub missed-call list for morning. Do not text back and do not auto-call. | An AI callback, a voice agent, or a same-night dial-out. |
 | Specialist should own the partner | Haitian department staff (`department: haitian_community`) via on-duty pick. `linkLeadToPartner` exists for when a partner id is real. | Auto-assignment of Jireh’s personal cell. |
 
 ### Honest gaps
@@ -220,11 +222,126 @@ Use what is already built. Say what it is.
 2. Drive people to `https://finelycred.com/haitian` (community, church QR, metro page) and let **them** open `/free-kreyol-guide` and check the box. That is the opt-in. A QR on the flyer is the invite. The CSV is not the send list.
 3. Success panel and day-7 email (when approved) point at `/enlightenment-session`. First session is free. The calendar holds the time without Jireh clicking each row.
 4. Chat covers Kreyòl questions the same day, with the on-duty companion.
-5. SMS and Phone Hub wait until there is `consentSmsMarketing` on that row and a written yes from Jireh. That is the later step, not this rollout.
+5. Phone, SMS, dialers, and voice agents wait. See the booking playbook and the script gate below.
 
 ---
 
-## 5. What Admin CRM should show
+## 5. Call scripts (text only)
+
+These are words a person may read **after** Jireh approves them and writes calling hours. Pasting them into Phone Hub, Twilio Studio, a voice agent, or an auto-dialer is out of scope for this overnight pass. Nothing in the repo loads this section.
+
+### Calling hours — blank until Jireh writes them
+
+| Field | Value |
+|-------|--------|
+| Timezone | America/New_York, unless Jireh replaces this line |
+| Weekday window | ________ |
+| Saturday window | ________ |
+| Sunday | No calls, unless Jireh writes a window |
+| Who may dial | A named person Jireh lists. Not a voice agent. Not an overnight job. |
+| Who may be dialed | Opted-in only: tag `hot-opt-in` or stage `booked`, and `consentToContact` true. Never a cold CSV row. |
+| Approved by Jireh | Date ________ · scripts yes/no ________ · hours yes/no ________ |
+
+If either yes/no cell is blank or “no”, nobody dials.
+
+Public booking hours guests can already pick, without anyone dialing, live in calendar settings (`finely.calendar.settings.v1`): weekdays 9:00–18:00, 30-minute slots, 24-hour notice, at least 3 days ahead, previous-day cutoff 17:00, default hosts Alex Rivera and Caleb Brooks. Those are self-serve slot rules. They are not permission to call the list.
+
+### Who the script is for
+
+Speak to the person who owns the letter. If a relative is helping, they may sit there. They do not take the phone. One next step. No score promise, no “we will delete this,” no price unless they ask. If they ask price, send them to `https://finelycred.com/pricing`. Results vary. Not legal advice.
+
+English is the default. Switch to Kreyòl only if they speak Kreyòl first or ask for Pale Kreyòl. Keep the English words they will see on the letter (`collection`, `account`, `bureau`).
+
+### Script A — they already booked
+
+Use when stage is `booked` or tag `session:booked` is on the row. Confirm the slot. Do not re-sell.
+
+English:
+
+> Hi, this is {name} with Finely Cred. You booked a strategy call for {day and time}. Bring the English letter or the bureau page. We will read that line with you and name one next step. The join link is in your email. If the time no longer works, pick another slot at finelycred.com/enlightenment-session. Results vary, and this is not legal advice.
+
+Kreyòl, only if they are already speaking Kreyòl:
+
+> Bonjou, se {name} nan Finely Cred. Ou rezève yon apèl pou {jou ak lè}. Pote lèt angle a, oswa paj biwo a. Nou pral li liy sa a avèk ou, epi nou pral nonmen yon sèl pwochen etap. Lyen an nan imèl ou. Si lè a pa bon, chwazi yon lòt nan finelycred.com/enlightenment-session. Rezilta yo varye. Se pa konsèy legal.
+
+### Script B — they opted in and have not booked
+
+Use when the row is Haitian opted-in and stage is not `booked`. Invite the link. Do not ask for a card. Do not read a package list.
+
+English:
+
+> Hi, this is {name} with Finely Cred. You asked for the Haitian community kits, so I am calling only because of that. The next step is a free strategy call: bring the letter, we explain the English line, you leave with one step. Book it yourself at finelycred.com/enlightenment-session. If you would rather type, open finelycred.com/haitian and tap Pale Kreyòl. I will not keep calling if now is a bad time.
+
+Kreyòl, only if they answer in Kreyòl:
+
+> Bonjou, se {name} nan Finely Cred. Ou mande kit kominote ayisyen an, se poutèt sa m ap rele. Pwochen etap la se yon apèl estrateji gratis. Pote lèt la. Nou esplike liy angle a. Ou soti ak yon sèl etap. Rezève nan finelycred.com/enlightenment-session. Si w pito ekri, ouvri finelycred.com/haitian epi peze Pale Kreyòl. Si kounye a pa bon, mwen pap kontinye rele.
+
+Stop after one no, or after they say they will book later. Do not leave a second voicemail the same day.
+
+### Script C — voicemail
+
+Twenty seconds. One link. No list of services.
+
+English:
+
+> This is {name} at Finely Cred. You asked for the Haitian community kits. Book a free strategy call at finelycred.com/enlightenment-session and bring the letter. Or tap Pale Kreyòl at finelycred.com/haitian. We will not keep calling today.
+
+Kreyòl:
+
+> Se {name} nan Finely Cred. Ou te mande kit yo. Rezève apèl la nan finelycred.com/enlightenment-session. Pote lèt la. Oswa peze Pale Kreyòl sou finelycred.com/haitian. Nou pap resevwa yon lòt mesaj jodi a.
+
+### Script D — they ask for Jireh and he is unavailable
+
+> Jireh is not on the phone right now. You can book a strategy call at finelycred.com/enlightenment-session, or stay in chat at finelycred.com/haitian and tap Pale Kreyòl. I will not promise a callback tonight. If you already have a time on the calendar, keep that slot.
+
+Kreyòl:
+
+> Jireh pa nan telefòn nan kounye a. Ou ka rezève nan finelycred.com/enlightenment-session, oswa rete nan chat sou finelycred.com/haitian epi peze Pale Kreyòl. Mwen pap pwomèt yon rekòl aswè a. Si ou deja gen yon lè sou kalandriye a, kenbe l.
+
+### What a human does not say
+
+- That an AI will call them back and close.
+- That a score, deletion, or funding amount is guaranteed.
+- A price, unless they ask. Then `/pricing`.
+- French as a stand-in for Kreyòl.
+- Anything on the Haitian denylist (vodou, “broken English,” poverty framing).
+
+---
+
+## 6. Booking playbook while Jireh is unavailable
+
+Use this overnight. The work is the funnel and the calendar. The phone stays down.
+
+### Do this
+
+1. Leave cold CSV rows in **Haitian cold**. Do not enroll them. Do not export them to a dialer.
+2. If a guest is on the site, point them at `https://finelycred.com/haitian` and, when they want the kits, `https://finelycred.com/free-kreyol-guide`. The checkbox is the opt-in.
+3. If they want a time, send `https://finelycred.com/enlightenment-session`. They pick a slot inside the calendar rules above. First session is free per email. A later session is $100 only when Stripe is on. Admin does not Schedule a paid follow-up until it is paid or waived.
+4. If they want Kreyòl now, they tap **Pale Kreyòl**. The on-duty companion answers in chat. That is the coverage. It is not a phone transfer to Jireh.
+5. If they already booked, the row should be the same lead id, stage `booked`, tag `session:booked`. The invite email carries the join link. Host name comes from calendar assignees (Alex Rivera or Caleb Brooks when no one else is assigned). Change the assignee in calendar settings if that name should not be on the invite. Do not solve that by dialing.
+6. If they already have a partner login, they use `/portal/calendar` and the video room on that event.
+7. Missed calls sit on the Phone Hub list until morning. Nobody texts them and nobody auto-dials them.
+
+### Do not do this while he is asleep
+
+- Open Phone Hub and dial.
+- Turn on a voice agent, an auto-call campaign, or missed-call text-back.
+- Send the nurture sequence (`commsDelivery` stays off).
+- Call or text anyone whose row is still **Haitian cold**.
+- Promise “Jireh will call you tonight.”
+- Load Script A–D into any dialer. They are drafts until the hours table has both yes marks.
+
+### Morning handoff for Jireh
+
+1. Leads OS launcher: **Haitian cold** count and **Haitian opted-in** count.
+2. Inbound board, stage `booked`: who picked a slot overnight.
+3. Chat handoffs from Pale Kreyòl. Note language (English or Kreyòl) and the one next step. No transcript of private letter details in git or in a public note.
+4. Phone Hub missed-call list, unread. Still do not dial until scripts and calling hours are approved.
+5. He writes the hours table, or he leaves it blank and the phone stays idle.
+
+---
+
+## 7. What Admin CRM should show
 
 **Admin → Leads OS** (`/admin/leads`).
 

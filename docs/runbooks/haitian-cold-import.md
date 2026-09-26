@@ -79,4 +79,4 @@ On consented submit, `submitLeadCapture` **upgrades the existing cold row** (sam
 
 Operator plan (nurture copy, booking, coverage when the owner is out, CRM buckets): [cold-to-hot-conversion.md](./cold-to-hot-conversion.md).
 
-Do not send that sequence until the owner approves after the funnel is deployed. Admin **Enroll** is hidden on rows that are still cold.
+Do not send that sequence until the owner approves after the funnel is deployed. Admin **Enroll** is hidden on rows that are still cold. Call scripts in the conversion runbook are text only. Do not load them into a dialer, voice agent, or outbound phone job until Jireh approves the scripts and the calling hours.
