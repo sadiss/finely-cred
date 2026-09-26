@@ -4,14 +4,15 @@ Owner runbook for finding Finely Cred without ads. Ordinary people, especially H
 
 Checked against the live site on **26 Sep 2026**. This file is the plan. The small on-page edits in the same pull request are **not live** until the owner asks for a Bluehost deploy.
 
-**Hold.** Do not submit a directory, a Google Business post, or a public community link until both of these are true:
+**Hold.** Do not submit a directory, a Google Business post, or a public community link yet. QA on the dead-link fix has passed. The live site has not.
 
-1. A P0 dead-link **fix** draft exists (sibling of QA notes [PR #35](https://github.com/sadiss/finely-cred/pull/35)).
-2. QA posts **PASS** on that fix.
+1. [PR #39](https://github.com/sadiss/finely-cred/pull/39) is the fix (`e37875c`). Grok Bot recorded **PASS** on [PR #35](https://github.com/sadiss/finely-cred/pull/35) for that commit.
+2. Jireh still has to **merge #39**.
+3. Bluehost still has to **serve that build**. `finelycred.com` still has the old leaks.
 
-As of this update, fix draft [PR #39](https://github.com/sadiss/finely-cred/pull/39) exists and the review on PR #35 is **FAIL**. The gate is closed. Until it opens, this document is research and a draft placement plan only.
+Until both 2 and 3 are done, this document is research and a draft placement plan only. Do not place a public link.
 
-When the gate opens, overnight work is still soft placements only: profiles, directories you fill in by hand, and one community board. Every link comes from the reconciled allowlist below. `/haitian` is for organic posts only. `/credit-specialist` is warm only.
+When that live build is up, and you have clicked the allowlist URLs on `finelycred.com`, overnight work is still soft placements only: profiles, directories you fill in by hand, and one community board. Every link comes from the reconciled allowlist below. `/haitian` is for organic posts only. `/credit-specialist` is warm only.
 
 The wider placement wave — more boards, more citations, metro URLs, and indexing requests across the full safe set — waits until those URLs are stable after the Bluehost refresh. That wave is still manual and still zero-dollar. It is not a directory blast, a bought-link campaign, or a copy-paste across groups.
 
@@ -63,8 +64,8 @@ Do not cite these, including after the gate:
 | `/portal` and anything under it | App login. QA still records `/portal` as no route. |
 | `/bookstore` | Empty public catalog. |
 | `/pricing` (bare index only) | Home bounce on the live base. Lane pages such as `/pricing/debt-legal` stay on the allowlist. |
-| `/dispute`, `/funding`, `/partners`, `/restore`, `/letters` | 404 aliases. Still failing on PR #39. |
-| `/solutions`, `/careers`, `/dispute-guide`, `/strategy-call`, `/membership` | 404 on the live base. PR #39 aliases some of them; leave them off until QA posts PASS. |
+| `/dispute`, `/funding`, `/partners`, `/restore`, `/letters` | 404 aliases on live `finelycred.com` until #39 is merged and Bluehost serves it. QA passed the fix at `e37875c`; the live site has not. |
+| `/solutions`, `/careers`, `/dispute-guide`, `/strategy-call`, `/membership` | 404 on the live site today. #39 aliases them. Cite them only after you have opened each one on the deployed site. |
 | `/services` (the index) | Home bounce on the live base. |
 | `/resources/funding/tx`, `/resources/funding/ca`, and `/resources/funding` | Broken funding pages. |
 | `/haitian/miami` and the other metro desks | Not on the live sitemap yet. Section 2, after the refresh and a QA pass. |
@@ -86,9 +87,9 @@ The app does set a unique title after it loads. Google often runs JavaScript, bu
 
 ## 1. Draft placement plan (do not submit yet)
 
-The steps in this section are the plan for after QA posts PASS on the P0 dead-link fix. They are not a to-do for tonight. No directory form, no Google Business post, no community link, no sitemap ping, until that PASS is on the PR.
+The steps in this section are the plan for after Jireh merges PR #39 and Bluehost is serving it. QA already passed at `e37875c`. That is not permission to post. Live `finelycred.com` still has the old leaks. No directory form, no Google Business post, no community link, no sitemap ping, until you have opened the allowlist pages on the new live build.
 
-When the gate opens, do these in order. One profile, one citation, one community board. Then stop. Save the wider wave for section 2, after Bluehost is serving a build you have clicked through.
+When that build is live, do these in order. One profile, one citation, one community board. Then stop. Save the wider wave for section 2.
 
 Still hold until that refresh, even after the dead-link QA passes:
 
@@ -216,7 +217,7 @@ If someone in that same thread already showed a summons or asked about business 
 
 Subreddits that sometimes discuss this topic: `r/CRedit`, `r/personalfinance`, `r/smallbusiness`, `r/haiti`, and a city sub you actually live around. **Their rules win.** Most of them ban promotional links.
 
-- Tonight the gate is closed, so do not edit the bio yet. After PASS, the bio may use `https://finelycred.com/haitian` (organic) or `https://finelycred.com/free-guide`. Do not post a link thread.
+- Do not edit the bio yet. After #39 is merged and Bluehost is live, the bio may use `https://finelycred.com/haitian` (organic) or `https://finelycred.com/free-guide`. Do not post a link thread.
 - Later, if you answer someone: explain the step in the comment. A link in the comment only when that subreddit’s rules allow it and you disclosed that you work with Finely Cred.
 - One account you already have. New accounts and the same paragraph in more than one subreddit stay off the plan.
 
@@ -349,15 +350,17 @@ No income promises. The page already says the specialist runs partner files and 
 
 ## 5. Weekly owner checklist (30–60 minutes)
 
-### Until QA posts PASS on the dead-link fix
+### Until #39 is merged and Bluehost is live
+
+QA on PR #39 passed at `e37875c`. Placements still wait. Live `finelycred.com` still has the old leaks.
 
 | Min | Action |
 |-----|--------|
-| 10 | Read PR #35 and the fix PR it reviews. If the latest QA comment is not PASS, make no public submission. |
-| 10 | Recheck the promote-safe table against the exclude table. Drop any URL that 404s, bounces home, or is `/bookstore` or funding TX/CA. |
+| 10 | Confirm PR #39 is merged and the live site is the new build. If either is still pending, make no public submission. |
+| 10 | Recheck the promote-safe table against the avoid table. Drop any URL that still 404s or bounces home on `finelycred.com`. |
 | 0 | Directories, Google Business posts, and community links stay unsent. |
 
-### After the dead-link QA passes, and before the Bluehost refresh (soft)
+### After Bluehost is serving the merged #39 build (soft)
 
 | Min | Action |
 |-----|--------|
@@ -391,14 +394,15 @@ Once a month, extra 15 minutes: read `/haitian`, `/free-debt-guide`, and `/prici
 - Sending Haitian families to `/credit/miami-fl` style English stubs
 - Citing `/`, `/start-here`, `/portal`, `/bookstore`, bare `/pricing`, `/free-kreyol-guide`, `/kreyol`, the 404 aliases, or `/resources/funding/tx` and `/resources/funding/ca`
 - Putting `/credit-specialist` on a church flyer, a family chat, or any cold board
-- Any directory submission or public post before QA posts PASS on the P0 dead-link fix
+- Any directory submission or public post before PR #39 is merged and Bluehost is serving that build
 - Promising a score, a deletion, or a court result
 - A site redesign as an SEO project
 
 ## Owner order when you are back
 
-1. Tonight: nothing public. PR #39 is the dead-link fix draft and PR #35’s review is FAIL. This runbook stays a draft until a later QA comment says PASS.
-2. After that PASS: one soft placement from the allowlist. Directories use `https://finelycred.com/free-guide`. An organic Haitian post uses `https://finelycred.com/haitian`. Do not post `/free-kreyol-guide`. Google Business only after the real phone and address are chosen.
-3. Merge and deploy when you want the new titles, canonicals, `/start-here` sitemap row, and metro pages. This pull request is a draft until you say so.
-4. After the Bluehost refresh, and only after you have clicked the new pages: section 2. Resubmit the sitemap, then one metro URL, then the wider placements one per week. Still skip `/bookstore` and funding TX/CA.
+1. Tonight: nothing public. QA passed PR #39 at `e37875c`. Live `finelycred.com` still has the old leaks. No directories, no posts, no profile links.
+2. Merge #39, then deploy it on Bluehost. Click the allowlist URLs on the live site before anyone cites them.
+3. After that live build: one soft placement from the allowlist. Directories use `https://finelycred.com/free-guide`. An organic Haitian post uses `https://finelycred.com/haitian`. Do not post `/free-kreyol-guide`. Google Business only after the real phone and address are chosen.
+4. This SEO pull request stays a draft until you ask to merge it. It is separate from #39.
+5. After the new build has been up long enough that those URLs stay put: section 2, one placement a week. Still skip `/bookstore`, funding TX/CA, `/`, `/start-here`, `/portal`, and bare `/pricing`.
 5. Prerender (PR #26) is the follow-up that puts those titles in the raw HTML crawlers download.
