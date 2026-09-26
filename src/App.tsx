@@ -2840,7 +2840,7 @@ function AppInner() {
         <Route path="/g/:code" element={<ShortReferralRedirectPage />} />
         <Route path="/consultation" element={<ConsultationCanonicalRedirect />} />
         {/* Bare nav slugs and legacy bookmarks → pages that already exist. */}
-        <Route path="/solutions" element={<Navigate to="/services" replace />} />
+        <Route path="/solutions" element={<Navigate to="/start-here" replace />} />
         <Route path="/careers" element={<Navigate to="/credit-specialist" replace />} />
         <Route path="/dispute-guide" element={<Navigate to="/free-guide" replace />} />
         <Route path="/dispute" element={<Navigate to="/free-guide" replace />} />
