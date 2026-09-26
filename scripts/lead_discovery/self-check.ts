@@ -5,6 +5,19 @@
  */
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+
+type DiscoveryCatalog = {
+  hud: { distanceMiles: number; metros: { id: string }[] };
+  propublica: {
+    includeNational: boolean;
+    maxPages: number;
+    states: string[];
+    keywords: { q: string; nameMustMatch?: string; nameMustNotMatch?: string; relevanceMustMatch?: string }[];
+  };
+  jobs: { titlePattern: string; apis: { id: string }[] };
+};
+
+const catalog = JSON.parse(readFileSync(resolve('scripts/lead_discovery/catalog.json'), 'utf8')) as DiscoveryCatalog;
 import {
   buildDirectoryColdImportArgs,
   bulkImportDirectoryColdLeads,
@@ -19,6 +32,94 @@ function assert(cond: unknown, message: string) {
     process.exitCode = 1;
   } else {
     console.log(`ok ${message}`);
+  }
+}
+
+const REQUIRED_METROS = [
+  'miami',
+  'fort-lauderdale',
+  'west-palm',
+  'orlando',
+  'tampa',
+  'naples',
+  'jacksonville',
+  'fort-myers',
+  'hollywood-fl',
+  'miramar',
+  'pembroke-pines',
+  'homestead',
+  'brooklyn',
+  'queens',
+  'bronx',
+  'manhattan',
+  'staten-island',
+  'spring-valley',
+  'hempstead',
+  'yonkers',
+  'buffalo',
+  'rochester',
+  'newark',
+  'jersey-city',
+  'elizabeth',
+  'paterson',
+  'trenton',
+  'boston',
+  'cambridge',
+  'brockton',
+  'worcester',
+  'springfield-ma',
+  'atlanta',
+  'houston',
+  'dallas',
+  'philadelphia',
+  'washington-dc',
+  'chicago',
+  'charlotte',
+  'raleigh',
+  'providence',
+  'hartford',
+  'bridgeport',
+  'new-orleans',
+  'los-angeles',
+  'long-beach',
+  'oakland',
+];
+const REQUIRED_STATES = ['FL', 'NY', 'NJ', 'MA', 'GA', 'TX', 'PA', 'MD', 'DC', 'IL', 'NC', 'CA', 'CT', 'RI', 'LA'];
+const REQUIRED_KEYWORDS = [
+  'haitian',
+  'haiti',
+  'kreyol',
+  'creole',
+  'caribbean',
+  'credit counseling',
+  'housing counseling',
+  'financial literacy',
+  'immigrant services',
+];
+
+const metroIds = new Set(catalog.hud.metros.map((m) => m.id));
+assert(catalog.hud.distanceMiles === 25, 'HUD radius stays 25 miles');
+assert(metroIds.size >= REQUIRED_METROS.length, `HUD metro list expanded (got ${metroIds.size})`);
+for (const id of REQUIRED_METROS) assert(metroIds.has(id), `HUD metro present: ${id}`);
+assert(catalog.propublica.includeNational === true, 'ProPublica includes a national pass');
+assert(Number(catalog.propublica.maxPages) >= 80, 'ProPublica page cap can exhaust the haitian result set');
+for (const state of REQUIRED_STATES) assert(catalog.propublica.states.includes(state), `ProPublica state present: ${state}`);
+const keywordSet = new Set(catalog.propublica.keywords.map((k) => k.q));
+for (const q of REQUIRED_KEYWORDS) assert(keywordSet.has(q), `ProPublica keyword present: ${q}`);
+assert(/financial coach/.test(catalog.jobs.titlePattern), 'job title filter includes financial coach');
+assert(/loan officer trainee/.test(catalog.jobs.titlePattern), 'job title filter includes loan officer trainee');
+assert(
+  catalog.jobs.apis.some((api) => api.id.startsWith('remotive-')) && catalog.jobs.apis.length >= 5,
+  'job APIs include several Remotive title searches plus the other public boards',
+);
+for (const keyword of catalog.propublica.keywords) {
+  for (const pattern of [keyword.nameMustMatch, keyword.nameMustNotMatch, keyword.relevanceMustMatch]) {
+    if (!pattern) continue;
+    try {
+      new RegExp(pattern, 'i');
+    } catch (e) {
+      assert(false, `keyword ${keyword.q} has a valid filter (${(e as Error).message})`);
+    }
   }
 }
 

@@ -62,6 +62,7 @@ data/legacy-migration/*.local.json
 # Public-directory lead pulls (real agency emails/phones — never commit)
 data/lead-discovery/*.local.json
 data/lead-discovery/*.local.csv
+data/lead-discovery/*.local.md
 
 # Haitian / FinelyCredit lead lists (owner Documents machine — keep outside repo)
 *leads*.csv
