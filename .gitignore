@@ -64,6 +64,10 @@ data/lead-discovery/*.local.json
 data/lead-discovery/*.local.csv
 data/lead-discovery/*.local.md
 
+# Wave 3 website-enrichment copies (same public contact data)
+artifacts/enriched-emails.local.csv
+artifacts/enrichment-report.local.md
+
 # Haitian / FinelyCredit lead lists (owner Documents machine — keep outside repo)
 *leads*.csv
 *-outreach*.csv

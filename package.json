@@ -54,6 +54,8 @@
     "haitian:import:apply": "npx tsx scripts/haitian-csv-import.ts --apply",
     "leads:discover": "node scripts/lead_discovery/collect.mjs",
     "leads:discover:check": "npx tsx scripts/lead_discovery/self-check.ts",
+    "leads:enrich": "node scripts/lead_discovery/enrich.mjs",
+    "leads:enrich:check": "node scripts/lead_discovery/enrich.mjs --self-check",
     "leads:import:dry-run": "npx tsx scripts/lane-cold-import.ts --dry-run",
     "leads:import:apply": "npx tsx scripts/lane-cold-import.ts --apply",
     "restore:haitian-portraits": "node scripts/restore-haitian-portraits.mjs",
