@@ -48,11 +48,33 @@ That writes these **gitignored** files:
 
 Stdout prints counts and source errors. It does not print emails, phones, or organization names.
 
-Wave 2 counts, with no contact fields, are in [docs/qa/lead-discovery-wave2-report.md](../qa/lead-discovery-wave2-report.md).
-
 The script refuses to write if those paths are not gitignored.
 
 Orgs with a phone or website but no email stay in the JSON for in-person or QR follow-up. They are not given a fake email.
+
+Wave 2 counts, with no contact fields, are in [docs/qa/lead-discovery-wave2-report.md](../qa/lead-discovery-wave2-report.md).
+
+## Enrich published emails from websites
+
+`npm run leads:discover` does not visit agency sites. When a later wave already has websites, enrich those sites only. This does not call ProPublica and does not add name-only organizations.
+
+```bash
+npm run leads:enrich
+```
+
+| Gitignored input | Role |
+|------|------|
+| `data/lead-discovery/enrich-queue-websites.local.csv` | Rows that already have a website field |
+| `data/lead-discovery/email-ready.local.csv` | Rows that already have a public email. Copied through unchanged. |
+
+The script fetches the public homepage, `/contact`, `/about`, and `/en-contact`, and only then a few more contact-like links if those pages had no address. It keeps published `mailto:` links and visible contact addresses. It does not guess an inbox from a staff name. It does not send email or SMS. `consentToContact` is never set true, because this command does not import.
+
+| Gitignored output | Contents |
+|------|----------|
+| `data/lead-discovery/enriched-emails.local.csv` | Prior emails plus newly found public emails |
+| `data/lead-discovery/enrichment-report.local.md` | Counts for the run |
+
+`npm run leads:enrich:check` is offline. The enrich script also refuses to write if its output paths are not gitignored. Counts with no contact fields: [docs/qa/lead-discovery-wave3-enrichment-report.md](../qa/lead-discovery-wave3-enrichment-report.md).
 
 ## Import locally (still no send)
 
@@ -109,7 +131,7 @@ Example Housing Agency,5551234567,example.agency@example.com,FL,affiliates|haiti
 - Send email, SMS, or a nurture sequence from the collector or the importer
 - Invent emails for organizations that did not publish one
 - Scrape Indeed, LinkedIn, Facebook, NMLS bulk files, or church member lists
-- Crawl each agency’s website looking for staff inboxes
+- Guess a staff inbox that the organization did not publish. `npm run leads:enrich` reads published contact addresses only.
 - Commit `collected.local.json` or `cold-import.local.csv`
 
 Haitian **consumer** CSV import is unchanged: [haitian-cold-import.md](./haitian-cold-import.md).
