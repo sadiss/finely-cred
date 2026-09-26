@@ -1245,7 +1245,7 @@ function AppInner() {
         <Route path="/haitian" element={<HaitianCommunityRoute />} />
         <Route path="/haitian/:metro" element={<HaitianMetroDeskPage />} />
         <Route path="/kreyol" element={<HaitianCommunityRoute />} />
-        <Route path="/services" element={<Navigate to="/" replace />} />
+        <Route path="/services" element={<PricingPage />} />
         <Route path="/services/tradelines" element={<Navigate to="/tradelines" replace />} />
         <Route path="/services/finelycred" element={<FinelyCredServicesPage />} />
         <Route path="/services/business-credit" element={<BusinessCreditPreviewPage />} />
@@ -1253,7 +1253,7 @@ function AppInner() {
         <Route path="/services/personal-credit-restore" element={<PersonalCreditRestorePreviewPage />} />
         <Route path="/services/personal-credit-building" element={<PersonalCreditBuildPreviewPage />} />
         <Route path="/services/:service" element={<PricingServicePage />} />
-        <Route path="/pricing" element={<Navigate to="/" replace />} />
+        <Route path="/pricing" element={<PricingPage />} />
         <Route path="/pricing/tradelines" element={<Navigate to="/tradelines" replace />} />
         <Route path="/pricing/personal-credit-restore" element={<PersonalCreditRestorePreviewPage />} />
         <Route path="/personal-credit" element={<PersonalCreditRestorePreviewPage />} />
@@ -2826,6 +2826,15 @@ function AppInner() {
         <Route path="/owners-guide" element={<ProtectedRoute><OwnersGuidePage /></ProtectedRoute>} />
         <Route path="/g/:code" element={<ShortReferralRedirectPage />} />
         <Route path="/consultation" element={<ConsultationCanonicalRedirect />} />
+        {/* Bare nav slugs and legacy bookmarks → pages that already exist. */}
+        <Route path="/solutions" element={<Navigate to="/services" replace />} />
+        <Route path="/careers" element={<Navigate to="/credit-specialist" replace />} />
+        <Route path="/dispute-guide" element={<Navigate to="/free-guide" replace />} />
+        <Route path="/strategy-call" element={<Navigate to="/enlightenment-session" replace />} />
+        <Route path="/membership" element={<Navigate to="/pricing" replace />} />
+        <Route path="/debt" element={<Navigate to="/pricing/debt-legal" replace />} />
+        <Route path="/debt-relief" element={<Navigate to="/pricing/debt-legal" replace />} />
+        <Route path="/app" element={<Navigate to="/dashboard" replace />} />
         <Route path="/faq" element={<FaqPage />} />
         <Route path="/claim" element={<ClaimPartnerProfilePage />} />
         <Route path="/partner-setup" element={<PartnerSelfIntakePage />} />
