@@ -4,9 +4,16 @@ Owner runbook for finding Finely Cred without ads. Ordinary people, especially H
 
 Checked against the live site on **26 Sep 2026**. This file is the plan. The small on-page edits in the same pull request are **not live** until the owner asks for a Bluehost deploy.
 
-**Overnight work is soft placements only.** Profiles, directories you fill in by hand, and Haitian community boards. Every link is a URL already on the live sitemap. The default three are `/haitian`, `/kreyol`, and `/free-kreyol-guide`.
+**Hold.** Do not submit a directory, a Google Business post, or a public community link until both of these are true:
 
-The wider placement wave — more boards, more citations, metro URLs, and indexing requests across the full set — waits until those URLs are stable after the Bluehost refresh. That wave is still manual and still zero-dollar. It is not a directory blast, a bought-link campaign, or a copy-paste across groups.
+1. A P0 dead-link **fix** draft exists (sibling of QA notes [PR #35](https://github.com/sadiss/finely-cred/pull/35)).
+2. QA posts **PASS** on that fix.
+
+As of this update, fix draft [PR #39](https://github.com/sadiss/finely-cred/pull/39) exists and the review on PR #35 is **FAIL**. The gate is closed. Until it opens, this document is research and a draft placement plan only.
+
+When the gate opens, overnight work is still soft placements only: profiles, directories you fill in by hand, and Haitian community boards. Every link comes from the promote-safe list below. The default three are `/haitian`, `/kreyol`, and `/free-kreyol-guide`.
+
+The wider placement wave — more boards, more citations, metro URLs, and indexing requests across the full safe set — waits until those URLs are stable after the Bluehost refresh. That wave is still manual and still zero-dollar. It is not a directory blast, a bought-link campaign, or a copy-paste across groups.
 
 Related: [lead-acquisition-enterprise.md](./lead-acquisition-enterprise.md) (consent and cold CSV rules). This plan does **not** use the paid Meta ads step in that runbook.
 
@@ -26,38 +33,47 @@ Cold Haitian CSV rows stay `consent=false`. Organic visitors become leads only w
 
 Public contact in the product is `partnersupport@finelycred.com`. The phone on the debt summons **sample** (`(305) 555-0148`) is a mock document, not the business number. Do not put it on Google, a flyer, or a directory.
 
-## What is live right now
+## Promote-safe URLs
 
-`https://finelycred.com/sitemap.xml` already lists these URLs (112 total on 26 Sep 2026). Soft placements tonight use this list. Prefer the first three rows unless a person asked about a different live page.
+Use only this list in the draft, and only after the gate above opens. These are pages that already render for a guest. Prefer the first rows.
 
-| Job | URL to share |
-|-----|----------------|
+| Job | URL |
+|-----|-----|
 | Haitian desk | https://finelycred.com/haitian |
 | Short Kreyòl link (same desk) | https://finelycred.com/kreyol |
 | Free kits (the opt-in) | https://finelycred.com/free-kreyol-guide |
-| Kit: what credit is | https://finelycred.com/free-kreyol-guide/what-is-credit |
-| Kit: what the letter says | https://finelycred.com/free-kreyol-guide/letter-meaning |
-| Kit: person helping the family | https://finelycred.com/free-kreyol-guide/helper |
-| Church flyer kit | https://finelycred.com/free-kreyol-guide/community-flyer |
-| Debt / summons offer | https://finelycred.com/pricing/debt-legal |
-| Summons education article | https://finelycred.com/resources/debt-defense-summons-answer |
-| Free debt guide | https://finelycred.com/free-debt-guide |
-| Personal restore | https://finelycred.com/pricing/personal-credit-restore |
-| Restore one-sheet | https://finelycred.com/resources/personal-credit-restore-sheet |
-| Business credit guide | https://finelycred.com/free-business-guide |
-| Business credit one-sheets | https://finelycred.com/resources/business-credit-one-sheets |
-| Business credit tier article | https://finelycred.com/resources/business-credit-tier-matrix |
-| Credit specialist offer | https://finelycred.com/credit-specialist |
-| Specialist guide | https://finelycred.com/credit-specialist-guide |
-| Resources hub | https://finelycred.com/resources |
+| Book a session | https://finelycred.com/enlightenment-session |
+| Personal restore pricing | https://finelycred.com/pricing/personal-credit-restore |
+| Credit building pricing | https://finelycred.com/pricing/personal-credit-building |
+| Business credit pricing | https://finelycred.com/pricing/business-credit |
+| Debt / summons pricing | https://finelycred.com/pricing/debt-legal |
+| Wealth builder pricing | https://finelycred.com/pricing/wealth-builder |
+| Privacy pricing | https://finelycred.com/pricing/privacy-id |
+| Bundles pricing | https://finelycred.com/pricing/bundles |
 
-Also open these in a normal browser before you share them. They are real app routes. They were **missing from the live sitemap** on 26 Sep 2026 (this pull request adds them for the next deploy):
+Kit subpages on the same funnel, when you need a narrower link: `/free-kreyol-guide/what-is-credit`, `/free-kreyol-guide/letter-meaning`, `/free-kreyol-guide/helper`, `/free-kreyol-guide/community-flyer`.
 
-- https://finelycred.com/start-here
-- https://finelycred.com/pricing/business-credit
-- https://finelycred.com/resources/one-sheets (partner sheet hub; confirm it renders)
+Other live resource URLs (summons article, free guides, one-sheets, `/credit-specialist`) stay in the draft for section 2. They are not the overnight default.
 
-**Do not promote metro URLs yet** (`/haitian/miami`, `/haitian/brooklyn`, and the other eight). They are in this branch’s sitemap and are not in the sitemap Google can fetch today. Same for treating `/credit/miami-fl` as the Haitian page. Those English city stubs are a different page. Haitian posts go to `/haitian` or `/kreyol`.
+### Do not promote
+
+| URL | Why it stays off the list |
+|-----|---------------------------|
+| `/portal` and anything under it | App login, not a public landing page. QA still records `/portal` as no route. |
+| `/dispute`, `/funding`, `/partners`, `/restore`, `/letters` | 404 aliases. Still failing on PR #39. |
+| `/solutions`, `/careers`, `/dispute-guide`, `/strategy-call`, `/membership` | 404 on the live base. PR #39 aliases some of them; do not cite them until QA posts PASS. |
+| `/pricing` and `/services` (the indexes, not the lane pages) | Home bounce on the live base. Lane pages in the table above are the ones that render. |
+| `/bookstore` | Empty public catalog. Not a promote target. |
+| `/resources/funding/tx`, `/resources/funding/ca`, and `/resources/funding` (it redirects to Texas) | Broken funding pages. Not promote targets. |
+| `/haitian/miami` and the other metro desks | Not on the live sitemap yet. Section 2, after the refresh and a QA pass. |
+| `/start-here` | Missing from the live sitemap on 26 Sep 2026. Draft only until it is on the sitemap Google fetches. |
+| `/credit/miami-fl` and the other English `/credit/:city` stubs | Wrong page for Haitian posts. |
+
+`https://finelycred.com/sitemap.xml` listed 112 URLs on 26 Sep 2026. A URL in that file is not automatically promote-safe. The exclude table wins.
+
+Section 2 may add these after the gate and the refresh, one at a time, because they are real public pages and they are not on the exclude list: `/resources/debt-defense-summons-answer`, `/free-debt-guide`, `/free-guide`, `/free-business-guide`, `/resources/personal-credit-restore-sheet`, `/resources/business-credit-one-sheets`, `/resources/business-credit-tier-matrix`, `/credit-specialist`, `/credit-specialist-guide`, `/resources`.
+
+`/pricing/business-credit` renders today (QA on the launch base marked that CTA a pass) and is already in the promote-safe table. `/start-here` and `/resources/one-sheets` were missing from the live sitemap on 26 Sep 2026. This pull request adds `/start-here` and `/pricing/business-credit` to the repo sitemap for the next deploy. Do not cite `/start-here` until that sitemap is what Google fetches.
 
 ### What Google sees before JavaScript
 
@@ -67,19 +83,22 @@ A fetch of the live HTML (no browser) returns the **same** title and description
 - Description: `Finely Cred — credit restore, dispute letters, business credit, debt OS, and partner portal.`
 - No canonical link in the raw HTML
 
-The app does set a unique title after it loads. Google often runs JavaScript, but it is slower and less reliable. Unique titles in the raw file need the prerender work in [PR #26](https://github.com/sadiss/finely-cred/pull/26), after the owner deploys. Until then, Search Console + the sitemap + off-site mentions are the levers that do not wait on Bluehost.
+The app does set a unique title after it loads. Google often runs JavaScript, but it is slower and less reliable. Unique titles in the raw file need the prerender work in [PR #26](https://github.com/sadiss/finely-cred/pull/26), after the owner deploys. Search Console and off-site mentions wait on the dead-link QA pass, not only on Bluehost.
 
-## 1. Overnight — soft placements only
+## 1. Draft placement plan (do not submit yet)
 
-Do these in order. One profile, one citation, one community board. Then stop. Save the wider wave for section 2, after Bluehost is serving a build you have clicked through.
+The steps in this section are the plan for after QA posts PASS on the P0 dead-link fix. They are not a to-do for tonight. No directory form, no Google Business post, no community link, no sitemap ping, until that PASS is on the PR.
 
-Hold until that refresh, even if the route answers today:
+When the gate opens, do these in order. One profile, one citation, one community board. Then stop. Save the wider wave for section 2, after Bluehost is serving a build you have clicked through.
+
+Still hold until that refresh, even after the dead-link QA passes:
 
 - Metro desks (`/haitian/miami` and the other nine)
-- `/start-here` and `/pricing/business-credit` (missing from the live sitemap on 26 Sep 2026)
+- `/start-here` until it is on the live sitemap
+- `/bookstore`, `/resources/funding/tx`, `/resources/funding/ca`
+- `/portal` and the 404 aliases in the exclude table
 - Requesting indexing on a stack of URLs
 - Posting the same note in more than one group
-- Any URL that is only in this pull request’s sitemap
 
 ### A. Search Console and Bing (first session, ~25 min)
 
@@ -314,7 +333,7 @@ People searching: “build business credit”, “EIN credit file”, “net 30 
 | Free map | `/free-business-guide` |
 | Offer / one-sheet for a partner | `/resources/business-credit-one-sheets` |
 | Tier explanation | `/resources/business-credit-tier-matrix` |
-| The program | `/pricing/business-credit` (share after you confirm the page renders; it is missing from today’s live sitemap) |
+| The program | `/pricing/business-credit` (renders today; cite it only after the dead-link QA pass) |
 
 Funding is subject to underwriting. Say that.
 
@@ -332,14 +351,22 @@ No income promises. The page already says the specialist runs partner files and 
 
 ## 5. Weekly owner checklist (30–60 minutes)
 
-### Until the Bluehost refresh (soft)
+### Until QA posts PASS on the dead-link fix
+
+| Min | Action |
+|-----|--------|
+| 10 | Read PR #35 and the fix PR it reviews. If the latest QA comment is not PASS, make no public submission. |
+| 10 | Recheck the promote-safe table against the exclude table. Drop any URL that 404s, bounces home, or is `/bookstore` or funding TX/CA. |
+| 0 | Directories, Google Business posts, and community links stay unsent. |
+
+### After the dead-link QA passes, and before the Bluehost refresh (soft)
 
 | Min | Action |
 |-----|--------|
 | 5 | Search Console: is `/haitian` or `/free-kreyol-guide` indexed? Note it. Leave the other URLs alone. |
 | 15 | One soft placement: a profile/directory from section 1.C **or** one Haitian board post from section 1.E. Link `/haitian`, `/kreyol`, or `/free-kreyol-guide`. |
 | 10 | Reply only to people who answered that post. |
-| 5 | Write down which live URL you used. |
+| 5 | Write down which promote-safe URL you used. |
 
 ### After URLs are stable (wider wave)
 
@@ -364,13 +391,15 @@ Once a month, extra 15 minutes: read one of your own public pages on a phone (`/
 - New Reddit accounts
 - Cold email or SMS to scraped leads or to the Haitian cold CSV
 - Sending Haitian families to `/credit/miami-fl` style English stubs
+- Citing `/portal`, the 404 aliases, `/bookstore`, or `/resources/funding/tx` and `/resources/funding/ca`
+- Any directory submission or public post before QA posts PASS on the P0 dead-link fix
 - Promising a score, a deletion, or a court result
 - A site redesign as an SEO project
 
 ## Owner order when you are back
 
-1. Tonight, soft only: Search Console, Bing, and one profile or one Haitian board post to `/haitian`, `/kreyol`, or `/free-kreyol-guide`.
-2. Google Business only after the real phone and address are chosen. The website field is `https://finelycred.com/haitian`.
+1. Tonight: nothing public. PR #39 is the dead-link fix draft and PR #35’s review is FAIL. This runbook stays a draft until a later QA comment says PASS.
+2. After that PASS: one soft placement to `/haitian`, `/kreyol`, or `/free-kreyol-guide`, plus Search Console and Bing if you have not verified the property. Google Business only after the real phone and address are chosen. The website field is `https://finelycred.com/haitian`.
 3. Merge and deploy when you want the new titles, canonicals, `/start-here` sitemap row, and metro pages. This pull request is a draft until you say so.
-4. After the Bluehost refresh, and only after you have clicked the new pages: section 2. Resubmit the sitemap, then one metro URL, then the wider placements one per week.
+4. After the Bluehost refresh, and only after you have clicked the new pages: section 2. Resubmit the sitemap, then one metro URL, then the wider placements one per week. Still skip `/bookstore` and funding TX/CA.
 5. Prerender (PR #26) is the follow-up that puts those titles in the raw HTML crawlers download.
