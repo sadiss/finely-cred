@@ -733,6 +733,20 @@ html:has([data-fc-haitian-desk='1']) [data-fc-shell-surface='ivory'].fc-landing-
   margin-bottom: 1rem;
 }
 
+.ht-next-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.65rem 1.25rem;
+  margin: 0 0 1.25rem;
+  font-weight: 800;
+}
+
+.ht-next-links a {
+  color: #047857;
+  text-underline-offset: 3px;
+}
+
 .ht-helper__card ol {
   margin: 0;
   padding: 0;

@@ -226,21 +226,30 @@ export const PUBLIC_SEO_CATALOG: PublicSeoRoute[] = [
   },
   {
     path: '/haitian',
-    title: 'Haitian community · Credit help for Haitian Americans',
+    title: 'Kreyòl credit help for Haitian Americans',
     description:
-      'Credit help for Haitian Americans — letters, collections, and a next step. Pale Kreyòl.',
+      'Credit help for Haitian Americans — restore, debt, building, and business credit. Pale Kreyòl. Book a session.',
     hasSchema: true,
   },
   {
     path: '/kreyol',
-    title: 'Haitian community',
-    description: 'Credit help for Haitian Americans. Pale Kreyòl. Open a kit. Book a session.',
+    title: 'Kreyòl credit help for Haitian Americans',
+    description:
+      'Credit help for Haitian Americans — restore, debt, building, and business credit. Pale Kreyòl. Book a session.',
+    hasSchema: true,
+  },
+  {
+    path: '/start-here',
+    title: 'Start here: credit, debt, or Kreyòl',
+    description:
+      'Pick a lane: personal credit restore, a debt summons, business credit, Haitian Kreyòl help, or a credit specialist path.',
     hasSchema: true,
   },
   {
     path: '/free-kreyol-guide',
-    title: 'Credit kits · Haitian community',
-    description: 'Four credit kits for Haitian Americans — what credit is, what the letter says, helping family, church flyer.',
+    title: 'Free Kreyòl credit kits',
+    description:
+      'Free Kreyòl kits: what credit is, what a letter says, helping family, and a church flyer. Pale Kreyòl. Results vary · not legal advice.',
     hasSchema: true,
   },
   {
@@ -269,61 +278,61 @@ export const PUBLIC_SEO_CATALOG: PublicSeoRoute[] = [
   },
   {
     path: '/haitian/miami',
-    title: 'Haitian community · Miami credit help',
+    title: 'Miami Kreyòl credit help',
     description: 'Credit help for Haitian Americans in South Florida — letters, collections, Pale Kreyòl.',
     hasSchema: true,
   },
   {
     path: '/haitian/brooklyn',
-    title: 'Haitian community · Brooklyn credit help',
+    title: 'Brooklyn Kreyòl credit help',
     description: 'Credit help for Haitian Americans in New York — letters, collections, Pale Kreyòl.',
     hasSchema: true,
   },
   {
     path: '/haitian/boston',
-    title: 'Haitian community · Boston credit help',
+    title: 'Boston Kreyòl credit help',
     description: 'Credit help for Haitian Americans in Boston — letters, collections, Pale Kreyòl.',
     hasSchema: true,
   },
   {
     path: '/haitian/houston',
-    title: 'Haitian community · Houston credit help',
+    title: 'Houston Kreyòl credit help',
     description: 'Credit help for Haitian Americans in Houston — letters, collections, Pale Kreyòl.',
     hasSchema: true,
   },
   {
     path: '/haitian/atlanta',
-    title: 'Haitian community · Atlanta credit help',
+    title: 'Atlanta Kreyòl credit help',
     description: 'Credit help for Haitian Americans in Atlanta — letters, collections, Pale Kreyòl.',
     hasSchema: true,
   },
   {
     path: '/haitian/washington',
-    title: 'Haitian community · Washington DC credit help',
+    title: 'Washington Kreyòl credit help',
     description: 'Credit help for Haitian Americans in DC — letters, collections, Pale Kreyòl.',
     hasSchema: true,
   },
   {
     path: '/haitian/chicago',
-    title: 'Haitian community · Chicago credit help',
+    title: 'Chicago Kreyòl credit help',
     description: 'Credit help for Haitian Americans in Chicago — letters, collections, Pale Kreyòl.',
     hasSchema: true,
   },
   {
     path: '/haitian/philadelphia',
-    title: 'Haitian community · Philadelphia credit help',
+    title: 'Philadelphia Kreyòl credit help',
     description: 'Credit help for Haitian Americans in Philadelphia — letters, collections, Pale Kreyòl.',
     hasSchema: true,
   },
   {
     path: '/haitian/jacksonville',
-    title: 'Haitian community · Jacksonville credit help',
+    title: 'Jacksonville Kreyòl credit help',
     description: 'Credit help for Haitian Americans in Jacksonville — letters, collections, Pale Kreyòl.',
     hasSchema: true,
   },
   {
     path: '/haitian/new-jersey',
-    title: 'Haitian community · New Jersey credit help',
+    title: 'New Jersey Kreyòl credit help',
     description: 'Credit help for Haitian Americans in New Jersey — letters, collections, Pale Kreyòl.',
     hasSchema: true,
   },
@@ -420,9 +429,17 @@ export const PUBLIC_SEO_CATALOG: PublicSeoRoute[] = [
     hasSchema: true,
   },
   {
+    path: '/pricing/business-credit',
+    title: 'Business credit | Finely Cred',
+    description:
+      'Build the EIN file commercial desks underwrite — reporting vendors, bureau depth, and a sequenced company profile so you can ask for capital as a company.',
+    hasSchema: true,
+  },
+  {
     path: '/pricing/debt-legal',
-    title: 'Debt and legal',
-    description: 'Validation desk for collections, summons, and foreclosure — require proof first.',
+    title: 'Debt summons and collections | Finely Cred',
+    description:
+      'A validation desk for collections, summons, and foreclosure. Packets matched to the matter — education and workflow, not a generic inbox.',
     hasSchema: true,
   },
   {

@@ -328,6 +328,19 @@ html:has([data-fc-haitian-metro]) [data-fc-pageshell-root='1'] {
 .ht-metro-chip strong { font-weight: 900; }
 .ht-metro-chip span { font-size: 0.82rem; font-weight: 700; color: var(--ht-muted); }
 
+.ht-next-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1.25rem;
+  margin: 1.15rem 0 0;
+  font-weight: 800;
+}
+
+.ht-next-links a {
+  color: #047857;
+  text-underline-offset: 3px;
+}
+
 .ht-metro-comply {
   margin-top: 1.4rem;
   font-size: 0.85rem;

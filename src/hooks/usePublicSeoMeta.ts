@@ -43,6 +43,16 @@ export function usePublicSeoMeta(args: {
     setMeta('property', 'og:type', 'website');
     setMeta('property', 'og:image', `${origin}/brand/finely-cred-logo-dark.png`);
 
+    let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+    const createdCanonical = !canonical;
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.rel = 'canonical';
+      document.head.appendChild(canonical);
+    }
+    const prevCanonical = canonical.href;
+    canonical.href = pageUrl;
+
     injectJsonLd('fc-org-schema', buildOrganizationSchema(origin));
     injectJsonLd(
       'fc-webpage-schema',
@@ -88,6 +98,8 @@ export function usePublicSeoMeta(args: {
       document.getElementById('fc-faq-schema')?.remove();
       document.getElementById('fc-howto-schema')?.remove();
       document.getElementById('fc-local-schema')?.remove();
+      if (createdCanonical) canonical?.remove();
+      else if (canonical) canonical.href = prevCanonical;
     };
   }, [
     args.title,

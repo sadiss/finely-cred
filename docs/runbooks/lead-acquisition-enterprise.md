@@ -98,4 +98,4 @@ These fit Finely Cred’s partner email sequences (`cold_prospect`, `invite_opt_
 2. **Bluehost deploy** — unpark hosting; deploy latest build (Sep 11 live build is stale)
 3. **Production import** — run `npx tsx scripts/haitian-csv-import.ts --dry-run` then `--apply` from machine with prod Supabase env vars
 4. **Smoke test** — guest `/free-kreyol-guide` opt-in, admin Haitian cold filter, one nurture dry-run in Comms Studio
-5. **Campaign** — Meta ads or community QR to owned funnels; monitor opt-in rate in Leads OS
+5. **Campaign** — unpaid community posts and QR codes to owned funnels (no paid ads in the zero-dollar plan); monitor opt-in rate in Leads OS. Weekly owner checklist: [organic-seo-zero-budget.md](./organic-seo-zero-budget.md)

@@ -104,7 +104,7 @@ export default function DebtLegalPreviewPage() {
   }, [matterKey]);
 
   usePublicSeoMeta({
-    title: 'Debt and legal | Finely Cred',
+    title: 'Debt summons and collections | Finely Cred',
     description:
       'A validation desk for collections, summons, and foreclosure. Packets matched to the matter — education and workflow, not a generic inbox.',
     path: LIVE_PATH,
@@ -497,6 +497,10 @@ export default function DebtLegalPreviewPage() {
                 </div>
               </div>
               <div className="dl-prev-exits" style={{ marginTop: '1.5rem' }}>
+                <Link className="dl-prev-exit dl-prev-exit--emerald" to="/resources/debt-defense-summons-answer">
+                  <strong>Summons answer guide</strong>
+                  <span>Deadlines and affirmative defenses. Education — a licensed attorney files in court.</span>
+                </Link>
                 <Link className="dl-prev-exit dl-prev-exit--rose" to="/free-debt-guide">
                   <strong>Free debt guide</strong>
                   <span>Cover preview on this page. The full reader opens when you start the guide.</span>
