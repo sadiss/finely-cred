@@ -75,9 +75,29 @@ const json = {
   items,
 };
 
-fs.writeFileSync(path.join(outDir, 'leads.xml'), rss, 'utf8');
-fs.writeFileSync(path.join(outDir, 'leads.json'), JSON.stringify(json, null, 2), 'utf8');
-console.log(`Wrote ${items.length} lanes → public/feeds/leads.xml + leads.json`);
+function stripVolatileDates(s) {
+  return s
+    .replace(/\d{4}-\d{2}-\d{2}T[\d:.]+Z/g, 'DATE')
+    .replace(/[A-Z][a-z]{2}, \d{2} [A-Z][a-z]{2} \d{4} \d{2}:\d{2}:\d{2} GMT/g, 'DATE');
+}
+
+function writeIfChanged(file, next) {
+  if (fs.existsSync(file) && stripVolatileDates(fs.readFileSync(file, 'utf8')) === stripVolatileDates(next)) {
+    return false;
+  }
+  fs.writeFileSync(file, next, 'utf8');
+  return true;
+}
+
+const xmlPath = path.join(outDir, 'leads.xml');
+const jsonPath = path.join(outDir, 'leads.json');
+const xmlChanged = writeIfChanged(xmlPath, rss);
+const jsonChanged = writeIfChanged(jsonPath, JSON.stringify(json, null, 2) + '\n');
+if (xmlChanged || jsonChanged) {
+  console.log(`Wrote ${items.length} lanes → public/feeds/leads.xml + leads.json`);
+} else {
+  console.log(`Unchanged ${items.length} lanes → public/feeds/leads.xml + leads.json`);
+}
 
 function escapeXml(s) {
   return String(s)
