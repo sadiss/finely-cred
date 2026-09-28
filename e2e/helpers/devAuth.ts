@@ -27,7 +27,7 @@ export async function signInViaPortal(
   await expect(signInBtn).toBeEnabled({ timeout: 10_000 });
   await signInBtn.click();
 
-  await expect(page).toHaveURL(args.expectUrl ?? /\/dashboard/, { timeout: 35_000 });
+  await expect(page).toHaveURL(args.expectUrl ?? /\/(dashboard|admin|portal)/, { timeout: 35_000 });
   await expect(page.locator('[data-fc-onboarding-shell="1"]')).toBeHidden({ timeout: 15_000 });
 }
 

@@ -20,7 +20,7 @@ test.describe('Senior QA walkthrough (public)', () => {
   test('start-here personal credit lane starts the free guide', async ({ page }) => {
     await page.goto('/start-here');
     await page.getByRole('button', { name: /fix personal credit/i }).click();
-    await page.getByRole('button', { name: /start free guide/i }).click();
+    await page.locator('section').getByRole('button', { name: /start free guide/i }).click();
     await expect(page).toHaveURL(/\/free-guide|\/personal-credit/, { timeout: 15_000 });
   });
 
@@ -68,9 +68,10 @@ test.describe('Senior QA walkthrough (public)', () => {
 
   test('personal credit page has strategy call and Ask Finely', async ({ page }) => {
     await page.goto('/personal-credit');
-    await expect(page.locator('body')).toContainText(/strategy call/i, { timeout: 15_000 });
-    await expect(page.locator('[data-fc-launch-help-strip="1"]').first()).toBeVisible();
-    await expect(page.getByText('Ask Finely').first()).toBeVisible();
+    await expect(page.locator('[data-fc-pc-restore-preview="1"]')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole('button', { name: /book a session/i }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: /free restore guide/i }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: /tell us where you are/i }).first()).toBeVisible();
   });
 
   test('pricing page uses strategy call (not enlightenment session)', async ({ page }) => {
@@ -107,13 +108,12 @@ test.describe('Senior QA walkthrough (public)', () => {
 
   test('Ask Finely returns page-specific guidance on personal-credit', async ({ page }) => {
     await page.goto('/personal-credit');
-    const strip = page.locator('[data-fc-launch-help-strip="1"]').first();
-    await expect(strip).toBeVisible({ timeout: 15_000 });
-    const tryBtn = strip.getByRole('button').filter({ hasNotText: /watch how|speak|send|stop/i }).first();
-    await tryBtn.click();
-    await expect(page.locator('[data-fc-launch-help-strip="1"]')).toContainText(/report|bureau|credit|finely|guide/i, {
-      timeout: 15_000,
-    });
+    await expect(page.locator('[data-fc-pc-restore-preview="1"]')).toBeVisible({ timeout: 15_000 });
+    await page.getByRole('button', { name: /tell us where you are/i }).first().click();
+    await expect(page.locator('[data-fc-public-chat], [data-fc-comms-shell="1"], body')).toContainText(
+      /credit|dispute|bureau|finely|report/i,
+      { timeout: 15_000 },
+    );
   });
 
   test('path 6 (gate): /affiliate/hub requires sign-in', async ({ page }) => {

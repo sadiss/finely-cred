@@ -64,15 +64,18 @@ test.describe('Senior QA walkthrough (portal — dev auth)', () => {
     await seedLocalDemoPartner(page);
     await signInViaPortal(page, { email: adminEmail, password: adminPassword });
     await page.goto('/admin/partners');
-    await expect(page.getByPlaceholder(/search partners/i)).toBeVisible({ timeout: 20_000 });
-    await expect(page.getByText(/upload report/i).first()).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByPlaceholder(/search partner/i)).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText(/import partners|no report|partner file/i).first()).toBeVisible({
+      timeout: 20_000,
+    });
   });
 
-  test('path 9: mastery workspace — sidebar section labels (admin)', async ({ page }) => {
+  test('path 9: admin command center — operating picture', async ({ page }) => {
     await signInViaPortal(page, { email: adminEmail, password: adminPassword });
-    await page.goto('/dashboard');
-    await expect(page.getByRole('button', { name: /^overview$/i }).first()).toBeVisible({ timeout: 20_000 });
-    await expect(page.getByRole('button', { name: /^disputes$/i }).first()).toBeVisible();
+    await page.goto('/admin');
+    await expect(page.getByRole('heading', { name: /your operating picture/i })).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByRole('button', { name: /^partners$/i }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: /command center/i }).first()).toBeVisible();
   });
 
   test('path 9b: partner login routes to portal dashboard (not mastery OS)', async ({ page }) => {
