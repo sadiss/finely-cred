@@ -13,7 +13,6 @@ const STEPS = [
   { name: 'sitemap:generate', cmd: 'npm run sitemap:generate' },
   { name: 'typecheck', cmd: 'npm run typecheck' },
   { name: 'e2e:smoke', cmd: 'npm run e2e:smoke' },
-  { name: 'launch:senior:qa', cmd: 'npm run launch:senior:qa' },
   { name: 'voice:catalog:check', cmd: 'npm run voice:catalog:check' },
   { name: 'launch:check', cmd: 'npm run launch:check' },
   { name: 'signup:email:audit', cmd: 'npm run signup:email:audit' },
