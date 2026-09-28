@@ -17,7 +17,19 @@ const paths = [...src.matchAll(/path:\s*'([^']+)'/g)].map((m) => m[1]);
 const sitemapExcluded = new Set(
   [...src.matchAll(/path:\s*'([^']+)'[\s\S]*?sitemap:\s*false/g)].map((m) => m[1]),
 );
-const unique = [...new Set(paths)].filter((p) => !sitemapExcluded.has(p));
+const deskSrc = fs.readFileSync(path.join(root, 'src/lib/haitianCompanionDesk.ts'), 'utf8');
+const metroPaths = [...deskSrc.matchAll(/cityPath:\s*'(\/haitian\/[^']+)'/g)].map((m) => m[1]);
+if (metroPaths.length < 10) {
+  console.error(`haitian metro cityPath count ${metroPaths.length} — expected at least 10`);
+  process.exit(1);
+}
+const unique = [...new Set([...paths, ...metroPaths])].filter((p) => !sitemapExcluded.has(p));
+for (const p of metroPaths) {
+  if (!unique.includes(p)) {
+    console.error(`sitemap omitted required Haitian metro route ${p}`);
+    process.exit(1);
+  }
+}
 
 const site = process.env.VITE_SITE_URL || process.env.SITE_URL || 'https://finelycred.com';
 const today = new Date().toISOString().slice(0, 10);

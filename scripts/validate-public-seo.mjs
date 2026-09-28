@@ -57,6 +57,26 @@ if (fs.existsSync(sitemapPath)) {
   } else {
     console.log('✓ sitemap.xml no duplicate URLs');
   }
+  const requiredPublic = [
+    'https://finelycred.com/haitian',
+    'https://finelycred.com/haitian/miami',
+    'https://finelycred.com/haitian/brooklyn',
+    'https://finelycred.com/haitian/boston',
+    'https://finelycred.com/haitian/houston',
+    'https://finelycred.com/haitian/atlanta',
+    'https://finelycred.com/haitian/washington',
+    'https://finelycred.com/haitian/chicago',
+    'https://finelycred.com/haitian/philadelphia',
+    'https://finelycred.com/haitian/jacksonville',
+    'https://finelycred.com/haitian/new-jersey',
+  ];
+  const missingPublic = requiredPublic.filter((u) => !urls.includes(u));
+  if (missingPublic.length) {
+    console.log(`✗ sitemap.xml missing public routes: ${missingPublic.join(', ')}`);
+    failed += 1;
+  } else {
+    console.log('✓ sitemap.xml includes Haitian hub and all 10 metro desks');
+  }
 }
 
 if (fs.existsSync(indexPath)) {
