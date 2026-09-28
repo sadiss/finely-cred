@@ -82,8 +82,11 @@ function stripVolatileDates(s) {
 }
 
 function writeIfChanged(file, next) {
-  if (fs.existsSync(file) && stripVolatileDates(fs.readFileSync(file, 'utf8')) === stripVolatileDates(next)) {
-    return false;
+  if (fs.existsSync(file)) {
+    const prev = fs.readFileSync(file, 'utf8');
+    if (stripVolatileDates(prev).trim() === stripVolatileDates(next).trim()) {
+      return false;
+    }
   }
   fs.writeFileSync(file, next, 'utf8');
   return true;
