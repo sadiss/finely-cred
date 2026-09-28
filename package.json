@@ -17,6 +17,7 @@
     "cta:bare-onboarding:audit": "node scripts/audit-bare-onboarding.mjs",
     "extract:legacy-reasons": "tsx scripts/extract-legacy-reasons.mjs",
     "deploy:functions": "node scripts/deploy-supabase-functions.mjs",
+    "functions:manifest": "node scripts/deploy-supabase-functions.mjs --manifest",
     "voice:prerender": "node scripts/prerender-voice-catalog.mjs",
     "voice:catalog:sync": "node scripts/sync-voice-prerender-catalog.mjs",
     "voice:catalog:check": "npm run voice:catalog:sync && node scripts/validate-voice-prerender-catalog.mjs",

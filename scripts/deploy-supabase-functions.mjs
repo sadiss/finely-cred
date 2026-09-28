@@ -5,6 +5,7 @@
  * Usage:
  *   npm run deploy:functions          # launch-critical subset
  *   npm run deploy:functions -- --all # every function under supabase/functions
+ *   npm run functions:manifest        # print launch vs all, deploy nothing
  *
  * Requires Supabase CLI linked to your project (`supabase link`).
  */
@@ -43,6 +44,9 @@ const LAUNCH_FUNCTIONS = [
   'send-sms',
   'comms-ping',
   'twilio-webhook',
+  'email-webhook',
+  'sendgrid-webhook',
+  'comms-oauth-callback',
   'mailer',
   'ai-gateway',
   'guide-audio',
@@ -64,7 +68,29 @@ function listAllFunctions() {
 }
 
 const deployAll = process.argv.includes('--all');
-const names = deployAll ? listAllFunctions() : LAUNCH_FUNCTIONS;
+const dryRun = process.argv.includes('--manifest') || process.argv.includes('--dry-run');
+const allFns = listAllFunctions();
+const names = deployAll ? allFns : LAUNCH_FUNCTIONS;
+const missingLaunch = LAUNCH_FUNCTIONS.filter((n) => !allFns.includes(n));
+const omitted = allFns.filter((n) => !LAUNCH_FUNCTIONS.includes(n));
+
+if (dryRun) {
+  console.log('Finely Cred — function deploy manifest (no deploy)\n');
+  console.log(`Functions on disk: ${allFns.length}`);
+  console.log(`Launch subset:     ${LAUNCH_FUNCTIONS.length}`);
+  console.log(`Omitted from launch subset: ${omitted.length}`);
+  if (missingLaunch.length) {
+    console.error(`Launch names missing on disk: ${missingLaunch.join(', ')}`);
+    process.exit(1);
+  }
+  console.log('\nLaunch subset:');
+  for (const n of LAUNCH_FUNCTIONS) console.log(`  • ${n}`);
+  console.log('\nOmitted (do not deploy --all blindly):');
+  for (const n of omitted) console.log(`  ○ ${n}`);
+  console.log('\nRequired extras now in launch subset: email-webhook, sendgrid-webhook, comms-oauth-callback');
+  console.log('Deploy still uses --no-verify-jwt; each webhook must check its own signature.');
+  process.exit(0);
+}
 
 console.log(`Deploying ${names.length} Supabase function(s)${deployAll ? ' (all)' : ' (launch subset)'}…`);
 
