@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { canUseDevMockAuth, e2ePortalCredentials, isSupabaseConfiguredInLocalEnv } from './helpers/localEnv';
-import { signInViaPortal, seedLocalDemoPartner } from './helpers/devAuth';
+import { signInViaPortal, seedLocalDemoPartner, seedLetterEntitlements } from './helpers/devAuth';
 
 /**
  * Senior QA paths 4, 6–9 from docs/SENIOR-QA-WALKTHROUGH.md.
@@ -50,12 +50,14 @@ test.describe('Senior QA walkthrough (portal — dev auth)', () => {
     });
   });
 
-  test('path 7: letter flow — Letter Studio with plain steps visible', async ({ page }) => {
+  test('path 7: letter flow — Credit letters / Letter Studio with plain steps visible', async ({ page }) => {
+    await seedLocalDemoPartner(page);
     await signInViaPortal(page, { email: partnerEmail, password: partnerPassword });
+    await seedLetterEntitlements(page);
     await page.goto('/portal/letters');
-    await expect(page.locator('body')).toContainText(/letter studio/i, { timeout: 20_000 });
+    await expect(page.locator('body')).toContainText(/letter studio|credit letters|bureau dispute/i, { timeout: 20_000 });
     const body = await page.locator('body').innerText();
-    expect(body).not.toMatch(/Letters Command Center/i);
+    expect(body).not.toMatch(/Foundation Fractures|Node ID/i);
   });
 
   test('path 8: admin partners — Upload report action on list', async ({ page }) => {

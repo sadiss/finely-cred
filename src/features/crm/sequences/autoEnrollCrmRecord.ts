@@ -1,4 +1,5 @@
 import { getCrmRecord } from '../../../data/crmRecordsRepo';
+import { isColdDirectoryCrmRecord } from '../../../lib/coldDirectory';
 import { addProspectNote } from '../../../data/crmProspectsRepo';
 import { addLeadNote } from '../../../data/leadOpsRepo';
 import {
@@ -14,6 +15,9 @@ export function autoEnrollCrmRecordInDefaultSequence(
   try {
     const record = getCrmRecord(recordId);
     if (!record) return false;
+    if (isColdDirectoryCrmRecord(record) || record.emailMarketingAllowed === false || record.consentBasis === 'discovered_no_consent') {
+      return false;
+    }
 
     const hasActive = listCrmEnrollmentsByRecord(recordId).some((e) => !e.completedAt);
     if (hasActive) return false;

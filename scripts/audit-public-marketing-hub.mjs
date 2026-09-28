@@ -6,6 +6,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { hasApprovedPublicShell } from './lib/approvedProductShell.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -49,7 +50,7 @@ for (const rel of REQUIRED) {
     failed += 1;
     continue;
   }
-  const ok = fs.readFileSync(abs, 'utf8').includes('FinelyUnifiedHubLayout');
+  const ok = hasApprovedPublicShell(fs.readFileSync(abs, 'utf8'));
   console.log(`${ok ? '✓' : '✗'} ${rel}`);
   if (!ok) failed += 1;
 }
@@ -65,8 +66,8 @@ if (!funnelOk) failed += 1;
 console.log(`\nPublic lanes checked: ${REQUIRED.length + 1}`);
 
 if (failed) {
-  console.error(`\n${failed} route(s) missing FinelyUnifiedHubLayout.`);
+  console.error(`\n${failed} route(s) missing an approved public shell.`);
   process.exit(1);
 }
 
-console.log('\nAll public marketing lanes use FinelyUnifiedHubLayout.');
+console.log('\nAll public marketing lanes use an approved public shell.');

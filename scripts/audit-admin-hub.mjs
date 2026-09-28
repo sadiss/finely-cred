@@ -6,6 +6,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { hasApprovedPortalOrAdminShell, loadAppSrc, componentNameFromPageFile } from './lib/approvedProductShell.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -23,6 +24,7 @@ const REQUIRED = [
 
 console.log('Finely Cred — admin hub audit\n');
 
+const appSrc = loadAppSrc(root);
 let failed = 0;
 for (const rel of REQUIRED) {
   const abs = path.join(root, rel);
@@ -31,7 +33,7 @@ for (const rel of REQUIRED) {
     failed += 1;
     continue;
   }
-  const ok = fs.readFileSync(abs, 'utf8').includes('FinelyUnifiedHubLayout');
+  const ok = hasApprovedPortalOrAdminShell(fs.readFileSync(abs, 'utf8'), appSrc, componentNameFromPageFile(rel));
   console.log(`${ok ? '✓' : '✗'} ${rel}`);
   if (!ok) failed += 1;
 }
@@ -39,8 +41,8 @@ for (const rel of REQUIRED) {
 console.log(`\nAdmin hub-required: ${REQUIRED.length}`);
 
 if (failed) {
-  console.error(`\n${failed} admin page(s) missing FinelyUnifiedHubLayout.`);
+  console.error(`\n${failed} admin page(s) missing FinelyUnifiedHubLayout or ProductRoutedPage shell.`);
   process.exit(1);
 }
 
-console.log('\nAll admin hub routes use FinelyUnifiedHubLayout.');
+console.log('\nAll admin hub routes use the approved hub or product shell.');

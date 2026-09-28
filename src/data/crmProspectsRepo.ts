@@ -3,6 +3,7 @@ import { nowIso } from '../domain/crmProspects';
 import { newId } from '../utils/ids';
 import { loadJson, saveJson } from './localJsonStore';
 import { autoEnrollCrmRecordInDefaultSequence } from '../features/crm/sequences/autoEnrollCrmRecord';
+import { isColdDirectoryProspect } from '../lib/coldDirectory';
 
 const KEY = 'finely.crm.prospects.v1';
 
@@ -113,6 +114,10 @@ export function createProspect(args: {
   company?: Partial<Prospect['company']>;
   contact?: Partial<Prospect['contact']>;
   intel?: Prospect['intel'];
+  consentBasis?: Prospect['consentBasis'];
+  leadType?: Prospect['leadType'];
+  emailMarketingAllowed?: boolean;
+  outreachStage?: Prospect['outreachStage'];
 }): Prospect {
   const now = nowIso();
   const p: Prospect = {
@@ -141,8 +146,15 @@ export function createProspect(args: {
     intel: args.intel,
     notes: [],
     touches: [touch('enriched', { via: args.source })],
+    consentBasis: args.consentBasis,
+    leadType: args.leadType,
+    emailMarketingAllowed: args.emailMarketingAllowed,
+    outreachStage: args.outreachStage,
   };
   const next = upsertProspect(p);
+  if (isColdDirectoryProspect(next) || next.emailMarketingAllowed === false || next.consentBasis === 'discovered_no_consent') {
+    return next;
+  }
   try {
     autoEnrollCrmRecordInDefaultSequence(`crm_prospect_${next.id}`, { noteLabel: `[Sequence] Auto-enrolled on prospect create` });
   } catch {

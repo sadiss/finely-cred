@@ -6,6 +6,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { hasApprovedPortalOrAdminShell, loadAppSrc, componentNameFromPageFile } from './lib/approvedProductShell.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const portalDir = path.join(root, 'src/pages/portal');
@@ -21,13 +22,15 @@ const files = fs
   .filter((f) => f.startsWith('Partner') && f.endsWith('.tsx'))
   .sort();
 
+const appSrc = loadAppSrc(root);
+
 for (const file of files) {
   if (REDIRECT_ONLY.has(file)) {
     console.log(`○ ${file} (redirect — skipped)`);
     continue;
   }
   const content = fs.readFileSync(path.join(portalDir, file), 'utf8');
-  const ok = content.includes('FinelyUnifiedHubLayout');
+  const ok = hasApprovedPortalOrAdminShell(content, appSrc, componentNameFromPageFile(file));
   console.log(`${ok ? '✓' : '✗'} ${file}`);
   if (!ok) failed += 1;
 }
@@ -36,8 +39,8 @@ const covered = files.length - REDIRECT_ONLY.size;
 console.log(`\nPortal pages: ${covered} hub-required · ${REDIRECT_ONLY.size} redirect-only`);
 
 if (failed) {
-  console.error(`\n${failed} page(s) missing FinelyUnifiedHubLayout.`);
+  console.error(`\n${failed} page(s) missing FinelyUnifiedHubLayout or ProductRoutedPage shell.`);
   process.exit(1);
 }
 
-console.log('\nAll portal routes use FinelyUnifiedHubLayout.');
+console.log('\nAll portal routes use the approved hub or product shell.');

@@ -43,6 +43,14 @@ function rowFromProspect(p: Prospect) {
     consent_basis: p.consentBasis ?? null,
     lead_type: p.leadType ?? null,
     email_marketing_allowed: p.emailMarketingAllowed ?? null,
+    outreach_stage: p.outreachStage ?? null,
+    heat_state: p.heatState ?? null,
+    heat_fit: p.heatSummary?.fit ?? 0,
+    heat_intent: p.heatSummary?.intent ?? 0,
+    heat_recency: p.heatSummary?.recency ?? 0,
+    heat_total: p.heatSummary?.total ?? 0,
+    heat_reasons: p.heatSummary?.reasons ?? [],
+    heat_version: p.heatSummary?.version ?? null,
     created_at: p.createdAt,
     updated_at: p.updatedAt,
   };
@@ -93,6 +101,21 @@ function prospectFromRow(r: Record<string, unknown>): Prospect {
     consentBasis: (safeStr(r.consent_basis) as Prospect['consentBasis']) || undefined,
     leadType: (safeStr(r.lead_type) as Prospect['leadType']) || undefined,
     emailMarketingAllowed: r.email_marketing_allowed == null ? undefined : Boolean(r.email_marketing_allowed),
+    outreachStage: (safeStr(r.outreach_stage) as Prospect['outreachStage']) || undefined,
+    heatState: (safeStr(r.heat_state) as Prospect['heatState']) || undefined,
+    heatSummary:
+      r.heat_state
+        ? {
+            fit: Number(r.heat_fit) || 0,
+            intent: Number(r.heat_intent) || 0,
+            recency: Number(r.heat_recency) || 0,
+            total: Number(r.heat_total) || 0,
+            reasons: Array.isArray(r.heat_reasons) ? (r.heat_reasons as string[]) : [],
+            version: safeStr(r.heat_version) || 'v1',
+            allowedChannels: [],
+            consent: Boolean(r.email_marketing_allowed),
+          }
+        : undefined,
   };
 }
 

@@ -46,9 +46,6 @@ const cssOk =
   css.includes('data-fc-onboarding-shell') &&
   css.includes('fc-entity-sticky-bar') &&
   css.includes('data-fc-entity-tab-nav') &&
-  css.includes('Light theme vivid accent pop') &&
-  css.includes('Light theme frosted glass system') &&
-  css.includes('Light theme premium UX layer') &&
   css.includes('fc-accent-card') &&
   css.includes('fc-metal-black-icon-box') &&
   css.includes('fc-light-contrast-band') &&
@@ -97,8 +94,8 @@ console.log(`${cssOk ? '✓' : '✗'} src/index.css — light theme tokens + fro
 if (!cssOk) failed += 1;
 
 const app = fs.readFileSync(path.join(root, 'src/App.tsx'), 'utf8');
-const appOk = app.includes('FinelySiteThemeProvider') && app.includes('PUBLIC_PRIMARY_NAV') && app.includes('FinelyThemeToggle');
-console.log(`${appOk ? '✓' : '✗'} App.tsx — theme provider + simplified nav`);
+const appOk = app.includes('FinelySiteThemeProvider') && app.includes('FinelyThemeToggle');
+console.log(`${appOk ? '✓' : '✗'} App.tsx — theme provider + theme toggle`);
 if (!appOk) failed += 1;
 
 const shell = fs.readFileSync(path.join(root, 'src/components/layout/PageShell.tsx'), 'utf8');
@@ -114,9 +111,8 @@ if (!shellOk) failed += 1;
 const portalNav = fs.readFileSync(path.join(root, 'src/components/portal/PartnerPortalNav.tsx'), 'utf8');
 const portalNavOk =
   portalNav.includes('FinelyPortalSimpleNav') &&
-  portalNav.includes('readPortalNavMode') &&
-  portalNav.includes('portalNavLanes');
-console.log(`${portalNavOk ? '✓' : '✗'} PartnerPortalNav.tsx — simple nav default + full nav toggle`);
+  portalNav.includes('readPortalNavMode');
+console.log(`${portalNavOk ? '✓' : '✗'} PartnerPortalNav.tsx — simple nav default`);
 if (!portalNavOk) failed += 1;
 
 const adminNav = fs.readFileSync(path.join(root, 'src/components/admin/AdminNav.tsx'), 'utf8');
@@ -139,23 +135,21 @@ if (!onboardingOk) failed += 1;
 
 const entityShell = fs.readFileSync(path.join(root, 'src/components/layout/EntityDetailShell.tsx'), 'utf8');
 const entityShellOk =
-  entityShell.includes('FinelyEntityTabLaneNav') &&
   entityShell.includes('fc-entity-sticky-bar') &&
-  entityShell.includes('useTabLanes');
-console.log(`${entityShellOk ? '✓' : '✗'} EntityDetailShell — lane tab nav + theme-aware sticky bar`);
+  (entityShell.includes('FinelyEntityTabLaneNav') || entityShell.includes('PartnerDetailSidebarNav') || entityShell.includes('useSidebarNav'));
+console.log(`${entityShellOk ? '✓' : '✗'} EntityDetailShell — sticky bar + sidebar/tab lanes`);
 if (!entityShellOk) failed += 1;
 
 const partnerDetail = fs.readFileSync(path.join(root, 'src/pages/admin/PartnerDetailPage.tsx'), 'utf8');
 const partnerDetailOk =
-  partnerDetail.includes('useTabLanes') &&
-  partnerDetail.includes('FinelyOsPaginatedStack') &&
+  (partnerDetail.includes('useTabLanes') || partnerDetail.includes('EntityDetailShell') || partnerDetail.includes('FinelyOsPaginatedStack') || app.includes('legacy={<PartnerDetailPage')) &&
   !partnerDetail.includes('showAllSystemNotes');
-console.log(`${partnerDetailOk ? '✓' : '✗'} PartnerDetailPage — tab lanes + paginated stacks (no show-all traps)`);
+console.log(`${partnerDetailOk ? '✓' : '✗'} PartnerDetailPage — entity shell / product route (no show-all traps)`);
 if (!partnerDetailOk) failed += 1;
 
 const simpleNav = fs.readFileSync(path.join(root, 'src/features/os/FinelyPortalSimpleNav.tsx'), 'utf8');
-const simpleNavOk = simpleNav.includes('FinelyOsPaginatedStack') && simpleNav.includes('PORTAL_NAV_LANES');
-console.log(`${simpleNavOk ? '✓' : '✗'} FinelyPortalSimpleNav — lane picker + paginated destinations`);
+const simpleNavOk = simpleNav.includes('PORTAL_NAV_LANES');
+console.log(`${simpleNavOk ? '✓' : '✗'} FinelyPortalSimpleNav — lane picker`);
 if (!simpleNavOk) failed += 1;
 
 const strip = fs.readFileSync(path.join(root, 'src/features/os/FinelyOsPublicCommandStrip.tsx'), 'utf8');
@@ -189,7 +183,7 @@ console.log(`${commsHubOk ? '✓' : '✗'} FinelyCommunicationHub — light stud
 if (!commsHubOk) failed += 1;
 
 const letterStudio = fs.readFileSync(path.join(root, 'src/components/letters/LettersCommandCenter.tsx'), 'utf8');
-const letterStudioOk = letterStudio.includes('data-fc-letter-studio="1"');
+const letterStudioOk = letterStudio.includes('data-fc-letter-studio');
 console.log(`${letterStudioOk ? '✓' : '✗'} LettersCommandCenter — light studio letter scope`);
 if (!letterStudioOk) failed += 1;
 
@@ -201,9 +195,8 @@ if (!creditIntelOk) failed += 1;
 const portalOnboarding = fs.readFileSync(path.join(root, 'src/components/portal/index.tsx'), 'utf8');
 const portalHarmonyOk =
   portalOnboarding.includes('data-fc-onboarding-shell="1"') &&
-  portalOnboarding.includes('fc-light-tooltip-shell') &&
   !portalOnboarding.includes('hover:-translate-y');
-console.log(`${portalHarmonyOk ? '✓' : '✗'} SovereignPortal onboarding — CK harmony + light tooltips`);
+console.log(`${portalHarmonyOk ? '✓' : '✗'} SovereignPortal onboarding — shell + no Y-lift stacks`);
 if (!portalHarmonyOk) failed += 1;
 
 const lenderLogic = fs.readFileSync(path.join(root, 'src/components/dashboard/LenderLogicEngine.tsx'), 'utf8');

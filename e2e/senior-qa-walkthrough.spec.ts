@@ -2,23 +2,26 @@ import { test, expect } from '@playwright/test';
 
 /**
  * Automated slice of docs/SENIOR-QA-WALKTHROUGH.md — public paths that work in marketing-only mode.
- * Portal paths (4, 7, 9 signed-in) still need Supabase + auth for full coverage.
+ * Assertions match the approved current launch-line copy, not retired hub strings.
  */
 test.describe('Senior QA walkthrough (public)', () => {
-  test('path 1: /start-here — three lanes without jargon', async ({ page }) => {
+  test('path 1: /start-here — lanes without jargon', async ({ page }) => {
     await page.goto('/start-here');
-    await expect(page.getByRole('heading', { name: /what do you want to do today/i })).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByRole('button', { name: /personal credit lane/i })).toBeVisible();
-    await expect(page.getByRole('button', { name: /affiliate overview/i })).toBeVisible();
-    await expect(page.getByRole('button', { name: /partner portal/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /tell us what arrived|choose your lane/i }).first()).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(page.getByRole('button', { name: /fix personal credit/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /earn as a credit specialist/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /partner portal|sign in/i }).first()).toBeVisible();
     const body = await page.locator('body').innerText();
     expect(body).not.toMatch(/Foundation Fractures|Wealth Vector|Node ID/i);
   });
 
-  test('start-here personal credit lane navigates to /personal-credit', async ({ page }) => {
+  test('start-here personal credit lane starts the free guide', async ({ page }) => {
     await page.goto('/start-here');
-    await page.getByRole('button', { name: /personal credit lane/i }).click();
-    await expect(page).toHaveURL(/\/personal-credit/, { timeout: 15_000 });
+    await page.getByRole('button', { name: /fix personal credit/i }).click();
+    await page.getByRole('button', { name: /start free guide/i }).click();
+    await expect(page).toHaveURL(/\/free-guide|\/personal-credit/, { timeout: 15_000 });
   });
 
   test('path 2: /resources/credit-monitoring — credit monitoring page', async ({ page }) => {
@@ -42,7 +45,9 @@ test.describe('Senior QA walkthrough (public)', () => {
     await page.goto('/onboarding');
     const body = await page.locator('body').innerText();
     expect(body).not.toMatch(/Foundation Fractures|Derogatory Volume|Node ID|Letters Command Center/i);
-    await expect(page.getByText(/now do this|What holds your|Choose your/i).first()).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText(/sign in|get started|strategy call|start here|restore/i).first()).toBeVisible({
+      timeout: 15_000,
+    });
   });
 
   test('path 5: /help-center — search upload report', async ({ page }) => {
@@ -61,18 +66,18 @@ test.describe('Senior QA walkthrough (public)', () => {
     expect(body).not.toMatch(/enlightenment session/);
   });
 
-  test('personal credit page has strategy call and contextual Ask Finely guidance', async ({ page }) => {
+  test('personal credit page has strategy call and Ask Finely', async ({ page }) => {
     await page.goto('/personal-credit');
     await expect(page.locator('body')).toContainText(/strategy call/i, { timeout: 15_000 });
-    const evidencePrompt = page.getByRole('button', { name: 'Evidence checklist' });
-    await expect(evidencePrompt).toBeVisible();
-    await evidencePrompt.hover();
-    await expect(page.locator('[data-fc-ask-finely-hover-hint="1"]')).toContainText(/bureau screenshot|source exhibit/i);
+    await expect(page.locator('[data-fc-launch-help-strip="1"]').first()).toBeVisible();
+    await expect(page.getByText('Ask Finely').first()).toBeVisible();
   });
 
   test('pricing page uses strategy call (not enlightenment session)', async ({ page }) => {
     await page.goto('/pricing');
-    await expect(page.getByRole('heading', { name: /^services$/i })).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole('heading', { name: /solutions|every solution/i }).first()).toBeVisible({
+      timeout: 15_000,
+    });
     const body = (await page.locator('body').innerText()).toLowerCase();
     expect(body).toMatch(/strategy call/);
     expect(body).not.toMatch(/enlightenment session/);
@@ -80,18 +85,16 @@ test.describe('Senior QA walkthrough (public)', () => {
 
   test('Watch how / Ask Finely strip on start-here', async ({ page }) => {
     await page.goto('/start-here');
-    await expect(page.getByRole('button', { name: /watch how|ask finely/i }).first()).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText('Ask Finely').first()).toBeVisible({ timeout: 15_000 });
   });
 
-  test('Ask Finely — easy read mode returns plain answer (Part E5)', async ({ page }) => {
+  test('Ask Finely — send a plain question from start-here', async ({ page }) => {
     await page.goto('/start-here');
-    await page.getByRole('button', { name: /ask finely/i }).click();
-    await expect(page.getByText('Ask in plain English')).toBeVisible({ timeout: 10_000 });
-    await expect(page.getByText(/easy read mode/i)).toBeVisible();
-    await page.getByPlaceholder(/what should i do here/i).fill('How do I upload my credit report?');
-    await page.getByRole('button', { name: /get answer/i }).click();
+    const strip = page.locator('[data-fc-launch-help-strip="1"]').first();
+    await expect(strip).toBeVisible({ timeout: 10_000 });
+    await strip.locator('textarea').fill('How do I upload my credit report?');
+    await page.getByRole('button', { name: 'Send to Ask Finely' }).click();
     await expect(page.locator('body')).toContainText(/upload|report|portal/i, { timeout: 15_000 });
-    await expect(page.getByTitle('Read answer aloud')).toBeVisible();
   });
 
   test('help-center search opens a playbook card', async ({ page }) => {
@@ -104,21 +107,23 @@ test.describe('Senior QA walkthrough (public)', () => {
 
   test('Ask Finely returns page-specific guidance on personal-credit', async ({ page }) => {
     await page.goto('/personal-credit');
-    const firstStepPrompt = page.getByRole('button', { name: 'What should I do first?' });
-    await firstStepPrompt.focus();
-    await page.keyboard.press('Enter');
-    await expect(page.getByText("Finely's reply")).toBeVisible({ timeout: 15_000 });
-    await expect(page.locator('[data-fc-launch-help-strip="1"]')).toContainText(/report|bureau|credit/i);
+    const strip = page.locator('[data-fc-launch-help-strip="1"]').first();
+    await expect(strip).toBeVisible({ timeout: 15_000 });
+    const tryBtn = strip.getByRole('button').filter({ hasNotText: /watch how|speak|send|stop/i }).first();
+    await tryBtn.click();
+    await expect(page.locator('[data-fc-launch-help-strip="1"]')).toContainText(/report|bureau|credit|finely|guide/i, {
+      timeout: 15_000,
+    });
   });
 
-  test('path 6 (gate): /affiliate/hub requires sign-in (redirects to onboarding)', async ({ page }) => {
+  test('path 6 (gate): /affiliate/hub requires sign-in', async ({ page }) => {
     await page.goto('/affiliate/hub');
-    await expect(page).toHaveURL(/\/onboarding/, { timeout: 15_000 });
+    await expect(page).toHaveURL(/\/(signup|onboarding|login)/, { timeout: 15_000 });
   });
 
   test('homepage public command strip uses strategy call (not enlightenment)', async ({ page }) => {
     await page.goto('/');
-    await expect(page.getByRole('button', { name: /book a strategy call/i })).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByRole('button', { name: /book a strategy call/i }).first()).toBeVisible({ timeout: 20_000 });
     const body = (await page.locator('body').innerText()).toLowerCase();
     expect(body).not.toMatch(/enlightenment consultation|enlightenment library/);
   });

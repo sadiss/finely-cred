@@ -97,6 +97,18 @@ export type Prospect = {
   leadType?: ProspectLeadType;
   /** Explicit email nurture permission — false blocks cold + promo sends. */
   emailMarketingAllowed?: boolean;
+  outreachStage?: import('../lib/prospectOutreach').ProspectOutreachStage;
+  heatState?: import('../lib/prospectHeat').ProspectHeatState;
+  heatSummary?: {
+    fit: number;
+    intent: number;
+    recency: number;
+    total: number;
+    reasons: string[];
+    version: string;
+    allowedChannels: string[];
+    consent: boolean;
+  };
 };
 
 export function nowIso() {

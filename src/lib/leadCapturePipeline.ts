@@ -15,6 +15,7 @@ import { ensureNurtureCommsTemplatesOnce } from '../data/commsNurtureSeed';
 import { getNurtureSequence } from '../domain/nurtureSequences';
 import { buildFunnelDownloadUrl } from './funnelPublicLinks';
 import { wireLeadToOvernight50 } from './overnight50Bridge';
+import { isColdDirectoryLeadCapture } from './coldDirectory';
 
 export type LeadCapturePipelineArgs = {
   lead: LeadCapture;
@@ -26,6 +27,14 @@ export type LeadCapturePipelineArgs = {
 /** Unified post-capture hook — nurture, welcome email, trial, platform events. */
 export async function runLeadCapturePipeline(args: LeadCapturePipelineArgs): Promise<void> {
   const { lead } = args;
+  if (isColdDirectoryLeadCapture(lead)) {
+    try {
+      syncLeadToCrmProspect(lead, args.funnelId);
+    } catch {
+      // non-blocking — cold rows stay prospects, never nurture
+    }
+    return;
+  }
   const sequence = resolveSequenceForLead({
     funnelPath: lead.funnelPath,
     offer: lead.offer,

@@ -48,6 +48,18 @@ export type CrmRecord = {
   consentBasis?: ProspectConsentBasis;
   leadType?: ProspectLeadType;
   emailMarketingAllowed?: boolean;
+  outreachStage?: import('../lib/prospectOutreach').ProspectOutreachStage;
+  heatState?: import('../lib/prospectHeat').ProspectHeatState;
+  heatSummary?: {
+    fit: number;
+    intent: number;
+    recency: number;
+    total: number;
+    reasons: string[];
+    version: string;
+    allowedChannels: string[];
+    consent: boolean;
+  };
   contact: CrmRecordContact;
   partnerId?: string;
   projectIds?: string[];

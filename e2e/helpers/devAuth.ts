@@ -43,6 +43,7 @@ export async function seedLocalDemoPartner(page: Page) {
             id: 'qa-partner-1',
             tenantId: 'finely_cred',
             status: 'active',
+            entitlements: { letters: true, disputes: true },
             profile: { fullName: 'QA Test Partner', email: 'partner.qa@test.com' },
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
@@ -51,5 +52,48 @@ export async function seedLocalDemoPartner(page: Page) {
       },
     };
     localStorage.setItem('finely.partners.v1', JSON.stringify(payload));
+  });
+}
+
+/** Grant letter/dispute entitlements for every local partner so Letter Studio is not locked in QA. */
+export async function seedLetterEntitlements(page: Page) {
+  await page.evaluate(() => {
+    const now = new Date().toISOString();
+    let partnerIds = ['qa-partner-1'];
+    try {
+      const raw = localStorage.getItem('finely.partners.v1');
+      const parsed = raw ? JSON.parse(raw) : null;
+      const partners = parsed?.data?.partners ?? parsed?.partners ?? [];
+      if (Array.isArray(partners) && partners.length) {
+        partnerIds = partners.map((p: { id?: string }) => p.id).filter(Boolean) as string[];
+      }
+    } catch {
+      /* keep fallback */
+    }
+    const keys = ['portal.letters', 'portal.disputes'];
+    const entitlements = partnerIds.flatMap((partnerId) =>
+      keys.map((key) => ({
+        id: `qa-ent-${partnerId}-${key}`,
+        tenantId: 'finely_cred',
+        partnerId,
+        key,
+        status: 'active',
+        startsAt: now,
+      })),
+    );
+    localStorage.setItem(
+      'finely.billing.v1',
+      JSON.stringify({
+        v: 1,
+        data: {
+          billingAccounts: [],
+          products: [],
+          priceOptions: [],
+          agreements: [],
+          agreementEvents: [],
+          entitlements,
+        },
+      }),
+    );
   });
 }

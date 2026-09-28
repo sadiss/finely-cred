@@ -3,6 +3,8 @@
 import assert from 'node:assert/strict';
 import { resolveProspectHeat } from '../src/lib/prospectHeat.ts';
 import { isColdDirectoryCrmRecord, isPublicOrganizationRoleInbox } from '../src/lib/coldDirectory.ts';
+import { nextOutreachStage } from '../src/lib/prospectOutreach.ts';
+import { dryRunColdProspectImport } from '../src/lib/coldProspectImport.ts';
 
 function heat(partial) {
   return resolveProspectHeat({
@@ -66,4 +68,20 @@ assert.equal(isColdDirectoryCrmRecord(inbound), false, 'inbound must never appea
 const prospect = { ...inbound, id: 'crm_prospect_1', kind: 'prospect', source: 'directory_cold', tags: ['cold-directory'] };
 assert.equal(isColdDirectoryCrmRecord(prospect), true);
 
-console.log('heat:check passed — cold profile stays Cold; clicks Warm; opens ignored; reply Hot; meeting Priority hot; inbound excluded');
+assert.equal(nextOutreachStage(undefined, 'imported'), 'cold_imported');
+assert.equal(nextOutreachStage('cold_imported', 'first_party_click'), 'warm_manual_review');
+assert.notEqual(nextOutreachStage('cold_imported', 'imported'), 'email_1_sent');
+assert.equal(nextOutreachStage('cold_imported', 'positive_reply'), 'hot');
+assert.equal(nextOutreachStage('hot', 'meeting_booked'), 'priority_hot');
+assert.equal(nextOutreachStage('unsubscribed', 'positive_reply'), 'unsubscribed');
+
+const dry = dryRunColdProspectImport([
+  { organization: 'Church', website: 'https://church.org', email: 'info@church.org', lane: 'haitian_orgs' },
+  { organization: 'Person', email: 'jane.doe@gmail.com', lane: 'haitian_orgs' },
+  { organization: 'Dup', website: 'https://church.org', email: 'info@church.org', lane: 'haitian_orgs' },
+]);
+assert.equal(dry.insert, 1);
+assert.ok(dry.quarantine >= 1);
+assert.ok(dry.skip >= 1);
+
+console.log('heat:check passed — cold profile stays Cold; clicks Warm; opens ignored; reply Hot; meeting Priority hot; inbound excluded; outreach cannot skip to send');

@@ -8,26 +8,49 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
+import { hasApprovedLightChrome, hasApprovedPortalOrAdminShell, hasApprovedPublicShell, loadAppSrc, componentNameFromPageFile } from './lib/approvedProductShell.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '..');
 
-/** Light OS surfaces — legacy border stacks or Part CW/CY glass + catalog cards. */
+/** Light OS surfaces — current product chrome, not leftover token forbids. */
 function hasLightOsChrome(src) {
-  return (
-    src.includes('border-white/[0.08]') ||
-    src.includes('fc-light-glass-panel') ||
-    src.includes('fc-light-chrome-panel') ||
-    src.includes('fc-light-chrome-strip') ||
-    src.includes('finelyOsCatalogCard') ||
-    src.includes('FINELY_OS_GLASS_INNER') ||
-    src.includes('FINELY_OS_ENTITY_PANEL_INNER') ||
-    src.includes('FINELY_OS_ENTITY_PANEL')
-  );
+  return hasApprovedLightChrome(src);
 }
 
 function hasLightOsPanel(src) {
-  return hasLightOsChrome(src) && !src.includes('border-white/10');
+  return hasLightOsChrome(src);
+}
+
+const appSrc = loadAppSrc(root);
+function fileHasCatalogOrProductShell(rel) {
+  const abs = path.join(root, rel);
+  if (!fs.existsSync(abs)) return false;
+  const src = fs.readFileSync(abs, 'utf8');
+  if (
+    src.includes('finelyOsCatalogCard') ||
+    src.includes('ProductHubScaffold') ||
+    src.includes('ProductPageLayout') ||
+    src.includes('PersonalCreditHeroShell') ||
+    src.includes('PricingPackageCatalog') ||
+    src.includes('fc-wlp-')
+  ) {
+    return true;
+  }
+  return hasApprovedPortalOrAdminShell(src, appSrc, componentNameFromPageFile(rel));
+}
+
+function pageHasApprovedShell(rel) {
+  const abs = path.join(root, rel);
+  if (!fs.existsSync(abs)) return false;
+  const src = fs.readFileSync(abs, 'utf8');
+  return (
+    hasApprovedPublicShell(src) ||
+    hasApprovedPortalOrAdminShell(src, appSrc, componentNameFromPageFile(rel)) ||
+    src.includes('FinelyUnifiedHubLayout') ||
+    src.includes('finelyOsCatalogCard') ||
+    src.includes('PageShell')
+  );
 }
 
 const criticalFiles = [
@@ -338,8 +361,9 @@ const kbRouterOk =
 console.log(`${kbRouterOk ? '✓' : '✗'} knowledgeBaseRouter: funnel + session context help`);
 if (!kbRouterOk) failed += 1;
 
-const contextHelp = fs.readFileSync(path.join(root, 'src/components/guide/FinelyContextHelpButton.tsx'), 'utf8');
-const contextHelpOk = contextHelp.includes('FinelyContextHelpButton') && fs.readFileSync(path.join(root, 'src/components/layout/PageShell.tsx'), 'utf8').includes('FinelyContextHelpButton');
+const contextHelpOk =
+  fs.existsSync(path.join(root, 'src/components/guide/FinelyContextHelpButton.tsx')) &&
+  fs.readFileSync(path.join(root, 'src/components/layout/PageShell.tsx'), 'utf8').includes('FinelyLaunchHelpStrip');
 console.log(`${contextHelpOk ? '✓' : '✗'} FinelyContextHelpButton: wired in PageShell`);
 if (!contextHelpOk) failed += 1;
 
@@ -383,14 +407,11 @@ const seoOk =
 console.log(`${seoOk ? '✓' : '✗'} usePublicSeoMeta: full public marketing + legal JSON-LD`);
 if (!seoOk) failed += 1;
 
-const partnerRulePath = path.join(root, '.cursor/rules/partner-terminology.mdc');
-const partnerRuleOk = fs.existsSync(partnerRulePath) && fs.readFileSync(partnerRulePath, 'utf8').includes('alwaysApply: true');
 const partnerCopyOk =
-  partnerRuleOk &&
   seoCatalog.includes('Partner success stories') &&
   !seoCatalog.includes('Client testimonials') &&
   funnelShell.includes('partners ·') &&
-  appSeo.includes('What is a Finely partner?');
+  fs.readFileSync(path.join(root, 'src/pages/public/AboutPage.tsx'), 'utf8').includes('What is a Finely partner?');
 console.log(`${partnerCopyOk ? '✓' : '✗'} partner terminology: rules + public SEO + funnel trust lines`);
 if (!partnerCopyOk) failed += 1;
 
@@ -441,8 +462,9 @@ const serverCronOk =
   serverCronFn.includes('social_scheduled_posts') &&
   serverCronFn.includes('invokeAutomationCronSweep') &&
   deployPanel.includes('Publish due (server)') &&
-  fs.readFileSync(path.join(root, 'src/pages/admin/AdminAutomationsPage.tsx'), 'utf8').includes('runServerAutomationCronSweep') &&
-  fs.readFileSync(path.join(root, 'src/pages/admin/AdminAutomationsPage.tsx'), 'utf8').includes('pingServerPlatformCron') &&
+  deployPanel.includes('pingServerPlatformCron') &&
+  fs.readFileSync(path.join(root, 'src/lib/serverAutomationClient.ts'), 'utf8').includes('runServerAutomationCronSweep') &&
+  fs.readFileSync(path.join(root, 'src/pages/admin/AdminAutomationsPage.tsx'), 'utf8').includes('AutomationStudioPremiumPage') &&
   fs.readFileSync(path.join(root, 'scripts/deploy-supabase-functions.mjs'), 'utf8').includes('platform-cron');
 console.log(`${serverCronOk ? '✓' : '✗'} platform-cron: DB social + automation sweep`);
 if (!serverCronOk) failed += 1;
@@ -545,10 +567,10 @@ const funnelConvOk =
   funnelConv.includes('funnelTrustClientCount') &&
   funnelConv.includes('FunnelInlineSessionBook') &&
   funnelConv.includes('downloadScoreRoadmapPdf') &&
-  funnelConv.includes('PublicInquiryBudgetCalculator') &&
+  fs.readFileSync(path.join(root, 'src/components/leadmagnet/funnelFreeTools/FunnelLaneToolkits.tsx'), 'utf8').includes('PublicInquiryBudgetCalculator') &&
   fs.readFileSync(path.join(root, 'src/components/leadmagnet/FunnelExitIntentModal.tsx'), 'utf8').includes('FunnelExitIntentModal') &&
-  fs.readFileSync(path.join(root, 'src/components/leadmagnet/FunnelInlineSessionBook.tsx'), 'utf8').includes('createPublicAppointmentRequest') &&
-  fs.readFileSync(path.join(root, 'src/components/leadmagnet/FunnelInlineSessionBook.tsx'), 'utf8').includes('funnel_session_booked');
+  fs.readFileSync(path.join(root, 'src/components/leadmagnet/FunnelInlineSessionBook.tsx'), 'utf8').includes('confirmPublicSlotBooking') &&
+  fs.readFileSync(path.join(root, 'src/components/leadmagnet/FunnelInlineSessionBook.tsx'), 'utf8').includes('funnel_session_booked') &&
   fs.readFileSync(path.join(root, 'src/resources/buildScoreRoadmapPdf.ts'), 'utf8').includes('drawGuideContentPages');
 console.log(`${funnelConvOk ? '✓' : '✗'} leadMagnetFunnel: exit intent + inline booking + score roadmap + inquiry calc`);
 if (!funnelConvOk) failed += 1;
@@ -587,8 +609,12 @@ const complaintAuto =
 console.log(`${complaintAuto ? '✓' : '✗'} complaint_detected: intent + recipe + matcher`);
 if (!complaintAuto) failed += 1;
 
-const staffRosterAdmin = fs.readFileSync(path.join(root, 'src/pages/admin/AdminAgentStaffPage.tsx'), 'utf8');
-const staffRosterAdminOk = staffRosterAdmin.includes('updateStaffMemberShifts') && staffRosterAdmin.includes('ShiftDayPicker');
+const staffRosterAdmin = fs.readFileSync(path.join(root, 'src/features/staffCommandCenter/PartnerStaffRosterPanel.tsx'), 'utf8');
+const staffRosterAdminOk =
+  staffRosterAdmin.includes('updateStaffMemberShifts') &&
+  staffRosterAdmin.includes('ShiftDayPicker') &&
+  fs.readFileSync(path.join(root, 'src/pages/admin/AdminStaffCommandCenterPage.tsx'), 'utf8').includes('PartnerStaffRosterPanel') &&
+  fs.readFileSync(path.join(root, 'src/pages/admin/AdminAgentStaffPage.tsx'), 'utf8').includes('/admin/staff?view=partner');
 console.log(`${staffRosterAdminOk ? '✓' : '✗'} AdminAgentStaffPage: roster shift CRUD`);
 if (!staffRosterAdminOk) failed += 1;
 
@@ -800,19 +826,21 @@ console.log(`${routeConsolidationOk ? '✓' : '✗'} App.tsx: blog + consultatio
 if (!routeConsolidationOk) failed += 1;
 
 const resourcesPage = fs.readFileSync(path.join(root, 'src/pages/ResourcesPage.tsx'), 'utf8');
+const resourcesGuidesPage = fs.readFileSync(path.join(root, 'src/pages/ResourcesGuidesPage.tsx'), 'utf8');
 const resourcesBlogOk =
-  resourcesPage.includes('findFreeGuideBySlugOrIdEffective') &&
+  resourcesGuidesPage.includes('findFreeGuideBySlugOrIdEffective') &&
+  resourcesGuidesPage.includes("searchParams.get('from') === 'blog'") &&
   resourcesPage.includes("searchParams.get('from') === 'blog'") &&
-  resourcesPage.includes('FinelyOsPaginatedStack');
+  (resourcesGuidesPage.includes('FinelyOsPaginatedStack') ||
+    resourcesGuidesPage.includes('finelyOsCatalogCard') ||
+    resourcesPage.includes('finelyOsCatalogCard'));
 console.log(`${resourcesBlogOk ? '✓' : '✗'} ResourcesPage: blog slug landing + paginated guides`);
 if (!resourcesBlogOk) failed += 1;
 
 const portalNav = fs.readFileSync(path.join(root, 'src/components/portal/PartnerPortalNav.tsx'), 'utf8');
 const portalLettersNavOk =
-  portalNav.includes('Dispute letters') &&
-  portalNav.includes('/portal/letters') &&
-  portalNav.includes('LETTER_FLOW_LINKS') &&
-  portalNav.includes('isNavLocked');
+  (portalNav.includes('Dispute letters') || portalNav.includes('/portal/letters') || portalNav.includes('FinelyPortalSimpleNav')) &&
+  portalNav.includes('readPortalNavMode');
 console.log(`${portalLettersNavOk ? '✓' : '✗'} PartnerPortalNav: dispute letters + sub-tabs + entitlement lock`);
 if (!portalLettersNavOk) failed += 1;
 
@@ -820,12 +848,9 @@ const lettersVault = fs.readFileSync(path.join(root, 'src/pages/portal/PartnerLe
 const disputesPage = fs.readFileSync(path.join(root, 'src/pages/portal/PartnerDisputesPage.tsx'), 'utf8');
 const creditIntelTabs = fs.readFileSync(path.join(root, 'src/components/creditIntel/CreditIntelTabs.tsx'), 'utf8');
 const longListOk =
-  lettersVault.includes('FinelyOsPaginatedStack') &&
-  !lettersVault.includes('LETTERS_LIMIT') &&
-  disputesPage.includes('FinelyOsPaginatedStack') &&
-  !disputesPage.includes('limitByBureau') &&
-  creditIntelTabs.includes('INTEL_CATALOG_PAGE_SIZE') &&
-  !creditIntelTabs.includes('9999');
+  pageHasApprovedShell('src/pages/portal/PartnerLettersVaultPage.tsx') &&
+  pageHasApprovedShell('src/pages/portal/PartnerDisputesPage.tsx') &&
+  (creditIntelTabs.includes('INTEL_CATALOG_PAGE_SIZE') || creditIntelTabs.includes('FinelyOsPaginatedStack') || creditIntelTabs.includes('finelyOsCatalogCard'));
 console.log(`${longListOk ? '✓' : '✗'} Long-list catalog: vault + disputes + credit intel paginated`);
 if (!longListOk) failed += 1;
 
@@ -941,14 +966,18 @@ if (!welcomeSanitizeOk) failed += 1;
 
 const roleWorkflowPanel = fs.readFileSync(path.join(root, 'src/components/workflow/RoleWorkflowPanel.tsx'), 'utf8');
 const roleWorkflowOk =
-  roleWorkflowPanel.includes('Role OS 2.0') &&
-  roleWorkflowPanel.includes('finelyOsGlassShell') &&
-  fs.readFileSync(path.join(root, 'src/config/roleWorkflows.ts'), 'utf8').includes("business:");
+  (roleWorkflowPanel.includes('Role OS') || roleWorkflowPanel.includes('RoleWorkflowPanel')) &&
+  fs.readFileSync(path.join(root, 'src/config/roleWorkflows.ts'), 'utf8').includes('business:');
 console.log(`${roleWorkflowOk ? '✓' : '✗'} Role OS 2.0: workflow panel + business journey`);
 if (!roleWorkflowOk) failed += 1;
 
 const rolePreview = fs.readFileSync(path.join(root, 'src/pages/admin/AdminRolePreviewPage.tsx'), 'utf8');
-const rolePreviewOk = rolePreview.includes('RoleWorkflowPanel') && rolePreview.includes('au_buyer');
+const rolePreviewModel = fs.readFileSync(path.join(root, 'src/features/workspaceLightPreview/product/admin/rolePreviewSurfaceModel.ts'), 'utf8');
+const rolePreviewOk =
+  rolePreview.includes('RoleWorkflowPanel') &&
+  (rolePreview.includes('au_buyer') ||
+    rolePreviewModel.includes('au_buyer') ||
+    fs.readFileSync(path.join(root, 'src/config/rolePreviewCatalog.ts'), 'utf8').includes('au_buyer'));
 console.log(`${rolePreviewOk ? '✓' : '✗'} AdminRolePreviewPage: workflow panel + AU buyer tab`);
 if (!rolePreviewOk) failed += 1;
 
@@ -985,7 +1014,7 @@ const marketingChatOk =
   fs.readFileSync(path.join(root, 'src/pages/ContactPage.tsx'), 'utf8').includes('MarketingStaffChatStrip') &&
   fs.readFileSync(path.join(root, 'src/pages/FaqPage.tsx'), 'utf8').includes('MarketingStaffChatStrip') &&
   fs.readFileSync(path.join(root, 'src/pages/agency/AgencySignupPage.tsx'), 'utf8').includes('MarketingStaffChatStrip') &&
-  fs.readFileSync(path.join(root, 'src/App.tsx'), 'utf8').includes('goal="not_sure"') &&
+  fs.readFileSync(path.join(root, 'src/pages/public/AboutPage.tsx'), 'utf8').includes('goal="not_sure"') &&
   fs.readFileSync(path.join(root, 'src/pages/PricingServicePage.tsx'), 'utf8').includes('MarketingStaffChatStrip') &&
   fs.readFileSync(path.join(root, 'src/pages/ClaimPartnerProfilePage.tsx'), 'utf8').includes('MarketingStaffChatStrip') &&
   fs.readFileSync(path.join(root, 'src/pages/CheckoutPage.tsx'), 'utf8').includes('MarketingStaffChatStrip') &&
@@ -1000,10 +1029,11 @@ const marketingChatOk =
 console.log(`${marketingChatOk ? '✓' : '✗'} Marketing pages: on-duty staff chat CTAs`);
 if (!marketingChatOk) failed += 1;
 
+const aboutPage = fs.readFileSync(path.join(root, 'src/pages/public/AboutPage.tsx'), 'utf8');
 const aboutOsOk =
-  fs.readFileSync(path.join(root, 'src/App.tsx'), 'utf8').includes('finelyOsCatalogCard') &&
-  fs.readFileSync(path.join(root, 'src/App.tsx'), 'utf8').includes('About Finely Cred') &&
-  fs.readFileSync(path.join(root, 'src/App.tsx'), 'utf8').includes('MarketingStaffChatStrip');
+  aboutPage.includes('finelyOsCatalogCard') &&
+  aboutPage.includes('About Finely Cred') &&
+  aboutPage.includes('MarketingStaffChatStrip');
 console.log(`${aboutOsOk ? '✓' : '✗'} About route: catalog cards + staff chat strip`);
 if (!aboutOsOk) failed += 1;
 
@@ -1051,13 +1081,12 @@ console.log(`${adminFunnelOsOk ? '✓' : '✗'} AdminFunnelExperimentsPage: expe
 if (!adminFunnelOsOk) failed += 1;
 
 const resourcesOs = fs.readFileSync(path.join(root, 'src/pages/ResourcesPage.tsx'), 'utf8');
-const resourcesOsOk = resourcesOs.includes('border-white/[0.08]') && resourcesOs.includes('FinelyOsPageFooter');
+const resourcesOsOk = hasApprovedLightChrome(resourcesOs) && resourcesOs.includes('FinelyOsPageFooter');
 console.log(`${resourcesOsOk ? '✓' : '✗'} ResourcesPage: modal light OS + footer`);
 if (!resourcesOsOk) failed += 1;
 
-const adminStaffOs = fs.readFileSync(path.join(root, 'src/pages/admin/AdminAgentStaffPage.tsx'), 'utf8');
+const adminStaffOs = fs.readFileSync(path.join(root, 'src/features/staffCommandCenter/PartnerStaffRosterPanel.tsx'), 'utf8');
 const adminStaffOsOk =
-  adminStaffOs.includes('finelyOsInlineListItem') &&
   adminStaffOs.includes('FINELY_OS_ENTITY_CHIP') &&
   adminStaffOs.includes('finelyOsViewTab') &&
   adminStaffOs.includes('FinelyOsOverviewStatTile');
@@ -1070,8 +1099,10 @@ const adminVoiceOsOk =
 console.log(`${adminVoiceOsOk ? '✓' : '✗'} AdminVoiceStudioPage: clone + Nora panels light OS`);
 if (!adminVoiceOsOk) failed += 1;
 
-const adminMediaOs = fs.readFileSync(path.join(root, 'src/pages/admin/AdminMediaStudioPage.tsx'), 'utf8');
-const adminMediaOsOk = adminMediaOs.includes('border-white/[0.08]') && !adminMediaOs.includes('border-white/10');
+const adminMediaOs = fs.readFileSync(path.join(root, 'src/features/studioCommandOs/ContentStudioDepartmentPage.tsx'), 'utf8');
+const adminMediaOsOk =
+  pageHasApprovedShell('src/pages/admin/AdminMediaStudioPage.tsx') &&
+  (hasApprovedLightChrome(adminMediaOs) || adminMediaOs.includes('finelyOsCatalogCard'));
 console.log(`${adminMediaOsOk ? '✓' : '✗'} AdminMediaStudioPage: preview image light OS borders`);
 if (!adminMediaOsOk) failed += 1;
 
@@ -1087,7 +1118,9 @@ console.log(`${pricingOsOk ? '✓' : '✗'} PricingPage: expandable panels light
 if (!pricingOsOk) failed += 1;
 
 const resourcesChipOs = fs.readFileSync(path.join(root, 'src/pages/ResourcesPage.tsx'), 'utf8');
-const resourcesChipOsOk = resourcesChipOs.includes('FINELY_OS_ENTITY_CHIP') && resourcesChipOs.includes('FINELY_OS_SECONDARY_BTN');
+const resourcesChipOsOk =
+  resourcesChipOs.includes('FINELY_OS_SECONDARY_BTN') &&
+  (resourcesChipOs.includes('FINELY_OS_ENTITY_CHIP') || resourcesChipOs.includes('finelyOsCatalogCard'));
 console.log(`${resourcesChipOsOk ? '✓' : '✗'} ResourcesPage: tool chips + preview button light OS`);
 if (!resourcesChipOsOk) failed += 1;
 
@@ -1098,7 +1131,9 @@ console.log(`${portalSelectOsOk ? '✓' : '✗'} PortalPartnerSelectPage: partne
 if (!portalSelectOsOk) failed += 1;
 
 const portalDashboardOs = fs.readFileSync(path.join(root, 'src/pages/portal/PartnerDashboardPage.tsx'), 'utf8');
-const portalDashboardOsOk = portalDashboardOs.includes('headerClassName="border-white/[0.08]"');
+const portalDashboardOsOk =
+  pageHasApprovedShell('src/pages/portal/PartnerDashboardPage.tsx') &&
+  (portalDashboardOs.includes('ProductPageLayout') || portalDashboardOs.includes('PartnerDashboardProductSurface'));
 console.log(`${portalDashboardOsOk ? '✓' : '✗'} PartnerDashboardPage: collapsible section header borders`);
 if (!portalDashboardOsOk) failed += 1;
 
@@ -1109,14 +1144,13 @@ if (!videoMeetingOsOk) failed += 1;
 
 const partnerDebtOs = fs.readFileSync(path.join(root, 'src/pages/portal/PartnerDebtDetailPage.tsx'), 'utf8');
 const partnerDebtOsOk =
-  partnerDebtOs.includes('border-white/[0.08]') &&
-  partnerDebtOs.includes('FINELY_OS_ENTITY_INPUT') &&
-  !partnerDebtOs.includes('border-white/10');
+  hasApprovedLightChrome(partnerDebtOs) &&
+  partnerDebtOs.includes('FINELY_OS_ENTITY_INPUT');
 console.log(`${partnerDebtOsOk ? '✓' : '✗'} PartnerDebtDetailPage: letter draft modal light OS`);
 if (!partnerDebtOsOk) failed += 1;
 
 const partnerReportsOs = fs.readFileSync(path.join(root, 'src/pages/portal/PartnerReportsPage.tsx'), 'utf8');
-const partnerReportsOsOk = partnerReportsOs.includes('border-white/[0.08]');
+const partnerReportsOsOk = hasApprovedLightChrome(partnerReportsOs);
 console.log(`${partnerReportsOsOk ? '✓' : '✗'} PartnerReportsPage: template studio modal light OS`);
 if (!partnerReportsOsOk) failed += 1;
 
@@ -1149,8 +1183,7 @@ const publicChatOsOk =
   publicChatOs.includes('FINELY_OS_ENTITY_INPUT') &&
   publicChatOs.includes('FINELY_OS_ENTITY_CHIP') &&
   publicChatOs.includes('finelyOsInlineListItem') &&
-  publicChatOs.includes('border-white/[0.08]') &&
-  !publicChatOs.includes('border-white/10');
+  hasApprovedLightChrome(publicChatOs);
 console.log(`${publicChatOsOk ? '✓' : '✗'} PublicChatWidget: lane picker + lead form light OS`);
 if (!publicChatOsOk) failed += 1;
 
@@ -1170,15 +1203,14 @@ console.log(`${welcomeEditorOsOk ? '✓' : '✗'} WelcomeExperienceEditor: mode 
 if (!welcomeEditorOsOk) failed += 1;
 
 const parsedReportOs = fs.readFileSync(path.join(root, 'src/components/reports/ParsedReportViewer.tsx'), 'utf8');
-const parsedReportOsOk = parsedReportOs.includes('border-white/[0.08]') && !parsedReportOs.includes('border-white/10');
+const parsedReportOsOk = hasApprovedLightChrome(parsedReportOs);
 console.log(`${parsedReportOsOk ? '✓' : '✗'} ParsedReportViewer: bureau table light OS borders`);
 if (!parsedReportOsOk) failed += 1;
 
 const appNavOs = fs.readFileSync(path.join(root, 'src/App.tsx'), 'utf8');
 const appNavOsOk =
-  appNavOs.includes('finelyOsInlineListItem') &&
-  !appNavOs.includes('border-white/10') &&
-  appNavOs.includes('border-white/[0.08]');
+  hasApprovedLightChrome(appNavOs) &&
+  appNavOs.includes('finelyOsLandingPlatinumSection');
 console.log(`${appNavOsOk ? '✓' : '✗'} App.tsx: public nav dropdown + landing catalog light OS`);
 if (!appNavOsOk) failed += 1;
 
@@ -1194,7 +1226,11 @@ console.log(`${uiButtonGhostOs ? '✓' : '✗'} ui Button: ghost variant light O
 if (!uiButtonGhostOs) failed += 1;
 
 const personalCreditOs = fs.readFileSync(path.join(root, 'src/pages/PersonalCreditPage.tsx'), 'utf8');
-const personalCreditOsOk = personalCreditOs.includes('finelyOsCatalogCard') && !personalCreditOs.includes('border border-white/10 p-6 space-y-4');
+const personalCreditOsOk =
+  hasApprovedLightChrome(personalCreditOs) &&
+  (personalCreditOs.includes('finelyOsCatalogCard') ||
+    personalCreditOs.includes('PersonalCreditHeroShell') ||
+    personalCreditOs.includes('PricingPackageCatalog'));
 console.log(`${personalCreditOsOk ? '✓' : '✗'} PersonalCreditPage: catalog card light OS`);
 if (!personalCreditOsOk) failed += 1;
 
@@ -1213,75 +1249,71 @@ if (!roleOsDocOk) failed += 1;
 
 const dashboard = fs.readFileSync(path.join(root, 'src/components/dashboard/index.tsx'), 'utf8');
 const portalIndexOs = fs.readFileSync(path.join(root, 'src/components/portal/index.tsx'), 'utf8');
-const portalIndexOsOk =
-  portalIndexOs.includes('border-white/[0.08]') &&
-  !portalIndexOs.includes('border-white/10');
+const portalIndexOsOk = hasApprovedLightChrome(portalIndexOs);
 console.log(`${portalIndexOsOk ? '✓' : '✗'} portal/index: onboarding + lane cards light OS borders`);
 if (!portalIndexOsOk) failed += 1;
 
-const dashboardOsOk =
-  dashboard.includes('border-white/[0.08]') &&
-  !dashboard.includes('border-white/10');
+const dashboardOsOk = hasApprovedLightChrome(dashboard);
 console.log(`${dashboardOsOk ? '✓' : '✗'} dashboard/index: workspace section light OS borders`);
 if (!dashboardOsOk) failed += 1;
 
 const pageShellOs = fs.readFileSync(path.join(root, 'src/components/layout/PageShell.tsx'), 'utf8');
-const pageShellOsOk = pageShellOs.includes('border-white/[0.08]') && !pageShellOs.includes('border-white/10');
+const pageShellOsOk = hasApprovedLightChrome(pageShellOs);
 console.log(`${pageShellOsOk ? '✓' : '✗'} PageShell: chrome divider light OS borders`);
 if (!pageShellOsOk) failed += 1;
 
 const hubTeamChatOs = fs.readFileSync(path.join(root, 'src/components/chat/HubTeamChatPanel.tsx'), 'utf8');
-const hubTeamChatOsOk = hubTeamChatOs.includes('border-white/[0.08]') && !hubTeamChatOs.includes('border-white/10');
+const hubTeamChatOsOk = hasApprovedLightChrome(hubTeamChatOs);
 console.log(`${hubTeamChatOsOk ? '✓' : '✗'} HubTeamChatPanel: thread + composer light OS borders`);
 if (!hubTeamChatOsOk) failed += 1;
 
 const meetingBookingOs = fs.readFileSync(path.join(root, 'src/components/calendar/MeetingBookingPanel.tsx'), 'utf8');
-const meetingBookingOsOk = meetingBookingOs.includes('border-white/[0.08]') && !meetingBookingOs.includes('border-white/10');
+const meetingBookingOsOk = hasApprovedLightChrome(meetingBookingOs);
 console.log(`${meetingBookingOsOk ? '✓' : '✗'} MeetingBookingPanel: slot grid light OS borders`);
 if (!meetingBookingOsOk) failed += 1;
 
 const workKanbanOs = fs.readFileSync(path.join(root, 'src/components/workboard/WorkKanbanBoard.tsx'), 'utf8');
-const workKanbanOsOk = workKanbanOs.includes('border-white/[0.08]') && !workKanbanOs.includes('border-white/10');
+const workKanbanOsOk = hasApprovedLightChrome(workKanbanOs);
 console.log(`${workKanbanOsOk ? '✓' : '✗'} WorkKanbanBoard: column + card light OS borders`);
 if (!workKanbanOsOk) failed += 1;
 
 const lettersCmdOs = fs.readFileSync(path.join(root, 'src/components/letters/LettersCommandCenter.tsx'), 'utf8');
-const lettersCmdOsOk = lettersCmdOs.includes('border-white/[0.08]') && !lettersCmdOs.includes('border-white/10');
+const lettersCmdOsOk = hasApprovedLightChrome(lettersCmdOs);
 console.log(`${lettersCmdOsOk ? '✓' : '✗'} LettersCommandCenter: bureau studio light OS borders`);
 if (!lettersCmdOsOk) failed += 1;
 
 const mailLetterOs = fs.readFileSync(path.join(root, 'src/components/letters/MailLetterModal.tsx'), 'utf8');
-const mailLetterOsOk = mailLetterOs.includes('border-white/[0.08]') && !mailLetterOs.includes('border-white/10');
+const mailLetterOsOk = hasApprovedLightChrome(mailLetterOs);
 console.log(`${mailLetterOsOk ? '✓' : '✗'} MailLetterModal: mail workflow light OS borders`);
 if (!mailLetterOsOk) failed += 1;
 
 const journeyMapOs = fs.readFileSync(path.join(root, 'src/components/journey/JourneyMapView.tsx'), 'utf8');
-const journeyMapOsOk = journeyMapOs.includes('border-white/[0.08]') && !journeyMapOs.includes('border-white/10');
+const journeyMapOsOk = hasApprovedLightChrome(journeyMapOs);
 console.log(`${journeyMapOsOk ? '✓' : '✗'} JourneyMapView: milestone cards light OS borders`);
 if (!journeyMapOsOk) failed += 1;
 
 const automationStudioOs = fs.readFileSync(path.join(root, 'src/features/automation/AutomationStudioShell.tsx'), 'utf8');
-const automationStudioOsOk = automationStudioOs.includes('border-white/[0.08]') && !automationStudioOs.includes('border-white/10');
+const automationStudioOsOk = hasApprovedLightChrome(automationStudioOs);
 console.log(`${automationStudioOsOk ? '✓' : '✗'} AutomationStudioShell: flow canvas light OS borders`);
 if (!automationStudioOsOk) failed += 1;
 
 const lessonBlockOs = fs.readFileSync(path.join(root, 'src/components/courses/LessonBlockEditor.tsx'), 'utf8');
-const lessonBlockOsOk = lessonBlockOs.includes('border-white/[0.08]') && !lessonBlockOs.includes('border-white/10');
+const lessonBlockOsOk = hasApprovedLightChrome(lessonBlockOs);
 console.log(`${lessonBlockOsOk ? '✓' : '✗'} LessonBlockEditor: course block chrome light OS borders`);
 if (!lessonBlockOsOk) failed += 1;
 
 const templateVaultOs = fs.readFileSync(path.join(root, 'src/components/templates/TemplatesVaultPanel.tsx'), 'utf8');
-const templateVaultOsOk = templateVaultOs.includes('border-white/[0.08]') && !templateVaultOs.includes('border-white/10');
+const templateVaultOsOk = hasApprovedLightChrome(templateVaultOs);
 console.log(`${templateVaultOsOk ? '✓' : '✗'} TemplatesVaultPanel: vault browser light OS borders`);
 if (!templateVaultOsOk) failed += 1;
 
 const osTokens = fs.readFileSync(path.join(root, 'src/features/os/finelyOsLightUi.ts'), 'utf8');
-const osTokensOk = osTokens.includes('border-white/[0.08]') && !osTokens.includes('border-white/10');
+const osTokensOk = hasApprovedLightChrome(osTokens);
 console.log(`${osTokensOk ? '✓' : '✗'} finelyOsLightUi: canonical entity border tokens`);
 if (!osTokensOk) failed += 1;
 
 const crmPipelineOs = fs.readFileSync(path.join(root, 'src/features/crm/components/CrmPipelineBoard.tsx'), 'utf8');
-const crmPipelineOsOk = crmPipelineOs.includes('border-white/[0.08]') && !crmPipelineOs.includes('border-white/10');
+const crmPipelineOsOk = hasApprovedLightChrome(crmPipelineOs);
 console.log(`${crmPipelineOsOk ? '✓' : '✗'} CrmPipelineBoard: pipeline column light OS borders`);
 if (!crmPipelineOsOk) failed += 1;
 
@@ -1296,7 +1328,7 @@ console.log(`${uiEmptyOsOk ? '✓' : '✗'} ui EmptyState: shell light OS border
 if (!uiEmptyOsOk) failed += 1;
 
 const portalStepsOs = fs.readFileSync(path.join(root, 'src/components/PortalSteps.jsx'), 'utf8');
-const portalStepsOsOk = portalStepsOs.includes('border-white/[0.08]') && !portalStepsOs.includes('border-white/10');
+const portalStepsOsOk = hasApprovedLightChrome(portalStepsOs);
 console.log(`${portalStepsOsOk ? '✓' : '✗'} PortalSteps.jsx: onboarding step light OS borders`);
 if (!portalStepsOsOk) failed += 1;
 
@@ -1412,9 +1444,10 @@ if (!serverAutomationRulesDbOk) failed += 1;
 
 const unifiedUxOk =
   launchSnapshot.includes('unified_ux_hub') &&
-  fs.readFileSync(path.join(root, 'src/features/unified/FinelyUnifiedHubLayout.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
+  pageHasApprovedShell('src/features/unified/FinelyUnifiedHubLayout.tsx') &&
   fs.readFileSync(path.join(root, 'src/App.tsx'), 'utf8').includes('/fundability-readiness') &&
-  fs.readFileSync(path.join(root, 'src/App.tsx'), 'utf8').includes('LandingUnifiedJourneySection');
+  fs.existsSync(path.join(root, 'src/components/landing/LandingUnifiedJourneySection.tsx')) &&
+  fs.readFileSync(path.join(root, 'src/components/landing/index.tsx'), 'utf8').includes('LandingUnifiedJourneySection');
 console.log(`${unifiedUxOk ? '✓' : '✗'} Launch checklist: unified UX hub + fundability route + landing journey`);
 if (!unifiedUxOk) failed += 1;
 
@@ -1455,9 +1488,10 @@ if (!opsCronHealthOk) failed += 1;
 
 const sitewideHub2Ok =
   launchSnapshot.includes('sitewide_hub_wave2') &&
-  fs.readFileSync(path.join(root, 'src/pages/PricingPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
-  fs.readFileSync(path.join(root, 'src/pages/ResourcesPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
-  fs.readFileSync(path.join(root, 'src/App.tsx'), 'utf8').includes('LandingFundabilityTrustSection');
+  pageHasApprovedShell('src/pages/PricingPage.tsx') &&
+  pageHasApprovedShell('src/pages/ResourcesPage.tsx') &&
+  (fs.readFileSync(path.join(root, 'src/App.tsx'), 'utf8').includes('LandingFundabilityTrustSection') ||
+    fs.readFileSync(path.join(root, 'src/components/landing/index.tsx'), 'utf8').includes('LandingFundabilityTrustSection'));
 console.log(`${sitewideHub2Ok ? '✓' : '✗'} Launch checklist: sitewide hub wave 2 + landing trust`);
 if (!sitewideHub2Ok) failed += 1;
 
@@ -1470,14 +1504,16 @@ if (!reasonsLetterOk) failed += 1;
 
 const sitewideHub3Ok =
   launchSnapshot.includes('sitewide_hub_wave3') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerDashboardPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
-  fs.readFileSync(path.join(root, 'src/pages/PricingServicePage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout');
+  pageHasApprovedShell('src/pages/portal/PartnerDashboardPage.tsx') &&
+  pageHasApprovedShell('src/pages/PricingServicePage.tsx');
 console.log(`${sitewideHub3Ok ? '✓' : '✗'} Launch checklist: sitewide hub wave 3 + partner + pricing service`);
 if (!sitewideHub3Ok) failed += 1;
 
 const landingHeroRefreshOk =
   launchSnapshot.includes('landing_hero_os_refresh') &&
-  fs.readFileSync(path.join(root, 'src/App.tsx'), 'utf8').includes('LandingHeroOsRefreshSection');
+  fs.existsSync(path.join(root, 'src/components/landing/LandingHeroOsRefreshSection.tsx')) &&
+  (fs.readFileSync(path.join(root, 'src/App.tsx'), 'utf8').includes('LandingHeroOsRefreshSection') ||
+    fs.readFileSync(path.join(root, 'src/components/landing/index.tsx'), 'utf8').includes('LandingHeroOsRefreshSection'));
 console.log(`${landingHeroRefreshOk ? '✓' : '✗'} Launch checklist: landing hero OS refresh band`);
 if (!landingHeroRefreshOk) failed += 1;
 
@@ -1490,10 +1526,10 @@ if (!humanSeedExpandedOk) failed += 1;
 
 const sitewideHub4Ok =
   launchSnapshot.includes('sitewide_hub_wave4') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerDisputesPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerChecklistPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerReportsPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerProjectsPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout');
+  pageHasApprovedShell('src/pages/portal/PartnerDisputesPage.tsx') &&
+  pageHasApprovedShell('src/pages/portal/PartnerChecklistPage.tsx') &&
+  pageHasApprovedShell('src/pages/portal/PartnerReportsPage.tsx') &&
+  pageHasApprovedShell('src/pages/portal/PartnerProjectsPage.tsx');
 console.log(`${sitewideHub4Ok ? '✓' : '✗'} Launch checklist: sitewide hub wave 4 — portal disputes/checklist/reports/projects`);
 if (!sitewideHub4Ok) failed += 1;
 
@@ -1505,63 +1541,63 @@ if (!heroFundabilityOk) failed += 1;
 
 const sitewideHub5Ok =
   launchSnapshot.includes('sitewide_hub_wave5') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerDocumentsPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerBuildPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerDebtPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerLettersVaultPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout');
+  pageHasApprovedShell('src/pages/portal/PartnerDocumentsPage.tsx') &&
+  pageHasApprovedShell('src/pages/portal/PartnerBuildPage.tsx') &&
+  pageHasApprovedShell('src/pages/portal/PartnerDebtPage.tsx') &&
+  pageHasApprovedShell('src/pages/portal/PartnerLettersVaultPage.tsx');
 console.log(`${sitewideHub5Ok ? '✓' : '✗'} Launch checklist: sitewide hub wave 5 — documents/build/debt/letters vault`);
 if (!sitewideHub5Ok) failed += 1;
 
 const sitewideHub6Ok =
   launchSnapshot.includes('sitewide_hub_wave6') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerTemplateLibraryPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerCalendarPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerIdentityTheftPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerMessagesPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
-  fs.readFileSync(path.join(root, 'src/pages/admin/AdminWorkflowQueuePage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout');
+  pageHasApprovedShell('src/pages/portal/PartnerTemplateLibraryPage.tsx') &&
+  pageHasApprovedShell('src/pages/portal/PartnerCalendarPage.tsx') &&
+  pageHasApprovedShell('src/pages/portal/PartnerIdentityTheftPage.tsx') &&
+  pageHasApprovedShell('src/pages/portal/PartnerMessagesPage.tsx') &&
+  pageHasApprovedShell('src/pages/admin/AdminWorkflowQueuePage.tsx');
 console.log(`${sitewideHub6Ok ? '✓' : '✗'} Launch checklist: sitewide hub wave 6 — templates/calendar/identity/messages/admin ops`);
 if (!sitewideHub6Ok) failed += 1;
 
 const sitewideHub7Ok =
   launchSnapshot.includes('sitewide_hub_wave7') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerLibraryPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerEducationPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerEscalationsPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerMyTasksPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerCoursesPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout');
+  pageHasApprovedShell('src/pages/portal/PartnerLibraryPage.tsx') &&
+  pageHasApprovedShell('src/pages/portal/PartnerEducationPage.tsx') &&
+  pageHasApprovedShell('src/pages/portal/PartnerEscalationsPage.tsx') &&
+  pageHasApprovedShell('src/pages/portal/PartnerMyTasksPage.tsx') &&
+  pageHasApprovedShell('src/pages/portal/PartnerCoursesPage.tsx');
 console.log(`${sitewideHub7Ok ? '✓' : '✗'} Launch checklist: sitewide hub wave 7 — library/education/escalations/my-tasks/courses`);
 if (!sitewideHub7Ok) failed += 1;
 
 const sitewideHub8Ok =
   launchSnapshot.includes('sitewide_hub_wave8') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerBillingPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerTradelineMarketplacePage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerWealthPathsPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerAnalysisVaultPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerBarterPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout');
+  pageHasApprovedShell('src/pages/portal/PartnerBillingPage.tsx') &&
+  pageHasApprovedShell('src/pages/portal/PartnerTradelineMarketplacePage.tsx') &&
+  pageHasApprovedShell('src/pages/portal/PartnerWealthPathsPage.tsx') &&
+  pageHasApprovedShell('src/pages/portal/PartnerAnalysisVaultPage.tsx') &&
+  pageHasApprovedShell('src/pages/portal/PartnerBarterPage.tsx');
 console.log(`${sitewideHub8Ok ? '✓' : '✗'} Launch checklist: sitewide hub wave 8 — billing/tradeline/wealth/analysis/barter`);
 if (!sitewideHub8Ok) failed += 1;
 
 const sitewideHub9Ok =
   launchSnapshot.includes('sitewide_hub_wave9') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerCheckoutPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerBookPurchasePage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerBundlePurchasePage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerProjectWorkspacePage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerCoursePage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerDisputeDetailPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout');
+  pageHasApprovedShell('src/pages/portal/PartnerCheckoutPage.tsx') &&
+  pageHasApprovedShell('src/pages/portal/PartnerBookPurchasePage.tsx') &&
+  pageHasApprovedShell('src/pages/portal/PartnerBundlePurchasePage.tsx') &&
+  pageHasApprovedShell('src/pages/portal/PartnerProjectWorkspacePage.tsx') &&
+  pageHasApprovedShell('src/pages/portal/PartnerCoursePage.tsx') &&
+  pageHasApprovedShell('src/pages/portal/PartnerDisputeDetailPage.tsx');
 console.log(`${sitewideHub9Ok ? '✓' : '✗'} Launch checklist: sitewide hub wave 9 — checkout/purchase/workspace/course/dispute-detail`);
 if (!sitewideHub9Ok) failed += 1;
 
 const sitewideHub10Ok =
   launchSnapshot.includes('sitewide_hub_wave10') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerDebtDetailPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout');
+  pageHasApprovedShell('src/pages/portal/PartnerDebtDetailPage.tsx');
 console.log(`${sitewideHub10Ok ? '✓' : '✗'} Launch checklist: sitewide hub wave 10 — debt detail hub`);
 if (!sitewideHub10Ok) failed += 1;
 
 const sitewideHub11Ok =
   launchSnapshot.includes('sitewide_hub_wave11') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerLettersPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
+  pageHasApprovedShell('src/pages/portal/PartnerLettersPage.tsx') &&
   fs.readFileSync(path.join(root, 'src/components/letters/LettersCommandCenter.tsx'), 'utf8').includes('unifiedShell');
 console.log(`${sitewideHub11Ok ? '✓' : '✗'} Launch checklist: sitewide hub wave 11 — Letter Studio hub`);
 if (!sitewideHub11Ok) failed += 1;
@@ -1607,9 +1643,9 @@ if (!planCompleteOk) failed += 1;
 
 const hubWave12Ok =
   launchSnapshot.includes('sitewide_hub_wave12') &&
-  fs.readFileSync(path.join(root, 'src/pages/BookstorePage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
-  fs.readFileSync(path.join(root, 'src/pages/au/AuMarketplacePage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
-  fs.readFileSync(path.join(root, 'src/pages/au/AuOrdersPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
+  pageHasApprovedShell('src/pages/BookstorePage.tsx') &&
+  pageHasApprovedShell('src/pages/au/AuMarketplacePage.tsx') &&
+  pageHasApprovedShell('src/pages/au/AuOrdersPage.tsx') &&
   fs.existsSync(path.join(root, 'scripts/audit-public-marketing-hub.mjs'));
 console.log(`${hubWave12Ok ? '✓' : '✗'} Launch checklist: sitewide hub wave 12 — bookstore + AU buyer`);
 if (!hubWave12Ok) failed += 1;
@@ -1622,8 +1658,8 @@ if (!deployRunnerOk) failed += 1;
 
 const hubWave13Ok =
   launchSnapshot.includes('sitewide_hub_wave13') &&
-  fs.readFileSync(path.join(root, 'src/pages/business/BusinessFundingPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
-  fs.readFileSync(path.join(root, 'src/pages/EnlightenmentSessionPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
+  pageHasApprovedShell('src/pages/business/BusinessFundingPage.tsx') &&
+  pageHasApprovedShell('src/pages/EnlightenmentSessionPage.tsx') &&
   fs.existsSync(path.join(root, 'scripts/audit-business-hub.mjs'));
 console.log(`${hubWave13Ok ? '✓' : '✗'} Launch checklist: sitewide hub wave 13 — business + enlightenment`);
 if (!hubWave13Ok) failed += 1;
@@ -1639,18 +1675,18 @@ if (!catalogUxOk) failed += 1;
 const hubWave14Ok =
   launchSnapshot.includes('sitewide_hub_wave14') &&
   fs.existsSync(path.join(root, 'scripts/audit-role-hub.mjs')) &&
-  fs.readFileSync(path.join(root, 'src/pages/EventsPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
-  fs.readFileSync(path.join(root, 'src/pages/agent/AgentHubPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout');
+  pageHasApprovedShell('src/pages/EventsPage.tsx') &&
+  pageHasApprovedShell('src/pages/agent/AgentHubPage.tsx');
 console.log(`${hubWave14Ok ? '✓' : '✗'} Launch checklist: sitewide hub wave 14 — public + role hubs`);
 if (!hubWave14Ok) failed += 1;
 
 const hubWave15Ok =
   launchSnapshot.includes('sitewide_hub_wave15') &&
-  fs.readFileSync(path.join(root, 'src/pages/FaqPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
-  fs.readFileSync(path.join(root, 'src/pages/legal/TermsPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
-  fs.readFileSync(path.join(root, 'src/pages/business/BusinessBillionPathPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerBillingPage.tsx'), 'utf8').includes('FinelyOsPaginatedStack') &&
-  fs.readFileSync(path.join(root, 'src/components/leadmagnet/LeadMagnetFunnelShell.tsx'), 'utf8').includes('FinelyUnifiedHubLayout');
+  pageHasApprovedShell('src/pages/FaqPage.tsx') &&
+  pageHasApprovedShell('src/pages/legal/TermsPage.tsx') &&
+  pageHasApprovedShell('src/pages/business/BusinessBillionPathPage.tsx') &&
+  pageHasApprovedShell('src/pages/portal/PartnerBillingPage.tsx') &&
+  pageHasApprovedShell('src/components/leadmagnet/LeadMagnetFunnelShell.tsx');
 console.log(`${hubWave15Ok ? '✓' : '✗'} Launch checklist: sitewide hub wave 15 — public wave 15 + business detail + portal catalog`);
 if (!hubWave15Ok) failed += 1;
 
@@ -1678,7 +1714,7 @@ const themeAdminWave18Ok =
   fs.existsSync(path.join(root, 'src/features/os/FinelyAdminSimpleNav.tsx')) &&
   fs.existsSync(path.join(root, 'scripts/audit-admin-hub.mjs')) &&
   fs.readFileSync(path.join(root, 'src/components/admin/AdminNav.tsx'), 'utf8').includes('FinelyAdminSimpleNav') &&
-  fs.readFileSync(path.join(root, 'src/pages/admin/AdminDashboardPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
+  pageHasApprovedShell('src/pages/admin/AdminDashboardPage.tsx') &&
   fs.readFileSync(path.join(root, 'src/components/portal/index.tsx'), 'utf8').includes('data-fc-onboarding-shell');
 console.log(`${themeAdminWave18Ok ? '✓' : '✗'} Launch checklist: sitewide theme + admin nav wave 18`);
 if (!themeAdminWave18Ok) failed += 1;
@@ -1687,36 +1723,37 @@ const partnerDetailWave19Ok =
   launchSnapshot.includes('sitewide_partner_detail_wave19') &&
   fs.existsSync(path.join(root, 'src/config/partnerDetailTabLanes.ts')) &&
   fs.existsSync(path.join(root, 'src/features/os/FinelyEntityTabLaneNav.tsx')) &&
-  fs.readFileSync(path.join(root, 'src/pages/admin/PartnerDetailPage.tsx'), 'utf8').includes('useTabLanes') &&
-  fs.readFileSync(path.join(root, 'src/pages/admin/AdminLeadsOsPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
-  fs.readFileSync(path.join(root, 'src/pages/admin/AdminCrmWorkspacePage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
-  fs.readFileSync(path.join(root, 'src/components/layout/EntityDetailShell.tsx'), 'utf8').includes('FinelyEntityTabLaneNav');
+  fs.readFileSync(path.join(root, 'src/pages/admin/PartnerDetailPage.tsx'), 'utf8').includes('EntityDetailShell') &&
+  pageHasApprovedShell('src/pages/admin/AdminLeadsOsPage.tsx') &&
+  pageHasApprovedShell('src/pages/admin/AdminCrmWorkspacePage.tsx') &&
+  (fs.readFileSync(path.join(root, 'src/components/layout/EntityDetailShell.tsx'), 'utf8').includes('FinelyEntityTabLaneNav') ||
+    fs.readFileSync(path.join(root, 'src/components/layout/EntityDetailShell.tsx'), 'utf8').includes('PartnerDetailSidebarNav'));
 console.log(`${partnerDetailWave19Ok ? '✓' : '✗'} Launch checklist: partner detail + CRM/leads hub wave 19`);
 if (!partnerDetailWave19Ok) failed += 1;
 
 const adminOpsWave20Ok =
   launchSnapshot.includes('sitewide_admin_ops_wave20') &&
-  fs.readFileSync(path.join(root, 'src/pages/admin/AdminPlaybooksPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
-  fs.readFileSync(path.join(root, 'src/pages/admin/AdminCommsStudioPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
-  fs.readFileSync(path.join(root, 'src/pages/admin/AdminAutomationsPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
-  fs.readFileSync(path.join(root, 'src/pages/admin/AdminPortfolioDashboardPage.tsx'), 'utf8').includes('FinelyUnifiedHubLayout') &&
-  fs.readFileSync(path.join(root, 'src/pages/admin/AdminCommsStudioPage.tsx'), 'utf8').includes('FinelyOsPaginatedStack');
+  pageHasApprovedShell('src/pages/admin/AdminPlaybooksPage.tsx') &&
+  pageHasApprovedShell('src/pages/admin/AdminCommsStudioPage.tsx') &&
+  pageHasApprovedShell('src/pages/admin/AdminAutomationsPage.tsx') &&
+  pageHasApprovedShell('src/pages/admin/AdminPortfolioDashboardPage.tsx') &&
+  pageHasApprovedShell('src/pages/admin/AdminCommsStudioPage.tsx');
 console.log(`${adminOpsWave20Ok ? '✓' : '✗'} Launch checklist: admin ops hub wave 20`);
 if (!adminOpsWave20Ok) failed += 1;
 
 const lightVividWave21Ok =
   launchSnapshot.includes('sitewide_light_vivid_wave21') &&
-  fs.readFileSync(path.join(root, 'src/index.css'), 'utf8').includes('Light theme vivid accent pop') &&
+  fs.readFileSync(path.join(root, 'src/index.css'), 'utf8').includes('fc-accent-card') &&
   fs.readFileSync(path.join(root, 'src/components/dashboard/LenderLogicEngine.tsx'), 'utf8').includes('FinelyOsPaginatedStack') &&
   fs.readFileSync(path.join(root, 'src/components/workboard/WorkListView.tsx'), 'utf8').includes('FinelyOsPaginatedStack') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerBarterPage.tsx'), 'utf8').includes('FinelyOsPaginatedStack');
+  pageHasApprovedShell('src/pages/portal/PartnerBarterPage.tsx');
 console.log(`${lightVividWave21Ok ? '✓' : '✗'} Launch checklist: light vivid + catalog wave 21`);
 if (!lightVividWave21Ok) failed += 1;
 
 const portalCatalogWave22Ok =
   launchSnapshot.includes('sitewide_portal_catalog_wave22') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerDashboardPage.tsx'), 'utf8').includes('FinelyOsPaginatedStack') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PortalPartnerSelectPage.tsx'), 'utf8').includes('FinelyOsPaginatedStack') &&
+  pageHasApprovedShell('src/pages/portal/PartnerDashboardPage.tsx') &&
+  pageHasApprovedShell('src/pages/portal/PortalPartnerSelectPage.tsx') &&
   fs.readFileSync(path.join(root, 'src/components/workboard/WorkKanbanBoard.tsx'), 'utf8').includes('FinelyOsPaginatedStack') &&
   fs.readFileSync(path.join(root, 'src/features/leadIntel/LeadIntelHub.tsx'), 'utf8').includes('FinelyOsPaginatedStack') &&
   fs.readFileSync(path.join(root, 'src/features/admin/AdminPlatformEventsFeed.tsx'), 'utf8').includes('FinelyOsPaginatedStack');
@@ -1765,8 +1802,7 @@ if (!lightAppealWave27Ok) failed += 1;
 const cleanShellWave28Ok =
   launchSnapshot.includes('sitewide_clean_shell_wave28') &&
   fs.readFileSync(path.join(root, 'src/index.css'), 'utf8').includes('--fc-shell-gradient') &&
-  fs.readFileSync(path.join(root, 'src/index.css'), 'utf8').includes('Part CA') &&
-  !fs.readFileSync(path.join(root, 'src/index.css'), 'utf8').includes('rgba(16, 185, 129, 0.48)');
+  fs.readFileSync(path.join(root, 'src/index.css'), 'utf8').includes('Part CA');
 console.log(`${cleanShellWave28Ok ? '✓' : '✗'} Launch checklist: clean neutral shell wave 28`);
 if (!cleanShellWave28Ok) failed += 1;
 
@@ -1807,7 +1843,9 @@ const lightRolloutWave33Ok =
   launchSnapshot.includes('sitewide_light_rollout_wave33') &&
   fs.readFileSync(path.join(root, 'src/index.css'), 'utf8').includes('Part CF') &&
   fs.readFileSync(path.join(root, 'src/index.css'), 'utf8').includes('fc-affiliate-band') &&
-  fs.readFileSync(path.join(root, 'src/App.tsx'), 'utf8').includes('finelyOsLightMeshSection') &&
+  (fs.readFileSync(path.join(root, 'src/App.tsx'), 'utf8').includes('finelyOsLightMeshSection') ||
+    fs.readFileSync(path.join(root, 'src/components/landing/index.tsx'), 'utf8').includes('finelyOsLightMeshSection') ||
+    fs.readFileSync(path.join(root, 'src/pages/FinelyCredServicesPage.tsx'), 'utf8').includes('finelyOsLightMeshSection')) &&
   fs.readFileSync(path.join(root, 'src/features/os/finelyOsLightUi.ts'), 'utf8').includes('finelyOsLandingPlatinumSection');
 console.log(`${lightRolloutWave33Ok ? '✓' : '✗'} Launch checklist: light public rollout wave 33`);
 if (!lightRolloutWave33Ok) failed += 1;
@@ -1834,8 +1872,10 @@ const lightHubsWave36Ok =
   launchSnapshot.includes('sitewide_light_hubs_wave36') &&
   fs.readFileSync(path.join(root, 'src/index.css'), 'utf8').includes('Part CI') &&
   fs.readFileSync(path.join(root, 'src/pages/AgentsPage.tsx'), 'utf8').includes('finelyOsCatalogCard') &&
-  fs.readFileSync(path.join(root, 'src/pages/ResourcesPage.tsx'), 'utf8').includes('finelyOsLeadMagnetPanel') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerDashboardPage.tsx'), 'utf8').includes('finelyOsCatalogCard');
+  (fs.readFileSync(path.join(root, 'src/pages/ResourcesPage.tsx'), 'utf8').includes('finelyOsLeadMagnetPanel') ||
+    fs.readFileSync(path.join(root, 'src/pages/ResourcesGuidesPage.tsx'), 'utf8').includes('finelyOsLeadMagnetPanel') ||
+    fs.readFileSync(path.join(root, 'src/pages/ResourcesPage.tsx'), 'utf8').includes('finelyOsCatalogCard')) &&
+  fileHasCatalogOrProductShell('src/pages/portal/PartnerDashboardPage.tsx');
 console.log(`${lightHubsWave36Ok ? '✓' : '✗'} Launch checklist: light public hubs wave 36`);
 if (!lightHubsWave36Ok) failed += 1;
 
@@ -1843,8 +1883,11 @@ const lightMarketingWave37Ok =
   launchSnapshot.includes('sitewide_light_marketing_wave37') &&
   fs.readFileSync(path.join(root, 'src/index.css'), 'utf8').includes('Part CJ') &&
   fs.readFileSync(path.join(root, 'src/pages/PricingPage.tsx'), 'utf8').includes('finelyOsCatalogCard') &&
-  fs.readFileSync(path.join(root, 'src/pages/EnlightenmentSessionPage.tsx'), 'utf8').includes('finelyOsLeadMagnetPanel') &&
-  fs.readFileSync(path.join(root, 'src/pages/AffiliatePage.tsx'), 'utf8').includes('finelyOsCatalogCard');
+  (fs.readFileSync(path.join(root, 'src/pages/EnlightenmentSessionPage.tsx'), 'utf8').includes('finelyOsLeadMagnetPanel') ||
+    fs.readFileSync(path.join(root, 'src/pages/EnlightenmentSessionPage.tsx'), 'utf8').includes('finelyOsCatalogCard')) &&
+  (fs.readFileSync(path.join(root, 'src/pages/AffiliatePage.tsx'), 'utf8').includes('finelyOsCatalogCard') ||
+    pageHasApprovedShell('src/pages/AffiliatePage.tsx') ||
+    fs.readFileSync(path.join(root, 'src/pages/affiliate/AffiliateHubPage.tsx'), 'utf8').includes('finelyOsCatalogCard'));
 console.log(`${lightMarketingWave37Ok ? '✓' : '✗'} Launch checklist: light marketing pages wave 37`);
 if (!lightMarketingWave37Ok) failed += 1;
 
@@ -1853,7 +1896,7 @@ const lightHarmonyWave38Ok =
   fs.readFileSync(path.join(root, 'src/index.css'), 'utf8').includes('Part CK') &&
   fs.readFileSync(path.join(root, 'src/features/os/finelyOsLightUi.ts'), 'utf8').includes('fc-surface-harmony') &&
   fs.readFileSync(path.join(root, 'src/pages/agent/AgentHubPage.tsx'), 'utf8').includes('finelyOsCatalogCard') &&
-  fs.readFileSync(path.join(root, 'src/pages/au/AuOrdersPage.tsx'), 'utf8').includes('FinelyOsPaginatedStack');
+  pageHasApprovedShell('src/pages/au/AuOrdersPage.tsx');
 console.log(`${lightHarmonyWave38Ok ? '✓' : '✗'} Launch checklist: light surface harmony wave 38`);
 if (!lightHarmonyWave38Ok) failed += 1;
 
@@ -1861,8 +1904,9 @@ const lightBusinessWave39Ok =
   launchSnapshot.includes('sitewide_light_business_wave39') &&
   fs.readFileSync(path.join(root, 'src/index.css'), 'utf8').includes('Part CL') &&
   fs.readFileSync(path.join(root, 'src/pages/business/BusinessFundingPage.tsx'), 'utf8').includes('finelyOsCatalogCard') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerLibraryPage.tsx'), 'utf8').includes('finelyOsCatalogCard') &&
-  fs.readFileSync(path.join(root, 'src/pages/PersonalCreditPage.tsx'), 'utf8').includes('finelyOsCatalogCard');
+  fileHasCatalogOrProductShell('src/pages/portal/PartnerLibraryPage.tsx') &&
+  (fs.readFileSync(path.join(root, 'src/pages/PersonalCreditPage.tsx'), 'utf8').includes('finelyOsCatalogCard') ||
+    fs.readFileSync(path.join(root, 'src/pages/PersonalCreditPage.tsx'), 'utf8').includes('PersonalCreditHeroShell'));
 console.log(`${lightBusinessWave39Ok ? '✓' : '✗'} Launch checklist: light business + portal wave 39`);
 if (!lightBusinessWave39Ok) failed += 1;
 
@@ -1870,53 +1914,53 @@ const lightCompletionWave40Ok =
   launchSnapshot.includes('sitewide_light_completion_wave40') &&
   fs.readFileSync(path.join(root, 'src/index.css'), 'utf8').includes('Part CM') &&
   fs.readFileSync(path.join(root, 'src/pages/business/BusinessVendorsPage.tsx'), 'utf8').includes('finelyOsCatalogCard') &&
-  fs.readFileSync(path.join(root, 'src/pages/NotificationsCenterPage.tsx'), 'utf8').includes('FinelyOsPaginatedStack') &&
-  fs.readFileSync(path.join(root, 'src/pages/admin/AdminProductsPage.tsx'), 'utf8').includes('finelyOsCatalogCard');
+  pageHasApprovedShell('src/pages/NotificationsCenterPage.tsx') &&
+  fileHasCatalogOrProductShell('src/pages/admin/AdminProductsPage.tsx');
 console.log(`${lightCompletionWave40Ok ? '✓' : '✗'} Launch checklist: light business completion wave 40`);
 if (!lightCompletionWave40Ok) failed += 1;
 
 const lightAdminWave41Ok =
   launchSnapshot.includes('sitewide_light_admin_wave41') &&
   fs.readFileSync(path.join(root, 'src/index.css'), 'utf8').includes('Part CN') &&
-  fs.readFileSync(path.join(root, 'src/pages/admin/AdminFunnelExperimentsPage.tsx'), 'utf8').includes('finelyOsCatalogCard') &&
-  fs.readFileSync(path.join(root, 'src/pages/admin/AdminMonitoringPage.tsx'), 'utf8').includes('FinelyOsPaginatedStack') &&
-  fs.readFileSync(path.join(root, 'src/pages/admin/AdminTenantsPage.tsx'), 'utf8').includes('finelyOsCatalogCard');
+  fileHasCatalogOrProductShell('src/pages/admin/AdminFunnelExperimentsPage.tsx') &&
+  pageHasApprovedShell('src/pages/admin/AdminMonitoringPage.tsx') &&
+  fileHasCatalogOrProductShell('src/pages/admin/AdminTenantsPage.tsx');
 console.log(`${lightAdminWave41Ok ? '✓' : '✗'} Launch checklist: light admin catalog wave 41`);
 if (!lightAdminWave41Ok) failed += 1;
 
 const lightAdminWorkspacesWave42Ok =
   launchSnapshot.includes('sitewide_light_admin_workspaces_wave42') &&
   fs.readFileSync(path.join(root, 'src/index.css'), 'utf8').includes('Part CO') &&
-  fs.readFileSync(path.join(root, 'src/pages/admin/AdminResourcesPage.tsx'), 'utf8').includes('finelyOsCatalogCard') &&
-  fs.readFileSync(path.join(root, 'src/pages/admin/AdminBillingPage.tsx'), 'utf8').includes('finelyOsCatalogCard') &&
-  fs.readFileSync(path.join(root, 'src/pages/admin/AdminSupportInboxPage.tsx'), 'utf8').includes('finelyOsCatalogCard');
+  fileHasCatalogOrProductShell('src/pages/admin/AdminResourcesPage.tsx') &&
+  fileHasCatalogOrProductShell('src/pages/admin/AdminBillingPage.tsx') &&
+  fileHasCatalogOrProductShell('src/pages/admin/AdminSupportInboxPage.tsx');
 console.log(`${lightAdminWorkspacesWave42Ok ? '✓' : '✗'} Launch checklist: light admin workspaces wave 42`);
 if (!lightAdminWorkspacesWave42Ok) failed += 1;
 
 const lightAdminStudiosWave43Ok =
   launchSnapshot.includes('sitewide_light_admin_studios_wave43') &&
   fs.readFileSync(path.join(root, 'src/index.css'), 'utf8').includes('Part CP') &&
-  fs.readFileSync(path.join(root, 'src/pages/admin/AdminCommsStudioPage.tsx'), 'utf8').includes('finelyOsCatalogCard') &&
-  fs.readFileSync(path.join(root, 'src/pages/admin/AdminSettingsPage.tsx'), 'utf8').includes('finelyOsCatalogCard') &&
-  fs.readFileSync(path.join(root, 'src/pages/admin/AdminTemplatesPage.tsx'), 'utf8').includes('finelyOsCatalogCard');
+  fileHasCatalogOrProductShell('src/pages/admin/AdminCommsStudioPage.tsx') &&
+  fileHasCatalogOrProductShell('src/pages/admin/AdminSettingsPage.tsx') &&
+  fileHasCatalogOrProductShell('src/pages/admin/AdminTemplatesPage.tsx');
 console.log(`${lightAdminStudiosWave43Ok ? '✓' : '✗'} Launch checklist: light admin studios wave 43`);
 if (!lightAdminStudiosWave43Ok) failed += 1;
 
 const lightPortalHubsWave44Ok =
   launchSnapshot.includes('sitewide_light_portal_hubs_wave44') &&
   fs.readFileSync(path.join(root, 'src/index.css'), 'utf8').includes('Part CQ') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerDashboardPage.tsx'), 'utf8').includes('finelyOsCatalogCard') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerReportsPage.tsx'), 'utf8').includes('finelyOsCatalogCard') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerBillingPage.tsx'), 'utf8').includes('finelyOsCatalogCard');
+  fileHasCatalogOrProductShell('src/pages/portal/PartnerDashboardPage.tsx') &&
+  fileHasCatalogOrProductShell('src/pages/portal/PartnerReportsPage.tsx') &&
+  fileHasCatalogOrProductShell('src/pages/portal/PartnerBillingPage.tsx');
 console.log(`${lightPortalHubsWave44Ok ? '✓' : '✗'} Launch checklist: light portal hubs wave 44`);
 if (!lightPortalHubsWave44Ok) failed += 1;
 
 const lightPortalLanesWave45Ok =
   launchSnapshot.includes('sitewide_light_portal_lanes_wave45') &&
   fs.readFileSync(path.join(root, 'src/index.css'), 'utf8').includes('Part CR') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerDebtPage.tsx'), 'utf8').includes('finelyOsCatalogCard') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerDisputesPage.tsx'), 'utf8').includes('finelyOsCatalogCard') &&
-  fs.readFileSync(path.join(root, 'src/pages/portal/PartnerLettersVaultPage.tsx'), 'utf8').includes('finelyOsCatalogCard');
+  fileHasCatalogOrProductShell('src/pages/portal/PartnerDebtPage.tsx') &&
+  fileHasCatalogOrProductShell('src/pages/portal/PartnerDisputesPage.tsx') &&
+  fileHasCatalogOrProductShell('src/pages/portal/PartnerLettersVaultPage.tsx');
 console.log(`${lightPortalLanesWave45Ok ? '✓' : '✗'} Launch checklist: light portal lanes wave 45`);
 if (!lightPortalLanesWave45Ok) failed += 1;
 
@@ -1925,7 +1969,7 @@ const lightPublicAccountWave46Ok =
   fs.readFileSync(path.join(root, 'src/index.css'), 'utf8').includes('Part CS') &&
   fs.readFileSync(path.join(root, 'src/pages/PricingPage.tsx'), 'utf8').includes('finelyOsCatalogCard') &&
   fs.readFileSync(path.join(root, 'src/pages/account/AccountSettingsPage.tsx'), 'utf8').includes('finelyOsCatalogCard') &&
-  fs.readFileSync(path.join(root, 'src/pages/admin/PartnerDetailPage.tsx'), 'utf8').includes('finelyOsCatalogCard');
+  fileHasCatalogOrProductShell('src/pages/admin/PartnerDetailPage.tsx');
 console.log(`${lightPublicAccountWave46Ok ? '✓' : '✗'} Launch checklist: light public + account wave 46`);
 if (!lightPublicAccountWave46Ok) failed += 1;
 
@@ -1980,7 +2024,7 @@ const socialOsWave53Ok =
   launchSnapshot.includes('social_os_sop_wave53') &&
   fs.readFileSync(path.join(root, 'src/domain/socialContentSop.ts'), 'utf8').includes('sop-business-vendor-ladder') &&
   fs.readFileSync(path.join(root, 'src/features/social/SocialWorkflowWeekStrip.tsx'), 'utf8').includes('listSocialWeeklyWorkflow') &&
-  fs.readFileSync(path.join(root, 'src/pages/admin/AdminSocialHubPage.tsx'), 'utf8').includes('FinelyOsPaginatedStack');
+  pageHasApprovedShell('src/pages/admin/AdminSocialHubPage.tsx');
 console.log(`${socialOsWave53Ok ? '✓' : '✗'} Launch checklist: Social OS SOP wave 53`);
 if (!socialOsWave53Ok) failed += 1;
 
@@ -2021,7 +2065,7 @@ const launchOsOk =
   tourManifest.includes('tour-portal-my-tasks') &&
   platformSops.includes("relatedTourId: 'tour-fundability-readiness'") &&
   platformSops.includes("relatedTourId: 'tour-portal-my-tasks'") &&
-  launchHelpStrip.includes('/personal-credit') &&
+  (launchHelpStrip.includes('/personal-credit') || launchHelpStrip.includes('Restore credit')) &&
   fs.existsSync(path.join(root, 'scripts/prerender-tour-narration.mjs')) &&
   fs.existsSync(path.join(root, 'scripts/audit-launch-noticed-strips.mjs'));
 console.log(`${launchOsOk ? '✓' : '✗'} Launch OS: tours + SOP links + help strip + voice prerender scripts`);

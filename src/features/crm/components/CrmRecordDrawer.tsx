@@ -6,6 +6,8 @@ import { formatForecastCents } from '../forecast/buildPipelineForecast';
 import { crmRecordDisplayName } from '../../../domain/crmRecords';
 import { patchCrmRecordDealValue } from '../../../data/crmRecordsRepo';
 import { computeConversionLikelihood } from '../../../lib/agentAttributionEngine';
+import { heatFromCrmRecord } from '../../../lib/prospectHeat';
+import { isColdDirectoryCrmRecord } from '../../../lib/coldDirectory';
 import { CrmCallTimeOptimizerPanel } from './CrmCallTimeOptimizerPanel';
 import { CrmRecordSequencePanel } from './CrmRecordSequencePanel';
 import { AgentTrailForEntity } from '../../growthAgents/AgentTrailTimeline';
@@ -36,6 +38,18 @@ export function CrmRecordPanel({
 
   // G4a — internal-only conversion-likelihood signal (staff triage; never shown to partners).
   const conversionSignal = useMemo(() => (record ? computeConversionLikelihood(record) : null), [record]);
+  const heat = useMemo(() => (record ? heatFromCrmRecord(record) : null), [record]);
+  const nextAction = record
+    ? heat?.state === 'priority_hot'
+      ? 'Human task — meeting/partnership SLA'
+      : heat?.state === 'hot'
+        ? 'Manual review of the verified reply or request'
+        : heat?.state === 'warm'
+          ? 'Manual review only — no automated nurture'
+          : isColdDirectoryCrmRecord(record)
+            ? 'Review public org inbox — do not send yet'
+            : record.nextAction?.label || 'Review record'
+    : '';
 
   React.useEffect(() => {
     if (!record) return;
@@ -88,6 +102,18 @@ export function CrmRecordPanel({
                 {conversionSignal.reasoning}
               </span>
             </div>
+          </div>
+        ) : null}
+        {heat ? (
+          <div className="col-span-2 space-y-1">
+            <span className={FINELY_OS_ENTITY_SUBLABEL}>Why this state</span>
+            <div className={FINELY_OS_ENTITY_VALUE}>
+              {heat.state.replace(/_/g, ' ')} · fit {heat.fit} · intent {heat.intent}
+            </div>
+            <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>{heat.reasons.join(' · ') || 'No verified engagement'}</p>
+            <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
+              Allowed: {heat.allowedChannels.join(', ') || 'none'} · Next: {nextAction}
+            </p>
           </div>
         ) : null}
       </div>

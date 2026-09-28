@@ -134,6 +134,8 @@ const HAITIAN_TEMPLATES: Array<Omit<CommsTemplate, 'createdAt' | 'updatedAt'>> =
   haitianTpl('tpl_haitian_news_ht', 'Credit news digest (Kreyòl)', 'Nouvèl kredi semèn sa a', NEWS_HT, 'ht', 'tpl_haitian_news_en', 'news'),
 ];
 
+export const HAITIAN_COMMS_TEMPLATE_SEEDS = HAITIAN_TEMPLATES;
+
 export function haitianTemplateIdForKind(kind: 'welcome' | 'kit' | 'session' | 'news', voice: 'en' | 'ht'): string {
   return `tpl_haitian_${kind}_${voice}`;
 }

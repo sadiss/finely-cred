@@ -26,6 +26,7 @@ import { sendEmail } from '../../../lib/commsDeliveryClient';
 import { htmlFromPlainEmail } from '../../../comms/prebuiltHtmlEmailLayout';
 import { isFeatureEnabled } from '../../../data/settingsRepo';
 import { logAgentAction } from '../../../lib/agentAuditLog';
+import { isColdDirectoryCrmRecord } from '../../../lib/coldDirectory';
 
 export function findNextActionStepIndex(sequence: CrmSequence, lastCompletedStepIndex: number): number {
   for (let i = lastCompletedStepIndex + 1; i < sequence.steps.length; i += 1) {
@@ -111,6 +112,11 @@ async function sendCrmSequenceEmail(
   const subject = content.emailSubject?.trim() || step.label || 'A note from Finely Cred';
   const who = crmRecordDisplayName(record);
   const email = record.contact.email?.trim();
+
+  if (isColdDirectoryCrmRecord(record) || record.emailMarketingAllowed === false || record.consentBasis === 'discovered_no_consent') {
+    logSequenceActivity(record, `Email skipped — cold directory / no consent: ${subject}`);
+    return;
+  }
 
   if (!email) {
     logSequenceActivity(record, `Email skipped — no email on file: ${subject}`);

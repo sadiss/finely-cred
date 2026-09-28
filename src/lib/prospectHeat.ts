@@ -2,8 +2,9 @@
  * Explainable Cold / Warm / Hot / Priority-hot state machine.
  * Profile completeness can raise fit, never intent, and never Hot on a cold directory row.
  */
-import { isColdDirectoryLeadCapture, isPublicOrganizationRoleInbox } from './coldDirectory';
+import { isColdDirectoryCrmRecord, isColdDirectoryLeadCapture, isPublicOrganizationRoleInbox } from './coldDirectory';
 import type { LeadCapture } from '../domain/leads';
+import type { CrmRecord } from '../domain/crmRecords';
 
 export type ProspectHeatState = 'cold' | 'warm' | 'hot' | 'priority_hot' | 'opted_in' | 'suppressed';
 
@@ -169,6 +170,33 @@ export function resolveProspectHeat(input: ProspectHeatInput): ProspectHeatResul
     allowedChannels,
     consent: opted,
   };
+}
+
+export function heatFromCrmRecord(
+  record: Pick<CrmRecord, 'source' | 'tags' | 'leadType' | 'consentBasis' | 'emailMarketingAllowed' | 'kind' | 'contact' | 'heatSummary' | 'heatState'>,
+  events: ProspectHeatEventType[] = [],
+): ProspectHeatResult {
+  if (record.heatSummary && record.heatState) {
+    return {
+      state: record.heatState,
+      fit: record.heatSummary.fit,
+      intent: record.heatSummary.intent,
+      recency: record.heatSummary.recency,
+      total: record.heatSummary.total,
+      reasons: record.heatSummary.reasons,
+      allowedChannels: record.heatSummary.allowedChannels,
+      consent: record.heatSummary.consent,
+    };
+  }
+  const cold = isColdDirectoryCrmRecord(record as CrmRecord);
+  return resolveProspectHeat({
+    isColdDirectory: cold,
+    events,
+    publicOrgInbox: isPublicOrganizationRoleInbox(record.contact?.email).ok,
+    hasWebsite: Boolean(record.contact?.website),
+    laneMatched: (record.tags ?? []).some((t) => /haitian|affiliate|specialist|jobs/i.test(t)),
+    consent: record.emailMarketingAllowed === true || record.consentBasis === 'lead_capture_opt_in' || record.consentBasis === 'inbound_form_opt_in',
+  });
 }
 
 export function heatFromLeadCapture(lead: LeadCapture): ProspectHeatResult {
