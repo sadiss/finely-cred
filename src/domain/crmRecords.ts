@@ -1,4 +1,4 @@
-import type { ProspectTarget, ProspectStage, ProspectSource, ProspectTouch } from './crmProspects';
+import type { ProspectTarget, ProspectStage, ProspectSource, ProspectTouch, ProspectConsentBasis, ProspectLeadType } from './crmProspects';
 import type { LeadSource, LeadOffer, LeadCapture } from './leads';
 import type { LeadStage } from './leadOps';
 
@@ -45,6 +45,9 @@ export type CrmRecord = {
   source: ProspectSource | LeadSource | 'partner';
   score?: number;
   tags: string[];
+  consentBasis?: ProspectConsentBasis;
+  leadType?: ProspectLeadType;
+  emailMarketingAllowed?: boolean;
   contact: CrmRecordContact;
   partnerId?: string;
   projectIds?: string[];

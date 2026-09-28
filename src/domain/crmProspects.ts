@@ -15,7 +15,8 @@ export type ProspectSource =
   | 'manual'
   | 'import'
   | 'referral'
-  | 'lead_capture';
+  | 'lead_capture'
+  | 'directory_cold';
 
 /** Why we believe email marketing is allowed (TCPA/CAN-SPAM desk policy). */
 export type ProspectConsentBasis =

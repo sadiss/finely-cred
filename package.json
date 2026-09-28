@@ -39,6 +39,8 @@
     "rls:check": "node scripts/rls-smoke-check.mjs",
     "live-setup:rebuild": "node scripts/rebuild-live-setup.mjs",
     "release:parity": "node scripts/prove-github-parity.mjs",
+    "leads:inventory": "node scripts/inventory-lead-files.mjs",
+    "heat:check": "npx tsx scripts/verify-prospect-heat.mjs",
     "migrations:check": "node scripts/run-migrations.mjs",
     "env:check": "node scripts/validate-local-env.mjs",
     "env:setup": "node scripts/setup-local-env.mjs",

@@ -24,6 +24,9 @@ dist-ssr
 *.sln
 *.sw?
 
+data/lead-discovery/*.local.*
+data/lead-discovery/**/*.local.*
+
 # Environment variables
 .env
 

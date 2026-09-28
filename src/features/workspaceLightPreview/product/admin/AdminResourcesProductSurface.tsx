@@ -5,17 +5,17 @@ import {
   BookOpen,
   Layers,
   Library,
+  Mail,
+  Megaphone,
   Sparkles,
   Video,
-  GraduationCap,
-  ShoppingBag,
 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { listBookstoreProducts } from '../../../../data/bookstoreRepo';
-import { listAllCourses } from '../../../../data/coursesRepo';
 import { listResourceVideos } from '../../../../data/resourceVideosRepo';
 import { ALL_FREE_GUIDES } from '../../../../resources/freeGuides';
 import { TEMPLATE_BASES } from '../../../../templates';
+import { MARKETING_MATERIALS_INDEX, marketingMaterialsCounts } from '../../../../lib/marketingMaterialsIndex';
 import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
@@ -34,7 +34,8 @@ type ResourceRoom = 'gallery' | 'playbook';
 
 type ResourceSnapshot = {
   guides: number;
-  courses: number;
+  haitianPieces: number;
+  materials: number;
   videos: number;
   templates: number;
   books: number;
@@ -67,13 +68,14 @@ export default function AdminResourcesProductSurface({ role, pageId, dataMode }:
     setLoading(true);
     try {
       const videos = listResourceVideos();
-      const courses = listAllCourses();
       const books = listBookstoreProducts({ includeUnpublished: true });
+      const counts = marketingMaterialsCounts();
 
       if (!cancelled) {
         setSnapshot({
           guides: ALL_FREE_GUIDES.length,
-          courses: courses.length,
+          haitianPieces: counts.haitianPieces,
+          materials: counts.indexItems,
           videos: videos.length,
           templates: TEMPLATE_BASES.length,
           books: books.length,
@@ -99,12 +101,12 @@ export default function AdminResourcesProductSurface({ role, pageId, dataMode }:
         onClick: () => setActiveRoom('playbook'),
       },
       {
-        label: 'Courses',
-        value: snapshot?.courses ?? 0,
-        hint: 'Learning modules',
+        label: 'Haitian pieces',
+        value: snapshot?.haitianPieces ?? 0,
+        hint: 'Kreyòl + English kits',
         accent: 'violet',
-        icon: Library,
-        onClick: () => navigate(adminWorkspacePath(pathname, 'courses')),
+        icon: Megaphone,
+        onClick: () => navigate('/admin/haitian'),
       },
       {
         label: 'Templates',
@@ -123,7 +125,7 @@ export default function AdminResourcesProductSurface({ role, pageId, dataMode }:
         onClick: () => navigate(adminWorkspacePath(pathname, 'media-studio')),
       },
     ],
-    [navigate, pathname, snapshot?.courses, snapshot?.guides, snapshot?.templates, snapshot?.videos],
+    [navigate, pathname, snapshot?.haitianPieces, snapshot?.guides, snapshot?.templates, snapshot?.videos],
   );
 
   const categoryTiles = useMemo(
@@ -138,13 +140,13 @@ export default function AdminResourcesProductSurface({ role, pageId, dataMode }:
         onClick: () => setActiveRoom('playbook'),
       },
       {
-        id: 'courses',
-        title: 'Courses',
-        count: snapshot?.courses ?? 0,
-        detail: 'Interactive learning modules',
-        icon: GraduationCap,
+        id: 'haitian',
+        title: 'Haitian / Kreyòl',
+        count: snapshot?.haitianPieces ?? 0,
+        detail: 'Flyers, kits, metro desks',
+        icon: Megaphone,
         accent: 'violet' as const,
-        onClick: () => navigate(adminWorkspacePath(pathname, 'courses')),
+        onClick: () => navigate('/admin/haitian'),
       },
       {
         id: 'videos',
@@ -165,16 +167,16 @@ export default function AdminResourcesProductSurface({ role, pageId, dataMode }:
         onClick: () => navigate(adminWorkspacePath(pathname, 'communications', '?workspaceRoom=studio&room=templates')),
       },
       {
-        id: 'books',
-        title: 'Bookstore',
-        count: snapshot?.books ?? 0,
-        detail: 'Published and draft books',
-        icon: ShoppingBag,
+        id: 'email',
+        title: 'Email templates',
+        count: 8,
+        detail: 'Haitian bilingual preview only',
+        icon: Mail,
         accent: 'emerald' as const,
-        onClick: () => navigate(adminWorkspacePath(pathname, 'bookstore')),
+        onClick: () => navigate('/admin/communications'),
       },
     ],
-    [navigate, pathname, snapshot?.books, snapshot?.courses, snapshot?.guides, snapshot?.templates, snapshot?.videos],
+    [navigate, pathname, snapshot?.haitianPieces, snapshot?.guides, snapshot?.templates, snapshot?.videos],
   );
 
   if (loading) {
@@ -186,8 +188,8 @@ export default function AdminResourcesProductSurface({ role, pageId, dataMode }:
       role={role}
       pageId={pageId}
       eyebrow="Studio"
-      title="Guides, templates, and the partner resource library."
-      description="Large category tiles first — open a shelf or jump straight to the editor."
+      title="Marketing materials"
+      description="Haitian, affiliate, specialist, email, and flyer shelves. Courses live only at Admin → Courses."
       accent={accent}
       surfaceMode={navItem?.surfaceMode ?? 'studio'}
       archetype={archetype}
@@ -212,8 +214,8 @@ export default function AdminResourcesProductSurface({ role, pageId, dataMode }:
                 <span>Catalog mosaic</span>
               </div>
               <p className={`mt-2 text-base font-bold ${FINELY_OS_ENTITY_BODY}`}>
-                {(snapshot?.guides ?? 0) + (snapshot?.courses ?? 0) + (snapshot?.videos ?? 0) + (snapshot?.templates ?? 0) + (snapshot?.books ?? 0)}{' '}
-                resources across five categories
+                {(snapshot?.haitianPieces ?? 0) + (snapshot?.materials ?? 0) + (snapshot?.guides ?? 0) + (snapshot?.videos ?? 0) + (snapshot?.templates ?? 0)}{' '}
+                items on the marketing shelves
               </p>
             </div>
             <div className="flex flex-wrap gap-2" role="tablist" aria-label="Library views">
@@ -270,6 +272,41 @@ export default function AdminResourcesProductSurface({ role, pageId, dataMode }:
                     Open <ArrowRight size={14} />
                   </span>
                 </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className={`${finelyOsCatalogCard('emerald')} p-6 lg:p-8 space-y-4`} data-fc-accent="emerald">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <span className="inline-flex items-center gap-2 text-lg font-extrabold">
+              <Mail size={18} className="text-emerald-600" /> Marketing materials shelves
+            </span>
+            <span className={`text-sm font-bold ${FINELY_OS_ENTITY_SUBLABEL}`}>{MARKETING_MATERIALS_INDEX.length} destinations</span>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {MARKETING_MATERIALS_INDEX.map((item, idx) => {
+              const tileAccent = MOSAIC_ACCENTS[idx % MOSAIC_ACCENTS.length];
+              return (
+                <div key={item.id} className={`${finelyOsCatalogCard(tileAccent)} p-5 flex flex-col gap-2 text-left`} data-fc-accent={tileAccent}>
+                  <span className="text-[10px] font-black uppercase tracking-widest">{item.lane} · {item.language}</span>
+                  <strong className="text-base font-extrabold">{item.title}</strong>
+                  <span className={`text-sm font-semibold ${FINELY_OS_ENTITY_BODY}`}>{item.audience}</span>
+                  <span className={`text-xs ${FINELY_OS_ENTITY_SUBLABEL}`}>{item.destination}</span>
+                  <button
+                    type="button"
+                    className={`${FINELY_OS_SECONDARY_BTN} mt-auto`}
+                    onClick={() => {
+                      if (item.actionLabel === 'Copy link') {
+                        void navigator.clipboard?.writeText(`${window.location.origin}${item.destination}`);
+                        return;
+                      }
+                      navigate(item.destination);
+                    }}
+                  >
+                    {item.actionLabel} <ArrowRight size={14} />
+                  </button>
+                </div>
               );
             })}
           </div>

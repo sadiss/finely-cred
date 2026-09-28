@@ -155,7 +155,7 @@ export async function bulkImportLeads(rows: BulkLeadRow[]): Promise<BulkImportRe
         interest: row.interest?.trim() || 'bulk_import',
         offer: row.offer ?? 'general_inquiry',
         source: row.source ?? 'agent',
-        consentToContact: row.consentToContact ?? true,
+        consentToContact: row.consentToContact ?? false,
         consentEmailMarketing: row.consentEmailMarketing ?? false,
         funnelPath: row.funnelPath ?? '/admin/leads-os?tab=inbound',
         utmSource: row.utmSource ?? 'bulk_csv',

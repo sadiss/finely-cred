@@ -1,3 +1,5 @@
+import { heatFromLeadCapture } from './prospectHeat';
+import { isColdDirectoryLeadCapture } from './coldDirectory';
 import type { LeadCapture } from '../domain/leads';
 
 export type LeadScoreBand = 'cold' | 'warm' | 'hot' | 'qualified';
@@ -17,6 +19,30 @@ function clamp(n: number, min: number, max: number) {
 }
 
 export function scoreLead(lead: LeadCapture): LeadScoreResult {
+  if (isColdDirectoryLeadCapture(lead)) {
+    const heat = heatFromLeadCapture(lead);
+    const band: LeadScoreBand =
+      heat.state === 'priority_hot'
+        ? 'qualified'
+        : heat.state === 'hot'
+          ? 'hot'
+          : heat.state === 'warm'
+            ? 'warm'
+            : 'cold';
+    return {
+      score: heat.total,
+      band,
+      fit: 'general',
+      reasons: heat.reasons,
+      suggestedAction:
+        heat.state === 'cold'
+          ? 'Cold directory prospect — review public org inbox only; do not enroll nurture'
+          : 'Manual review — no automated nurture on cold-directory rows',
+      suggestedPersonaId: 'lead_converter',
+      suggestedSequenceId: '',
+    };
+  }
+
   let score = 40;
   const reasons: string[] = [];
   const interest = `${lead.interest ?? ''} ${lead.offer ?? ''} ${lead.funnelPath ?? ''}`.toLowerCase();

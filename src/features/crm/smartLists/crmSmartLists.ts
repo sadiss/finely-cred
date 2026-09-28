@@ -1,5 +1,6 @@
 import type { CrmRecord } from '../../../domain/crmRecords';
 import { isClosedStage } from '../../../domain/crmRecords';
+import { isColdDirectoryCrmRecord } from '../../../lib/coldDirectory';
 
 export type CrmSmartList = {
   id: string;
@@ -32,8 +33,14 @@ export const CRM_SMART_LISTS: CrmSmartList[] = [
   {
     id: 'new_inbound',
     label: 'New inbound',
-    description: 'Fresh leads in new stage',
-    filter: (r) => r.kind === 'inbound_lead' && r.stage === 'new',
+    description: 'Signed-up Finely leads only — never cold directory rows',
+    filter: (r) => r.kind === 'inbound_lead' && r.stage === 'new' && !isColdDirectoryCrmRecord(r),
+  },
+  {
+    id: 'cold_directory_prospects',
+    label: 'Cold directory prospects',
+    description: 'Public directory orgs · no consent · not inbound signups',
+    filter: (r) => isColdDirectoryCrmRecord(r),
   },
   {
     id: 'due_followup',

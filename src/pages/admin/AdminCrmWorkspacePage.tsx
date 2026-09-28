@@ -37,6 +37,7 @@ import { FinelyNoticedStrip } from '../../components/tours/FinelyNoticedStrip';
 import { buildCrmNoticedItems } from '../../lib/finelyProactiveSignals';
 import { applyCrmRoutingRules } from '../../features/crm/routing/applyCrmRoutingRules';
 import { runCrmServerBackfillOnce } from '../../data/crmServerSync';
+import { isColdDirectoryCrmRecord } from '../../lib/coldDirectory';
 
 type CrmHubTab = 'pipeline' | 'forecast' | 'attribution';
 
@@ -92,6 +93,8 @@ export default function AdminCrmWorkspacePage() {
   );
   const records = useMemo(() => applyCrmSmartList(baseRecords, smartListId), [baseRecords, smartListId]);
   const forecast = useMemo(() => buildPipelineForecast(pipeline, baseRecords), [pipeline, baseRecords]);
+  const inboundCount = useMemo(() => baseRecords.filter((r) => r.kind === 'inbound_lead').length, [baseRecords]);
+  const coldCount = useMemo(() => baseRecords.filter((r) => isColdDirectoryCrmRecord(r)).length, [baseRecords]);
 
   const convert = async (record: CrmRecord) => {
     const recs = getRecommendedPackageForRecord(record);
@@ -118,8 +121,9 @@ export default function AdminCrmWorkspacePage() {
           accent="sky"
           kpis={[
             { label: 'In view', value: String(records.length), accent: 'sky' },
-            { label: 'Pipeline', value: pipeline.label, accent: 'violet' },
-            { label: 'Forecast', value: formatForecastCents(forecast.weightedForecastCents), accent: 'emerald', hint: 'weighted' },
+            { label: 'Inbound signups', value: String(inboundCount), accent: 'emerald' },
+            { label: 'Cold directory', value: String(coldCount), accent: 'violet' },
+            { label: 'Forecast', value: formatForecastCents(forecast.weightedForecastCents), accent: 'amber', hint: 'weighted' },
           ]}
           tabs={[
             { id: 'pipeline', label: 'Pipeline board', badge: records.length || undefined },
