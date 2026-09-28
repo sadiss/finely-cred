@@ -1566,11 +1566,15 @@ const sitewideHub11Ok =
 console.log(`${sitewideHub11Ok ? '✓' : '✗'} Launch checklist: sitewide hub wave 11 — Letter Studio hub`);
 if (!sitewideHub11Ok) failed += 1;
 
+const liveSql = fs.readFileSync(path.join(root, 'supabase/LIVE_SETUP_run_all.sql'), 'utf8');
+const pkgJson = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const liveSetupOk =
   launchSnapshot.includes('live_setup_sync') &&
   fs.existsSync(path.join(root, 'scripts/rebuild-live-setup.mjs')) &&
-  fs.readFileSync(path.join(root, 'supabase/LIVE_SETUP_run_all.sql'), 'utf8').includes('20260622000000_work_tasks') &&
-  fs.readFileSync(path.join(root, 'supabase/LIVE_SETUP_run_all.sql'), 'utf8').includes('20260621000000_server_automation_queue');
+  pkgJson.includes('"live-setup:rebuild"') &&
+  liveSql.includes('20260622000000_work_tasks') &&
+  liveSql.includes('20260621000000_server_automation_queue') &&
+  liveSql.includes('20260821230000_evidence_provenance');
 console.log(`${liveSetupOk ? '✓' : '✗'} Launch checklist: LIVE_SETUP synced with all migrations`);
 if (!liveSetupOk) failed += 1;
 

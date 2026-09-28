@@ -17,7 +17,7 @@ const header = `-- =============================================================
 -- Finely Cred - LIVE database setup (run ONCE, in order)
 -- HOW: Supabase Dashboard -> SQL Editor -> New query -> paste ALL -> Run
 -- Safe to re-run (idempotent). Auto-generated from supabase/migrations (${files.length} files).
--- Regenerate: node scripts/rebuild-live-setup.mjs
+-- Regenerate: npm run live-setup:rebuild
 -- After running, see docs/PRODUCTION_DEPLOY.md for env vars, secrets, deploy:functions.
 -- =====================================================================
 

@@ -37,6 +37,8 @@
     "mail:secrets": "node scripts/setup-mail-secrets.mjs",
     "ci:check": "node scripts/ci-predeploy-check.mjs",
     "rls:check": "node scripts/rls-smoke-check.mjs",
+    "live-setup:rebuild": "node scripts/rebuild-live-setup.mjs",
+    "release:parity": "node scripts/prove-github-parity.mjs",
     "migrations:check": "node scripts/run-migrations.mjs",
     "env:check": "node scripts/validate-local-env.mjs",
     "env:setup": "node scripts/setup-local-env.mjs",

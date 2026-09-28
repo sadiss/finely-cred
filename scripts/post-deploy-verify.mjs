@@ -17,6 +17,7 @@ const staticPaths = [
   '/.well-known/security.txt',
   '/brand/finely-cred-mark.png',
   '/DEPLOY_HANDOFF.txt',
+  '/RELEASE.json',
 ];
 
 const spaPaths = ['/', '/start-here', '/resources', '/pricing', '/privacy'];
@@ -54,6 +55,29 @@ async function check(url, { expectTitle = false } = {}) {
 console.log('── Static assets ──');
 for (const p of staticPaths) {
   await check(`${base}${p}`);
+}
+
+console.log('\n── Release identity ──');
+try {
+  const res = await fetch(`${base}/RELEASE.json`, { redirect: 'follow' });
+  if (!res.ok) {
+    console.log(`✗ ${res.status} ${base}/RELEASE.json`);
+    failed += 1;
+  } else {
+    const release = await res.json();
+    const shaOk = typeof release.sha === 'string' && /^[0-9a-f]{40}$/.test(release.sha);
+    console.log(`${shaOk ? '✓' : '✗'} RELEASE.json sha ${shaOk ? release.sha : '(invalid)'}`);
+    if (!shaOk) failed += 1;
+    if (release.liveSetupIncludesEvidenceProvenance !== true) {
+      console.log('✗ RELEASE.json missing evidence_provenance');
+      failed += 1;
+    } else {
+      console.log('✓ RELEASE.json evidence_provenance included');
+    }
+  }
+} catch (err) {
+  console.log(`✗ RELEASE.json parse failed: ${err.message}`);
+  failed += 1;
 }
 
 console.log('\n── SPA routes (shell) ──');

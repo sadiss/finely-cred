@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 /**
- * Post-build sanity check — ensures dist/ is deployable.
+ * Post-build sanity check — ensures dist/ is deployable and SHA-traced.
  * Usage: npm run build (runs automatically) · node scripts/verify-production-dist.mjs
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
+import { readReleaseIdentity } from './releaseIdentity.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const dist = path.join(root, 'dist');
@@ -25,12 +26,23 @@ const required = [
   'brand/finely-cred-mark.png',
   'sw.js',
   'DEPLOY_HANDOFF.txt',
+  'RELEASE.json',
 ];
 
 console.log('Finely Cred — production dist verify\n');
 
 if (!fs.existsSync(dist)) {
   console.error('✗ dist/ missing — run npm run build first');
+  process.exit(1);
+}
+
+const generated = spawnSync('node scripts/generate-deploy-handoff.mjs', {
+  cwd: root,
+  shell: true,
+  encoding: 'utf8',
+});
+if (generated.status !== 0) {
+  console.error(generated.stderr || generated.stdout || 'generate-deploy-handoff failed');
   process.exit(1);
 }
 
@@ -67,12 +79,48 @@ if (fs.existsSync(sitemapPath)) {
   }
 }
 
-spawnSync('node scripts/generate-deploy-handoff.mjs', { cwd: root, shell: true, stdio: 'pipe' });
-if (fs.existsSync(path.join(dist, 'DEPLOY_HANDOFF.txt'))) {
-  console.log('✓ dist/DEPLOY_HANDOFF.txt');
-} else {
-  console.log('✗ dist/DEPLOY_HANDOFF.txt missing');
-  failed += 1;
+const identity = readReleaseIdentity(root);
+const handoffPath = path.join(dist, 'DEPLOY_HANDOFF.txt');
+const releasePath = path.join(dist, 'RELEASE.json');
+
+if (fs.existsSync(handoffPath) && fs.existsSync(releasePath)) {
+  const handoff = fs.readFileSync(handoffPath, 'utf8');
+  let release;
+  try {
+    release = JSON.parse(fs.readFileSync(releasePath, 'utf8'));
+  } catch {
+    console.log('✗ dist/RELEASE.json is not valid JSON');
+    failed += 1;
+  }
+  if (release) {
+    const shaOk = typeof release.sha === 'string' && /^[0-9a-f]{40}$/.test(release.sha);
+    console.log(`${shaOk ? '✓' : '✗'} dist/RELEASE.json git SHA`);
+    if (!shaOk) failed += 1;
+    if (identity.sha !== 'UNKNOWN' && release.sha !== identity.sha) {
+      console.log(`✗ dist/RELEASE.json SHA ${release.sha} does not match HEAD ${identity.sha}`);
+      failed += 1;
+    } else if (shaOk) {
+      console.log(`✓ dist/RELEASE.json matches HEAD ${identity.shortSha}`);
+    }
+    if (!handoff.includes(release.sha)) {
+      console.log('✗ dist/DEPLOY_HANDOFF.txt missing release SHA');
+      failed += 1;
+    } else {
+      console.log('✓ dist/DEPLOY_HANDOFF.txt includes release SHA');
+    }
+    if (release.liveSetupIncludesEvidenceProvenance !== true) {
+      console.log('✗ RELEASE.json LIVE_SETUP missing evidence_provenance');
+      failed += 1;
+    } else {
+      console.log('✓ RELEASE.json LIVE_SETUP includes evidence_provenance');
+    }
+    if (Number(release.migrationCount) !== identity.migrationCount) {
+      console.log(`✗ RELEASE.json migrationCount ${release.migrationCount} != ${identity.migrationCount}`);
+      failed += 1;
+    } else {
+      console.log(`✓ RELEASE.json migrationCount ${release.migrationCount}`);
+    }
+  }
 }
 
 if (failed) {

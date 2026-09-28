@@ -39,6 +39,9 @@ const requiredPaths = [
   'scripts/productionLaunchOrchestrator.mjs',
   'scripts/rls-smoke-check.mjs',
   'scripts/run-migrations.mjs',
+  'scripts/rebuild-live-setup.mjs',
+  'scripts/releaseIdentity.mjs',
+  'scripts/prove-github-parity.mjs',
   'scripts/generate-public-sitemap.mjs',
   'scripts/verify-production-dist.mjs',
   'scripts/launch-ready-summary.mjs',
@@ -119,6 +122,9 @@ try {
   const hasAutomationRules = liveSql.includes('20260620000000_automation_rule_runs_cron_schedule') || liveSql.includes('automation_rules');
   const hasServerQueue = liveSql.includes('20260621000000_server_automation_queue') || liveSql.includes('server_automation_queue');
   const hasWorkTasks = liveSql.includes('20260622000000_work_tasks') || liveSql.includes('work_tasks');
+  const hasEvidenceProvenance = liveSql.includes('20260821230000_evidence_provenance');
+  const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
+  const hasLiveSetupScript = pkg.includes('"live-setup:rebuild"');
   console.log(`${hasRoleOs ? '✓' : '✗'} LIVE_SETUP includes role OS migration`);
   console.log(`${hasLeadCaptures ? '✓' : '✗'} LIVE_SETUP includes lead_captures referral columns`);
   console.log(`${hasLeadCapturesTable ? '✓' : '✗'} LIVE_SETUP includes lead_captures table`);
@@ -131,6 +137,8 @@ try {
   console.log(`${hasAutomationRules ? '✓' : '✗'} LIVE_SETUP includes automation_rules + pg_cron schedule`);
   console.log(`${hasServerQueue ? '✓' : '✗'} LIVE_SETUP includes server_automation_queue`);
   console.log(`${hasWorkTasks ? '✓' : '✗'} LIVE_SETUP includes work_tasks`);
+  console.log(`${hasEvidenceProvenance ? '✓' : '✗'} LIVE_SETUP includes evidence_provenance`);
+  console.log(`${hasLiveSetupScript ? '✓' : '✗'} package.json includes live-setup:rebuild`);
   if (
     !hasRoleOs ||
     !hasLeadCaptures ||
@@ -143,7 +151,9 @@ try {
     !hasNurturePersist ||
     !hasAutomationRules ||
     !hasServerQueue ||
-    !hasWorkTasks
+    !hasWorkTasks ||
+    !hasEvidenceProvenance ||
+    !hasLiveSetupScript
   )
     failed += 1;
 } catch {

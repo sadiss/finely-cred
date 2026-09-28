@@ -83,7 +83,7 @@ npm run dev                                     # http://127.0.0.1:5173
 
 **Included deploy configs:** `vercel.json`, `netlify.toml`, `public/_redirects`, `public/_headers`, `public/_routes.json`, `deploy/env.production.template`
 
-Each production build generates **`dist/DEPLOY_HANDOFF.txt`** inside the artifact.
+Each production build generates **`dist/DEPLOY_HANDOFF.txt`** and **`dist/RELEASE.json`** (git SHA) inside the artifact.
 
 ---
 

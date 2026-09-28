@@ -61,7 +61,7 @@ After deploy, smoke-check the live URL:
 npm run post-deploy:verify -- https://your-production-domain.com
 ```
 
-Each build ships `dist/DEPLOY_HANDOFF.txt` with env vars and backend steps. Operator checklist: `npm run launch:handoff`. Fast gate before deploy: `npm run launch:gate`.
+Each build ships `dist/DEPLOY_HANDOFF.txt` and `dist/RELEASE.json` with the git SHA so Bluehost files can be traced to GitHub. Operator checklist: `npm run launch:handoff`. Fast gate before deploy: `npm run launch:gate`. Prove local/GitHub parity with `npm run release:parity -- --require-clean`.
 
 ### Host-specific configs (included in repo)
 

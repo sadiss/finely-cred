@@ -1,8 +1,8 @@
 -- =====================================================================
 -- Finely Cred - LIVE database setup (run ONCE, in order)
 -- HOW: Supabase Dashboard -> SQL Editor -> New query -> paste ALL -> Run
--- Safe to re-run (idempotent). Auto-generated from supabase/migrations (52 files).
--- Regenerate: node scripts/rebuild-live-setup.mjs
+-- Safe to re-run (idempotent). Auto-generated from supabase/migrations (53 files).
+-- Regenerate: npm run live-setup:rebuild
 -- After running, see docs/PRODUCTION_DEPLOY.md for env vars, secrets, deploy:functions.
 -- =====================================================================
 
@@ -3713,4 +3713,28 @@ $$;
 
 revoke all on function public.admin_lookup_auth_user(text, uuid) from public;
 grant execute on function public.admin_lookup_auth_user(text, uuid) to service_role;
+
+
+-- ============================================================
+-- SECTION: 20260821230000_evidence_provenance.sql
+-- ============================================================
+
+-- Source-faithful evidence integrity metadata.
+-- Raw reports remain in the private PII bucket; this stores only the protected
+-- blob reference, crop coordinates, hashes, redaction policy, and review gate.
+
+alter table public.evidence
+  add column if not exists provenance jsonb,
+  add column if not exists tags text[];
+
+create index if not exists evidence_source_report_idx
+  on public.evidence ((provenance ->> 'sourceReportId'))
+  where provenance is not null;
+
+create index if not exists evidence_provenance_kind_idx
+  on public.evidence ((provenance ->> 'kind'))
+  where provenance is not null;
+
+comment on column public.evidence.provenance is
+  'Source report anchor, hashes, redaction profile, demo safety, and human mailing review state.';
 

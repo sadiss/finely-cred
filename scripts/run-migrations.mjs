@@ -34,11 +34,23 @@ if (!liveOk) failed += 1;
 
 if (liveOk) {
   const liveBody = fs.readFileSync(liveSetup, 'utf8');
+  const headerMatch = liveBody.match(/Auto-generated from supabase\/migrations \((\d+) files\)/);
+  const headerCount = headerMatch ? Number(headerMatch[1]) : null;
+  const headerOk = headerCount === files.length;
+  console.log(
+    `${headerOk ? '✓' : '✗'} LIVE_SETUP header count ${headerCount ?? 'missing'} matches ${files.length} migration file(s)`,
+  );
+  if (!headerOk) failed += 1;
+
   for (const f of files) {
     const ok = liveBody.includes(f);
     console.log(`${ok ? '✓' : '✗'} LIVE_SETUP includes ${f}`);
     if (!ok) failed += 1;
   }
+
+  const evidenceOk = liveBody.includes('20260821230000_evidence_provenance.sql');
+  console.log(`${evidenceOk ? '✓' : '✗'} LIVE_SETUP includes 20260821230000_evidence_provenance.sql`);
+  if (!evidenceOk) failed += 1;
 }
 
 console.log('\nApply in production:');
