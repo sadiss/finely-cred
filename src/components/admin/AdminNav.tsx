@@ -78,7 +78,7 @@ export function AdminNavBar() {
                     navigate(x.path);
                     setOpen(false);
                   }}
-                  className={`${finelyOsViewTab(active, 'emerald')} inline-flex items-center gap-2 whitespace-nowrap`}
+                  className={`${finelyOsViewTab(active, 'emerald')} inline-flex items-center gap-2 whitespace-nowrap max-w-[11rem]`}
                   title={x.hint || x.label}
                 >
                   <Icon size={14} />

@@ -192,10 +192,10 @@ export function HubAiCoachPanel({
     return resolveChatStaffPresentation({
       personaId,
       lane,
-      staffMemberId: activeStaffId,
+      staffMemberId: activeStaff?.id ?? activeStaffId,
       audience: 'partner',
     });
-  }, [personaId, lane, activeStaffId, dutyTick]);
+  }, [personaId, lane, activeStaff?.id, activeStaffId, dutyTick]);
 
   const presentation = chatStaff.presentation;
   const aiAssistBadgeLabel = chatStaff.aiAssistBadgeLabel;
@@ -414,7 +414,7 @@ export function HubAiCoachPanel({
         const staffBundle = resolveChatStaffPresentation({
           personaId,
           lane,
-          staffMemberId: activeStaffId,
+          staffMemberId: activeStaff?.id ?? activeStaffId,
           audience: 'partner',
         });
         const fallback = buildWarmUnclassifiedReply({
@@ -489,7 +489,7 @@ export function HubAiCoachPanel({
         const replyStaffBundle = resolveChatStaffPresentation({
           personaId: activePersona.id,
           lane,
-          staffMemberId: activeStaffId,
+          staffMemberId: activeStaff?.id ?? activeStaffId,
           audience: 'partner',
         });
         const priorBot = messages.filter((m) => m.role === 'assistant').map((m) => m.content);

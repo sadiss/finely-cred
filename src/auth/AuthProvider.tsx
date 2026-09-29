@@ -70,7 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const activeUser = session?.user ?? mockUser ?? null;
 
   useEffect(() => {
-    // Demo-mode: reconcile “invited” memberships and ensure platform admins get a membership record.
+    // Demo-mode: reconcile "invited" memberships and ensure platform admins get a membership record.
     const u = activeUser;
     const email =
       (u as any)?.email ||
@@ -105,6 +105,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
+    // finely-auth-loading-failsafe: never leave the app on an infinite spinner
+    const failsafe = window.setTimeout(() => {
+      window.clearTimeout(failsafe);
+      if (mounted) setIsLoading(false);
+    }, 4000);
 
     (async () => {
       try {
@@ -119,13 +124,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setSession(data.session ?? null);
         }
       } finally {
+        window.clearTimeout(failsafe);
         if (mounted) setIsLoading(false);
       }
     })();
 
     if (isDevAuthEnabled) {
       return () => {
-        mounted = false;
+        window.clearTimeout(failsafe);
+      mounted = false;
       };
     }
 
@@ -140,6 +147,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => {
+      window.clearTimeout(failsafe);
       mounted = false;
       sub.subscription.unsubscribe();
     };

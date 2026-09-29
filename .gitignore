@@ -55,3 +55,14 @@ public/demos/.render-work/
 # Windows reserved-name accident (never commit)
 NUL.css
 
+# --- Lead / PII CSV exports (extra; never commit real contact lists) ---
+artifacts/enriched-emails.local.csv
+artifacts/enrichment-report.local.md
+*leads*.csv
+*-outreach*.csv
+*-outreach-ready*.csv
+finely-haitian-leads*.csv
+finely-haitian-*.csv
+**/FinelyCredit/**/*.csv
+!*.example.csv
+!**/*.example.csv
