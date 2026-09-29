@@ -16,6 +16,7 @@ import {
   FINELY_OS_SECONDARY_BTN,
   finelyOsGlassShell,
 } from '../os/finelyOsLightUi';
+import { MarketingDeskEasyAskBar } from '../marketingDesk/MarketingDeskEasyAskBar';
 
 type Props = {
   onRun: (args: { source: LeadIntelSource; target: ProspectTarget; query: string; location: string; enrich: boolean }) => void;
@@ -65,11 +66,25 @@ export function LeadIntelSourceWizard({ onRun, busy }: Props) {
       )}
 
       {step === 2 && (
-        <div className="space-y-3 max-w-2xl">
+        <div className="space-y-4 max-w-2xl">
           <div className="text-sm text-white/80">
             Source: <span className="font-semibold text-fuchsia-200">{source.label}</span>
           </div>
-          <label>
+          <MarketingDeskEasyAskBar
+            busy={busy}
+            submitLabel="Run discovery"
+            placeholder={source.queryTemplate}
+            onSubmit={(request) => {
+              const q = request.ask || source.queryTemplate;
+              const loc = request.location || request.effectiveLocation;
+              setQuery(q);
+              setLocation(loc);
+              onRun({ source, target, query: q, location: loc, enrich });
+            }}
+          />
+          <details className="space-y-3">
+            <summary className="cursor-pointer select-none text-sm text-white/70">Fields</summary>
+          <label className="mt-3 block">
             <div className={FINELY_OS_ENTITY_SUBLABEL}>Target audience</div>
             <select value={target} onChange={(e) => setTarget(e.target.value as ProspectTarget)} className={FINELY_OS_ENTITY_SELECT}>
               <option value="clients">Partners</option>
@@ -80,14 +95,15 @@ export function LeadIntelSourceWizard({ onRun, busy }: Props) {
               <option value="b2b_partners">B2B partners</option>
             </select>
           </label>
-          <label>
+          <label className="mt-3 block">
             <div className={FINELY_OS_ENTITY_SUBLABEL}>Search query</div>
             <input value={query} onChange={(e) => setQuery(e.target.value)} className={FINELY_OS_ENTITY_INPUT} placeholder={source.queryTemplate} />
           </label>
-          <label>
+          <label className="mt-3 block">
             <div className={FINELY_OS_ENTITY_SUBLABEL}>Geography</div>
             <input value={location} onChange={(e) => setLocation(e.target.value)} className={FINELY_OS_ENTITY_INPUT} />
           </label>
+          </details>
           <label className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_BODY} text-sm`}>
             <input type="checkbox" checked={enrich} onChange={(e) => setEnrich(e.target.checked)} className="accent-fuchsia-500" />
             Enrich pages (emails, phones)

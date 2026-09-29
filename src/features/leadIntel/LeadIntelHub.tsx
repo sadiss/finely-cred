@@ -26,6 +26,7 @@ import { FinelyOsSectionTitle } from '../os/FinelyOsIconBadge';
 import { FinelyOsSidePanel } from '../os/FinelyOsSidePanel';
 import { LeadIntelCopilot } from './LeadIntelCopilot';
 import { LeadIntelSourceWizard } from './LeadIntelSourceWizard';
+import { MarketingDeskEasyAskBar } from '../marketingDesk/MarketingDeskEasyAskBar';
 import {
   LEAD_INTEL_TEMPLATES,
   STAGING_COLUMNS,
@@ -576,7 +577,22 @@ function scoreChip(_score: number) {
             </div>
           </div>
 
-          <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+          <section className="space-y-3">
+            <FinelyOsSectionTitle icon={Search} label="Ask" accent="violet" />
+            <MarketingDeskEasyAskBar
+              busy={busy}
+              submitLabel="Find"
+              onSubmit={(request) => {
+                const q = request.ask || 'local business owners';
+                const loc = request.location || request.effectiveLocation;
+                void run({ query: q, location: loc });
+              }}
+            />
+          </section>
+
+          <details className="space-y-4">
+            <summary className="cursor-pointer select-none text-sm font-semibold text-white">More filters</summary>
+          <div className="space-y-4 pt-4">
             <FinelyOsSectionTitle icon={Search} label="Lead agent query" accent="violet" />
             <div className="grid lg:grid-cols-12 gap-4 items-end">
               <div className="lg:col-span-3">
@@ -654,6 +670,7 @@ function scoreChip(_score: number) {
               </button>
             </div>
           </div>
+          </details>
 
           {results.length > 0 ? (
             <div className={FINELY_OS_BOARD_SHELL}>

@@ -38,7 +38,7 @@ export function MarketingDeskEmbeddedPanel() {
   };
 
   return (
-    <div className="space-y-3">
+    <div className="mx-auto w-full max-w-7xl space-y-6 px-4 py-2 sm:px-6 lg:px-8">
       {!flagOn ? (
         <FinelyOsAlertBanner
           tone="warning"

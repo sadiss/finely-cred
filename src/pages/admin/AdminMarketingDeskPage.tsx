@@ -54,7 +54,7 @@ export default function AdminMarketingDeskPage() {
       title="Marketing Desk"
       subtitle="Caleb's daily workroom — Find · Board · Mail."
     >
-      <div className={FINELY_OS_COMPACT_PAGE}>
+      <div className={`${FINELY_OS_COMPACT_PAGE} mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8`}>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <button
             type="button"

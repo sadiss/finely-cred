@@ -79,6 +79,8 @@ export const LEGACY_OVERNIGHT50_CITIES = US_METRO_SHARD_CITIES.slice(8, 13).map(
 
 export const METRO_SHARD_PACK_SIZE = 5;
 export const METRO_HUNT_QUEUE_KEY = 'finely.marketing_metro_hunt_queue.v1';
+/** Last Find metro. Extended record: location, source, lat/lng, status, lastAsk. */
+export const MARKETING_FIND_GEO_STORAGE_KEY = 'finely.marketing_desk_find_geo.v1';
 
 const NATIONAL_FALLBACK = 'United States';
 
@@ -187,20 +189,43 @@ export function advanceHuntMetroQueue(): UsMetroShardCity {
   return city;
 }
 
+type StoredFindGeo = {
+  location?: string;
+  /** `shard` is an automatic rotation write and must not pin every later hunt. */
+  source?: string;
+};
+
+/** Owner-chosen or detected metro. Empty when nothing preferred is stored. */
+export function readStoredMarketingFindMetro(): string {
+  const raw = loadJson<StoredFindGeo>(MARKETING_FIND_GEO_STORAGE_KEY, {}, 1);
+  const loc = (raw.location || '').trim();
+  if (!loc || isNationalGeoFallback(loc)) return '';
+  if (raw.source === 'shard') return '';
+  return loc;
+}
+
 /**
- * Resolve hunt location — explicit override wins; otherwise rotate city queue (not national).
+ * Resolve hunt location — explicit place wins, then last stored metro, then today's shard.
+ * Empty city is valid: callers pass '' / undefined and still get a metro.
  */
 export function resolveMarketingHuntLocation(override?: string | null): UsMetroShardCity {
   const explicit = (override || '').trim();
   if (explicit && !isNationalGeoFallback(explicit)) return explicit;
+  const stored = readStoredMarketingFindMetro();
+  if (stored) return stored;
   return peekNextHuntMetro();
 }
 
-/** Cities for a daily pack run — full shard when national/default, else single override. */
+/** Cities for a daily pack — one city when the ask named a place; otherwise the shard, led by the stored metro. */
 export function resolveDailyPackMetroTargets(override?: string | null): UsMetroShardCity[] {
   const explicit = (override || '').trim();
   if (explicit && !isNationalGeoFallback(explicit)) return [explicit];
-  return getDailyMetroShardPack();
+  const pack = getDailyMetroShardPack();
+  const preferred = readStoredMarketingFindMetro();
+  if (!preferred) return pack;
+  const preferredKey = metroShortLabel(preferred).toLowerCase();
+  const rest = pack.filter((city) => metroShortLabel(city).toLowerCase() !== preferredKey);
+  return [preferred, ...rest].slice(0, pack.length);
 }
 
 /** Short labels for UI chips (city name only). */

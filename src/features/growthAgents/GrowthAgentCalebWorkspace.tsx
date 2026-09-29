@@ -4,6 +4,7 @@ import { GrowthAgentWorkspaceShell } from './GrowthAgentWorkspaceShell';
 import { GrowthDailyPlaybook } from './GrowthDailyPlaybook';
 import { getGrowthAgent } from './growthAgentRegistry';
 import { getCalebMaturity } from './growthAgentMaturity';
+import { MarketingDeskEasyAskBar } from '../marketingDesk/MarketingDeskEasyAskBar';
 import {
   countMarketingStagingPending,
   getMarketingFindLastRun,
@@ -25,7 +26,6 @@ import { listProspects } from '../../data/crmProspectsRepo';
 import { GrowthAgentInfraStrip } from './GrowthAgentInfraStrip';
 import {
   FINELY_OS_ENTITY_BODY,
-  FINELY_OS_ENTITY_INPUT,
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_SECONDARY_BTN,
@@ -424,18 +424,22 @@ export function GrowthAgentCalebWorkspace() {
 
       <GrowthAgentInfraStrip />
 
-      <div className={finelyOsCatalogCardCompact('emerald')}>
-        <div className={FINELY_OS_ENTITY_SUBLABEL}>Your city for finds</div>
-        <input
-          className={`${FINELY_OS_ENTITY_INPUT} mt-2 max-w-md`}
-          value={focus.city}
-          onChange={(e) => {
-            setGrowthWeekFocus({ city: e.target.value });
-            setMarketingFindGeo(e.target.value);
+      <section className="space-y-3">
+        <div className={FINELY_OS_ENTITY_SUBLABEL}>Ask for finds</div>
+        <MarketingDeskEasyAskBar
+          submitLabel="Save ask"
+          onSubmit={(request) => {
+            if (request.location) {
+              setGrowthWeekFocus({ city: request.location });
+              setMarketingFindGeo(request.location, { source: 'query' });
+            }
+            if (request.ask) setMarketingFindSuggestedQuery(request.ask);
             setTick((t) => t + 1);
           }}
         />
-        <p className={`mt-2 text-xs ${FINELY_OS_ENTITY_BODY}`}>Restore lane only in Wave 0 — matches Esther&apos;s weekly focus.</p>
+        <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
+          Saved area: {focus.city || 'not set — Find still runs'}. Wave 0 stays on the restore lane.
+        </p>
         {focus.pillarVideoId && pillarHuntPreview ? (
           <div className="mt-3 space-y-2">
             <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
@@ -446,7 +450,7 @@ export function GrowthAgentCalebWorkspace() {
             </button>
           </div>
         ) : null}
-      </div>
+      </section>
 
       <GrowthDailyPlaybook />
 
