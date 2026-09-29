@@ -735,8 +735,10 @@
   gap: 0.75rem 1rem;
   padding: 1rem 1.25rem;
   border-radius: 0.95rem;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: #0b1220;
+  color: #f8fafc;
+  -webkit-text-fill-color: #f8fafc;
 }
 
 .fc-wlp-growth-room-signal-band[data-fcm-accent='emerald'] { border-color: rgba(15, 187, 139, 0.28); }
@@ -1621,7 +1623,10 @@ html[data-fc-theme='dark'] .fc-wlp-growth-room-accent-band p {
 }
 
 .fc-wlp-growth-geo-market-chip {
-  display: block;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 0.55rem;
   width: 100%;
   text-align: left;
   padding: 0.75rem 0.85rem;
@@ -1629,12 +1634,33 @@ html[data-fc-theme='dark'] .fc-wlp-growth-room-accent-band p {
   border: 1px solid rgba(var(--fc-growth-accent-rgb, 15, 187, 139), 0.28);
   background: rgba(0, 0, 0, 0.22);
   cursor: pointer;
-  color: inherit;
+  color: #f8fafc;
+  -webkit-text-fill-color: #f8fafc;
+}
+
+.fc-wlp-growth-geo-market-queue,
+.fc-wlp-growth-geo-hero,
+.fc-wlp-growth-geo-inspector-pane,
+.fc-wlp-growth-geo-spotlight,
+.fc-wlp-growth-signal,
+.fc-wlp-growth-block-panel {
+  color: #f8fafc;
+  -webkit-text-fill-color: #f8fafc;
+}
+
+.fc-wlp-growth-geo-market-chip span,
+.fc-wlp-growth-geo-market-chip em,
+.fc-wlp-growth-signal p,
+.fc-wlp-growth-signal-link {
+  color: rgba(226, 232, 240, 0.92);
+  -webkit-text-fill-color: rgba(226, 232, 240, 0.92);
 }
 
 .fc-wlp-growth-geo-market-chip[data-active='true'] {
-  background: rgba(var(--fc-growth-accent-rgb), 0.14);
-  border-color: rgba(var(--fc-growth-accent-rgb), 0.48);
+  background: #065f46;
+  border-color: #34d399;
+  color: #f8fafc;
+  -webkit-text-fill-color: #f8fafc;
 }
 
 .fc-wlp-growth-geo-market-chip[data-fcm-accent='emerald'] { --fc-growth-accent-rgb: 15, 187, 139; }
@@ -2489,5 +2515,62 @@ html[data-fc-theme='dark'] .fc-wlp-growth-room-accent-band p {
   border-radius: 1rem;
   border: 1px solid rgba(143, 92, 246, 0.28);
   background: rgba(0, 0, 0, 0.18);
+}
+
+/* A 20–35% black wash on the light page composites to gray. These cards use light type, so the fill has to be opaque. */
+html[data-fc-theme='light'] .fc-wlp :is(
+  .fc-wlp-growth-row,
+  .fc-wlp-growth-rail-list li,
+  .fc-wlp-growth-research-lane,
+  .fc-wlp-growth-desk-room-chip,
+  .fc-wlp-growth-command-runway-node,
+  .fc-wlp-growth-command-kpi,
+  .fc-wlp-growth-room-tile,
+  .fc-wlp-growth-funnel-lane-chip,
+  .fc-wlp-growth-funnel-queue,
+  .fc-wlp-growth-funnel-queue-item,
+  .fc-wlp-growth-testimonials-queue,
+  .fc-wlp-growth-control-status-cell,
+  .fc-wlp-growth-acquisition-webhook,
+  .fc-wlp-growth-acquisition-feeds,
+  .fc-wlp-growth-acquisition-attribution,
+  .fc-wlp-growth-acquisition-lane,
+  .fc-wlp-growth-geo-market-chip,
+  .fc-wlp-growth-geo-spotlight,
+  .fc-wlp-growth-compose-approve-strip,
+  .fc-wlp-growth-social-tool-chip,
+  .fc-wlp-growth-social-composer,
+  .fc-wlp-growth-social-calendar,
+  .fc-wlp-growth-social-autopilot,
+  .fc-wlp-growth-social-inbox,
+  .fc-wlp-growth-social-settings,
+  .fc-wlp-growth-social-sop-list,
+  .fc-wlp-growth-social-sop-preview,
+  .fc-wlp-growth-ledger-tile,
+  .fc-wlp-growth-routing-mesh,
+  .fc-wlp-growth-routing-node,
+  .fc-wlp-growth-routing-load-rail,
+  .fc-wlp-growth-sequence-step-body,
+  .fc-wlp-growth-leads-search,
+  .fc-wlp-growth-leads-queue,
+  .fc-wlp-growth-leads-inspector,
+  .fc-wlp-growth-leads-import,
+  .fc-wlp-growth-leads-queue-row,
+  .fc-wlp-growth-funnel-stack-step,
+  .fc-wlp-growth-funnel-stack-studio,
+  .fc-wlp-growth-magnets-catalog,
+  .fc-wlp-growth-workflow-lane,
+  .fc-wlp-growth-workflow-console,
+  .fc-wlp-growth-drop-studio
+) {
+  background-color: #0b1220;
+  color: #f8fafc;
+  -webkit-text-fill-color: #f8fafc;
+}
+
+html[data-fc-theme='light'] .fc-wlp .fc-wlp-growth-geo-market-chip[data-active='true'] {
+  background-color: #065f46;
+  color: #f8fafc;
+  -webkit-text-fill-color: #f8fafc;
 }
 

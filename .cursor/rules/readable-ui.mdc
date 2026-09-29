@@ -1,0 +1,24 @@
+---
+description: Hard ban on unreadable type and faded buttons
+alwaysApply: true
+---
+
+# Readable UI (hard rule)
+
+These are errors. They are not a design style. Do not ship them, do not copy them, and do not match an existing screen that has them.
+
+## Forbidden
+
+- Dark type on a dark surface.
+- Light or white type on a light surface.
+- Faded, glass, translucent, or nearly clear buttons. A control someone is meant to press is a solid color. Its label contrasts with that fill.
+- Titles, subtitles, chips, rows, labels, and buttons are all covered.
+
+## Required
+
+- Light surface: dark type (`#0a1628` or equivalent).
+- Dark surface: light type (`#f8fafc` or equivalent).
+- Buttons are opaque. Primary stays solid green with light type. Secondary and quiet actions are solid fills too, not a 5–15% white wash.
+- This applies to every admin page and every partner page, including new screens.
+
+If a screen already has one of these, fix it. It is not a template.

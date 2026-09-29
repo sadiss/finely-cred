@@ -311,12 +311,11 @@ html[data-fc-workspace-light-preview='1'] [data-surface-kind='letters-studio'] .
 }
 
 [data-fc-workspace-light-preview='1'] .fc-button-soft {
-  color: #38206d !important;
-  border-color: rgba(109, 40, 217, 0.26) !important;
-  background:
-    radial-gradient(circle at 86% 12%, rgba(255, 255, 255, 0.72), transparent 26%),
-    linear-gradient(140deg, #f4efff 0%, #e7ddfb 52%, #d9eef8 100%) !important;
-  box-shadow: 0 14px 30px -22px rgba(91, 47, 171, 0.55) !important;
+  color: #f8fafc !important;
+  -webkit-text-fill-color: #f8fafc !important;
+  border-color: #5b21b6 !important;
+  background: #6d28d9 !important;
+  box-shadow: none !important;
 }
 
 [data-fc-workspace-light-preview='1'] .fc-button-soft:hover {
