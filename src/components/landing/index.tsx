@@ -2329,7 +2329,6 @@ export function Footer({ onNavigate }: { onNavigate: (page: string) => void }) {
                 { label: 'Business credit', path: 'pricing_business' },
                 { label: 'Debt & legal', path: 'pricing_debt' },
                 { label: 'Tradelines', path: 'tradelines' },
-                { label: 'Payment plans', path: 'pricing' },
               ].map((item) => (
                 <li key={item.label}>
                   <button type="button" onClick={() => onNavigate(item.path)} className="hover:text-sky-400 transition-colors">
