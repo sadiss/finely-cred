@@ -81,7 +81,9 @@ html[data-fc-theme='light'] .fc-wlp :is(
   [class*='from-zinc-950'],
   [class*='from-zinc-950'] *,
   [class*='bg-slate-950'],
-  [class*='bg-slate-950'] *
+  [class*='bg-slate-950'] *,
+  .fc-luxury-glass:not([data-fc-kpi-surface='light']):not(.fc-ivory-solid-tile):not(.fc-wlp-signal),
+  .fc-luxury-glass:not([data-fc-kpi-surface='light']):not(.fc-ivory-solid-tile):not(.fc-wlp-signal) *
 ) :is(
   .text-white,
   .text-slate-50,
@@ -159,4 +161,17 @@ html[data-fc-theme='light'] .fc-wlp :is(.fc-wlp-panel, .fc-wlp-empty) :is(.fc-wl
 html[data-fc-theme='light'] .fc-wlp :is(.fc-wlp-panel, .fc-wlp-empty) :is(.fc-wlp-btn-secondary, .fc-wlp-btn-quiet) * {
   color: #f8fafc !important;
   -webkit-text-fill-color: #f8fafc !important;
+}
+
+/* Soft actions in the workspace are solid violet. The light-theme glass rule is a white wash with a light fill. */
+html[data-fc-theme='light'] .fc-wlp .fc-button-soft,
+html[data-fc-theme='light'] .fc-wlp .fc-button-soft:hover {
+  color: #f8fafc !important;
+  -webkit-text-fill-color: #f8fafc !important;
+  border-color: #5b21b6 !important;
+  background: #6d28d9 !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
