@@ -1,0 +1,38 @@
+# UI Wave 1 — remaining P1 inventory
+
+Wave 1 P0 is in this draft PR. Items below were found in code review and were **not** implemented. Each one needs an enhance-in-place fix, not a new layout, color system, or shell.
+
+Severity: **high** = blocks a primary action or shows the wrong surface; **medium** = confusing or unprofessional on a signed-in home; **low** = fallback, preview, or label overlap that still reaches a real page.
+
+| Route | Severity | Symptom | Suggested enhance-in-place fix |
+|---|---|---|---|
+| `/dashboard` | medium | `MasteryOSDashboard` renders both `DashboardDoNextStrip` and `FinelyNowDoThisStrip` before the KPI row, so the client home opens with two “what next” bars. | Keep one next-step strip (the one whose action matches the partner’s open work). Leave the KPI mosaic and admin shortcut card. |
+| `/portal/dashboard` | medium | Live partner command deck (`PartnerDashboardCommandDeck`) still mounts the emerald `FinelyNowDoThisStrip` under “What matters now,” the same OS chrome class removed from website `/admin`. | Remove only that strip on the live deck. Keep the noticed alerts, signal rail, and restore journey. Do not restyle the light shell. |
+| `/portal/dashboard` (legacy fallback only) | low | `PartnerDashboardPage` is the `ProductRoutedPage` fallback. It repeats the Now-do-this strip and uses room links whose `href` is the element’s own `id`, so those chips do not scroll to a separate section. | If the fallback still ships, point each chip at a real section id or drop the chip row. Live traffic uses the product adapter. |
+| `/affiliate` | low | Public affiliate apply page is a real form (local lead capture, then role signup). No crash found in static review. Width and form density were not measured in a browser on this pass. | Browser-pass the apply submit empty-state and success banner. Do not add a new affiliate landing. |
+| `/affiliate/hub` | medium | Signed-in hub mounts `FinelyNowDoThisStrip` above `FinelyUnifiedHubLayout` and caps the page at `max-w-5xl`, narrower than other portal workstations. The strip’s current index is hard-coded to `0` whether or not a referral code exists. | Drop the strip if it repeats “Share application.” Widen the existing page container only if the hub modals still fit; do not rebuild the launcher. |
+| `/careers` | low | Bare `/careers` redirects to `/credit-specialist` (specialist pricing), while the public careers menu already lists separate tracks (`/agency-partners`, `/affiliate`, `/au-sellers`, `/careers/case-help`, `/careers/real-estate`). | Leave the redirect. A new careers index would be a new page. Confirm menu labels still match those track URLs. |
+| `/credit-specialist/join` | low | Multi-step join writes a local program application and sends the last step to `/signup?role=agent`. Static review did not show a dead button. CSV lead import on this page can hold lead PII in the browser; it must stay out of git. | Browser-pass each step (tier → commit → leads → profile → done) and the signup handoff. Do not change auth or add a new join shell. |
+| `/admin/crm` | low | Live surface is `CrmWorkstation` (real records when not in demo). The legacy `AdminCrmWorkspacePage` still includes `FinelyNowDoThisStrip`, but only as the product-route fallback. | Do not restyle the workstation. If a session still renders the legacy page, remove the strip only. |
+| `/admin/crm/records/:id` | low | The record URL is wired to `pageId="crm"` (pipeline workstation) with `AdminCrmRecordPage` as legacy, not a separate record surface id. | Confirm a record click opens that partner’s inspector. If it only reopens the board, pass the record id into the existing workstation — do not add a new CRM layout. |
+| `/admin/cases` | low | Live surface is `CasesWorkstation`. Demo cases are gated on `dataMode === 'demo'`. No Wave 1 crash found statically. | Browser-pass an empty case list and a case open. Keep the current workstation. |
+| `/admin/comms` | low | Live surface is `AdminCommunicationsProductSurface`, with an empty state for “no confirmed partner meetings.” Template/delivery emptiness was not exercised in a browser. | Confirm an empty local store shows that empty copy instead of a blank panel. |
+| `/admin/workflow` vs `/admin/inbox` | low | Both are real routes. Inbox is the workflow river’s inbox variant, not a redirect. Labels can read like two command centers next to Overview. | Keep both routes. If operators confuse them, rename the inbox label in the existing nav config only. |
+| Preview / light admin (`/preview/workspace-light`, layout preview) | low | These separate surfaces still have the OS chrome. Website `/admin` does not mount them. `AdminCommandCenterProduct.tsx` (used by `AdminDashboardProductSurface.tsx`) still renders `AdminStageHero` with family `command-intelligence` and the “Start here” feature card. Deprecated `AdminDashboardLightSurface.tsx` still renders `WlCommandHub` plus `FinelyNowDoThisStrip` and is not imported by a route. `AdminDashboardLayoutPreview.tsx` still renders `FinelyNowDoThisStrip`. `AdminStaffCommandCenterPage.tsx` is the staff route, not the website admin home, and does not render those blocks. | Leave them. Wave 1 only removes that chrome from the live website admin home. |
+| Public marketing pages other than debt / Haitian / free guides | low | “Just Approved” stays hidden for 12s, then sits bottom-right. It is fully suppressed on `/pricing/debt*`, `/services/debt*`, `/debt`, `/debt-*`, `/haitian`, `/kreyol`, and `/free-*`. | Leave the delay. Do not redesign the toast. |
+
+## Checklist IDs deferred (not Wave 1 P0)
+
+Soft SEO and Buffer stay held. Do not invent a new page for these.
+
+| ID | Route | Symptom | Suggested enhance-in-place fix |
+|---|---|---|---|
+| P-10 | `/haitian` | Pale Kreyòl payoff and a price the page refuses to show. Chase toast is already suppressed on this route. | Keep the existing Haitian desk. Strengthen the Kreyòl payoff line in the current copy only if a real next step already exists. Do not invent a price. |
+| P-12 | `/affiliate` | Apply submit and Ask Finely chrome were not browser-passed. Chase toast can still appear after 12s. | Confirm the existing form’s success and error banners. Hide the toast on `/affiliate` only if it covers the submit button. |
+| P-13 | `/credit-specialist` | Header can still show a client “Start free trial” control beside the specialist pricing page. `/careers` now redirects (covered by #39) instead of 404. | If the trial control is the public site CTA, leave it. If it implies the visitor is already a client, hide that one control on this route. |
+| P-16 | Funding region pages | Known CORS / empty data. | Do not add a new data source. Show the existing empty state when the request fails. |
+| A-04 | Admin preview lanes | Some preview URLs 404 or stay unfinished. | Hide or redirect only the preview links that have no route. Do not rebuild the preview shell. |
+| A-05 | Client dashboard gate | The partner/client home still feels half-ready (see `/dashboard` and `/portal/dashboard` rows above). | One next-step strip. Keep the KPI mosaic. |
+| E-04 | `/free-debt-guide` | Kept as the gold-standard magnet. Empty/error polish was not required to ship the signup desks. | Only if a guide step renders a raw error, swap in the existing empty-state copy. |
+| E-07 | Global | Unfinished public nav should stay hidden until the destination exists. #39 already aliases the known 404s. | Do not add new pages. Hide a link only when its route is still missing. |
+| E-08 | Magnets | Consent and success states, plus mobile skim, were not reworked. | Use the existing capture form’s consent checkbox and success step. Do not add a new form. |

@@ -4,14 +4,12 @@ import {
   BarChart3,
   BellRing,
   BookOpen,
-  Command,
   FileSearch,
   Gavel,
   Inbox,
   Mail,
   MessageSquare,
   MessageSquareText,
-  Search,
   Settings,
   Target,
   Upload,
@@ -22,7 +20,6 @@ import {
 import { useLocation, useNavigate } from 'react-router-dom';
 import { TimeSeriesAreaChart } from '../../../../components/ui';
 import { FinelyNoticedStrip } from '../../../../components/tours/FinelyNoticedStrip';
-import { FinelyNowDoThisStrip } from '../../../../components/tours/FinelyNowDoThisStrip';
 import { FinelyOsAlertBanner } from '../../../../features/os/FinelyOsAlertBanner';
 import { FinelyOsDataErrorBanner } from '../../../../features/os/FinelyOsDataErrorBanner';
 import { FINELY_OS_PRIMARY_BTN } from '../../../../features/os/finelyOsLightUi';
@@ -44,7 +41,6 @@ import {
 } from '../components/ProductUi';
 import {
   AdminSignalRail,
-  AdminStageHero,
   AdminStageShell,
 } from '../components/ProductAdminStage';
 import { DonutChartCard } from '../../../../components/charts';
@@ -257,8 +253,6 @@ function AdminDashboardCommandDeck({
     retryStats,
     commsOps,
     goLiveBlocked,
-    primaryCtaPath,
-    primaryCtaLabel,
   } = useAdminDashboardData();
 
   const realModel = useMemo(
@@ -357,57 +351,9 @@ function AdminDashboardCommandDeck({
             goLiveBlocked,
           })}
         />
-        <FinelyNowDoThisStrip surface="light" currentIndex={stats.slaBreaches > 0 ? 1 : 0} />
       </div>
 
-      <AdminStageShell family="command-intelligence" signature="sovereign-command-deck" accent="violet">
-        <AdminStageHero
-          tone="command"
-          accent="violet"
-          eyebrow={dataMode === 'demo' ? 'Admin home · sample data' : 'Admin home'}
-          title={
-            <>
-              Your <span className="fc-wlp-command-title-accent">operating picture.</span>
-            </>
-          }
-          description="Partners, cases, leads, and team workload appear here, with the next move at the top."
-          status={model.overviewStatus}
-          freshness={model.freshness}
-          icon={Command}
-          primaryAction={
-            <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => go(primaryCtaPath)}>
-              {primaryCtaLabel} <ArrowRight size={15} />
-            </button>
-          }
-          secondaryAction={
-            <button
-              type="button"
-              className="fc-wlp-btn-secondary"
-              onClick={() =>
-                window.dispatchEvent(
-                  new CustomEvent('finely:open-work-command-palette', { detail: { scope: 'admin' } }),
-                )
-              }
-            >
-              <Search size={15} /> Find anything
-            </button>
-          }
-          feature={
-            <ProductIntelligenceCallout
-              signal={intelligence.serviceRisk}
-              dark
-              onOpen={() => setSelectedInsight(intelligence.serviceRisk)}
-            />
-          }
-        >
-          <div className="fc-wlp-command-pulse" aria-label="Live ops signals">
-            <span><i data-accent="emerald" /> Partner delivery</span>
-            <span><i data-accent="rose" /> Service risk</span>
-            <span><i data-accent="sky" /> Pipeline motion</span>
-            <em>Updated {model.freshness}</em>
-          </div>
-        </AdminStageHero>
-
+      <AdminStageShell family="admin-home" signature="sovereign-command-deck" accent="violet">
         <section className="fc-wlp-section" aria-label="Partner intake">
           <ProductSectionHeader
             eyebrow="Partner intake"
@@ -483,11 +429,7 @@ function AdminDashboardCommandDeck({
           />
           <div className="fc-wlp-grid-8-4">
             <div className="fc-wlp-action-with-insight">
-              <ProductIntelligenceCallout
-                signal={intelligence.queue}
-                onOpen={() => setSelectedInsight(intelligence.queue)}
-              />
-              <ProductActionList items={priorityItems} />
+              <ProductActionList items={priorityItems} hideLeadFeature />
             </div>
             <ProductPanel
               title="Service health"

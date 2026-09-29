@@ -47,6 +47,16 @@ export function isPublicMarketingPath(pathname: string): boolean {
   return false;
 }
 
+/** Home, lane chooser, free guides, and pricing desks — the signup pages Jireh wants on the existing light bed. */
+export function isSignupCriticalPublicPath(pathname: string): boolean {
+  const path = (pathname.split('?')[0] ?? '/').replace(/\/+$/, '') || '/';
+  if (path === '/' || path === '/start-here') return true;
+  if (path === '/pricing' || path.startsWith('/pricing/')) return true;
+  if (path === '/services' || path.startsWith('/services/')) return true;
+  if (path.startsWith('/free-')) return true;
+  return false;
+}
+
 export function isInternalWorkspacePath(pathname: string): boolean {
   const path = pathname.split('?')[0] ?? pathname;
   if (isPublicMarketingPath(path)) return false;

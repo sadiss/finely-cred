@@ -8,7 +8,6 @@ import { reconcileCtaBridgeConversion } from '../lib/funnelCtaBridge';
 import { finelyCtaNavigate } from '../lib/finelyCtaIntent';
 import { useAuth } from '../auth/AuthProvider';
 import { LandingSellAtmosphere } from '../components/landing/LandingSellAtmosphere';
-import { FinelyNowDoThisStrip } from '../components/tours/FinelyNowDoThisStrip';
 import { FinelyNoticedStrip } from '../components/tours/FinelyNoticedStrip';
 import {
   FINELY_OS_COMPLIANCE_FOOTNOTE,
@@ -32,7 +31,7 @@ const PATHS = [
     accent: 'emerald' as const,
     featured: true,
     primary: { label: 'Start free guide', intent: 'personal_free_guide' as const },
-    secondary: { label: 'See pricing', to: '/pricing' },
+    secondary: { label: 'See restore pricing', to: '/pricing/personal-credit-restore' },
   },
   {
     id: 'debt',
@@ -41,7 +40,7 @@ const PATHS = [
     icon: Scale,
     accent: 'rose' as const,
     primary: { label: 'Get debt guide', to: '/free-debt-guide' },
-    secondary: { label: 'Book a strategy call', to: '/enlightenment-session' },
+    secondary: { label: 'See debt packages', to: '/pricing/debt-legal' },
   },
   {
     id: 'business-credit',
@@ -50,7 +49,7 @@ const PATHS = [
     icon: Building2,
     accent: 'violet' as const,
     primary: { label: 'Get business guide', to: '/free-business-guide' },
-    secondary: { label: 'Book a strategy call', to: '/enlightenment-session' },
+    secondary: { label: 'See business pricing', to: '/pricing/business-credit' },
   },
   {
     id: 'earn',
@@ -59,16 +58,7 @@ const PATHS = [
     icon: Users,
     accent: 'emerald' as const,
     primary: { label: 'Credit Specialist path', to: '/credit-specialist' },
-    secondary: { label: 'See CS guide preview', to: '/credit-specialist-guide' },
-  },
-  {
-    id: 'login',
-    title: 'Sign in to portal',
-    desc: 'Open your partner portal — dashboard, letters, checklist, and cases.',
-    icon: LogIn,
-    accent: 'sky' as const,
-    primary: { label: 'Sign in', to: '/login' },
-    secondary: { label: 'Partner portal', to: '/portal/dashboard' },
+    secondary: { label: 'See specialist guide', to: '/credit-specialist-guide' },
   },
 ] as const;
 
@@ -103,9 +93,8 @@ export default function StartHerePage() {
   };
 
   return (
-    <PageShell badge="Start here" title="Tell us what arrived" subtitle="A credit report, a collector letter, or a company file — pick a lane, and the next step appears on the right." hideHero>
+    <PageShell badge="Start here" title="Pick your lane" subtitle="A credit report, a collector letter, or a company file — pick a lane, and the next step appears on the right." hideHero surface="ivory">
       <div className={`${FINELY_OS_PAGE} fc-senior-simple space-y-0`}>
-        <FinelyNowDoThisStrip surface="light" />
         <FinelyNoticedStrip
           surface="light"
           items={[
@@ -127,10 +116,10 @@ export default function StartHerePage() {
           <div className="relative grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:items-stretch">
             <div className={`${finelyOsCatalogCard('violet')} flex flex-col justify-between`} data-fc-accent="violet">
               <div>
-                <div className={FINELY_OS_ENTITY_SUBLABEL}>Start here</div>
-                <h2 className={`mt-2 text-3xl sm:text-4xl font-extrabold leading-tight ${FINELY_OS_ENTITY_VALUE}`}>
-                  Choose your lane
-                </h2>
+                <div className={FINELY_OS_ENTITY_SUBLABEL}>Your next step</div>
+                <h1 className={`mt-2 text-3xl sm:text-4xl font-extrabold leading-tight ${FINELY_OS_ENTITY_VALUE}`}>
+                  Pick your lane
+                </h1>
                 <p className={`mt-4 text-base leading-relaxed ${FINELY_OS_ENTITY_BODY}`}>
                   Select a lane — your next step appears here.
                 </p>
@@ -195,6 +184,24 @@ export default function StartHerePage() {
         </section>
 
         <div className="py-8 space-y-6">
+          <div className={`${finelyOsCatalogCard('sky')}`} data-fc-accent="sky">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="min-w-0">
+                <div className={FINELY_OS_ENTITY_SUBLABEL}>Already a partner</div>
+                <h2 className={`mt-1 text-xl font-extrabold ${FINELY_OS_ENTITY_VALUE}`}>Sign in to portal</h2>
+                <p className={`mt-2 text-sm leading-relaxed ${FINELY_OS_ENTITY_BODY}`}>
+                  Open your partner portal — dashboard, letters, checklist, and cases.
+                </p>
+              </div>
+              <button
+                type="button"
+                className={`${FINELY_OS_PRIMARY_BTN} justify-center`}
+                onClick={() => navigate('/login')}
+              >
+                <LogIn size={16} /> Sign in to portal
+              </button>
+            </div>
+          </div>
           <div className={`${finelyOsCatalogCard('sky')}`} data-fc-accent="sky">
             <p className={`${FINELY_OS_ENTITY_SUBLABEL} mb-4`}>More free guides</p>
             <div className="flex flex-wrap gap-2">

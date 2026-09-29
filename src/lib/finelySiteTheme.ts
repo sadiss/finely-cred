@@ -1,4 +1,4 @@
-import { isPublicMarketingPath } from './publicSitePaths';
+import { isPublicMarketingPath, isSignupCriticalPublicPath } from './publicSitePaths';
 
 export type FinelySiteThemePreference = 'dark' | 'light' | 'system';
 
@@ -26,17 +26,27 @@ export function resolveEffectiveTheme(preference: FinelySiteThemePreference): Fi
   return preference === 'system' ? resolveSystemTheme() : preference;
 }
 
-/** Public marketing stays dark luxury — workspace light must not restyle the site visitors see. */
-export function shouldForcePublicDarkTheme(pathname?: string): boolean {
+/**
+ * Signup-critical public pages use the existing light tokens.
+ * Other public marketing stays dark. Workspace routes follow the stored preference.
+ */
+export function resolveForcedPublicTheme(pathname?: string): FinelySiteThemeResolved | null {
   const path = pathname ?? (typeof window !== 'undefined' ? window.location.pathname : '/');
-  return isPublicMarketingPath(path);
+  if (isSignupCriticalPublicPath(path)) return 'light';
+  if (isPublicMarketingPath(path)) return 'dark';
+  return null;
+}
+
+/** Public marketing stays dark luxury — except the signup desks that use the existing light bed. */
+export function shouldForcePublicDarkTheme(pathname?: string): boolean {
+  return resolveForcedPublicTheme(pathname) === 'dark';
 }
 
 export function applyFinelySiteTheme(preference: FinelySiteThemePreference, pathname?: string) {
   if (typeof document === 'undefined') {
-    return shouldForcePublicDarkTheme(pathname) ? 'dark' : resolveEffectiveTheme(preference);
+    return resolveForcedPublicTheme(pathname) ?? resolveEffectiveTheme(preference);
   }
-  const effective = shouldForcePublicDarkTheme(pathname) ? 'dark' : resolveEffectiveTheme(preference);
+  const effective = resolveForcedPublicTheme(pathname) ?? resolveEffectiveTheme(preference);
   document.documentElement.setAttribute('data-fc-theme', effective);
   document.documentElement.setAttribute('data-fc-theme-pref', preference);
   document.documentElement.style.colorScheme = effective;

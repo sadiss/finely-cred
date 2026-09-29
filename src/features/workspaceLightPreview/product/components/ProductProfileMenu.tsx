@@ -204,9 +204,7 @@ export function ProductProfileMenu({
               onClick={() =>
                 go(
                   navigationMode === 'live'
-                    ? role === 'admin'
-                      ? '/admin/settings'
-                      : '/account/settings'
+                    ? '/account/settings'
                     : role === 'admin'
                       ? '/preview/workspace-light/admin/settings'
                       : '/preview/workspace-light/portal/account',

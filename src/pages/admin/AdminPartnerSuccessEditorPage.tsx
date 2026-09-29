@@ -3,6 +3,7 @@ import { AdminWorkstationFrame, type AdminEmbeddablePageProps } from '../../feat
 import { useMappedAdminNavigate } from '../../features/workspaceLightPreview/product/partner/usePartnerProductNavigation';
 import { PARTNER_SUCCESS_MODULES } from '../../domain/partnerSuccessExperience';
 import {
+  clearPartnerSuccessModuleOverride,
   getPartnerSuccessModuleOverride,
   listEffectivePartnerSuccessModules,
   savePartnerSuccessModuleOverride,
@@ -14,7 +15,11 @@ export default function AdminPartnerSuccessEditorPage({ embedded = false }: Admi
   const [version, setVersion] = useState(0);
   const modules = useMemo(() => {
     void version;
-    return listEffectivePartnerSuccessModules();
+    try {
+      return listEffectivePartnerSuccessModules();
+    } catch {
+      return [];
+    }
   }, [version]);
   const selected = modules.find((m) => m.id === selectedId) ?? modules[0] ?? null;
   const [title, setTitle] = useState('');
@@ -22,6 +27,7 @@ export default function AdminPartnerSuccessEditorPage({ embedded = false }: Admi
   const [hubPath, setHubPath] = useState('');
   const [trainingLessonId, setTrainingLessonId] = useState('');
   const [notice, setNotice] = useState<string | null>(null);
+  const [storageUnavailable, setStorageUnavailable] = useState(false);
 
   React.useEffect(() => {
     if (!selected) return;
@@ -32,16 +38,26 @@ export default function AdminPartnerSuccessEditorPage({ embedded = false }: Admi
     setTrainingLessonId(override?.trainingLessonId ?? selected.trainingLessonId ?? '');
   }, [selected?.id]);
 
+  const reportStorage = (ok: boolean, savedNotice: string) => {
+    if (!ok) {
+      setNotice(null);
+      setStorageUnavailable(true);
+      return;
+    }
+    setStorageUnavailable(false);
+    setVersion((v) => v + 1);
+    setNotice(savedNotice);
+  };
+
   const save = () => {
     if (!selected) return;
-    savePartnerSuccessModuleOverride(selected.id, {
+    const ok = savePartnerSuccessModuleOverride(selected.id, {
       title: title.trim() || selected.title,
       description: description.trim() || selected.description,
       hubPath: hubPath.trim() || selected.hubPath,
       trainingLessonId: trainingLessonId.trim() || undefined,
     });
-    setVersion((v) => v + 1);
-    setNotice(`Saved override for ${selected.id}`);
+    reportStorage(ok, `Saved override for ${selected.id}`);
   };
 
   return (
@@ -52,8 +68,18 @@ export default function AdminPartnerSuccessEditorPage({ embedded = false }: Admi
       back={{ to: -1 }}
     >
       <div className="space-y-6">
+        {storageUnavailable ? (
+          <div role="status" className="rounded-xl border border-amber-400/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+            Offline — this browser can’t store success-module edits, so nothing was saved.
+          </div>
+        ) : null}
         {notice ? (
           <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">{notice}</div>
+        ) : null}
+        {!modules.length ? (
+          <div role="status" className="rounded-2xl border border-white/10 bg-black/30 px-4 py-6 text-sm text-white/80">
+            Success modules aren’t available in this session. Nothing was changed.
+          </div>
         ) : null}
         <div className="grid lg:grid-cols-3 gap-6">
           <div className="space-y-2 max-h-[32rem] overflow-y-auto">
@@ -67,7 +93,7 @@ export default function AdminPartnerSuccessEditorPage({ embedded = false }: Admi
                 }`}
               >
                 <div className="text-sm font-bold text-white">{m.title}</div>
-                <div className={`text-xs mt-1 ${FINELY_OS_ENTITY_BODY}`}>{m.type} · {m.lanes.join(', ')}</div>
+                <div className={`text-xs mt-1 ${FINELY_OS_ENTITY_BODY}`}>{m.type} · {(m.lanes ?? []).join(', ')}</div>
               </button>
             ))}
           </div>
@@ -97,11 +123,7 @@ export default function AdminPartnerSuccessEditorPage({ embedded = false }: Admi
                 <button
                   type="button"
                   className={FINELY_OS_SECONDARY_BTN}
-                  onClick={() => {
-                    savePartnerSuccessModuleOverride(selected.id, {});
-                    setVersion((v) => v + 1);
-                    setNotice('Reset to defaults');
-                  }}
+                  onClick={() => reportStorage(clearPartnerSuccessModuleOverride(selected.id), 'Reset to defaults')}
                 >
                   Reset
                 </button>

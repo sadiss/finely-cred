@@ -6,7 +6,7 @@ import {
   Phone, Mail, MapPin, Facebook, Instagram, Linkedin, Youtube,
   BadgeCheck, Lock, FileText, AlertCircle
 } from 'lucide-react';
-import { CARD_CONFIGS, Button, Reveal, FlashyIcon, AnimatedCounter, LoopingTypingHeader } from '../ui';
+import { CARD_CONFIGS, Button, Reveal, FlashyIcon, AnimatedCounter } from '../ui';
 import { loadSettings, getPricingControls, isFeatureEnabled } from '../../data/settingsRepo';
 import { listApprovedMarketplaceListingsAsync, type ApprovedMarketplaceListing } from '../../data/auSellerRepo';
 import { getActiveTenant, getActiveTenantId } from '../../tenancy/activeTenant';
@@ -429,15 +429,7 @@ export function HeroSection({ onGetStarted }: HeroSectionProps) {
             <Reveal delay={150}>
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.35rem] font-extralight leading-[1.08] tracking-tight text-white">
                 <span className="block text-white/85">{brand}</span>
-                <span className="block mt-2 finely-gold-foil-text font-normal min-h-[1.35em]">
-                  <LoopingTypingHeader
-                    phrases={[
-                      'Personal credit restore',
-                      'Business credit that funds',
-                      'Debt paper, handled',
-                    ]}
-                  />
-                </span>
+                <span className="block mt-2 font-normal min-h-[1.35em]">Personal credit restore</span>
               </h1>
             </Reveal>
 
@@ -464,19 +456,13 @@ export function HeroSection({ onGetStarted }: HeroSectionProps) {
             </Reveal>
 
             <Reveal delay={450}>
-              <div className="flex flex-wrap justify-center lg:justify-start gap-3 sm:gap-4">
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 sm:gap-4">
                 <Button
                   variant="gold"
                   onClick={() => finelyCtaNavigate(navigate, 'personal_free_guide', { isAuthed: Boolean(auth.user) })}
                   size="lg"
                 >
                   Start free guide <ArrowRight size={18} />
-                </Button>
-                <Button variant="platinum" onClick={() => navigate('/enlightenment-session')} size="lg">
-                  Book a strategy call
-                </Button>
-                <Button variant="platinum" onClick={() => navigate('/pricing/personal-credit-restore')} size="md">
-                  See restore programs
                 </Button>
                 <button
                   type="button"
@@ -487,7 +473,7 @@ export function HeroSection({ onGetStarted }: HeroSectionProps) {
                 </button>
               </div>
               <p className="mt-4 text-base text-white/50 max-w-xl mx-auto lg:mx-0">
-                Free dispute guide and portal access — no card required.
+                Free guide — no card required.
               </p>
             </Reveal>
 
@@ -2329,7 +2315,6 @@ export function Footer({ onNavigate }: { onNavigate: (page: string) => void }) {
                 { label: 'Business credit', path: 'pricing_business' },
                 { label: 'Debt & legal', path: 'pricing_debt' },
                 { label: 'Tradelines', path: 'tradelines' },
-                { label: 'Payment plans', path: 'pricing' },
               ].map((item) => (
                 <li key={item.label}>
                   <button type="button" onClick={() => onNavigate(item.path)} className="hover:text-sky-400 transition-colors">

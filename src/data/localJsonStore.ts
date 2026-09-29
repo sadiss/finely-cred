@@ -15,13 +15,16 @@ export function loadJson<T>(key: string, fallback: T, version = 1): T {
   }
 }
 
-export function saveJson<T>(key: string, data: T, version = 1) {
+/** Returns false when the browser refused the write (private mode, quota). Callers must not claim success. */
+export function saveJson<T>(key: string, data: T, version = 1): boolean {
   const payload: StoredShape<T> = { v: version, data };
   try {
     localStorage.setItem(key, JSON.stringify(payload));
     window.dispatchEvent(new CustomEvent('finely:store', { detail: { key } }));
+    return true;
   } catch {
     // Quota or private mode — avoid crashing studio surfaces.
+    return false;
   }
 }
 
