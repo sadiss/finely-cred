@@ -634,9 +634,10 @@ html[data-fc-theme="dark"] .fc-wlp .fc-theme-toggle-idle:hover {
 }
 html[data-fc-theme="light"] .fc-wlp .fc-theme-toggle-active,
 html[data-fc-theme="dark"] .fc-wlp .fc-theme-toggle-active {
-  background: rgba(16, 185, 129, 0.18);
-  color: var(--wlp-emerald);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  background: #047857;
+  color: #f8fafc;
+  -webkit-text-fill-color: #f8fafc;
+  box-shadow: none;
 }
 html[data-fc-theme="dark"] .fc-wlp-utility,
 html[data-fc-theme="dark"] .fc-wlp-partner-header {
@@ -684,11 +685,23 @@ html[data-fc-theme="dark"] .fc-wlp .fc-theme-toggle-active {
 .fc-wlp-mobile-menu:hover,
 .fc-wlp-utility-action:hover { border-color: rgba(148, 101, 255, 0.32); color: var(--wlp-ink); transform: translateY(-1px); }
 .fc-wlp-rail-toggle { display: none; color: #fbbf24; }
-.fc-wlp-utility-action[data-accent="violet"] { border-color: rgba(148, 101, 255, 0.28); background: linear-gradient(145deg, rgba(148, 101, 255, 0.14), #fff); color: var(--wlp-violet); box-shadow: 0 13px 26px -19px rgba(99, 54, 209, 0.5), inset 0 1px 0 #fff; }
+.fc-wlp-utility-action[data-accent="violet"] {
+  border-color: #5b21b6;
+  background: #6d28d9;
+  color: #f8fafc;
+  -webkit-text-fill-color: #f8fafc;
+  box-shadow: none;
+}
 /* Read-aloud sits beside Ask Finely, so it takes sky to stay distinct from the violet AI action.
    While speaking it inverts to a solid fill — a spoken page needs an obvious way to stop it. */
-.fc-wlp-utility-action[data-accent="sky"] { border-color: rgba(56, 174, 235, 0.3); background: linear-gradient(145deg, rgba(56, 174, 235, 0.08), #fff); color: #024a73; box-shadow: 0 13px 26px -19px rgba(7, 95, 136, 0.5), inset 0 1px 0 #fff; }
-.fc-wlp-utility-action[data-accent="sky"]:hover { border-color: rgba(56, 174, 235, 0.5); color: #024a73; }
+.fc-wlp-utility-action[data-accent="sky"] {
+  border-color: #075985;
+  background: #0369a1;
+  color: #f8fafc;
+  -webkit-text-fill-color: #f8fafc;
+  box-shadow: none;
+}
+.fc-wlp-utility-action[data-accent="sky"]:hover { border-color: #0c4a6e; background: #075985; color: #f8fafc; -webkit-text-fill-color: #f8fafc; }
 .fc-wlp-utility-action[data-accent="sky"][data-open="true"] {
   border-color: rgba(56, 174, 235, 0.62);
   background-image: linear-gradient(150deg, #2ba7dd 0%, #08557c 100%);
@@ -1000,26 +1013,23 @@ html[data-fc-theme="dark"] .fc-wlp-viewas-chip-btn {
 .fc-wlp-focus-band .fc-wlp-passport-heading .fc-wlp-panel-subtitle { color: rgba(235, 242, 251, 0.86); }
 .fc-wlp-focus-band .fc-wlp-passport-disclosure { color: rgba(226, 232, 240, 0.8); }
 .fc-wlp-focus-band .fc-wlp-btn-quiet {
-  border-color: rgba(255, 255, 255, 0.28);
-  background-image: linear-gradient(145deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.1));
-  color: #fff;
+  border-color: #f8fafc;
+  background: #f8fafc;
+  background-image: none;
+  color: #0a1628;
+  -webkit-text-fill-color: #0a1628;
 }
 .fc-wlp-focus-band .fc-wlp-action-queue-label { color: rgba(235, 242, 251, 0.84); }
 /* Light surfaces inside the dark focus band — empty states, panels, section actions */
 .fc-wlp-focus-band :is(.fc-wlp-panel, .fc-wlp-empty) .fc-wlp-btn-quiet,
 .fc-wlp-focus-band .fc-wlp-passport-heading > .fc-wlp-btn-quiet,
 .fc-wlp-focus-band .fc-wlp-section-head > div > .fc-wlp-btn-quiet {
-  border: 1px solid color-mix(in srgb, var(--wlp-accent, var(--wlp-violet-bright)) 34%, transparent);
-  background: #fff;
-  background-image: linear-gradient(
-    145deg,
-    color-mix(in srgb, var(--wlp-accent, var(--wlp-violet-bright)) 12%, #fff) 0%,
-    color-mix(in srgb, var(--wlp-accent, var(--wlp-violet-bright)) 5%, #fff) 100%
-  );
-  color: var(--wlp-accent-ink, var(--wlp-violet));
-  box-shadow:
-    0 8px 20px -16px color-mix(in srgb, var(--wlp-accent, var(--wlp-violet-bright)) 60%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  border: 1px solid #5b21b6;
+  background: #6d28d9;
+  background-image: none;
+  color: #f8fafc;
+  -webkit-text-fill-color: #f8fafc;
+  box-shadow: none;
 }
 .fc-wlp-focus-band .fc-wlp-empty {
   border-color: rgba(139, 92, 246, 0.32);
@@ -1258,45 +1268,57 @@ html[data-fc-theme="dark"] .fc-wlp-viewas-chip-btn {
     transform: none !important;
   }
 }
-.fc-wlp-btn-secondary { border: 1px solid rgba(255, 255, 255, 0.19); background: linear-gradient(145deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.055)); color: #fff; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.11); backdrop-filter: blur(12px); }
-.fc-wlp-btn-secondary:hover { border-color: rgba(255, 255, 255, 0.28); background: rgba(255, 255, 255, 0.15); transform: translateY(-2px); }
-/* Tertiary action. Previously white-on-white with muted grey ink, which read as disabled and
-   made every light panel look unfinished. It now carries the surrounding accent as a tinted
-   ghost button: coloured ink, coloured hairline, faint accent wash. Still clearly secondary to
-   the metallic primary, but no longer invisible on a white box. */
+.fc-wlp-btn-secondary {
+  border: 1px solid #12324d;
+  background: #12324d;
+  background-image: none;
+  color: #f8fafc;
+  -webkit-text-fill-color: #f8fafc;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+.fc-wlp-btn-secondary:hover {
+  border-color: #1b4a70;
+  background: #1b4a70;
+  color: #f8fafc;
+  -webkit-text-fill-color: #f8fafc;
+  transform: translateY(-2px);
+}
+/* Tertiary action. Solid accent fill, never a translucent wash. */
 .fc-wlp-btn-quiet {
   min-height: 40px;
   padding: 8px 14px;
-  border: 1px solid color-mix(in srgb, var(--wlp-accent, var(--wlp-violet-bright)) 34%, transparent);
-  background-image: linear-gradient(
-    145deg,
-    color-mix(in srgb, var(--wlp-accent, var(--wlp-violet-bright)) 12%, #fff) 0%,
-    color-mix(in srgb, var(--wlp-accent, var(--wlp-violet-bright)) 5%, #fff) 100%
-  );
-  color: var(--wlp-accent-ink, var(--wlp-violet));
+  border: 1px solid #6d28d9;
+  background: #6d28d9;
+  background-image: none;
+  color: #f8fafc;
+  -webkit-text-fill-color: #f8fafc;
   font-weight: 730;
-  box-shadow: 0 8px 20px -16px color-mix(in srgb, var(--wlp-accent, var(--wlp-violet-bright)) 60%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  box-shadow: none;
 }
 .fc-wlp-btn-quiet:hover {
-  border-color: color-mix(in srgb, var(--wlp-accent, var(--wlp-violet-bright)) 62%, transparent);
-  background-image: linear-gradient(
-    145deg,
-    color-mix(in srgb, var(--wlp-accent, var(--wlp-violet-bright)) 20%, #fff) 0%,
-    color-mix(in srgb, var(--wlp-accent, var(--wlp-violet-bright)) 10%, #fff) 100%
-  );
+  border-color: #5b21b6;
+  background: #5b21b6;
+  background-image: none;
+  color: #f8fafc;
+  -webkit-text-fill-color: #f8fafc;
   transform: translateY(-1px);
-  box-shadow: 0 12px 24px -14px color-mix(in srgb, var(--wlp-accent, var(--wlp-violet-bright)) 72%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  box-shadow: none;
 }
-/* On a dark bed the tint would disappear, so invert to a translucent glass chip.
-   Scope to the command header only — not every descendant of the page shell. */
+/* On a dark bed a dark button disappears. Use a solid light fill and dark type. */
 [data-bed='dark'] .fc-wlp-btn-quiet,
 .fc-wlp-command .fc-wlp-command-actions .fc-wlp-btn-quiet,
-.fc-wlp-command .fc-wlp-command-insight-slot ~ .fc-wlp-command-aside .fc-wlp-btn-quiet {
-  border-color: rgba(255, 255, 255, 0.22);
-  background-image: linear-gradient(145deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.06));
-  color: #fff;
+.fc-wlp-command .fc-wlp-command-insight-slot ~ .fc-wlp-command-aside .fc-wlp-btn-quiet,
+[data-bed='dark'] .fc-wlp-btn-secondary,
+.fc-wlp-command[data-bed='dark'] .fc-wlp-btn-secondary,
+.fc-wlp-admin-stage-hero .fc-wlp-btn-secondary,
+.fc-wlp-focus-band .fc-wlp-btn-quiet,
+.fc-wlp-focus-band .fc-wlp-btn-secondary {
+  border-color: #f8fafc;
+  background: #f8fafc;
+  background-image: none;
+  color: #0a1628;
+  -webkit-text-fill-color: #0a1628;
 }
 
 .fc-wlp-metrics { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: thin; }
@@ -2081,9 +2103,9 @@ button.fc-wlp-intelligence:hover { border-color: rgba(117, 76, 211, 0.36); box-s
 .fc-wlp-intelligence[data-status="blocked"] { border-color: rgba(181, 46, 83, 0.22); background: #f8e4ea; }
 .fc-wlp-intelligence[data-status="ready"],
 .fc-wlp-intelligence[data-status="complete"] { border-color: rgba(8, 116, 90, 0.2); background: #dcf1e9; }
-.fc-wlp-intelligence[data-dark="true"] { border-color: rgba(169, 126, 255, 0.22); background: rgba(148, 101, 255, 0.105); color: #fff; box-shadow: none; }
+.fc-wlp-intelligence[data-dark="true"] { border-color: #6d28d9; background: #2e1064; color: #f8fafc; -webkit-text-fill-color: #f8fafc; box-shadow: none; }
 .fc-wlp-intelligence[data-dark="true"][data-status="needs_action"],
-.fc-wlp-intelligence[data-dark="true"][data-status="blocked"] { border-color: rgba(255, 111, 151, 0.24); background: rgba(181, 46, 83, 0.16); }
+.fc-wlp-intelligence[data-dark="true"][data-status="blocked"] { border-color: #fb7185; background: #4c1020; color: #f8fafc; -webkit-text-fill-color: #f8fafc; }
 .fc-wlp-intelligence-icon { display: inline-flex; width: 34px; height: 34px; flex: 0 0 auto; align-items: center; justify-content: center; border-radius: 11px; background: #6537ca; color: #fff; }
 .fc-wlp-intelligence[data-status="needs_action"] .fc-wlp-intelligence-icon,
 .fc-wlp-intelligence[data-status="blocked"] .fc-wlp-intelligence-icon { background: #aa294e; }
@@ -3024,16 +3046,22 @@ html[data-fc-theme="light"] .fc-wlp .fc-wlp-command[data-bed="dark"] .fc-wlp-com
 }
 
 html[data-fc-theme="light"] .fc-wlp .fc-wlp-btn-secondary {
-  color: var(--wlp-ink);
-  border-color: var(--wlp-border-strong);
-  background: #fff;
+  color: #f8fafc;
+  -webkit-text-fill-color: #f8fafc;
+  border-color: #12324d;
+  background: #12324d;
+  background-image: none;
 }
 
 html[data-fc-theme="light"] .fc-wlp [data-bed="dark"] .fc-wlp-btn-secondary,
-html[data-fc-theme="light"] .fc-wlp .fc-wlp-command[data-bed="dark"] .fc-wlp-btn-secondary {
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.19);
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.055));
+html[data-fc-theme="light"] .fc-wlp .fc-wlp-command[data-bed="dark"] .fc-wlp-btn-secondary,
+html[data-fc-theme="light"] .fc-wlp .fc-wlp-admin-stage-hero .fc-wlp-btn-secondary,
+html[data-fc-theme="light"] .fc-wlp .fc-wlp-focus-band .fc-wlp-btn-secondary {
+  color: #0a1628;
+  -webkit-text-fill-color: #0a1628;
+  border-color: #f8fafc;
+  background: #f8fafc;
+  background-image: none;
 }
 
 /* Page guide: light card on light site — do not leave dark ink on the dark default shell. */

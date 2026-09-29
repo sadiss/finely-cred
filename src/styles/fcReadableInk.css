@@ -73,7 +73,15 @@ html[data-fc-theme='light'] .fc-wlp :is(
   [class*='bg-[#0a100e]'],
   [class*='bg-[#0a100e]'] *,
   [class*='bg-[#060908]'],
-  [class*='bg-[#060908]'] *
+  [class*='bg-[#060908]'] *,
+  [class*='from-slate-950'],
+  [class*='from-slate-950'] *,
+  [class*='from-slate-900'],
+  [class*='from-slate-900'] *,
+  [class*='from-zinc-950'],
+  [class*='from-zinc-950'] *,
+  [class*='bg-slate-950'],
+  [class*='bg-slate-950'] *
 ) :is(
   .text-white,
   .text-slate-50,
@@ -112,4 +120,43 @@ html[data-fc-theme='light'] .fc-wlp :is(
 ) {
   color: #0b1110 !important;
   -webkit-text-fill-color: #0b1110 !important;
+}
+
+/* Solid buttons keep a label that contrasts with the fill, even when a frost utility is present. */
+html[data-fc-theme='light'] .fc-wlp :is(.fc-wlp-btn-primary, .fc-wlp-btn-secondary, .fc-wlp-btn-quiet, .fc-wlp-op-roster-chip),
+html[data-fc-theme='light'] .fc-wlp :is(.fc-wlp-btn-primary, .fc-wlp-btn-secondary, .fc-wlp-btn-quiet, .fc-wlp-op-roster-chip) :is(
+  .text-white,
+  .text-slate-50,
+  .text-slate-100,
+  .text-slate-200,
+  .text-slate-300,
+  [class*='text-white/'],
+  [class*='text-[#e8e8e8]'],
+  [class*='text-[#f8fafc]']
+) {
+  color: #f8fafc !important;
+  -webkit-text-fill-color: #f8fafc !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp :is(
+  [data-bed='dark'],
+  .fc-wlp-command[data-bed='dark'],
+  .fc-wlp-admin-stage-hero,
+  .fc-wlp-focus-band
+) :is(.fc-wlp-btn-secondary, .fc-wlp-btn-quiet),
+html[data-fc-theme='light'] .fc-wlp :is(
+  [data-bed='dark'],
+  .fc-wlp-command[data-bed='dark'],
+  .fc-wlp-admin-stage-hero,
+  .fc-wlp-focus-band
+) :is(.fc-wlp-btn-secondary, .fc-wlp-btn-quiet) * {
+  color: #0a1628 !important;
+  -webkit-text-fill-color: #0a1628 !important;
+}
+
+/* Solid violet buttons inside light panels keep light type. */
+html[data-fc-theme='light'] .fc-wlp :is(.fc-wlp-panel, .fc-wlp-empty) :is(.fc-wlp-btn-secondary, .fc-wlp-btn-quiet),
+html[data-fc-theme='light'] .fc-wlp :is(.fc-wlp-panel, .fc-wlp-empty) :is(.fc-wlp-btn-secondary, .fc-wlp-btn-quiet) * {
+  color: #f8fafc !important;
+  -webkit-text-fill-color: #f8fafc !important;
 }
