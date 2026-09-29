@@ -2,6 +2,12 @@ import type { ProspectHeatEventType, ProspectHeatState } from './prospectHeat';
 
 export const HEAT_VERSION = 'v1';
 
+/** Column is NOT NULL. Explicit null does not use the SQL default. */
+export function heatVersionForServer(version?: string | null): string {
+  const value = String(version ?? '').trim();
+  return value || HEAT_VERSION;
+}
+
 export type ProspectOutreachStage =
   | 'cold_imported'
   | 'eligible_for_review'

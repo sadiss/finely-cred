@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import { resolveProspectHeat } from '../src/lib/prospectHeat.ts';
 import { isColdDirectoryCrmRecord, isPublicOrganizationRoleInbox } from '../src/lib/coldDirectory.ts';
-import { nextOutreachStage } from '../src/lib/prospectOutreach.ts';
+import { HEAT_VERSION, heatVersionForServer, nextOutreachStage } from '../src/lib/prospectOutreach.ts';
 import { dryRunColdProspectImport } from '../src/lib/coldProspectImport.ts';
 
 function heat(partial) {
@@ -67,6 +67,11 @@ assert.equal(isColdDirectoryCrmRecord(inbound), false, 'inbound must never appea
 
 const prospect = { ...inbound, id: 'crm_prospect_1', kind: 'prospect', source: 'directory_cold', tags: ['cold-directory'] };
 assert.equal(isColdDirectoryCrmRecord(prospect), true);
+
+assert.equal(heatVersionForServer(null), HEAT_VERSION);
+assert.equal(heatVersionForServer(undefined), HEAT_VERSION);
+assert.equal(heatVersionForServer(''), HEAT_VERSION);
+assert.equal(heatVersionForServer('v1'), 'v1');
 
 assert.equal(nextOutreachStage(undefined, 'imported'), 'cold_imported');
 assert.equal(nextOutreachStage('cold_imported', 'first_party_click'), 'warm_manual_review');

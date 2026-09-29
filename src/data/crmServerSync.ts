@@ -15,6 +15,7 @@ import { nowIso } from '../domain/crmProspects';
 import type { CrmRecord, CrmRecordContact, CrmTimelineEntry } from '../domain/crmRecords';
 import { listProspects, mergeProspectsFromServer } from './crmProspectsRepo';
 import { listCrmRecords, mergeCrmRecordsFromServer } from './crmRecordsRepo';
+import { heatVersionForServer } from '../lib/prospectOutreach';
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient';
 
 const SERVER_TENANT_ID = 'finely_cred';
@@ -50,7 +51,7 @@ function rowFromProspect(p: Prospect) {
     heat_recency: p.heatSummary?.recency ?? 0,
     heat_total: p.heatSummary?.total ?? 0,
     heat_reasons: p.heatSummary?.reasons ?? [],
-    heat_version: p.heatSummary?.version ?? null,
+    heat_version: heatVersionForServer(p.heatSummary?.version),
     created_at: p.createdAt,
     updated_at: p.updatedAt,
   };
