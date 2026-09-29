@@ -91,33 +91,31 @@ export function MarketingOnOffTile({
     ? 'border-2 border-emerald-200/90 bg-gradient-to-br from-emerald-600 via-emerald-700 to-emerald-800 fc-mkt-glow-on'
     : 'border-2 border-rose-300/90 bg-gradient-to-br from-rose-600 via-rose-700 to-red-800 fc-mkt-glow-off';
 
-  const inner = (
+  const copy = (
     <>
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <Power size={20} className={on ? 'text-emerald-100' : 'text-rose-100'} />
-          <span className="text-lg font-black uppercase tracking-wide">{on ? 'ON' : 'OFF'}</span>
-        </div>
-        <MarketingHelpButton helpId={helpId} />
+      <div className="flex items-center gap-2">
+        <Power size={20} className={on ? 'text-emerald-100' : 'text-rose-100'} />
+        <span className="text-lg font-black uppercase tracking-wide">{on ? 'ON' : 'OFF'}</span>
       </div>
       <p className="mt-2 text-sm font-bold text-white">{title}</p>
       {subtitle ? <p className="mt-1 text-xs text-white/85 leading-snug">{subtitle}</p> : null}
     </>
   );
 
-  if (onClick) {
-    return (
-      <button
-        type="button"
-        onClick={onClick}
-        className={`${shell} rounded-xl p-4 text-left w-full fc-mkt-hover-lift transition-transform`}
-      >
-        {inner}
-      </button>
-    );
-  }
-
-  return <div className={`${shell} rounded-xl p-4 fc-mkt-hover-lift`}>{inner}</div>;
+  return (
+    <div className={`${shell} rounded-xl p-4 w-full fc-mkt-hover-lift`}>
+      <div className="flex items-start justify-between gap-2">
+        {onClick ? (
+          <button type="button" onClick={onClick} className="min-w-0 flex-1 text-left">
+            {copy}
+          </button>
+        ) : (
+          <div className="min-w-0 flex-1">{copy}</div>
+        )}
+        <MarketingHelpButton helpId={helpId} />
+      </div>
+    </div>
+  );
 }
 
 export function MarketingStatusTile({
@@ -208,9 +206,15 @@ export function MarketingVividActionTile({
   helpId?: string;
   onClick?: () => void;
 }) {
-  const className = `${marketingVividShell(accent)} !p-4 text-left min-h-[8.5rem] flex flex-col w-full cursor-pointer`;
-  const inner = (
+  const className = `${marketingVividShell(accent)} !p-4 text-left min-h-[8.5rem] flex flex-col w-full`;
+  const copy = (
     <>
+      <div className="mt-2 text-xl font-black leading-tight tracking-tight">{title}</div>
+      {detail ? <p className="mt-2 text-sm flex-1 text-white/92 leading-snug">{detail}</p> : null}
+    </>
+  );
+  return (
+    <div className={className}>
       <div className="flex items-start justify-between gap-2">
         {eyebrow ? (
           <span className="text-[11px] font-black uppercase tracking-widest text-white/80">{eyebrow}</span>
@@ -219,19 +223,15 @@ export function MarketingVividActionTile({
         )}
         {helpId ? <MarketingHelpButton helpId={helpId} /> : null}
       </div>
-      <div className="mt-2 text-xl font-black leading-tight tracking-tight">{title}</div>
-      {detail ? <p className={`mt-2 text-sm flex-1 text-white/92 leading-snug`}>{detail}</p> : null}
-    </>
+      {onClick ? (
+        <button type="button" onClick={onClick} className="mt-0 flex-1 text-left">
+          {copy}
+        </button>
+      ) : (
+        copy
+      )}
+    </div>
   );
-
-  if (onClick) {
-    return (
-      <button type="button" onClick={onClick} className={className}>
-        {inner}
-      </button>
-    );
-  }
-  return <div className={className}>{inner}</div>;
 }
 
 type MiniTab = { id: string; label: string; accent: FinelyOsDeckAccent };
