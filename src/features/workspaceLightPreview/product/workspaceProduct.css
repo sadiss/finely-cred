@@ -472,7 +472,7 @@ html[data-fc-theme="dark"] .fc-wlp .fc-wlp-panel-head .fc-wlp-eyebrow {
 }
 .fc-wlp-rail-brand { display: flex; min-height: 46px; align-items: center; gap: 10px; padding: 5px 8px 12px; color: #fff; text-decoration: none; }
 .fc-wlp-rail-brand-copy { min-width: 0; }
-.fc-wlp-rail-brand-name { display: block; font-size: 20px; font-weight: 780; letter-spacing: -0.02em; }.fc-wlp-rail-brand-role{ display: block; margin-top: 1px; color: rgba(255, 255, 255, 0.44); font-size: var(--wlp-text-meta); }
+.fc-wlp-rail-brand-name { display: block; font-size: 20px; font-weight: 780; letter-spacing: -0.02em; }.fc-wlp-rail-brand-role{ display: block; margin-top: 1px; color: rgba(255, 255, 255, 0.82); font-size: var(--wlp-text-meta); }
 .fc-wlp-rail-nav { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
 /* Group headings were faint text floating in the stack. A hairline that runs to the edge of the
    rail turns them into real section breaks, which is what makes a long sidebar scannable. */
@@ -481,7 +481,7 @@ html[data-fc-theme="dark"] .fc-wlp .fc-wlp-panel-head .fc-wlp-eyebrow {
   align-items: center;
   gap: 9px;
   margin: 16px 9px 5px;
-  color: rgba(255, 255, 255, 0.44);
+  color: rgba(255, 255, 255, 0.78);
   font-size: var(--wlp-text-meta);
   font-weight: 760;
   letter-spacing: 0.09em;

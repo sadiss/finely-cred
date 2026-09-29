@@ -1,0 +1,115 @@
+/*
+ * Readable ink contract.
+ *
+ * Light beds use dark ink. Dark beds use light ink.
+ * Loaded after the theme remaps so a light-theme override cannot leave
+ * dark type on a dark control, or frost type on an ivory page.
+ */
+
+html[data-fc-theme='light'] .fc-wlp {
+  --fc-ink-on-light: #0a1628;
+  --fc-ink-on-light-muted: #3d4c5f;
+  --fc-ink-on-dark: #f8fafc;
+  --fc-ink-on-dark-muted: rgba(226, 232, 240, 0.88);
+}
+
+/* Frost utilities written for the dark shell, sitting on the light product bed. */
+html[data-fc-theme='light'] .fc-wlp :is(
+  .text-white,
+  .text-slate-50,
+  .text-slate-100,
+  .text-slate-200,
+  .text-slate-300,
+  [class*='text-white/'],
+  [class*='text-[#e8e8e8]'],
+  [class*='text-[#f8fafc]'],
+  [class*='text-[#f1f5f9]'],
+  [class*='text-[#e2e8f0]']
+) {
+  color: var(--fc-ink-on-light) !important;
+  -webkit-text-fill-color: var(--fc-ink-on-light) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp :is(
+  .text-white\/40,
+  .text-white\/35,
+  .text-white\/45,
+  .text-white\/50,
+  .text-white\/55,
+  .text-white\/60,
+  [class*='text-white/40'],
+  [class*='text-white/50'],
+  [class*='text-white/55'],
+  [class*='text-white/60']
+) {
+  color: var(--fc-ink-on-light-muted) !important;
+  -webkit-text-fill-color: var(--fc-ink-on-light-muted) !important;
+}
+
+/* Dark beds keep light ink: heroes, rails, active pipeline tabs, black course cards. */
+html[data-fc-theme='light'] .fc-wlp :is(
+  [data-bed='dark'],
+  [data-bed='dark'] *,
+  .fc-wlp-admin-rail,
+  .fc-wlp-admin-rail *,
+  .fc-wlp-admin-stage-hero,
+  .fc-wlp-admin-stage-hero *,
+  .fc-wlp-admin-stage-section[data-tone='dark'],
+  .fc-wlp-admin-stage-section[data-tone='dark'] *,
+  .fc-wlp-admin-context-command,
+  .fc-wlp-admin-context-command *,
+  .fc-wlp-admin-stage-nav-card[data-active='true'],
+  .fc-wlp-admin-stage-nav-card[data-active='true'] *,
+  .fc-wlp-crm-split-rail-btn[data-active='true'],
+  .fc-wlp-crm-split-rail-btn[data-active='true'] *,
+  .fc-premium-chart-card,
+  .fc-premium-chart-card *,
+  [data-hos-access-panel='true'],
+  [data-hos-access-panel='true'] *,
+  [class*='bg-[#0b1110]'],
+  [class*='bg-[#0b1110]'] *,
+  [class*='bg-[#070a0f]'],
+  [class*='bg-[#070a0f]'] *,
+  [class*='bg-[#0a100e]'],
+  [class*='bg-[#0a100e]'] *,
+  [class*='bg-[#060908]'],
+  [class*='bg-[#060908]'] *
+) :is(
+  .text-white,
+  .text-slate-50,
+  .text-slate-100,
+  .text-slate-200,
+  .text-slate-300,
+  [class*='text-white/'],
+  [class*='text-[#e8e8e8]'],
+  [class*='text-[#f8fafc]'],
+  [class*='text-[#f1f5f9]'],
+  [class*='text-[#e2e8f0]'],
+  .fc-wlp-crm-split-rail-label,
+  .fc-wlp-crm-split-rail-desc
+) {
+  color: var(--fc-ink-on-dark) !important;
+  -webkit-text-fill-color: var(--fc-ink-on-dark) !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp .fc-wlp-crm-split-rail-btn[data-active='true'] .fc-wlp-crm-split-rail-desc,
+html[data-fc-theme='light'] .fc-wlp .fc-wlp-admin-stage-hero .fc-wlp-admin-stage-description,
+html[data-fc-theme='light'] .fc-wlp [data-bed='dark'] :is(
+  .text-white\/70,
+  .text-white\/60,
+  .text-white\/55,
+  [class*='text-white/70'],
+  [class*='text-white/60']
+) {
+  color: var(--fc-ink-on-dark-muted) !important;
+  -webkit-text-fill-color: var(--fc-ink-on-dark-muted) !important;
+}
+
+/* Gold actions stay dark type on the gold fill. */
+html[data-fc-theme='light'] .fc-wlp :is(
+  [class*='bg-[#fbbf24]'],
+  [class*='bg-[#fbbf24]'] *
+) {
+  color: #0b1110 !important;
+  -webkit-text-fill-color: #0b1110 !important;
+}
