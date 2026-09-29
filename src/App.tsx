@@ -189,6 +189,7 @@ const AdminSignupOpsPage = lazyWithRetry(() => import('./pages/admin/AdminSignup
 const AdminLeadsRoutePage = lazyWithRetry(() => import('./pages/admin/AdminLeadsRoutePage'));
 const AdminMarketingDepartmentPage = lazyWithRetry(() => import('./pages/admin/AdminMarketingDepartmentPage'));
 const AdminMarketingDeskPage = lazyWithRetry(() => import('./pages/admin/AdminMarketingDeskPage'));
+const AdminPartnerEmailDeskPage = lazyWithRetry(() => import('./pages/admin/AdminPartnerEmailDeskPage'));
 const AdminGrowthAgentsPage = lazyWithRetry(() => import('./pages/admin/AdminGrowthAgentsPage'));
 const AdminGrowthAutomationPage = lazyWithRetry(() => import('./pages/admin/AdminGrowthAutomationPage'));
 const AdminCmoCommandPage = lazyWithRetry(() => import('./pages/admin/AdminCmoCommandPage'));
@@ -2109,6 +2110,14 @@ function AppInner() {
           element={
             <ProtectedAdminRoute>
               <ProductRoutedPage role="admin" pageId="marketing-desk" legacy={<AdminMarketingDeskPage />} />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/partner-email"
+          element={
+            <ProtectedAdminRoute>
+              <AdminPartnerEmailDeskPage />
             </ProtectedAdminRoute>
           }
         />

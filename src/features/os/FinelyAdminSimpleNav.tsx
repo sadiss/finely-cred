@@ -62,7 +62,7 @@ export function FinelyAdminSimpleNav({ onShowFullNav }: { onShowFullNav: () => v
 
   return (
     <nav className="mb-6 fc-admin-simple-nav" data-fc-admin-nav="simple">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 mb-3">
         {lanes.map((lane) => {
           const laneActive = lane.id === activeLaneId;
           return (

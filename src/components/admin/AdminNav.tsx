@@ -3,6 +3,7 @@ import { ChevronDown, PanelLeftClose, PanelLeftOpen, Shield } from 'lucide-react
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAdminOpsCaps, isAdminNavPathAllowed } from '../../hooks/useAdminOpsCaps';
 import {
+  ADMIN_NAV_DEFAULT_OPEN,
   ADMIN_NAV_GROUPS,
   isAdminNavPathActive,
 } from '../../config/adminNavLanes';
@@ -132,6 +133,10 @@ export function AdminNavRail({
 
   const searching = Boolean(query.trim());
   const flatItems = useMemo(() => groups.flatMap((g) => g.items), [groups]);
+  const pinnedItems = useMemo(
+    () => groups.map((g) => g.items[0]).filter((item): item is (typeof flatItems)[number] => Boolean(item)),
+    [groups],
+  );
 
   const navButton = (x: (typeof flatItems)[number], compact: boolean) => {
     const active = isAdminNavPathActive(pathname, x.path);
@@ -212,7 +217,7 @@ export function AdminNavRail({
             <div className="relative px-2">
               <div className={FINELY_OS_SIDE_RAIL_LABEL}>Admin</div>
               <div className={`mt-2 ${FINELY_OS_SIDE_RAIL_TITLE}`}>Operate the platform</div>
-              <div className={`mt-1 ${FINELY_OS_SIDE_RAIL_HINT}`}>Fast navigation • search • ops modules</div>
+              <div className={`mt-1 ${FINELY_OS_SIDE_RAIL_HINT}`}>Fast navigation / search / ops modules</div>
             </div>
 
             <div className="relative px-2 mt-3">
@@ -220,7 +225,7 @@ export function AdminNavRail({
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Partners, cases, settings…"
+                placeholder="Partners, cases, settings..."
                 className="fc-input mt-2 text-[11px]"
               />
             </div>
@@ -230,13 +235,13 @@ export function AdminNavRail({
         <div className={`relative overflow-y-auto fc-scroll-area min-w-0 flex-1 ${expanded ? 'pr-1 mt-3' : 'mt-1 flex flex-col items-center'}`}>
           {!expanded ? (
             <div className="space-y-1.5 py-1">
-              {flatItems.map((x) => navButton(x, true))}
+              {pinnedItems.map((x) => navButton(x, true))}
             </div>
           ) : (
             <div className="space-y-3">
               {groups.map((g) => {
                 const hasActive = g.items.some((x) => isAdminNavPathActive(pathname, x.path));
-                const initialOpen = hasActive || g.label === 'Core';
+                const initialOpen = hasActive || (!searching && ADMIN_NAV_DEFAULT_OPEN.has(g.label));
                 const isOpen = openGroups[g.label] ?? initialOpen;
 
                 const items = (
@@ -285,7 +290,7 @@ export function AdminNavRail({
 
         {expanded ? (
           <div className="relative px-2 pt-2 border-t border-white/[0.06]">
-            <p className={`${FINELY_OS_ENTITY_SUBLABEL} normal-case`}>Desktop rail · mobile uses simple 4-lane nav</p>
+            <p className={`${FINELY_OS_ENTITY_SUBLABEL} normal-case`}>Desktop rail / mobile uses simple 7-lane nav</p>
           </div>
         ) : null}
       </div>
