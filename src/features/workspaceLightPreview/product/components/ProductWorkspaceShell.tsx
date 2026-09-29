@@ -28,6 +28,16 @@ import { ProductProfileMenu } from './ProductProfileMenu';
 import { ProductPageNarrator } from './ProductPageNarrator';
 import { FinelyThemeToggle } from '../../../../features/os/FinelyThemeToggle';
 import { AdminPartnerViewAsChip } from '../../../../components/admin/AdminPartnerViewAsBanner';
+import {
+  ADMIN_NAV_DEFAULT_OPEN,
+  ADMIN_NAV_GROUPS,
+  isAdminNavPathActive,
+} from '../../../../config/adminNavLanes';
+import {
+  persistAdminNavMode,
+  readAdminNavMode,
+  type FinelyAdminNavMode,
+} from '../../../../lib/finelyAdminNavMode';
 
 const RECENT_KEY = 'fc_wlp_recent_destinations';
 const ADMIN_RAIL_COLLAPSED_KEY = 'fc_wlp_admin_rail_collapsed';
@@ -113,6 +123,12 @@ export function ProductWorkspaceShell({
       return false;
     }
   });
+  const [adminNavMode, setAdminNavMode] = useState<FinelyAdminNavMode>(() => readAdminNavMode());
+  const [fullOpenGroups, setFullOpenGroups] = useState<Record<string, boolean>>({});
+  const setAdminNavModePersist = (mode: FinelyAdminNavMode) => {
+    setAdminNavMode(mode);
+    persistAdminNavMode(mode);
+  };
   const [recentIds, setRecentIds] = useState<string[]>(() => {
     try {
       return JSON.parse(localStorage.getItem(RECENT_KEY) || '[]');
@@ -325,39 +341,114 @@ export function ProductWorkspaceShell({
                 <span className="fc-wlp-rail-dept-kicker">Operations</span>
                 <span className="fc-wlp-rail-dept-live">Live</span>
               </div>
-              <nav className="fc-wlp-rail-nav">
-                <div className="fc-wlp-rail-label">Workspace</div>
-                {primary.map((item) => {
-                  const Icon = item.icon;
-                  return (
+              <nav className="fc-wlp-rail-nav" data-fc-admin-nav-mode={adminNavMode}>
+                {adminNavMode === 'full' ? (
+                  <>
+                    {ADMIN_NAV_GROUPS.map((group) => {
+                      const hasActive = group.items.some((item) => isAdminNavPathActive(pathname, item.path));
+                      const isOpen = fullOpenGroups[group.label] ?? (hasActive || ADMIN_NAV_DEFAULT_OPEN.has(group.label));
+                      return (
+                        <div key={group.label} className="fc-wlp-rail-group" data-fc-admin-nav-group={group.label}>
+                          <button
+                            type="button"
+                            className="fc-wlp-rail-label"
+                            style={{ width: '100%', textAlign: 'left', cursor: 'pointer', background: 'transparent', border: 0 }}
+                            aria-expanded={isOpen}
+                            onClick={() =>
+                              setFullOpenGroups((cur) => ({ ...cur, [group.label]: !isOpen }))
+                            }
+                          >
+                            {group.label}
+                          </button>
+                          {isOpen
+                            ? group.items.map((item) => {
+                                const Icon = item.icon;
+                                const active = isAdminNavPathActive(pathname, item.path);
+                                return (
+                                  <button
+                                    key={item.path}
+                                    type="button"
+                                    className="fc-wlp-rail-item"
+                                    data-accent="violet"
+                                    data-active={active ? 'true' : undefined}
+                                    aria-current={active ? 'page' : undefined}
+                                    onClick={() => {
+                                      setAllToolsOpen(false);
+                                      setMobileNavOpen(false);
+                                      navigate(item.path);
+                                    }}
+                                    title={item.hint || item.label}
+                                  >
+                                    <span className="fc-wlp-rail-icon">
+                                      <Icon size={17} strokeWidth={2.05} />
+                                    </span>
+                                    <span className="fc-wlp-rail-item-label">{item.label}</span>
+                                  </button>
+                                );
+                              })
+                            : null}
+                        </div>
+                      );
+                    })}
                     <button
-                      key={item.id}
                       type="button"
                       className="fc-wlp-rail-item"
-                      data-accent={item.accent}
-                      data-active={isItemActive(pathname, item, navigationMode) ? 'true' : undefined}
-                      aria-current={isItemActive(pathname, item, navigationMode) ? 'page' : undefined}
-                      onClick={() => go(item)}
-                      title={item.label}
+                      onClick={() => setAdminNavModePersist('simple')}
+                      title="Switch to compact workspace rail"
                     >
                       <span className="fc-wlp-rail-icon">
-                        <Icon size={17} strokeWidth={2.05} />
+                        <MoreHorizontal size={17} strokeWidth={2.1} />
                       </span>
-                      <span className="fc-wlp-rail-item-label">{item.label}</span>
+                      <span className="fc-wlp-rail-item-label">Simple nav</span>
                     </button>
-                  );
-                })}
-                <button
-                  type="button"
-                  className="fc-wlp-rail-item"
-                  data-open={allToolsOpen ? 'true' : undefined}
-                  onClick={() => setAllToolsOpen(true)}
-                >
-                  <span className="fc-wlp-rail-icon">
-                    <MoreHorizontal size={17} strokeWidth={2.1} />
-                  </span>
-                  <span className="fc-wlp-rail-item-label">All tools</span>
-                </button>
+                  </>
+                ) : (
+                  <>
+                    <div className="fc-wlp-rail-label">Workspace</div>
+                    {primary.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          className="fc-wlp-rail-item"
+                          data-accent={item.accent}
+                          data-active={isItemActive(pathname, item, navigationMode) ? 'true' : undefined}
+                          aria-current={isItemActive(pathname, item, navigationMode) ? 'page' : undefined}
+                          onClick={() => go(item)}
+                          title={item.label}
+                        >
+                          <span className="fc-wlp-rail-icon">
+                            <Icon size={17} strokeWidth={2.05} />
+                          </span>
+                          <span className="fc-wlp-rail-item-label">{item.label}</span>
+                        </button>
+                      );
+                    })}
+                    <button
+                      type="button"
+                      className="fc-wlp-rail-item"
+                      data-open={allToolsOpen ? 'true' : undefined}
+                      onClick={() => setAllToolsOpen(true)}
+                    >
+                      <span className="fc-wlp-rail-icon">
+                        <MoreHorizontal size={17} strokeWidth={2.1} />
+                      </span>
+                      <span className="fc-wlp-rail-item-label">All tools</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="fc-wlp-rail-item"
+                      onClick={() => setAdminNavModePersist('full')}
+                      title="Switch to full 7-group admin rail"
+                    >
+                      <span className="fc-wlp-rail-icon">
+                        <ShieldCheck size={17} strokeWidth={2.1} />
+                      </span>
+                      <span className="fc-wlp-rail-item-label">Full nav</span>
+                    </button>
+                  </>
+                )}
               </nav>
               <div className="fc-wlp-rail-footer">
                 <div className="fc-wlp-rail-account">

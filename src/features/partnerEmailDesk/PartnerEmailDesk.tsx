@@ -12,7 +12,7 @@ import {
   type PartnerEmailDraft,
   type PartnerEmailVertical,
   type PartnerFromAddress,
-} from './partnerEmailDesk';
+} from './partnerEmailDeskData';
 
 const ZOHO_COPY = 'Site deploy NOT required ΓÇö sends via Zoho SMTP when ZOHO_SMTP_* set';
 
