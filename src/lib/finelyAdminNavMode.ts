@@ -9,7 +9,7 @@ export function readAdminNavMode(): FinelyAdminNavMode {
   } catch {
     // ignore
   }
-  return 'simple';
+  return 'full';
 }
 
 export function persistAdminNavMode(mode: FinelyAdminNavMode) {
