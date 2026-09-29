@@ -9,8 +9,9 @@ import { getAgentPersona } from '../../domain/agentPersonas';
 import { getPortalStaffPersona, portalPersonaForLane } from '../../data/agentPersonasRepo';
 import { forceStaffShiftPolicyResync, loadStaffRoster, resolveStaffOnDuty } from '../../data/staffRoster';
 import { staffMemberFullName, type StaffMember } from '../../domain/staffMember';
+import { FinelyAssistantAvatar } from '../brand/FinelyAssistantAvatar';
+import { FINELY_ASSISTANT_NAME, FINELY_ASSISTANT_TITLE } from '../../brand/finelyAssistantBrand';
 import { StaffPortraitImg } from '../staff/StaffPortraitImg';
-import { resolveStaffPortraitUrl, STAFF_PORTRAIT_PHOTO_CLASS } from '../../lib/staffPortrait';
 import { getPublicChatPersonaPresentation } from './publicChatPersonaUi';
 import {
   AI_SUGGESTION_TREE,
@@ -97,14 +98,21 @@ export function HubUnifiedConversationPanel({
   const persona = useMemo(() => getPortalStaffPersona(personaId), [personaId]);
   const presentation = useMemo(() => {
     const base = getPublicChatPersonaPresentation(persona);
-    if (!activeStaff) return base;
+    if (staffPinned && activeStaff) {
+      return {
+        ...base,
+        firstName: activeStaff.firstName,
+        title: activeStaff.displayTitle || base.title,
+        initials: `${activeStaff.firstName[0] ?? ''}${activeStaff.lastName[0] ?? ''}`.toUpperCase(),
+      };
+    }
     return {
       ...base,
-      firstName: activeStaff.firstName,
-      avatarUrl: resolveStaffPortraitUrl(activeStaff),
-      initials: `${activeStaff.firstName[0] ?? ''}${activeStaff.lastName[0] ?? ''}`.toUpperCase(),
+      firstName: FINELY_ASSISTANT_NAME,
+      title: FINELY_ASSISTANT_TITLE,
+      initials: 'FC',
     };
-  }, [persona, activeStaff]);
+  }, [persona, activeStaff, staffPinned]);
 
   const [messages, setMessages] = useState<ChatMessage[]>(() => [
     {
@@ -363,10 +371,10 @@ export function HubUnifiedConversationPanel({
     <div className="flex flex-col h-full min-h-[320px]">
       <div className="fc-comms-agent-rail shrink-0 px-4 py-2 border-b space-y-2">
         <div className="flex items-center gap-3">
-          {activeStaff ? (
-            <StaffPortraitImg staff={activeStaff} className="w-10 h-10 rounded-full border border-emerald-400/30" />
+          {staffPinned && activeStaff ? (
+            <StaffPortraitImg staff={activeStaff} className="w-10 h-10 rounded-full border border-emerald-400/30" alt={`${activeStaff.firstName} ${activeStaff.lastName}`.trim()} />
           ) : (
-            <img src={presentation.avatarUrl} alt="" className={`w-10 h-10 rounded-full border border-emerald-400/30 ${STAFF_PORTRAIT_PHOTO_CLASS}`} />
+            <FinelyAssistantAvatar size="md" />
           )}
           <div className="min-w-0 flex-1">
             <div className="text-[10px] uppercase tracking-widest text-emerald-300/90 font-black inline-flex items-center gap-1.5">
@@ -389,10 +397,10 @@ export function HubUnifiedConversationPanel({
         {messages.map((m) => (
           <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start gap-2.5'}`}>
             {m.role === 'assistant' ? (
-              activeStaff ? (
-                <StaffPortraitImg staff={activeStaff} className="w-8 h-8 rounded-full shrink-0 mt-0.5 border border-emerald-400/25" />
+              staffPinned && activeStaff ? (
+                <StaffPortraitImg staff={activeStaff} className="w-8 h-8 rounded-full shrink-0 mt-0.5 border border-emerald-400/25" alt={`${activeStaff.firstName} ${activeStaff.lastName}`.trim()} />
               ) : (
-                <img src={presentation.avatarUrl} alt="" className={`w-8 h-8 rounded-full shrink-0 mt-0.5 border border-emerald-400/25 ${STAFF_PORTRAIT_PHOTO_CLASS}`} />
+                <FinelyAssistantAvatar size="sm" className="mt-0.5" />
               )
             ) : null}
             <div className="max-w-[92%] space-y-1">

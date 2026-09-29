@@ -3,6 +3,7 @@ import { ChevronDown, PanelLeftClose, PanelLeftOpen, Shield } from 'lucide-react
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAdminOpsCaps, isAdminNavPathAllowed } from '../../hooks/useAdminOpsCaps';
 import {
+  ADMIN_NAV_DEFAULT_OPEN,
   ADMIN_NAV_GROUPS,
   isAdminNavPathActive,
 } from '../../config/adminNavLanes';
@@ -61,7 +62,7 @@ export function AdminNavBar() {
           <Shield size={14} className="text-violet-300" />
           Admin navigation
         </span>
-        <span className="text-white/50 text-xs font-mono">{open ? 'hide' : 'show'}</span>
+        <span className="text-fc-muted text-xs font-semibold">{open ? 'hide' : 'show'}</span>
       </button>
       {open ? (
         <div className="mt-3 -mx-2 overflow-x-auto">
@@ -93,7 +94,7 @@ export function AdminNavBar() {
         <button
           type="button"
           onClick={() => setMode('simple')}
-          className="fc-admin-nav-mode-toggle text-[10px] font-black uppercase tracking-widest text-white/55 hover:text-white transition-colors"
+          className="fc-admin-nav-mode-toggle text-[10px] font-black uppercase tracking-widest text-fc-muted hover:text-fc-ink transition-colors"
         >
           Simple nav
         </button>
@@ -132,6 +133,10 @@ export function AdminNavRail({
 
   const searching = Boolean(query.trim());
   const flatItems = useMemo(() => groups.flatMap((g) => g.items), [groups]);
+  const pinnedItems = useMemo(
+    () => groups.map((g) => g.items[0]).filter((item): item is (typeof flatItems)[number] => Boolean(item)),
+    [groups],
+  );
 
   const navButton = (x: (typeof flatItems)[number], compact: boolean) => {
     const active = isAdminNavPathActive(pathname, x.path);
@@ -230,13 +235,13 @@ export function AdminNavRail({
         <div className={`relative overflow-y-auto fc-scroll-area min-w-0 flex-1 ${expanded ? 'pr-1 mt-3' : 'mt-1 flex flex-col items-center'}`}>
           {!expanded ? (
             <div className="space-y-1.5 py-1">
-              {flatItems.map((x) => navButton(x, true))}
+              {pinnedItems.map((x) => navButton(x, true))}
             </div>
           ) : (
             <div className="space-y-3">
               {groups.map((g) => {
                 const hasActive = g.items.some((x) => isAdminNavPathActive(pathname, x.path));
-                const initialOpen = hasActive || g.label === 'Core';
+                const initialOpen = hasActive || (!searching && ADMIN_NAV_DEFAULT_OPEN.has(g.label));
                 const isOpen = openGroups[g.label] ?? initialOpen;
 
                 const items = (

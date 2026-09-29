@@ -10,9 +10,13 @@ import {
   resolveStaffOnDutyForLane,
 } from '../data/staffRoster';
 import { staffMemberFullName, type StaffMember } from '../domain/staffMember';
-import { resolveStaffPortraitUrl } from './staffPortrait';
 import type { ChatLocale } from './publicChatI18n';
 import { CO_OWNER_IDENTITY } from '../domain/coOwnerPersona';
+import {
+  FINELY_ASSISTANT_AVATAR,
+  FINELY_ASSISTANT_NAME,
+  FINELY_ASSISTANT_TITLE,
+} from '../brand/finelyAssistantBrand';
 import {
   PERSONA_PRESENTATION_STYLES,
   type PublicChatPersonaPresentation,
@@ -31,13 +35,6 @@ export type ChatStaffPresentation = {
   welcomeWithAiDisclosure: string;
   aiAssistBadgeLabel: string;
 };
-
-function initialsFor(firstName: string, lastName?: string): string {
-  if (lastName?.trim()) return `${firstName[0] ?? ''}${lastName[0] ?? ''}`.toUpperCase();
-  const parts = firstName.trim().split(/\s+/).filter(Boolean);
-  if (parts.length >= 2) return `${parts[0]![0]}${parts[1]![0]}`.toUpperCase();
-  return (parts[0]?.slice(0, 2) ?? 'FC').toUpperCase();
-}
 
 function firstActiveRosterMember(): StaffMember | null {
   return loadStaffRoster().find((s) => s.active) ?? null;
@@ -81,18 +78,17 @@ function buildPresentation(
 ): PublicChatPersonaPresentation {
   const base = PERSONA_PRESENTATION_STYLES[persona.id] ?? PERSONA_PRESENTATION_STYLES.finely_advisor;
   const dutyStaff = staff ?? firstActiveRosterMember();
-  const firstName = dutyStaff?.firstName ?? base.firstName;
-  const lastName = dutyStaff?.lastName ?? '';
-  const title = dutyStaff?.displayTitle || persona.displayTitle || base.title;
-  const avatarUrl = dutyStaff ? resolveStaffPortraitUrl(dutyStaff) : resolveStaffPortraitUrl(firstActiveRosterMember()!);
+  // One visible assistant. Duty staff stays on staffMemberId for routing, not as a second face.
+  const firstName = FINELY_ASSISTANT_NAME;
+  const title = FINELY_ASSISTANT_TITLE;
 
   return {
     ...base,
     firstName,
     title,
     welcome: welcomeForDutyStaff(base.welcome, base.firstName, firstName),
-    initials: initialsFor(firstName, lastName),
-    avatarUrl,
+    initials: 'FC',
+    avatarUrl: FINELY_ASSISTANT_AVATAR,
     staffMemberId: dutyStaff?.id,
   };
 }
@@ -104,7 +100,7 @@ export function buildAiDisclosureWelcome(
   locale?: ChatLocale,
 ): string {
   if (personaId === 'haitian_companion' && locale === 'ht') {
-    return `Bonjou. Mwen se ${presentation.firstName}. Nou ede Ayisyen ki viv Ozetazini ak dosye kredi ak lèt kolektè. Lè w pare, di m sa ki rive nan lapòs la.`;
+    return `Bonjou. Mwen se ${FINELY_ASSISTANT_NAME}. Nou ede Ayisyen ki viv Ozetazini ak dosye kredi ak lèt kolektè. Lè w pare, di m sa ki rive nan lapòs la.`;
   }
   return `Hello — I am ${presentation.firstName}. I help with credit reports, collector letters, and the next step. When you are ready, tell me what arrived.`;
 }

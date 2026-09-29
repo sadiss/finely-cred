@@ -26,8 +26,8 @@ export function EmptyState(args: {
             )}
           </div>
           <div className="min-w-0">
-            <div className="text-white font-semibold">{args.title}</div>
-            {args.description ? <div className="mt-1 text-white/60 text-sm">{args.description}</div> : null}
+            <div className="text-fc-ink font-semibold">{args.title}</div>
+            {args.description ? <div className="mt-1 text-fc-muted text-sm">{args.description}</div> : null}
           </div>
         </div>
         {args.actions ? <div className="flex flex-wrap gap-2">{args.actions}</div> : null}

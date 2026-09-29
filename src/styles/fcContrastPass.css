@@ -1,0 +1,202 @@
+/*
+ * Contrast pass. Imported last so it wins over luxury-glass !important fights.
+ * Dark shell copy stays near-white. Light cards use ink. Gold buttons keep ink text.
+ */
+
+:root {
+  --fc-ink: #f5f5f4;
+  --fc-muted: #d6d3d1;
+  --fc-cream: #faf6ee;
+  --fc-ink-on-light: #14120b;
+  --fc-gold: #e8b84a;
+  --fc-card-dark: #182420;
+  --fc-card-border: rgba(245, 245, 244, 0.28);
+  --fc-os-entity-faint: #d6d3d1;
+}
+
+html[data-fc-theme='light'] {
+  --fc-ink: #14120b;
+  --fc-muted: #3f3a32;
+  --fc-os-entity-faint: #3f3a32;
+}
+
+.fc-contrast-card {
+  background: var(--fc-card-dark);
+  color: var(--fc-ink);
+  border: 1px solid var(--fc-card-border);
+}
+
+html[data-fc-theme='light'] .fc-contrast-card {
+  background: var(--fc-cream);
+  color: var(--fc-ink-on-light);
+  border: 1px solid rgba(20, 18, 11, 0.16);
+}
+
+html[data-fc-theme='dark'] .fc-card,
+html:not([data-fc-theme='light']) .fc-card {
+  background: var(--fc-card-dark);
+  border-color: var(--fc-card-border);
+  color: var(--fc-ink);
+}
+
+html[data-fc-theme='dark'] :is(
+  .text-white\/30,
+  .text-white\/35,
+  .text-white\/40,
+  .text-white\/45,
+  .text-white\/50,
+  .text-white\/55
+) {
+  color: var(--fc-muted) !important;
+}
+
+html[data-fc-theme='dark'] :is(
+  .bg-white,
+  .bg-amber-50,
+  .bg-amber-100,
+  .bg-amber-200,
+  .bg-yellow-50,
+  .bg-yellow-100,
+  .fc-admin-soft-gold,
+  .fc-admin-solid-gold,
+  .fc-ivory-solid-tile,
+  .fc-cream,
+  .fc-funding-promo-band,
+  .fc-contrast-card
+) :is(
+  .text-white,
+  .text-amber-100,
+  .text-amber-200,
+  .text-amber-300,
+  .text-white\/40,
+  .text-white\/50,
+  .text-white\/60,
+  .text-white\/70,
+  .text-fc-ink,
+  .text-fc-muted
+) {
+  color: var(--fc-ink-on-light) !important;
+}
+
+html[data-fc-theme='light'] :is(
+  .fc-wlp-panel,
+  .bg-white,
+  .bg-amber-50,
+  .bg-amber-100,
+  .bg-amber-200,
+  .bg-yellow-50,
+  .bg-yellow-100,
+  .fc-admin-soft-gold,
+  .fc-admin-solid-gold,
+  .fc-ivory-solid-tile,
+  .fc-cream,
+  .fc-funding-promo-band,
+  .fc-contrast-card,
+  [data-bed='light']
+) {
+  color: var(--fc-ink-on-light);
+}
+
+html[data-fc-theme='light'] :is(
+  .fc-wlp-panel,
+  .bg-white,
+  .bg-amber-50,
+  .bg-amber-100,
+  .bg-amber-200,
+  .bg-yellow-50,
+  .bg-yellow-100,
+  .fc-admin-soft-gold,
+  .fc-admin-solid-gold,
+  .fc-ivory-solid-tile,
+  .fc-cream,
+  .fc-funding-promo-band,
+  .fc-contrast-card,
+  [data-bed='light']
+) :is(
+  .text-white,
+  .text-white\/40,
+  .text-white\/50,
+  .text-white\/60,
+  .text-white\/70,
+  .text-amber-100,
+  .text-amber-200,
+  .text-amber-300,
+  .text-fc-ink,
+  .text-fc-muted
+) {
+  color: var(--fc-ink-on-light) !important;
+}
+
+/* Dark islands keep frost even when the admin theme is light. */
+html[data-fc-theme='light'] :is(
+  [data-fc-admin-nav-rail],
+  .fc-wlp-admin-rail,
+  [data-bed='dark'],
+  .fc-wlp-admin-stage-hero,
+  .fc-wlp-admin-stage-section[data-tone='dark'],
+  .fc-premium-chart-card,
+  .fc-admin-ink-panel,
+  [data-fc-contrast-band='1'],
+  .fc-landing-dark-depth,
+  .fc-cmd,
+  .fc-bos
+) {
+  color: #f5f5f4;
+}
+
+html[data-fc-theme='light'] :is(
+  [data-fc-admin-nav-rail],
+  .fc-wlp-admin-rail,
+  [data-bed='dark'],
+  .fc-wlp-admin-stage-hero,
+  .fc-premium-chart-card,
+  .fc-admin-ink-panel,
+  [data-fc-contrast-band='1'],
+  .fc-landing-dark-depth
+) :is(.text-white, .text-fc-ink, h1, h2, h3, .font-semibold, .font-bold) {
+  color: #f5f5f4 !important;
+}
+
+html[data-fc-theme='light'] :is(
+  [data-fc-admin-nav-rail],
+  .fc-wlp-admin-rail,
+  [data-bed='dark'],
+  .fc-premium-chart-card,
+  .fc-admin-ink-panel
+) :is(.text-white\/40, .text-white\/50, .text-white\/60, .text-fc-muted, p) {
+  color: #d6d3d1 !important;
+}
+
+/* Admin accent cards are painted dark on the light theme. Do not ink them. */
+html[data-fc-theme='light'] [data-fc-app-surface='admin'] .fc-accent-card:not([class*='fc-admin-solid']):not(.fc-wlp-kpi):not(.fc-wlp-metric) :is(
+  .text-white,
+  .text-fc-ink,
+  h1,
+  h2,
+  h3,
+  .font-semibold,
+  .font-bold
+) {
+  color: #f5f5f4 !important;
+}
+
+html[data-fc-theme='light'] [data-fc-app-surface='admin'] .fc-accent-card:not([class*='fc-admin-solid']):not(.fc-wlp-kpi):not(.fc-wlp-metric) :is(
+  p,
+  .text-sm,
+  .text-xs,
+  .text-fc-muted,
+  [class*='text-white/']
+) {
+  color: #d6d3d1 !important;
+}
+
+html[data-fc-theme='dark'] .fc-input::placeholder,
+html[data-fc-theme='dark'] textarea::placeholder {
+  color: #c8c6c2;
+}
+
+.fc-button-brand-surface,
+.fc-pill-active,
+.fc-chip-active {
+  color: #14120b !important;
+}

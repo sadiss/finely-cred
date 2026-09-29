@@ -53,6 +53,7 @@ import { finelyCtaNavigate, resolveFinelyCtaPath } from './lib/finelyCtaIntent';
 import { ensureDefaultExperiments, assignFunnelVariant, getAssignedCtaDestination } from './data/funnelExperimentsRepo';
 import { persistCtaBridgeVariant } from './lib/funnelCtaBridge';
 import { clearOnboardingProgress, peekOnboardingRecommendedNextPath } from './lib/onboardingProgressStorage';
+import { BusinessOsLauncher } from './features/businessOs/BusinessOsLauncher';
 import { AdminCommandPaletteHost } from './features/work/components/WorkCommandPalette';
 import { FinelySiteThemeProvider } from './features/os/FinelySiteThemeProvider';
 import { FinelyThemeToggle } from './features/os/FinelyThemeToggle';
@@ -2839,6 +2840,9 @@ function AppInner() {
           </Routes>
         </AppErrorBoundary>
       </Suspense>
+      <BusinessOsLauncher
+        active={location.pathname.startsWith('/admin') || location.pathname.includes('/preview/workspace-light/admin')}
+      />
       <AdminCommandPaletteHost />
     </div>
   );

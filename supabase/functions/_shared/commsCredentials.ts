@@ -31,6 +31,20 @@ export function isSmtpConfigured(): boolean {
   return Boolean(getSmtpCredentials());
 }
 
+/** Zoho Mail SMTP for partner support sends. Never falls back to a generic host. */
+export function getZohoSmtpCredentials(): { host: string; port: number; user: string; pass: string; secure: boolean } | null {
+  const enabled = trimEnv('ZOHO_PARTNER_EMAIL_ENABLED').toLowerCase() === 'true';
+  if (!enabled) return null;
+  const user = trimEnv('ZOHO_SMTP_USER');
+  const pass = trimEnv('ZOHO_SMTP_PASS');
+  if (!user || !pass) return null;
+  const host = trimEnv('ZOHO_SMTP_HOST') || 'smtp.zoho.com';
+  const port = parseInt(trimEnv('ZOHO_SMTP_PORT') || '587', 10);
+  if (!port) return null;
+  const secure = trimEnv('ZOHO_SMTP_SECURE').toLowerCase() === 'true' || port === 465;
+  return { host, port, user, pass, secure };
+}
+
 export function isSendGridConfigured(): boolean {
   return Boolean(trimEnv('SENDGRID_API_KEY'));
 }

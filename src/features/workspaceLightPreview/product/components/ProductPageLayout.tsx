@@ -5,6 +5,7 @@ import '../../workspaceLightPreview.css';
 import '../../workspaceLightSurfaces.css';
 import '../workspaceProduct.css';
 import '../../../os/finelyOsLuxuryGlassInk.css';
+import '../../../../styles/fcContrastPass.css';
 import type { WorkspaceProductRole } from '../workspaceProductTokens';
 import { getWorkspaceProductNavItem } from '../workspaceProductNav';
 import { ProductWorkspaceShell } from './ProductWorkspaceShell';
