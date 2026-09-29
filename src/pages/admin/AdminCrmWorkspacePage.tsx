@@ -14,7 +14,7 @@ import { buildPipelineForecast, formatForecastCents } from '../../features/crm/f
 import type { CrmRecord } from '../../domain/crmRecords';
 import type { CrmRecordStage } from '../../domain/crmRecords';
 import { setCrmRecordStage } from '../../data/crmRecordsRepo';
-import { UserPlus, Gift, FileSpreadsheet } from 'lucide-react';
+import { UserPlus, Gift, FileSpreadsheet, RefreshCw } from 'lucide-react';
 import { CrmBulkDataPanel } from '../../features/crm/components/CrmBulkDataPanel';
 import { CrmSmartListsPanel } from '../../features/crm/components/CrmSmartListsPanel';
 import { AgentAttributionPanel } from '../../features/crm/attribution/AgentAttributionPanel';
@@ -36,7 +36,7 @@ import { FinelyNowDoThisStrip } from '../../components/tours/FinelyNowDoThisStri
 import { FinelyNoticedStrip } from '../../components/tours/FinelyNoticedStrip';
 import { buildCrmNoticedItems } from '../../lib/finelyProactiveSignals';
 import { applyCrmRoutingRules } from '../../features/crm/routing/applyCrmRoutingRules';
-import { runCrmServerBackfillOnce } from '../../data/crmServerSync';
+import { pullCrmSnapshotFromSupabase, runCrmServerBackfillOnce } from '../../data/crmServerSync';
 import { isColdDirectoryCrmRecord } from '../../lib/coldDirectory';
 
 type CrmHubTab = 'pipeline' | 'forecast' | 'attribution';
@@ -52,6 +52,8 @@ export default function AdminCrmWorkspacePage() {
   const [selected, setSelected] = useState<CrmRecord | null>(null);
   const [quickCreateOpen, setQuickCreateOpen] = useState(false);
   const [bulkOpen, setBulkOpen] = useState(false);
+  const [pulling, setPulling] = useState(false);
+  const [pullStatus, setPullStatus] = useState<string | null>(null);
   const stats = useMemo(() => getTaskPlaybookStats(), []);
 
   useEffect(() => {
@@ -76,10 +78,42 @@ export default function AdminCrmWorkspacePage() {
   }, []);
 
   useEffect(() => {
-    // One-time server backfill of existing local prospects/records — guarded
-    // by a localStorage flag inside runCrmServerBackfillOnce so it only runs once.
-    void runCrmServerBackfillOnce();
+    // Pull crm_prospects from Supabase into local store (UI reads local via listCrmRecords),
+    // then one-time push backfill. saveJson emits finely:store so the board refreshes.
+    void (async () => {
+      setPulling(true);
+      setPullStatus('Pulling from Supabase…');
+      const result = await pullCrmSnapshotFromSupabase();
+      await runCrmServerBackfillOnce();
+      setVersion((v) => v + 1);
+      if (result.ok) {
+        const total = result.prospects.added + result.prospects.updated + result.records.cached;
+        setPullStatus(
+          `Pulled ${total}: +${result.prospects.added} added · ${result.prospects.updated} updated · ${result.records.cached} records cached`,
+        );
+      } else {
+        setPullStatus(result.error ? `Pull failed: ${result.error}` : 'Pull failed');
+      }
+      setPulling(false);
+    })();
   }, []);
+
+  const refreshFromSupabase = async () => {
+    if (pulling) return;
+    setPulling(true);
+    setPullStatus('Refreshing from Supabase…');
+    const result = await pullCrmSnapshotFromSupabase();
+    setVersion((v) => v + 1);
+    if (result.ok) {
+      const total = result.prospects.added + result.prospects.updated + result.records.cached;
+      setPullStatus(
+        `Refreshed ${total}: +${result.prospects.added} added · ${result.prospects.updated} updated · ${result.records.cached} records cached`,
+      );
+    } else {
+      setPullStatus(result.error ? `Refresh failed: ${result.error}` : 'Refresh failed');
+    }
+    setPulling(false);
+  };
 
   const pipeline = CRM_PIPELINES.find((p) => p.id === pipelineId) ?? CRM_PIPELINES[0];
   const baseRecords = useMemo(
@@ -166,6 +200,21 @@ export default function AdminCrmWorkspacePage() {
               <FileSpreadsheet size={14} />
               Import / export
             </button>
+            <button
+              type="button"
+              onClick={() => void refreshFromSupabase()}
+              disabled={pulling}
+              className={FINELY_OS_SECONDARY_BTN}
+              title="Reload CRM from Supabase"
+            >
+              <RefreshCw size={14} className={pulling ? 'animate-spin' : undefined} />
+              {pulling ? 'Refreshing…' : 'Refresh'}
+            </button>
+            {pullStatus ? (
+              <span className={`${FINELY_OS_ENTITY_BODY} text-xs opacity-80 max-w-[280px] truncate`} title={pullStatus}>
+                {pullStatus}
+              </span>
+            ) : null}
           </div>
 
           <CrmSmartListsPanel records={baseRecords} value={smartListId} onChange={setSmartListId} />

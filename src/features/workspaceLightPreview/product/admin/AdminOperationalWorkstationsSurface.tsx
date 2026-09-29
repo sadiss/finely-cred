@@ -37,6 +37,7 @@ import {
   UserCog,
   Filter,
   Scale,
+  RefreshCw,
 } from 'lucide-react';
 import {
   listCrmRecords,
@@ -45,6 +46,7 @@ import {
   createCrmInboundLead,
   addCrmRecordNote,
 } from '../../../../data/crmRecordsRepo';
+import { pullCrmSnapshotFromSupabase } from '../../../../data/crmServerSync';
 import { isClosedStage, type CrmRecord, type CrmRecordStage, crmRecordDisplayName } from '../../../../domain/crmRecords';
 import { listTasks, setTaskStatus, toggleTaskChecklistItem, createTask, upsertTask } from '../../../../data/tasksRepo';
 import type { TaskItem, TaskStatus } from '../../../../domain/tasks';
@@ -617,6 +619,8 @@ function CrmWorkstation({ pageId, entityId, dataMode }: WorkspaceProductSurfaceP
   const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
   const [activeRoom, setActiveRoom] = useState<string>('pipeline');
   const [refreshCount, setRefreshCount] = useState(0);
+  const [pulling, setPulling] = useState(false);
+  const [pullStatus, setPullStatus] = useState<string | null>(null);
   const openRecordId = entityId || searchParams.get('recordId') || null;
 
   // Search / filter state
@@ -645,6 +649,47 @@ function CrmWorkstation({ pageId, entityId, dataMode }: WorkspaceProductSurfaceP
   const [newLeadEmail, setNewLeadEmail] = useState('');
   const [newLeadPhone, setNewLeadPhone] = useState('');
   const [convertedPartnerByRecord, setConvertedPartnerByRecord] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (isDemo) return;
+    let cancelled = false;
+    void (async () => {
+      setPulling(true);
+      setPullStatus('Pulling from Supabase…');
+      const result = await pullCrmSnapshotFromSupabase();
+      if (cancelled) return;
+      if (result.ok) {
+        const total = result.prospects.added + result.prospects.updated + result.records.cached;
+        setPullStatus(
+          `Pulled ${total}: +${result.prospects.added} added · ${result.prospects.updated} updated · ${result.records.cached} records cached`,
+        );
+      } else {
+        setPullStatus(result.error ? `Pull failed: ${result.error}` : 'Pull failed');
+      }
+      setPulling(false);
+      setRefreshCount((c) => c + 1);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isDemo]);
+
+  const refreshFromSupabase = async () => {
+    if (isDemo || pulling) return;
+    setPulling(true);
+    setPullStatus('Refreshing from Supabase…');
+    const result = await pullCrmSnapshotFromSupabase();
+    if (result.ok) {
+      const total = result.prospects.added + result.prospects.updated + result.records.cached;
+      setPullStatus(
+        `Refreshed ${total}: +${result.prospects.added} added · ${result.prospects.updated} updated · ${result.records.cached} records cached`,
+      );
+    } else {
+      setPullStatus(result.error ? `Refresh failed: ${result.error}` : 'Refresh failed');
+    }
+    setPulling(false);
+    setRefreshCount((c) => c + 1);
+  };
 
   useEffect(() => {
     if (isDemo) {
@@ -1093,9 +1138,26 @@ function CrmWorkstation({ pageId, entityId, dataMode }: WorkspaceProductSurfaceP
           <ProductPagePrimaryAction label="Add New Lead" onClick={() => setIsCreatingLead(true)} />
         }
         secondaryAction={
-          <button type="button" className="fc-wlp-btn-secondary" onClick={() => setActiveRoom('conversion')}>
-            <Users size={15} /> Partner conversions
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button type="button" className="fc-wlp-btn-secondary" onClick={() => setActiveRoom('conversion')}>
+              <Users size={15} /> Partner conversions
+            </button>
+            <button
+              type="button"
+              className="fc-wlp-btn-secondary"
+              onClick={() => void refreshFromSupabase()}
+              disabled={isDemo || pulling}
+              title="Reload CRM from Supabase"
+            >
+              <RefreshCw size={15} className={pulling ? 'animate-spin' : undefined} />
+              {pulling ? 'Refreshing…' : 'Refresh'}
+            </button>
+            {pullStatus ? (
+              <span className="text-xs opacity-80 max-w-[320px] truncate" title={pullStatus}>
+                {pullStatus}
+              </span>
+            ) : null}
+          </div>
         }
       />
 
