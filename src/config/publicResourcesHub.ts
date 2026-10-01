@@ -152,13 +152,6 @@ export const PUBLIC_FEATURED_FREE_GUIDES: {
     badge: 'Popular',
   },
   {
-    id: 'debt',
-    title: 'Debt & summons guide',
-    desc: 'Validation and court education: FDCPA letters, summons triage, and a debt task board you can actually use.',
-    path: '/free-debt-guide',
-    accent: 'fuchsia',
-  },
-  {
     id: 'business',
     title: 'Business credit guide',
     desc: 'How to stand up an EIN profile, sequence vendors, and get ready for a commercial underwrite.',

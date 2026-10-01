@@ -125,7 +125,6 @@ export default function DebtLegalPreviewPage() {
   };
 
   const bookSession = () => finelyCtaNavigate(navigate, 'consultation', { consultationLane: 'Debt & Legal' });
-  const freeGuide = () => navigate('/free-debt-guide');
   const scrollPackages = () => document.getElementById('dl-prev-packages')?.scrollIntoView({ behavior: 'smooth' });
 
   return (
@@ -160,9 +159,6 @@ export default function DebtLegalPreviewPage() {
                   </button>
                   <button type="button" className="dl-prev-btn-secondary" onClick={bookSession}>
                     Book a session
-                  </button>
-                  <button type="button" className="dl-prev-btn-ghost" onClick={freeGuide}>
-                    Free debt guide
                   </button>
                 </div>
               </div>
@@ -481,15 +477,12 @@ export default function DebtLegalPreviewPage() {
               <div className="dl-prev-final">
                 <h2>Put the notice on the desk.</h2>
                 <p>
-                  Get the free guide if you need the map tonight. Choose a packet if you already know the matter.
+                  Choose a packet if you already know the matter.
                   Book a session when the paper is a summons, a foreclosure, or more than one account.
                 </p>
                 <div className="dl-prev-final__actions">
                   <button type="button" className="dl-prev-btn-primary" onClick={scrollPackages}>
                     See packages <ArrowRight size={15} aria-hidden />
-                  </button>
-                  <button type="button" className="dl-prev-btn-secondary" onClick={freeGuide}>
-                    Free debt guide
                   </button>
                   <button type="button" className="dl-prev-btn-ghost" onClick={bookSession}>
                     Book a session
@@ -497,10 +490,6 @@ export default function DebtLegalPreviewPage() {
                 </div>
               </div>
               <div className="dl-prev-exits" style={{ marginTop: '1.5rem' }}>
-                <Link className="dl-prev-exit dl-prev-exit--rose" to="/free-debt-guide">
-                  <strong>Free debt guide</strong>
-                  <span>Cover preview on this page. The full reader opens when you start the guide.</span>
-                </Link>
                 <button type="button" className="dl-prev-exit dl-prev-exit--sky" onClick={bookSession}>
                   <strong>Book a session</strong>
                   <span>Walk the notice with a specialist before you pick a packet.</span>

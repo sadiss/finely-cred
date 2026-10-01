@@ -406,7 +406,6 @@ All premium funnel landings share one capture + success flow:
 | Route | Config | Landing component |
 |-------|--------|-------------------|
 | `/free-guide` | `CREDIT_FUNNEL` | `LeadMagnetFunnelShell` (reference implementation) |
-| `/free-debt-guide` | `DEBT_FUNNEL` | `DebtEradicationLandingPage` |
 | `/free-business-guide` | `BUSINESS_FUNNEL` | `BusinessCreditPowerGuideLandingPage` |
 | `/free-tradeline-guide` | `TRADELINE_FUNNEL` | `TradelineAdvantageLandingPage` |
 | `/free-score-roadmap` | `SCORE_ROADMAP_FUNNEL` | `CreditScoreRoadmapLandingPage` |

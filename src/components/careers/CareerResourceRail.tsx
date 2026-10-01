@@ -15,7 +15,6 @@ type RailLink = {
 
 const ROLE_EXTRA: Partial<Record<RolePageId, RailLink[]>> = {
   case_help: [
-    { id: 'debt-prereq', label: 'Debt & summons guide', href: '/free-debt-guide', hint: 'Prerequisite · validation clocks' },
     { id: 'restore-sheet', label: 'Personal restore sheet', href: '/resources/personal-credit-restore-sheet', hint: 'Escalation ladder overview' },
     {
       id: 'bc-sheets',

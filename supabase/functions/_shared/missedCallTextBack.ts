@@ -191,7 +191,7 @@ export async function sendMissedCallTextBack(
       result.reason = `suppressed_${suppression.reason}`;
     } else {
       const invite = await createMissedCallBookingInvite(admin, { callerPhone, tenantId });
-      const bookingUrl = invite.ok && invite.url ? invite.url : `${appBaseUrl()}/free-debt-guide`;
+      const bookingUrl = invite.ok && invite.url ? invite.url : `${appBaseUrl()}/enlightenment-session`;
       result.bookingUrl = bookingUrl;
 
       const body = `Sorry we missed your call! A Finely Cred team member will reach out shortly, or book a time that works for you: ${bookingUrl} Reply STOP to opt out.`;

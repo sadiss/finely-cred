@@ -49,7 +49,7 @@ export function PersonalCreditHeroShell({ onStartFreeTrial, onBookSession }: Pro
           <LandingTypewriterTitle
             as="h1"
             text="Restore your credit. "
-            accentText="Reclaim your future."
+            accentText="Track every round."
             className="pc-restore-title pc-restore-title--playfair text-white"
             accentClassName="text-emerald-200 italic"
             speedMs={34}

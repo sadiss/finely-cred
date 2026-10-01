@@ -71,7 +71,6 @@ const PRIMARY_TILES: Tile[] = [
 ];
 
 const FUNNEL_TILES: Tile[] = [
-  { id: 'debt', label: 'Debt guide', hint: 'Validation and summons response', path: '/free-debt-guide', accent: 'fuchsia', icon: BookOpen },
   { id: 'business', label: 'Business credit', hint: 'Entity setup and vendor depth', path: '/free-business-guide', accent: 'violet', icon: BookOpen },
   { id: 'tradeline', label: 'Tradeline guide', hint: 'Authorized-user education', path: '/free-tradeline-guide', accent: 'emerald', icon: BookOpen },
   { id: 'score', label: 'Score roadmap', hint: 'Five-step recovery sequence', path: '/free-score-roadmap', accent: 'sky', icon: BookOpen },

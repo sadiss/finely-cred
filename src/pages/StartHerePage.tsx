@@ -37,10 +37,10 @@ const PATHS = [
   {
     id: 'debt',
     title: 'Handle debt pressure',
-    desc: 'Collections, validation, and summons education — get the free debt response guide.',
+    desc: 'Collections, validation, and summons — open the debt and legal desk.',
     icon: Scale,
     accent: 'rose' as const,
-    primary: { label: 'Get debt guide', to: '/free-debt-guide' },
+    primary: { label: 'See debt & legal', to: '/pricing/debt-legal' },
     secondary: { label: 'Book a strategy call', to: '/enlightenment-session' },
   },
   {

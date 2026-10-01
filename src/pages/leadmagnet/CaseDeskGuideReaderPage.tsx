@@ -9,7 +9,6 @@ import {
   CASE_DESK_GUIDE_META,
   CASE_DESK_GUIDE_PATH,
   CASE_DESK_GUIDE_READ_PATH,
-  DEBT_GUIDE_PREREQ_PATH,
   caseDeskGuideChapterIndex,
   type CaseDeskGuideChapter,
   type CaseDeskGuideSection,
@@ -194,13 +193,6 @@ export default function CaseDeskGuideReaderPage() {
       }
       headerRight={
         <>
-          <button
-            type="button"
-            className="rounded-sm border border-stone-400/55 bg-white/70 px-3 py-1.5 font-serif text-xs font-bold text-stone-700 hover:border-stone-700"
-            onClick={() => navigate(DEBT_GUIDE_PREREQ_PATH)}
-          >
-            Debt guide (prereq)
-          </button>
           <button
             type="button"
             className="rounded-sm border border-stone-700/50 bg-stone-900 px-3 py-1.5 font-serif text-xs font-bold text-[#f6f1e4] hover:bg-stone-800"

@@ -935,7 +935,6 @@ Deno.serve(async (req) => {
       embed: {
         funnels: [
           { id: 'credit_dispute', path: '/free-guide', label: 'Credit Dispute Guide' },
-          { id: 'debt_freedom', path: '/debt-freedom-guide', label: 'Debt Freedom Playbook' },
           { id: 'business_credit', path: '/business-credit-guide', label: 'Business Credit Jumpstart' },
         ],
         voiceTenantId: tenantId,

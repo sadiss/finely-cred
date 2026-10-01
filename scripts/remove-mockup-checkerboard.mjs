@@ -17,12 +17,6 @@ const BACKUP_DIR = join(ROOT, 'backup-before-bg-remove');
 
 const TARGETS = [
   {
-    id: 'debt',
-    src: join(ROOT, 'debt-eradication-mockup.png'),
-    out: join(ROOT, 'debt-eradication-mockup.png'),
-    qa: join(ROOT, '_qa-debt-cleaned-on-magenta.png'),
-  },
-  {
     id: 'business',
     src: join(ROOT, 'business-credit-power-guide-mockup.png'),
     out: join(ROOT, 'business-credit-power-guide-mockup.png'),
@@ -264,7 +258,7 @@ async function processOne(target) {
   const backupPath = join(BACKUP_DIR, `${target.id}-${Date.now()}-src.png`);
   const stableBackup = join(
     BACKUP_DIR,
-    target.id === 'debt' ? 'debt-eradication-mockup.png' : 'business-credit-power-guide-mockup.png',
+    'business-credit-power-guide-mockup.png',
   );
   if (!existsSync(stableBackup)) copyFileSync(target.src, stableBackup);
   copyFileSync(existsSync(stableBackup) ? stableBackup : target.src, backupPath);

@@ -131,24 +131,6 @@ function buildDefaultExperiments(): FunnelExperiment[] {
     },
     {
       id: newId('exp'),
-      funnelId: 'debt_freedom',
-      name: 'Free debt guide headline test',
-      enabled: true,
-      headlines: {
-        control: 'Validate the claim. Own the timeline.',
-        variant_a: 'A written plan for collections and summons',
-        variant_b: 'Your validation playbook is ready',
-      },
-      ctaLabels: {
-        control: 'Get the free guide',
-        variant_a: 'Send me the playbook',
-        variant_b: 'Unlock my validation kit',
-      },
-      stats: {},
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      id: newId('exp'),
       funnelId: 'business_credit',
       name: 'Free business guide headline test',
       enabled: true,

@@ -32,7 +32,7 @@ export const AGENT_PERSONA_TOOLS: Record<AgentPersonaToolId, AgentPersonaTool> =
     label: 'Free guide stack',
     path: (ctx) => {
       const g = (ctx.goal ?? '').toLowerCase();
-      if (g.includes('debt')) return '/free-debt-guide';
+      if (g.includes('debt')) return '/pricing/debt-legal';
       if (g.includes('business') || g.includes('agency')) return '/free-business-guide';
       if (g.includes('tradeline')) return '/free-tradeline-guide';
       if (g.includes('affiliate')) return '/affiliate-toolkit';

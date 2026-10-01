@@ -55,13 +55,7 @@ export function publicRoleForPath(pathname: string, goal: PublicChatGoal | null)
 }
 
 export function guideForGoal(goal: PublicChatGoal | null): OperatorGuide | null {
-  if (goal === 'debt') {
-    return {
-      title: 'Free debt guide',
-      href: '/free-debt-guide',
-      image: '/images/lead-magnets/debt-eradication-guide-cutout.png',
-    };
-  }
+  if (goal === 'debt') return null;
   if (goal === 'business') {
     return {
       title: 'Business credit guide',
@@ -121,7 +115,7 @@ export function operatorChipsForPath(pathname: string, goal: PublicChatGoal | nu
     return [
       { id: 'validation', label: 'Validation', prompt: 'I have a collection notice and need validation help.', action: 'talk', accent: 'rose' },
       { id: 'summons', label: 'Summons', prompt: 'I received a summons. What do I do first?', action: 'talk', accent: 'violet' },
-      { id: 'guide', label: 'Free debt guide', prompt: 'I want the free debt guide.', action: 'guide', href: '/free-debt-guide', image: '/images/lead-magnets/debt-eradication-guide-cutout.png', accent: 'sky' },
+      { id: 'desk', label: 'Debt & legal', prompt: 'Show me the debt and legal desk.', action: 'page', href: '/pricing/debt-legal', accent: 'sky' },
       { id: 'book', label: 'Book a session', prompt: 'I want to book a session.', action: 'book', accent: 'emerald' },
     ];
   }

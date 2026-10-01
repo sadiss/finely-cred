@@ -181,7 +181,6 @@ export const PUBLIC_RESOURCES_SECTIONS: PublicNavSection[] = [
         badge: 'Popular',
         accent: 'emerald',
       },
-      { id: 'free-debt', label: 'Debt & summons guide', path: '/free-debt-guide', hint: 'Validation and court help', accent: 'rose' },
       { id: 'case-desk', label: 'Case Desk Operator Guide', path: '/case-desk-guide', accent: 'sky' },
       { id: 'free-business', label: 'Business credit guide', path: '/free-business-guide', accent: 'violet' },
       { id: 'free-tradeline', label: 'Tradeline guide', path: '/free-tradeline-guide', accent: 'emerald' },
@@ -307,7 +306,6 @@ export const PUBLIC_HOS_NAV = {
 export { PUBLIC_CAREER_PATHS, matchCareersPath } from './publicCareers';
 
 const OTHER_FREE_GUIDE_PREFIXES = [
-  '/free-debt-guide',
   '/case-desk-guide',
   '/free-business-guide',
   '/free-tradeline-guide',

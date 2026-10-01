@@ -533,7 +533,7 @@ export default function CaseHelpCareersPage() {
             </CareerChoiceApply>
 
             {status === 'sent' ? (
-              <button type="button" className={roleSecondaryBtn(ROLE)} onClick={() => navigate('/free-debt-guide/read')}>
+              <button type="button" className={roleSecondaryBtn(ROLE)} onClick={() => navigate('/case-desk-guide/read')}>
                 <FileText size={14} /> Read the case desk guide while you wait <ArrowRight size={14} />
               </button>
             ) : null}

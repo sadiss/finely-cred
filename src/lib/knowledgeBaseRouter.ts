@@ -61,7 +61,7 @@ const PATH_ROUTES: Array<{ test: RegExp; category: KnowledgeCategory; sectionId:
   { test: /^\/admin\/haitian/, category: 'onboarding', sectionId: 'start', label: 'Haitian community' },
   { test: /^\/portal\/news/, category: 'portal', sectionId: 'credit', label: 'Credit news' },
   { test: /^\/free-kreyol-guide/, category: 'onboarding', sectionId: 'start', label: 'Credit kits' },
-  { test: /^\/(free-guide|free-debt-guide|free-business-guide|free-tradeline-guide|resources)/, category: 'onboarding', sectionId: 'leads', label: 'Lead magnets' },
+  { test: /^\/(free-guide|free-business-guide|free-tradeline-guide|resources)/, category: 'onboarding', sectionId: 'leads', label: 'Lead magnets' },
   { test: /^\/(help-center|start-here)/, category: 'onboarding', sectionId: 'start', label: 'Help & start' },
   { test: /^\/(tradelines|enlightenment-session)/, category: 'funding', sectionId: 'wealth', label: 'Tradelines & sessions' },
   { test: /^\/(pricing|services)/, category: 'pricing', sectionId: 'pricing', label: 'Pricing' },

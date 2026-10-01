@@ -25,7 +25,7 @@ function firstName(fullName?: string): string {
   return trimmed.split(/\s+/)[0];
 }
 
-const DEFAULT_BOOKING_URL = 'https://finelycred.com/free-debt-guide';
+const DEFAULT_BOOKING_URL = 'https://finelycred.com/enlightenment-session';
 
 /**
  * Sends a real instant email + SMS acknowledgment for a server-ingested lead and

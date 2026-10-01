@@ -23,16 +23,6 @@
       "description": "5-step score recovery sequence with portal preview."
     },
     {
-      "id": "debt_relief",
-      "label": "Debt validation guide",
-      "audience": "consumer",
-      "path": "/free-debt-guide",
-      "sequenceId": "seq_debt_funnel",
-      "utmCampaign": "acq_debt",
-      "utmMedium": "syndication",
-      "description": "Collections validation playbook — FDCPA workflows and portal preview."
-    },
-    {
       "id": "business_credit",
       "label": "Business credit guide",
       "audience": "business",

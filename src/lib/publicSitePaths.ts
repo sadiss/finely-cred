@@ -1,7 +1,6 @@
 /** Routes that are public marketing — no admin/portal quick-link footers. */
 const PUBLIC_PREFIXES = [
   '/free-guide',
-  '/free-debt-guide',
   '/free-business-guide',
   '/free-tradeline-guide',
   '/case-desk-guide',

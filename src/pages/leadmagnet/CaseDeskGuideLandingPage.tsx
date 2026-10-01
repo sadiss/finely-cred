@@ -11,7 +11,6 @@ import {
   CASE_DESK_GUIDE_META,
   CASE_DESK_GUIDE_PATH,
   CASE_DESK_GUIDE_READ_PATH,
-  DEBT_GUIDE_PREREQ_PATH,
 } from './caseDeskOperatorGuideContent';
 import {
   FINELY_OS_BACK_LINK,
@@ -38,13 +37,6 @@ export default function CaseDeskGuideLandingPage() {
           <Link to={CASE_DESK_CAREERS_PATH} className={FINELY_OS_BACK_LINK}>
             <ArrowLeft size={16} /> Case desk careers
           </Link>
-          <button
-            type="button"
-            className={`${SERIF} text-sm font-bold text-stone-700 underline underline-offset-4 hover:text-stone-900`}
-            onClick={() => navigate(DEBT_GUIDE_PREREQ_PATH)}
-          >
-            Prerequisite: Debt & summons guide
-          </button>
         </div>
 
         <section className={`mt-2 rounded-3xl px-5 sm:px-10 py-12 sm:py-14 ${finelyOsLandingWealthyIvorySection()}`}>

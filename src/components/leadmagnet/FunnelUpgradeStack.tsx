@@ -19,7 +19,7 @@ export function FunnelUpgradeStack({ current }: { current: LeadMagnetFunnelConfi
     <div className="rounded-2xl border border-violet-500/25 bg-violet-500/10 p-4 text-left">
       <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-violet-200 mb-2`}>Complete your free stack</div>
       <p className={`text-sm ${FINELY_OS_ENTITY_BODY} mb-3`}>
-        Unlock complementary guides — debt validation, business credit, tradelines, and personal restore playbooks.
+        Unlock complementary guides — business credit, tradelines, score roadmap, and personal restore playbooks.
       </p>
       <ul className="space-y-2">
         {others.map((f) => {

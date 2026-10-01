@@ -922,7 +922,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
           haitianLead
             ? '/free-kreyol-guide'
             : goal === 'debt'
-              ? '/free-debt-guide'
+              ? '/pricing/debt-legal'
               : goal === 'business'
                 ? '/free-business-guide'
                 : goal === 'tradelines'
@@ -959,7 +959,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
 
   const funnelCta =
     goal === 'debt'
-      ? '/free-debt-guide'
+      ? '/pricing/debt-legal'
       : goal === 'business'
         ? '/free-business-guide'
         : goal === 'tradelines' || goal === 'building'
@@ -1454,7 +1454,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                         }}
                         className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-violet-400/25 bg-violet-500/10 text-xs font-black uppercase tracking-widest text-violet-200 hover:bg-violet-500/15"
                       >
-                        <Sparkles size={12} /> Get free guide stack
+                        <Sparkles size={12} /> {goal === 'debt' ? 'See debt & legal' : 'Get free guide stack'}
                       </button>
                     </div>
 
