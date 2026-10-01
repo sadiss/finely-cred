@@ -16,7 +16,7 @@ export type TrustedResource = {
 /** Curated Finely + trusted external resources — never hallucinate URLs outside this list. */
 export const TRUSTED_RESOURCES: TrustedResource[] = [
   { id: 'free_guide', topics: ['dispute', 'letter', 'guide', 'fcra'], label: 'Free dispute letter guide', href: '/free-guide' },
-  { id: 'debt_guide', topics: ['debt', 'collection', 'validation', 'fdcpa'], label: 'Free debt validation guide', href: '/free-debt-guide' },
+  { id: 'debt_desk', topics: ['debt', 'collection', 'validation', 'fdcpa'], label: 'Debt & legal', href: '/pricing/debt-legal' },
   { id: 'business_guide', topics: ['business credit', 'business', 'vendor'], label: 'Business credit guide', href: '/free-business-guide' },
   { id: 'tradeline_guide', topics: ['tradeline', 'authorized user', 'au'], label: 'Tradeline insider guide', href: '/free-tradeline-guide' },
   { id: 'pricing', topics: ['price', 'cost', 'package', 'plan'], label: 'Personal restore', href: '/pricing/personal-credit-restore' },

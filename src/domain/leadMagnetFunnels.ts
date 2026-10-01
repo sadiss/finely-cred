@@ -76,42 +76,6 @@ export const CREDIT_FUNNEL: LeadMagnetFunnelConfig = {
   bookingPath: '/enlightenment-session',
 };
 
-export const DEBT_FUNNEL: LeadMagnetFunnelConfig = {
-  id: 'debt',
-  path: '/free-debt-guide',
-  funnelId: 'debt_freedom',
-  sequenceId: 'seq_debt_funnel',
-  agentPersonaId: 'dispute_coach',
-  agentDisplayName: 'Casey',
-  agentRole: 'Debt Resolution Specialist',
-  guideId: 'collections-validation-deep-dive',
-  offer: 'debt_validation_playbook',
-  onboardingLane: 'debt_relief',
-  metaTitle: 'Free debt validation guide',
-  metaDesc:
-    'A written collections playbook: FDCPA validation, summons triage, and a live debt lane in the partner portal. Results vary · not legal advice · funding subject to underwriting.',
-  urgencyText: 'Free validation playbook and a strategist session — no card required',
-  heroHeadline: 'Answer collections with',
-  heroHighlight: 'paperwork',
-  heroSub: 'A written sequence you can run this week.',
-  valueStack: [
-    { label: 'Collections validation deep-dive PDF', value: '$59' },
-    { label: 'Debt collector call script card', value: '$29' },
-    { label: 'Summons response checklist', value: '$49' },
-    { label: 'Interactive validation command center', value: '$79' },
-    { label: '30-day FDCPA deadline tracker', value: '$39' },
-    { label: `${LEAD_MAGNET_TRIAL_DAYS}-day debt lane portal preview`, value: '$79', trialFeature: 'report_upload_preview', locksAfterTrial: true },
-  ],
-  features: [
-    { icon: ShieldCheck, title: 'Validation first', desc: 'FDCPA-aware letters that ask for proof before you pay.' },
-    { icon: FileSignature, title: 'Written validation requests', desc: 'Templates and timing for collector responses.' },
-    { icon: Target, title: 'Summons checklist', desc: 'What to do first if court papers already arrived.' },
-    { icon: LayoutDashboard, title: `${LEAD_MAGNET_TRIAL_DAYS}-day debt lane portal`, desc: 'Track validation tasks, letters, and evidence in Finely Cred.' },
-  ],
-  trustCerts: ['Educational only', 'Not legal advice', 'Secure PDF', 'Document vault ready'],
-  bookingPath: '/enlightenment-session',
-};
-
 export const BUSINESS_FUNNEL: LeadMagnetFunnelConfig = {
   id: 'business',
   path: '/free-business-guide',
@@ -372,7 +336,6 @@ export const KREYOL_FUNNEL: LeadMagnetFunnelConfig = {
 
 export const LEAD_MAGNET_FUNNELS = [
   CREDIT_FUNNEL,
-  DEBT_FUNNEL,
   BUSINESS_FUNNEL,
   TRADELINE_FUNNEL,
   SCORE_ROADMAP_FUNNEL,

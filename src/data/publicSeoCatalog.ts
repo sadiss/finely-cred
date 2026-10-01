@@ -219,12 +219,6 @@ export const PUBLIC_SEO_CATALOG: PublicSeoRoute[] = [
     hasSchema: true,
   },
   {
-    path: '/free-debt-guide',
-    title: 'Free debt validation guide',
-    description: 'Collections validation playbook — FDCPA workflows, summons checklist, and portal preview.',
-    hasSchema: true,
-  },
-  {
     path: '/haitian',
     title: 'Haitian community · Credit help for Haitian Americans',
     description:

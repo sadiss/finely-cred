@@ -17,7 +17,6 @@ import {
   LandingPathChooserSection,
   LandingCinematicVideoStage,
   LandingSolutionsSnapshotSection,
-  LandingDebtEradicationBand,
   LandingMaterialsPreviewBand,
   LandingAuthorizedUserSection,
   LandingFinancingPreapprovalSection,
@@ -300,8 +299,6 @@ const PublicSelfBookInvitePage = lazyWithRetry(() => import('./pages/PublicSelfB
 const GuestMeetingJoinPage = lazyWithRetry(() => import('./pages/GuestMeetingJoinPage'));
 const DisputeGuideReaderPage = lazyWithRetry(() => import('./pages/leadmagnet/DisputeGuideReaderPage'));
 const ScoreBoostGuideReaderPage = lazyWithRetry(() => import('./pages/leadmagnet/ScoreBoostGuideReaderPage'));
-const DebtGuideFunnelPage = lazyWithRetry(() => import('./pages/leadmagnet/DebtGuideFunnelPage'));
-const DebtEradicationGuideReaderPage = lazyWithRetry(() => import('./pages/leadmagnet/DebtEradicationGuideReaderPage'));
 const BusinessGuideFunnelPage = lazyWithRetry(() => import('./pages/leadmagnet/BusinessGuideFunnelPage'));
 const BusinessCreditPowerGuideReaderPage = lazyWithRetry(() => import('./pages/leadmagnet/BusinessCreditPowerGuideReaderPage'));
 const TradelineGuideFunnelPage = lazyWithRetry(() => import('./pages/leadmagnet/TradelineGuideFunnelPage'));
@@ -557,10 +554,7 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
       {/* 4. DFY / Solutions â€” platinum champagne */}
       <LandingSolutionsSnapshotSection onViewPricing={onViewPricing} />
 
-      {/* 5. Debt eradication */}
-      <LandingDebtEradicationBand />
-
-      {/* 6. Authorized User program ($50) */}
+      {/* 5. Authorized User program ($50) */}
       <LandingAuthorizedUserSection />
 
       {/* 7. In-house financing (compact) */}
@@ -2798,11 +2792,8 @@ function AppInner() {
           element={<WorkspaceProductModulePage role="partner" />}
         />
         <Route path="/preview/business-credit-power-guide" element={<Navigate to="/free-business-guide" replace />} />
-        <Route path="/preview/debt-eradication-guide" element={<Navigate to="/free-debt-guide" replace />} />
         <Route path="/preview/tradeline-advantage-guide" element={<Navigate to="/free-tradeline-guide" replace />} />
-        <Route path="/free-debt-guide" element={<DebtGuideFunnelPage />} />
-        {/* Debt / business / tradeline in-app e-guide readers â€” free to read, no signup */}
-        <Route path="/free-debt-guide/read" element={<DebtEradicationGuideReaderPage />} />
+        {/* Business / tradeline in-app e-guide readers — free to read, no signup */}
         <Route path="/free-business-guide" element={<BusinessGuideFunnelPage />} />
         <Route path="/free-business-guide/read" element={<BusinessCreditPowerGuideReaderPage />} />
         <Route path="/free-tradeline-guide" element={<TradelineGuideFunnelPage />} />

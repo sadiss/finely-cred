@@ -23,10 +23,6 @@ import {
   BC_GUIDE_META,
 } from '../pages/leadmagnet/businessCreditPowerGuideContent';
 import {
-  DEBT_GUIDE_CHAPTERS,
-  DEBT_GUIDE_META,
-} from '../pages/leadmagnet/debtEradicationGuideContent';
-import {
   TL_GUIDE_CHAPTERS,
   TL_GUIDE_META,
 } from '../pages/leadmagnet/tradelineAdvantageGuideContent';
@@ -581,9 +577,6 @@ export function buildFinelyKnowledgeChunks(): FinelyKnowledgeChunk[] {
     }
   }
 
-  for (const flat of flattenGuideChapters('debt-eradication', DEBT_GUIDE_META, DEBT_GUIDE_CHAPTERS)) {
-    chunks.push({ ...flat, source: 'eguide' });
-  }
   for (const flat of flattenGuideChapters('business-credit-power', BC_GUIDE_META, BC_GUIDE_CHAPTERS)) {
     chunks.push({ ...flat, source: 'eguide' });
   }
@@ -603,7 +596,7 @@ export function buildFinelyKnowledgeChunks(): FinelyKnowledgeChunk[] {
 function guideRouteForId(id: string): string | undefined {
   if (id === 'credit-dispute-letter-guide') return '/free-guide/read';
   if (id.includes('debt') || id === 'collections-validation-deep-dive' || id === 'debt-settlement-tax-traps') {
-    return '/free-debt-guide/read';
+    return '/resources/guides';
   }
   if (id.includes('business') || id.includes('vendor') || id.includes('ucc') || id.includes('funding')) {
     return '/free-business-guide/read';

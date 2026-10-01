@@ -478,8 +478,8 @@ console.log(`${socialSupabaseSyncOk ? '✓' : '✗'} Social Hub: Supabase post q
 if (!socialSupabaseSyncOk) failed += 1;
 
 const commandStrip = fs.readFileSync(path.join(root, 'src/features/os/FinelyOsPublicCommandStrip.tsx'), 'utf8');
-const commandStripOk = commandStrip.includes('FUNNEL_TILES') && commandStrip.includes('/free-debt-guide');
-console.log(`${commandStripOk ? '✓' : '✗'} FinelyOsPublicCommandStrip: debt/business/tradeline funnels`);
+const commandStripOk = commandStrip.includes('FUNNEL_TILES') && commandStrip.includes('/free-business-guide') && !commandStrip.includes('/free-debt-guide');
+console.log(`${commandStripOk ? '✓' : '✗'} FinelyOsPublicCommandStrip: business/tradeline funnels, debt eGuide removed`);
 if (!commandStripOk) failed += 1;
 
 const voiceHealth = fs.readFileSync(path.join(root, 'src/lib/voiceRenderHealth.ts'), 'utf8');

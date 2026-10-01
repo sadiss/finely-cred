@@ -19,12 +19,12 @@ export default function DebtOpinionsPage() {
     path: '/resources/debt-opinions',
     faqs: [
       { q: 'Is this a court filing service?', a: 'No. This page explains public debt-education headlines. Consult a licensed attorney for your case.' },
-      { q: 'What should I do if I was sued?', a: 'Read the summons, start the free debt guide, and book a session if you need a walkthrough. Not legal advice.' },
+      { q: 'What should I do if I was sued?', a: 'Read the summons, note the answer date, and book a session if you need a walkthrough. Not legal advice.' },
     ],
     howTo: {
       name: 'If you were served a summons',
       description: 'Education first. Not legal advice.',
-      steps: ['Read the paper and note the answer date', 'Match the plaintiff to your bureau file', 'Start the debt guide'],
+      steps: ['Read the paper and note the answer date', 'Match the plaintiff to your bureau file', 'Book a session if you want a walkthrough'],
     },
   });
 
@@ -49,7 +49,7 @@ export default function DebtOpinionsPage() {
           A two-column explainer: what a summons usually asks, and what public feeds are saying this week.
         </p>
         <div className="mt-5 flex flex-wrap gap-3">
-          <Link className={FINELY_OS_PRIMARY_BTN} to="/free-debt-guide">Start debt guide</Link>
+          <Link className={FINELY_OS_PRIMARY_BTN} to="/pricing/debt-legal">See debt & legal</Link>
           <Link className={FINELY_OS_SECONDARY_BTN} to="/enlightenment-session">Book a session</Link>
         </div>
         <div className="fc-opinions-spine mt-10">

@@ -57,7 +57,6 @@ import {
   finelyOsGlowField,
   finelyOsStatusChip,
 } from '../../features/os/finelyOsLightUi';
-import { DEBT_GUIDE_READ_PATH } from '../../pages/leadmagnet/debtEradicationGuideContent';
 import { adminEmbeddedNavHref } from '../../lib/adminPartnerRoutes';
 import '../../features/workspaceLightPreview/product/partner/partnerDebtLitigationDesk.css';
 
@@ -692,12 +691,6 @@ export function AffidavitCourtCenterView({
                   Drop the summons, docket PDF, affidavit, or collector letter below. Finely scrapes the fields, then{' '}
                   <strong className="text-white/90">Apply</strong> fills every empty case field. You only confirm what matters.
                 </p>
-                <Link
-                  to={`${DEBT_GUIDE_READ_PATH}?chapter=summons`}
-                  className="inline-block text-[11px] text-violet-200 underline underline-offset-2 hover:text-violet-100"
-                >
-                  First time reading court papers? Free field manual Page V — redacted summons &amp; complaint samples
-                </Link>
               </div>
             ) : null}
             <LitigationDocScraperChat

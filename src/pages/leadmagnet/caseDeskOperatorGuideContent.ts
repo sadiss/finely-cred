@@ -1,6 +1,6 @@
 /**
  * Case Desk Operator Guide — handbook for paralegal / attorney / consultant applicants.
- * Educational only. Not legal advice. Debt & summons guide remains the validation prerequisite.
+ * Educational only. Not legal advice.
  */
 
 import { LAW_REFERENCES, REGULATORY_PORTALS } from '../../lib/legalResources';
@@ -8,8 +8,6 @@ import { LAW_REFERENCES, REGULATORY_PORTALS } from '../../lib/legalResources';
 export const CASE_DESK_GUIDE_PATH = '/case-desk-guide';
 export const CASE_DESK_GUIDE_READ_PATH = '/case-desk-guide/read';
 export const CASE_DESK_CAREERS_PATH = '/careers/case-help';
-export const DEBT_GUIDE_PREREQ_PATH = '/free-debt-guide';
-export const DEBT_GUIDE_PREREQ_READ_PATH = '/free-debt-guide/read';
 
 export const CASE_DESK_GUIDE_META = {
   title: 'Case Desk Operator Guide',
@@ -75,15 +73,8 @@ const CHAPTER_INPUTS: Array<Omit<CaseDeskGuideChapter, 'number'>> = [
           'Consultant — debt-buyer pattern reads and validation sequencing education — never presented as legal advice',
         ],
         callout:
-          'Prerequisite: read the Debt & summons guide first so validation clocks and FDCPA notice duties are second nature before you touch a case file.',
-        resources: [
-          {
-            label: 'Debt & summons guide (prerequisite)',
-            href: DEBT_GUIDE_PREREQ_PATH,
-            note: 'Validation clocks · FDCPA · summons checklist',
-          },
-          { label: 'Apply to the case desk', href: CASE_DESK_CAREERS_PATH },
-        ],
+          'Learn validation clocks and FDCPA notice duties in this handbook before you touch a case file.',
+        resources: [{ label: 'Apply to the case desk', href: CASE_DESK_CAREERS_PATH }],
       },
     ],
   },
@@ -239,13 +230,10 @@ const CHAPTER_INPUTS: Array<Omit<CaseDeskGuideChapter, 'number'>> = [
         ],
         bullets: [
           'Apply → Scope approval → Assigned matter → Letters/evidence → Escalation portals',
-          'Keep the Debt & summons guide open as your validation prerequisite',
+          'Use this handbook for validation clocks before you open an assigned file',
           'Use Ask Finely / Dispute Coach for educational sequencing questions while you wait',
         ],
-        resources: [
-          { label: 'Apply to the case desk', href: CASE_DESK_CAREERS_PATH },
-          { label: 'Read Debt & summons guide', href: DEBT_GUIDE_PREREQ_READ_PATH },
-        ],
+        resources: [{ label: 'Apply to the case desk', href: CASE_DESK_CAREERS_PATH }],
       },
     ],
   },

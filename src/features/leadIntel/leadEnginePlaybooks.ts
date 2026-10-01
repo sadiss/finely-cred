@@ -81,8 +81,8 @@ export const HUNT_LANE_PRESETS: HuntLanePreset[] = [
     tags: ['debt', 'litigation'],
     book: '/consultation?lane=' + encodeURIComponent('Debt Kill (Debt & Legal)'),
     offer: '/pricing/debt-legal',
-    nurture: '/free-debt-guide',
-    freeGuide: '/free-debt-guide',
+    nurture: '/pricing/debt-legal',
+    freeGuide: '/pricing/debt-legal',
   },
   {
     id: 'agency_affiliates',
@@ -214,7 +214,6 @@ export const OFFER_PACK: OfferPackItem[] = [
   { id: 'one_sheets', label: 'Business credit one-sheets', href: '/resources/business-credit-one-sheets', laneHint: ['business_credit', 'local_service', 'funded_business', 'agency_affiliates'] },
   { id: 'free_guide', label: 'Free dispute guide', href: '/free-guide', laneHint: ['credit_restore'] },
   { id: 'free_bc', label: 'Free business credit guide', href: '/free-business-guide', laneHint: ['business_credit', 'local_service', 'funded_business'] },
-  { id: 'free_debt', label: 'Free debt validation guide', href: '/free-debt-guide', laneHint: ['debt'] },
   { id: 'book', label: 'Book strategy session', href: '/consultation', laneHint: undefined },
   { id: 'affiliate', label: 'Affiliate hub', href: '/affiliate', laneHint: ['agency_affiliates'] },
 ];
@@ -276,8 +275,8 @@ export const OBJECTION_LIBRARY: ObjectionReply[] = [
     id: 'lawsuit_scared',
     objection: 'I was sued / collector is calling',
     reply:
-      'Stay calm and documentation-first. Validation before settlement is the educational path we teach — not legal advice. Start with the free debt guide, then book a session if you want a human walkthrough.',
-    ctaHref: '/free-debt-guide',
+      'Stay calm and documentation-first. Validation before settlement is the educational path we teach — not legal advice. Open the debt and legal desk, then book a session if you want a human walkthrough.',
+    ctaHref: '/pricing/debt-legal',
     lanes: ['debt'],
   },
   {

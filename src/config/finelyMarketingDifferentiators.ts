@@ -20,9 +20,9 @@ export const FINELY_WOW_CHIPS: FinelyWowChip[] = [
   },
   {
     id: 'fight-back-debt',
-    label: 'Debt validation help',
-    hint: 'Validation-first letters when collectors or courts move',
-    path: '/free-debt-guide',
+    label: 'Debt & legal',
+    hint: 'Validation and court paper on the debt desk',
+    path: '/pricing/debt-legal',
     accent: 'rose',
   },
   {

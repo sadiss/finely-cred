@@ -293,7 +293,7 @@ export default function PersonalCreditPage() {
         />
       }
       badge="Personal Credit"
-      title="Restore Your Credit. Reclaim Your Future."
+      title="Restore Your Credit. Track Every Round."
       subtitle="We handle dispute letters and tracking — you focus on your goals."
     >
       <div

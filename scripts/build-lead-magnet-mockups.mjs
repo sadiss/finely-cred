@@ -2,7 +2,7 @@
  * Premium Lead-Magnet Mockup Pipeline — shared infra (Agent 1)
  *
  * Rasterizes the REAL Finely Cred logo/icon into `_kit/`, and exports
- * ThinBookletEngine + QA helpers for Agents 2 (BC) and 3 (Debt).
+ * ThinBookletEngine + QA helpers for the business-credit mockup.
  *
  * ---------------------------------------------------------------------------
  * CLI usage
@@ -12,7 +12,7 @@
  *   node scripts/build-lead-magnet-mockups.mjs --kit
  *
  *   # Kit + dry-run demo booklet (writes _kit/_demo-thin-booklet.png + QA plates)
- *   # Does NOT overwrite live BC/Debt mockups.
+ *   # Does NOT overwrite the live business-credit mockup.
  *   node scripts/build-lead-magnet-mockups.mjs --demo
  *
  *   # Same as --demo (default when no flags)
@@ -41,7 +41,6 @@
  *     pages: ['path/to/spread-a.png', 'path/to/spread-b.png'],
  *     coverHeight: 1600,
  *     outPath: 'public/images/lead-magnets/business-credit-power-guide-mockup.png',
- *     // navySpine: true,  // Debt
  *     // layeredYaw: true, // richer per-page yaw
  *   });
  *   await writeQaPair(buffer, 'public/images/lead-magnets', 'bc');
@@ -93,8 +92,8 @@ const LEAD_MAGNETS = path.join(ROOT, 'public/images/lead-magnets');
 /** Solid flat cover for dry-run only (not a live asset). */
 async function makeDemoCover(kitLogo4x, { w = 900, h = 1200, navy = false } = {}) {
   const bg = navy ? '#0c1a2e' : '#0a0c0b';
-  const title = navy ? 'Eradicate the Debt' : 'Business Credit';
-  const sub = navy ? 'Reclaim Your Future' : 'Power Guide';
+  const title = 'Business Credit';
+  const sub = 'Power Guide';
   const svg = Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
   <defs>

@@ -29,11 +29,6 @@ test.describe('Finely Cred critical path', () => {
     expect(body.toLowerCase()).not.toMatch(/\bjoin \d[\d,]* clients\b/);
   });
 
-  test('debt funnel loads', async ({ page }) => {
-    await page.goto('/free-debt-guide');
-    await expect(page.locator('body')).toContainText(/debt|collections|validation/i, { timeout: 15_000 });
-  });
-
   test('business funnel loads', async ({ page }) => {
     await page.goto('/free-business-guide');
     await expect(page.locator('body')).toContainText(/business|credit|funding/i, { timeout: 15_000 });
@@ -98,11 +93,6 @@ test.describe('Finely Cred critical path', () => {
     const body = await page.locator('body').innerText();
     expect(body.toLowerCase()).toMatch(/partner credit files|partner portal/);
     expect(body.toLowerCase()).not.toMatch(/run client credit files/);
-  });
-
-  test('debt funnel has JSON-LD', async ({ page }) => {
-    await page.goto('/free-debt-guide');
-    await expect(page.locator('script#fc-webpage-schema[type="application/ld+json"]')).toHaveCount(1);
   });
 
   test('homepage has JSON-LD', async ({ page }) => {
