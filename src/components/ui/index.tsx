@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { CheckCircle2, Sparkles, Menu, X } from 'lucide-react';
 import { useAuth } from '../../auth/AuthProvider';
 import { resolveFinelyCtaPath } from '../../lib/finelyCtaIntent';
+import { isDesignConversionPath } from '../../lib/funnelConversionDesign';
 import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
 import { FinelyThemeToggle } from '../../features/os/FinelyThemeToggle';
 import {
@@ -812,6 +813,7 @@ export function MobileNav({ isOpen, onClose, onNavigate, showThemeToggle = false
           >
             Login
           </button>
+          {isDesignConversionPath(location.pathname) ? null : (
           <button
             type="button"
             onClick={() => {
@@ -822,6 +824,7 @@ export function MobileNav({ isOpen, onClose, onNavigate, showThemeToggle = false
           >
             Start free trial
           </button>
+          )}
         </div>
 
         <nav className="space-y-3">

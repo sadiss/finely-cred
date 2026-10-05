@@ -17,6 +17,8 @@ type Props = {
   benefitsTitle: string;
   taglineBar: string;
   onGoForm: () => void;
+  hideVideo?: boolean;
+  coverImageUrl?: string | null;
 };
 
 export function LeadMagnetMediaStage({
@@ -29,12 +31,15 @@ export function LeadMagnetMediaStage({
   benefitsTitle,
   taglineBar,
   onGoForm,
+  hideVideo = false,
+  coverImageUrl,
 }: Props) {
   return (
     <section className="fc-viewport-floor lm-showcase-section">
       <div className="lm-flyer-tagline-bar">{taglineBar}</div>
 
-      <div className="lm-flyer-stage">
+      <div className={`lm-flyer-stage ${hideVideo ? 'lm-flyer-stage--cover-only' : ''}`}>
+        {hideVideo ? null : (
         <div className="lm-flyer-stage-video">
           <div className="lm-video-spotlight-ring" aria-hidden />
           <div className="lm-video-card lm-video-card-featured">
@@ -47,9 +52,17 @@ export function LeadMagnetMediaStage({
             />
           </div>
         </div>
+        )}
 
         <div className="lm-flyer-stage-ebook">
-          <LeadMagnetThemedEbook guide={guide} theme={theme} totalValue={totalValue} size="hero" layout="stage" />
+          <LeadMagnetThemedEbook
+            guide={guide}
+            theme={theme}
+            totalValue={totalValue}
+            coverImageUrl={coverImageUrl}
+            size="hero"
+            layout="stage"
+          />
           <p className="lm-showcase-guide-title">{guide.title}</p>
         </div>
 

@@ -33,6 +33,8 @@ export type FunnelLeadCaptureFormProps = {
   totalValue?: number;
   trustLabel?: string;
   copy?: FunnelLeadCaptureCopy;
+  /** Compact above-the-fold strip: phone sits next to the primary CTA. */
+  variant?: 'default' | 'hero';
   onFirstNameChange: (v: string) => void;
   onLastNameChange: (v: string) => void;
   onEmailChange: (v: string) => void;
@@ -57,6 +59,7 @@ export function FunnelLeadCaptureForm({
   totalValue = 297,
   trustLabel = '10k+',
   copy,
+  variant = 'default',
   onFirstNameChange,
   onLastNameChange,
   onEmailChange,
@@ -121,6 +124,7 @@ export function FunnelLeadCaptureForm({
             required
           />
         </div>
+        <div className={variant === 'hero' ? 'grid grid-cols-1 gap-2 sm:grid-cols-2' : 'contents'}>
         <input
           value={email}
           onChange={(e) => onEmailChange(e.target.value)}
@@ -133,12 +137,14 @@ export function FunnelLeadCaptureForm({
         <input
           value={phone}
           onChange={(e) => onPhoneChange(e.target.value)}
-          placeholder={copy?.phone ?? 'Phone'}
+          placeholder={copy?.phone ?? 'Phone (required)'}
           type="tel"
           className={FINELY_OS_ENTITY_INPUT}
           autoComplete="tel"
           required
+          aria-required="true"
         />
+        </div>
         <label className="flex items-start gap-2 text-[11px] leading-snug text-white/55">
           <input type="checkbox" checked={consent} onChange={(e) => onConsentChange(e.target.checked)} className="mt-0.5" />
           {copy?.consent ?? 'I agree to be contacted about my download (required).'}

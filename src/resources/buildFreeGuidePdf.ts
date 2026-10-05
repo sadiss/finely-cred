@@ -275,6 +275,7 @@ export const GUIDE_PDF_THEME_BY_ID: Record<string, GuidePdfThemeId> = {
   'bankruptcy-rebuild-sequencer': 'premium-green-gold',
   'mortgage-overlay-dispute-prep': 'premium-green-gold',
   'kreyol-companion-kit': 'emerald-precision',
+  'restore-for-wealth-guide': 'capital-gold',
 };
 
 function themeFromKeywords(hay: string): GuidePdfThemeId | null {

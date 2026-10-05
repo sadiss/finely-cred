@@ -3,8 +3,9 @@ import { LeadMagnetFunnelShell } from '../../components/leadmagnet/LeadMagnetFun
 import { CREDIT_FUNNEL } from '../../domain/leadMagnetFunnels';
 
 /**
- * Public free-guide funnel (`/free-guide`).
- * Premium variant → CreditGuidePremiumLanding (champagne/ink/ivory wealth redesign).
+ * Public DIY dispute-letter funnel (`/free-guide`).
+ * Curious learners who want to write letters themselves.
+ * Restore-for-wealth campaign lives on `/free-restore-wealth` — do not collapse this door.
  */
 export default function FreeGuideFunnelPage() {
   return <LeadMagnetFunnelShell config={CREDIT_FUNNEL} variant="premium" />;

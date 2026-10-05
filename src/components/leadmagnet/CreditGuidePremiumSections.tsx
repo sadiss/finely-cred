@@ -19,14 +19,12 @@ import {
   LeadMagnetEbook,
   LeadMagnetDeviceShowcase,
 } from './LeadMagnetHeroMockup';
-import { LeadMagnetFunnelHeroVideo } from './LeadMagnetFunnelHeroVideo';
-import { getLeadMagnetVisualTheme } from './leadMagnetVisualThemes';
 import { DisputeLetterGuideContentsList, DisputeLetterGuidePreview } from './DisputeLetterGuidePreview';
+import { FunnelHeroProofStrip } from './FunnelHeroProofStrip';
 import { FlashyIcon } from '../ui';
 import type { FreeGuide } from '../../resources/freeGuides';
 import type { LeadMagnetFunnelConfig } from '../../domain/leadMagnetFunnels';
 import {
-  DISPUTE_LETTER_GUIDE_ID,
   DISPUTE_LETTER_GUIDE_PAGE_COUNT,
   DISPUTE_LETTER_GUIDE_PROGRAMMATIC_PAGES,
   DISPUTE_LETTER_GUIDE_READ_PATH,
@@ -54,12 +52,6 @@ const HERO_CHAPTER_RAIL = [
 ]
   .map((id) => DISPUTE_LETTER_GUIDE_PROGRAMMATIC_PAGES.find((p) => p.id === id))
   .filter((p): p is NonNullable<typeof p> => Boolean(p));
-
-const HERO_PROOF = [
-  'Live Letter Studio and a dispute workflow',
-  'FCRA timing and a bureau response tracker',
-  'Portal preview with no credit card',
-] as const;
 
 const ISSUE_TRACKS = [
   {
@@ -172,7 +164,7 @@ function WealthKicker({ children }: { children: React.ReactNode }) {
 export function CreditGuidePremiumLanding({
   config,
   guide,
-  onGoForm: _onGoForm,
+  onGoForm: _onGoForm, // kept for shell API — primary CTA is the hero form
   headlineOverride,
   ctaOverride,
   trustLabel = '10k+',
@@ -190,16 +182,15 @@ export function CreditGuidePremiumLanding({
 }) {
   const [selectedIssueId, setSelectedIssueId] = useState<(typeof ISSUE_TRACKS)[number]['id']>('collections');
   const selectedIssue = ISSUE_TRACKS.find((item) => item.id === selectedIssueId) ?? ISSUE_TRACKS[0];
-  const theme = useMemo(() => getLeadMagnetVisualTheme(config), [config]);
 
   return (
     <div className="cgp-page min-h-screen pb-14">
-      {/* Hero — ivory + cover green · copy + book (video sits with signup below) */}
+      {/* Hero — DIY dispute promise + cover + phone/CTA above the fold. No promo video. */}
       <header id="fg-hero" className="cgp-hero relative z-10 pt-20 md:pt-24">
         <div className="pointer-events-none absolute left-[8%] top-[18%] h-[340px] w-[340px] rounded-full bg-[#1aad4b]/12 blur-[110px]" />
-        <div className="relative z-[2] mx-auto grid max-w-[94rem] items-center gap-10 px-5 pb-10 md:px-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12 lg:pb-12">
+        <div className="relative z-[2] mx-auto grid max-w-[94rem] items-start gap-8 px-5 pb-10 md:px-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:gap-12 lg:pb-12">
           <div className="flex min-w-0 flex-col items-center text-center lg:items-start lg:text-left">
-            <p className="cgp-hero-kicker">Free dispute letter guide · partners welcome</p>
+            <p className="cgp-hero-kicker">Free dispute letter guide · learn to write it yourself</p>
             <h1 className="cgp-serif cgp-hero-title mt-3 md:mt-4">
               {headlineOverride ? (
                 <span className="block">{headlineOverride}</span>
@@ -207,7 +198,7 @@ export function CreditGuidePremiumLanding({
                 <>
                   <LandingTypewriterTitle
                     as="span"
-                    text="Pick the negative item."
+                    text={config.heroHeadline}
                     className="block"
                     speedMs={38}
                     delayMs={100}
@@ -215,7 +206,7 @@ export function CreditGuidePremiumLanding({
                   />
                   <LandingTypewriterTitle
                     as="span"
-                    text="Get the dispute angle free."
+                    text={config.heroHighlight}
                     className="cgp-hero-title-accent mt-1 block"
                     speedMs={40}
                     delayMs={900}
@@ -224,94 +215,37 @@ export function CreditGuidePremiumLanding({
                 </>
               )}
             </h1>
-            <p className="cgp-hero-lede mt-5">
-              {guide.desc} See the first-page preview now. The full guide and PDF kit unlock after you enter your
-              details — no credit card.
+            <p className="cgp-hero-lede mt-4">
+              {config.heroSub} The full guide unlocks after you leave a reachable number — no credit card.
             </p>
 
-            <div className="cgp-hero-actions justify-center lg:justify-start">
-              <a href="#fg-capture" className="cgp-cta">
-                Sign up free <ArrowRight className="h-4 w-4" />
-              </a>
-              <Link to={`${DISPUTE_LETTER_GUIDE_READ_PATH}?preview=1`} className="cgp-cta cgp-cta--ghost">
-                <BookOpen className="h-4 w-4" /> See preview
-              </Link>
+            <div id="fg-capture" className="cgp-hero-capture cgp-capture-panel fc-mobile-form-compact mt-5 w-full max-w-xl scroll-mt-24 p-4 text-left md:p-5">
+              <h2 className="mb-1 text-sm font-black uppercase tracking-[0.08em] text-white">
+                Get the <span className="text-[#4ade80]">free</span> letter guide
+              </h2>
+              <p className="mb-3 text-xs text-white/55">Phone required · instant PDF · educational only</p>
+              {captureForm}
+              <p className="cgp-compliance cgp-compliance--light mt-3">
+                Results vary · not legal advice · funding subject to underwriting
+              </p>
             </div>
 
-            <div className="mt-5 grid w-full max-w-lg gap-2 sm:grid-cols-3">
-              {HERO_PROOF.map((line) => (
-                <div key={line} className="cgp-card px-3 py-3 text-left text-[12px] font-semibold leading-snug text-[#0b1220]/75">
-                  <CheckCircle2 className="mb-1.5 h-3.5 w-3.5 text-[#1aad4b]" />
-                  {line}
-                </div>
-              ))}
-            </div>
-            <p className="cgp-compliance mt-3">Results vary · not legal advice · educational guide only</p>
+            <FunnelHeroProofStrip className="mt-4 w-full max-w-xl" />
+            <p className="cgp-compliance mt-2 max-w-xl">
+              Curious DIY lane — learn the letters. Restore-for-wealth lives on a separate door.
+            </p>
           </div>
 
           <div className="cgp-hero-media mx-auto lg:ml-auto">
             <div className="cgp-hero-book-stage relative">
               <p className="absolute left-3 top-3 z-[2] rounded-full border border-emerald-600/25 bg-white/90 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-emerald-800">
-                Cover preview
+                Dispute letter guide
               </p>
               <LeadMagnetEbook />
             </div>
           </div>
         </div>
       </header>
-
-      {/* Under hero: signup LEFT + large video RIGHT (stack on mobile) */}
-      <section id="fg-capture" className="cgp-band relative z-10 scroll-mt-20 py-8 md:py-10">
-        <div className="mx-auto max-w-[94rem] px-5 md:px-8">
-          <div className="mb-6 max-w-2xl">
-            <WealthKicker>Claim the free kit</WealthKicker>
-            <h2 className="cgp-serif mt-3 text-2xl font-black tracking-[-0.03em] text-[#0b1220] md:text-3xl">
-              Sign up for the PDF + <span className="text-[#1aad4b]">full credit path</span>
-            </h2>
-            <p className="mt-2 max-w-xl text-sm leading-relaxed text-[#0b1220]/65">
-              ${totalValue} value · trusted by {trustLabel} partners · no credit card. See what Finely Cred offers beside
-              the form — restore, disputes, and funding readiness — or keep reading free in your browser.
-            </p>
-          </div>
-
-          <div className="cgp-capture-video-row">
-            <div className="cgp-capture-panel fc-mobile-form-compact p-5 md:p-6">
-              <h2 className="mb-1 text-lg font-black uppercase tracking-[0.08em] text-white md:text-xl">
-                Get your <span className="text-[#4ade80]">free</span> kit
-              </h2>
-              <p className="mb-4 text-xs text-white/55">Instant access · partners welcome · educational only</p>
-              {captureForm}
-              <div className="mt-4 flex flex-wrap items-center gap-3">
-                <Link to={DISPUTE_LETTER_GUIDE_READ_PATH} className="text-xs font-semibold text-[#4ade80] underline-offset-2 hover:underline">
-                  Prefer to read free first
-                </Link>
-              </div>
-              <p className="cgp-compliance cgp-compliance--light mt-3">
-                Results vary · not legal advice · funding subject to underwriting
-              </p>
-            </div>
-
-            {(guide.id === DISPUTE_LETTER_GUIDE_ID || config.id === 'credit') && (
-              <div className="cgp-capture-video-panel">
-                <div className="cgp-capture-video-label">
-                  <span>Finely Cred credit solutions</span>
-                  <span className="opacity-70">Restore · Disputes · Funding</span>
-                </div>
-                <p className="cgp-capture-video-sub">
-                  Overview of what we offer — not a site walkthrough
-                </p>
-                <LeadMagnetFunnelHeroVideo
-                  config={config}
-                  theme={theme}
-                  onGoForm={_onGoForm}
-                  colorGrade="emerald"
-                  className="lm-video-shell--hero-lg cgp-capture-video max-w-none rounded-[1rem]"
-                />
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
 
       {/* Device duo — early, large, impossible to miss */}
       <section id="fg-preview" className="cgp-band cgp-band--ivory cgp-band--glow relative z-10 scroll-mt-16 py-14 md:py-16">
@@ -329,12 +263,7 @@ export function CreditGuidePremiumLanding({
           <div className="cgp-preview-stage mx-auto">
             <LeadMagnetDeviceShowcase />
           </div>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <a href="#fg-capture" className="cgp-cta">
-              Sign up free <ArrowRight className="h-4 w-4" />
-            </a>
-            <p className="cgp-compliance m-0">Results vary · not legal advice · educational tools only</p>
-          </div>
+          <p className="cgp-compliance mt-6 text-center">Results vary · not legal advice · educational tools only</p>
         </div>
       </section>
 
@@ -460,9 +389,6 @@ export function CreditGuidePremiumLanding({
                 Not another generic PDF. A first-round plan, a toolkit, and a portal preview that makes the next action
                 obvious.
               </p>
-              <a href="#fg-capture" className="cgp-cta mt-6">
-                Sign up free <ArrowRight className="h-4 w-4" />
-              </a>
               <p className="cgp-compliance mt-3">Results vary · not legal advice</p>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
@@ -500,14 +426,7 @@ export function CreditGuidePremiumLanding({
               Guide PDF · chapter reader · {LEAD_MAGNET_TRIAL_DAYS}-day portal preview
             </p>
           </div>
-          <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <a href="#fg-capture" className="cgp-cta">
-              Sign up free <ArrowRight className="h-4 w-4" />
-            </a>
-            <Link to={`${DISPUTE_LETTER_GUIDE_READ_PATH}?preview=1`} className="cgp-cta cgp-cta--ghost">
-              <BookOpen className="h-4 w-4" /> See preview
-            </Link>
-          </div>
+          <p className="cgp-compliance mt-6 text-center">Claim the guide in the form above — one primary action.</p>
         </div>
       </section>
 

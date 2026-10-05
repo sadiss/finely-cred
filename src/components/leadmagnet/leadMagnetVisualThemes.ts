@@ -1,5 +1,6 @@
 import type { LeadMagnetFunnelConfig } from '../../domain/leadMagnetFunnels';
 import { getFunnelMediaForConfig } from '../../data/leadMagnetFunnelMediaRepo';
+import { BRAND_EBOOK_COVERS, BRAND_GOLD, BRAND_INK, BRAND_INK_SOFT } from './brandEbookCovers';
 
 export type LeadMagnetColorTokens = {
   /** Page mesh / ambient */
@@ -33,7 +34,33 @@ export type LeadMagnetVisualTheme = {
   colors: LeadMagnetColorTokens;
 };
 
+const GOLD_INK_COLORS = {
+  bgFrom: BRAND_INK_SOFT,
+  bgTo: BRAND_INK,
+  meshA: '251,191,36',
+  meshB: '180,83,9',
+  accent: BRAND_GOLD,
+  accentRgb: '251,191,36',
+  accent2: '#f59e0b',
+  accent2Rgb: '245,158,11',
+  overlayFrom: 'rgba(6,9,8,0.72)',
+  overlayTo: 'rgba(10,16,14,0.35)',
+  gradFrom: '#fde68a',
+  gradMid: BRAND_GOLD,
+  gradTo: '#f59e0b',
+} as const;
+
 const THEMES: Record<string, LeadMagnetVisualTheme> = {
+  restore_wealth: {
+    id: 'restore_wealth',
+    meshClass: 'lm-theme-credit',
+    heroImage: BRAND_EBOOK_COVERS.restoreWealth,
+    heroImageAlt: 'Restore for Wealth — Finely Cred ebook cover',
+    videoPosterImage: BRAND_EBOOK_COVERS.restoreWealth,
+    badge: 'Restore for wealth',
+    tagline: 'Restore the file. Then fund the next chapter.',
+    colors: GOLD_INK_COLORS,
+  },
   debt: {
     id: 'debt',
     meshClass: 'lm-theme-debt',
@@ -181,26 +208,12 @@ const THEMES: Record<string, LeadMagnetVisualTheme> = {
   kreyol: {
     id: 'kreyol',
     meshClass: 'lm-theme-kreyol',
-    heroImage: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=1600&q=90',
-    heroImageAlt: 'A letter and a notebook on a clean desk',
-    videoPosterImage: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1400&q=90',
-    badge: 'Haitian community',
-    tagline: 'Credit help for Haitian Americans.',
-    colors: {
-      bgFrom: '#042f2e',
-      bgTo: '#0a1628',
-      meshA: '16,185,129',
-      meshB: '14,165,233',
-      accent: '#34d399',
-      accentRgb: '52,211,153',
-      accent2: '#38bdf8',
-      accent2Rgb: '56,189,248',
-      overlayFrom: 'rgba(6,78,59,0.72)',
-      overlayTo: 'rgba(8,47,73,0.35)',
-      gradFrom: '#6ee7b7',
-      gradMid: '#34d399',
-      gradTo: '#0284c7',
-    },
+    heroImage: BRAND_EBOOK_COVERS.kreyol,
+    heroImageAlt: 'Gid Kredi an Kreyòl — Finely Cred ebook cover',
+    videoPosterImage: BRAND_EBOOK_COVERS.kreyol,
+    badge: 'Biwo Ayisyen',
+    tagline: 'Restore kredi pou bati richès.',
+    colors: GOLD_INK_COLORS,
   },
   affiliate: {
     id: 'affiliate',

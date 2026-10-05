@@ -38,6 +38,7 @@ const PUBLIC_PREFIXES = [
   '/kreyol',
   '/preview/haitian',
   '/free-kreyol-guide',
+  '/free-restore-wealth',
 ];
 
 export function isPublicMarketingPath(pathname: string): boolean {

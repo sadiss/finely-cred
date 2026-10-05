@@ -87,6 +87,9 @@ export default function HaitianCompanionDeskPage() {
               <button type="button" className="ht-desk-btn-secondary" onClick={bookSession}>
                 Book a session
               </button>
+              <Link to="/free-kreyol-guide" className="ht-desk-btn-secondary">
+                Free Kreyòl gid <ArrowRight size={16} aria-hidden />
+              </Link>
             </div>
             <p className="ht-desk-compliance">
               Results vary · not legal advice · funding subject to underwriting · Rezilta yo varye
