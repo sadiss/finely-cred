@@ -120,6 +120,7 @@ export async function submitLeadCapture(
     fullName: sanitize(leadArgs.fullName),
     email: sanitize(leadArgs.email),
     phone: sanitize(leadArgs.phone),
+    funnelId: funnelId ?? leadArgs.funnelId,
   });
 
   void runLeadCapturePipeline({ lead, guideId, guideTitle, funnelId }).catch(() => {
@@ -146,7 +147,9 @@ export async function submitLeadCapture(
       utm_source: lead.utmSource ?? null,
       utm_medium: lead.utmMedium ?? null,
       utm_campaign: lead.utmCampaign ?? null,
+      utm_content: lead.utmContent ?? null,
       funnel_path: lead.funnelPath ?? null,
+      funnel_id: lead.funnelId ?? funnelId ?? null,
     });
     if (error) return { lead, remote: 'failed', remoteError: error.message };
     return { lead, remote: 'ok' };

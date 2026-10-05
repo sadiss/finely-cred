@@ -853,6 +853,87 @@ export const LEAD_MAGNET_PREMIUM_PROFILES: Record<string, LeadMagnetPremiumProfi
       { q: 'Where can I speak Kreyòl?', a: 'Open Haitian community and tap Pale Kreyòl.' },
     ],
   }),
+  partner_refer: profile({
+    accent: 'amber',
+    heroProof: [
+      'A specialist calls you within 1 business day',
+      'Credit restore sequenced toward wealth and funding readiness',
+      'Your partner’s referral stays on the file — no extra form for them',
+    ],
+    problemTitle: 'Someone you trust sent you here. We take the next step.',
+    problemBody:
+      'Most people stall after a referral because the first call never happens. This page is built for a warm handoff: phone required, consent required, then a human call — not a repair-shop pitch and not a blast email to the partner who sent you.',
+    painPoints: [
+      'You were referred but nobody called.',
+      'Credit “repair” ads promise a score and skip the file.',
+      'You want restore work that a funder can underwrite.',
+      'You need a clear next step, not a 40-page dump.',
+    ],
+    chapters: [
+      {
+        title: 'What happens after you submit',
+        bullets: ['We call the number you leave', 'We map restore vs. debt vs. funding readiness', 'You can book an enlightenment session anytime'],
+      },
+      {
+        title: 'Credit restore, not repair hype',
+        bullets: ['Evidence first', 'One tradeline per letter', 'A file that can support wealth work later'],
+      },
+      {
+        title: 'Your partner stays attributed',
+        bullets: ['ref / partner_id on the URL', 'UTMs stored on the lead', 'No auto-email to the referring partner'],
+      },
+    ],
+    tracks: [
+      {
+        id: 'restore',
+        label: 'Personal restore',
+        promise: 'Clean the file, then sequence utilization and mix.',
+        bestFor: 'Clients referred for credit restore.',
+        plan: ['Take the call', 'Upload a report', 'First letter'],
+      },
+      {
+        id: 'wealth',
+        label: 'Wealth path',
+        promise: 'Restore first, then business credit and funding readiness.',
+        bestFor: 'Owners and household wealth goals.',
+        plan: ['Call', 'Entity hygiene', 'Funding desk'],
+      },
+      {
+        id: 'session',
+        label: 'Book now',
+        promise: 'Skip the wait and pick an enlightenment session.',
+        bestFor: 'People who already have a report in hand.',
+        plan: ['Submit this form', 'Open /enlightenment-session', 'Show up with questions'],
+      },
+    ],
+    timeline: [
+      { step: 'Now', detail: 'Name, email, phone, and consent.' },
+      { step: 'Within 1 business day', detail: 'A specialist calls you.' },
+      { step: 'Same week', detail: 'Optional enlightenment session + portal preview.' },
+      { step: 'When ready', detail: 'Restore work, then wealth sequencing.' },
+    ],
+    bonusTools: [
+      { title: 'Call SLA', desc: 'We’ll call within 1 business day — or the hours your desk configured.' },
+      { title: 'Enlightenment session', desc: 'Book a 60-minute strategy call when you want a set time.' },
+      { title: 'Dispute guide', desc: 'The same restore playbook as /free-guide.' },
+    ],
+    portalHighlights: [
+      'Partner-attributed lead on the desk',
+      'Credit restore lane',
+      'Optional enlightenment session',
+      'No outbound email to the referring partner',
+    ],
+    captureHeadline: 'Request your callback',
+    captureSub: `Phone is required so we can call you. ${ONE_COMPLIANCE}`,
+    successHeadline: 'You’re in — we’ll call you',
+    formStepTitle: 'Partner referral intake',
+    formStepSub: 'First name, last name, email, and a phone we can actually dial.',
+    faqs: [
+      { q: 'Will you email the partner who referred me?', a: 'No. This form writes your lead with their ref / UTMs. It does not auto-email the partner.' },
+      { q: 'Is this credit repair?', a: 'No. Finely Cred does credit restore and wealth sequencing. Results vary. Not legal advice.' },
+      { q: 'How fast do you call?', a: 'Within 1 business day, unless the desk sets a shorter hour window.' },
+    ],
+  }),
 };
 
 export function getLeadMagnetPremiumProfile(config: LeadMagnetFunnelConfig): LeadMagnetPremiumProfile | null {

@@ -475,7 +475,13 @@ export function resolveSequenceForLead(args: {
   ) {
     return NURTURE_SEQUENCES.find((s) => s.id === 'seq_kreyol_funnel')!;
   }
-  if (path.includes('enlightenment') || path.includes('strategy-call')) {
+  if (
+    path.includes('enlightenment') ||
+    path.includes('strategy-call') ||
+    path.includes('/partners/refer') ||
+    path.includes('partner-refer') ||
+    args.offer?.includes('partner_referral')
+  ) {
     return NURTURE_SEQUENCES.find((s) => s.id === 'seq_strategy_session')!;
   }
   if (path.includes('contact')) {
