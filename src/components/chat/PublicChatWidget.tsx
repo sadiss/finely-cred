@@ -930,7 +930,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                   : '/free-guide',
         funnelId:
           haitianLead
-            ? 'haitian_credit_kit'
+            ? 'kreyol_companion'
             : goal === 'debt'
               ? 'debt_freedom'
               : goal === 'business'
@@ -958,13 +958,15 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
   };
 
   const funnelCta =
-    goal === 'debt'
-      ? '/free-debt-guide'
-      : goal === 'business'
-        ? '/free-business-guide'
-        : goal === 'tradelines' || goal === 'building'
-          ? '/free-tradeline-guide'
-          : '/free-guide';
+    goal === 'haitian'
+      ? '/free-kreyol-guide'
+      : goal === 'debt'
+        ? '/free-debt-guide'
+        : goal === 'business'
+          ? '/free-business-guide'
+          : goal === 'tradelines' || goal === 'building'
+            ? '/free-tradeline-guide'
+            : '/free-guide';
 
   return (
     <div className="finely-public-chat-widget" data-fc-public-chat-widget="1" data-fc-obsidian-chat="1">
