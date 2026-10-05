@@ -47,7 +47,16 @@ Copy-Item "public\brand\finely-cred-icon.svg" "$env:USERPROFILE\Desktop\finely-c
 |------|-----|-----|
 | Finely green | `#39ff14` | Accent, glow, CTAs |
 | Emerald | `#22c55e` | Secondary green |
-| Gold | `#f39c12` | Logo medallion, highlights |
+| Gold | `#fbbf24` | Logo medallion, ebook covers, highlights |
+| Ink | `#060908` / `#0a100e` | Ebook cover grounds |
+
+Official mark is the **gold circle + FINELY Cred wordmark**. Never invent a shield-F.
+
+Locked v3 ebook covers (wired into `/free-guide` and `/free-kreyol-guide`): wealth stairs + desk culture, gold `#fbbf24` on ink only, refined Finely Cred wordmark.
+
+- `/marketing/ebooks/restore-for-wealth-cover.png`
+- `/marketing/ebooks/gid-kredi-kreyol-cover.png`
+- `/marketing/ebooks/see-inside-preview.png`
 | Dark shell | `#141c28` | Backgrounds |
 
 ## GitHub repo

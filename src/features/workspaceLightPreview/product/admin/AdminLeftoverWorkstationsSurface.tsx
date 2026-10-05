@@ -42,6 +42,8 @@ import LaunchHelpCenterPage from '../../../../pages/LaunchHelpCenterPage';
 import AdminCrmRecordPage from '../../../../pages/admin/AdminCrmRecordPage';
 import AdminGrowthAgentsPage from '../../../../pages/admin/AdminGrowthAgentsPage';
 import AdminOvernight50Page from '../../../../pages/admin/AdminOvernight50Page';
+import AdminEbookConversionPage from '../../../../pages/admin/AdminEbookConversionPage';
+import AdminPartnerOutreachLibraryPage from '../../../../pages/admin/AdminPartnerOutreachLibraryPage';
 import type { WorkspaceProductSurfaceProps } from '../workspaceProductSurfaceRegistry';
 import { getWorkspaceProductArchetype } from '../workspaceProductArchetypes';
 import AdminProjectsProductSurface from './AdminProjectsProductSurface';
@@ -164,6 +166,10 @@ export function AdminLeftoverWorkstationBody(props: WorkspaceProductSurfaceProps
       return <AdminGrowthAgentsPage embedded />;
     case 'overnight':
       return <AdminOvernight50Page embedded />;
+    case 'ebook-conversions':
+      return <AdminEbookConversionPage embedded />;
+    case 'partner-library':
+      return <AdminPartnerOutreachLibraryPage embedded />;
     default:
       return <AdminFinanceAllocatorPage embedded />;
   }

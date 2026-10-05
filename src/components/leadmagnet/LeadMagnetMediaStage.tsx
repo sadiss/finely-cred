@@ -5,6 +5,7 @@ import type { LeadMagnetFunnelConfig } from '../../domain/leadMagnetFunnels';
 import type { LeadMagnetPremiumProfile } from './leadMagnetPremiumProfiles';
 import type { LeadMagnetVisualTheme } from './leadMagnetVisualThemes';
 import { LeadMagnetFunnelHeroVideo } from './LeadMagnetFunnelHeroVideo';
+import { getGuideCoverArt } from './leadMagnetGuideCovers';
 import { LeadMagnetThemedEbook } from './LeadMagnetThemedEbook';
 
 type Props = {
@@ -49,7 +50,14 @@ export function LeadMagnetMediaStage({
         </div>
 
         <div className="lm-flyer-stage-ebook">
-          <LeadMagnetThemedEbook guide={guide} theme={theme} totalValue={totalValue} size="hero" layout="stage" />
+          <LeadMagnetThemedEbook
+            guide={guide}
+            theme={theme}
+            totalValue={totalValue}
+            coverImageUrl={getGuideCoverArt(guide.id, theme).coverImageUrl}
+            size="hero"
+            layout="stage"
+          />
           <p className="lm-showcase-guide-title">{guide.title}</p>
         </div>
 

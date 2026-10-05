@@ -82,8 +82,8 @@ export const PRODUCT_SHOTS = {
   freeGuideDisputeCover: {
     id: 'free-guide-dispute-cover',
     src: `${ROOT}/guide-dispute-cover.png`,
-    alt: 'Credit dispute letter guide — cover art',
-    caption: 'Guide art · dispute cover',
+    alt: 'Restore for Wealth — Finely Cred ebook cover',
+    caption: 'Guide art · restore cover',
     kind: 'guide-art',
     surface: 'free-guide',
   },

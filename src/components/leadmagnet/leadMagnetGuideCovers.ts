@@ -1,4 +1,5 @@
 import type { FreeGuideId } from '../../resources/freeGuides';
+import { BRAND_GOLD, BRAND_INK, BRAND_INK_SOFT, resolveBrandEbookCover } from './brandEbookCovers';
 import type { LeadMagnetVisualTheme } from './leadMagnetVisualThemes';
 
 export type GuideCoverArt = {
@@ -6,6 +7,7 @@ export type GuideCoverArt = {
   spine: string;
   accent: string;
   kicker: string;
+  coverImageUrl?: string;
 };
 
 const COVERS: Record<string, GuideCoverArt> = {
@@ -28,10 +30,18 @@ const COVERS: Record<string, GuideCoverArt> = {
     kicker: 'Tradeline insider',
   },
   'credit-dispute-letter-guide': {
-    gradient: 'linear-gradient(145deg, #064e3b 0%, #022c22 45%, #059669 100%)',
-    spine: 'linear-gradient(180deg, #6ee7b7, #10b981, #047857)',
-    accent: '#6ee7b7',
-    kicker: 'Dispute letter guide',
+    gradient: `linear-gradient(145deg, ${BRAND_INK_SOFT} 0%, ${BRAND_INK} 45%, #1a1408 100%)`,
+    spine: `linear-gradient(180deg, #fde68a, ${BRAND_GOLD}, #b45309)`,
+    accent: BRAND_GOLD,
+    kicker: 'Credit restore',
+    coverImageUrl: '/marketing/ebooks/restore-for-wealth-cover.png',
+  },
+  'kreyol-companion-kit': {
+    gradient: `linear-gradient(145deg, ${BRAND_INK} 0%, ${BRAND_INK_SOFT} 45%, #11180f 100%)`,
+    spine: `linear-gradient(180deg, #fde68a, ${BRAND_GOLD}, #b45309)`,
+    accent: BRAND_GOLD,
+    kicker: 'Gid Kreyòl',
+    coverImageUrl: '/marketing/ebooks/gid-kredi-kreyol-cover.png',
   },
   'score-boost-72-roadmap': {
     gradient: 'linear-gradient(145deg, #052e1a 0%, #022c22 45%, #059669 100%)',
@@ -72,12 +82,13 @@ const COVERS: Record<string, GuideCoverArt> = {
 };
 
 export function getGuideCoverArt(guideId: FreeGuideId, theme: LeadMagnetVisualTheme): GuideCoverArt {
-  return (
-    COVERS[guideId] ?? {
-      gradient: 'linear-gradient(145deg, #4c1d95 0%, #1e1033 50%, #0f0a18 100%)',
-      spine: 'linear-gradient(180deg, #f97316, #a855f7, #4c1d95)',
-      accent: '#f97316',
-      kicker: theme.badge,
-    }
-  );
+  const branded = resolveBrandEbookCover(guideId);
+  const fallback: GuideCoverArt = {
+    gradient: `linear-gradient(145deg, ${BRAND_INK_SOFT} 0%, ${BRAND_INK} 50%, #1a1408 100%)`,
+    spine: `linear-gradient(180deg, #fde68a, ${BRAND_GOLD}, #b45309)`,
+    accent: BRAND_GOLD,
+    kicker: theme.badge,
+    coverImageUrl: branded ?? undefined,
+  };
+  return COVERS[guideId] ?? fallback;
 }

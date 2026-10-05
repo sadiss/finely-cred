@@ -9,7 +9,7 @@ Demo-safe captures for free-guide + career pages. **No real PII.** Prefer fresh 
 | `free-guide-desktop.png` | `/free-guide` | FreeGuideProductShotStrip (devices) |
 | `free-guide-tablet.png` | `/free-guide` | FreeGuideProductShotStrip (devices) |
 | `free-guide-phone.png` | `/free-guide` | FreeGuideProductShotStrip (devices) |
-| `guide-dispute-cover.png` | `/free-guide` | FreeGuideProductShotStrip (materials) |
+| `guide-dispute-cover.png` | `/free-guide` | Restore for Wealth v3 cover (same art as `/marketing/ebooks/restore-for-wealth-cover.png`) |
 | `guide-dispute-spread.png` | `/free-guide` | FreeGuideProductShotStrip (materials) |
 | `guide-score-mockup.png` | `/free-guide` | FreeGuideProductShotStrip (materials) |
 | `career-cs-preview.png` | `/credit-specialist` + CS hub | CareerProductShotBand + RoleHubDeepenOverview (`hubCs`) |

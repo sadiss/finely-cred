@@ -37,7 +37,7 @@ function save(attr: LeadAttribution) {
 /** Read ref + UTM from URL and persist for the session (first-touch). */
 export function captureLeadAttributionFromUrl(search: string, pathname = '/') {
   const params = new URLSearchParams(search);
-  const ref = params.get('ref')?.trim();
+  const ref = (params.get('ref') || params.get('partner_id') || params.get('partnerId'))?.trim();
   const promoterRole = (params.get('promoter_role') || params.get('promoterRole'))?.trim();
   // Accept promo_type / promoType / type — RE signup uses promoType=real_estate_affiliate.
   const promoType = (params.get('promo_type') || params.get('promoType') || params.get('type'))?.trim();

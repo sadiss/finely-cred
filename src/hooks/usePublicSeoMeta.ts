@@ -15,6 +15,7 @@ export function usePublicSeoMeta(args: {
   title: string;
   description: string;
   path: string;
+  image?: string;
   audio?: { name: string; description: string; contentUrl?: string; durationSec?: number };
   faqs?: Array<{ q: string; a: string }>;
   howTo?: { name: string; description: string; steps: string[] };
@@ -41,7 +42,11 @@ export function usePublicSeoMeta(args: {
     setMeta('property', 'og:description', args.description);
     setMeta('property', 'og:url', pageUrl);
     setMeta('property', 'og:type', 'website');
-    setMeta('property', 'og:image', `${origin}/brand/finely-cred-logo-dark.png`);
+    const imagePath = args.image?.startsWith('http')
+      ? args.image
+      : `${origin}${args.image || '/brand/finely-cred-logo-dark.png'}`;
+    setMeta('property', 'og:image', imagePath);
+    setMeta('name', 'twitter:image', imagePath);
 
     injectJsonLd('fc-org-schema', buildOrganizationSchema(origin));
     injectJsonLd(
@@ -93,6 +98,7 @@ export function usePublicSeoMeta(args: {
     args.title,
     args.description,
     args.path,
+    args.image,
     args.audio?.name,
     args.audio?.description,
     args.audio?.contentUrl,

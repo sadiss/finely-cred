@@ -370,6 +370,42 @@ export const KREYOL_FUNNEL: LeadMagnetFunnelConfig = {
   bookingPath: '/enlightenment-session',
 };
 
+/** Partner → client warm capture. Phone + consent required. Does not email the referring partner. */
+export const PARTNER_REFER_FUNNEL: LeadMagnetFunnelConfig = {
+  id: 'partner_refer',
+  path: '/partners/refer',
+  funnelId: 'partner_refer',
+  sequenceId: 'seq_strategy_session',
+  agentPersonaId: 'finely_advisor',
+  agentDisplayName: 'Alex',
+  agentRole: 'Credit Restoration Specialist',
+  guideId: 'credit-dispute-letter-guide',
+  offer: 'partner_referral',
+  onboardingLane: 'personal_restore',
+  metaTitle: 'Partner referral — credit restore | Finely Cred',
+  metaDesc:
+    'A trusted partner referred you to Finely Cred. Leave your name, email, and phone — we’ll call within 1 business day to map a credit restore and wealth plan. Results vary · not legal advice · funding subject to underwriting.',
+  urgencyText: 'Partner referral — we’ll call within 1 business day. No card required.',
+  heroHeadline: 'A partner referred you for',
+  heroHighlight: 'credit restore',
+  heroSub: 'Leave your details. We call you, then sequence restore work toward funding readiness — not a repair-shop pitch.',
+  valueStack: [
+    { label: 'Specialist call within 1 business day', value: '$149' },
+    { label: 'Credit restore + wealth readiness review', value: '$79' },
+    { label: 'Dispute letter guide + portal preview', value: '$49' },
+    { label: 'Optional enlightenment session', value: '$99' },
+    { label: `${LEAD_MAGNET_TRIAL_DAYS}-day partner portal preview`, value: '$79', trialFeature: 'report_upload_preview', locksAfterTrial: true },
+  ],
+  features: [
+    { icon: ShieldCheck, title: 'Restore, not repair hype', desc: 'Education-first credit restore: evidence, sequence, and a file funders can underwrite.' },
+    { icon: Target, title: 'Partner-attributed', desc: 'Your referrer’s code stays on the lead so the desk knows who sent you.' },
+    { icon: FileSignature, title: 'Written next step', desc: 'A dispute playbook you can run — not a PDF you never open.' },
+    { icon: LayoutDashboard, title: `${LEAD_MAGNET_TRIAL_DAYS}-day portal preview`, desc: 'Upload a report and see the partner workspace.' },
+  ],
+  trustCerts: ['Phone required', 'We’ll call within 1 business day', 'Educational only', 'No score promises'],
+  bookingPath: '/enlightenment-session',
+};
+
 export const LEAD_MAGNET_FUNNELS = [
   CREDIT_FUNNEL,
   DEBT_FUNNEL,
@@ -381,6 +417,7 @@ export const LEAD_MAGNET_FUNNELS = [
   SPECIALIST_APPLY_FUNNEL,
   AFFILIATE_FUNNEL,
   KREYOL_FUNNEL,
+  PARTNER_REFER_FUNNEL,
 ] as const;
 
 export function funnelByPath(path: string): LeadMagnetFunnelConfig {

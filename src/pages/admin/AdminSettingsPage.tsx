@@ -665,6 +665,16 @@ export default function AdminSettingsPage({
                     helperText='Shown on lead magnets as "Join 10k+ partners"'
                   />
                   <TextInput
+                    label="Lead-magnet call SLA (hours)"
+                    value={settings.site.leadMagnetCallSlaHours != null ? String(settings.site.leadMagnetCallSlaHours) : ''}
+                    onChange={(v) => {
+                      const raw = v.replace(/[^\d]/g, '');
+                      handleSiteChange({ leadMagnetCallSlaHours: raw ? Math.max(1, Number(raw)) : undefined });
+                    }}
+                    placeholder="Leave blank for 1 business day"
+                    helperText='Thank-you copy. Blank = “We’ll call within 1 business day”. Enter 4 for “within 4 hours”.'
+                  />
+                  <TextInput
                     label="Brand Name"
                     value={settings.site.brandName}
                     onChange={(v) => handleSiteChange({ brandName: v })}

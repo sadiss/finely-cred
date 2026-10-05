@@ -37,7 +37,7 @@ export function LeadMagnetThemedEbook({
         <div className="fg-book-pages absolute top-0 bottom-0 left-3 right-[-12px] rounded-[3px_14px_14px_3px] z-[8]" />
         <div className="fg-book-cover absolute inset-y-0 left-[7px] right-0 rounded-[3px_14px_14px_3px] overflow-hidden z-[10] border-2 border-white/15">
           {coverImageUrl ? (
-            <img src={coverImageUrl} alt={guide.title} className="absolute inset-0 w-full h-full object-cover" loading="eager" />
+            <img src={coverImageUrl} alt={guide.title} className="absolute inset-0 w-full h-full object-contain bg-[#060908]" loading="eager" />
           ) : (
             <div className="absolute inset-0 p-4 sm:p-5 flex flex-col justify-between" style={{ background: art.gradient }}>
               <div>

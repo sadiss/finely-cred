@@ -15,6 +15,7 @@ import { goalFromFunnelConfig, openPublicChat } from '../../lib/publicChatEvents
 import { FunnelFreeToolkitRouter } from './funnelFreeTools/FunnelFreeToolkitRouter';
 import { getLeadMagnetPremiumProfile } from './leadMagnetPremiumProfiles';
 import { resolveLaneOnboardingPath } from '../../lib/finelyCtaIntent';
+import { LeadMagnetCallSlaCard } from './LeadMagnetCallSlaCard';
 
 type Props = {
   funnelConfig: LeadMagnetFunnelConfig;
@@ -100,6 +101,8 @@ export function LeadMagnetGuidedSuccessPanel({ funnelConfig, leadId, fullName, e
           </p>
         </div>
       </div>
+
+      <LeadMagnetCallSlaCard bookingUrl={bookingUrl} kreyol={funnelConfig.id === 'kreyol'} />
 
       <ol className="space-y-2 text-sm text-white/75">
         <li className="flex gap-2"><span className="font-black text-emerald-300">1.</span> Download your free PDF guide</li>

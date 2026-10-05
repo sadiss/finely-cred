@@ -80,13 +80,13 @@ export function guideForGoal(goal: PublicChatGoal | null): OperatorGuide | null 
     return {
       title: 'Credit kits',
       href: '/free-kreyol-guide',
-      image: '/images/lead-magnets/agency-guide-book.png',
+      image: '/marketing/ebooks/gid-kredi-kreyol-cover.png',
     };
   }
   return {
     title: 'Free restore guide',
     href: '/free-guide',
-    image: '/images/product-shots/guide-dispute-cover.png',
+    image: '/marketing/ebooks/restore-for-wealth-cover.png',
   };
 }
 
@@ -104,7 +104,7 @@ export function operatorChipsForPath(pathname: string, goal: PublicChatGoal | nu
   if (inferred === 'personal') {
     return [
       { id: 'upload', label: 'Upload a report', prompt: 'I want to upload my credit report for a quick read.', action: 'upload', accent: 'emerald' },
-      { id: 'guide', label: 'Free restore guide', prompt: 'I want the free restore guide.', action: 'guide', href: '/free-guide', image: '/images/product-shots/guide-dispute-cover.png', accent: 'violet' },
+      { id: 'guide', label: 'Free restore guide', prompt: 'I want the free restore guide.', action: 'guide', href: '/free-guide', image: '/marketing/ebooks/restore-for-wealth-cover.png', accent: 'violet' },
       { id: 'transfer', label: 'Already in a dispute', prompt: 'I already disputed with another company. I want to start at the next round.', action: 'talk', accent: 'sky' },
       { id: 'book', label: 'Book a session', prompt: 'I want to book a session.', action: 'book', accent: 'rose' },
     ];

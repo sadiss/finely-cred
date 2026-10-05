@@ -68,6 +68,9 @@ export const PUBLIC_ROUTES: RouteSpec[] = [
   { path: '/enlightenment-session', title: 'Book a strategy call', badge: 'Public' },
   { path: '/owners-guide', title: "Owner's Guide", badge: 'Reference' },
   { path: '/free-guide', title: 'Free Credit Dispute Letter Guide', badge: 'Free Guide' },
+  { path: '/free-kreyol-guide', title: 'Credit kits — Haitian community', badge: 'Free Guide' },
+  { path: '/partners/refer', title: 'Partner referral capture', badge: 'Public' },
+  { path: '/partner-refer', title: 'Partner referral capture (alias)', badge: 'Public' },
   { path: '/g/:code', title: 'Partner Referral Link', badge: 'Signup' },
   { path: '/consultation', title: 'Consultation Booking (legacy)', badge: 'Public' },
   { path: '/faq', title: 'FAQ', badge: 'Public' },
@@ -204,6 +207,8 @@ export const ADMIN_ROUTES: RouteSpec[] = [
   { path: '/admin/products', title: 'Product & Vendor Admin', badge: 'Admin' },
   { path: '/admin/cms', title: 'CMS', badge: 'Admin' },
   { path: '/admin/analytics', title: 'Analytics & Reporting', badge: 'Admin' },
+  { path: '/admin/ebook-conversions', title: 'Ebook conversion', badge: 'Admin', subtitle: 'Lead-magnet captures for 7 / 14 / 30 days.' },
+  { path: '/admin/partner-library', title: 'Partner library', badge: 'Admin', subtitle: 'Researched referral partners. Outreach HOLD.' },
   { path: '/admin/settings', title: 'System Settings', badge: 'Admin' },
 ];
 

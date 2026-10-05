@@ -109,6 +109,12 @@ export default function AdminAnalyticsPage() {
           <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => navigate('/admin/partners?filter=missing-report')}>
             Open partners missing reports
           </button>
+          <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => navigate('/admin/ebook-conversions')}>
+            Ebook conversion
+          </button>
+          <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => navigate('/admin/partner-library')}>
+            Partner library
+          </button>
         </div>
 
         <div className={FINELY_OS_BANNER}>
