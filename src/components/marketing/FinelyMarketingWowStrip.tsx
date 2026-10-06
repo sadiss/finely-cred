@@ -54,8 +54,8 @@ export function FinelyMarketingWowStrip({
           <button
             key={chip.id}
             type="button"
-            className={`${finelyOsCatalogCard(chip.accent === 'amber' ? 'violet' : chip.accent)} !p-3 text-left`}
-            data-fc-accent={chip.accent === 'amber' ? 'violet' : chip.accent}
+            className={`${finelyOsCatalogCard(chip.accent)} !p-3 text-left`}
+            data-fc-accent={chip.accent}
             title={chip.hint}
             onClick={() => chip.path && navigate(resolveChipPath(chip)!)}
           >
