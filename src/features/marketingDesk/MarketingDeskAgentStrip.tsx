@@ -1,9 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  FINELY_OS_SECONDARY_BTN,
-  finelyOsMicroStat,
-} from '../os/finelyOsLightUi';
+import { FINELY_OS_SECONDARY_BTN } from '../os/finelyOsLightUi';
 import { getGrowthAgent } from '../growthAgents/growthAgentRegistry';
 
 const STRIP_AGENT_IDS = ['lead-discovery', 'capture-links', 'marketing-director', 'results'] as const;
@@ -33,7 +30,11 @@ export function MarketingDeskAgentStrip() {
             <button
               key={id}
               type="button"
-              className={finelyOsMicroStat(primary ? 'emerald' : 'violet')}
+              className={
+                primary
+                  ? 'rounded-lg border border-emerald-800 bg-emerald-800 px-2 py-1 text-xs font-black uppercase tracking-widest text-[#f8fafc]'
+                  : 'rounded-lg border border-violet-800 bg-violet-800 px-2 py-1 text-xs font-black uppercase tracking-widest text-[#f8fafc]'
+              }
               title={agent.roleTitle}
               onClick={() => navigate(`/admin/growth-agents/${id}`)}
             >

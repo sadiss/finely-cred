@@ -246,7 +246,7 @@ export function MarketingDeskHome({
             <button
               key={c.lane}
               type="button"
-              className={finelyOsMicroStat('emerald')}
+              className="rounded-lg border border-emerald-800 bg-emerald-800 px-2 py-1 text-xs font-black uppercase tracking-widest text-[#f8fafc]"
               onClick={() => onOpenHelper('find')}
               title={`${c.found} found · ${c.booked} booked`}
             >

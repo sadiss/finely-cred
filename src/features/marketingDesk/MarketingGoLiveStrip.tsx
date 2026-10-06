@@ -12,6 +12,7 @@ import {
   type MarketingGoLiveLamp,
 } from '../../lib/zeroCostChannelsOps';
 import {
+  FINELY_OS_ENTITY_BODY,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
   finelyOsCatalogCard,
