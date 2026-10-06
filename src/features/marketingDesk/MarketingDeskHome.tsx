@@ -164,7 +164,7 @@ export function MarketingDeskHome({
 
       <MarketingGoLiveStrip />
 
-      <FinelyMarketingWowStrip compact title="Organic wow angles" subtitle="" className="p-6" />
+      <FinelyMarketingWowStrip compact title="Organic wow angles" subtitle="" />
 
       {/* While you slept — morning brief */}
       {brief.hasSignal || brief.sleepOn ? (
@@ -241,7 +241,7 @@ export function MarketingDeskHome({
 
       {laneChips.length > 0 ? (
         <div className="flex flex-wrap items-center gap-2">
-          <span className={FINELY_OS_ENTITY_SUBLABEL}>Lane pace (30d)</span>
+          <span className="text-xs font-bold uppercase tracking-wide text-slate-600">Lane pace (30d)</span>
           {laneChips.map((c) => (
             <button
               key={c.lane}
@@ -308,8 +308,8 @@ export function MarketingDeskHome({
       <section className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <div className={FINELY_OS_ENTITY_SUBLABEL}>Today’s to-dos</div>
-            <h2 className="text-lg font-bold text-white">My work</h2>
+            <div className="text-xs font-bold uppercase tracking-wide text-slate-600">Today’s to-dos</div>
+            <h2 className="text-lg font-bold text-[#0a1628]">My work</h2>
           </div>
           <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/my-tasks')}>
             See all
@@ -324,11 +324,11 @@ export function MarketingDeskHome({
             <button
               key={t.id}
               type="button"
-              className="w-full rounded-xl border border-white/12 bg-white/[0.04] px-4 py-3 text-left"
+              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-left"
               onClick={() => navigate(deepLinkForMarketingTask(t))}
             >
-              <div className="font-semibold text-white text-sm truncate">{t.title}</div>
-              <div className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
+              <div className="font-semibold text-[#0a1628] text-sm truncate">{t.title}</div>
+              <div className="text-xs font-semibold text-slate-600">
                 {t.dueAt ? `Due ${new Date(t.dueAt).toLocaleDateString()}` : 'No due date'} · {t.status}
               </div>
             </button>

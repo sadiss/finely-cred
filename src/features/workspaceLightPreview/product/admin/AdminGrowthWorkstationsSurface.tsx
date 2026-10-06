@@ -477,7 +477,7 @@ function MarketingDeskCommandRoom({
         ))}
       </div>
 
-      <div className="fc-wlp-growth-desk-canvas" data-fcm-accent="violet">
+      <div className="fc-wlp-growth-desk-canvas">
         <MarketingDeskEmbeddedPanel />
       </div>
     </section>

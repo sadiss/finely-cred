@@ -12,9 +12,6 @@ import {
   type MarketingGoLiveLamp,
 } from '../../lib/zeroCostChannelsOps';
 import {
-  FINELY_OS_ENTITY_BODY,
-  FINELY_OS_ENTITY_SUBLABEL,
-  FINELY_OS_ENTITY_TITLE,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
   finelyOsCatalogCard,
@@ -81,9 +78,9 @@ export function MarketingGoLiveStrip() {
     <section className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className={FINELY_OS_ENTITY_SUBLABEL}>Go live · $0 channels</div>
-          <h2 className={`${FINELY_OS_ENTITY_TITLE} text-2xl`}>What is actually sending</h2>
-          <p className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>
+          <div className="text-xs font-bold uppercase tracking-wide text-slate-600">Go live · $0 channels</div>
+          <h2 className="text-2xl font-extrabold tracking-tight text-[#0a1628]">What is actually sending</h2>
+          <p className="mt-1 text-sm font-semibold text-slate-600">
             {liveCount} of {lamps.length} ready. Email stays off until SMTP or SendGrid is on the edge.
           </p>
         </div>

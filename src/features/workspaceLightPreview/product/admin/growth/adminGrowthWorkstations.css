@@ -216,13 +216,11 @@
 
 @media (min-width: 1024px) {
   .fc-wlp-growth-radar-hero,
-  .fc-wlp-growth-desk-command-strip,
   .fc-wlp-growth-agent-deck-head,
   .fc-wlp-growth-research-nav,
   .fc-wlp-growth-radar-core,
   .fc-wlp-growth-radar-rail,
   .fc-wlp-growth-research-workbench,
-  .fc-wlp-growth-desk-canvas,
   .fc-wlp-growth-agent-roster-pane,
   .fc-wlp-growth-agent-inspector-pane {
     padding: 2rem;
@@ -445,19 +443,32 @@
    -------------------------------------------------------------------------- */
 .fc-wlp-growth-room--desk-command {
   display: grid;
-  gap: 1rem;
-  padding: 0.25rem;
+  gap: 1.25rem;
+  padding: 0;
+  overflow: visible;
+  border-radius: 0;
+  background: transparent;
 }
 
 .fc-wlp-growth-desk-command-strip {
   display: grid;
   gap: 1rem 1.5rem;
-  padding: 1.5rem 1.75rem;
-  border-radius: 1.1rem;
-  border: 1px solid rgba(236, 72, 121, 0.28);
-  background:
-    radial-gradient(circle at 100% 0, rgba(236, 72, 121, 0.18), transparent 42%),
-    linear-gradient(125deg, rgba(12, 6, 18, 0.98), rgba(20, 10, 30, 0.94));
+  padding: 0;
+  border: 0;
+  background: transparent;
+  border-radius: 0;
+}
+
+html[data-fc-theme='light'] .fc-wlp .fc-wlp-growth-room--desk-command .fc-wlp-growth-room-title,
+html[data-fc-theme='light'] .fc-wlp .fc-wlp-growth-room--desk-command .fc-wlp-growth-room-description,
+html[data-fc-theme='light'] .fc-wlp .fc-wlp-growth-room--desk-command .fc-wlp-growth-room-eyebrow {
+  color: #0a1628 !important;
+  -webkit-text-fill-color: #0a1628 !important;
+}
+
+html[data-fc-theme='light'] .fc-wlp .fc-wlp-growth-room--desk-command .fc-wlp-growth-room-description {
+  color: #334155 !important;
+  -webkit-text-fill-color: #334155 !important;
 }
 
 @media (min-width: 900px) {
@@ -474,9 +485,9 @@
   gap: 0.85rem 1rem;
   padding: 1rem 1.25rem;
   border-radius: 0.95rem;
-  border: 1px solid rgba(15, 187, 139, 0.28);
-  background: rgba(15, 187, 139, 0.08);
-  color: #6ee7b7;
+  border: 1px solid #047857;
+  background: #065f46;
+  color: #f8fafc;
 }
 
 .fc-wlp-growth-desk-command-kpi strong {
@@ -484,13 +495,15 @@
   font-size: 1rem;
   font-weight: 800;
   color: #f8fafc;
+  -webkit-text-fill-color: #f8fafc;
 }
 
 .fc-wlp-growth-desk-command-kpi span {
   display: block;
   margin-top: 0.2rem;
   font-size: 0.875rem;
-  color: rgba(226, 232, 240, 0.86);
+  color: #ecfdf5;
+  -webkit-text-fill-color: #ecfdf5;
 }
 
 .fc-wlp-growth-desk-room-dock {
@@ -504,24 +517,41 @@
   align-items: center;
   padding: 0.65rem 1.1rem;
   border-radius: 999px;
-  border: 1px solid rgba(var(--fc-growth-accent-rgb, 143, 92, 246), 0.32);
-  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid #5b21b6;
+  background: #6d28d9;
   font-size: 0.9375rem;
   font-weight: 800;
   color: #f8fafc;
+  -webkit-text-fill-color: #f8fafc;
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease;
 }
 
-.fc-wlp-growth-desk-room-chip[data-fcm-accent='emerald'] { --fc-growth-accent-rgb: 15, 187, 139; }
-.fc-wlp-growth-desk-room-chip[data-fcm-accent='violet'] { --fc-growth-accent-rgb: 143, 92, 246; }
-.fc-wlp-growth-desk-room-chip[data-fcm-accent='sky'] { --fc-growth-accent-rgb: 42, 167, 220; }
-.fc-wlp-growth-desk-room-chip[data-fcm-accent='rose'] { --fc-growth-accent-rgb: 236, 72, 121; }
+.fc-wlp-growth-desk-room-chip[data-fcm-accent='emerald'] {
+  --fc-growth-accent-rgb: 15, 187, 139;
+  border-color: #047857;
+  background: #065f46;
+}
+.fc-wlp-growth-desk-room-chip[data-fcm-accent='violet'] {
+  --fc-growth-accent-rgb: 143, 92, 246;
+  border-color: #5b21b6;
+  background: #6d28d9;
+}
+.fc-wlp-growth-desk-room-chip[data-fcm-accent='sky'] {
+  --fc-growth-accent-rgb: 42, 167, 220;
+  border-color: #0369a1;
+  background: #0c4a6e;
+}
+.fc-wlp-growth-desk-room-chip[data-fcm-accent='rose'] {
+  --fc-growth-accent-rgb: 236, 72, 121;
+  border-color: #9f1239;
+  background: #9f1239;
+}
 
 .fc-wlp-growth-desk-room-chip[data-active='true'],
 .fc-wlp-growth-desk-room-chip:hover {
-  background: rgba(var(--fc-growth-accent-rgb), 0.16);
-  border-color: rgba(var(--fc-growth-accent-rgb), 0.48);
+  filter: brightness(1.08);
+  border-color: inherit;
 }
 
 /* --------------------------------------------------------------------------
@@ -1209,6 +1239,15 @@
     radial-gradient(circle at 100% 100%, rgba(143, 92, 246, 0.2), transparent 44%),
     linear-gradient(155deg, rgba(10, 8, 24, 0.98), rgba(16, 12, 34, 0.94));
   border-color: rgba(143, 92, 246, 0.3);
+}
+
+.fc-wlp-growth-room--desk-command .fc-wlp-growth-desk-canvas,
+.fc-wlp-growth-room--desk-command .fc-wlp-growth-desk-canvas[data-fcm-accent='violet'] {
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
 }
 
 .fc-wlp-growth-room-accent-band {
@@ -2522,7 +2561,6 @@ html[data-fc-theme='light'] .fc-wlp :is(
   .fc-wlp-growth-row,
   .fc-wlp-growth-rail-list li,
   .fc-wlp-growth-research-lane,
-  .fc-wlp-growth-desk-room-chip,
   .fc-wlp-growth-command-runway-node,
   .fc-wlp-growth-command-kpi,
   .fc-wlp-growth-room-tile,
@@ -2564,6 +2602,11 @@ html[data-fc-theme='light'] .fc-wlp :is(
   .fc-wlp-growth-drop-studio
 ) {
   background-color: #0b1220;
+  color: #f8fafc;
+  -webkit-text-fill-color: #f8fafc;
+}
+
+html[data-fc-theme='light'] .fc-wlp .fc-wlp-growth-room--desk-command .fc-wlp-growth-desk-room-chip {
   color: #f8fafc;
   -webkit-text-fill-color: #f8fafc;
 }

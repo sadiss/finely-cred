@@ -1,8 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  FINELY_OS_ENTITY_BODY,
-  FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_SECONDARY_BTN,
   finelyOsMicroStat,
 } from '../os/finelyOsLightUi';
@@ -15,9 +13,9 @@ export function MarketingDeskAgentStrip() {
   const navigate = useNavigate();
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-black/30 !p-3">
+    <div className="space-y-2">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className={FINELY_OS_ENTITY_SUBLABEL}>Growth team</div>
+        <div className="text-xs font-bold uppercase tracking-wide text-slate-600">Growth team</div>
         <button
           type="button"
           className={FINELY_OS_SECONDARY_BTN}
@@ -44,7 +42,7 @@ export function MarketingDeskAgentStrip() {
           );
         })}
       </div>
-      <p className={`mt-2 text-[11px] ${FINELY_OS_ENTITY_BODY}`}>
+      <p className="mt-2 text-[11px] font-semibold text-slate-600">
         Live finds live on Caleb — not Overnight50 simulation counters.
       </p>
     </div>
