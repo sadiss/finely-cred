@@ -6,6 +6,7 @@ import {
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
+  finelyOsCatalogCard,
   finelyOsDeckTile,
   finelyOsMicroStat,
   finelyOsStatusChip,
@@ -43,7 +44,7 @@ export function MailAutopilotRoom() {
 
   return (
     <div className="space-y-3">
-      <div className="sticky top-0 z-10 rounded-2xl border border-sky-400/25 bg-black/70 backdrop-blur-md p-6 space-y-3">
+      <div className={`${finelyOsCatalogCard('sky')} sticky top-0 z-10 space-y-3`} data-fc-accent="sky" data-fc-keep-ink="light">
         <div className="flex flex-wrap items-center gap-2">
           <div className={FINELY_OS_ENTITY_SUBLABEL}>Mail on autopilot</div>
           <span className={finelyOsStatusChip(chip)}>{mail.label}</span>

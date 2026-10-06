@@ -6,6 +6,7 @@ import {
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
+  finelyOsCatalogCard,
   finelyOsCatalogCardCompact,
   finelyOsMicroStat,
   finelyOsStatusChip,
@@ -240,7 +241,7 @@ export function FindPeopleRoom() {
           </button>
         </div>
       ) : null}
-      <div className="sticky top-0 z-10 rounded-2xl border border-emerald-400/25 bg-black/70 backdrop-blur-md p-6 space-y-3">
+      <div className={`${finelyOsCatalogCard('emerald')} sticky top-0 z-10 space-y-3`} data-fc-accent="emerald" data-fc-keep-ink="light">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <div className={FINELY_OS_ENTITY_SUBLABEL}>Find new people</div>

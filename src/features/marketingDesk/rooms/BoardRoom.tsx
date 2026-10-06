@@ -5,6 +5,7 @@ import { CrmPipelineBoard, CrmRecordPanel } from '../../crm/components/CrmPipeli
 import type { CrmRecord, CrmRecordStage } from '../../../domain/crmRecords';
 import {
   FINELY_OS_BOARD_SHELL,
+  finelyOsCatalogCard,
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_PRIMARY_BTN,
@@ -33,7 +34,7 @@ export function BoardRoom() {
 
   return (
     <div className="space-y-3">
-      <div className="sticky top-0 z-10 rounded-2xl border border-violet-400/25 bg-black/70 backdrop-blur-md p-6 space-y-3">
+      <div className={`${finelyOsCatalogCard('violet')} sticky top-0 z-10 space-y-3`} data-fc-accent="violet" data-fc-keep-ink="light">
         <div className={FINELY_OS_ENTITY_SUBLABEL}>Board</div>
         <h2 className="text-xl font-bold text-white">People who asked</h2>
         <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>

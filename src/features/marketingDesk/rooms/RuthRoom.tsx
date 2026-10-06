@@ -6,6 +6,7 @@ import {
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
+  finelyOsCatalogCard,
   finelyOsCatalogCardCompact,
   finelyOsMicroStat,
 } from '../../os/finelyOsLightUi';
@@ -127,7 +128,7 @@ export function RuthRoom() {
 
   return (
     <div className="space-y-3">
-      <div className="sticky top-0 z-10 rounded-2xl border border-violet-400/25 bg-black/70 backdrop-blur-md p-6 space-y-3">
+      <div className={`${finelyOsCatalogCard('violet')} sticky top-0 z-10 space-y-3`} data-fc-accent="violet" data-fc-keep-ink="light">
         <div className={FINELY_OS_ENTITY_SUBLABEL}>Ruth</div>
         <h2 className="text-xl font-bold text-white">What to do · what to say</h2>
         <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
