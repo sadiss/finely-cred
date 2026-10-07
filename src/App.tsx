@@ -82,6 +82,7 @@ import { SiteViewportPreview } from './components/layout/SiteViewportPreview';
 import { Overnight50SiteBootstrap } from './components/overnight50/Overnight50SiteBootstrap';
 import { inPreviewFrame } from './lib/inPreviewFrame';
 import { lazyWithRetry } from './lib/lazyWithRetry';
+import { RedirectIvoryPreviewToLive, RedirectWorkspaceLightToLive } from './pages/RedirectDeadPreviewRoutes';
 import AboutPage from './pages/public/AboutPage';
 import TradelinesPublicPage from './pages/public/TradelinesPublicPage';
 import FreeGuideFunnelPage from './pages/leadmagnet/FreeGuideFunnelPage';
@@ -134,7 +135,6 @@ const CasesPage = lazyWithRetry(() => import('./pages/admin/CasesPage'));
 const AdminCaseDetailPage = lazyWithRetry(() => import('./pages/admin/AdminCaseDetailPage'));
 const AdminDisputeCollaborationPage = lazyWithRetry(() => import('./pages/admin/AdminDisputeCollaborationPage'));
 const AdminDashboardPage = lazyWithRetry(() => import('./pages/admin/AdminDashboardPage'));
-const AdminDashboardIvoryPreviewPage = lazyWithRetry(() => import('./pages/admin/AdminDashboardIvoryPreviewPage'));
 const AdminAccessCenterPage = lazyWithRetry(() => import('./pages/admin/AdminAccessCenterPage'));
 const AdminSettingsPage = lazyWithRetry(() => import('./pages/admin/AdminSettingsPage'));
 const AdminBillingPage = lazyWithRetry(() => import('./pages/admin/AdminBillingPage'));
@@ -158,11 +158,6 @@ const AdminOpsAgentPage = lazyWithRetry(() => import('./pages/admin/AdminOpsAgen
 const AdminPhoneHubPage = lazyWithRetry(() => import('./pages/admin/AdminPhoneHubPage'));
 const AdminTeamRolesPage = lazyWithRetry(() => import('./pages/admin/AdminTeamRolesPage'));
 const AdminRolePreviewPage = lazyWithRetry(() => import('./pages/admin/AdminRolePreviewPage'));
-const AdminIvoryPreviewHubPage = lazyWithRetry(() => import('./pages/admin/AdminIvoryPreviewHubPage'));
-const AdminIvoryMarketingDeskPreviewPage = lazyWithRetry(() => import('./pages/admin/AdminIvoryMarketingDeskPreviewPage'));
-const AdminIvoryLeadsPreviewPage = lazyWithRetry(() => import('./pages/admin/AdminIvoryLeadsPreviewPage'));
-const AdminIvoryCrmPreviewPage = lazyWithRetry(() => import('./pages/admin/AdminIvoryCrmPreviewPage'));
-const AdminIvoryPricingPreviewPage = lazyWithRetry(() => import('./pages/admin/AdminIvoryPricingPreviewPage'));
 const AdminTenantsPage = lazyWithRetry(() => import('./pages/admin/AdminTenantsPage'));
 const AdminAuSellersPage = lazyWithRetry(() => import('./pages/admin/AdminAuSellersPage'));
 const AdminCalendarPage = lazyWithRetry(() => import('./pages/admin/AdminCalendarPage'));
@@ -277,10 +272,6 @@ const PersonalCreditBuildPreviewPage = lazyWithRetry(() => import('./pages/previ
 const PrivacyIdPreviewPage = lazyWithRetry(() => import('./pages/preview/PrivacyIdPreviewPage'));
 const BundlesPreviewPage = lazyWithRetry(() => import('./pages/preview/BundlesPreviewPage'));
 const WealthBuilderPreviewPage = lazyWithRetry(() => import('./pages/preview/WealthBuilderPreviewPage'));
-const WorkspaceLightPreviewHubPage = lazyWithRetry(() => import('./pages/preview/WorkspaceLightPreviewHubPage'));
-const AdminDashboardLightPreviewPage = lazyWithRetry(() => import('./pages/preview/AdminDashboardLightPreviewPage'));
-const PartnerDashboardLightPreviewPage = lazyWithRetry(() => import('./pages/preview/PartnerDashboardLightPreviewPage'));
-const WorkspaceProductModulePage = lazyWithRetry(() => import('./pages/preview/WorkspaceProductModulePage'));
 const FundabilityReadinessPage = lazyWithRetry(() => import('./pages/FundabilityReadinessPage'));
 const TestimonialsPage = lazyWithRetry(() => import('./pages/TestimonialsPage'));
 const ResultsPage = lazyWithRetry(() => import('./pages/ResultsPage'));
@@ -1993,14 +1984,7 @@ function AppInner() {
         <Route path="/admin/dashboard" element={<Navigate to="/admin" replace />} />
         <Route path="/admin/communications" element={<Navigate to="/admin/comms" replace />} />
         <Route path="/admin/phone" element={<Navigate to="/admin/phone-hub" replace />} />
-        <Route
-          path="/admin/preview/dashboard-ivory"
-          element={
-            <ProtectedAdminRoute>
-              <AdminDashboardIvoryPreviewPage />
-            </ProtectedAdminRoute>
-          }
-        />
+        <Route path="/admin/preview/dashboard-ivory" element={<RedirectIvoryPreviewToLive />} />
         <Route
           path="/admin/access"
           element={
@@ -2406,46 +2390,8 @@ function AppInner() {
             </ProtectedAdminRoute>
           }
         />
-        <Route
-          path="/admin/preview"
-          element={
-            <ProtectedAdminRoute>
-              <AdminIvoryPreviewHubPage />
-            </ProtectedAdminRoute>
-          }
-        />
-        <Route
-          path="/admin/preview/marketing-desk-ivory"
-          element={
-            <ProtectedAdminRoute>
-              <AdminIvoryMarketingDeskPreviewPage />
-            </ProtectedAdminRoute>
-          }
-        />
-        <Route
-          path="/admin/preview/leads-ivory"
-          element={
-            <ProtectedAdminRoute>
-              <AdminIvoryLeadsPreviewPage />
-            </ProtectedAdminRoute>
-          }
-        />
-        <Route
-          path="/admin/preview/crm-ivory"
-          element={
-            <ProtectedAdminRoute>
-              <AdminIvoryCrmPreviewPage />
-            </ProtectedAdminRoute>
-          }
-        />
-        <Route
-          path="/admin/preview/pricing-ivory"
-          element={
-            <ProtectedAdminRoute>
-              <AdminIvoryPricingPreviewPage />
-            </ProtectedAdminRoute>
-          }
-        />
+        <Route path="/admin/preview" element={<RedirectIvoryPreviewToLive />} />
+        <Route path="/admin/preview/*" element={<RedirectIvoryPreviewToLive />} />
         <Route
           path="/admin/tenants"
           element={
@@ -2770,33 +2716,8 @@ function AppInner() {
         <Route path="/preview/personal-credit-building" element={<Navigate to="/pricing/personal-credit-building" replace />} />
         <Route path="/preview/wealth-builder" element={<Navigate to="/pricing/wealth-builder" replace />} />
         <Route path="/preview/haitian" element={<Navigate to="/haitian" replace />} />
-        <Route path="/preview/workspace-light" element={<WorkspaceLightPreviewHubPage />} />
-        <Route
-          path="/preview/workspace-light/business/dashboard"
-          element={<Navigate to="/preview/workspace-light/portal/business" replace />}
-        />
-        <Route
-          path="/preview/workspace-light/seller/dashboard"
-          element={<Navigate to="/preview/workspace-light/portal/tradelines" replace />}
-        />
-        <Route path="/preview/workspace-light/admin/dashboard" element={<AdminDashboardLightPreviewPage />} />
-        <Route path="/preview/workspace-light/portal/dashboard" element={<PartnerDashboardLightPreviewPage />} />
-        <Route
-          path="/preview/workspace-light/admin/partners/:id"
-          element={<WorkspaceProductModulePage role="admin" pageIdOverride="partners" />}
-        />
-        <Route
-          path="/preview/workspace-light/admin/projects/:id"
-          element={<WorkspaceProductModulePage role="admin" pageIdOverride="projects" />}
-        />
-        <Route
-          path="/preview/workspace-light/admin/:pageId"
-          element={<WorkspaceProductModulePage role="admin" />}
-        />
-        <Route
-          path="/preview/workspace-light/portal/:pageId"
-          element={<WorkspaceProductModulePage role="partner" />}
-        />
+        <Route path="/preview/workspace-light/*" element={<RedirectWorkspaceLightToLive />} />
+        <Route path="/preview/workspace-light" element={<RedirectWorkspaceLightToLive />} />
         <Route path="/preview/business-credit-power-guide" element={<Navigate to="/free-business-guide" replace />} />
         <Route path="/preview/debt-eradication-guide" element={<Navigate to="/free-debt-guide" replace />} />
         <Route path="/preview/tradeline-advantage-guide" element={<Navigate to="/free-tradeline-guide" replace />} />

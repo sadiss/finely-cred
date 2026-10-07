@@ -56,7 +56,7 @@ const PREVIEW_PATHS: Record<RolePreviewRole, string> = {
   admin: '/admin',
 };
 
-/** Product surface page ids inside `/preview/workspace-light/...` for each lane. */
+/** Product surface page ids for each lane. */
 const PREVIEW_PAGE_IDS: Record<RolePreviewRole, string | null> = {
   partner: 'dashboard',
   heta_society: 'hos-hub',
@@ -90,8 +90,9 @@ export const ROLE_PREVIEW_ORDER: RolePreviewRole[] = ROLE_CAPABILITY_MATRIX.map(
 
 function workspacePreviewPathForRole(role: RolePreviewRole, pageId: string | null): string | null {
   if (!pageId) return null;
-  if (role === 'admin') return `/preview/workspace-light/admin/${pageId}`;
-  return `/preview/workspace-light/portal/${pageId}`;
+  if (role === 'admin') return pageId === 'dashboard' ? '/admin' : `/admin/${pageId}`;
+  if (pageId === 'dashboard') return '/portal/dashboard';
+  return `/portal/${pageId}`;
 }
 
 export function rolePreviewEntry(role: RolePreviewRole): RolePreviewEntry {
