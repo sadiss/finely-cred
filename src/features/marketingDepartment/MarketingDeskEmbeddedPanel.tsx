@@ -1,6 +1,8 @@
 import React, { useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { MarketingDeskHome } from '../marketingDesk/MarketingDeskHome';
+import { MarketingDeskRuthCommandStrip } from '../marketingDesk/MarketingDeskRuthCommandStrip';
+import { MarketingGoLiveStrip } from '../marketingDesk/MarketingGoLiveStrip';
 import type { MarketingDeskHelperId } from '../marketingDesk/marketingDeskGlossary';
 import { FindPeopleRoom } from '../marketingDesk/rooms/FindPeopleRoom';
 import { BoardRoom } from '../marketingDesk/rooms/BoardRoom';
@@ -17,7 +19,7 @@ function parseHelper(raw: string | null): MarketingDeskHelperId | null {
   return HELPERS.has(raw as MarketingDeskHelperId) ? (raw as MarketingDeskHelperId) : null;
 }
 
-/** Live Marketing Desk body — home or one room. No extra strips. */
+/** Live Marketing Desk body — sections sit on the page, not inside a canvas. */
 export function MarketingDeskEmbeddedPanel() {
   const [params, setParams] = useSearchParams();
   const helper = useMemo(
@@ -35,7 +37,7 @@ export function MarketingDeskEmbeddedPanel() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="fc-mkt-desk-page-body">
       {!flagOn ? (
         <FinelyOsAlertBanner
           tone="warning"
@@ -43,6 +45,8 @@ export function MarketingDeskEmbeddedPanel() {
         />
       ) : null}
       {!helper ? <MarketingDeskHome onOpenHelper={openHelper} /> : null}
+      {!helper ? <MarketingDeskRuthCommandStrip onOpenHelper={openHelper} /> : null}
+      {!helper ? <MarketingGoLiveStrip /> : null}
       {helper === 'find' ? <FindPeopleRoom /> : null}
       {helper === 'board' ? <BoardRoom /> : null}
       {helper === 'clean' ? <CleanOutRoom /> : null}

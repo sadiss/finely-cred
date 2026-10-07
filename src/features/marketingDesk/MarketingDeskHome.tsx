@@ -149,8 +149,11 @@ export function MarketingDeskHome({
 
   return (
     <div className={FINELY_OS_COMPACT_PAGE}>
-      <div className={`${CARD} flex flex-wrap items-center justify-between gap-4`}>
-        <p className="text-base font-semibold text-[#0a1628]">{mission}</p>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-wide text-slate-600">Today’s mission</p>
+          <p className="mt-1 text-base font-semibold text-[#0a1628]">{mission}</p>
+        </div>
         <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={onMissionClick}>
           {missionCtaLabel} <ArrowRight size={14} />
         </button>

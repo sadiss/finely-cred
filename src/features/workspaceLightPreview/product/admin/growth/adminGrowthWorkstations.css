@@ -2663,3 +2663,79 @@ html[data-fc-theme='light'] .fc-wlp .fc-wlp-growth-geo-market-chip[data-active='
   -webkit-text-fill-color: #f8fafc;
 }
 
+/* Marketing desk — no inner screen. Same white page as the title. */
+.fc-mkt-desk-page {
+  display: grid;
+  gap: 1.5rem;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.fc-mkt-desk-page-head {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.fc-mkt-desk-page-kicker {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #334155;
+}
+
+.fc-mkt-desk-page-title {
+  margin: 0;
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: #0a1628;
+}
+
+.fc-mkt-desk-page-lede {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.fc-mkt-desk-page-rooms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.fc-mkt-desk-page-chip {
+  min-height: 40px;
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  border: 1px solid #0a1628;
+  background: #ffffff;
+  color: #0a1628;
+  font-size: 0.9rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.fc-mkt-desk-page-chip[data-active='true'] {
+  background: #0a1628;
+  color: #f8fafc;
+}
+
+.fc-mkt-desk-page-body {
+  display: grid;
+  gap: 1.5rem;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+

@@ -33,11 +33,11 @@ export function MarketingDeskRuthCommandStrip({ onOpenHelper }: Props) {
   };
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 space-y-3">
+    <div className="space-y-3">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600">Ruth · weekly focus</div>
-          <h2 className="mt-1 text-xl font-bold text-slate-900">{weeklyFocusLine(focus)}</h2>
+          <div className="text-xs font-bold uppercase tracking-wide text-slate-600">Ruth Steward · co-owner</div>
+          <h2 className="mt-1 text-xl font-bold text-[#0a1628]">{weeklyFocusLine(focus)}</h2>
         </div>
         <div className="shrink-0">
           <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={openRuth}>

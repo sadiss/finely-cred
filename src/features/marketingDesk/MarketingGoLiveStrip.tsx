@@ -117,6 +117,7 @@ export function MarketingGoLiveStrip() {
     <section className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
+          <p className="text-xs font-bold uppercase tracking-wide text-slate-600">Marketing desk</p>
           <h2 className="text-xl font-bold tracking-tight text-[#0a1628]">Channels</h2>
           <p className="mt-1 text-sm font-semibold text-slate-600">
             {liveCount} of {lamps.length} live
@@ -144,7 +145,7 @@ export function MarketingGoLiveStrip() {
       {emailBlocked ? (
         <FinelyOsAlertBanner
           tone="warning"
-          message="Email is not connected. Use Copy send pack until it is."
+          message="Do not flip Email live until SMTP or SendGrid secrets are on the send-email function. Use Copy send pack until then."
         />
       ) : null}
 

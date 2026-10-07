@@ -444,21 +444,19 @@ function MarketingDeskCommandRoom({
   const meta = GROWTH_ROOM_META['marketing-desk'];
 
   return (
-    <section className="fc-wlp-growth-room fc-wlp-growth-room--desk-command" data-growth-room="marketing-desk">
-      <header className="fc-wlp-growth-desk-command-strip">
-        <div>
-          <p className="fc-wlp-growth-room-eyebrow">Marketing desk</p>
-          <h2 className="fc-wlp-growth-room-title">Esther Hayes · Marketing Director</h2>
-          <p className="fc-wlp-growth-room-description">{meta.deckDescription}</p>
-        </div>
+    <section className="fc-mkt-desk-page" data-growth-room="marketing-desk">
+      <header className="fc-mkt-desk-page-head">
+        <p className="fc-mkt-desk-page-kicker">Daily command</p>
+        <h2 className="fc-mkt-desk-page-title">Esther Hayes · Marketing Director</h2>
+        <p className="fc-mkt-desk-page-lede">{meta.deckDescription}</p>
       </header>
 
-      <div className="fc-wlp-growth-desk-room-dock" role="tablist" aria-label="Marketing desk rooms">
+      <div className="fc-mkt-desk-page-rooms" role="tablist" aria-label="Marketing desk rooms">
         <button
           type="button"
           role="tab"
           aria-selected={!activeHelper}
-          className="fc-wlp-growth-desk-room-chip"
+          className="fc-mkt-desk-page-chip"
           data-active={!activeHelper ? 'true' : undefined}
           onClick={() => onOpenRoom('')}
         >
@@ -470,8 +468,7 @@ function MarketingDeskCommandRoom({
             type="button"
             role="tab"
             aria-selected={activeHelper === room.id}
-            className="fc-wlp-growth-desk-room-chip"
-            data-fcm-accent={room.accent}
+            className="fc-mkt-desk-page-chip"
             data-active={activeHelper === room.id ? 'true' : undefined}
             onClick={() => onOpenRoom(room.id)}
           >
@@ -480,9 +477,7 @@ function MarketingDeskCommandRoom({
         ))}
       </div>
 
-      <div className="fc-wlp-growth-desk-canvas">
-        <MarketingDeskEmbeddedPanel />
-      </div>
+      <MarketingDeskEmbeddedPanel />
     </section>
   );
 }
