@@ -3,22 +3,12 @@ import { ArrowRight, HelpCircle, Mail } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import {
   FINELY_OS_COMPACT_PAGE,
-  FINELY_OS_ENTITY_BODY,
-  FINELY_OS_ENTITY_SUBLABEL,
-  FINELY_OS_ENTITY_TITLE,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
-  finelyOsCatalogCard,
-  finelyOsMicroStat,
-  finelyOsStatusChip,
 } from '../os/finelyOsLightUi';
-import { FinelyOsAlertBanner } from '../os/FinelyOsAlertBanner';
-import { FinelyMarketingWowStrip } from '../../components/marketing/FinelyMarketingWowStrip';
 import { FinelyOsPaginatedStack } from '../os/FinelyOsPaginatedStack';
 import { FinelyTourPlayer } from '../../components/tours/FinelyTourPlayer';
 import { getTourById } from '../../config/tourManifest';
-import { isFeatureEnabled } from '../../data/settingsRepo';
-import { MARKETING_DESK_HELPERS, type MarketingDeskHelperId } from './marketingDeskGlossary';
 import { getMarketingDeskKpis, listMarketingMyWork } from './marketingDeskKpis';
 import { getMarketingMailStatus } from './marketingDeskMailStatus';
 import {
@@ -32,20 +22,39 @@ import {
   MARKETING_DESK_TOUR_ID,
   markMarketingDeskTourSeen,
   resetMarketingDeskTour,
-  shouldAutoOpenMarketingDeskTour,
 } from './marketingDeskTour';
 import { getMarketingDeskAssignee, setMarketingDeskAssignee } from './marketingDeskAssignee';
 import { ensureMarketingPipelineProject } from './marketingDeskProjects';
-import { getMarketingMorningBrief } from './marketingDeskMorningBrief';
-import { getMarketingLanePerformanceChips } from './marketingDeskLanePerformance';
-import { getRuthWeeklyLaneTip } from './marketingDeskRuthLaneTip';
-import { MarketingGoLiveStrip } from './MarketingGoLiveStrip';
+import type { MarketingDeskHelperId } from './marketingDeskGlossary';
+
+const CARD = 'rounded-2xl border border-slate-200 bg-white p-5';
+const PRODUCT_CARD = 'fc-mkt-desk-flat-card';
+const PRODUCT_ROW = 'fc-mkt-desk-flat-row';
+
+function statusChipClass(tone: 'ok' | 'warn' | 'blocked') {
+  const fill =
+    tone === 'ok'
+      ? 'border-emerald-800 bg-emerald-800'
+      : tone === 'warn'
+        ? 'border-sky-800 bg-sky-800'
+        : 'border-rose-800 bg-rose-800';
+  return `inline-flex items-center px-2.5 py-1 rounded-lg border text-xs font-black uppercase tracking-widest text-[#f8fafc] ${fill}`;
+}
+
+const MODE_TOGGLE_SELECTED =
+  'rounded-xl border border-slate-800 bg-slate-800 px-4 py-2 text-sm font-semibold text-white transition';
+const MODE_TOGGLE_IDLE =
+  'rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-[#0a1628] transition hover:border-slate-300';
 
 export function MarketingDeskHome({
   onOpenHelper,
+  productLayout = false,
 }: {
   onOpenHelper: (id: MarketingDeskHelperId) => void;
+  productLayout?: boolean;
 }) {
+  const cardClass = productLayout ? PRODUCT_CARD : CARD;
+  const rowClass = productLayout ? PRODUCT_ROW : 'w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-left hover:border-slate-300 transition';
   const navigate = useNavigate();
   const [tick, setTick] = useState(0);
   const [tourOpen, setTourOpen] = useState(false);
@@ -63,7 +72,6 @@ export function MarketingDeskHome({
 
   useEffect(() => {
     ensureMarketingPipelineProject();
-    if (shouldAutoOpenMarketingDeskTour()) setTourOpen(true);
   }, []);
 
   const kpis = useMemo(() => {
@@ -92,19 +100,6 @@ export function MarketingDeskHome({
     void tick;
     return getMarketingFindLastRun();
   }, [tick]);
-  const brief = useMemo(() => {
-    void tick;
-    return getMarketingMorningBrief();
-  }, [tick]);
-  const laneChips = useMemo(() => {
-    void tick;
-    return getMarketingLanePerformanceChips(3);
-  }, [tick]);
-  const ruthTip = useMemo(() => {
-    void tick;
-    return getRuthWeeklyLaneTip();
-  }, [tick]);
-
   const saveSeats = () => {
     setMarketingDeskAssignee({
       label: assigneeLabel.trim() || 'Marketing',
@@ -116,245 +111,163 @@ export function MarketingDeskHome({
   };
 
   const tour = getTourById(MARKETING_DESK_TOUR_ID);
-  const flagOn = isFeatureEnabled('marketingDesk');
   const mailChip = mail.status === 'ready' ? 'ok' : mail.status === 'paused' ? 'warn' : 'blocked';
-  const findChip = findReady.ready ? 'ok' : 'blocked';
-  const mission =
-    !findReady.ready
-      ? 'Fix Find setup, then Find new people'
-      : mail.status === 'needs_setup'
-        ? 'Check Mail setup, then Find new people'
-        : stagingPending > 0
-          ? `Clear ${stagingPending} exception${stagingPending === 1 ? '' : 's'}`
-          : myWork.length > 0
-            ? 'Clear today’s to-dos'
-            : 'Find new people';
 
-  const primary = () => navigate('/admin/growth-agents/lead-discovery');
+  const mission = !findReady.ready
+    ? 'Fix Find setup, then Find new people'
+    : mail.status === 'needs_setup'
+      ? 'Check Mail setup, then Find new people'
+      : stagingPending > 0
+        ? `Clear ${stagingPending} exception${stagingPending === 1 ? '' : 's'}`
+        : myWork.length > 0
+          ? 'Clear today’s to-dos'
+          : 'Find new people';
+
+  const missionCtaLabel = !findReady.ready
+    ? 'Fix Find setup'
+    : mail.status === 'needs_setup'
+      ? 'Check Mail setup'
+      : stagingPending > 0
+        ? 'Clear exceptions'
+        : myWork.length > 0
+          ? 'Open to-dos'
+          : 'Find new people';
+
+  const onMissionClick = () => {
+    if (!findReady.ready) {
+      onOpenHelper('find');
+      return;
+    }
+    if (mail.status === 'needs_setup') {
+      onOpenHelper('mail');
+      return;
+    }
+    if (stagingPending > 0) {
+      onOpenHelper('find');
+      return;
+    }
+    if (myWork.length > 0) {
+      navigate('/admin/my-tasks');
+      return;
+    }
+    onOpenHelper('find');
+  };
 
   return (
     <div className={FINELY_OS_COMPACT_PAGE}>
-      {/* 1. Command strip */}
-      <div className={`${finelyOsCatalogCard('emerald')} flex flex-wrap items-center justify-between gap-4`} data-fc-accent="emerald">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className={FINELY_OS_ENTITY_TITLE}>Marketing Desk</h1>
-            <span className={finelyOsStatusChip(findChip)}>{findReady.label}</span>
-            <span className={finelyOsStatusChip(mailChip)}>Mail {mail.label}</span>
-            {!flagOn ? <span className={finelyOsMicroStat('violet')}>Flag off</span> : null}
-          </div>
-          <p className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>Today’s mission: {mission}</p>
-          <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>
-            Specialists live in{' '}
-            <button type="button" className="text-emerald-300/90 underline" onClick={() => navigate('/admin/growth-agents')}>
-              Growth Agents
-            </button>
-            {' '}— this desk is Caleb Brooks’s daily workroom.
-          </p>
-          {findLast ? (
-            <p className={`mt-0.5 text-[11px] ${FINELY_OS_ENTITY_BODY}`}>
-              Last Find: {findLast.found} found · {findLast.autoSaved} auto-saved · {findLast.review} exceptions
-            </p>
-          ) : null}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-wide text-slate-600">Today’s mission</p>
+          <p className="mt-1 text-base font-semibold text-[#0a1628]">{mission}</p>
         </div>
-        <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={primary}>
-          Open Caleb desk <ArrowRight size={14} />
+        <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={onMissionClick}>
+          {missionCtaLabel} <ArrowRight size={14} />
         </button>
       </div>
 
-      <MarketingGoLiveStrip />
-
-      <FinelyMarketingWowStrip compact title="Organic wow angles" subtitle="" />
-
-      {/* While you slept — morning brief */}
-      {brief.hasSignal || brief.sleepOn ? (
-        <section className={`${finelyOsCatalogCard('violet')} space-y-3`} data-fc-accent="violet">
-          <div className="flex flex-wrap items-start justify-between gap-2">
-            <div className="min-w-0">
-              <div className={FINELY_OS_ENTITY_SUBLABEL}>
-                {brief.overnight || brief.sleepOn ? 'While you slept' : 'Morning brief'}
-              </div>
-              <p className="text-sm font-semibold text-white">{brief.summaryLine}</p>
-              <p className={`mt-1 text-[11px] ${FINELY_OS_ENTITY_BODY}`}>
-                {brief.sleepOn ? 'Find while I sleep is On. ' : ''}
-                {brief.at
-                  ? `Last Find ${new Date(brief.at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}.`
-                  : 'No overnight Find yet — run Daily pack or turn sleep On.'}
-              </p>
-            </div>
-            {brief.findFailed ? (
-              <button
-                type="button"
-                className={FINELY_OS_PRIMARY_BTN}
-                onClick={() => navigate('/admin/marketing-desk?helper=find')}
-              >
-                Fix setup <ArrowRight size={14} />
-              </button>
-            ) : brief.exceptions > 0 ? (
-              <button
-                type="button"
-                className={FINELY_OS_PRIMARY_BTN}
-                onClick={() => navigate('/admin/marketing-desk?helper=find#exceptions')}
-              >
-                Clear exceptions <ArrowRight size={14} />
-              </button>
-            ) : (
-              <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => onOpenHelper('find')}>
-                Open Find
-              </button>
-            )}
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <span className={finelyOsMicroStat('violet')}>{brief.found} found</span>
-            <span className={finelyOsMicroStat('emerald')}>{brief.autoSaved} auto-saved</span>
-            <span className={finelyOsMicroStat('rose')}>{brief.exceptions} exceptions</span>
-            <span className={finelyOsMicroStat('sky')}>{brief.mailed} mailed</span>
-            <span className={finelyOsMicroStat('fuchsia')}>{brief.booked} booked</span>
-          </div>
-        </section>
+      {findLast ? (
+        <p className="text-xs font-semibold text-slate-600">
+          Last Find: {findLast.found} found · {findLast.autoSaved} auto-saved · {findLast.review} exceptions
+        </p>
       ) : null}
 
-      <FinelyOsAlertBanner
-        tone="info"
-        message="Works on this browser profile — use the same machine/profile for marketing daily."
-      />
-
-      {/* 2. KPI chips — deck tiles only, no list chrome */}
-      <div className="grid grid-cols-3 gap-4">
-        {kpis.map((k, idx) => {
-          const kpiAccent = (['emerald', 'violet', 'sky', 'rose'] as const)[idx % 4];
-          return (
+      <div className={productLayout ? 'fc-mkt-desk-kpi-grid' : 'grid grid-cols-1 sm:grid-cols-3 gap-4'}>
+        {kpis.map((k) => (
           <button
             key={k.id}
             type="button"
-            className={`${finelyOsCatalogCard(kpiAccent)} text-left`}
-            data-fc-accent={kpiAccent}
+            className={`${cardClass} text-left ${k.helper ? 'hover:border-slate-300 transition' : ''}`}
             onClick={() => (k.helper ? onOpenHelper(k.helper) : undefined)}
+            disabled={!k.helper}
           >
-            <div className={FINELY_OS_ENTITY_SUBLABEL}>{k.label}</div>
-            <div className="mt-2 text-3xl font-extrabold text-white tabular-nums">{k.value}</div>
-            {k.hint ? <div className={`mt-2 text-sm font-semibold ${FINELY_OS_ENTITY_BODY}`}>{k.hint}</div> : null}
-          </button>
-          );
-        })}
-      </div>
-
-      {laneChips.length > 0 ? (
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-bold uppercase tracking-wide text-slate-600">Lane pace (30d)</span>
-          {laneChips.map((c) => (
-            <button
-              key={c.lane}
-              type="button"
-              className="rounded-lg border border-emerald-800 bg-emerald-800 px-2 py-1 text-xs font-black uppercase tracking-widest text-[#f8fafc]"
-              onClick={() => onOpenHelper('find')}
-              title={`${c.found} found · ${c.booked} booked`}
-            >
-              {c.label} {c.ratePct}% booked
-            </button>
-          ))}
-        </div>
-      ) : null}
-
-      {ruthTip ? (
-        <button
-          type="button"
-          className={`${finelyOsCatalogCard('rose')} w-full text-left`}
-          data-fc-accent="rose"
-          onClick={() => onOpenHelper('ruth')}
-          title="Ruth weekly tip from lane pace"
-        >
-          <div className={FINELY_OS_ENTITY_SUBLABEL}>Ruth tip · this week</div>
-          <p className="mt-1 text-sm text-white">{ruthTip.tip}</p>
-        </button>
-      ) : null}
-
-      {/* 3. Mail status tile */}
-      <button
-        type="button"
-        className={`${finelyOsCatalogCard('sky')} w-full text-left`}
-        data-fc-accent="sky"
-        onClick={() => onOpenHelper('mail')}
-      >
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <Mail size={16} className="text-sky-200" />
-            <span className="font-semibold text-white">Mail on autopilot</span>
-            <span className={finelyOsStatusChip(mailChip)}>{mail.label}</span>
-          </div>
-          <span className={finelyOsMicroStat('sky')}>{mail.activeEnrollments} active</span>
-        </div>
-        <p className={`mt-2 text-sm ${FINELY_OS_ENTITY_BODY}`}>{mail.detail}</p>
-      </button>
-
-      {/* 4. Helper tiles (2×2 + mail already above — four primary helpers) */}
-      <div className="grid sm:grid-cols-2 gap-3">
-        {MARKETING_DESK_HELPERS.filter((h) => h.id !== 'mail').map((h) => (
-          <button
-            key={h.id}
-            type="button"
-            className={`${finelyOsCatalogCard(h.accent === 'amber' ? 'violet' : h.accent)} text-left`}
-            data-fc-accent={h.accent === 'amber' ? 'violet' : h.accent}
-            onClick={() => onOpenHelper(h.id)}
-          >
-            <div className="text-xl font-extrabold text-white">{h.title}</div>
-            <p className={`mt-2 text-base ${FINELY_OS_ENTITY_BODY}`}>{h.blurb}</p>
-            <span className={`mt-4 inline-flex text-sm font-extrabold text-sky-200`}>{h.cta} →</span>
+            <div className="text-xs font-bold uppercase tracking-wide text-[#0a1628]">{k.label}</div>
+            <div className="mt-2 text-3xl font-bold tabular-nums text-[#0a1628]">{k.value}</div>
+            {k.hint ? <div className="mt-2 text-sm font-semibold text-slate-600">{k.hint}</div> : null}
           </button>
         ))}
       </div>
 
-      {/* 5. My work */}
+      <button
+        type="button"
+        className={`${cardClass} w-full text-left hover:border-slate-300 transition`}
+        onClick={() => onOpenHelper('mail')}
+      >
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Mail size={16} className="text-slate-600" />
+            <span className="font-bold text-[#0a1628]">Mail on autopilot</span>
+            <span className={statusChipClass(mailChip)}>{mail.label}</span>
+          </div>
+          <span className="text-xs font-semibold text-slate-600">{mail.activeEnrollments} active</span>
+        </div>
+        <p className="mt-2 text-sm font-semibold text-slate-600">
+          {/supabase|cron|webhook|dryRun|email-webhook/i.test(mail.detail)
+            ? mail.status === 'needs_setup'
+              ? 'Mail is not connected yet. To-dos still work.'
+              : 'Mail can send when delivery is on.'
+            : mail.detail}
+        </p>
+      </button>
+
       <section className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <div className="text-xs font-bold uppercase tracking-wide text-slate-600">Today’s to-dos</div>
-            <h2 className="text-lg font-bold text-[#0a1628]">My work</h2>
-          </div>
-          <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/my-tasks')}>
-            See all
-          </button>
-        </div>
-        <FinelyOsPaginatedStack
-          items={myWork}
-          pageSize={5}
-          emptyMessage="No marketing to-dos yet — Find people or ask Ruth to queue nurture."
-          itemSpacingClassName="space-y-2"
-          renderItem={(t) => (
-            <button
-              key={t.id}
-              type="button"
-              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-left"
-              onClick={() => navigate(deepLinkForMarketingTask(t))}
-            >
-              <div className="font-semibold text-[#0a1628] text-sm truncate">{t.title}</div>
-              <div className="text-xs font-semibold text-slate-600">
-                {t.dueAt ? `Due ${new Date(t.dueAt).toLocaleDateString()}` : 'No due date'} · {t.status}
-              </div>
+          <h2 className="text-lg font-bold text-[#0a1628]">My work</h2>
+          {myWork.length > 0 ? (
+            <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/my-tasks')}>
+              See all
             </button>
-          )}
-        />
+          ) : null}
+        </div>
+        {myWork.length === 0 ? (
+          <div className={`${cardClass} flex flex-wrap items-center justify-between gap-3`}>
+            <p className="text-sm font-semibold text-slate-600">No marketing to-dos yet — run Find to queue work.</p>
+            <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => onOpenHelper('find')}>
+              Find people
+            </button>
+          </div>
+        ) : (
+          <FinelyOsPaginatedStack
+            items={myWork}
+            pageSize={5}
+            emptyMessage=""
+            itemSpacingClassName="space-y-2"
+            renderItem={(t) => (
+              <button
+                key={t.id}
+                type="button"
+                className={rowClass}
+                onClick={() => navigate(deepLinkForMarketingTask(t))}
+              >
+                <div className="truncate text-sm font-semibold text-[#0a1628]">{t.title}</div>
+                <div className="text-xs font-semibold text-slate-600">
+                  {t.dueAt ? `Due ${new Date(t.dueAt).toLocaleDateString()}` : 'No due date'} · {t.status}
+                </div>
+              </button>
+            )}
+          />
+        )}
       </section>
 
-      <div className={`${finelyOsCatalogCard('violet')} space-y-4`} data-fc-accent="violet">
-        <div className="flex flex-wrap items-end gap-2">
+      <section className={`${cardClass} space-y-4`}>
+        <h2 className="text-lg font-bold text-[#0a1628]">Seats</h2>
+        <div className="flex flex-wrap items-end gap-3">
           <label className="min-w-[160px] flex-1">
-            <div className={FINELY_OS_ENTITY_SUBLABEL}>Work goes to</div>
+            <div className="text-xs font-semibold text-slate-600">Work goes to</div>
             <input
               value={assigneeLabel}
               onChange={(e) => setAssigneeLabel(e.target.value)}
               onBlur={saveSeats}
-              className="mt-1 w-full rounded-xl border border-violet-400/40 bg-black/35 px-4 py-3 text-base text-white outline-none focus:border-violet-300"
+              className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base font-semibold text-[#0a1628] outline-none placeholder:text-slate-400 focus:border-slate-400"
               placeholder="Marketing hire name or email"
             />
           </label>
           <label className="min-w-[160px] flex-1">
-            <div className={FINELY_OS_ENTITY_SUBLABEL}>Alternate</div>
+            <div className="text-xs font-semibold text-slate-600">Alternate</div>
             <input
               value={alternateLabel}
               onChange={(e) => setAlternateLabel(e.target.value)}
               onBlur={saveSeats}
-              className="mt-1 w-full rounded-xl border border-violet-400/40 bg-black/35 px-4 py-3 text-base text-white outline-none focus:border-violet-300"
+              className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base font-semibold text-[#0a1628] outline-none placeholder:text-slate-400 focus:border-slate-400"
               placeholder="Second seat (optional)"
             />
           </label>
@@ -365,7 +278,7 @@ export function MarketingDeskHome({
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
-            className={seatMode === 'primary' ? FINELY_OS_PRIMARY_BTN : FINELY_OS_SECONDARY_BTN}
+            className={seatMode === 'primary' ? MODE_TOGGLE_SELECTED : MODE_TOGGLE_IDLE}
             onClick={() => {
               setSeatMode('primary');
               setMarketingDeskAssignee({
@@ -381,7 +294,7 @@ export function MarketingDeskHome({
           </button>
           <button
             type="button"
-            className={seatMode === 'round_robin' ? FINELY_OS_PRIMARY_BTN : FINELY_OS_SECONDARY_BTN}
+            className={seatMode === 'round_robin' ? MODE_TOGGLE_SELECTED : MODE_TOGGLE_IDLE}
             disabled={!alternateLabel.trim()}
             onClick={() => {
               setSeatMode('round_robin');
@@ -396,19 +309,19 @@ export function MarketingDeskHome({
           >
             Round-robin
           </button>
-          <span className={`text-[11px] ${FINELY_OS_ENTITY_BODY}`}>
+          <span className="text-[11px] font-semibold text-slate-600">
             New Desk tasks use Work goes to
             {seatMode === 'round_robin' && alternateLabel.trim() ? ' · Alternate in turn' : ''}.
           </span>
         </div>
-      </div>
+      </section>
 
-      {/* 6. How this works */}
-      <details className={finelyOsCatalogCard('sky')} data-fc-accent="sky">
-        <summary className="cursor-pointer select-none flex items-center gap-2 text-white font-semibold">
-          <HelpCircle size={16} /> How this works
+      <details className={cardClass}>
+        <summary className="flex cursor-pointer select-none items-center gap-2 font-bold text-[#0a1628]">
+          <HelpCircle size={16} className="text-slate-600" />
+          How this works
         </summary>
-        <ol className={`mt-3 list-decimal pl-5 space-y-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>
+        <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm font-semibold text-slate-600">
           {MARKETING_DESK_HOW_IT_WORKS.map((line) => (
             <li key={line}>{line}</li>
           ))}
@@ -437,16 +350,6 @@ export function MarketingDeskHome({
           }}
         />
       ) : null}
-
-      {/* 7. Footer owner tools */}
-      <div className="flex flex-wrap gap-2 pt-1">
-        <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/projects')}>
-          Projects & Tasks
-        </button>
-        <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/comms')}>
-          Comms Studio
-        </button>
-      </div>
     </div>
   );
 }

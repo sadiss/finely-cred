@@ -6,10 +6,9 @@ import {
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
-  finelyOsCatalogCard,
-  finelyOsCatalogCardCompact,
   finelyOsMicroStat,
 } from '../../os/finelyOsLightUi';
+import { MARKETING_DESK_CARD } from '../marketingDeskGlossary';
 import {
   ensureNurtureSequenceForProspects,
   getLaneCta,
@@ -128,9 +127,9 @@ export function RuthRoom() {
 
   return (
     <div className="space-y-3">
-      <div className={`${finelyOsCatalogCard('violet')} sticky top-0 z-10 space-y-3`} data-fc-accent="violet" data-fc-keep-ink="light">
+      <div className={`${MARKETING_DESK_CARD} sticky top-0 z-10 space-y-3`}>
         <div className={FINELY_OS_ENTITY_SUBLABEL}>Ruth</div>
-        <h2 className="text-xl font-bold text-white">What to do · what to say</h2>
+        <h2 className="text-xl font-bold text-[#0a1628]">What to do · what to say</h2>
         <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
           Short brief + chips that do real work — not decorative copy.
         </p>
@@ -142,7 +141,7 @@ export function RuthRoom() {
       {notice ? <FinelyOsAlertBanner tone="success" message={notice} /> : null}
 
       {weeklyTip ? (
-        <div className={`${finelyOsCatalogCardCompact('amber')} space-y-2`} data-fc-accent="amber">
+        <div className={`${MARKETING_DESK_CARD} space-y-2`}>
           <div className="flex flex-wrap items-center gap-2">
             <div className={FINELY_OS_ENTITY_SUBLABEL}>This week’s lane tip</div>
             <span className={finelyOsMicroStat('amber')}>{weeklyTip.laneLabel}</span>
@@ -187,7 +186,7 @@ export function RuthRoom() {
       </div>
 
       {sequenceChips.length ? (
-        <div className={`${finelyOsCatalogCardCompact('sky')} space-y-2`} data-fc-accent="sky">
+        <div className={`${MARKETING_DESK_CARD} space-y-2`}>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className={FINELY_OS_ENTITY_SUBLABEL}>Mail sequences</div>
             <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/marketing-desk?helper=mail')}>

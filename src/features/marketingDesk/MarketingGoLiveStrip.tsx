@@ -1,8 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowRight, Copy, Radio } from 'lucide-react';
+import { Copy } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { fetchLatestPlatformCronHeartbeat } from '../../data/platformCronHeartbeatRepo';
-import { formatGbpQaPack } from '../../lib/gbpQaPack';
 import { getPublicSiteOrigin } from '../../lib/funnelPublicLinks';
 import {
   getEmailDeliveryLamp,
@@ -11,27 +10,57 @@ import {
   lampFromCronHeartbeat,
   type MarketingGoLiveLamp,
 } from '../../lib/zeroCostChannelsOps';
-import {
-  FINELY_OS_ENTITY_BODY,
-  FINELY_OS_PRIMARY_BTN,
-  FINELY_OS_SECONDARY_BTN,
-  finelyOsCatalogCard,
-  finelyOsStatusChip,
-} from '../os/finelyOsLightUi';
+import { FINELY_OS_PRIMARY_BTN, FINELY_OS_SECONDARY_BTN } from '../os/finelyOsLightUi';
 import { FinelyOsAlertBanner } from '../os/FinelyOsAlertBanner';
 
-const LAMP_ACCENT = ['emerald', 'violet', 'sky', 'rose', 'emerald', 'violet', 'sky', 'rose'] as const;
+const JARGON_RE = /VITE_|\.env|\bnpm\b|INDEXNOW|send-email|Supabase/i;
 
-function chipFor(tone: MarketingGoLiveLamp['tone']) {
-  if (tone === 'ok') return finelyOsStatusChip('ok');
-  if (tone === 'blocked') return finelyOsStatusChip('blocked');
-  return finelyOsStatusChip('warn');
+function operatorSafeHint(lamp: MarketingGoLiveLamp): string {
+  const hint = lamp.hint;
+  const label = lamp.label.toLowerCase();
+  const id = lamp.id.toLowerCase();
+
+  if (label.includes('email') || id === 'email' || /send-email|smtp|sendgrid/i.test(hint)) {
+    return lamp.ok ? 'Email can send' : 'Email is not connected yet';
+  }
+  if (label.includes('youtube') || id.includes('youtube') || id === 'yt') {
+    return lamp.ok ? 'YouTube channel is linked' : 'YouTube channel is not linked yet';
+  }
+  if (label.includes('google business') || id.includes('gbp')) {
+    return lamp.ok ? 'Google Business Profile is claimed' : 'Claim your Google Business Profile';
+  }
+  if (label.includes('bluesky') || id.includes('bluesky')) {
+    return lamp.ok ? 'Bluesky is connected' : 'Connect Bluesky in Social Hub';
+  }
+  if (label.includes('search console') || id.includes('search') || /sitemap|indexnow/i.test(hint) || label.includes('index')) {
+    return lamp.ok ? 'Search listing is connected' : 'Search listing is not connected yet';
+  }
+  if (label.includes('cron') || id === 'cron') {
+    return lamp.ok ? 'Scheduled tasks are running' : 'Scheduled tasks are not running yet';
+  }
+  if (JARGON_RE.test(hint) || /\$0|app password|\.xml/i.test(hint)) {
+    return lamp.ok ? 'Connected' : 'Finish setup in admin settings';
+  }
+  return hint;
+}
+
+function statusChipClass(lamp: MarketingGoLiveLamp): string {
+  const base = 'shrink-0 rounded-lg px-2.5 py-0.5 text-xs font-bold text-[#f8fafc]';
+  if (lamp.ok) return `${base} bg-emerald-800`;
+  if (lamp.tone === 'blocked') return `${base} bg-rose-800`;
+  return `${base} bg-sky-800`;
+}
+
+function statusLabel(lamp: MarketingGoLiveLamp): string {
+  if (lamp.ok) return 'Live';
+  if (lamp.tone === 'blocked') return 'Blocked';
+  return 'Setup';
 }
 
 function buildManualSendPack(): string {
   const origin = getPublicSiteOrigin();
   return [
-    'Finely Cred — today’s $0 send pack',
+    'Finely Cred — today’s send pack',
     '',
     `Start free guide: ${origin}/free-guide`,
     `Chat: ${origin}/`,
@@ -42,10 +71,13 @@ function buildManualSendPack(): string {
   ].join('\n');
 }
 
-export function MarketingGoLiveStrip() {
+export function MarketingGoLiveStrip({ productLayout = false }: { productLayout?: boolean }) {
+  const rowClass = productLayout
+    ? 'fc-mkt-desk-flat-row flex w-full items-center justify-between gap-3 text-left transition disabled:cursor-default'
+    : 'flex w-full items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-left transition hover:border-slate-300 disabled:cursor-default disabled:hover:border-slate-200';
   const navigate = useNavigate();
   const [cronLamp, setCronLamp] = useState<MarketingGoLiveLamp>(() => lampFromCronHeartbeat(null));
-  const [copied, setCopied] = useState<'pack' | 'gbp' | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const emailLamp = useMemo(() => getEmailDeliveryLamp(), []);
   const storefront = useMemo(() => getMarketingStorefrontLamps(), []);
@@ -65,84 +97,85 @@ export function MarketingGoLiveStrip() {
   const liveCount = lamps.filter((l) => l.ok).length;
   const emailBlocked = emailLamp.tone !== 'ok';
 
-  const copyText = async (text: string, which: 'pack' | 'gbp') => {
+  const copyPack = async () => {
     try {
-      await navigator.clipboard.writeText(text);
-      setCopied(which);
-      window.setTimeout(() => setCopied(null), 2000);
+      await navigator.clipboard.writeText(buildManualSendPack());
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
     } catch {
       /* ignore */
     }
+  };
+
+  const openLamp = (lamp: MarketingGoLiveLamp) => {
+    if (!lamp.href) return;
+    if (lamp.href.startsWith('http')) {
+      window.open(lamp.href, '_blank', 'noopener,noreferrer');
+      return;
+    }
+    navigate(lamp.href);
   };
 
   return (
     <section className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="text-xs font-bold uppercase tracking-wide text-slate-600">Go live · $0 channels</div>
-          <h2 className="text-2xl font-extrabold tracking-tight text-[#0a1628]">What is actually sending</h2>
+          <p className="text-xs font-bold uppercase tracking-wide text-slate-600">Marketing desk</p>
+          <h2 className="text-xl font-bold tracking-tight text-[#0a1628]">Channels</h2>
           <p className="mt-1 text-sm font-semibold text-slate-600">
-            {liveCount} of {lamps.length} ready. Email stays off until SMTP or SendGrid is on the edge.
+            {liveCount} of {lamps.length} live
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => void copyText(buildManualSendPack(), 'pack')}>
-            <Copy size={14} /> {copied === 'pack' ? 'Copied' : 'Copy send pack'}
-          </button>
-          <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => void copyText(formatGbpQaPack(), 'gbp')}>
-            <Copy size={14} /> {copied === 'gbp' ? 'Copied' : 'Copy GBP Q&A'}
+          <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => void copyPack()}>
+            <Copy size={14} /> {copied ? 'Copied' : 'Copy send pack'}
           </button>
           <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/data-feeds')}>
             Data feeds
           </button>
-          <button
-            type="button"
-            className={FINELY_OS_PRIMARY_BTN}
-            onClick={() => navigate(emailBlocked ? '/admin/settings?tab=features' : '/admin/social-hub?tab=settings')}
-          >
-            {emailBlocked ? 'Open email flag' : 'Open Meta'} <ArrowRight size={14} />
-          </button>
+          {emailBlocked ? (
+            <button
+              type="button"
+              className={FINELY_OS_PRIMARY_BTN}
+              onClick={() => navigate('/admin/settings?tab=features')}
+            >
+              Fix email
+            </button>
+          ) : null}
         </div>
       </div>
 
       {emailBlocked ? (
-        <FinelyOsAlertBanner
-          tone="warning"
-          message="Do not flip Email live until SMTP or SendGrid secrets are on the send-email function. Use Copy send pack until then."
-        />
+        productLayout ? (
+          <p className="text-sm font-semibold text-amber-950">
+            Do not flip Email live until SMTP or SendGrid secrets are on the send-email function. Use Copy send pack until then.
+          </p>
+        ) : (
+          <FinelyOsAlertBanner
+            tone="warning"
+            message="Do not flip Email live until SMTP or SendGrid secrets are on the send-email function. Use Copy send pack until then."
+          />
+        )
       ) : null}
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {lamps.map((lamp, index) => {
-          const accent = LAMP_ACCENT[index % LAMP_ACCENT.length];
-          const go = () => {
-            if (!lamp.href) return;
-            if (lamp.href.startsWith('http')) {
-              window.open(lamp.href, '_blank', 'noopener,noreferrer');
-              return;
-            }
-            navigate(lamp.href);
-          };
-          return (
+      <ul className="space-y-2">
+        {lamps.map((lamp) => (
+          <li key={lamp.id}>
             <button
-              key={lamp.id}
               type="button"
-              onClick={go}
-              className={`${finelyOsCatalogCard(accent)} text-left transition hover:brightness-110`}
-              data-fc-accent={accent}
+              onClick={() => openLamp(lamp)}
+              disabled={!lamp.href}
+              className={rowClass}
             >
-              <div className="flex items-center justify-between gap-2">
-                <span className="flex items-center gap-2 text-sm font-extrabold text-white">
-                  <Radio size={14} className="opacity-80" />
-                  {lamp.label}
-                </span>
-                <span className={chipFor(lamp.tone)}>{lamp.ok ? 'Live' : lamp.tone === 'blocked' ? 'Blocked' : 'Setup'}</span>
+              <div className="min-w-0">
+                <div className="text-sm font-semibold text-[#0a1628]">{lamp.label}</div>
+                <p className="mt-0.5 text-sm text-slate-600">{operatorSafeHint(lamp)}</p>
               </div>
-              <p className={`mt-2 text-sm ${FINELY_OS_ENTITY_BODY}`}>{lamp.hint}</p>
+              <span className={statusChipClass(lamp)}>{statusLabel(lamp)}</span>
             </button>
-          );
-        })}
-      </div>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }

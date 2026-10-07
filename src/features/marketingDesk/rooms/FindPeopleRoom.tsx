@@ -6,8 +6,6 @@ import {
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
-  finelyOsCatalogCard,
-  finelyOsCatalogCardCompact,
   finelyOsMicroStat,
   finelyOsStatusChip,
 } from '../../os/finelyOsLightUi';
@@ -41,6 +39,7 @@ import { getGrowthMlLabel, saveLabelForHit } from '../../growthAgents/growthMlLa
 import { MarketingConsentChipFromHit } from '../MarketingConsentChip';
 import { consentForMarketingDeskHit } from '../marketingProspectConsent';
 import { getLeadIntelSourceRuntimeLabel } from '../../overnight50/sourceAdapters';
+import { MARKETING_DESK_CARD } from '../marketingDeskGlossary';
 
 const RUN_DETAILS_MIN_VISIBLE_MS = 12_000;
 
@@ -241,11 +240,11 @@ export function FindPeopleRoom() {
           </button>
         </div>
       ) : null}
-      <div className={`${finelyOsCatalogCard('emerald')} sticky top-0 z-10 space-y-3`} data-fc-accent="emerald" data-fc-keep-ink="light">
+      <div className={`${MARKETING_DESK_CARD} sticky top-0 z-10 space-y-3`}>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <div className={FINELY_OS_ENTITY_SUBLABEL}>Find new people</div>
-            <h2 className="text-xl font-bold text-white">Find → auto-save good fits</h2>
+            <h2 className="text-xl font-bold text-[#0a1628]">Find → auto-save good fits</h2>
           </div>
           <span className={finelyOsStatusChip(readiness.ready ? 'ok' : 'blocked')}>{readiness.label}</span>
         </div>
@@ -259,7 +258,7 @@ export function FindPeopleRoom() {
             disabled={busy}
             onChange={(e) => setGeo(e.target.value)}
             onBlur={() => setMarketingFindGeo(geo)}
-            className="mt-1 w-full rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm text-white outline-none focus:border-emerald-400/40"
+            className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-[#0a1628] outline-none focus:border-slate-400"
             placeholder="United States"
           />
         </label>
@@ -297,11 +296,11 @@ export function FindPeopleRoom() {
       {notice ? <FinelyOsAlertBanner tone="success" message={notice} /> : null}
 
       {runSnapshot ? (
-        <section className={`${finelyOsCatalogCardCompact('sky')} space-y-2`} data-fc-accent="sky">
+        <section className={`${MARKETING_DESK_CARD} space-y-2`} data-fc-accent="sky">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <div className={FINELY_OS_ENTITY_SUBLABEL}>Run details</div>
-              <div className="font-semibold text-white text-sm">What happened on this Find</div>
+              <div className="font-semibold text-[#0a1628] text-sm">What happened on this Find</div>
             </div>
             <button
               type="button"
@@ -381,16 +380,16 @@ export function FindPeopleRoom() {
       ) : null}
 
       {showFix || needsSetup ? (
-        <section className={`${finelyOsCatalogCardCompact('amber')} space-y-2`} data-fc-accent="amber">
+        <section className={`${MARKETING_DESK_CARD} space-y-2`} data-fc-accent="amber">
           <div className={FINELY_OS_ENTITY_SUBLABEL}>Fix setup wizard</div>
           <ol className="space-y-2">
             {readiness.steps.map((step, i) => (
               <li
                 key={step.id}
-                className="rounded-xl border border-white/10 bg-black/30 !p-3 flex flex-wrap items-start justify-between gap-2"
+                className="rounded-xl border border-slate-200 bg-white !p-3 flex flex-wrap items-start justify-between gap-2"
               >
                 <div className="min-w-0">
-                  <div className="font-semibold text-white text-sm">
+                  <div className="font-semibold text-[#0a1628] text-sm">
                     {i + 1}. {step.label}
                   </div>
                   <p className={`text-xs mt-0.5 ${FINELY_OS_ENTITY_BODY}`}>{step.detail}</p>
@@ -411,11 +410,11 @@ export function FindPeopleRoom() {
         </section>
       ) : null}
 
-      <section className={`${finelyOsCatalogCardCompact('sky')} space-y-2`} data-fc-accent="sky">
+      <section className={`${MARKETING_DESK_CARD} space-y-2`} data-fc-accent="sky">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <div className={FINELY_OS_ENTITY_SUBLABEL}>Schedule · multi-lane</div>
-            <div className="font-semibold text-white flex items-center gap-2">
+            <div className="font-semibold text-[#0a1628] flex items-center gap-2">
               <Moon size={14} className="text-sky-200" /> Find while I sleep
             </div>
           </div>
@@ -454,7 +453,7 @@ export function FindPeopleRoom() {
       </section>
 
       {lastRun ? (
-        <section className={`${finelyOsCatalogCardCompact('violet')} space-y-2`} data-fc-accent="violet">
+        <section className={`${MARKETING_DESK_CARD} space-y-2`} data-fc-accent="violet">
           <div className={FINELY_OS_ENTITY_SUBLABEL}>Last run</div>
           <div className="flex flex-wrap gap-2">
             <span className={finelyOsMicroStat('violet')}>Found {lastRun.found}</span>
@@ -485,7 +484,7 @@ export function FindPeopleRoom() {
       ) : null}
 
       {laneChips.length > 0 ? (
-        <section className={`${finelyOsCatalogCardCompact('emerald')} space-y-2`} data-fc-accent="emerald">
+        <section className={`${MARKETING_DESK_CARD} space-y-2`} data-fc-accent="emerald">
           <div className={FINELY_OS_ENTITY_SUBLABEL}>Lane pace · found → booked (30d)</div>
           <div className="flex flex-wrap gap-2">
             {laneChips.map((c) => (
@@ -502,11 +501,11 @@ export function FindPeopleRoom() {
         </section>
       ) : null}
 
-      <section className={`${finelyOsCatalogCardCompact('emerald')} space-y-2`} data-fc-accent="emerald" id="exceptions">
+      <section className={`${MARKETING_DESK_CARD} space-y-2`} data-fc-accent="emerald" id="exceptions">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <div className={FINELY_OS_ENTITY_SUBLABEL}>Exception queue · mid-score only</div>
-            <div className="font-semibold text-white">Clear exceptions · max 8 on screen</div>
+            <div className="font-semibold text-[#0a1628]">Clear exceptions · max 8 on screen</div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <span className={finelyOsMicroStat(pendingTotal > 0 ? 'amber' : 'emerald')}>
@@ -546,10 +545,10 @@ export function FindPeopleRoom() {
             const saved = getGrowthMlLabel(hit.url || hit.domain || '');
             const consent = consentForMarketingDeskHit({ emails: hit.emails });
             return (
-            <div key={hit.url} className="rounded-xl border border-white/10 bg-black/30 !p-3 space-y-2">
+            <div key={hit.url} className="rounded-xl border border-slate-200 bg-white !p-3 space-y-2">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <div className="font-semibold text-white truncate">{hit.title || hit.domain || hit.url}</div>
+                  <div className="font-semibold text-[#0a1628] truncate">{hit.title || hit.domain || hit.url}</div>
                   <p className={`text-xs mt-1 line-clamp-2 ${FINELY_OS_ENTITY_BODY}`}>
                     {hit.whyReason || hit.whyNote || 'Mid-score fit — approve or reject.'}
                   </p>

@@ -4,9 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { FINELY_OS_BACK_LINK, FINELY_OS_COMPACT_PAGE, FINELY_OS_SECONDARY_BTN } from '../../features/os/finelyOsLightUi';
-import { MarketingDeskAgentStrip } from '../../features/marketingDesk/MarketingDeskAgentStrip';
 import { MarketingDeskHome } from '../../features/marketingDesk/MarketingDeskHome';
-import { MarketingDeskRuthCommandStrip } from '../../features/marketingDesk/MarketingDeskRuthCommandStrip';
 import type { MarketingDeskHelperId } from '../../features/marketingDesk/marketingDeskGlossary';
 import { FindPeopleRoom } from '../../features/marketingDesk/rooms/FindPeopleRoom';
 import { BoardRoom } from '../../features/marketingDesk/rooms/BoardRoom';
@@ -77,12 +75,10 @@ export default function AdminMarketingDeskPage() {
         {!flagOn ? (
           <FinelyOsAlertBanner
             tone="warning"
-            message="Marketing Desk flag is off in Settings → Features. Surface still available for preview."
+            message="Marketing Desk flag is off in Settings → Features. This page still works."
           />
         ) : null}
 
-        {!helper ? <MarketingDeskRuthCommandStrip onOpenHelper={openHelper} /> : null}
-        {!helper ? <MarketingDeskAgentStrip /> : null}
         {!helper ? <MarketingDeskHome onOpenHelper={openHelper} /> : null}
         {helper === 'find' ? <FindPeopleRoom /> : null}
         {helper === 'board' ? <BoardRoom /> : null}

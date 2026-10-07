@@ -1,3 +1,7 @@
+/** Ivory card — Marketing desk sample only. Navy type on white. */
+export const MARKETING_DESK_CARD =
+  'rounded-2xl border border-slate-200 bg-white p-5 fc-ivory-solid-tile';
+
 /** Plain-English labels for Marketing Desk (never lead with jargon). */
 export const MARKETING_DESK_GLOSSARY = [
   { say: 'Find new people', means: 'Live prospect search', never: 'Serper / swarm / intel' },

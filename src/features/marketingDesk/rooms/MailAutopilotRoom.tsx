@@ -6,12 +6,12 @@ import {
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
-  finelyOsCatalogCard,
   finelyOsDeckTile,
   finelyOsMicroStat,
   finelyOsStatusChip,
 } from '../../os/finelyOsLightUi';
 import { FinelyOsAlertBanner } from '../../os/FinelyOsAlertBanner';
+import { MARKETING_DESK_CARD } from '../marketingDeskGlossary';
 import {
   getMarketingMailStatus,
   isMarketingMailPaused,
@@ -44,7 +44,7 @@ export function MailAutopilotRoom() {
 
   return (
     <div className="space-y-3">
-      <div className={`${finelyOsCatalogCard('sky')} sticky top-0 z-10 space-y-3`} data-fc-accent="sky" data-fc-keep-ink="light">
+      <div className={`${MARKETING_DESK_CARD} sticky top-0 z-10 space-y-3`}>
         <div className="flex flex-wrap items-center gap-2">
           <div className={FINELY_OS_ENTITY_SUBLABEL}>Mail on autopilot</div>
           <span className={finelyOsStatusChip(chip)}>{mail.label}</span>
@@ -59,7 +59,7 @@ export function MailAutopilotRoom() {
             {mail.lastStopHint ? 'Auto-pause active' : 'Auto-pause when webhook events arrive'}
           </span>
         </div>
-        <h2 className="text-xl font-bold text-white">Sequences · not a template wall</h2>
+        <h2 className="text-xl font-bold text-[#0a1628]">Sequences · not a template wall</h2>
         <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>{mail.detail}</p>
         <div className="flex flex-wrap gap-2">
           <button
@@ -106,7 +106,7 @@ export function MailAutopilotRoom() {
                   />
                 )}
                 <div className="min-w-0">
-                  <div className="font-semibold text-white">
+                  <div className="font-semibold text-[#0a1628]">
                     {item.label}
                     {owner ? (
                       <span className={`ml-2 text-[10px] font-normal ${FINELY_OS_ENTITY_BODY}`}>Owner</span>
@@ -132,7 +132,7 @@ export function MailAutopilotRoom() {
         {mail.sequenceTiles.map((tile) => (
           <div key={tile.id} className={`${finelyOsDeckTile('violet')} p-6`}>
             <div className="flex items-start justify-between gap-2">
-              <div className="font-semibold text-white text-sm">{tile.name}</div>
+              <div className="font-semibold text-[#0a1628] text-sm">{tile.name}</div>
               <span className={finelyOsMicroStat('sky')}>{tile.active} active</span>
             </div>
             <p className={`mt-2 text-xs ${FINELY_OS_ENTITY_BODY}`}>Autopilot sequence · enrollments only</p>

@@ -548,6 +548,22 @@ html[data-fc-theme='light'] .fc-wlp .fc-wlp-growth-room--desk-command .fc-wlp-gr
   background: #9f1239;
 }
 
+.fc-wlp-growth-room--desk-command .fc-wlp-growth-desk-room-chip,
+.fc-wlp-growth-room--desk-command .fc-wlp-growth-desk-room-chip[data-fcm-accent='emerald'],
+.fc-wlp-growth-room--desk-command .fc-wlp-growth-desk-room-chip[data-fcm-accent='violet'],
+.fc-wlp-growth-room--desk-command .fc-wlp-growth-desk-room-chip[data-fcm-accent='sky'],
+.fc-wlp-growth-room--desk-command .fc-wlp-growth-desk-room-chip[data-fcm-accent='rose'] {
+  border-color: #0a1628;
+  background: #0a1628;
+  color: #f8fafc;
+  -webkit-text-fill-color: #f8fafc;
+}
+
+.fc-wlp-growth-room--desk-command .fc-wlp-growth-desk-room-chip[data-active='true'] {
+  background: #334155;
+  border-color: #334155;
+}
+
 .fc-wlp-growth-desk-room-chip[data-active='true'],
 .fc-wlp-growth-desk-room-chip:hover {
   filter: brightness(1.08);
@@ -1248,6 +1264,36 @@ html[data-fc-theme='light'] .fc-wlp .fc-wlp-growth-room--desk-command .fc-wlp-gr
   padding: 0 !important;
   box-shadow: none !important;
   border-radius: 0 !important;
+}
+
+.fc-wlp-growth-room--desk-command .fc-accent-card,
+.fc-wlp-growth-room--desk-command .fc-luxury-glass,
+.fc-wlp-growth-room--desk-command .fc-pop-surface {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  color: #0a1628 !important;
+  --fc-os-entity-ink: #0a1628;
+  --fc-os-entity-body: #334155;
+  --fc-os-entity-muted: #475569;
+  --fc-os-entity-faint: #64748b;
+  --fc-os-entity-chip: #334155;
+  --fc-os-entity-label: #0a1628;
+}
+
+.fc-wlp-growth-room--desk-command input,
+.fc-wlp-growth-room--desk-command textarea,
+.fc-wlp-growth-room--desk-command select {
+  background: #ffffff !important;
+  color: #0a1628 !important;
+  border-color: #cbd5e1 !important;
+}
+
+.fc-wlp-growth-room--desk-command [class*='bg-black'] {
+  background: #f8fafc !important;
+  color: #0a1628 !important;
+  border-color: #e2e8f0 !important;
 }
 
 .fc-wlp-growth-room-accent-band {
@@ -2615,5 +2661,145 @@ html[data-fc-theme='light'] .fc-wlp .fc-wlp-growth-geo-market-chip[data-active='
   background-color: #065f46;
   color: #f8fafc;
   -webkit-text-fill-color: #f8fafc;
+}
+
+/* Marketing desk — no inner screen. Same white page as the title. */
+.fc-mkt-desk-page {
+  display: grid;
+  gap: 1.5rem;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.fc-mkt-desk-page-head {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.fc-mkt-desk-page-kicker {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #334155;
+}
+
+.fc-mkt-desk-page-title {
+  margin: 0;
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: #0a1628;
+}
+
+.fc-mkt-desk-page-lede {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.fc-mkt-desk-page-rooms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.fc-mkt-desk-page-chip {
+  min-height: 40px;
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  border: 1px solid #0a1628;
+  background: #ffffff;
+  color: #0a1628;
+  font-size: 0.9rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.fc-mkt-desk-page-chip[data-active='true'] {
+  background: #0a1628;
+  color: #f8fafc;
+}
+
+.fc-mkt-desk-page-body {
+  display: grid;
+  gap: 1.5rem;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* Marketing desk fills the column. No white sheet on the gray bed. */
+html[data-fc-theme='light'] [data-fc-public-shell='1']:has([data-wlp-page='marketing-desk']),
+html[data-fc-theme='dark'] [data-fc-public-shell='1']:has([data-wlp-page='marketing-desk']),
+[data-fc-public-shell='1']:has([data-wlp-page='marketing-desk']),
+[data-wlp-page='marketing-desk'].fc-wl-preview-root,
+[data-wlp-page='marketing-desk'] .fc-wlp,
+[data-wlp-page='marketing-desk'] .fc-wlp-main,
+[data-wlp-page='marketing-desk'] .fc-wlp-content,
+[data-wlp-page='marketing-desk'] .fc-wlp-utility {
+  background: #ffffff !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+[data-wlp-page='marketing-desk'] .fc-wlp-content {
+  max-width: none;
+}
+
+.fc-mkt-desk-page-body[data-flat='true'] {
+  gap: 2rem;
+}
+
+.fc-mkt-desk-flat-card {
+  border-radius: 0;
+  border: 0;
+  border-bottom: 1px solid rgb(226 232 240);
+  background: transparent;
+  box-shadow: none;
+  padding: 0 0 1.5rem;
+}
+
+.fc-mkt-desk-flat-row {
+  width: 100%;
+  border-radius: 0;
+  border: 0;
+  border-bottom: 1px solid rgb(226 232 240);
+  background: transparent;
+  padding: 0.85rem 0;
+  text-align: left;
+}
+
+.fc-mkt-desk-flat-row:hover:not(:disabled) {
+  border-bottom-color: rgb(203 213 225);
+}
+
+.fc-mkt-desk-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .fc-mkt-desk-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fc-mkt-desk-kpi-grid .fc-mkt-desk-flat-card {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
 }
 
