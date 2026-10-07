@@ -40,7 +40,7 @@ export function ProductPageLayout({
   }
 
   return (
-    <div data-fc-wlp-live-shell="1" className="fc-wl-preview-root min-h-screen">
+    <div data-fc-wlp-live-shell="1" data-wlp-page={pageId} className="fc-wl-preview-root min-h-screen">
       <ProductWorkspaceShell
         role={role}
         pageTitle={pageTitle}

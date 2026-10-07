@@ -13,6 +13,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { onBoardStageMaybeBooked } from '../marketingDeskBookedHandoff';
 import { FinelyOsAlertBanner } from '../../os/FinelyOsAlertBanner';
+import { MARKETING_DESK_CARD } from '../marketingDeskGlossary';
 
 export function BoardRoom() {
   const navigate = useNavigate();
@@ -33,9 +34,9 @@ export function BoardRoom() {
 
   return (
     <div className="space-y-3">
-      <div className="sticky top-0 z-10 rounded-2xl border border-violet-400/25 bg-black/70 backdrop-blur-md p-6 space-y-3">
+      <div className={`${MARKETING_DESK_CARD} sticky top-0 z-10 space-y-3`}>
         <div className={FINELY_OS_ENTITY_SUBLABEL}>Board</div>
-        <h2 className="text-xl font-bold text-white">People who asked</h2>
+        <h2 className="text-xl font-bold text-[#0a1628]">People who asked</h2>
         <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
           New → Talking → Booked → Won / No. Cleaned-out people stay off this board.
         </p>

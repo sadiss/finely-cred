@@ -1,0 +1,32 @@
+---
+description: Hard ban on unreadable type — no dark-on-dark, no white-on-white
+alwaysApply: true
+---
+
+# Readable UI (hard rule)
+
+This is a hard stop. Grok and Composer keep shipping unreadable type. Do not.
+
+**Never put dark text on a dark box. Never put white or light text on a white or light box.** If you cannot read the words at a glance, the screen is wrong. Stop and fix it before any other polish.
+
+These are errors. They are not a design style. Do not ship them, do not copy them, and do not match an existing screen that has them.
+
+## Forbidden
+
+- Dark type (`#0a1628`, `text-slate-*`, navy) on a dark, glass, gradient, or near-black surface.
+- White or light type (`text-white`, `text-white/90`, frost, `#f8fafc`) on a white, ivory, cream, or faint `bg-white/5`–`bg-white/[0.08]` surface.
+- Hardcoding `text-white` on the page bed after a dark tray was removed. That is white-on-white. The tokens that were correct *inside* a dark card are wrong on ivory.
+- Frosted shells (`bg-white/[0.08]`, `backdrop-blur`, `MARKETING_HUB_CONTENT_SHELL`) on a light page with white headings.
+- Faded, glass, or nearly clear buttons. A control someone presses is a solid fill. The label contrasts with that fill.
+- Nested trays: a box behind the boxes. Cards sit on the page bed. Do not wrap a grid of cards in another panel, room, canvas, or “screen.”
+- Titles, subtitles, chips, rows, labels, placeholders, and buttons are all covered.
+
+## Required
+
+- Light / white / ivory surface → dark type (`#0a1628` or `text-slate-600` for secondary).
+- Dark / accent / catalog card → light type (`#f8fafc` or `text-white`). Pairing is: dark card + light ink, or white card + dark ink. Never the reverse.
+- Buttons are opaque. Primary is solid green with light type. Secondary is a solid fill with contrasting type, not a 5–15% white wash.
+- One layer of cards on the page. If a card is the object, the page behind it is the bed, not another card.
+- This applies to every admin page and every partner page, including new screens.
+
+If a screen already has one of these, fix it. It is not a template.

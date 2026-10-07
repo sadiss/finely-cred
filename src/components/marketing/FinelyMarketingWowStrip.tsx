@@ -8,9 +8,8 @@ import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_SECONDARY_BTN,
-  finelyOsDeckTile,
+  finelyOsCatalogCard,
 } from '../../features/os/finelyOsLightUi';
-import { MARKETING_HUB_CONTENT_SHELL } from '../../features/marketingDepartment/marketingHubUi';
 
 type Props = {
   chips?: FinelyWowChip[];
@@ -40,14 +39,14 @@ export function FinelyMarketingWowStrip({
   };
 
   return (
-    <section className={`${MARKETING_HUB_CONTENT_SHELL} space-y-3 ${className}`} data-fc-accent="emerald">
+    <section className={`space-y-3 ${className}`}>
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
-          <div className="inline-flex items-center gap-2 text-emerald-300/90 text-[10px] font-black uppercase tracking-[0.2em]">
+          <div className="inline-flex items-center gap-2 text-emerald-800 text-[10px] font-black uppercase tracking-[0.2em]">
             <Sparkles size={12} /> Finely edge
           </div>
-          <h3 className={`mt-1 font-bold text-white ${compact ? 'text-base' : 'text-xl'}`}>{title}</h3>
-          {!compact ? <p className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>{subtitle}</p> : null}
+          <h3 className={`mt-1 font-bold text-[#0a1628] ${compact ? 'text-base' : 'text-xl'}`}>{title}</h3>
+          {!compact ? <p className="mt-1 text-sm font-semibold text-slate-600">{subtitle}</p> : null}
         </div>
       </div>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
@@ -55,7 +54,8 @@ export function FinelyMarketingWowStrip({
           <button
             key={chip.id}
             type="button"
-            className={`${finelyOsDeckTile(chip.accent)} !p-3 text-left`}
+            className={`${finelyOsCatalogCard(chip.accent)} !p-3 text-left`}
+            data-fc-accent={chip.accent}
             title={chip.hint}
             onClick={() => chip.path && navigate(resolveChipPath(chip)!)}
           >

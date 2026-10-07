@@ -158,13 +158,20 @@ html[data-fc-theme='light'] .fc-wlp-local-modal {
 html[data-fc-theme='light'] .fc-wlp-partner-record-inspector .fc-wlp-btn-secondary,
 html[data-fc-theme='light'] .fc-wlp-inspector-panel .fc-wlp-btn-secondary,
 html[data-fc-theme='light'] .fc-wlp-local-modal[data-bed='dark'] .fc-wlp-btn-secondary {
-  color: #fff !important;
-  border-color: rgba(255, 255, 255, 0.19) !important;
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.055)) !important;
+  color: #0a1628 !important;
+  -webkit-text-fill-color: #0a1628 !important;
+  border-color: #f8fafc !important;
+  background: #f8fafc !important;
 }
 
 html[data-fc-theme='light'] .fc-wlp-local-modal:not([data-bed='dark']) .fc-wlp-btn-secondary,
-html[data-fc-theme='light'] .fc-today-sheet .fc-wlp-btn-secondary,
+html[data-fc-theme='light'] .fc-today-sheet .fc-wlp-btn-secondary {
+  color: #f8fafc !important;
+  -webkit-text-fill-color: #f8fafc !important;
+  background: #12324d !important;
+  border-color: #12324d !important;
+}
+
 html[data-fc-theme='light'] button.fc-view-tab-idle,
 html[data-fc-theme='light'] .fc-wlp-atlas-tag,
 html[data-fc-theme='light'] .fc-admin-inbox-lane-pill,

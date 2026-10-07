@@ -38,3 +38,8 @@
   padding: 1.5rem 1.75rem;
   border-radius: 1.25rem;
 }
+
+html[data-fc-theme='light'] .fc-wlp .fc-partner-maintain-clock :is(p, div, span) {
+  color: #f8fafc !important;
+  -webkit-text-fill-color: #f8fafc !important;
+}

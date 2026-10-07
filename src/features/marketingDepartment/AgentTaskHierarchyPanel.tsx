@@ -21,7 +21,6 @@ import {
   finelyOsMicroStat,
 } from '../os/finelyOsLightUi';
 import { MARKETING_HUB_CONTENT_SHELL, marketingVividShell } from './marketingHubUi';
-import { MarketingHelpButton } from './MarketingHelpModal';
 
 type AgentTaskHierarchyPanelProps = {
   scope?: 'desk' | 'team';
@@ -38,14 +37,34 @@ function AgentTaskTile({
   agent,
   task,
   highlighted,
+  scope,
 }: {
   agent: GrowthAgentDef;
   task: AgentDailyTask;
   highlighted?: boolean;
+  scope: 'desk' | 'team';
 }) {
   const navigate = useNavigate();
   const freq =
     task.frequency === 'daily' ? 'Daily' : task.frequency === 'weekly' ? 'Weekly' : 'On demand';
+
+  if (scope === 'desk') {
+    return (
+      <button
+        type="button"
+        onClick={() => navigate(taskHref(agent, task))}
+        className={`rounded-xl border border-slate-200 bg-white p-3 text-left w-full min-h-[5.5rem] flex flex-col justify-between ${
+          highlighted ? 'ring-2 ring-emerald-500/40' : ''
+        }`}
+      >
+        <div>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{freq}</span>
+          <div className="mt-2 text-sm font-bold text-[#0a1628] leading-snug">{task.label}</div>
+          <p className="mt-1 text-[11px] line-clamp-2 text-slate-600">{task.description}</p>
+        </div>
+      </button>
+    );
+  }
 
   return (
     <button
@@ -85,16 +104,35 @@ function AgentHierarchyCard({
   const humanBackup = useMemo(() => resolveHumanBackupForAgent(agent), [agent]);
   const subagents = agent.subagents ?? (agent.id === 'lead-discovery' ? listCalebSubagentWorkers() : []);
   const metaLive = agent.id === 'social' ? isMetaIntegrationLive() : false;
+  const isDesk = scope === 'desk';
 
   return (
-    <div className={`${finelyOsCatalogCard(agent.accent)} !p-4`}>
+    <div className={isDesk ? 'rounded-2xl border border-slate-200 bg-white p-5' : `${finelyOsCatalogCard(agent.accent)} !p-4`}>
       <div className="flex flex-wrap items-start justify-between gap-2">
         <button type="button" className="min-w-0 flex-1 text-left" onClick={() => setExpanded((e) => !e)}>
-          <p className={FINELY_OS_ENTITY_SUBLABEL}>{agent.roleTitle}</p>
-          <h3 className={`${FINELY_OS_ENTITY_TITLE} text-lg`}>{agent.name}</h3>
-          <p className={`mt-1 text-sm line-clamp-2 ${FINELY_OS_ENTITY_BODY}`}>{agent.mission}</p>
+          {isDesk ? (
+            <>
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-600">{agent.roleTitle}</p>
+              <h3 className="text-lg font-bold text-[#0a1628]">{agent.name}</h3>
+              <p className="mt-1 text-sm line-clamp-2 text-slate-600">{agent.mission}</p>
+            </>
+          ) : (
+            <>
+              <p className={FINELY_OS_ENTITY_SUBLABEL}>{agent.roleTitle}</p>
+              <h3 className={`${FINELY_OS_ENTITY_TITLE} text-lg`}>{agent.name}</h3>
+              <p className={`mt-1 text-sm line-clamp-2 ${FINELY_OS_ENTITY_BODY}`}>{agent.mission}</p>
+            </>
+          )}
         </button>
-        <button type="button" className="rounded-lg bg-black/30 px-2 py-1 text-[10px] font-bold uppercase" onClick={() => setExpanded((e) => !e)}>
+        <button
+          type="button"
+          className={
+            isDesk
+              ? 'rounded-lg border border-slate-200 bg-white px-2 py-1 text-[10px] font-bold uppercase text-[#0a1628]'
+              : 'rounded-lg bg-black/30 px-2 py-1 text-[10px] font-bold uppercase text-white'
+          }
+          onClick={() => setExpanded((e) => !e)}
+        >
           {expanded ? 'Hide tasks' : `${tasks.length} tasks`}
         </button>
       </div>
@@ -102,37 +140,63 @@ function AgentHierarchyCard({
       {chips.length > 0 ? (
         <div className="mt-2 flex flex-wrap gap-1.5">
           {chips.slice(0, 4).map((c) => (
-            <span key={c.label} className={finelyOsMicroStat(c.accent)}>
+            <span
+              key={c.label}
+              className={
+                isDesk
+                  ? 'rounded-md bg-slate-800 px-2 py-0.5 text-[10px] font-semibold text-white'
+                  : finelyOsMicroStat(c.accent)
+              }
+            >
               {c.label}
             </span>
           ))}
-          {metaLive ? <span className={finelyOsMicroStat('fuchsia')}>Meta live</span> : null}
+          {metaLive ? (
+            <span
+              className={
+                isDesk
+                  ? 'rounded-md bg-slate-800 px-2 py-0.5 text-[10px] font-semibold text-white'
+                  : finelyOsMicroStat('fuchsia')
+              }
+            >
+              Meta live
+            </span>
+          ) : null}
         </div>
       ) : null}
 
-      <div className="mt-2 grid sm:grid-cols-2 gap-2">
-        <div className="rounded-xl border border-white/15 bg-black/25 px-2.5 py-2 text-[10px] text-white/75">
-          <span className="font-bold text-white/50 uppercase tracking-widest">Desk seat</span>
-          <div className="mt-0.5 font-semibold text-white">{getDeskWorkGoesToLabel()}</div>
-        </div>
-        {humanBackup ? (
+      {isDesk ? (
+        humanBackup ? (
+          <p className="mt-2 text-xs text-slate-600">
+            Human backup: {humanBackup.name} · {humanBackup.title}
+          </p>
+        ) : null
+      ) : (
+        <div className="mt-2 grid sm:grid-cols-2 gap-2">
           <div className="rounded-xl border border-white/15 bg-black/25 px-2.5 py-2 text-[10px] text-white/75">
-            <span className="font-bold text-white/50 uppercase tracking-widest">Human backup</span>
-            <div className="mt-0.5 font-semibold text-white">
-              {humanBackup.name} · {humanBackup.title}
-            </div>
+            <span className="font-bold text-white/50 uppercase tracking-widest">Desk seat</span>
+            <div className="mt-0.5 font-semibold text-white">{getDeskWorkGoesToLabel()}</div>
           </div>
-        ) : null}
-      </div>
+          {humanBackup ? (
+            <div className="rounded-xl border border-white/15 bg-black/25 px-2.5 py-2 text-[10px] text-white/75">
+              <span className="font-bold text-white/50 uppercase tracking-widest">Human backup</span>
+              <div className="mt-0.5 font-semibold text-white">
+                {humanBackup.name} · {humanBackup.title}
+              </div>
+            </div>
+          ) : null}
+        </div>
+      )}
 
       {expanded ? (
-        <div className="mt-3 border-t border-white/10 pt-3 space-y-3">
+        <div className={isDesk ? 'mt-3 border-t border-slate-200 pt-3 space-y-3' : 'mt-3 border-t border-white/10 pt-3 space-y-3'}>
           <div className="grid sm:grid-cols-2 gap-2">
             {tasks.map((task) => (
               <AgentTaskTile
                 key={task.id}
                 agent={agent}
                 task={task}
+                scope={scope}
                 highlighted={Boolean(copilotHref && taskHref(agent, task) === copilotHref)}
               />
             ))}
@@ -187,15 +251,21 @@ export function AgentTaskHierarchyPanel({
         )
       : GROWTH_AGENTS;
 
+  const deskBed = scope === 'desk';
+
   return (
-    <div className={`${MARKETING_HUB_CONTENT_SHELL} space-y-3`}>
+    <div className={deskBed ? 'space-y-3' : `${MARKETING_HUB_CONTENT_SHELL} space-y-3`}>
       <div>
-        <p className={FINELY_OS_ENTITY_SUBLABEL}>{scope === 'desk' ? 'Daily desk' : 'Marketing team'}</p>
-        <h2 className={FINELY_OS_ENTITY_TITLE}>
-          {scope === 'desk' ? 'Today’s agent missions' : 'Your growth specialists'}
+        <p className={deskBed ? 'text-xs font-bold uppercase tracking-wide text-slate-600' : FINELY_OS_ENTITY_SUBLABEL}>
+          {deskBed ? 'Daily desk' : 'Marketing team'}
+        </p>
+        <h2 className={deskBed ? 'text-lg font-bold text-[#0a1628]' : FINELY_OS_ENTITY_TITLE}>
+          {deskBed ? 'Today’s agent missions' : 'Your growth specialists'}
         </h2>
-        <p className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>
-          Tap a card to expand tasks — open workroom for the full cockpit.
+        <p className={deskBed ? 'mt-1 text-sm font-semibold text-slate-600' : `mt-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>
+          {deskBed
+            ? 'Open a specialist if you need their workroom.'
+            : 'Tap a card to expand tasks — open workroom for the full cockpit.'}
         </p>
       </div>
 
@@ -210,7 +280,7 @@ export function AgentTaskHierarchyPanel({
             agent={agent}
             scope={scope}
             copilotHref={copilot.href}
-            defaultExpanded={scope === 'desk' && agent.id === 'lead-discovery'}
+            defaultExpanded={false}
           />
         ))}
       </div>

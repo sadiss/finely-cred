@@ -59,7 +59,7 @@ export function BusinessCreditWorkspaceHero({ partner }: Props) {
             <button type="button" onClick={() => navigate('/business/profile')} className={FINELY_OS_PRIMARY_BTN}>
               Complete profile <ArrowRight size={14} />
             </button>
-            <button type="button" onClick={() => navigate('/business/vendors')} className="py-2.5 px-4 rounded-xl border border-white/20 bg-white/5 text-xs font-bold uppercase tracking-wider text-white/90 hover:bg-white/10">
+            <button type="button" onClick={() => navigate('/business/vendors')} className="py-2.5 px-4 rounded-xl border border-[#f8fafc] bg-[#f8fafc] text-xs font-bold uppercase tracking-wider text-[#0a1628] hover:bg-white">
               Vendor center
             </button>
           </div>

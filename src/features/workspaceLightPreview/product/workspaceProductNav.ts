@@ -345,13 +345,12 @@ function admin(
   surfaceMode: WorkspaceProductSurfaceMode = 'light',
   navTier?: WorkspaceProductNavItem['navTier'],
 ): WorkspaceProductNavItem {
-  const path = `/preview/workspace-light/admin/${id}`;
   return {
     id,
     label,
-    livePath: path,
+    livePath: legacyPath,
     legacyPath,
-    path,
+    path: legacyPath,
     icon,
     accent,
     description,
@@ -374,13 +373,12 @@ function partner(
   group: WorkspaceProductNavItem['group'] = 'primary',
   surfaceMode: WorkspaceProductSurfaceMode = 'light',
 ): WorkspaceProductNavItem {
-  const path = `/preview/workspace-light/portal/${id}`;
   return {
     id,
     label,
-    livePath: path,
+    livePath: legacyPath,
     legacyPath,
-    path,
+    path: legacyPath,
     icon,
     accent,
     description,
