@@ -71,7 +71,10 @@ function buildManualSendPack(): string {
   ].join('\n');
 }
 
-export function MarketingGoLiveStrip() {
+export function MarketingGoLiveStrip({ productLayout = false }: { productLayout?: boolean }) {
+  const rowClass = productLayout
+    ? 'fc-mkt-desk-flat-row flex w-full items-center justify-between gap-3 text-left transition disabled:cursor-default'
+    : 'flex w-full items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-left transition hover:border-slate-300 disabled:cursor-default disabled:hover:border-slate-200';
   const navigate = useNavigate();
   const [cronLamp, setCronLamp] = useState<MarketingGoLiveLamp>(() => lampFromCronHeartbeat(null));
   const [copied, setCopied] = useState(false);
@@ -156,7 +159,7 @@ export function MarketingGoLiveStrip() {
               type="button"
               onClick={() => openLamp(lamp)}
               disabled={!lamp.href}
-              className="flex w-full items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-left transition hover:border-slate-300 disabled:cursor-default disabled:hover:border-slate-200"
+              className={rowClass}
             >
               <div className="min-w-0">
                 <div className="text-sm font-semibold text-[#0a1628]">{lamp.label}</div>

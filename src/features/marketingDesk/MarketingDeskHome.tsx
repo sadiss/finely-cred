@@ -28,6 +28,8 @@ import { ensureMarketingPipelineProject } from './marketingDeskProjects';
 import type { MarketingDeskHelperId } from './marketingDeskGlossary';
 
 const CARD = 'rounded-2xl border border-slate-200 bg-white p-5';
+const PRODUCT_CARD = 'fc-mkt-desk-flat-card';
+const PRODUCT_ROW = 'fc-mkt-desk-flat-row';
 
 function statusChipClass(tone: 'ok' | 'warn' | 'blocked') {
   const fill =
@@ -46,9 +48,13 @@ const MODE_TOGGLE_IDLE =
 
 export function MarketingDeskHome({
   onOpenHelper,
+  productLayout = false,
 }: {
   onOpenHelper: (id: MarketingDeskHelperId) => void;
+  productLayout?: boolean;
 }) {
+  const cardClass = productLayout ? PRODUCT_CARD : CARD;
+  const rowClass = productLayout ? PRODUCT_ROW : 'w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-left hover:border-slate-300 transition';
   const navigate = useNavigate();
   const [tick, setTick] = useState(0);
   const [tourOpen, setTourOpen] = useState(false);
@@ -165,12 +171,12 @@ export function MarketingDeskHome({
         </p>
       ) : null}
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className={productLayout ? 'fc-mkt-desk-kpi-grid' : 'grid grid-cols-1 sm:grid-cols-3 gap-4'}>
         {kpis.map((k) => (
           <button
             key={k.id}
             type="button"
-            className={`${CARD} text-left ${k.helper ? 'hover:border-slate-300 transition' : ''}`}
+            className={`${cardClass} text-left ${k.helper ? 'hover:border-slate-300 transition' : ''}`}
             onClick={() => (k.helper ? onOpenHelper(k.helper) : undefined)}
             disabled={!k.helper}
           >
@@ -183,7 +189,7 @@ export function MarketingDeskHome({
 
       <button
         type="button"
-        className={`${CARD} w-full text-left hover:border-slate-300 transition`}
+        className={`${cardClass} w-full text-left hover:border-slate-300 transition`}
         onClick={() => onOpenHelper('mail')}
       >
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -213,7 +219,7 @@ export function MarketingDeskHome({
           ) : null}
         </div>
         {myWork.length === 0 ? (
-          <div className={`${CARD} flex flex-wrap items-center justify-between gap-3`}>
+          <div className={`${cardClass} flex flex-wrap items-center justify-between gap-3`}>
             <p className="text-sm font-semibold text-slate-600">No marketing to-dos yet — run Find to queue work.</p>
             <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => onOpenHelper('find')}>
               Find people
@@ -229,7 +235,7 @@ export function MarketingDeskHome({
               <button
                 key={t.id}
                 type="button"
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-left hover:border-slate-300 transition"
+                className={rowClass}
                 onClick={() => navigate(deepLinkForMarketingTask(t))}
               >
                 <div className="truncate text-sm font-semibold text-[#0a1628]">{t.title}</div>
@@ -242,7 +248,7 @@ export function MarketingDeskHome({
         )}
       </section>
 
-      <section className={`${CARD} space-y-4`}>
+      <section className={`${cardClass} space-y-4`}>
         <h2 className="text-lg font-bold text-[#0a1628]">Seats</h2>
         <div className="flex flex-wrap items-end gap-3">
           <label className="min-w-[160px] flex-1">

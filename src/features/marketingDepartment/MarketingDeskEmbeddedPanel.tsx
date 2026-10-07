@@ -37,16 +37,16 @@ export function MarketingDeskEmbeddedPanel() {
   };
 
   return (
-    <div className="fc-mkt-desk-page-body">
+    <div className="fc-mkt-desk-page-body" data-flat="true">
       {!flagOn ? (
         <FinelyOsAlertBanner
           tone="warning"
           message="Marketing Desk flag is off in Settings → Features. This page still works."
         />
       ) : null}
-      {!helper ? <MarketingDeskHome onOpenHelper={openHelper} /> : null}
+      {!helper ? <MarketingDeskHome onOpenHelper={openHelper} productLayout /> : null}
       {!helper ? <MarketingDeskRuthCommandStrip onOpenHelper={openHelper} /> : null}
-      {!helper ? <MarketingGoLiveStrip /> : null}
+      {!helper ? <MarketingGoLiveStrip productLayout /> : null}
       {helper === 'find' ? <FindPeopleRoom /> : null}
       {helper === 'board' ? <BoardRoom /> : null}
       {helper === 'clean' ? <CleanOutRoom /> : null}

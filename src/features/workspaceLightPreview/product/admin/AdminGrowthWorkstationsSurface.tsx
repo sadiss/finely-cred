@@ -1392,18 +1392,20 @@ export default function AdminGrowthWorkstationsSurface({ pageId, entityId }: Wor
 
   const deskOnly = growthPageId === 'marketing-desk';
 
+  if (deskOnly) {
+    return renderGrowthRoom();
+  }
+
   return (
     <div className="fc-wlp-growth-workstation-root" data-growth-layout={roomMeta.layout}>
-      {deskOnly ? null : (
-        <AdminGrowthPageShell
-          definition={definition}
-          snapshot={snapshot}
-          icon={PageIcon}
-          relatedLinks={relatedLinks}
-          onPrimaryAction={onPrimaryAction}
-          chromeOnly={TOOL_FIRST_GROWTH_PAGE_IDS.has(growthPageId)}
-        />
-      )}
+      <AdminGrowthPageShell
+        definition={definition}
+        snapshot={snapshot}
+        icon={PageIcon}
+        relatedLinks={relatedLinks}
+        onPrimaryAction={onPrimaryAction}
+        chromeOnly={TOOL_FIRST_GROWTH_PAGE_IDS.has(growthPageId)}
+      />
 
       {renderGrowthRoom()}
     </div>

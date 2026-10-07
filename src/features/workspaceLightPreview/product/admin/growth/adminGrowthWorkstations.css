@@ -2739,3 +2739,54 @@ html[data-fc-theme='light'] .fc-wlp .fc-wlp-growth-geo-market-chip[data-active='
   box-shadow: none;
 }
 
+/* One white page plane — not a gray bed with a nested white “screen”. */
+.fc-wlp-content:has(.fc-mkt-desk-page) {
+  background: #ffffff;
+}
+
+.fc-mkt-desk-page-body[data-flat='true'] {
+  gap: 2rem;
+}
+
+.fc-mkt-desk-flat-card {
+  border-radius: 0;
+  border: 0;
+  border-bottom: 1px solid rgb(226 232 240);
+  background: transparent;
+  box-shadow: none;
+  padding: 0 0 1.5rem;
+}
+
+.fc-mkt-desk-flat-row {
+  width: 100%;
+  border-radius: 0;
+  border: 0;
+  border-bottom: 1px solid rgb(226 232 240);
+  background: transparent;
+  padding: 0.85rem 0;
+  text-align: left;
+}
+
+.fc-mkt-desk-flat-row:hover:not(:disabled) {
+  border-bottom-color: rgb(203 213 225);
+}
+
+.fc-mkt-desk-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .fc-mkt-desk-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fc-mkt-desk-kpi-grid .fc-mkt-desk-flat-card {
+  border: 1px solid rgb(226 232 240);
+  border-radius: 1rem;
+  background: rgb(248 250 252);
+  padding: 1.25rem;
+}
+
