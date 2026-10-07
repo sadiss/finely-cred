@@ -548,6 +548,22 @@ html[data-fc-theme='light'] .fc-wlp .fc-wlp-growth-room--desk-command .fc-wlp-gr
   background: #9f1239;
 }
 
+.fc-wlp-growth-room--desk-command .fc-wlp-growth-desk-room-chip,
+.fc-wlp-growth-room--desk-command .fc-wlp-growth-desk-room-chip[data-fcm-accent='emerald'],
+.fc-wlp-growth-room--desk-command .fc-wlp-growth-desk-room-chip[data-fcm-accent='violet'],
+.fc-wlp-growth-room--desk-command .fc-wlp-growth-desk-room-chip[data-fcm-accent='sky'],
+.fc-wlp-growth-room--desk-command .fc-wlp-growth-desk-room-chip[data-fcm-accent='rose'] {
+  border-color: #0a1628;
+  background: #0a1628;
+  color: #f8fafc;
+  -webkit-text-fill-color: #f8fafc;
+}
+
+.fc-wlp-growth-room--desk-command .fc-wlp-growth-desk-room-chip[data-active='true'] {
+  background: #334155;
+  border-color: #334155;
+}
+
 .fc-wlp-growth-desk-room-chip[data-active='true'],
 .fc-wlp-growth-desk-room-chip:hover {
   filter: brightness(1.08);
@@ -1248,6 +1264,36 @@ html[data-fc-theme='light'] .fc-wlp .fc-wlp-growth-room--desk-command .fc-wlp-gr
   padding: 0 !important;
   box-shadow: none !important;
   border-radius: 0 !important;
+}
+
+.fc-wlp-growth-room--desk-command .fc-accent-card,
+.fc-wlp-growth-room--desk-command .fc-luxury-glass,
+.fc-wlp-growth-room--desk-command .fc-pop-surface {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  color: #0a1628 !important;
+  --fc-os-entity-ink: #0a1628;
+  --fc-os-entity-body: #334155;
+  --fc-os-entity-muted: #475569;
+  --fc-os-entity-faint: #64748b;
+  --fc-os-entity-chip: #334155;
+  --fc-os-entity-label: #0a1628;
+}
+
+.fc-wlp-growth-room--desk-command input,
+.fc-wlp-growth-room--desk-command textarea,
+.fc-wlp-growth-room--desk-command select {
+  background: #ffffff !important;
+  color: #0a1628 !important;
+  border-color: #cbd5e1 !important;
+}
+
+.fc-wlp-growth-room--desk-command [class*='bg-black'] {
+  background: #f8fafc !important;
+  color: #0a1628 !important;
+  border-color: #e2e8f0 !important;
 }
 
 .fc-wlp-growth-room-accent-band {

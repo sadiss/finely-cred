@@ -445,22 +445,25 @@ function MarketingDeskCommandRoom({
 
   return (
     <section className="fc-wlp-growth-room fc-wlp-growth-room--desk-command" data-growth-room="marketing-desk">
-      <header className="fc-wlp-growth-desk-command-strip" data-fcm-accent="rose">
+      <header className="fc-wlp-growth-desk-command-strip">
         <div>
-          <p className="fc-wlp-growth-room-eyebrow">{meta.deckLabel}</p>
+          <p className="fc-wlp-growth-room-eyebrow">Marketing desk</p>
           <h2 className="fc-wlp-growth-room-title">Esther Hayes · Marketing Director</h2>
           <p className="fc-wlp-growth-room-description">{meta.deckDescription}</p>
-        </div>
-        <div className="fc-wlp-growth-desk-command-kpi" data-fcm-accent="emerald">
-          <BarChart3 size={22} aria-hidden />
-          <div>
-            <strong>Today's desk</strong>
-            <span>Pick a room below — work stays on this screen.</span>
-          </div>
         </div>
       </header>
 
       <div className="fc-wlp-growth-desk-room-dock" role="tablist" aria-label="Marketing desk rooms">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={!activeHelper}
+          className="fc-wlp-growth-desk-room-chip"
+          data-active={!activeHelper ? 'true' : undefined}
+          onClick={() => onOpenRoom('')}
+        >
+          Home
+        </button>
         {DESK_ROOM_LINKS.map((room) => (
           <button
             key={room.id}
@@ -1286,7 +1289,7 @@ export default function AdminGrowthWorkstationsSurface({ pageId, entityId }: Wor
   const navItem = getWorkspaceProductNavItem('admin', growthPageId);
   const PageIcon = navItem?.icon ?? Target;
   const roomMeta = GROWTH_ROOM_META[growthPageId];
-  const activeDeskHelper = searchParams.get('helper') || searchParams.get('room') || searchParams.get('tab');
+  const activeDeskHelper = searchParams.get('helper') || searchParams.get('room');
 
   const snapshot = useMemo(() => {
     void version;
@@ -1320,9 +1323,10 @@ export default function AdminGrowthWorkstationsSurface({ pageId, entityId }: Wor
   const openLeadIntel = () => navigate(resolvePath('/admin/lead-intel'));
   const openDeskRoom = (roomId: string) => {
     const next = new URLSearchParams(searchParams);
-    next.set('tab', 'desk');
-    next.set('helper', roomId);
+    next.delete('tab');
     next.delete('room');
+    if (roomId) next.set('helper', roomId);
+    else next.delete('helper');
     setSearchParams(next, { replace: false });
   };
   const openGrowthAgent = (agentId: string) => {
@@ -1391,16 +1395,20 @@ export default function AdminGrowthWorkstationsSurface({ pageId, entityId }: Wor
     }
   };
 
+  const deskOnly = growthPageId === 'marketing-desk';
+
   return (
     <div className="fc-wlp-growth-workstation-root" data-growth-layout={roomMeta.layout}>
-      <AdminGrowthPageShell
-        definition={definition}
-        snapshot={snapshot}
-        icon={PageIcon}
-        relatedLinks={relatedLinks}
-        onPrimaryAction={onPrimaryAction}
-        chromeOnly={TOOL_FIRST_GROWTH_PAGE_IDS.has(growthPageId)}
-      />
+      {deskOnly ? null : (
+        <AdminGrowthPageShell
+          definition={definition}
+          snapshot={snapshot}
+          icon={PageIcon}
+          relatedLinks={relatedLinks}
+          onPrimaryAction={onPrimaryAction}
+          chromeOnly={TOOL_FIRST_GROWTH_PAGE_IDS.has(growthPageId)}
+        />
+      )}
 
       {renderGrowthRoom()}
     </div>
