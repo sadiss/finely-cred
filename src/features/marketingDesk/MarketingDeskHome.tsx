@@ -316,7 +316,7 @@ export function MarketingDeskHome({
         </div>
       </section>
 
-      <details className={CARD}>
+      <details className={cardClass}>
         <summary className="flex cursor-pointer select-none items-center gap-2 font-bold text-[#0a1628]">
           <HelpCircle size={16} className="text-slate-600" />
           How this works

@@ -146,10 +146,16 @@ export function MarketingGoLiveStrip({ productLayout = false }: { productLayout?
       </div>
 
       {emailBlocked ? (
-        <FinelyOsAlertBanner
-          tone="warning"
-          message="Do not flip Email live until SMTP or SendGrid secrets are on the send-email function. Use Copy send pack until then."
-        />
+        productLayout ? (
+          <p className="text-sm font-semibold text-amber-950">
+            Do not flip Email live until SMTP or SendGrid secrets are on the send-email function. Use Copy send pack until then.
+          </p>
+        ) : (
+          <FinelyOsAlertBanner
+            tone="warning"
+            message="Do not flip Email live until SMTP or SendGrid secrets are on the send-email function. Use Copy send pack until then."
+          />
+        )
       ) : null}
 
       <ul className="space-y-2">

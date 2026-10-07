@@ -2739,9 +2739,22 @@ html[data-fc-theme='light'] .fc-wlp .fc-wlp-growth-geo-market-chip[data-active='
   box-shadow: none;
 }
 
-/* One white page plane — not a gray bed with a nested white “screen”. */
-.fc-wlp-content:has(.fc-mkt-desk-page) {
-  background: #ffffff;
+/* Marketing desk fills the column. No white sheet on the gray bed. */
+html[data-fc-theme='light'] [data-fc-public-shell='1']:has([data-wlp-page='marketing-desk']),
+html[data-fc-theme='dark'] [data-fc-public-shell='1']:has([data-wlp-page='marketing-desk']),
+[data-fc-public-shell='1']:has([data-wlp-page='marketing-desk']),
+[data-wlp-page='marketing-desk'].fc-wl-preview-root,
+[data-wlp-page='marketing-desk'] .fc-wlp,
+[data-wlp-page='marketing-desk'] .fc-wlp-main,
+[data-wlp-page='marketing-desk'] .fc-wlp-content,
+[data-wlp-page='marketing-desk'] .fc-wlp-utility {
+  background: #ffffff !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+[data-wlp-page='marketing-desk'] .fc-wlp-content {
+  max-width: none;
 }
 
 .fc-mkt-desk-page-body[data-flat='true'] {
@@ -2784,9 +2797,9 @@ html[data-fc-theme='light'] .fc-wlp .fc-wlp-growth-geo-market-chip[data-active='
 }
 
 .fc-mkt-desk-kpi-grid .fc-mkt-desk-flat-card {
-  border: 1px solid rgb(226 232 240);
-  border-radius: 1rem;
-  background: rgb(248 250 252);
-  padding: 1.25rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
 }
 
